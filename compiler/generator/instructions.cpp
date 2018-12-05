@@ -253,7 +253,7 @@ ValueInst* BlockInst::getReturnValue()
         fCode.pop_back();
         return ret->fResult;
     } else {
-        return InstBuilder::genNullInst();
+        return InstBuilder::genNullValueInst();
     }
 }
 

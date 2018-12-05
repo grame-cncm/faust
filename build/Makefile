@@ -11,6 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
+VERSION := 2.13.10
 
 #===============================================================
 # current generator and backends
@@ -19,14 +20,24 @@ BCACHE = $(FAUSTDIR)/backends.txt
 TCACHE = $(FAUSTDIR)/targets.txt
 ifeq ($(system),  MINGW)
 	GENERATOR ?= $(shell [ -f $(CACHE) ] && (grep CMAKE_GENERATOR:INTERNAL $(CACHE) | cut -d= -f2) || echo MSYS Makefiles)
+	NATIVEPACK = winpack
 else
 	PREFIX ?= /usr/local
 	GENERATOR ?= $(shell [ -f $(CACHE) ] && (grep CMAKE_GENERATOR:INTERNAL $(CACHE) | cut -d= -f2) || echo Unix Makefiles)
 endif
 DESTDIR ?=
 
+ifeq ($(system),  MINGW)
+	NATIVEPACK = winpack
+else ifeq ($(system),  Darwin)
+	NATIVEPACK = macpack
+else
+	NATIVEPACK = linuxpack
+endif
+DESTDIR ?=
 
-.PHONY: faust install uninstall osc http
+
+.PHONY: faust install uninstall osc http package
 
 MAKE ?= make
 
@@ -126,6 +137,9 @@ help:
 	@echo " 'PREFIX'     : the destination prefix,"
 	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 	@echo "------ see also the README.md file ------"
+	@echo
+	@echo "Packaging targets:"
+	@echo " 'package'    : build a faust package for the current platform"
 
 	
 faust: $(PROJ) 
@@ -146,6 +160,30 @@ httpdynamic: $(PROJ)
 jsscripts: 
 	make -C ../architecture/httpdlib/src/hexa
 
+#===============================================================
+# packaging
+#===============================================================
+PACK := package/Faust-$(VERSION)
+package:
+	make $(NATIVEPACK)
+
+winpack:
+	cd $(FAUSTDIR) && cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
+	make
+	cd $(FAUSTDIR) && cpack -G NSIS64
+	mv  $(FAUSTDIR)/Faust-*.exe .
+
+macpack:
+	make -C package/Tools
+	-[ -d $(PACK) ] && rm -rf $(PACK)
+	make cmake BACKENDs=all.cmake TARGETS=all.cmake
+	make install PREFIX=../$(PACK)/Faust-$(VERSION)
+	cp package/install $(PACK)/Faust-$(VERSION)
+	cp package/README.rtf $(PACK)
+	hdiutil create Faust-$(VERSION).dmg -srcfolder $(PACK) -ov
+
+linuxpack:
+	@echo Linux packaging not implemented. 
 
 #===============================================================
 # building universal binaries on macos

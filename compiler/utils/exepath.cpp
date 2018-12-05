@@ -35,7 +35,6 @@
 #endif
 
 #include "exepath.hh"
-#include "exception.hh"
 
 using namespace std;
 
@@ -49,7 +48,7 @@ using namespace std;
 // removes the exe name from a path (similar to dirname)
 string exepath::dirup(const string& path)
 {
-	if (path.empty()) return path;
+    if (path.empty()) return path;
     size_t len = path.length();
     size_t pos = path.rfind(kPSEP, len - 2);
     if (pos == string::npos) return "";
@@ -123,7 +122,7 @@ static std::string exec(const string& cmd)
 static string GetCurrentWorkingDir()
 {
     char buff[FILENAME_MAX];
-    return GetCurrentDir(buff, FILENAME_MAX) ?  buff : "";
+    return GetCurrentDir(buff, FILENAME_MAX) ? buff : "";
 }
 
 //-----------------------------------------------------------------

@@ -72,7 +72,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -102,7 +102,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -224,7 +224,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
         Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70)
+#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70) && !defined(LLVM_80)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #endif
@@ -993,7 +993,7 @@ void LLVMVectorCodeContainer::generateCompute()
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
 
-    // Generates DSP loop
+    // Generates the DSP loop
     fDAGBlock->accept(fCodeProducer);
 
     generateComputeEnd();

@@ -14,6 +14,9 @@ llvm-test: llvm-test.cpp $(LIB)/libfaust.a
 install: 
 	([ -e llvm-test ]) && cp llvm-test $(prefix)/bin
 
+test: llvm-test
+	./llvm-test foo.dsp
+
 clean:
 	rm -f llvm-test
 	

@@ -232,29 +232,35 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
 
 void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index_string)
 {
-    // Generates line like: fInput0 = &fInput0_ptr[index];
+    // Generates line like: FAUSTFLOAT* fInput0 = &fInput0_ptr[index];
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    
     for (int index = 0; index < inputs(); index++) {
-        string name1 = subst("fInput$0", T(index));
+        string name1 = subst("input$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStackVar(
+        loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
+            type,
             InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genVolatileLoadStructVar(index_string))));
     }
 }
 
 void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index_string)
 {
-    // Generates line like: fOutput0 = &fOutput0_ptr[index];
+    // Generates line like: FAUSTFLOAT* fOutput0 = &fOutput0_ptr[index];
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    
     for (int index = 0; index < outputs(); index++) {
-        string name1 = subst("fOutput$0", T(index));
+        string name1 = subst("output$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStackVar(
+        loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
+            type,
             InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genVolatileLoadStructVar(index_string))));
     }
 }
 
-StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
+BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 {
     string index = "fIndex";
 
@@ -262,10 +268,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt32),
                                                         InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
 
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt32),
-                                                            InstBuilder::genLoadStructVar(fullcount));
-    loop_code->pushFrontInst(count_dec);
-
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32));
+  
     ValueInst*    switch_cond  = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
@@ -318,9 +322,9 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    ValueInst* init3 = InstBuilder::genFunCallInst("min_i", min_fun_args);
 
-    StoreVarInst* count_store = InstBuilder::genStoreStackVar("count", init3);
+    DeclareVarInst* count_store = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32), init3);
 
     // Generate input/output access
     generateLocalInputs(switch_block_code, index);
@@ -471,9 +475,16 @@ void WSSCodeContainer::processFIR(void)
     fThreadLoopBlock = generateDAGLoopWSS(dag);
 
     generateDAGLoopWSSAux2(dag, fFullCount);
+    
+    if (gGlobal->gRemoveVarAddress) {
+        VarAddressRemover remover;
+        fComputeBlockInstructions = remover.getCode(fComputeBlockInstructions);
+        fThreadLoopBlock = remover.getCode(fThreadLoopBlock);
+        fComputeThreadBlockInstructions = remover.getCode(fComputeThreadBlockInstructions);
+    }
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     /*
     // Verify code

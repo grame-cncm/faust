@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "poly-dynamic-jack-gtk [-llvm] [interp– [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "poly-dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";

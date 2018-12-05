@@ -35,6 +35,7 @@ all:
 	$(MAKE) mute
 #   $(MAKE) asmjs
 	$(MAKE) wasm
+	$(MAKE) wast
 	$(MAKE) llvm
 
 help:
@@ -47,12 +48,13 @@ help:
 	@echo " 'mute'   : check double output with mute"
 	@echo " 'asmjs'  : check double output with asmjs backend and various options"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
+	@echo " 'wast'   : check double output with wast backend and various options"
 	@echo " 'llvm'   : check double output with llvm backend and various options"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
 	@echo " 'travis'    : tests subset for travis"
-	@echo " 'web'       : call the asmjs and wasm targets"
+	@echo " 'web'       : call the asmjs and wast/wasm targets"
 	@echo " 'reference' : builds the reference files"
 	@echo " 'tools'     : builds binary tools used by the tests"
 	@echo
@@ -111,6 +113,7 @@ mute: ir/mute  $(mutefiles)
 web:
 	$(MAKE) asmjs
 	$(MAKE) wasm
+	$(MAKE) wast
 
 asmjs:
 	$(MAKE) -f Make.web asmjs
@@ -119,6 +122,10 @@ asmjs:
 wasm:
 	$(MAKE) -f Make.web wasm
 	$(MAKE) -f Make.web wasm wasmdir=wasm/ftz1 FAUSTOPTIONS="-ftz 1"
+
+wast:
+	$(MAKE) -f Make.web wast
+	$(MAKE) -f Make.web wast wastdir=wast/ftz1 FAUSTOPTIONS="-ftz 1"
 
 #########################################################################
 # llvm backend

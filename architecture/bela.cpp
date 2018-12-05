@@ -57,21 +57,25 @@ using namespace std;
 #include "faust/gui/UI.h"
 #include "faust/gui/MidiUI.h"
 
-// for MIDI
+// for MIDI support
 #ifdef MIDICTRL
 #include "faust/midi/bela-midi.h"
 #endif
 
-// for OSC
+// for OSC support
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/BelaOSCUI.h"
 #endif
 
-// for HTTPDGUI
+// for HTTPDGUI support
 #ifdef HTTPDGUI
 #include "faust/gui/httpdUI.h"
-httpdUI* gHttpdinterface;
+#endif
+
+// for soundfile support
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
 #endif
 
 // for polyphonic synths
@@ -80,7 +84,7 @@ httpdUI* gHttpdinterface;
 // for polyphonic synths with FX
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif
 
 const char* const pinNamesStrings[] =
@@ -372,6 +376,15 @@ MidiUI* gMidiInterface = NULL;
 BelaOSCUI gOSCUI(OSC_IP_ADDRESS, OSC_IN_PORT, OSC_OUT_PORT);
 #endif
 
+#ifdef HTTPDGUI
+httpdUI* gHttpdInterface;
+#endif
+
+#ifdef SOUNDFILE
+// Use bundle path
+SoundUI gSoundInterface(SoundUI::getBinaryPath());
+#endif
+
 FAUSTFLOAT** gInputs = NULL;   // array of pointers to context->audioIn data
 FAUSTFLOAT** gOutputs = NULL;  // array of pointers to context->audioOut data
 
@@ -427,9 +440,9 @@ bool setup(BelaContext* context, void* userData)
     gDSP->init(context->audioSampleRate);
     gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and Faust widgets
 #ifdef HTTPDGUI
-    gHttpdinterface = new httpdUI("Bela-UI", gDSP->getNumInputs(), gDSP->getNumOutputs(), 0, NULL);
-    gDSP->buildUserInterface(gHttpdinterface);
-    gHttpdinterface->run();
+    gHttpdInterface = new httpdUI("Bela-UI", gDSP->getNumInputs(), gDSP->getNumOutputs(), 0, NULL);
+    gDSP->buildUserInterface(gHttpdInterface);
+    gHttpdInterface->run();
 #endif /* HTTPDGUI */
 
 #ifdef MIDICTRL
@@ -445,6 +458,13 @@ bool setup(BelaContext* context, void* userData)
 #ifdef OSCCTRL
     gDSP->buildUserInterface(&gOSCUI);
     gOSCUI.run();
+#endif
+    
+#ifdef SOUNDFILE
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    gDSP->buildUserInterface(&gSoundInterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
     return true;
@@ -467,7 +487,7 @@ void render(BelaContext* context, void* userData)
 void cleanup(BelaContext* context, void* userData)
 {
 #ifdef HTTPDGUI
-    delete gHttpdinterface;
+    delete gHttpdInterface;
 #endif /* HTTPDGUI */
     delete [] gInputs;
     delete [] gOutputs;
@@ -477,5 +497,3 @@ void cleanup(BelaContext* context, void* userData)
     delete gMidiInterface;
 #endif
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////

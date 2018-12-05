@@ -175,9 +175,13 @@ static remote_dsp_factory* crossCompile(int argc, const char* argv[],
     string url = serverURL.str() + "/CrossCompileFactory";
    
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        llvm_dsp_factory* factory = readDSPFactoryFromMachine(response, getDSPMachineTarget());
-        remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
-        return reinterpret_cast<remote_dsp_factory*>(factory); 
+        llvm_dsp_factory* factory = readDSPFactoryFromMachine(response, getDSPMachineTarget(), error_msg);
+        if (factory) {
+            remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
+            return reinterpret_cast<remote_dsp_factory*>(factory);
+        } else {
+            return NULL;
+        }
     } else {
         error_msg = response;
         return NULL;

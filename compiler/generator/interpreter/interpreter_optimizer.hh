@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <map>
+#include <cmath>
 #include <string>
 
 #include "exception.hh"
@@ -381,11 +382,11 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
             gFIRExtendedMath2ValueInvert[FBCInstruction::Opcode(i)] =
                 FBCInstruction::Opcode(i + (FBCInstruction::kAtan2fValueInvert - FBCInstruction::kAtan2f));
         }
-        
+
         //  Init binary math Value opcode : complete with commutative operations
         for (int i = FBCInstruction::kMax; i <= FBCInstruction::kMinf; i++) {
             gFIRExtendedMath2ValueInvert[FBCInstruction::Opcode(i)] =
-            FBCInstruction::Opcode(i + (FBCInstruction::kMaxValue - FBCInstruction::kMax));
+                FBCInstruction::Opcode(i + (FBCInstruction::kMaxValue - FBCInstruction::kMax));
         }
     }
 

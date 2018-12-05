@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include <algorithm>
+#include <assert.h>
 
 #if JUCE_WINDOWS
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
@@ -37,6 +38,13 @@
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/JuceGUI.h"
 
+// Always included otherwise -i mode sometimes fails...
+#include "faust/gui/DecoratorUI.h"
+
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
 #endif
@@ -46,12 +54,9 @@
 #include "faust/dsp/timed-dsp.h"
 #endif
 
-#if defined(SOUNDFILE)
-#include "faust/gui/SoundUI.h"
-#endif
-
 #if defined(POLY2)
-#include "dsp_effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.h"
 #endif 
 
 <<includeIntrinsic>>
@@ -74,17 +79,18 @@ class FaustComponent : public AudioAppComponent, private Timer
             delete tmp_dsp;
             
         #ifdef POLY2
+            assert(nvoices > 0);
             std::cout << "Started with " << nvoices << " voices\n";
             dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
                 
         #if MIDICTRL
             if (midi_sync) {
-                fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new dsp_effect()));
+                fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
             } else {
-                fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
+                fDSP = new dsp_sequencer(dsp_poly, new effect());
             }
         #else
-            fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
+            fDSP = new dsp_sequencer(dsp_poly, new effect());
         #endif
                 
         #else
@@ -305,7 +311,12 @@ class FaustAudioApplication : public JUCEApplication
             
             public:
             
-                myViewport(String name, int w, int h, int rW, int rH): Viewport(name), minWidth(w), minHeight(h), recommendedWidth(rW), recommendedHeight(rH)
+                myViewport(String name, int w, int h, int rW, int rH):
+                Viewport(name),
+                minWidth(w),
+                minHeight(h),
+                recommendedWidth(rW),
+                recommendedHeight(rH)
                 {
                     addAndMakeVisible(tooltipWindow);
                 }

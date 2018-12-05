@@ -39,12 +39,13 @@ int main(int argc, char* argv[])
         }
         
         {
-            // Test writeInterpreterDSPFactoryToMachineFile/readInterpreterDSPFactoryFromMachineFile
-            writeInterpreterDSPFactoryToMachineFile(factory, "/var/tmp/interp-factory.fbc");
+            string error_msg;
+            // Test writeInterpreterDSPFactoryToBitcodeFile/readInterpreterDSPFactoryFromBitcodeFile
+            writeInterpreterDSPFactoryToBitcodeFile(factory, "/var/tmp/interp-factory.fbc");
             deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-            factory = readInterpreterDSPFactoryFromMachineFile("/var/tmp/interp-factory.fbc");
+            factory = readInterpreterDSPFactoryFromBitcodeFile("/var/tmp/interp-factory.fbc", error_msg);
             if (!factory) {
-                cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
+                cerr << "Error in readInterpreterDSPFactoryFromBitcodeFile" << error_msg << endl;
                 exit(-1);
             }
             runFactory(factory, argv[1]);
@@ -52,12 +53,13 @@ int main(int argc, char* argv[])
         }
         
         {
-            // Test writeInterpreterDSPFactoryToMachine/readInterpreterDSPFactoryFromMachine
-            factory_str = writeInterpreterDSPFactoryToMachine(factory);
+            string error_msg;
+            // Test writeInterpreterDSPFactoryToBitcode/readInterpreterDSPFactoryFromBitcode
+            factory_str = writeInterpreterDSPFactoryToBitcode(factory);
             deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-            factory = readInterpreterDSPFactoryFromMachine(factory_str);
+            factory = readInterpreterDSPFactoryFromBitcode(factory_str, error_msg);
             if (!factory) {
-                cerr << "Error in readInterpreterDSPFactoryFromMachine" << endl;
+                cerr << "Error in readInterpreterDSPFactoryFromBitcode" << error_msg << endl;
                 exit(-1);
             }
             runFactory(factory, argv[1]);
@@ -67,9 +69,10 @@ int main(int argc, char* argv[])
     } else {
         
         // Test factory generated from file
-        factory = readInterpreterDSPFactoryFromMachineFile(argv[1]);
+        string error_msg;
+        factory = readInterpreterDSPFactoryFromBitcodeFile(argv[1], error_msg);
         if (!factory) {
-            cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
+            cerr << "Error in readInterpreterDSPFactoryFromBitcodeFile" << error_msg << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);

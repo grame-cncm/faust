@@ -62,7 +62,7 @@ BinOp* gBinOpTable[] = {
     new BinOp("/", "div_vec", "div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, "i32.div_s",
               "i64.div_s", "f32.div", "f64.div", WasmOp::I32DivS, WasmOp::I64DivS, WasmOp::F32Div, WasmOp::F64Div,
               FBCInstruction::kDivInt, FBCInstruction::kDivReal, &divExtendedNode, &noNtrl, &isOne, 10),
-    new BinOp("%", "mod_vec", "mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, "i32.rem", "i64.rem",
+    new BinOp("%", "mod_vec", "mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, "i32.rem_s", "i64.rem_s",
               "dummy", "dummy", WasmOp::I32RemS, WasmOp::I64RemS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kRemInt,
               FBCInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
 

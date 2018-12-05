@@ -58,7 +58,8 @@
 #include "faust/dsp/poly-dsp.h"
 
 #if POLY2
-#include "effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.h"
 #endif
 
 #if MIDICTRL
@@ -278,7 +279,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     // Abstract layout is the layout computed without regarding screen dimensions. To be displayed, we adapt it to the device and orientation
     uiinterface->saveAbstractLayout();
     
-    // Used to refresh bargraphes
+    // Used to refresh bargraphs
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:kRefreshTimerInterval target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
     // Views initilizations
@@ -839,6 +840,8 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Locked box : box currently zoomed in
 - (void)zoomToLockedBox
 {
+    if (!_lockedBox) return;
+    
     if (_lockedBox == uiinterface->getMainBox())
     {
         [_dspScrollView setZoomScale:_dspScrollView.minimumZoomScale animated:YES];
@@ -1711,7 +1714,7 @@ static inline const char* transmit_value(int num)
             printf("startGyroUpdates\n");
         }
         
-        if (_hasAcc || _hasGyr) {
+        if (_hasAcc || _hasGyr || uiinterface->isScreenUI()) {
             _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
                                                             target:self
                                                           selector:@selector(updateMotion)

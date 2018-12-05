@@ -179,7 +179,7 @@ for p in $FILES; do
         faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
         faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+        faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
 
     # compile c++ to binary

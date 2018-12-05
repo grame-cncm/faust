@@ -38,11 +38,11 @@ class faustexception : public std::runtime_error {
 #ifdef EMCC
     static const char* gJSExceptionMsg;
 
-    faustexception(const std::string& msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg.c_str()); }
+    faustexception(const std::string& msg = "") : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg.c_str()); }
     faustexception(char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
     faustexception(const char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
 #else
-    faustexception(const std::string& msg) : std::runtime_error(msg) {}
+    faustexception(const std::string& msg = "") : std::runtime_error(msg) {}
     faustexception(char* msg) : std::runtime_error(msg) {}
     faustexception(const char* msg) : std::runtime_error(msg) {}
 #endif

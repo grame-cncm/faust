@@ -251,12 +251,13 @@ void stopMTDSPFactories();
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling createDSPFactory can possibly be used.
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = -1);
+llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, std::string& error_msg, int opt_level = -1);
 
 /**
  * Write a Faust DSP factory into a base64 encoded LLVM bitcode string.
@@ -277,13 +278,14 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
  * createDSPFactory can possibly be used.
  * 
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = -1);
+llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, std::string& error_msg, int opt_level = -1);
 
 /**
  * Write a Faust DSP factory into a LLVM bitcode file.
@@ -304,13 +306,14 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
  * createDSPFactory can possibly be used.
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = -1);
+llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, std::string& error_msg, int opt_level = -1);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) string.
@@ -331,13 +334,14 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions), a higher value 
  * than the one used when calling createDSPFactory can possibly be used.
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = -1);
+llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, std::string& error_msg, int opt_level = -1);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) file.
@@ -355,13 +359,14 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code - the machine code string
+ * @param error_msg - the error string to be filled
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target);
+llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a base64 encoded machine code string.
@@ -382,13 +387,14 @@ std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::strin
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code_path - the machine code file pathname
+ * @param error_msg - the error string to be filled
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
+llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code file.

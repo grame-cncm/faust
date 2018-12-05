@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc" << endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         if (!factory) {
-            factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
+            factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
         }
     }
     

@@ -61,13 +61,13 @@ EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, 
 
 EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* machine_code);
+EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* wasm_code, char* error_msg);
 
 EXPORT char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* machine_code_path);
+EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* wasm_code_path, char* error_msg);
 
-EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* machine_code_path);
+EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* wasm_code_path);
 
 typedef struct {
     char*       fCode;

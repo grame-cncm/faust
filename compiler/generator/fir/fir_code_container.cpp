@@ -26,37 +26,36 @@
 
 using namespace std;
 
-dsp_factory_base* FirCodeContainer::produceFactory()
+dsp_factory_base* FIRCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<stringstream*>(fOut)) ? dynamic_cast<stringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((dynamic_cast<stringstream*>(fOut)) ? dynamic_cast<stringstream*>(fOut)->str() : ""), "");
 }
 
-CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* FIRCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new FirScalarCodeContainer(name, 0, 1, sub_container_type, fOut, false);
+    return new FIRScalarCodeContainer(name, 0, 1, sub_container_type, fOut, false);
 }
 
-CodeContainer* FirCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
+CodeContainer* FIRCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
                                                  bool top_level)
 {
     CodeContainer* container;
 
     if (gGlobal->gOpenMPSwitch) {
-        container = new FirOpenMPCodeContainer(name, numInputs, numOutputs, dst, top_level);
+        container = new FIROpenMPCodeContainer(name, numInputs, numOutputs, dst, top_level);
     } else if (gGlobal->gSchedulerSwitch) {
-        container = new FirWorkStealingCodeContainer(name, numInputs, numOutputs, dst, top_level);
+        container = new FIRWorkStealingCodeContainer(name, numInputs, numOutputs, dst, top_level);
     } else if (gGlobal->gVectorSwitch) {
-        container = new FirVectorCodeContainer(name, numInputs, numOutputs, dst, top_level);
+        container = new FIRVectorCodeContainer(name, numInputs, numOutputs, dst, top_level);
     } else {
-        container = new FirScalarCodeContainer(name, numInputs, numOutputs, kInt, dst, top_level);
+        container = new FIRScalarCodeContainer(name, numInputs, numOutputs, kInt, dst, top_level);
     }
 
     return container;
 }
 
-void FirCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // User Interface
     if (fUserInterfaceInstructions->fCode.size() > 0) {
@@ -67,7 +66,7 @@ void FirCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* ds
     }
 }
 
-void FirCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
 {
     list<CodeContainer*>::const_iterator it;
     *dst << "======= Sub container begin ==========" << endl << endl;
@@ -78,7 +77,7 @@ void FirCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* ds
     *dst << "======= Sub container end ==========" << endl << endl;
 }
 
-void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
         *dst << "======= Global external declarations ==========" << endl;
@@ -164,7 +163,7 @@ static void dumpCost(StatementInst* inst, ostream* dst)
     *dst << endl;
 }
 
-void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute control ==========" << endl << endl;
@@ -175,7 +174,7 @@ void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst
     }
 }
 
-void FirCodeContainer::dumpFlatten(ostream* dst)
+void FIRCodeContainer::dumpFlatten(ostream* dst)
 {
     *dst << "======= Flatten FIR ==========" << endl;
     *dst << endl;
@@ -184,7 +183,7 @@ void FirCodeContainer::dumpFlatten(ostream* dst)
     *dst << endl;
 }
 
-void FirCodeContainer::dumpMemory(ostream* dst)
+void FIRCodeContainer::dumpMemory(ostream* dst)
 {
     // Compute memory footprint
     if (fTopLevel) {
@@ -222,7 +221,7 @@ void FirCodeContainer::dumpMemory(ostream* dst)
     }
 }
 
-void FirCodeContainer::produceInternal()
+void FIRCodeContainer::produceInternal()
 {
     FIRInstVisitor firvisitor(fOut);
     *fOut << "======= Sub container \"" << fKlassName << "\" ==========" << endl;
@@ -233,7 +232,7 @@ void FirCodeContainer::produceInternal()
     dumpCompute(firvisitor, fOut);
 }
 
-void FirCodeContainer::produceClass()
+void FIRCodeContainer::produceClass()
 {
     FIRInstVisitor firvisitor(fOut);
     *fOut << "======= Container \"" << fKlassName << "\" ==========" << endl;
@@ -259,14 +258,14 @@ void FirCodeContainer::produceClass()
     dumpMemory(fOut);
 }
 
-void FirCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     *dst << "======= Post compute DSP ==========" << endl;
     fPostComputeBlockInstructions->accept(&firvisitor);
     *dst << endl;
 }
 
-void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     *dst << "======= Compute DSP ==========" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
@@ -280,11 +279,11 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     *dst << endl;
 }
 
-void FirVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Complexity estimation
     dumpCost(fDAGBlock, dst);
-    // Generates DSP loop
+    // Generates the DSP loop
     fDAGBlock->accept(&firvisitor);
 
     // Possibly generate separated functions
@@ -301,7 +300,7 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     }
 }
 
-void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
+void FIROpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Complexity estimation
     dumpCost(fGlobalLoopBlock, dst);
@@ -320,7 +319,7 @@ void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     }
 }
 
-void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
@@ -334,7 +333,7 @@ void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostre
     }
 }
 
-void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
+void FIRWorkStealingCodeContainer::dumpMemory(ostream* dst)
 {
     // Compute memory footprint
     if (fTopLevel) {
@@ -364,7 +363,7 @@ void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
     }
 }
 
-void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
+void FIRWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Generate it
     *dst << "======= Compute Thread ==========" << endl;

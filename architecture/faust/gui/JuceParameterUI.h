@@ -67,7 +67,9 @@ struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwn
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-        setValueNotifyingHost(range.convertTo0to1(float(v)));
+        if (v >= range.start && v <= range.end) {
+            setValueNotifyingHost(range.convertTo0to1(float(v)));
+        }
     }
     
     virtual void setValue (float newValue) override

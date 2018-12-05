@@ -295,7 +295,7 @@ class TextInstVisitor : public InstVisitor {
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-
+       
         *fOut << "for (";
         fFinishLine = false;
         inst->fInit->accept(this);

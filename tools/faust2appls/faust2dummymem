@@ -3,7 +3,7 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS="$MYGCCFLAGS -std=c++11"
 
 OSCDEFS=""
 NVOICES=-1

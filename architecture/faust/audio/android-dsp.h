@@ -38,6 +38,40 @@
 #define NUM_OUTPUTS 2
 #define CPU_TABLE_SIZE 16
 
+static const char *res_str(SLresult result)
+{
+    switch(result)
+    {
+        case SL_RESULT_SUCCESS: return "Success";
+        case SL_RESULT_PRECONDITIONS_VIOLATED: return "Preconditions violated";
+        case SL_RESULT_PARAMETER_INVALID: return "Parameter invalid";
+        case SL_RESULT_MEMORY_FAILURE: return "Memory failure";
+        case SL_RESULT_RESOURCE_ERROR: return "Resource error";
+        case SL_RESULT_RESOURCE_LOST: return "Resource lost";
+        case SL_RESULT_IO_ERROR: return "I/O error";
+        case SL_RESULT_BUFFER_INSUFFICIENT: return "Buffer insufficient";
+        case SL_RESULT_CONTENT_CORRUPTED: return "Content corrupted";
+        case SL_RESULT_CONTENT_UNSUPPORTED: return "Content unsupported";
+        case SL_RESULT_CONTENT_NOT_FOUND: return "Content not found";
+        case SL_RESULT_PERMISSION_DENIED: return "Permission denied";
+        case SL_RESULT_FEATURE_UNSUPPORTED: return "Feature unsupported";
+        case SL_RESULT_INTERNAL_ERROR: return "Internal error";
+        case SL_RESULT_UNKNOWN_ERROR: return "Unknown error";
+        case SL_RESULT_OPERATION_ABORTED: return "Operation aborted";
+        case SL_RESULT_CONTROL_LOST: return "Control lost";
+#ifdef SL_RESULT_READONLY
+        case SL_RESULT_READONLY: return "ReadOnly";
+#endif
+#ifdef SL_RESULT_ENGINEOPTION_UNSUPPORTED
+        case SL_RESULT_ENGINEOPTION_UNSUPPORTED: return "Engine option unsupported";
+#endif
+#ifdef SL_RESULT_SOURCE_SINK_INCOMPATIBLE
+        case SL_RESULT_SOURCE_SINK_INCOMPATIBLE: return "Source/Sink incompatible";
+#endif
+    }
+    return "Unknown error code";
+}
+
 struct CircularBuffer {
     
     short* fBuffer;
@@ -83,7 +117,7 @@ class androidaudio : public audio {
     
     protected:
     
-        dsp* fDsp;
+        dsp* fDSP;
         
         int	fNumInChans;
         int	fNumOutChans;
@@ -132,7 +166,7 @@ class androidaudio : public audio {
             }
             
             // Compute DSP
-            fDsp->compute(fBufferSize, fInputs, fOutputs);
+            fDSP->compute(fBufferSize, fInputs, fOutputs);
             
             if (fControlCb) {
                 fControlCb(fControlCbArg);
@@ -164,7 +198,7 @@ class androidaudio : public audio {
             SLresult result = (*caller)->Enqueue(caller, fOpenSLInputs.getWritePtr(), fBufferSize * sizeof(short) * NUM_INPUTS);
             fOpenSLInputs.moveWritePtr(fBufferSize);
             if (result != SL_RESULT_SUCCESS) {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback Enqueue error = %d", int(result));
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback Enqueue error = %s", res_str(result));
             }
         }
     
@@ -182,14 +216,14 @@ class androidaudio : public audio {
             SLresult result = (*caller)->Enqueue(caller, fOpenSLOutputs.getReadPtr(), fBufferSize * sizeof(short) * NUM_OUTPUTS);
             fOpenSLOutputs.moveReadPtr(fBufferSize);
             if (result != SL_RESULT_SUCCESS) {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback Enqueue error = %d", int(result));
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback Enqueue error = %s", res_str(result));
             }
         }
           
     public:
     
         androidaudio(long srate, long bsize)
-        : fDsp(0), fSampleRate(srate),
+        : fDSP(0), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0),
         fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS),
@@ -261,10 +295,10 @@ class androidaudio : public audio {
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "init");
             
-            fDsp = DSP;
-            fNumInChans = fDsp->getNumInputs();
-            fNumOutChans = fDsp->getNumOutputs();
-            fDsp->init(fSampleRate);
+            fDSP = DSP;
+            fNumInChans = fDSP->getNumInputs();
+            fNumOutChans = fDSP->getNumOutputs();
+            fDSP->init(fSampleRate);
             
             static const SLboolean requireds[2] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
             SLresult result;
@@ -314,22 +348,37 @@ class androidaudio : public audio {
           
             // Create the OpenSL ES engine.
             result = slCreateEngine(&fOpenSLEngine, 0, NULL, 0, NULL, NULL);
-            if (result != SL_RESULT_SUCCESS) return false;
+            if (result != SL_RESULT_SUCCESS) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "slCreateEngine/fOpenSLEngine error = %s", res_str(result));
+                return false;
+            }
             
             result = (*fOpenSLEngine)->Realize(fOpenSLEngine, SL_BOOLEAN_FALSE);
-            if (result != SL_RESULT_SUCCESS) return false;
+            if (result != SL_RESULT_SUCCESS) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "Realize/fOpenSLEngine error = %s", res_str(result));
+                return false;
+            }
             
             SLEngineItf openSLEngineInterface = NULL;
             result = (*fOpenSLEngine)->GetInterface(fOpenSLEngine, SL_IID_ENGINE, &openSLEngineInterface);
-            if (result != SL_RESULT_SUCCESS) return false;
+            if (result != SL_RESULT_SUCCESS) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface/fOpenSLEngine error = %s", res_str(result));
+                return false;
+            }
             
             // Create the output mix.
             result = (*openSLEngineInterface)->CreateOutputMix(openSLEngineInterface, &fOutputMix, 0, NULL, NULL);
-            if (result != SL_RESULT_SUCCESS) return false;
+            if (result != SL_RESULT_SUCCESS) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "CreateOutputMix/openSLEngineInterface error = %s", res_str(result));
+                return false;
+            }
             
             result = (*fOutputMix)->Realize(fOutputMix, SL_BOOLEAN_FALSE);
-            if (result != SL_RESULT_SUCCESS) return false;
-            
+            if (result != SL_RESULT_SUCCESS) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "Realize/fOutputMix error = %s", res_str(result));
+                return false;
+            }
+        
             SLDataLocator_OutputMix outputMixLocator = { SL_DATALOCATOR_OUTPUTMIX, fOutputMix };
             
             if (fNumInChans > 0) {
@@ -342,7 +391,10 @@ class androidaudio : public audio {
                 const SLInterfaceID inputInterfaces[2] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE, SL_IID_ANDROIDCONFIGURATION };
                 
                 result = (*openSLEngineInterface)->CreateAudioRecorder(openSLEngineInterface, &fInputBufferQueue, &inputSource, &inputSink, 2, inputInterfaces, requireds);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "CreateAudioRecorder/openSLEngineInterface error = %s", res_str(result));
+                    return false;
+                }
                 
             #if DISABLE_AGC
                 SLAndroidConfigurationItf configObject;
@@ -352,15 +404,18 @@ class androidaudio : public audio {
                     SLuint32 mode = SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION;
                     result = (*configObject)->SetConfiguration(configObject, SL_ANDROID_KEY_RECORDING_PRESET, &mode, sizeof(mode));
                     if (result != SL_RESULT_SUCCESS) {
-                       __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetConfiguration SL_ANDROID_KEY_RECORDING_PRESET error %d", result);
+                       __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetConfiguration SL_ANDROID_KEY_RECORDING_PRESET error = %s", res_str(result));
                     }
                 } else {
-                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface SL_IID_ANDROIDCONFIGURATION error %d", result);
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface SL_IID_ANDROIDCONFIGURATION error = %s", res_str(result));
                 }
             #endif
                 
                 result = (*fInputBufferQueue)->Realize(fInputBufferQueue, SL_BOOLEAN_FALSE);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "Realize/fInputBufferQueue error = %s", res_str(result));
+                    return false;
+                }
             }
             
             if (fNumOutChans > 0) {
@@ -372,52 +427,86 @@ class androidaudio : public audio {
                 SLDataSink outputSink = { &outputMixLocator, NULL };
                 
                 result = (*openSLEngineInterface)->CreateAudioPlayer(openSLEngineInterface, &fOutputBufferQueue, &outputSource, &outputSink, 1, outputInterfaces, requireds);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "CreateAudioPlayer/openSLEngineInterface error  = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fOutputBufferQueue)->Realize(fOutputBufferQueue, SL_BOOLEAN_FALSE);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "Realize/fOutputBufferQueue error = %s", res_str(result));
+                    return false;
+                }
             }
             
             if (fNumInChans > 0) { // Initialize
                 
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &fInputBufferQueueInterface);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface/fInputBufferQueue error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fInputBufferQueueInterface)->RegisterCallback(fInputBufferQueueInterface, inputCallback, this);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "RegisterCallback/fInputBufferQueueInterface error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &fRecordInterface);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface/fInputBufferQueue error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface,
                                                                 fOpenSLInputs.getWritePtr(),
                                                                 fBufferSize * sizeof(short) * NUM_INPUTS);
                 fOpenSLInputs.moveWritePtr(fBufferSize);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "Enqueue/fInputBufferQueueInterface error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_STOPPED);
-                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetRecordState error");
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetRecordState/fRecordInterface error = %s", res_str(result));
+                }
             }
             
             if (fNumOutChans > 0) { // Initialize
               
                 result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_BUFFERQUEUE, &fOutputBufferQueueInterface);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface/fOutputBufferQueue error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fOutputBufferQueueInterface)->RegisterCallback(fOutputBufferQueueInterface, outputCallback, this);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "RegisterCallback/fOutputBufferQueueInterface error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_PLAY, &fPlayInterface);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface/fOutputBufferQueue error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fOutputBufferQueueInterface)->Enqueue(fOutputBufferQueueInterface,
                                                                  fOpenSLOutputs.getReadPtr(),
                                                                  fBufferSize * sizeof(short) * NUM_OUTPUTS);
                 fOpenSLOutputs.moveReadPtr(fBufferSize);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "Enqueue/fOutputBufferQueueInterface error = %s", res_str(result));
+                    return false;
+                }
                 
                 result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_STOPPED);
-                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetPlayState error");
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetPlayState/fPlayInterface error = %s", res_str(result));
+                }
             }
             
             return true;
@@ -431,13 +520,17 @@ class androidaudio : public audio {
             if (fNumInChans > 0) {
                 // start the inout buffer queue.
                 result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_RECORDING);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetRecordState/fRecordInterface error = %s", res_str(result));
+                }
             }
             
             if (fNumOutChans > 0) {
                 // start the output buffer queue.
                 result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_PLAYING);
-                if (result != SL_RESULT_SUCCESS) return false;
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetPlayState/fPlayInterface error = %s", res_str(result));
+                }
             }
             
             return true;
@@ -450,12 +543,16 @@ class androidaudio : public audio {
             
             if (fNumInChans > 0) {
                 result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_PAUSED);
-                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetRecordState error");
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetRecordState/fRecordInterface error = %s", res_str(result));
+                }
             }
             
             if (fNumOutChans > 0) {
                 result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_PAUSED);
-                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetPlayState error");
+                if (result != SL_RESULT_SUCCESS) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetPlayState/fPlayInterface error = %s", res_str(result));
+                }
             }
         }
     

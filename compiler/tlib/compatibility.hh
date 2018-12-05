@@ -45,7 +45,7 @@ unsigned faust_alarm(unsigned seconds);
 
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
-#if GCC_VERSION < 40700
+#if GCC_VERSION < 40700 && !defined(__clang__)
 struct timezone {
     int tz_minuteswest; /* minutes W of Greenwich */
     int tz_dsttime;     /* type of dst correction */

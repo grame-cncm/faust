@@ -1,5 +1,5 @@
 #
-# Makefile for generating ir using asmjs, wasm,... 
+# Makefile for generating ir using asmjs, wasm, wast...
 #
 
 system := $(shell uname -s)
@@ -15,9 +15,11 @@ MAKE ?= make
 
 outdir ?= asmjs
 wasmdir ?= wasm
+wastdir ?= wast
 lang ?= ajs
 arch ?= ../../architecture/webaudio/asm-standalone-node-wrapper-double.js
 wasmarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
+wastarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
 FAUSTOPTIONS ?= 
 
 .PHONY: test 
@@ -39,6 +41,7 @@ help:
 	@echo "Available targets are:"
 	@echo " 'asmjs' (default): check the double output using the ajs backend"
 	@echo " 'wasm'           : check the double output using the wasm backend"
+	@echo " 'wast'           : check the double output using the wast backend"
 	@echo
 	@echo "Options:"
 	@echo " 'outdir' 	   : define the output directory (default to 'asmjs')"
@@ -49,7 +52,7 @@ help:
 # web backends
 asmjs:  ir/$(outdir) $(call listfiles,$(outdir))
 wasm:  ir/$(wasmdir) $(call listfiles,$(wasmdir))
-	
+wast:  ir/$(wastdir) $(call listfiles,$(wastdir))
 
 #########################################################################
 # output directories
@@ -57,13 +60,13 @@ ir/$(outdir):
 	mkdir -p ir/$(outdir)
 ir/$(wasmdir):
 	mkdir -p ir/$(wasmdir)
-
+ir/$(wastdir):
+	mkdir -p ir/$(wastdir)
 
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
-
 
 #########################################################################
 # rules for asm.js
@@ -89,5 +92,24 @@ ir/$(wasmdir)/%.wasm : dsp/%.dsp
 # Specific rule to test 'control' primitive, using a 'fake' test...
 ir/$(wasmdir)/control.wasm : dsp/control.dsp
 	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
+
+#########################################################################
+# rules for wast
+ir/$(wastdir)/%.ir: ir/$(wastdir)/%.js reference/%.ir
+	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
+
+ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
+	cat $(basename $<).js $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	mv $@.tmp $@
+
+ir/$(wastdir)/%.wast : dsp/%.dsp
+	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS)  $<  -o $@
+	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
+
+# Specific rule to test 'control' primitive, using a 'fake' test...
+ir/$(wastdir)/control.wast : dsp/control.dsp
+	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
+	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
 
 

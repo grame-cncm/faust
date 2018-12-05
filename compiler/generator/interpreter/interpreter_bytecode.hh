@@ -417,6 +417,13 @@ struct FBCBlockInstruction : public FBCInstruction {
             delete (*it);
         }
     }
+    
+    // Check block coherency
+    void check()
+    {
+        InstructionIT it = fInstructions.end(); it--;
+        faustassert((*it)->fOpcode == FBCInstruction::kReturn);
+    }
 
     void push(FBCBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
 

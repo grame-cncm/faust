@@ -485,7 +485,7 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-omp", "--openMP")) {
+        } else if (isCmd(argv[i], "-omp", "--openmp")) {
             gGlobal->gOpenMPSwitch = true;
             i += 1;
 
@@ -678,6 +678,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gLightMode = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-clang", "--clang")) {
+            gGlobal->gClang = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
                    isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
                    isCmd(argv[i], "-group", "--polyphonic-group")) {
@@ -755,19 +759,19 @@ static bool processCmdline(int argc, const char* argv[])
 
 static void printLibDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "lib";
+    cout << gGlobal->gFaustRootDir << kPSEP << "lib" << endl;
 }
 static void printIncludeDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "include";
+    cout << gGlobal->gFaustRootDir << kPSEP << "include" << endl;
 }
 static void printArchDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
 }
 static void printDspDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
 }
 static void printPaths()
 {
@@ -775,6 +779,7 @@ static void printPaths()
     for (auto path : gGlobal->gImportDirList) cout << path << endl;
     cout << "\nFAUST architectures paths:" << endl;
     for (auto path : gGlobal->gArchitectureDirList) cout << path << endl;
+    cout << endl;
 }
 
 /****************************************************************
@@ -850,6 +855,11 @@ static void printHelp()
             "otherwise."
          << endl;
     cout << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
+    cout << tab << "-light      --light-mode                do not generate the entire DSP API." << endl;
+    cout << tab
+         << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
+            "auto-vectorization."
+         << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
     cout << tab
@@ -889,7 +899,7 @@ static void printHelp()
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
     cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option."
          << endl;
-    cout << tab << "-pl        --par-loop                   generate parallel loops in --openMP mode." << endl;
+    cout << tab << "-pl        --par-loop                   generate parallel loops in --openmp mode." << endl;
     cout << tab
          << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates "
             "--vectorize option."
@@ -946,11 +956,11 @@ static void printHelp()
     cout << tab << "-h          --help                      print this help message." << endl;
     cout << tab << "-v          --version                   print version information and embedded backends list."
          << endl;
-    cout << tab << "-libdir     --libdir                    print directory containing the faust libraries." << endl;
-    cout << tab << "-includedir --includedir                print directory containing the faust headers." << endl;
-    cout << tab << "-archdir    --archdir                   print directory containing the faust architectures."
+    cout << tab << "-libdir     --libdir                    print directory containing the Faust libraries." << endl;
+    cout << tab << "-includedir --includedir                print directory containing the Faust headers." << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures."
          << endl;
-    cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries."
+    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries."
          << endl;
     cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
 
@@ -1008,7 +1018,7 @@ static void oldprintHelp()
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openmp generate OpenMP pragmas, activates --vectorize option\n";
-    cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
+    cout << "-pl     \t--par-loop generate parallel loops in --openmp mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
     cout << "-ocl    \t--opencl generate tasks with OpenCL (experimental) \n";
     cout << "-cuda   \t--cuda generate tasks with CUDA (experimental) \n";
@@ -1023,6 +1033,8 @@ static void oldprintHelp()
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise (default 1)\n";
     cout << "-lcc \t\t--local-causality-check, check causality also at local level \n";
+    cout << "-light \t\t--light-mode, do not generate the entire DSP API \n";
+    cout << "-clang \t\t--clang, when compiled with clang/clang++, adds specific #pragma for auto-vectorization\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form print signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
@@ -1067,9 +1079,9 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-/****************************************************************
-                                MAIN
-*****************************************************************/
+    /****************************************************************
+                                    MAIN
+    *****************************************************************/
 
 #ifdef OCPP_BUILD
 
@@ -1192,23 +1204,10 @@ static void initFaustDirectories(int argc, const char* argv[])
     gGlobal->gFaustDirectory           = fileDirname(s);
     gGlobal->gFaustSuperDirectory      = fileDirname(gGlobal->gFaustDirectory);
     gGlobal->gFaustSuperSuperDirectory = fileDirname(gGlobal->gFaustSuperDirectory);
-    if (gGlobal->gInputFiles.empty()) {
-        gGlobal->gMasterDocument  = "Unknown";
-        gGlobal->gMasterDirectory = ".";
-        gGlobal->gMasterName      = "faustfx";
-        gGlobal->gDocName         = "faustdoc";
-    } else {
-        gGlobal->gMasterDocument  = *gGlobal->gInputFiles.begin();
-        gGlobal->gMasterDirectory = fileDirname(gGlobal->gMasterDocument);
-        gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
-        gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
-    }
 
     //-------------------------------------------------------------------------------------
     // init gImportDirList : a list of path where to search .lib files
     //-------------------------------------------------------------------------------------
-
-    gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
     if (char* envpath = getenv("FAUST_LIB_PATH")) {
         gGlobal->gImportDirList.push_back(envpath);
     }
@@ -1223,8 +1222,6 @@ static void initFaustDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gArchitectureDirList : a list of path where to search architectures files
     //-------------------------------------------------------------------------------------
-
-    gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
     if (char* envpath = getenv("FAUST_ARCH_PATH")) {
         gGlobal->gArchitectureDirList.push_back(envpath);
     }
@@ -1248,6 +1245,25 @@ static void initFaustDirectories(int argc, const char* argv[])
     //        cerr << "\t" << d << "\n";
     //    }
     //    cerr << endl;
+}
+
+static void initDocumentNames()
+{
+    if (gGlobal->gInputFiles.empty()) {
+        gGlobal->gMasterDocument  = "Unknown";
+        gGlobal->gMasterDirectory = ".";
+        gGlobal->gMasterName      = "faustfx";
+        gGlobal->gDocName         = "faustdoc";
+    } else {
+        gGlobal->gMasterDocument  = *gGlobal->gInputFiles.begin();
+        gGlobal->gMasterDirectory = fileDirname(gGlobal->gMasterDocument);
+        gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
+        gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
+    }
+    
+    // Add gMasterDirectory in gImportDirList and gArchitectureDirList
+    gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
 }
 
 static void parseSourceFiles()
@@ -1450,6 +1466,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
         gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+        gGlobal->gRemoveVarAddress     = true;   // To be used in -vec mode
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1467,7 +1484,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef FIR_BUILD
         gGlobal->gGenerateSelectWithIf = false;
 
-        container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
+        container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1556,11 +1573,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
-            gGlobal->gLoopVarInBytes = true;
-            gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
-            gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            // gGlobal->gHasTeeLocal = true;  // combined store/load
+            gGlobal->gLoopVarInBytes   = true;
+            gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
+            gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
+            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
+            // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
@@ -1597,11 +1615,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
-            gGlobal->gLoopVarInBytes = true;
-            gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
-            gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            // gGlobal->gHasTeeLocal = true;  // combined store/load
+            gGlobal->gLoopVarInBytes   = true;
+            gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
+            gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
+            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
+            // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
@@ -1884,11 +1903,10 @@ static void generateOutputFiles()
 
 static string expandDSPInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
-    initFaustDirectories(argc, argv);
-
     /****************************************************************
      1 - process command line
     *****************************************************************/
+    initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
 
     /****************************************************************
@@ -1898,6 +1916,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
+    initDocumentNames();
     initFaustFloat();
 
     parseSourceFiles();
@@ -1930,11 +1949,11 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
                                    bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
-    initFaustDirectories(argc, argv);
 
     /****************************************************************
      1 - process command line
     *****************************************************************/
+    initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
 
     if (gGlobal->gHelpSwitch) {
@@ -1971,7 +1990,6 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     /****************************************************************
      1.5 - Check and open some input files
     *****************************************************************/
-
     // Check for injected code (before checking for architectures)
     if (gGlobal->gInjectFlag) {
         injcode = new ifstream();
@@ -1987,12 +2005,11 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
-
+    initDocumentNames();
     initFaustFloat();
 
     parseSourceFiles();

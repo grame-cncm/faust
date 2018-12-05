@@ -338,7 +338,7 @@ string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
     // cerr << "VectorCompiler::generateFixDelay " << ppsig(sig) << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
-    int d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    int    d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
     string vecname;
 
     if (!getVectorNameProperty(exp, vecname)) {
@@ -428,7 +428,8 @@ static int pow2limit(int x)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp, const string& ccs)
+void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp,
+                                        const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);

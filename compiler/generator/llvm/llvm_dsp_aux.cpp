@@ -33,14 +33,12 @@
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
 
-#include "fbc_llvm_compiler.hh"
-
 #include <llvm-c/Core.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #else
@@ -161,6 +159,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     // Creates module and context
     fContext = new LLVMContext();
     fModule  = new Module(string(LLVM_BACKEND_NAME) + ", v" + string(FAUSTVERSION), *fContext);
+    fDecoder = nullptr;
 #else
 #warning "machine code is not supported..."
 #endif
@@ -238,20 +237,28 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 bool llvm_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
-
+ 
     // Restoring from machine code
 #if defined(LLVM_35)
     EngineBuilder builder(fModule);
 #else
     EngineBuilder builder((unique_ptr<Module>(fModule)));
 #endif
+    
+    string buider_error;
+    builder.setErrorStr(&buider_error);
     TargetMachine* tm = builder.selectTarget();
     fJIT              = builder.create(tm);
+    if (!fJIT) {
+        error_msg = "ERROR : cannot create LLVM JIT : " + buider_error;
+        return false;
+    }
+ 
 #ifndef LLVM_35
     fJIT->setObjectCache(fObjectCache);
 #endif
+    
     fJIT->finalizeObject();
-
     return initJITAux(error_msg);
 }
 
@@ -277,11 +284,12 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetJSON            = (getJSONFun)loadOptimize("getJSON" + fClassName);
         fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
-
+        
         fDecoder = new JSONUIDecoder(fGetJSON());
-
+    
         // Set the default sound
         fSetDefaultSound(dynamic_defaultsound);
+        
         endTiming("initJIT");
         return true;
     } catch (
@@ -338,9 +346,18 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
     }
 }
 
-std::string              llvm_dsp_factory_aux::getCompileOptions() { return fDecoder->fCompileOptions; }
-std::vector<std::string> llvm_dsp_factory_aux::getLibraryList() { return fDecoder->fLibraryList; }
-std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames() { return fDecoder->fIncludePathnames; }
+std::string llvm_dsp_factory_aux::getCompileOptions()
+{
+    return fDecoder->fCompileOptions;
+}
+std::vector<std::string> llvm_dsp_factory_aux::getLibraryList()
+{
+    return fDecoder->fLibraryList;
+}
+std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames()
+{
+    return fDecoder->fIncludePathnames;
+}
 
 // Instance
 
@@ -537,9 +554,9 @@ void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
 }
 
 #ifndef LLVM_35
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target)
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, std::string& error_msg)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -557,7 +574,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            std::cerr << "readDSPFactoryFromMachine failed : " << error_msg << std::endl;
+            error_msg = "ERROR : readDSPFactoryFromMachine failed : " + error_msg;
             delete factory_aux;
             return nullptr;
         }
@@ -566,11 +583,11 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
 #endif
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, std::string& error_msg)
 {
 #ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target);
+    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
 #else
 #warning "machine code is not supported..."
     return nullptr;
@@ -578,16 +595,16 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target, std::string& error_msg)
 {
 #ifndef LLVM_35
     TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
-        std::cerr << "readDSPFactoryFromMachineFile failed : " << ec.message() << std::endl;
+        error_msg = "ERROR : readDSPFactoryFromMachineFile failed : " + ec.message() + "\n";
         return nullptr;
     } else {
-        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
+        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
     }
 #else
 #warning "machine code is not supported..."
@@ -769,9 +786,12 @@ EXPORT void deleteAllCDSPFactories()
     deleteAllDSPFactories();
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg)
 {
-    return readDSPFactoryFromMachine(machine_code, target);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = readDSPFactoryFromMachine(machine_code, target, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
 }
 
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
@@ -779,9 +799,12 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* ta
     return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : nullptr;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg)
 {
-    return readDSPFactoryFromMachineFile(machine_code_path, target);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = readDSPFactoryFromMachineFile(machine_code_path, target, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
 }
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)

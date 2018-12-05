@@ -80,8 +80,8 @@ struct WASInst {
             kWAS,       // Implemented in wasm definition
             kExtMath,   // Implemented in JS Math context
             kInt32WAS,  // Manually implemented in wast/wasm backends
-            kExtWAS
-        };  // Manually implemented in JS
+            kExtWAS     // Manually implemented in JS
+        };
 
         MathFunDesc() {}
 
@@ -106,8 +106,8 @@ struct WASInst {
     map<string, int>         fFunctionSymbolTable;
     map<string, MathFunDesc> fMathLibTable;  // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;    // Table : field_name, { offset, size, type }
-    map<string, bool>
-        fTeeMap;  // To generate tee_local the first time the variable access is compiled, then get_local will be used
+    // To generate tee_local the first time the variable access is compiled, then get_local will be used
+    map<string, bool>        fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;

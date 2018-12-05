@@ -59,7 +59,9 @@ class rt_midi : public midi_handler {
             // Two data bytes messages
             } else if (nBytes == 3) {
                 midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
-            } 
+            } else {
+                midi->handleMessage(time, (int)message->at(0), *message);
+            }
         }
         
         bool openMidiInputPorts()
@@ -135,22 +137,22 @@ class rt_midi : public midi_handler {
         
         virtual ~rt_midi()
         {
-            stop_midi();
+            stopMidi();
         }
         
-        bool start_midi()
+        bool startMidi()
         {
             try {
             
             #if TARGET_OS_IPHONE
-                if (!openMidiInputPorts())  { stop_midi(); return false; }
-                if (!openMidiOutputPorts()) { stop_midi(); return false; }
+                if (!openMidiInputPorts())  { stopMidi(); return false; }
+                if (!openMidiOutputPorts()) { stopMidi(); return false; }
             #else
                 if (fIsVirtual) {
                     chooseMidiInputPort(fName);
                     chooseMidiOutPort(fName);
                 } else {
-                    if (!openMidiInputPorts())  { stop_midi(); return false; }
+                    if (!openMidiInputPorts())  { stopMidi(); return false; }
                     //std::cout << "Warning : MIDI outputs are not started in this mode !\n";
                 }
             #endif
@@ -158,12 +160,12 @@ class rt_midi : public midi_handler {
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
-                stop_midi();
+                stopMidi();
                 return false;
             }
         }
         
-        void stop_midi()
+        void stopMidi()
         {
             std::vector<RtMidiIn*>::iterator it1;
             for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
@@ -243,14 +245,14 @@ class rt_midi : public midi_handler {
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
          
-        void start_sync(double date) 
+        void startSync(double date)
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_START);
             sendMessage(message);
         }
        
-        void stop_sync(double date) 
+        void stopSync(double date)
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_STOP);
@@ -263,7 +265,12 @@ class rt_midi : public midi_handler {
             message.push_back(MIDI_CLOCK);
             sendMessage(message);
         }
-        
+    
+        void sysEx(double, std::vector<unsigned char>& message)
+        {
+            sendMessage(message);
+        }
+    
 };
 
 

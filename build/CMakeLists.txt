@@ -3,10 +3,10 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.12.1)
+set (VERSION 2.13.10)
 set (VERSION_MAJOR 2)
-set (VERSION_MINOR 12)
-set (VERSION_PATCH 1)
+set (VERSION_MINOR 13)
+set (VERSION_PATCH 10)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -29,6 +29,7 @@ option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
 option ( INCLUDE_ITP    	"Include Faust Machine library"	off )
+option ( INCLUDE_EMCC    	"Include emcc targets"	on )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
@@ -204,10 +205,11 @@ endif()
 ####################################
 # add sub projects (emcc, osclib, interpreter)
 ####################################
-if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
+if (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC OR IOS)
+	set (INCLUDE_EMCC off)
+endif()
+if (INCLUDE_EMCC)
 	add_subdirectory (emcc)
-elseif (NOT IOS)
-	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
 if (INCLUDE_OSC OR OSCDYNAMIC)
 	add_subdirectory (osc)
@@ -375,43 +377,10 @@ set (CPACK_MONOLITHIC_INSTALL true)
 set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING.txt)
 set (CPACK_PACKAGE_INSTALL_DIRECTORY  Faust)
 
-
+####################################
+# NSIS specific section
 set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
 set (CPACK_NSIS_MODIFY_PATH on)
-#set (CPACK_NSIS_MUI_ICON "${ROOT}/build/faust.ico")
-
-set (CPACK_BUNDLE_NAME FaustInstaller)
-set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
-set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
-
-#set (CPACK_GENERATOR productbuild)
+set (CPACK_NSIS_MUI_ICON "${ROOT}/build/package/faust.ico")
 
 include (CPack)
-
-####################################
-# cpack section
-####################################
-# set (CPACK_PACKAGE_NAME   "Faust")
-# set (CPACK_PACKAGE_VENDOR "GRAME")
-# set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
-# set (CPACK_PACKAGE_VERSION   ${VERSION})
-# set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
-# set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
-# set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
-# 
-# set (CPACK_SET_DESTDIR true)
-# set (CPACK_MONOLITHIC_INSTALL true)
-# set (CPACK_INSTALL_PREFIX /usr/local)
-# set (CPACK_PACKAGE_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING)
-# set (CPACK_PACKAGE_INSTALL_DIRECTORY  /usr/local)
-# set (CPACK_PACKAGE_INSTALL_DESTINATION  /usr/local)
-
-#set (CPACK_GENERATOR productbuild)
-#set (CPACK_BUNDLE_NAME FaustInstaller)
-#set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
-#set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
-
-#include (CPack)
-
-
-

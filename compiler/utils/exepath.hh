@@ -26,36 +26,34 @@
 
 #ifdef EMCC
 class exepath {
-	public:
-	static std::string get(const std::string& name) 	{ return ""; }
-	static std::string dirup(const std::string& path);
+   public:
+    static std::string get(const std::string& name) { return ""; }
+    static std::string dirup(const std::string& path);
 };
 
 #else
 
 class exepath {
+    // recursively removes expressions like /a_name/.. from a path
+    static std::string stripPath(const std::string& path);
 
-	// recursively removes expressions like /a_name/.. from a path
-	static std::string stripPath(const std::string& path);
-
-	// resolves symbolic links (not implemented on Windows/MSVC
-	static std::string resolvelink (const std::string& path);
+    // resolves symbolic links (not implemented on Windows/MSVC
+    static std::string resolvelink(const std::string& path);
 
 #ifndef MSVisualStudio
-	static std::string relative2absolute (const std::string& path);
+    static std::string relative2absolute(const std::string& path);
 #endif
 
-	public:
-	// gives the current exe path
-	// name is the executable name as given by argv[0]
-	// on output: the path to the current app, terminated with a path separator
-	// note that symbolic links are resolved on unix like systems
-	static std::string get(const std::string& name); 
+   public:
+    // gives the current exe path
+    // name is the executable name as given by argv[0]
+    // on output: the path to the current app, terminated with a path separator
+    // note that symbolic links are resolved on unix like systems
+    static std::string get(const std::string& name);
 
-	// removes the last /xxxx part
-	static std::string dirup(const std::string& path);
+    // removes the last /xxxx part
+    static std::string dirup(const std::string& path);
 };
 #endif
 
 #endif
-

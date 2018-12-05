@@ -19,9 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-#include "splitSchema.h"
 #include <algorithm>
 #include <iostream>
+
+#include "splitSchema.h"
+#include "exception.hh"
 
 using namespace std;
 
