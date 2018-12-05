@@ -1,4 +1,5 @@
 #! /bin/bash -e
+#set -x
 
 #####################################################################
 #                                                                   #
@@ -27,10 +28,9 @@ SOUNDFILELIBS=""
 OPT=""
 
 # path to max SDK
-
-SDK=/usr/local/include/c74support/
-MAXINC=$SDK/max-includes
-MSPINC=$SDK/msp-includes
+#SDK=/usr/local/include/c74support/    # now declared in faustpath
+MAXINC=$MAXSDK/max-includes
+MSPINC=$MAXSDK/msp-includes
 
 JSFILE_PATH="ui.js"
 

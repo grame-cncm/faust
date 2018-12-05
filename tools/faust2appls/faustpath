@@ -21,6 +21,8 @@ FAUSTLDDIR=$(faust -libdir);
 FAUSTLIB=$(faust -dspdir); 
 FAUSTINC=$(faust -includedir); 
 
+MAXSDK=/usr/local/include/c74support/
+
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
 for f in $FPATH; do
