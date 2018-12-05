@@ -44,7 +44,7 @@ Here are the available options:
  - `-notrace to only generate the best compilation parameters`
  - `-generic' to compile for a generic processor, otherwise -march=native will be used`
  - `-ios to generate an iOS project`
- - `-single to only scalar test`
+ - `-single to only execute the scalar test`
  - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
