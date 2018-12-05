@@ -1,4 +1,6 @@
 #! /bin/bash -e
+set -e
+#set -x
 
 #####################################################################
 #                                                                   #
@@ -13,7 +15,7 @@ CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="ca-qt.cpp"
 [ -d /opt/local/lib ] && OPTLIB=-L/opt/local/lib
-ARCHLIB="-L/usr/local/lib $OPTLIB -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+ARCHLIB="-L$FAUSTLDDIR -L/usr/local/lib $OPTLIB -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
