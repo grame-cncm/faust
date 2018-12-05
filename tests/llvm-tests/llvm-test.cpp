@@ -109,19 +109,24 @@ int main(int argc, char* argv[])
     argv2[argc2] = 0;  // NULL terminated argv
     
     {
+        cout << "=============================\n";
         cout << "Test generateAuxFilesFromFile\n";
         if (!generateAuxFilesFromFile(argv[argc-1], argc2, argv2, error_msg)) {
             cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
         } else {
-            string pathname = "private/var/tmp" + string(argv[argc-1]) + "-svg";
+            string filename =  string(argv[argc-1]);
+            string pathname = "/private/var/tmp/" + filename.substr(0, filename.size() - 4) + "-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
-                cout << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+                cout << "ERROR in generateAuxFilesFromFile error : " << pathname << " cannot be opened\n";
+            } else {
+                cout << "generateAuxFilesFromFile OK\n";
             }
         }
     }
     
     {
+        cout << "===============================\n";
         cout << "Test generateAuxFilesFromString\n";
         if (!generateAuxFilesFromString("FaustDSP", pathToContent(argv[argc-1]), argc2, argv2, error_msg)) {
             cout << "generateAuxFilesFromString error : " << error_msg;
@@ -130,6 +135,8 @@ int main(int argc, char* argv[])
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
                 cout << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+            } else {
+                cout << "generateAuxFilesFromString OK\n";
             }
         }
     }
