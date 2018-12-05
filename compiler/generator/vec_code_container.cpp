@@ -94,6 +94,11 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     DeclareVarInst* count_dec1 = InstBuilder::genDecStackVar(count, InstBuilder::genBasicTyped(Typed::kInt32),
                                                              InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     loop_code->pushBackInst(count_dec1);
+    
+    // Debug code
+    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
+    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
+    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, count_dec1);
@@ -130,6 +135,11 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
         InstBuilder::genSub(InstBuilder::genLoadStackVar(counter), InstBuilder::genLoadStackVar(index)));
 
     then_block->pushBackInst(count_dec2);
+    
+    // Debug
+    then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
+    then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
+    then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
 
     // Generates the loop DAG
     generateDAGLoop(then_block, count_dec2);
@@ -158,6 +168,11 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     ValueInst*      init3     = InstBuilder::genFunCallInst("min_i", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar(count, InstBuilder::genBasicTyped(Typed::kInt32), init3);
     loop_code->pushBackInst(count_dec);
+    
+    // debug
+    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
+    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
+    loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, count_dec);

@@ -401,12 +401,13 @@ void Bela_userSettings(BelaInitSettings* settings)
 
 bool setup(BelaContext* context, void* userData)
 {
-    int nvoices;
+    int nvoices = 0;
+    bool midi_sync = false;
     mydsp_poly* dsp_poly = NULL;
     
-#ifdef NVOICES
-    nvoices = NVOICES;
-#endif
+    mydsp* tmp_dsp = new mydsp();
+    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    delete tmp_dsp;
     
     // Access deinterleaded inputs
     gInputs = new FAUSTFLOAT*[context->audioInChannels];
@@ -422,20 +423,53 @@ bool setup(BelaContext* context, void* userData)
     
     // Polyphonic with effect
 #ifdef POLY2
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
-    gDSP = new dsp_sequencer(dsp_poly, new effect());
-    // Polyphonic without effect
-#elif NVOICES
-    if (nvoices > 0) {
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
-        gDSP = dsp_poly;
-    // If there is no nvoice, or nvoice = 0, it's not a synthesizer
+    int group = 1;
+    std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    
+#if MIDICTRL
+    if (midi_sync) {
+        gDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
-        gDSP = new mydsp();
+        gDSP = new dsp_sequencer(dsp_poly, new effect());
     }
 #else
-    gDSP = new mydsp();
+    gDSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
+    
+#else
+    int group = 1;
+    
+    if (nvoices > 0) {
+        std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
+#if MIDICTRL
+        if (midi_sync) {
+            gDSP = new timed_dsp(dsp_poly);
+        } else {
+            gDSP = dsp_poly;
+        }
+#else
+        gDSP = dsp_poly;
+#endif
+    } else {
+#if MIDICTRL
+        if (midi_sync) {
+            gDSP = new timed_dsp(new mydsp());
+        } else {
+            gDSP = new mydsp();
+        }
+#else
+        gDSP = new mydsp();
+#endif
+    }
+#endif
+    
+    if (gDSP == 0) {
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        return false;
+    }
     
     gDSP->init(context->audioSampleRate);
     gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and Faust widgets
