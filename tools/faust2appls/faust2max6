@@ -142,7 +142,7 @@ grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
-if [[ $(uname) == Darwin ]]; then
+if [[ $(uname) == Darwin  || $CROSSTARGET == Darwin ]]; then
     EXT="~.mxo"
 fi
 
