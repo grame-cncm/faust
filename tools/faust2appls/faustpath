@@ -22,6 +22,7 @@ FAUSTLIB=$(faust -dspdir);
 FAUSTINC=$(faust -includedir); 
 
 MAXSDK=/usr/local/include/c74support/
+CSOUND_MACSDK=/Library/Frameworks/CsoundLib64.framework
 
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
