@@ -153,7 +153,8 @@ PATH=$PATH:/usr/local/bin
 
 for p in $FILES; do
 
-    CC=g++
+# CC is now declared in faustoptflags
+#    CC=g++
 
     CUR=$(pwd)
     f=$(basename "$p")
