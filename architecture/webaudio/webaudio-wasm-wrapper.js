@@ -3671,7 +3671,7 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
      */
     audio_node.allNotesOff = function()
     {
-        this.port.postMessage({ type: "ctrlChange", data: [channel, 123, 0] });
+        this.port.postMessage({ type: "ctrlChange", data: [0, 123, 0] });
     }
 
     audio_node.ctrlChange = function(channel, ctrl, value)
