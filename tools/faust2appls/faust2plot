@@ -69,7 +69,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+		$CXX $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
