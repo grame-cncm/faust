@@ -20,11 +20,13 @@
 FAUSTLDDIR=$(faust -libdir); 
 FAUSTLIB=$(faust -dspdir); 
 FAUSTINC=$(faust -includedir); 
+[ -n "$FAUSTARCH" ] || FAUSTARCH=$(faust -archdir); 
 
 MAXSDK=/usr/local/include/c74support/
 CSOUND_MACSDK=/Library/Frameworks/CsoundLib64.framework
 PUREDATA_MACSDK=/Applications/Pd-extended.app/Contents/Resources
-[ -n "SUPERCOLLIDER_HEADERS" ] || SUPERCOLLIDER_HEADERS=/usr/local/include/SuperCollider/
+VSTSDK=""
+[ -n "$SUPERCOLLIDER_HEADERS" ] || SUPERCOLLIDER_HEADERS=/usr/local/include/SuperCollider/
 
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
