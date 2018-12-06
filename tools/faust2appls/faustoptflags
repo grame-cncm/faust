@@ -28,3 +28,4 @@ MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 # Default compiler
 CXX=c++
 CC=g++
+LIPO=lipo
