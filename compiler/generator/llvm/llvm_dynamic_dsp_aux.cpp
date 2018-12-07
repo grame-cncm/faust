@@ -72,7 +72,7 @@
 #include <llvm/Target/TargetLibraryInfo.h>
 #endif
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
@@ -117,7 +117,7 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, string* ErrMsg)
 {
     using namespace llvm;
@@ -161,7 +161,7 @@ void llvm_dynamic_dsp_factory_aux::write(std::ostream* out, bool binary, bool sm
     string             res;
     raw_string_ostream out_str(res);
     if (binary) {
-#if defined(LLVM_70)
+#if defined(LLVM_70) || defined(LLVM_80)
         WriteBitcodeToFile(*fModule, out_str);
 #else
         WriteBitcodeToFile(fModule, out_str);
@@ -177,7 +177,7 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
     string             res;
     raw_string_ostream out(res);
-#if defined(LLVM_70)
+#if defined(LLVM_70) || defined(LLVM_80)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -190,7 +190,7 @@ void llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bi
 {
     STREAM_ERROR   err;
     raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
-#if defined(LLVM_70)
+#if defined(LLVM_70) || defined(LLVM_80)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -245,7 +245,7 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
         }
         Builder.Inliner = createFunctionInliningPass(Threshold);
     } else {
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
         Builder.Inliner = createAlwaysInlinerLegacyPass();
 #else
         Builder.Inliner = createAlwaysInlinerPass();
@@ -311,7 +311,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
-#if !defined(LLVM_60) && !defined(LLVM_70)
+#if !defined(LLVM_60) && !defined(LLVM_70) && !defined(LLVM_80)
     builder.setCodeModel(CodeModel::JITDefault);
 #endif
 
@@ -341,7 +341,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     // -fastmath is activated at IR level, and has to be setup at JIT level also
 
-#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70)
+#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70) && !defined(LLVM_80)
     targetOptions.LessPreciseFPMADOption = true;
 #endif
     targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
@@ -350,7 +350,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
     targetOptions.NoTrappingFPMath = true;
     targetOptions.FPDenormalMode   = FPDenormal::IEEE;
 #endif
@@ -403,7 +403,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         }
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-#if defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
         // TargetRegistry::printRegisteredTargetsForVersion(std::cout);
 #else
             TargetRegistry::printRegisteredTargetsForVersion();
@@ -420,7 +420,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         pm.add(createVerifierPass());
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
         // TODO
 #else
             tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
@@ -578,8 +578,10 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 // Bitcode <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, string& error_msg, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
+    
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : readDSPFactoryFromBitcodeFile failed : " + ec.message() + "\n";
         return nullptr;
@@ -600,7 +602,8 @@ EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -655,8 +658,10 @@ EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 // IR <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
+    
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : readDSPFactoryFromIRFile failed : " + ec.message() + "\n";
         return nullptr;

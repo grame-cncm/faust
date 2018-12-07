@@ -26,7 +26,7 @@ do
         echo "Use '-notrace' to only generate the best compilation parameters"
         echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
-        echo "Use '-single' to execute only scalar test"
+        echo "Use '-single' to only execute the scalar test"
         echo "Use '-fast' to only execute some tests"
         echo "Use '-run <num>' to execute each test <num> times"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"

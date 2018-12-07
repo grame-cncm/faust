@@ -30,7 +30,7 @@ do
     p=$1
     
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2androidunity <file1.dsp> [<file2.dsp>]"
+        echo "faust2androidunity [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
         echo "Creates android libraries (armeabi-v7a and x86) for faust unity plugin."
         echo "Android sdk should be installed. Make sure the ANDROID_HOME environment variable is correctly set up. It should be pointing to the sdk folder."
         echo "Use 'faust2unity -android' to also create the c# and JSON files"

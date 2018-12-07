@@ -33,6 +33,7 @@
 #include <vector>
 #include <limits.h>
 #include <float.h>
+#include <assert.h>
 
 #include "faust/midi/midi.h"
 #include "faust/dsp/dsp-combiner.h"
@@ -162,13 +163,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     int fNote;                          // Playing note actual pitch
     int fDate;                          // KeyOn date
-    bool fTrigger;                      // True if stolen note and need for envelop trigger
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain' control
     std::vector<std::string> fFreqPath; // Paths of 'freq' control
-    FAUSTFLOAT** fInputsSlice;
-    FAUSTFLOAT** fOutputsSlice;
  
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
@@ -176,16 +174,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
-        fTrigger = false;
         extractPaths(fGatePath, fFreqPath, fGainPath);
-        fInputsSlice = new FAUSTFLOAT*[dsp->getNumInputs()];
-        fOutputsSlice = new FAUSTFLOAT*[dsp->getNumOutputs()];
     }
     virtual ~dsp_voice()
-    {
-        delete [] fInputsSlice;
-        delete [] fOutputsSlice;
-    }
+    {}
 
     void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
@@ -215,18 +207,18 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         for (size_t i = 0; i < fFreqPath.size(); i++) {
             setParamValue(fFreqPath[i], midiToFreq(pitch));
         }
+        for (size_t i = 0; i < fGatePath.size(); i++) {
+            setParamValue(fGatePath[i], FAUSTFLOAT(1));
+        }
         for (size_t i = 0; i < fGainPath.size(); i++) {
             setParamValue(fGainPath[i], velocity);
         }
+        
         fNote = pitch;
-        fTrigger = trigger;
     }
 
     void keyOff(bool hard = false)
     {
-        // Be sure the voice is not triggered
-        fTrigger = false;
-        
         // No use of velocity for now...
         for (size_t i = 0; i < fGatePath.size(); i++) {
             setParamValue(fGatePath[i], FAUSTFLOAT(0));
@@ -238,43 +230,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         } else {
             // Release voice
             fNote = kReleaseVoice;
-        }
-    }
-
-    void play(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-    {
-        if (fTrigger) {
-            // New note, so trigger it
-            trigger(count, inputs, outputs);
-        } else {
-            // Compute the voice
-            compute(count, inputs, outputs);
-        }
-    }
-
-    void trigger(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-    {
-        for (size_t i = 0; i < fGatePath.size(); i++) {
-            setParamValue(fGatePath[i], FAUSTFLOAT(0));
-        }
-        computeSlice(0, 1, inputs, outputs);
-        for (size_t i = 0; i < fGatePath.size(); i++) {
-            setParamValue(fGatePath[i], FAUSTFLOAT(1));
-        }
-        computeSlice(1, count - 1, inputs, outputs);
-        fTrigger = false;
-    }
-
-    void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-    {
-        if (slice > 0) {
-            for (int chan = 0; chan < getNumInputs(); chan++) {
-                fInputsSlice[chan] = &(inputs[chan][offset]);
-            }
-            for (int chan = 0; chan < getNumOutputs(); chan++) {
-                fOutputsSlice[chan] = &(outputs[chan][offset]);
-            }
-            compute(slice, fInputsSlice, fOutputsSlice);
         }
     }
 
@@ -486,8 +441,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
             
         result:
+            // So that envelop is always re-initialized
+            fVoiceTable[voice]->instanceClear();
             fVoiceTable[voice]->fDate = fDate++;
-            fVoiceTable[voice]->fTrigger = true;    // So that envelop is always re-initialized
             fVoiceTable[voice]->fNote = kActiveVoice;
             return voice;
         }
@@ -528,11 +484,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                    int nvoices,
                    bool control = false,
                    bool group = true)
-        : dsp_voice_group(panic, this, control, group), dsp_poly(dsp)
+        : dsp_voice_group(panic, this, control, group), dsp_poly(dsp) // dsp parameter is deallocated by ~dsp_poly
         {
             fDate = 0;
 
             // Create voices
+            assert(nvoices > 0);
             for (int i = 0; i < nvoices; i++) {
                 addVoice(new dsp_voice(dsp->clone()));
             }
@@ -629,7 +586,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     dsp_voice* voice = fVoiceTable[i];
                     if (voice->fNote != kFreeVoice) {
-                        voice->play(count, inputs, fMixBuffer);
+                        voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixVoice(count, fMixBuffer, outputs);
                         // Check the level to possibly set the voice in kFreeVoice again

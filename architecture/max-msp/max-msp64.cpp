@@ -79,7 +79,8 @@
 #define OSC_OUT_PORT    "5511"
 
 #ifdef POLY2
-#include "effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.h"
 #endif
 
 #if SOUNDFILE

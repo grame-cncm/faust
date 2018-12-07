@@ -2003,8 +2003,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.dsp_voices_state = [];
     sp.dsp_voices_level = [];
     sp.dsp_voices_date = [];
-    sp.dsp_voices_trigger = [];
-
+   
     sp.kActiveVoice = 0;
     sp.kFreeVoice = -1;
     sp.kReleaseVoice = -2;
@@ -2017,7 +2016,6 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         sp.dsp_voices_state[i] = sp.kFreeVoice;
         sp.dsp_voices_level[i] = 0;
         sp.dsp_voices_date[i] = 0;
-        sp.dsp_voices_trigger[i] = false;
     }
 
     // Effect memory starts after last voice
@@ -2044,8 +2042,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     // Always returns a voice
     sp.allocVoice = function(voice)
     {
+        // so that envelop is always re-initialized
+        sp.factory.instanceClear(sp.dsp_voices[voice]);
         sp.dsp_voices_date[voice] = sp.fDate++;
-        sp.dsp_voices_trigger[voice] = true;    // so that envelop is always re-initialized
         sp.dsp_voices_state[voice] = sp.kActiveVoice;
         return voice;
     }
@@ -2128,21 +2127,8 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         // Compute all running voices
         for (i = 0; i < polyphony; i++) {
             if (sp.dsp_voices_state[i] != sp.kFreeVoice) {
-                if (sp.dsp_voices_trigger[i]) {
-                    // FIXME : properly cut the buffer in 2 slices...
-                    for (var j = 0; j < sp.fGateLabel.length; j++) {
-                        sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel[j], 0.0);
-                    }
-                    sp.factory.compute(sp.dsp_voices[i], 1, sp.ins, sp.mixing);
-                    for (var j = 0; j < sp.fGateLabel.length; j++) {
-                        sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel[j], 1.0);
-                    }
-                    sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
-                    sp.dsp_voices_trigger[i] = false;
-                } else {
-                    // Compute regular voice
-                    sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
-                }
+                // Compute voice
+                sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
                 // Mix it in result
                 sp.dsp_voices_level[i] = sp.mixer.mixVoice(buffer_size, sp.numOut, sp.mixing, sp.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
@@ -2424,11 +2410,13 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         for (var i = 0; i < sp.fFreqLabel.length; i++) {
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.midiToFreq(pitch));
         }
+        for (var i = 0; i < sp.fGateLabel.length; i++) {
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 1.0);
+        }
         for (var i = 0; i < sp.fGainLabel.length; i++) {
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity/127.);
         }
         sp.dsp_voices_state[voice] = pitch;
-        sp.dsp_voices_trigger[voice] = true;
     }
 
     /**
@@ -2442,8 +2430,6 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     {
         var voice = sp.getPlayingVoice(pitch);
         if (voice !== sp.kNoVoice) {
-            // Be sure the voice is not triggered
-            sp.dsp_voices_trigger[voice] = false;  
             if (faust.debug) {
                 console.log("keyOff voice %d", voice);
             }
@@ -3072,8 +3058,7 @@ var mydspPolyProcessorString = `
             this.dsp_voices_state = [];
             this.dsp_voices_level = [];
             this.dsp_voices_date = [];
-            this.dsp_voices_trigger = [];
-
+          
             this.kActiveVoice = 0;
             this.kFreeVoice = -1;
             this.kReleaseVoice = -2;
@@ -3089,7 +3074,6 @@ var mydspPolyProcessorString = `
                 this.dsp_voices_state[i] = this.kFreeVoice;
                 this.dsp_voices_level[i] = 0;
                 this.dsp_voices_date[i] = 0;
-                this.dsp_voices_trigger[i] = false;
             }
 
             // Effect memory starts after last voice
@@ -3138,8 +3122,9 @@ var mydspPolyProcessorString = `
             // Always returns a voice
             this.allocVoice = function(voice)
             {
+                // so that envelop is always re-initialized
+                this.factory.instanceClear(this.dsp_voices[voice]);
                 this.dsp_voices_date[voice] = this.fDate++;
-                this.dsp_voices_trigger[voice] = true;    // "so that envelop is always re-initialized
                 this.dsp_voices_state[voice] = this.kActiveVoice;
                 return voice;
             }
@@ -3280,19 +3265,19 @@ var mydspPolyProcessorString = `
                 for (var i = 0; i < this.fFreqLabel.length; i++) {
                     this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
                 }
+                for (var i = 0; i < this.fGateLabel.length; i++) {
+                	this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
+           		}
                 for (var i = 0; i < this.fGainLabel.length; i++) {
                     this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
                 }
                 this.dsp_voices_state[voice] = pitch;
-                this.dsp_voices_trigger[voice] = true;
             }
 
             this.keyOff = function (channel, pitch, velocity)
             {
                 var voice = this.getPlayingVoice(pitch);
                 if (voice !== this.kNoVoice) {
-                    // Be sure the voice is not triggered
-                    this.dsp_voices_trigger[voice] = false;  
                     // No use of velocity for now...
                     for (var i = 0; i < this.fGateLabel.length; i++) {
                         this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 0.0);
@@ -3444,21 +3429,8 @@ var mydspPolyProcessorString = `
             // Compute all running voices
             for (var i = 0; i < this.polyphony; i++) {
                 if (this.dsp_voices_state[i] != this.kFreeVoice) {
-                    if (this.dsp_voices_trigger[i]) {
-                        // FIXME : properly cut the buffer in 2 slices...
-                        for (var j = 0; j < this.fGateLabel.length; j++) {
-                            this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 0.0);
-                        }
-                        this.factory.compute(this.dsp_voices[i], 1, this.ins, this.mixing);
-                        for (var j = 0; j < this.fGateLabel.length; j++) {
-                            this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 1.0);
-                        }
-                        this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                        this.dsp_voices_trigger[i] = false;
-                    } else {
-                        // Compute regular voice
-                        this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                    }
+                    // Compute voice
+                    this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
                     // Mix it in result
                     this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
                     // Check the level to possibly set the voice in kFreeVoice again
@@ -3671,7 +3643,7 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
      */
     audio_node.allNotesOff = function()
     {
-        this.port.postMessage({ type: "ctrlChange", data: [channel, 123, 0] });
+        this.port.postMessage({ type: "ctrlChange", data: [0, 123, 0] });
     }
 
     audio_node.ctrlChange = function(channel, ctrl, value)

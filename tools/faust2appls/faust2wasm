@@ -145,9 +145,7 @@ for f in $FILES; do
             adapt(2,2) = _,_;
             adapt(1,2) = _ <: _,_;
             adapt(2,1) = _,_ :> _;
-
             adaptor(F,G) = adapt(outputs(F),inputs(G));
-
             process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
 EndOfCode
             faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit

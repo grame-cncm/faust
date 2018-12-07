@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#          Compiles Faust programs to Portaudio and Rust binary     #
+#          Compiles Faust programs to PortAudio and Rust binary     #
 #               (c) Grame, 2018                                     #
 #                                                                   #
 #####################################################################
@@ -18,7 +18,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2portaudiorust <file.dsp>"
+        echo "faust2portaudiorust [additional Faust options (-vec -vs 8...)] <file.dsp>"
     fi
 
     if [ ${p:0:1} = "-" ]; then

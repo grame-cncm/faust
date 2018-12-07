@@ -35,10 +35,11 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile]  <file.dsp>"
+        echo "faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile]  [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-standalone' to produce a standalone project, otherwise a plugin project is generated"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
@@ -157,13 +158,24 @@ for p in $FILES; do
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
         faust -i -a $FAUSTLIB/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
-        if [ $POLY = "POLY2" ]; then
-            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/dsp_effect.cpp" || exit
-        fi
     else
         faust -i -a $FAUSTLIB/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
-        if [ $POLY = "POLY2" ]; then
-            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/dsp_effect.cpp" || exit
+    fi
+
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > $SRCDIR/$dspName/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$dspName/effect.dsp" -o "$SRCDIR/$dspName/effect.h" || exit
+            rm "$SRCDIR/$dspName/effect.dsp"
+        else
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/effect.h" || exit
         fi
     fi
 

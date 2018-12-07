@@ -78,7 +78,8 @@
 #include "faust/dsp/poly-dsp.h"
 
 #ifdef POLY2
-#include "effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.h"
 #endif
 
 /***************************END USER SECTION ***************************/

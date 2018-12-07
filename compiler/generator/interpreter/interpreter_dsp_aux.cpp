@@ -158,7 +158,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const strin
     return readInterpreterDSPFactoryFromBitcodeAux(bitcode, error_msg);
 }
 
-EXPORT string writeInterpreterDSPFactoryToBicode(interpreter_dsp_factory* factory)
+EXPORT string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory)
 {
     stringstream writer;
     factory->write(&writer, true);

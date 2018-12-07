@@ -78,7 +78,7 @@ typedef llvm::Value* LLVMValue;
         pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0))); \
     }
 
-#define dispatchReturn_() \
+#define dispatchReturn() \
     {                     \
         it = popAddr();   \
     }
@@ -632,7 +632,7 @@ class FBCLLVMCompiler {
                     if (emptyReturn()) {
                         end = true;
                     } else {
-                        dispatchReturn_();
+                        dispatchReturn();
                     }
                     break;
 

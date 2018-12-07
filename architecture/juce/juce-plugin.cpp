@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include <algorithm>
+#include <assert.h>
 
 #if JUCE_WINDOWS
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
@@ -56,7 +57,8 @@
 #endif
 
 #if defined(POLY2)
-#include "dsp_effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.h"
 #endif 
 
 <<includeIntrinsic>>
@@ -105,7 +107,6 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
         void stopNote (float velocity, bool allowTailOff) override
         {
             keyOff(!allowTailOff);
-            clearCurrentNote();
         }
         
         void pitchWheelMoved (int newPitchWheelValue) override
@@ -126,7 +127,7 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
             if (isVoiceActive()) {
                 
                 // Play the voice
-                play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
+                compute(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
                 
                 // Mix it in outputs
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
@@ -321,6 +322,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     delete tmp_dsp;
     
 #ifdef JUCE_POLY
+    assert(nvoices > 0);
     fSynth = new FaustSynthesiser();
     for (int i = 0; i < nvoices; i++) {
         fSynth->addVoice(new FaustVoice(new mydsp()));
@@ -333,17 +335,18 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     mydsp_poly* dsp_poly = nullptr;
     
 #ifdef POLY2
+    assert(nvoices > 0);
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #if MIDICTRL
     if (midi_sync) {
-        fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new dsp_effect()));
+        fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
-        fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
+        fDSP = new dsp_sequencer(dsp_poly, new effect());
     }
 #else
-    fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
+    fDSP = new dsp_sequencer(dsp_poly, new effects());
 #endif
     
 #else

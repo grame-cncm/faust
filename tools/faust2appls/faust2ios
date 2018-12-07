@@ -9,8 +9,9 @@
 
 . faustpath
 
+ARCHFILE="ios-coreaudio.cpp"
 NOAGC="0"
-POLY2="0"
+POLY="POLY"
 OSCCTRL="0"
 MIDICTRL="0"
 ALL="1"
@@ -27,7 +28,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] <file.dsp>"
+        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-xcode' to compile and keep the intermediate Xcode project"
         echo "Use '-xcodeproj' to produce the intermediate Xcode project"
         echo "Use '-archive' to generate the archive for Apple Store"
@@ -35,6 +36,7 @@ do
         echo "Use '-noagc' to deactivate audio automatic gain control"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
@@ -57,7 +59,7 @@ do
         shift
         NVOICES=$1
     elif [ "$p" = "-effect" ]; then
-        POLY2="1"
+        POLY="POLY2"
         shift
         EFFECT=$1
     elif [ "$p" = "-midi" ]; then
@@ -90,7 +92,7 @@ addOptions ()
     if [ "$MIDICTRL" = "1" ]; then
         echo "#define MIDICTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
-    if [ "$POLY2" = "1" ]; then
+    if [ $POLY = "POLY2" ]; then
         echo "#define POLY2 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
     if [ "$NOAGC" = "1" ]; then
@@ -118,16 +120,33 @@ for p in $FILES; do
     F=$(basename "$p")
     P=${F%.dsp}
     XCODEPROJ="${F%.dsp}"
+    SRCDIR=$(dirname "$p")
 
 	T=$(mktemp -d faust.XXX)
 	cp -r $FAUSTLIB/iOS/* $T
-
+	
 	if [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"
-        faust -i $OPTIONS -json -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
+        faust -i $OPTIONS -json -a $ARCHFILE "$p" -o "$T/ios-faust.h" || exit
         addOptions
-        if [ "$POLY2" = "1" ]; then
-            faust -i $OPTIONS -json -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
+
+        if [ $POLY = "POLY2" ]; then
+            if [ $EFFECT = "auto" ]; then
+                cat > $T/effect.dsp << EndOfCode
+                adapt(1,1) = _;
+                adapt(2,2) = _,_;
+                adapt(1,2) = _ <: _,_;
+                adapt(2,1) = _,_ :> _;
+                adaptor(F,G) = adapt(outputs(F),inputs(G));
+                process = adaptor(library("$SRCDIR/$F").process, library("$SRCDIR/$F").effect) : library("$SRCDIR/$F").effect;
+EndOfCode
+                faust -i -json -a $ARCHFILE $OPTIONS "$p" -o "$T/${F%.dsp}_tmp.cpp" || exit
+                faust -i -cn effect -a minimal-effect.cpp "$T/effect.dsp" -o "$T/effect.h" || exit
+                rm "$T/effect.dsp"
+            else
+                faust -i -json -a $ARCHFILE $OPTIONS "$p" -o "$T/${F%.dsp}_tmp.cpp" || exit
+                faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$T/effect.h" || exit
+            fi
         fi
 
         if [ "$XCODE" == "2" ]; then
@@ -147,10 +166,10 @@ for p in $FILES; do
         ) > /dev/null || exit
     else
         echo "Compile with CoreAudio support in 32 bits"
-        faust -i $OPTIONS -json -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
+        faust -i $OPTIONS -json -a $ARCHFILE "$p" -o "$T/ios-faust.h" || exit
         addOptions
         if [ "$POLY2" = "1" ]; then
-            faust -i $OPTIONS -json -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
+            faust -i $OPTIONS -json -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.h" || exit
         fi
 
         if [ "$XCODE" == "2" ]; then

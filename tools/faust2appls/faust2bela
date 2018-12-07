@@ -1,11 +1,15 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #FAUST DATA:
-ARCHFILE="bela.cpp"
+[ -z "$ARCHFILE" ] && ARCHFILE="bela.cpp"
 #BELA DATA:
-BBB_ADDRESS="root@192.168.7.2"
-BBB_BELA_HOME="/root/Bela"
-BBB_PROJECT_HOME="${BBB_BELA_HOME}/projects/"
+[ -z "$BBB_ADDRESS" ] && BBB_ADDRESS="root@192.168.7.2"
+[ -z "$BBB_BELA_HOME" ] && BBB_BELA_HOME="/root/Bela"
+[ -z "$BBB_PROJECT_HOME" ] && BBB_PROJECT_HOME="${BBB_BELA_HOME}/projects/"
+[ -z "$BELA_CPPFLAGS" ] && BELA_CPPFLAGS=""
+[ -z "$BELA_LDLIBS" ] && BELA_LDLIBS=""
+
+BELA_CPPFLAGS="-Wno-overloaded-virtual $BELA_CPPFLAGS"
 
 #variables:
 NVOICES=0
@@ -25,16 +29,16 @@ do
 
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2bela [-osc] [-midi] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-tobela] <file.dsp>"
+        echo "faust2bela [-midi] [-gui] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-osc] [-tobela] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
         echo "Use '-gui' to activate a self-hosted GUI interface. This requires that you installed libmicrohttpd and libHTTPDFaust."
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
         echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-tobela' to send C++ file into bela, and run it."
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        echo "Use '-osc' to activate OSC control"
+	    echo "Use '-tobela' to send C++ file into bela, and run it."
         exit
     fi
 
@@ -72,38 +76,37 @@ done
 CUR=$(pwd)
 f=$(basename "$p")
 SRCDIR=$(dirname "$p")
+INPUT_FILE="$SRCDIR/$f"
 
 # creates a dir 
 TMP="${f%.dsp}"
-mkdir "$TMP"
+mkdir -p "$TMP/tmp"
 
 PROJECTDIR="$CUR/$TMP"
+FAUST_MAIN_OUTPUT=$TMP/tmp/rendertmp.cpp
+# compile faust to c++
+faust $FAUST_ARGS -i -a $ARCHFILE $OPTIONS "$INPUT_FILE" -o "$FAUST_MAIN_OUTPUT"
 
-    # compile faust to c++
-    if [[ "$POLY" == *POLY2* ]]; then
-        if [ $EFFECT = "auto" ]; then
-        	# Creer un fichier .dsp simple
-            cat > $TMP/effect.dsp << EndOfCode
-            adapt(1,1) = _;
-            adapt(2,2) = _,_;
-            adapt(1,2) = _ <: _,_;
-            adapt(2,1) = _,_ :> _;
+EFFECT_OUTPUT=$TMP/effect.h
+if [[ "$POLY" == *POLY2* ]]; then
+	if [ $EFFECT = "auto" ]; then
+		# Creer un fichier .dsp simple
+		cat > $TMP/effect.dsp << EndOfCode
+		adapt(1,1) = _;
+		adapt(2,2) = _,_;
+		adapt(1,2) = _ <: _,_;
+		adapt(2,1) = _,_ :> _;
 
-            adaptor(F,G) = adapt(outputs(F),inputs(G));
+		adaptor(F,G) = adapt(outputs(F),inputs(G));
 
-            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+		process = adaptor(library("$INPUT_FILE").process, library("$INPUT_FILE").effect) : library("$INPUT_FILE").effect;
 EndOfCode
-            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
-            #rm "$TMP/effect.dsp"
-        else
-            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
-        fi
-    else
-        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-    fi
+		faust $FAUST_ARGS -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$EFFECT_OUTPUT"
 
+	else
+		faust $FAUST_ARGS -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$EFFECT_OUTPUT"
+	fi
+fi
 
 #-------------------------------------------------------------------
 #PHASE 3 : Data for BELA
@@ -136,8 +139,7 @@ if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
     BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
 fi
 
-cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
-rm "$PROJECTDIR/render.cpp"
+cat "$FAUST_MAIN_OUTPUT" >> "$PROJECTDIR/tmp.txt"
 mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
 
 #-------------------------------------------------------------------
@@ -149,7 +151,7 @@ if [[ "$SEND2BELA" == *OK* ]]; then
 	echo $PROJECTDIR
 	
 #-------------------------------------------------------------------
-From build_project.sh :
+#From build_project.sh :
 #-------------------------------------------------------------------
 echo "Start communication with bela"
 
@@ -237,7 +239,7 @@ uploadBuildRun(){
 	fi
 	
 	# Make new Bela executable and run
-	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' LDLIBS='$BELA_LDLIBS'"
+	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' LDLIBS='$BELA_LDLIBS' CPPFLAGS='$BELA_CPPFLAGS' AT="
 	
 	ssh -t $BBB_ADDRESS "$MAKE_COMMAND run"
 }

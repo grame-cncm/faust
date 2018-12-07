@@ -159,9 +159,9 @@ faustgen_factory::faustgen_factory(const string& name)
     fName = name;
     fDSPfactory = NULL;
     fBitCodeSize = 0;
-    fBitCode = 0;
+    fBitCode = NULL;
     fSourceCodeSize = 0;
-    fSourceCode = 0;
+    fSourceCode = NULL;
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
@@ -179,7 +179,7 @@ faustgen_factory::faustgen_factory(const string& name)
     assert(res);
     
     // Built the complete resource path
-    fLibraryPath.push_back(string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH));
+    fLibraryPath.insert(string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH));
 
 	// Draw path in temporary folder
     fDrawPath = string(FAUST_DRAW_PATH);
@@ -194,7 +194,7 @@ faustgen_factory::faustgen_factory(const string& name)
 		string str_name = string(name);
 		str_name = str_name.substr(0, str_name.find_last_of("\\"));
 		// Built the complete resource path
-		fLibraryPath.push_back(string(str_name) + string(FAUST_LIBRARY_PATH));
+		fLibraryPath.insert(string(str_name) + string(FAUST_LIBRARY_PATH));
 		// Draw path in temporary folder
         TCHAR lpTempPathBuffer[MAX_PATH];
         // Gets the temp path env string (no guarantee it's a valid path).
@@ -229,6 +229,9 @@ faustgen_factory::~faustgen_factory()
    
     remove_svg();
     systhread_mutex_free(fDSPMutex);
+    
+    delete fSoundUI;
+    fSoundUI = NULL;
 }
 
 void faustgen_factory::free_sourcecode()
@@ -236,7 +239,7 @@ void faustgen_factory::free_sourcecode()
     if (fSourceCode) {
         sysmem_freehandle(fSourceCode);
         fSourceCodeSize = 0;
-        fSourceCode = 0;
+        fSourceCode = NULL;
     }
 }
 
@@ -245,7 +248,7 @@ void faustgen_factory::free_bitcode()
     if (fBitCode) {
         sysmem_freehandle(fBitCode);
         fBitCodeSize = 0;
-        fBitCode = 0;
+        fBitCode = NULL;
     }
 }
 
@@ -259,7 +262,7 @@ void faustgen_factory::free_dsp_factory()
         }
      
         //deleteDSPFactory(fDSPfactory);
-        fDSPfactory = 0;
+        fDSPfactory = NULL;
         unlock();
     } else {
         post("Mutex lock cannot be taken...");
@@ -268,16 +271,15 @@ void faustgen_factory::free_dsp_factory()
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
-    //return readDSPFactoryFromBitcode(*fBitCode, getTarget(), fOptLevel);
-    
-    /*
-    // Alternate model using LLVM IR
-    return readDSPFactoryFromIR(*fBitCode, getTarget(), fOptLevel);
-    */
-    
     // Alternate model using machine code
     string error_msg;
-    return readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
+    llvm_dsp_factory* factory = readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
+    if (factory) {
+        // Reset fSoundUI with the new factory getIncludePathnames
+        delete fSoundUI;
+        fSoundUI = new SoundUI(factory->getIncludePathnames());
+    }
+    return factory;
 }
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
@@ -437,9 +439,7 @@ void faustgen_factory::make_json(::dsp* dsp)
 
 void faustgen_factory::add_library_path(const string& library_path)
 {
-    if ((library_path != "") && find(fLibraryPath.begin(), fLibraryPath.end(), library_path) == fLibraryPath.end()) {
-        fLibraryPath.push_back(library_path);
-    }
+    fLibraryPath.insert(library_path);
 }
 
 void faustgen_factory::add_compile_option(const string& key, const string& value)
@@ -483,15 +483,16 @@ void faustgen_factory::default_compile_options()
     add_compile_option("-svg");
     
     // All library paths
-    StringVectorIt it;
-    for (it = fLibraryPath.begin(); it != fLibraryPath.end(); it++) {
-        add_compile_option("-I", *it);
+    StringSetIt it1;
+    for (it1 = fLibraryPath.begin(); it1 != fLibraryPath.end(); it1++) {
+        add_compile_option("-I", *it1);
     }
     
     // Draw path
     add_compile_option("-O", fDrawPath);
     
     // All options set in the 'compileoptions' message
+    StringVectorIt it;
     for (it = fOptions.begin(); it != fOptions.end(); it++) {
         // '-opt v' : parsed for LLVM optimization level
         if (*it == "-opt") {
@@ -556,6 +557,18 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
 read_sourcecode:
+    
+    // Load fLibraryPath
+    int i = 0;
+    const char* read_library_path;
+    char library_path[32];
+loop:
+    snprintf(library_path, 32, "library_path%d", i++);
+    err = dictionary_getstring(d, gensym(library_path), &read_library_path);
+    if (err == MAX_ERR_NONE) {
+        fLibraryPath.insert(read_library_path);
+        goto loop;
+    }
 
     // Read sourcecode size key
     err = dictionary_getlong(d, gensym("sourcecode_size"), (t_atom_long*)&fSourceCodeSize); 
@@ -584,14 +597,23 @@ default_sourcecode:
 // This function saves the necessary data inside the JSON file (Faust sourcecode)
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
-    post("Saving object version, sourcecode and bitcode...");
+    post("Saving object version, library_path, sourcecode and bitcode...");
     
     // Save machine serial number 
     dictionary_appendstring(d, gensym("serial_number"), getSerialNumber().c_str());
     
     // Save faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
-     
+    
+    // Save fLibraryPath
+    StringSetIt it;
+    int i = 0;
+    for (it = fLibraryPath.begin(); it != fLibraryPath.end(); it++) {
+        char library_path[32];
+        snprintf(library_path, 32, "library_path%d", i++);
+        dictionary_appendstring(d, gensym(library_path), (*it).c_str());
+    }
+    
     // Save source code
     if (fSourceCodeSize) {
         dictionary_appendlong(d, gensym("sourcecode_size"), fSourceCodeSize);
@@ -600,17 +622,8 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
       
     // Save bitcode
     if (fDSPfactory) {
-        //string bitcode = writeDSPFactoryToBitcode(fDSPfactory);
-        
-        // Alternate model using LLVM IR
-        // string ircode = writeDSPFactoryToIR(fDSPfactory);
-        
-        //dictionary_appendlong(d, gensym("bitcode_size"), bitcode.size());
-        //dictionary_appendstring(d, gensym("bitcode"), bitcode.c_str());
-        
         // Alternate model using machine code
         string machinecode = writeDSPFactoryToMachine(fDSPfactory, getTarget());
-        
         dictionary_appendlong(d, gensym("machinecode_size"), machinecode.size());
         dictionary_appendstring(d, gensym("machinecode"), machinecode.c_str());
     }
@@ -1083,6 +1096,7 @@ void faustgen::free_dsp()
 {
     // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
     remove_midihandler();
+    
     delete fMidiUI;
     fMidiUI = NULL;
    
@@ -1141,101 +1155,107 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac < 0) return;
     
-    bool res = false;
-    string name = string((s)->s_name);
-    
-    // Check if no argument is there, consider it is a toggle message for a button
-    if (ac == 0 && fDSPUI->isValue(name)) {
-      
-        float off = 0.0f;
-        float on = 1.0f;
-        fDSPUI->setValue(name, off);
-        fDSPUI->setValue(name, on);
+    if (fDSPfactory->lock()) {
         
-        av[0].a_type = A_FLOAT;
-        av[0].a_w.w_float = off;
-        anything(inlet, s, 1, av);
+        bool res = false;
+        string name = string((s)->s_name);
         
-        return;
-    }
-         
-    // List of values
-    if (check_digit(name)) {
-        
-        int ndigit = 0;
-        int pos;
-        
-        for (pos = name.size() - 1; pos >= 0; pos--) {
-            if (isdigit(name[pos]) || name[pos] == ' ') {
-                ndigit++;
-            } else {
-                break;
-            }
+        // Check if no argument is there, consider it is a toggle message for a button
+        if (ac == 0 && fDSPUI->isValue(name)) {
+          
+            float off = 0.0f;
+            float on = 1.0f;
+            fDSPUI->setValue(name, off);
+            fDSPUI->setValue(name, on);
+            
+            av[0].a_type = A_FLOAT;
+            av[0].a_w.w_float = off;
+            anything(inlet, s, 1, av);
+            
+            goto unlock;
         }
-        pos++;
+             
+        // List of values
+        if (check_digit(name)) {
+            
+            int ndigit = 0;
+            int pos;
+            
+            for (pos = name.size() - 1; pos >= 0; pos--) {
+                if (isdigit(name[pos]) || name[pos] == ' ') {
+                    ndigit++;
+                } else {
+                    break;
+                }
+            }
+            pos++;
+            
+            string prefix = name.substr(0, pos);
+            string num_base = name.substr(pos);
+            int num = atoi(num_base.c_str());
+            
+            int i;
+            t_atom* ap;
+           
+            // Increment ap each time to get to the next atom
+            for (i = 0, ap = av; i < ac; i++, ap++) {
+                float value;
+                switch (atom_gettype(ap)) {
+                    case A_LONG: 
+                        value = (float)ap[0].a_w.w_long;
+                        break;
+                
+                    case A_FLOAT:
+                        value = ap[0].a_w.w_float;
+                        break;
+                        
+                    default:
+                        post("Invalid argument in parameter setting"); 
+                        goto unlock;
+                }
+                
+                stringstream num_val;
+                num_val << num + i;
+                string str = num_val.str();
+                char param_name[256];
+                
+                switch (ndigit - count_digit(str)) {
+                    case 0: 
+                        sprintf(param_name, "%s%s", prefix.c_str(), str.c_str());
+                        break;
+                    case 1: 
+                        sprintf(param_name, "%s %s", prefix.c_str(), str.c_str());
+                        break;
+                    case 2: 
+                        sprintf(param_name, "%s  %s", prefix.c_str(), str.c_str());
+                        break;
+                }
+           
+                // Try special naming scheme for list of parameters
+                res = fDSPUI->setValue(param_name, value); 
+                
+                // Otherwise try standard name
+                if (!res) {
+                    res = fDSPUI->setValue(name, value);
+                }
+                
+                if (!res) {
+                    post("Unknown parameter : %s", (s)->s_name);
+                }
+            }
+            
+        } else {
+            // Standard parameter name
+            float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+            res = fDSPUI->setValue(name, value);
+        }  
         
-        string prefix = name.substr(0, pos);
-        string num_base = name.substr(pos);
-        int num = atoi(num_base.c_str());
-        
-        int i;
-        t_atom* ap;
-       
-        // Increment ap each time to get to the next atom
-        for (i = 0, ap = av; i < ac; i++, ap++) {
-            float value;
-            switch (atom_gettype(ap)) {
-                case A_LONG: 
-                    value = (float)ap[0].a_w.w_long;
-                    break;
-            
-                case A_FLOAT:
-                    value = ap[0].a_w.w_float;
-                    break;
-                    
-                default:
-                    post("Invalid argument in parameter setting"); 
-                    return;         
-            }
-            
-            stringstream num_val;
-            num_val << num + i;
-            string str = num_val.str();
-            char param_name[256];
-            
-            switch (ndigit - count_digit(str)) {
-                case 0: 
-                    sprintf(param_name, "%s%s", prefix.c_str(), str.c_str());
-                    break;
-                case 1: 
-                    sprintf(param_name, "%s %s", prefix.c_str(), str.c_str());
-                    break;
-                case 2: 
-                    sprintf(param_name, "%s  %s", prefix.c_str(), str.c_str());
-                    break;
-            }
-       
-            // Try special naming scheme for list of parameters
-            res = fDSPUI->setValue(param_name, value); 
-            
-            // Otherwise try standard name
-            if (!res) {
-                res = fDSPUI->setValue(name, value);
-            }
-            
-            if (!res) {
-                post("Unknown parameter : %s", (s)->s_name);
-            }
+        if (!res) {
+            post("Unknown parameter : %s", (s)->s_name);
         }
         
-    } else {
-        // Standard parameter name
-        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = fDSPUI->setValue(name, value);
-    }  
-    
-    if (!res) {
-        post("Unknown parameter : %s", (s)->s_name);
+    unlock:
+        fDSPfactory->unlock();
     }
 }	
 

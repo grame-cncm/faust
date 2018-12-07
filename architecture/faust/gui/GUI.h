@@ -59,6 +59,7 @@ struct uiItemBase
     {}
     
     virtual void modifyZone(FAUSTFLOAT v) = 0;
+    virtual void modifyZone(double date, FAUSTFLOAT v) {}
     virtual double cache() = 0;
     virtual void reflectZone() = 0;
 };

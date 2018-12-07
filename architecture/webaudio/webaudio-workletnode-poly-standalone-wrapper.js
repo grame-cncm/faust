@@ -380,7 +380,7 @@ class mydspPoly {
     	return new Promise((resolve, reject) => {   
             let real_url = (this.baseURL === "") ? "mydsp-processor.js" : (this.baseURL + "/mydsp-processor.js");
             this.context.audioWorklet.addModule(real_url).then(() => {
-            this.node = new mydspNode(this.context, this.baseURL, {});
+            this.node = new mydspPolyNode(this.context, this.baseURL, {});
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
             }).then((node) => {

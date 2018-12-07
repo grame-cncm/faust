@@ -33,7 +33,13 @@
 
 using namespace std;
 
-#define dispatchReturn_() \
+static void tab(int n, ostream& fout)
+{
+    fout << '\n';
+    while (n--) fout << '\t';
+}
+
+#define dispatchReturn() \
     {                     \
         it = popAddr();   \
     }
@@ -42,58 +48,84 @@ using namespace std;
         pushAddr(it + 1); \
     }
 
-// C++ instructions container
+// C++ instructions block
 struct CPPBlock : public std::vector<std::string> {
     
     std::string fNum;
-    CPPBlock* fNext;
     
-    static int gCurrentBlockIndex;
-    
-    CPPBlock():fNum(std::to_string(gCurrentBlockIndex++)), fNext(nullptr)
+    CPPBlock(int block_index):fNum(std::to_string(block_index))
     {}
     
-    void print(std::ostream& out)
+    void print(int n, std::ostream& out)
     {
         // header
-        out << "{" << std::endl;
-        out << "label" << fNum << ":" << std::endl;
+        tab(n, out); out << "{";
+        tab(n+1, out); out << "label" << fNum << ":";
         
         // block
         if (this->size() == 0) {
-            out << ";" << std::endl;
+            tab(n+1, out); out << ";";
         } else {
             for (auto& it : *this) {
-                out << it << std::endl;
+                tab(n+1, out); out << it;
             }
         }
         
         // footer
-        out << "}" << std::endl;
-        
-        // next block
-        if (this->fNext) { this->fNext->print(out); }
+        tab(n, out); out << "}";
+    }
+ 
+};
+
+// C++ blocks list
+struct CPPBlockList : public std::vector<CPPBlock> {
+
+    int fCurrent;
+    
+    CPPBlockList():fCurrent(0)
+    {}
+    
+    void print(int n, std::ostream& out)
+    {
+        for (auto& it : *this) {
+            it.print(n, out);
+        }
     }
     
-    void endBlock()
-    {}
+    void addBlock()
+    {
+        push_back(CPPBlock(fCurrent++));
+    }
+    
+    void addInst(const string& code)
+    {
+        at(fCurrent-1).push_back(code);
+    }
+    
+    void addPreviousInst(const string& code)
+    {
+        at(fCurrent-2).push_back(code);
+    }
+  
+    std::string getIndex()
+    {
+        return at(fCurrent-1).fNum;
+    }
+    
 };
 
 // FBC C++ compiler
 template <class T>
 class FBCCPPCompiler {
-    typedef void (*compiledFun)(int* int_heap, T* real_heap, T** inputs, T** outputs);
-  protected:
+    protected:
     
-    string        fExecute;
     string        fCPPStack[512];
     InstructionIT fAddressStack[64];
-    compiledFun   fCompiledFun;
-
+ 
     int fCPPStackIndex;
     int fAddrStackIndex;
     
-    CPPBlock* fCurrentBlock;
+    CPPBlockList fBlockList;
     
     void pushBinop(const std::string& op)
     {
@@ -102,13 +134,21 @@ class FBCCPPCompiler {
         pushValue("(" + v1 + " " + op + " " + v2 + ")");
     }
 
-    std::string genFloat(float num)     { return std::to_string(num); }
-    std::string genDouble(double num)   { return std::to_string(num); }
+    std::string genFloat(float num)
+    {
+        std::stringstream str;
+        str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
+        return str.str();
+    }
+    std::string genDouble(double num)
+    {
+        std::stringstream str;
+        str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
+        return str.str();
+    }
     std::string genReal(double num)     { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     std::string genInt32(int num)       { return std::to_string(num); }
     std::string genInt64(long long num) { return std::to_string(num); }
-    
-    std::string getRealTy() { return (sizeof(T) == sizeof(double)) ? "double" : "float"; }
 
     void        pushValue(const std::string& val) { fCPPStack[fCPPStackIndex++] = val; }
     std::string popValue() { return fCPPStack[--fCPPStackIndex]; }
@@ -132,7 +172,7 @@ class FBCCPPCompiler {
     }
     void pushStoreArray(const std::string& array, int index)
     {
-        fCurrentBlock->push_back(array + "[" + std::to_string(index) + "] = " + popValue() + ";");
+        fBlockList.addInst(array + "[" + std::to_string(index) + "] = " + popValue() + ";");
     }
     void pushLoadArray(const std::string& array, const std::string& index)
     {
@@ -140,26 +180,23 @@ class FBCCPPCompiler {
     }
     void pushStoreArray(const std::string& array,const std::string& index)
     {
-        fCurrentBlock->push_back(array + "[" + index+ "] = " + popValue() + ";");
+        fBlockList.addInst(array + "[" + index+ "] = " + popValue() + ";");
     }
 
     void pushLoadInput(int index)
     {
-        pushValue("inputs[" + std::to_string(index) + "][" +  popValue() + "]");
+        pushValue(getRealTy() + "(inputs[" + std::to_string(index) + "][" + popValue() + "])");
     }
     void pushStoreOutput(int index)
     {
-        fCurrentBlock->push_back("outputs[" + std::to_string(index) + "][" + popValue() + "] = " + popValue() + ";");
+        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() + "] = FAUSTFLOAT(" + popValue() + ");");
     }
 
-    void CompileBlock(FBCBlockInstruction<T>* block, CPPBlock* code_block)
+    void CompileBlock(FBCBlockInstruction<T>* block)
     {
         InstructionIT it  = block->fInstructions.begin();
         bool          end = false;
-
-        // Insert in the current block
-        fCurrentBlock = code_block;
-      
+   
         while ((it != block->fInstructions.end()) && !end) {
             //(*it)->write(&std::cout);
 
@@ -177,50 +214,50 @@ class FBCCPPCompiler {
 
                     // Memory load/store
                 case FBCInstruction::kLoadReal:
-                    pushLoadArray("real_heap", (*it)->fOffset1);
+                    pushLoadArray("fRealHeap", (*it)->fOffset1);
                     it++;
                     break;
 
                 case FBCInstruction::kLoadInt:
-                    pushLoadArray("int_heap", (*it)->fOffset1);
+                    pushLoadArray("fIntHeap", (*it)->fOffset1);
                     it++;
                     break;
 
                 case FBCInstruction::kStoreReal:
-                    pushStoreArray("real_heap", (*it)->fOffset1);
+                    pushStoreArray("fRealHeap", (*it)->fOffset1);
                     it++;
                     break;
 
                 case FBCInstruction::kStoreInt:
-                    pushStoreArray("int_heap", (*it)->fOffset1);
+                    pushStoreArray("fIntHeap", (*it)->fOffset1);
                     it++;
                     break;
 
                     // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();
-                    pushLoadArray("real_heap", offset);
+                    pushLoadArray("fRealHeap", offset);
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kLoadIndexedInt: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();
-                    pushLoadArray("int_heap", offset);
+                    pushLoadArray("fIntHeap", offset);
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedReal: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();
-                    pushStoreArray("real_heap", offset);
+                    pushStoreArray("fRealHeap", offset);
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedInt: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();
-                    pushStoreArray("int_heap", offset);
+                    pushStoreArray("fIntHeap", offset);
                     it++;
                     break;
                 }
@@ -228,8 +265,8 @@ class FBCCPPCompiler {
                     // Memory shift (TODO : use memmove ?)
                 case FBCInstruction::kBlockShiftReal: {
                     for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
-                        pushLoadArray("real_heap", i - 1);
-                        pushStoreArray("real_heap", i);
+                        pushLoadArray("fRealHeap", i - 1);
+                        pushStoreArray("fRealHeap", i);
                     }
                     it++;
                     break;
@@ -237,8 +274,8 @@ class FBCCPPCompiler {
 
                 case FBCInstruction::kBlockShiftInt: {
                     for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
-                        pushLoadArray("int_heap", i - 1);
-                        pushStoreArray("int_heap", i);
+                        pushLoadArray("fIntHeap", i - 1);
+                        pushStoreArray("fIntHeap", i);
                     }
                     it++;
                     break;
@@ -511,10 +548,10 @@ class FBCCPPCompiler {
                 case FBCInstruction::kReturn:
                     // Empty addr stack = end of computation
                     if (emptyReturn()) {
-                        fCurrentBlock->endBlock();
+                        //fCurrentBlock->endBlock();
                         end = true;
                     } else {
-                        dispatchReturn_();
+                        dispatchReturn();
                     }
                     break;
 
@@ -559,14 +596,15 @@ class FBCCPPCompiler {
 
                 case FBCInstruction::kSelectReal:
                 case FBCInstruction::kSelectInt: {
+                    
                     // Prepare condition
                     std::string cond_value = popValue();
 
                     // Compile then branch (= branch1)
-                    CompileBlock((*it)->fBranch1, code_block);
+                    CompileBlock((*it)->fBranch1);
 
                     // Compile else branch (= branch2)
-                    CompileBlock((*it)->fBranch2, code_block);
+                    CompileBlock((*it)->fBranch2);
 
                     // Create the result (= branch2)
                     std::string then_value = popValue();
@@ -580,20 +618,20 @@ class FBCCPPCompiler {
                 case FBCInstruction::kCondBranch: {
                     
                     // Prepare condition
-                    std::string cond_value = popValue();
+                    std::string cond = popValue();
+                    
+                    // Get current block index
+                    std::string id1 = fBlockList.getIndex();
 
                     // New block for loop
-                    CPPBlock* next_block = new CPPBlock();
+                    fBlockList.addBlock();
+                    
+                    // Get current block index
+                    std::string id2 = fBlockList.getIndex();
 
                     // Branch to current block
-                    fCurrentBlock->push_back("if " + cond_value + " { goto label" + code_block->fNum + "; } else { goto label" + next_block->fNum + "; }");
-                    
-                    // Link previous_block and next_block
-                    fCurrentBlock->fNext = next_block;
-                    
-                    // Insert in next_block
-                    fCurrentBlock = next_block;
-
+                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 + "; } else { goto label" + id2 + "; }");
+               
                     it++;
                     break;
                 }
@@ -601,22 +639,16 @@ class FBCCPPCompiler {
                 case FBCInstruction::kLoop: {
 
                     // New block for condition
-                    CPPBlock* init_block = new CPPBlock();
-                    
-                    // Link previous_block and init_block
-                    fCurrentBlock->fNext = init_block;
+                    fBlockList.addBlock();
                     
                     // Compile init branch (= branch1)
-                    CompileBlock((*it)->fBranch1, init_block);
+                    CompileBlock((*it)->fBranch1);
 
                     // New block for loop
-                    CPPBlock* loop_block = new CPPBlock();
-                    
-                    // Link previous_block and loop_block
-                    fCurrentBlock->fNext = loop_block;
+                    fBlockList.addBlock();
                     
                     // Compile loop branch (= branch2)
-                    CompileBlock((*it)->fBranch2, loop_block);
+                    CompileBlock((*it)->fBranch2);
 
                     it++;
                     break;
@@ -624,465 +656,319 @@ class FBCCPPCompiler {
 
                 default:
                     // Should not happen
-                    (*it)->write(&std::cout);
-                    faustassert(false);
+                    //(*it)->write(&std::cout);
+                    it++;
+                    //faustassert(false);
                     break;
             }
         }
     }
 
    public:
-    FBCCPPCompiler(FBCBlockInstruction<T>* fbc_block)
-    {
-        fCPPStackIndex = 0;
-        fAddrStackIndex = 0;
-       
-        // fbc_block->write(&std::cout);
-        
-        // Compile compute body
-        CPPBlock* code_block = new CPPBlock();
-        CompileBlock(fbc_block, code_block);
-        code_block->endBlock();
-        
-        std::stringstream execute;
-        
-        execute << "void Execute(int* int_heap, "
-                << getRealTy() << "* real_heap, "
-                << getRealTy() << "** inputs, "
-                << getRealTy() << "** outputs)" << std::endl;
-        
-        execute << "{" << std::endl;
-        code_block->print(execute);
-        execute << "}" << std::endl;
-     
-        // Keep function
-        fExecute = execute.str();
-        fCompiledFun = nullptr;
-    }
-
+    FBCCPPCompiler():fCPPStackIndex(0), fAddrStackIndex(0)
+    {}
+    
     virtual ~FBCCPPCompiler()
     {}
     
-    void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
+    void CompileBlock(FIRUserInterfaceBlockInstruction<T>* block, int n, ostream& out)
     {
-        if (fCompiledFun) {
-            fCompiledFun(int_heap, real_heap, inputs, outputs);
-        } else {
-            std::cout << fExecute;
-            exit(1);
+        UIInstructionIT it;
+        
+        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
+            //(*it)->write(&std::cout);
+            
+            switch ((*it)->fOpcode) {
+                case FBCInstruction::kOpenVerticalBox:
+                    tab(n, out); out << "ui_interface->openVerticalBox(\"" << (*it)->fLabel << "\");";
+                    break;
+                    
+                case FBCInstruction::kOpenHorizontalBox:
+                    tab(n, out); out << "ui_interface->openHorizontalBox(\"" << (*it)->fLabel << "\");";
+                    break;
+                    
+                case FBCInstruction::kOpenTabBox:
+                    tab(n, out); out << "ui_interface->openTabBox(\"" << (*it)->fLabel << "\");";
+                    break;
+                    
+                case FBCInstruction::kCloseBox:
+                    tab(n, out); out << "ui_interface->closeBox();";
+                    break;
+                    
+                case FBCInstruction::kAddButton:
+                    tab(n, out); out << "ui_interface->addButton(\"" << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "]);";
+                    break;
+                    
+                case FBCInstruction::kAddCheckButton:
+                    tab(n, out); out << "ui_interface->addCheckButton(\"" << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "]);";
+                    break;
+                    
+                case FBCInstruction::kAddHorizontalSlider:
+                    tab(n, out);
+                    out << "ui_interface->addHorizontalSlider(\"";
+                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
+                    out << (*it)->fInit << ", ";
+                    out << (*it)->fMin << ", ";
+                    out << (*it)->fMax << ", ";
+                    out << (*it)->fStep << ");";
+                    break;
+                    
+                case FBCInstruction::kAddVerticalSlider:
+                    tab(n, out);
+                    out << "ui_interface->addVerticalSlider(\"";
+                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
+                    out << (*it)->fInit << ", ";
+                    out << (*it)->fMin << ", ";
+                    out << (*it)->fMax << ", ";
+                    out << (*it)->fStep << ");";
+                    break;
+                    
+                case FBCInstruction::kAddNumEntry:
+                    tab(n, out);
+                    out << "ui_interface->addNumEntry(\"";
+                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
+                    out << (*it)->fInit << ", ";
+                    out << (*it)->fMin << ", ";
+                    out << (*it)->fMax << ", ";
+                    out << (*it)->fStep << ");";
+                    break;
+                    
+                case FBCInstruction::kAddSoundFile:
+                    tab(n, out); out << "// TODO";
+                    break;
+                    
+                case FBCInstruction::kAddHorizontalBargraph:
+                    tab(n, out);
+                    out << "ui_interface->addHorizontalBargraph(\"";
+                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
+                    out << (*it)->fMin << ", ";
+                    out << (*it)->fMax << ");";
+                    break;
+                    
+                case FBCInstruction::kAddVerticalBargraph:
+                    tab(n, out);
+                    out << "ui_interface->addVerticalBargraph(\"";
+                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
+                    out << (*it)->fMin << ", ";
+                    out << (*it)->fMax << ");";
+                    break;
+                    
+                case FBCInstruction::kDeclare:
+                    // Special case for "0" zone
+                    tab(n, out);
+                    if ((*it)->fOffset == -1) {
+                        out << "ui_interface->declare(0, \"" << (*it)->fKey << "\", \"" << (*it)->fValue << "\");";
+                    } else {
+                        out << "ui_interface->declare(&fRealHeap[" << (*it)->fOffset << "], \"" << (*it)->fKey << "\", \"" << (*it)->fValue << "\");";
+                    }
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+    
+    }
+    
+    void CompileBlock(FIRMetaBlockInstruction* block, int n, ostream& out)
+    {
+        MetaInstructionIT it;
+        
+        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
+            //(*it)->write(&std::cout);
+            
+            tab(n, out);
+            out << "m->declare(\"" << (*it)->fKey << "\", \"" << (*it)->fValue << "\");";
         }
     }
     
-    /*
-    // Compiled bells.dsp
-    void Execute(int* int_heap, float* real_heap, float** inputs, float** outputs)
+    void CompileBlock(FBCBlockInstruction<T>* block, int n, ostream& out, bool print = true)
     {
-        {
-        label0:
-            ;
-        }
-        {
-        label1:
-            int_heap[86] = 0;
-        }
-        {
-        label2:
-            real_heap[2801+0] = real_heap[2800];
-            int_heap[1+0] = (12345 + (int_heap[1+1] * 1103515245));
-            real_heap[2813+0] = ((float(int_heap[1+0]) * 0.000000) - (real_heap[2808] * ((real_heap[2813+1] * real_heap[2812]) + (real_heap[2813+2] * real_heap[2811]))));
-            real_heap[2819+0] = ((real_heap[2808] * ((real_heap[2813+2] * real_heap[2810]) + ((real_heap[2813+1] * real_heap[2816]) + (real_heap[2813+0] * real_heap[2810])))) - (real_heap[2805] * ((real_heap[2819+1] * real_heap[2818]) + (real_heap[2819+2] * real_heap[2817]))));
-            real_heap[3119] = (real_heap[2819+2] + (real_heap[2819+0] + (real_heap[2819+1] * 2.000000)));
-            int_heap[3+0] = int_heap[72];
-            real_heap[3120] = (0.002000 * (real_heap[2800] - real_heap[2801+1]));
-            real_heap[2824+0] = ((((int_heap[72] - int_heap[3+1]) > 0) > 0)) ? 0.000000 : std::min<float>(real_heap[2823], (1.000000 + (real_heap[3120] + real_heap[2824+1])));
-            int_heap[87] = (real_heap[2824+0] < real_heap[2826]);
-            real_heap[3121] = (real_heap[2805] * (real_heap[3119] * (int_heap[87]) ? ((real_heap[2824+0] < 0.000000)) ? 0.000000 : (int_heap[87]) ? (real_heap[2824+0] * real_heap[2827]) : 1.000000 : ((real_heap[2824+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[2824+0] - real_heap[2826])))) : 0.000000));
-            real_heap[2831+0] = (real_heap[3121] - ((real_heap[2831+2] * real_heap[2830]) + (real_heap[2831+1] * real_heap[2829])));
-            real_heap[2839+0] = (real_heap[3121] - ((real_heap[2839+2] * real_heap[2838]) + (real_heap[2839+1] * real_heap[2837])));
-            real_heap[2845+0] = (real_heap[3121] - ((real_heap[2845+2] * real_heap[2844]) + (real_heap[2845+1] * real_heap[2843])));
-            real_heap[2851+0] = (real_heap[3121] - ((real_heap[2851+2] * real_heap[2850]) + (real_heap[2851+1] * real_heap[2849])));
-            real_heap[2857+0] = (real_heap[3121] - ((real_heap[2857+2] * real_heap[2856]) + (real_heap[2857+1] * real_heap[2855])));
-            real_heap[2863+0] = (real_heap[3121] - ((real_heap[2863+2] * real_heap[2862]) + (real_heap[2863+1] * real_heap[2861])));
-            real_heap[2869+0] = (real_heap[3121] - ((real_heap[2869+2] * real_heap[2868]) + (real_heap[2869+1] * real_heap[2867])));
-            real_heap[2875+0] = (real_heap[3121] - ((real_heap[2875+2] * real_heap[2874]) + (real_heap[2875+1] * real_heap[2873])));
-            real_heap[2881+0] = (real_heap[3121] - ((real_heap[2881+2] * real_heap[2880]) + (real_heap[2881+1] * real_heap[2879])));
-            real_heap[2887+0] = (real_heap[3121] - ((real_heap[2887+2] * real_heap[2886]) + (real_heap[2887+1] * real_heap[2885])));
-            int_heap[5+0] = int_heap[83];
-            real_heap[2891+0] = ((((int_heap[83] - int_heap[5+1]) > 0) > 0)) ? 0.000000 : std::min<float>(real_heap[2823], (1.000000 + (real_heap[2891+1] + real_heap[3120])));
-            int_heap[88] = (real_heap[2891+0] < real_heap[2826]);
-            real_heap[3122] = (real_heap[2805] * (real_heap[3119] * (int_heap[88]) ? ((real_heap[2891+0] < 0.000000)) ? 0.000000 : (int_heap[88]) ? (real_heap[2891+0] * real_heap[2827]) : 1.000000 : ((real_heap[2891+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[2891+0] - real_heap[2826])))) : 0.000000));
-            real_heap[2896+0] = (real_heap[3122] - ((real_heap[2896+2] * real_heap[2895]) + (real_heap[2896+1] * real_heap[2894])));
-            real_heap[2902+0] = (real_heap[3122] - ((real_heap[2902+2] * real_heap[2901]) + (real_heap[2902+1] * real_heap[2900])));
-            real_heap[2908+0] = (real_heap[3122] - ((real_heap[2908+2] * real_heap[2907]) + (real_heap[2908+1] * real_heap[2906])));
-            real_heap[2914+0] = (real_heap[3122] - ((real_heap[2914+2] * real_heap[2913]) + (real_heap[2914+1] * real_heap[2912])));
-            real_heap[2920+0] = (real_heap[3122] - ((real_heap[2920+2] * real_heap[2919]) + (real_heap[2920+1] * real_heap[2918])));
-            real_heap[2926+0] = (real_heap[3122] - ((real_heap[2926+2] * real_heap[2925]) + (real_heap[2926+1] * real_heap[2924])));
-            real_heap[2932+0] = (real_heap[3122] - ((real_heap[2932+2] * real_heap[2931]) + (real_heap[2932+1] * real_heap[2930])));
-            real_heap[2938+0] = (real_heap[3122] - ((real_heap[2938+2] * real_heap[2937]) + (real_heap[2938+1] * real_heap[2936])));
-            real_heap[2944+0] = (real_heap[3122] - ((real_heap[2944+2] * real_heap[2943]) + (real_heap[2944+1] * real_heap[2942])));
-            real_heap[2950+0] = (real_heap[3122] - ((real_heap[2950+2] * real_heap[2949]) + (real_heap[2950+1] * real_heap[2948])));
-            int_heap[7+0] = int_heap[84];
-            real_heap[2954+0] = ((((int_heap[84] - int_heap[7+1]) > 0) > 0)) ? 0.000000 : std::min<float>(real_heap[2823], (1.000000 + (real_heap[2954+1] + real_heap[3120])));
-            int_heap[89] = (real_heap[2954+0] < real_heap[2826]);
-            real_heap[3123] = (real_heap[2805] * (real_heap[3119] * (int_heap[89]) ? ((real_heap[2954+0] < 0.000000)) ? 0.000000 : (int_heap[89]) ? (real_heap[2954+0] * real_heap[2827]) : 1.000000 : ((real_heap[2954+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[2954+0] - real_heap[2826])))) : 0.000000));
-            real_heap[2959+0] = (real_heap[3123] - ((real_heap[2959+2] * real_heap[2958]) + (real_heap[2959+1] * real_heap[2957])));
-            real_heap[2965+0] = (real_heap[3123] - ((real_heap[2965+2] * real_heap[2964]) + (real_heap[2965+1] * real_heap[2963])));
-            real_heap[2971+0] = (real_heap[3123] - ((real_heap[2971+2] * real_heap[2970]) + (real_heap[2971+1] * real_heap[2969])));
-            real_heap[2977+0] = (real_heap[3123] - ((real_heap[2977+2] * real_heap[2976]) + (real_heap[2977+1] * real_heap[2975])));
-            real_heap[2983+0] = (real_heap[3123] - ((real_heap[2983+2] * real_heap[2982]) + (real_heap[2983+1] * real_heap[2981])));
-            real_heap[2989+0] = (real_heap[3123] - ((real_heap[2989+2] * real_heap[2988]) + (real_heap[2989+1] * real_heap[2987])));
-            real_heap[2995+0] = (real_heap[3123] - ((real_heap[2995+2] * real_heap[2994]) + (real_heap[2995+1] * real_heap[2993])));
-            real_heap[3001+0] = (real_heap[3123] - ((real_heap[3001+2] * real_heap[3000]) + (real_heap[3001+1] * real_heap[2999])));
-            real_heap[3007+0] = (real_heap[3123] - ((real_heap[3007+2] * real_heap[3006]) + (real_heap[3007+1] * real_heap[3005])));
-            real_heap[3013+0] = (real_heap[3123] - ((real_heap[3013+2] * real_heap[3012]) + (real_heap[3013+1] * real_heap[3011])));
-            int_heap[9+0] = int_heap[85];
-            real_heap[3017+0] = ((((int_heap[85] - int_heap[9+1]) > 0) > 0)) ? 0.000000 : std::min<float>(real_heap[2823], (1.000000 + (real_heap[3017+1] + real_heap[3120])));
-            int_heap[90] = (real_heap[3017+0] < real_heap[2826]);
-            real_heap[3124] = (real_heap[2805] * (real_heap[3119] * (int_heap[90]) ? ((real_heap[3017+0] < 0.000000)) ? 0.000000 : (int_heap[90]) ? (real_heap[3017+0] * real_heap[2827]) : 1.000000 : ((real_heap[3017+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[3017+0] - real_heap[2826])))) : 0.000000));
-            real_heap[3022+0] = (real_heap[3124] - ((real_heap[3022+2] * real_heap[3021]) + (real_heap[3022+1] * real_heap[3020])));
-            real_heap[3028+0] = (real_heap[3124] - ((real_heap[3028+2] * real_heap[3027]) + (real_heap[3028+1] * real_heap[3026])));
-            real_heap[3034+0] = (real_heap[3124] - ((real_heap[3034+2] * real_heap[3033]) + (real_heap[3034+1] * real_heap[3032])));
-            real_heap[3040+0] = (real_heap[3124] - ((real_heap[3040+2] * real_heap[3039]) + (real_heap[3040+1] * real_heap[3038])));
-            real_heap[3046+0] = (real_heap[3124] - ((real_heap[3046+2] * real_heap[3045]) + (real_heap[3046+1] * real_heap[3044])));
-            real_heap[3052+0] = (real_heap[3124] - ((real_heap[3052+2] * real_heap[3051]) + (real_heap[3052+1] * real_heap[3050])));
-            real_heap[3058+0] = (real_heap[3124] - ((real_heap[3058+2] * real_heap[3057]) + (real_heap[3058+1] * real_heap[3056])));
-            real_heap[3064+0] = (real_heap[3124] - ((real_heap[3064+2] * real_heap[3063]) + (real_heap[3064+1] * real_heap[3062])));
-            real_heap[3070+0] = (real_heap[3124] - ((real_heap[3070+2] * real_heap[3069]) + (real_heap[3070+1] * real_heap[3068])));
-            real_heap[3076+0] = (real_heap[3124] - ((real_heap[3076+2] * real_heap[3075]) + (real_heap[3076+1] * real_heap[3074])));
-            real_heap[3125] = (0.020000 * (((real_heap[3118] * (real_heap[3076+0] - real_heap[3076+2])) + ((real_heap[3117] * (real_heap[3070+0] - real_heap[3070+2])) + ((real_heap[3116] * (real_heap[3064+0] - real_heap[3064+2])) + ((real_heap[3115] * (real_heap[3058+0] - real_heap[3058+2])) + ((real_heap[3114] * (real_heap[3052+0] - real_heap[3052+2])) + ((real_heap[3113] * (real_heap[3046+0] - real_heap[3046+2])) + ((real_heap[3112] * (real_heap[3040+0] - real_heap[3040+2])) + ((real_heap[3111] * (real_heap[3034+0] - real_heap[3034+2])) + ((real_heap[3110] * (real_heap[3028+0] - real_heap[3028+2])) + (real_heap[3109] * (real_heap[3022+0] - real_heap[3022+2]))))))))))) + (((real_heap[3108] * (real_heap[3013+0] - real_heap[3013+2])) + ((real_heap[3107] * (real_heap[3007+0] - real_heap[3007+2])) + ((real_heap[3106] * (real_heap[3001+0] - real_heap[3001+2])) + ((real_heap[3105] * (real_heap[2995+0] - real_heap[2995+2])) + ((real_heap[3104] * (real_heap[2989+0] - real_heap[2989+2])) + ((real_heap[3103] * (real_heap[2983+0] - real_heap[2983+2])) + ((real_heap[3102] * (real_heap[2977+0] - real_heap[2977+2])) + ((real_heap[3101] * (real_heap[2971+0] - real_heap[2971+2])) + ((real_heap[3100] * (real_heap[2965+0] - real_heap[2965+2])) + (real_heap[3099] * (real_heap[2959+0] - real_heap[2959+2]))))))))))) + (((real_heap[3098] * (real_heap[2950+0] - real_heap[2950+2])) + ((real_heap[3097] * (real_heap[2944+0] - real_heap[2944+2])) + ((real_heap[3096] * (real_heap[2938+0] - real_heap[2938+2])) + ((real_heap[3095] * (real_heap[2932+0] - real_heap[2932+2])) + ((real_heap[3094] * (real_heap[2926+0] - real_heap[2926+2])) + ((real_heap[3093] * (real_heap[2920+0] - real_heap[2920+2])) + ((real_heap[3092] * (real_heap[2914+0] - real_heap[2914+2])) + ((real_heap[3091] * (real_heap[2908+0] - real_heap[2908+2])) + ((real_heap[3090] * (real_heap[2902+0] - real_heap[2902+2])) + (real_heap[3089] * (real_heap[2896+0] - real_heap[2896+2]))))))))))) + ((real_heap[3088] * (real_heap[2887+0] - real_heap[2887+2])) + ((real_heap[3087] * (real_heap[2881+0] - real_heap[2881+2])) + ((real_heap[3086] * (real_heap[2875+0] - real_heap[2875+2])) + ((real_heap[3085] * (real_heap[2869+0] - real_heap[2869+2])) + ((real_heap[3084] * (real_heap[2863+0] - real_heap[2863+2])) + ((real_heap[3083] * (real_heap[2857+0] - real_heap[2857+2])) + ((real_heap[3082] * (real_heap[2851+0] - real_heap[2851+2])) + ((real_heap[3081] * (real_heap[2845+0] - real_heap[2845+2])) + ((real_heap[3080] * (real_heap[2839+0] - real_heap[2839+2])) + (real_heap[3079] * (real_heap[2831+0] - real_heap[2831+2])))))))))))))));
-            outputs[0][int_heap[86]] = real_heap[3125];
-            outputs[1][int_heap[86]] = real_heap[3125];
-            real_heap[2801+1] = real_heap[2801+0];
-            int_heap[1+1] = int_heap[1+0];
-            real_heap[2813+2] = real_heap[2813+1];
-            real_heap[2813+1] = real_heap[2813+0];
-            real_heap[2819+2] = real_heap[2819+1];
-            real_heap[2819+1] = real_heap[2819+0];
-            int_heap[3+1] = int_heap[3+0];
-            real_heap[2824+1] = real_heap[2824+0];
-            real_heap[2831+2] = real_heap[2831+1];
-            real_heap[2831+1] = real_heap[2831+0];
-            real_heap[2839+2] = real_heap[2839+1];
-            real_heap[2839+1] = real_heap[2839+0];
-            real_heap[2845+2] = real_heap[2845+1];
-            real_heap[2845+1] = real_heap[2845+0];
-            real_heap[2851+2] = real_heap[2851+1];
-            real_heap[2851+1] = real_heap[2851+0];
-            real_heap[2857+2] = real_heap[2857+1];
-            real_heap[2857+1] = real_heap[2857+0];
-            real_heap[2863+2] = real_heap[2863+1];
-            real_heap[2863+1] = real_heap[2863+0];
-            real_heap[2869+2] = real_heap[2869+1];
-            real_heap[2869+1] = real_heap[2869+0];
-            real_heap[2875+2] = real_heap[2875+1];
-            real_heap[2875+1] = real_heap[2875+0];
-            real_heap[2881+2] = real_heap[2881+1];
-            real_heap[2881+1] = real_heap[2881+0];
-            real_heap[2887+2] = real_heap[2887+1];
-            real_heap[2887+1] = real_heap[2887+0];
-            int_heap[5+1] = int_heap[5+0];
-            real_heap[2891+1] = real_heap[2891+0];
-            real_heap[2896+2] = real_heap[2896+1];
-            real_heap[2896+1] = real_heap[2896+0];
-            real_heap[2902+2] = real_heap[2902+1];
-            real_heap[2902+1] = real_heap[2902+0];
-            real_heap[2908+2] = real_heap[2908+1];
-            real_heap[2908+1] = real_heap[2908+0];
-            real_heap[2914+2] = real_heap[2914+1];
-            real_heap[2914+1] = real_heap[2914+0];
-            real_heap[2920+2] = real_heap[2920+1];
-            real_heap[2920+1] = real_heap[2920+0];
-            real_heap[2926+2] = real_heap[2926+1];
-            real_heap[2926+1] = real_heap[2926+0];
-            real_heap[2932+2] = real_heap[2932+1];
-            real_heap[2932+1] = real_heap[2932+0];
-            real_heap[2938+2] = real_heap[2938+1];
-            real_heap[2938+1] = real_heap[2938+0];
-            real_heap[2944+2] = real_heap[2944+1];
-            real_heap[2944+1] = real_heap[2944+0];
-            real_heap[2950+2] = real_heap[2950+1];
-            real_heap[2950+1] = real_heap[2950+0];
-            int_heap[7+1] = int_heap[7+0];
-            real_heap[2954+1] = real_heap[2954+0];
-            real_heap[2959+2] = real_heap[2959+1];
-            real_heap[2959+1] = real_heap[2959+0];
-            real_heap[2965+2] = real_heap[2965+1];
-            real_heap[2965+1] = real_heap[2965+0];
-            real_heap[2971+2] = real_heap[2971+1];
-            real_heap[2971+1] = real_heap[2971+0];
-            real_heap[2977+2] = real_heap[2977+1];
-            real_heap[2977+1] = real_heap[2977+0];
-            real_heap[2983+2] = real_heap[2983+1];
-            real_heap[2983+1] = real_heap[2983+0];
-            real_heap[2989+2] = real_heap[2989+1];
-            real_heap[2989+1] = real_heap[2989+0];
-            real_heap[2995+2] = real_heap[2995+1];
-            real_heap[2995+1] = real_heap[2995+0];
-            real_heap[3001+2] = real_heap[3001+1];
-            real_heap[3001+1] = real_heap[3001+0];
-            real_heap[3007+2] = real_heap[3007+1];
-            real_heap[3007+1] = real_heap[3007+0];
-            real_heap[3013+2] = real_heap[3013+1];
-            real_heap[3013+1] = real_heap[3013+0];
-            int_heap[9+1] = int_heap[9+0];
-            real_heap[3017+1] = real_heap[3017+0];
-            real_heap[3022+2] = real_heap[3022+1];
-            real_heap[3022+1] = real_heap[3022+0];
-            real_heap[3028+2] = real_heap[3028+1];
-            real_heap[3028+1] = real_heap[3028+0];
-            real_heap[3034+2] = real_heap[3034+1];
-            real_heap[3034+1] = real_heap[3034+0];
-            real_heap[3040+2] = real_heap[3040+1];
-            real_heap[3040+1] = real_heap[3040+0];
-            real_heap[3046+2] = real_heap[3046+1];
-            real_heap[3046+1] = real_heap[3046+0];
-            real_heap[3052+2] = real_heap[3052+1];
-            real_heap[3052+1] = real_heap[3052+0];
-            real_heap[3058+2] = real_heap[3058+1];
-            real_heap[3058+1] = real_heap[3058+0];
-            real_heap[3064+2] = real_heap[3064+1];
-            real_heap[3064+1] = real_heap[3064+0];
-            real_heap[3070+2] = real_heap[3070+1];
-            real_heap[3070+1] = real_heap[3070+0];
-            real_heap[3076+2] = real_heap[3076+1];
-            real_heap[3076+1] = real_heap[3076+0];
-            int_heap[86] = (1 + int_heap[86]);
-            if (int_heap[86] < int_heap[11]) { goto label2; } else { goto label3; }
-        }
-        {
-        label3:
-            ;
-        }
+        // Compile function body
+        fBlockList.addBlock();
+        CompileBlock(block);
+        
+        // Generate block list
+        if (print) { fBlockList.print(n, out); }
     }
     
-    void Execute(int* int_heap, double* real_heap, double** inputs, double** outputs)
-    {
-        {
-        label0:
-            ;
-        }
-        {
-        label1:
-            int_heap[86] = 0;
-        }
-        {
-        label2:
-            real_heap[2801+0] = real_heap[2800];
-            int_heap[1+0] = (12345 + (int_heap[1+1] * 1103515245));
-            real_heap[2813+0] = ((double(int_heap[1+0]) * 0.000000) - (real_heap[2808] * ((real_heap[2813+1] * real_heap[2812]) + (real_heap[2813+2] * real_heap[2811]))));
-            real_heap[2819+0] = ((real_heap[2808] * ((real_heap[2813+2] * real_heap[2810]) + ((real_heap[2813+1] * real_heap[2816]) + (real_heap[2813+0] * real_heap[2810])))) - (real_heap[2805] * ((real_heap[2819+1] * real_heap[2818]) + (real_heap[2819+2] * real_heap[2817]))));
-            real_heap[3119] = (real_heap[2819+2] + (real_heap[2819+0] + (real_heap[2819+1] * 2.000000)));
-            int_heap[3+0] = int_heap[72];
-            real_heap[3120] = (0.002000 * (real_heap[2800] - real_heap[2801+1]));
-            real_heap[2824+0] = ((((int_heap[72] - int_heap[3+1]) > 0) > 0)) ? 0.000000 : std::min<double>(real_heap[2823], (1.000000 + (real_heap[3120] + real_heap[2824+1])));
-            int_heap[87] = (real_heap[2824+0] < real_heap[2826]);
-            real_heap[3121] = (real_heap[2805] * (real_heap[3119] * (int_heap[87]) ? ((real_heap[2824+0] < 0.000000)) ? 0.000000 : (int_heap[87]) ? (real_heap[2824+0] * real_heap[2827]) : 1.000000 : ((real_heap[2824+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[2824+0] - real_heap[2826])))) : 0.000000));
-            real_heap[2831+0] = (real_heap[3121] - ((real_heap[2831+2] * real_heap[2830]) + (real_heap[2831+1] * real_heap[2829])));
-            real_heap[2839+0] = (real_heap[3121] - ((real_heap[2839+2] * real_heap[2838]) + (real_heap[2839+1] * real_heap[2837])));
-            real_heap[2845+0] = (real_heap[3121] - ((real_heap[2845+2] * real_heap[2844]) + (real_heap[2845+1] * real_heap[2843])));
-            real_heap[2851+0] = (real_heap[3121] - ((real_heap[2851+2] * real_heap[2850]) + (real_heap[2851+1] * real_heap[2849])));
-            real_heap[2857+0] = (real_heap[3121] - ((real_heap[2857+2] * real_heap[2856]) + (real_heap[2857+1] * real_heap[2855])));
-            real_heap[2863+0] = (real_heap[3121] - ((real_heap[2863+2] * real_heap[2862]) + (real_heap[2863+1] * real_heap[2861])));
-            real_heap[2869+0] = (real_heap[3121] - ((real_heap[2869+2] * real_heap[2868]) + (real_heap[2869+1] * real_heap[2867])));
-            real_heap[2875+0] = (real_heap[3121] - ((real_heap[2875+2] * real_heap[2874]) + (real_heap[2875+1] * real_heap[2873])));
-            real_heap[2881+0] = (real_heap[3121] - ((real_heap[2881+2] * real_heap[2880]) + (real_heap[2881+1] * real_heap[2879])));
-            real_heap[2887+0] = (real_heap[3121] - ((real_heap[2887+2] * real_heap[2886]) + (real_heap[2887+1] * real_heap[2885])));
-            int_heap[5+0] = int_heap[83];
-            real_heap[2891+0] = ((((int_heap[83] - int_heap[5+1]) > 0) > 0)) ? 0.000000 : std::min<double>(real_heap[2823], (1.000000 + (real_heap[2891+1] + real_heap[3120])));
-            int_heap[88] = (real_heap[2891+0] < real_heap[2826]);
-            real_heap[3122] = (real_heap[2805] * (real_heap[3119] * (int_heap[88]) ? ((real_heap[2891+0] < 0.000000)) ? 0.000000 : (int_heap[88]) ? (real_heap[2891+0] * real_heap[2827]) : 1.000000 : ((real_heap[2891+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[2891+0] - real_heap[2826])))) : 0.000000));
-            real_heap[2896+0] = (real_heap[3122] - ((real_heap[2896+2] * real_heap[2895]) + (real_heap[2896+1] * real_heap[2894])));
-            real_heap[2902+0] = (real_heap[3122] - ((real_heap[2902+2] * real_heap[2901]) + (real_heap[2902+1] * real_heap[2900])));
-            real_heap[2908+0] = (real_heap[3122] - ((real_heap[2908+2] * real_heap[2907]) + (real_heap[2908+1] * real_heap[2906])));
-            real_heap[2914+0] = (real_heap[3122] - ((real_heap[2914+2] * real_heap[2913]) + (real_heap[2914+1] * real_heap[2912])));
-            real_heap[2920+0] = (real_heap[3122] - ((real_heap[2920+2] * real_heap[2919]) + (real_heap[2920+1] * real_heap[2918])));
-            real_heap[2926+0] = (real_heap[3122] - ((real_heap[2926+2] * real_heap[2925]) + (real_heap[2926+1] * real_heap[2924])));
-            real_heap[2932+0] = (real_heap[3122] - ((real_heap[2932+2] * real_heap[2931]) + (real_heap[2932+1] * real_heap[2930])));
-            real_heap[2938+0] = (real_heap[3122] - ((real_heap[2938+2] * real_heap[2937]) + (real_heap[2938+1] * real_heap[2936])));
-            real_heap[2944+0] = (real_heap[3122] - ((real_heap[2944+2] * real_heap[2943]) + (real_heap[2944+1] * real_heap[2942])));
-            real_heap[2950+0] = (real_heap[3122] - ((real_heap[2950+2] * real_heap[2949]) + (real_heap[2950+1] * real_heap[2948])));
-            int_heap[7+0] = int_heap[84];
-            real_heap[2954+0] = ((((int_heap[84] - int_heap[7+1]) > 0) > 0)) ? 0.000000 : std::min<double>(real_heap[2823], (1.000000 + (real_heap[2954+1] + real_heap[3120])));
-            int_heap[89] = (real_heap[2954+0] < real_heap[2826]);
-            real_heap[3123] = (real_heap[2805] * (real_heap[3119] * (int_heap[89]) ? ((real_heap[2954+0] < 0.000000)) ? 0.000000 : (int_heap[89]) ? (real_heap[2954+0] * real_heap[2827]) : 1.000000 : ((real_heap[2954+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[2954+0] - real_heap[2826])))) : 0.000000));
-            real_heap[2959+0] = (real_heap[3123] - ((real_heap[2959+2] * real_heap[2958]) + (real_heap[2959+1] * real_heap[2957])));
-            real_heap[2965+0] = (real_heap[3123] - ((real_heap[2965+2] * real_heap[2964]) + (real_heap[2965+1] * real_heap[2963])));
-            real_heap[2971+0] = (real_heap[3123] - ((real_heap[2971+2] * real_heap[2970]) + (real_heap[2971+1] * real_heap[2969])));
-            real_heap[2977+0] = (real_heap[3123] - ((real_heap[2977+2] * real_heap[2976]) + (real_heap[2977+1] * real_heap[2975])));
-            real_heap[2983+0] = (real_heap[3123] - ((real_heap[2983+2] * real_heap[2982]) + (real_heap[2983+1] * real_heap[2981])));
-            real_heap[2989+0] = (real_heap[3123] - ((real_heap[2989+2] * real_heap[2988]) + (real_heap[2989+1] * real_heap[2987])));
-            real_heap[2995+0] = (real_heap[3123] - ((real_heap[2995+2] * real_heap[2994]) + (real_heap[2995+1] * real_heap[2993])));
-            real_heap[3001+0] = (real_heap[3123] - ((real_heap[3001+2] * real_heap[3000]) + (real_heap[3001+1] * real_heap[2999])));
-            real_heap[3007+0] = (real_heap[3123] - ((real_heap[3007+2] * real_heap[3006]) + (real_heap[3007+1] * real_heap[3005])));
-            real_heap[3013+0] = (real_heap[3123] - ((real_heap[3013+2] * real_heap[3012]) + (real_heap[3013+1] * real_heap[3011])));
-            int_heap[9+0] = int_heap[85];
-            real_heap[3017+0] = ((((int_heap[85] - int_heap[9+1]) > 0) > 0)) ? 0.000000 : std::min<double>(real_heap[2823], (1.000000 + (real_heap[3017+1] + real_heap[3120])));
-            int_heap[90] = (real_heap[3017+0] < real_heap[2826]);
-            real_heap[3124] = (real_heap[2805] * (real_heap[3119] * (int_heap[90]) ? ((real_heap[3017+0] < 0.000000)) ? 0.000000 : (int_heap[90]) ? (real_heap[3017+0] * real_heap[2827]) : 1.000000 : ((real_heap[3017+0] < real_heap[2823])) ? (1.000000 + (real_heap[2827] * (0.000000 - (real_heap[3017+0] - real_heap[2826])))) : 0.000000));
-            real_heap[3022+0] = (real_heap[3124] - ((real_heap[3022+2] * real_heap[3021]) + (real_heap[3022+1] * real_heap[3020])));
-            real_heap[3028+0] = (real_heap[3124] - ((real_heap[3028+2] * real_heap[3027]) + (real_heap[3028+1] * real_heap[3026])));
-            real_heap[3034+0] = (real_heap[3124] - ((real_heap[3034+2] * real_heap[3033]) + (real_heap[3034+1] * real_heap[3032])));
-            real_heap[3040+0] = (real_heap[3124] - ((real_heap[3040+2] * real_heap[3039]) + (real_heap[3040+1] * real_heap[3038])));
-            real_heap[3046+0] = (real_heap[3124] - ((real_heap[3046+2] * real_heap[3045]) + (real_heap[3046+1] * real_heap[3044])));
-            real_heap[3052+0] = (real_heap[3124] - ((real_heap[3052+2] * real_heap[3051]) + (real_heap[3052+1] * real_heap[3050])));
-            real_heap[3058+0] = (real_heap[3124] - ((real_heap[3058+2] * real_heap[3057]) + (real_heap[3058+1] * real_heap[3056])));
-            real_heap[3064+0] = (real_heap[3124] - ((real_heap[3064+2] * real_heap[3063]) + (real_heap[3064+1] * real_heap[3062])));
-            real_heap[3070+0] = (real_heap[3124] - ((real_heap[3070+2] * real_heap[3069]) + (real_heap[3070+1] * real_heap[3068])));
-            real_heap[3076+0] = (real_heap[3124] - ((real_heap[3076+2] * real_heap[3075]) + (real_heap[3076+1] * real_heap[3074])));
-            real_heap[3125] = (0.020000 * (((real_heap[3118] * (real_heap[3076+0] - real_heap[3076+2])) + ((real_heap[3117] * (real_heap[3070+0] - real_heap[3070+2])) + ((real_heap[3116] * (real_heap[3064+0] - real_heap[3064+2])) + ((real_heap[3115] * (real_heap[3058+0] - real_heap[3058+2])) + ((real_heap[3114] * (real_heap[3052+0] - real_heap[3052+2])) + ((real_heap[3113] * (real_heap[3046+0] - real_heap[3046+2])) + ((real_heap[3112] * (real_heap[3040+0] - real_heap[3040+2])) + ((real_heap[3111] * (real_heap[3034+0] - real_heap[3034+2])) + ((real_heap[3110] * (real_heap[3028+0] - real_heap[3028+2])) + (real_heap[3109] * (real_heap[3022+0] - real_heap[3022+2]))))))))))) + (((real_heap[3108] * (real_heap[3013+0] - real_heap[3013+2])) + ((real_heap[3107] * (real_heap[3007+0] - real_heap[3007+2])) + ((real_heap[3106] * (real_heap[3001+0] - real_heap[3001+2])) + ((real_heap[3105] * (real_heap[2995+0] - real_heap[2995+2])) + ((real_heap[3104] * (real_heap[2989+0] - real_heap[2989+2])) + ((real_heap[3103] * (real_heap[2983+0] - real_heap[2983+2])) + ((real_heap[3102] * (real_heap[2977+0] - real_heap[2977+2])) + ((real_heap[3101] * (real_heap[2971+0] - real_heap[2971+2])) + ((real_heap[3100] * (real_heap[2965+0] - real_heap[2965+2])) + (real_heap[3099] * (real_heap[2959+0] - real_heap[2959+2]))))))))))) + (((real_heap[3098] * (real_heap[2950+0] - real_heap[2950+2])) + ((real_heap[3097] * (real_heap[2944+0] - real_heap[2944+2])) + ((real_heap[3096] * (real_heap[2938+0] - real_heap[2938+2])) + ((real_heap[3095] * (real_heap[2932+0] - real_heap[2932+2])) + ((real_heap[3094] * (real_heap[2926+0] - real_heap[2926+2])) + ((real_heap[3093] * (real_heap[2920+0] - real_heap[2920+2])) + ((real_heap[3092] * (real_heap[2914+0] - real_heap[2914+2])) + ((real_heap[3091] * (real_heap[2908+0] - real_heap[2908+2])) + ((real_heap[3090] * (real_heap[2902+0] - real_heap[2902+2])) + (real_heap[3089] * (real_heap[2896+0] - real_heap[2896+2]))))))))))) + ((real_heap[3088] * (real_heap[2887+0] - real_heap[2887+2])) + ((real_heap[3087] * (real_heap[2881+0] - real_heap[2881+2])) + ((real_heap[3086] * (real_heap[2875+0] - real_heap[2875+2])) + ((real_heap[3085] * (real_heap[2869+0] - real_heap[2869+2])) + ((real_heap[3084] * (real_heap[2863+0] - real_heap[2863+2])) + ((real_heap[3083] * (real_heap[2857+0] - real_heap[2857+2])) + ((real_heap[3082] * (real_heap[2851+0] - real_heap[2851+2])) + ((real_heap[3081] * (real_heap[2845+0] - real_heap[2845+2])) + ((real_heap[3080] * (real_heap[2839+0] - real_heap[2839+2])) + (real_heap[3079] * (real_heap[2831+0] - real_heap[2831+2])))))))))))))));
-            outputs[0][int_heap[86]] = real_heap[3125];
-            outputs[1][int_heap[86]] = real_heap[3125];
-            real_heap[2801+1] = real_heap[2801+0];
-            int_heap[1+1] = int_heap[1+0];
-            real_heap[2813+2] = real_heap[2813+1];
-            real_heap[2813+1] = real_heap[2813+0];
-            real_heap[2819+2] = real_heap[2819+1];
-            real_heap[2819+1] = real_heap[2819+0];
-            int_heap[3+1] = int_heap[3+0];
-            real_heap[2824+1] = real_heap[2824+0];
-            real_heap[2831+2] = real_heap[2831+1];
-            real_heap[2831+1] = real_heap[2831+0];
-            real_heap[2839+2] = real_heap[2839+1];
-            real_heap[2839+1] = real_heap[2839+0];
-            real_heap[2845+2] = real_heap[2845+1];
-            real_heap[2845+1] = real_heap[2845+0];
-            real_heap[2851+2] = real_heap[2851+1];
-            real_heap[2851+1] = real_heap[2851+0];
-            real_heap[2857+2] = real_heap[2857+1];
-            real_heap[2857+1] = real_heap[2857+0];
-            real_heap[2863+2] = real_heap[2863+1];
-            real_heap[2863+1] = real_heap[2863+0];
-            real_heap[2869+2] = real_heap[2869+1];
-            real_heap[2869+1] = real_heap[2869+0];
-            real_heap[2875+2] = real_heap[2875+1];
-            real_heap[2875+1] = real_heap[2875+0];
-            real_heap[2881+2] = real_heap[2881+1];
-            real_heap[2881+1] = real_heap[2881+0];
-            real_heap[2887+2] = real_heap[2887+1];
-            real_heap[2887+1] = real_heap[2887+0];
-            int_heap[5+1] = int_heap[5+0];
-            real_heap[2891+1] = real_heap[2891+0];
-            real_heap[2896+2] = real_heap[2896+1];
-            real_heap[2896+1] = real_heap[2896+0];
-            real_heap[2902+2] = real_heap[2902+1];
-            real_heap[2902+1] = real_heap[2902+0];
-            real_heap[2908+2] = real_heap[2908+1];
-            real_heap[2908+1] = real_heap[2908+0];
-            real_heap[2914+2] = real_heap[2914+1];
-            real_heap[2914+1] = real_heap[2914+0];
-            real_heap[2920+2] = real_heap[2920+1];
-            real_heap[2920+1] = real_heap[2920+0];
-            real_heap[2926+2] = real_heap[2926+1];
-            real_heap[2926+1] = real_heap[2926+0];
-            real_heap[2932+2] = real_heap[2932+1];
-            real_heap[2932+1] = real_heap[2932+0];
-            real_heap[2938+2] = real_heap[2938+1];
-            real_heap[2938+1] = real_heap[2938+0];
-            real_heap[2944+2] = real_heap[2944+1];
-            real_heap[2944+1] = real_heap[2944+0];
-            real_heap[2950+2] = real_heap[2950+1];
-            real_heap[2950+1] = real_heap[2950+0];
-            int_heap[7+1] = int_heap[7+0];
-            real_heap[2954+1] = real_heap[2954+0];
-            real_heap[2959+2] = real_heap[2959+1];
-            real_heap[2959+1] = real_heap[2959+0];
-            real_heap[2965+2] = real_heap[2965+1];
-            real_heap[2965+1] = real_heap[2965+0];
-            real_heap[2971+2] = real_heap[2971+1];
-            real_heap[2971+1] = real_heap[2971+0];
-            real_heap[2977+2] = real_heap[2977+1];
-            real_heap[2977+1] = real_heap[2977+0];
-            real_heap[2983+2] = real_heap[2983+1];
-            real_heap[2983+1] = real_heap[2983+0];
-            real_heap[2989+2] = real_heap[2989+1];
-            real_heap[2989+1] = real_heap[2989+0];
-            real_heap[2995+2] = real_heap[2995+1];
-            real_heap[2995+1] = real_heap[2995+0];
-            real_heap[3001+2] = real_heap[3001+1];
-            real_heap[3001+1] = real_heap[3001+0];
-            real_heap[3007+2] = real_heap[3007+1];
-            real_heap[3007+1] = real_heap[3007+0];
-            real_heap[3013+2] = real_heap[3013+1];
-            real_heap[3013+1] = real_heap[3013+0];
-            int_heap[9+1] = int_heap[9+0];
-            real_heap[3017+1] = real_heap[3017+0];
-            real_heap[3022+2] = real_heap[3022+1];
-            real_heap[3022+1] = real_heap[3022+0];
-            real_heap[3028+2] = real_heap[3028+1];
-            real_heap[3028+1] = real_heap[3028+0];
-            real_heap[3034+2] = real_heap[3034+1];
-            real_heap[3034+1] = real_heap[3034+0];
-            real_heap[3040+2] = real_heap[3040+1];
-            real_heap[3040+1] = real_heap[3040+0];
-            real_heap[3046+2] = real_heap[3046+1];
-            real_heap[3046+1] = real_heap[3046+0];
-            real_heap[3052+2] = real_heap[3052+1];
-            real_heap[3052+1] = real_heap[3052+0];
-            real_heap[3058+2] = real_heap[3058+1];
-            real_heap[3058+1] = real_heap[3058+0];
-            real_heap[3064+2] = real_heap[3064+1];
-            real_heap[3064+1] = real_heap[3064+0];
-            real_heap[3070+2] = real_heap[3070+1];
-            real_heap[3070+1] = real_heap[3070+0];
-            real_heap[3076+2] = real_heap[3076+1];
-            real_heap[3076+1] = real_heap[3076+0];
-            int_heap[86] = (1 + int_heap[86]);
-            if (int_heap[86] < int_heap[11]) { goto label2; } else { goto label3; }
-        }
-        {
-        label3:
-            ;
-        }
-    }
-    */
+    static std::string getRealTy() { return (sizeof(T) == sizeof(double)) ? "double" : "float"; }
     
-    std::string getExecute()
-    {
-        return fExecute;
-    }
 };
 
-// FBC compiler
+// FBC C++ code generator
 template <class T>
-class FBCCompiler : public FBCInterpreter<T, 0> {
-   public:
-    typedef typename std::map<FBCBlockInstruction<T>*, FBCCPPCompiler<T>*>           CompiledBlocksType;
-    typedef typename std::map<FBCBlockInstruction<T>*, FBCCPPCompiler<T>*>::iterator CompiledBlocksTypeIT;
-
-    FBCCompiler(interpreter_dsp_factory_aux<T, 0>* factory, CompiledBlocksType* map)
-        : FBCInterpreter<T, 0>(factory)
+class FBCCPPGenerator : public FBCInterpreter<T, 0> {
+  
+  public:
+    
+    FBCCPPGenerator(interpreter_dsp_factory_aux<T, 0>* factory)
+    : FBCInterpreter<T, 0>(factory)
+    {}
+    
+    virtual ~FBCCPPGenerator()
+    {}
+    
+    void generateCode(std::ostream& out)
     {
-        fCompiledBlocks = map;
-
-        // FBC blocks compilation
-        // CompileBlock(factory->fComputeBlock);
-        CompileBlock(factory->fComputeDSPBlock);
+        int tabs = 0;
+        tab(tabs, out);
+        out << "#include <cmath>";
+        tab(tabs, out);
+        tab(tabs, out);
+        out << "class mydsp : public dsp {";
+            tab(tabs, out);
+            tab(tabs, out);
+            out << "  private:";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "int fIntHeap[" << this->fFactory->fIntHeapSize << "];";
+            tab(tabs+1, out);
+            out << FBCCPPCompiler<T>::getRealTy() << " fRealHeap[" << this->fFactory->fRealHeapSize << "];";
+        
+            tab(tabs, out);
+            tab(tabs, out);
+            out << "  public:";
+            tab(tabs+1, out);
+        
+            tab(tabs+1, out);
+            out << "virtual int getNumInputs() { return " << this->fFactory->fNumInputs << "; }";
+            tab(tabs+1, out);
+            out << "virtual int getNumOutputs() { return " << this->fFactory->fNumOutputs << "; }";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void buildUserInterface(UI* ui_interface)";
+            tab(tabs+1, out);
+            out << "{";
+            {
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fUserInterfaceBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void classInit(int samplingRate)";
+            tab(tabs+1, out);
+            out << "{";
+            {
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fStaticInitBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual int getSampleRate() { return fIntHeap[" << this->fFactory->fSROffset << "]; }";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void init(int samplingFreq)";
+            tab(tabs+1, out);
+            out << "{";
+                tab(tabs+2, out);
+                out << "classInit(samplingFreq);";
+                tab(tabs+2, out);
+                out << "instanceInit(samplingFreq);";
+                tab(tabs+2, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void instanceInit(int samplingFreq)";
+            tab(tabs+1, out);
+            out << "{";
+                tab(tabs+2, out);
+                out << "instanceConstants(samplingFreq);";
+                tab(tabs+2, out);
+                out << "instanceResetUserInterface();";
+                tab(tabs+2, out);
+                out << "instanceClear();";
+                tab(tabs+2, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void instanceConstants(int samplingRate)";
+            tab(tabs+1, out);
+            out << "{";
+                tab(tabs+2, out);
+                out << "fIntHeap[" << this->fFactory->fSROffset << "] = samplingRate;";
+            {
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fInitBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void instanceResetUserInterface()";
+            tab(tabs+1, out);
+            out << "{";
+            {
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fResetUIBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            out << "virtual void instanceClear()";
+            tab(tabs+1, out);
+            out << "{";
+            {
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fClearBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual mydsp* clone()";
+            tab(tabs+1, out);
+            out << "{";
+                tab(tabs+2, out);
+                out << "return new mydsp(); ";
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void metadata(Meta* m)";
+            tab(tabs+1, out);
+            out << "{";
+            {
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fMetaBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        
+            tab(tabs+1, out);
+            tab(tabs+1, out);
+            out << "virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)";
+            tab(tabs+1, out);
+            out << "{";
+            {
+                tab(tabs+2, out);
+                out << "fIntHeap[" << this->fFactory->fCountOffset << "] = count;";
+                FBCCPPCompiler<T> compiler;
+                compiler.CompileBlock(this->fFactory->fComputeBlock, tabs+2, out, false);
+                compiler.CompileBlock(this->fFactory->fComputeDSPBlock, tabs+2, out);
+            }
+            tab(tabs+1, out);
+            out << "}";
+        tab(tabs, out);
+        out << "};";
+        tab(tabs, out);
     }
     
-    virtual ~FBCCompiler()
-    {}
-
-    void ExecuteBlock(FBCBlockInstruction<T>* block)
-    {
-        // The 'DSP' compute block only is compiled..
-        if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
-            ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
-        } else {
-            FBCInterpreter<T, 0>::ExecuteBlock(block);
-        }
-    }
-
-   protected:
-    CompiledBlocksType* fCompiledBlocks;
-
-    void CompileBlock(FBCBlockInstruction<T>* fbc_block)
-    {
-        if (fCompiledBlocks->find(fbc_block) == fCompiledBlocks->end()) {
-            (*fCompiledBlocks)[fbc_block] = new FBCCPPCompiler<T>(fbc_block);
-        } else {
-            // std::cout << "FBCCompiler : reuse compiled block" << std::endl;
-        }
-    }
 };
 
 #endif

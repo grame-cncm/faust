@@ -1,8 +1,10 @@
 #! /bin/bash -e
+set -e
+#set -x
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to core audio-qt            #
+#               Compiles Faust programs to CoreAudio and QT         #
 #               (c) Grame, 2012-2018                                #
 #                                                                   #
 #####################################################################
@@ -13,7 +15,7 @@ CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="ca-qt.cpp"
 [ -d /opt/local/lib ] && OPTLIB=-L/opt/local/lib
-ARCHLIB="-L/usr/local/lib $OPTLIB -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+ARCHLIB="-L$FAUSTLDDIR -L/usr/local/lib $OPTLIB -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
@@ -39,7 +41,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] <file.dsp>"
+        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-httpd' to activate HTTP control"
@@ -67,6 +69,7 @@ do
     elif [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-nvoices" ]; then
+        POLYDEFS="DEFINES += POLY"
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
@@ -158,17 +161,15 @@ for p in $FILES; do
             adapt(2,2) = _,_;
             adapt(1,2) = _ <: _,_;
             adapt(2,1) = _,_ :> _;
-
             adaptor(F,G) = adapt(outputs(F),inputs(G));
-
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
             faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
             rm "$TMP/effect.dsp"
         else
             faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
         fi
     else
         faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit

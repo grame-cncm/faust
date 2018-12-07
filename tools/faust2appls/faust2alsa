@@ -1,7 +1,5 @@
 #! /bin/bash -e
 
-OSCDEFS=""
-
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
@@ -14,6 +12,7 @@ OSCDEFS=""
 
 CXXFLAGS=$MYGCCFLAGS
 ARCHFILE="alsa-gtk.cpp"
+OSCDEFS=""
 
 #-------------------------------------------------------------------
 # Analyze command arguments :

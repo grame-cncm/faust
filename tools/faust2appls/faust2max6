@@ -1,4 +1,5 @@
 #! /bin/bash -e
+#set -x
 
 #####################################################################
 #                                                                   #
@@ -27,10 +28,9 @@ SOUNDFILELIBS=""
 OPT=""
 
 # path to max SDK
-
-SDK=/usr/local/include/c74support/
-MAXINC=$SDK/max-includes
-MSPINC=$SDK/msp-includes
+#SDK=/usr/local/include/c74support/    # now declared in faustpath
+MAXINC=$MAXSDK/max-includes
+MSPINC=$MAXSDK/msp-includes
 
 JSFILE_PATH="ui.js"
 
@@ -82,7 +82,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-opt native|generic] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile] <file.dsp>"
+        echo "faust2max6 [-opt native|generic] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
@@ -142,7 +142,7 @@ grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
-if [[ $(uname) == Darwin ]]; then
+if [[ $(uname) == Darwin  || $CROSSTARGET == Darwin ]]; then
     EXT="~.mxo"
 fi
 
@@ -153,7 +153,8 @@ PATH=$PATH:/usr/local/bin
 
 for p in $FILES; do
 
-    CC=g++
+# CC is now declared in faustoptflags
+#    CC=g++
 
     CUR=$(pwd)
     f=$(basename "$p")
@@ -179,7 +180,7 @@ for p in $FILES; do
         faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
         faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+        faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
 
     # compile c++ to binary

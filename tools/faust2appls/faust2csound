@@ -1,4 +1,5 @@
 #! /bin/bash -e
+#set -x
 
 #####################################################################
 #                                                                   #
@@ -24,8 +25,8 @@ CXXFLAGS=$MYGCCFLAGS
 
 PATH=$PATH:/usr/local/bin
 
-if [[ $(uname) == Darwin ]]; then
-    LIB="-I/Library/Frameworks/CsoundLib64.framework/Headers -I/usr/local/include -L/usr/local/lib -dynamiclib"
+if [[ $(uname) == Darwin  || $CROSSTARGET == Darwin ]]; then
+    LIB="-I$CSOUND_MACSDK/Headers -I/usr/local/include -L/usr/local/lib -dynamiclib"
     EXT=".dylib"
 else
     LIB="-I/usr/include/csound -shared -fPIC"

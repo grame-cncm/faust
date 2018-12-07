@@ -1208,8 +1208,6 @@ static void initFaustDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gImportDirList : a list of path where to search .lib files
     //-------------------------------------------------------------------------------------
-
-    gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
     if (char* envpath = getenv("FAUST_LIB_PATH")) {
         gGlobal->gImportDirList.push_back(envpath);
     }
@@ -1224,8 +1222,6 @@ static void initFaustDirectories(int argc, const char* argv[])
     //-------------------------------------------------------------------------------------
     // init gArchitectureDirList : a list of path where to search architectures files
     //-------------------------------------------------------------------------------------
-
-    gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
     if (char* envpath = getenv("FAUST_ARCH_PATH")) {
         gGlobal->gArchitectureDirList.push_back(envpath);
     }
@@ -1264,6 +1260,10 @@ static void initDocumentNames()
         gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
         gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
     }
+    
+    // Add gMasterDirectory in gImportDirList and gArchitectureDirList
+    gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
 }
 
 static void parseSourceFiles()
@@ -1990,7 +1990,6 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     /****************************************************************
      1.5 - Check and open some input files
     *****************************************************************/
-
     // Check for injected code (before checking for architectures)
     if (gGlobal->gInjectFlag) {
         injcode = new ifstream();
@@ -2006,12 +2005,10 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
-
     initDocumentNames();
     initFaustFloat();
 

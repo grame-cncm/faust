@@ -196,12 +196,13 @@ class uiMidiStop : public uiMidiTimedItem
                 fMidiOut->stopSync(0);
             }
         }
-    void modifyZone(double date, FAUSTFLOAT v)
-    {
-        if (fInputCtrl) {
-            uiItem::modifyZone(FAUSTFLOAT(v));
+    
+        void modifyZone(double date, FAUSTFLOAT v)
+        {
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(v));
+            }
         }
-    }
 };
 
 class uiMidiClock : public uiMidiTimedItem
@@ -314,7 +315,7 @@ class uiMidiCtrlChange : public uiMidiItem
             fMidiOut->ctrlChange(0, fCtrl, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -354,7 +355,7 @@ class uiMidiPitchWheel : public uiMidiItem
             fMidiOut->pitchWheel(0, bend2wheel(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(wheel2bend(v));
@@ -386,7 +387,7 @@ class uiMidiKeyOn : public uiMidiItem
             fMidiOut->keyOn(0, fKeyOn, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -418,7 +419,7 @@ class uiMidiKeyOff : public uiMidiItem
             fMidiOut->keyOff(0, fKeyOff, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -451,7 +452,7 @@ class uiMidiKeyPress : public uiMidiItem
             fMidiOut->keyPress(0, fKey, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));

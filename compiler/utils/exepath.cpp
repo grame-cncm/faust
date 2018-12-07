@@ -26,7 +26,7 @@
 #include <sstream>
 #include <string>
 
-#ifdef MSVisualStudio
+#ifdef WIN32 
 #include <windows.h>
 #else
 #include <libgen.h>
@@ -95,7 +95,7 @@ string exepath::resolvelink(const string& path)
 
 #endif
 
-#ifdef MSVisualStudio
+#ifdef WIN32
 //-----------------------------------------------------------------
 string exepath::get(const string& name)
 {

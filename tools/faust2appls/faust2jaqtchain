@@ -38,7 +38,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jaqtchain [-httpd] [-osc] <file.dsp>"
+        echo "faust2jaqtchain [-httpd] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-osc' to activate OSC control"
         exit
