@@ -53,6 +53,7 @@
 
 using namespace std;
 
+#include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/MidiUI.h"
@@ -525,8 +526,7 @@ void cleanup(BelaContext* context, void* userData)
 #endif /* HTTPDGUI */
     delete [] gInputs;
     delete [] gOutputs;
-    delete gDSP;
-    
+    delete gDSP;    
 #ifdef MIDICTRL
     delete gMidiInterface;
 #endif
