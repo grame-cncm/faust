@@ -107,7 +107,6 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
         void stopNote (float velocity, bool allowTailOff) override
         {
             keyOff(!allowTailOff);
-            clearCurrentNote();
         }
         
         void pitchWheelMoved (int newPitchWheelValue) override
@@ -128,7 +127,7 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
             if (isVoiceActive()) {
                 
                 // Play the voice
-                play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
+                compute(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
                 
                 // Mix it in outputs
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {

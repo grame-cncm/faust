@@ -339,7 +339,6 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.dsp_voices_state = [];
         this.dsp_voices_level = [];
         this.dsp_voices_date = [];
-        this.dsp_voices_trigger = [];
         
         this.kActiveVoice = 0;
         this.kFreeVoice = -1;
@@ -356,7 +355,6 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             this.dsp_voices_state[i] = this.kFreeVoice;
             this.dsp_voices_level[i] = 0;
             this.dsp_voices_date[i] = 0;
-            this.dsp_voices_trigger[i] = false;
         }
         
         // Effect memory starts after last voice
@@ -405,8 +403,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Always returns a voice
         this.allocVoice = function(voice)
         {
+            // so that envelop is always re-initialized
+            this.factory.instanceClear(this.dsp_voices[voice]);
             this.dsp_voices_date[voice] = this.fDate++;
-            this.dsp_voices_trigger[voice] = true;    // so that envelop is always re-initialized
             this.dsp_voices_state[voice] = this.kActiveVoice;
             return voice;
         }
@@ -547,19 +546,19 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             for (var i = 0; i < this.fFreqLabel.length; i++) {
                 this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
             }
+            for (var i = 0; i < this.fGateLabel.length; i++) {
+                this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
+            }
             for (var i = 0; i < this.fGainLabel.length; i++) {
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
             }
             this.dsp_voices_state[voice] = pitch;
-            this.dsp_voices_trigger[voice] = true;
         }
         
         this.keyOff = function (channel, pitch, velocity)
         {
             var voice = this.getPlayingVoice(pitch);
             if (voice !== this.kNoVoice) {
-                // Be sure the voice is not triggered
-                this.dsp_voices_trigger[voice] = false;	
                 if (this.debug) {
                     console.log("keyOff voice %d", voice);
                 }
@@ -713,21 +712,8 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Compute all running voices
         for (var i = 0; i < this.polyphony; i++) {
             if (this.dsp_voices_state[i] != this.kFreeVoice) {
-                if (this.dsp_voices_trigger[i]) {
-                    // FIXME : properly cut the buffer in 2 slices...
-                    for (var j = 0; j < this.fGateLabel.length; j++) {
-                        this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 0.0);
-                    }
-                    this.factory.compute(this.dsp_voices[i], 1, this.ins, this.mixing);
-                    for (var j = 0; j < this.fGateLabel.length; j++) {
-                        this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 1.0);
-                    }
-                    this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                    this.dsp_voices_trigger[i] = false;
-                } else {
-                    // Compute regular voice
-                    this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                }
+                // Compute voice
+                this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
                 // Mix it in result
                 this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
