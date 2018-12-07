@@ -428,7 +428,7 @@ bool setup(BelaContext* context, void* userData)
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     
-#if MIDICTRL
+#ifdef MIDICTRL
     if (midi_sync) {
         gDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
@@ -445,7 +445,7 @@ bool setup(BelaContext* context, void* userData)
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
         
-#if MIDICTRL
+#ifdef MIDICTRL
         if (midi_sync) {
             gDSP = new timed_dsp(dsp_poly);
         } else {
@@ -455,7 +455,7 @@ bool setup(BelaContext* context, void* userData)
         gDSP = dsp_poly;
 #endif
     } else {
-#if MIDICTRL
+#ifdef MIDICTRL
         if (midi_sync) {
             gDSP = new timed_dsp(new mydsp());
         } else {
