@@ -634,6 +634,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
     }
 
+    // Loop : beware: compiled loop don't work with an index of 0
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...

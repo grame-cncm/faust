@@ -39,7 +39,7 @@ static void tab(int n, ostream& fout)
     while (n--) fout << '\t';
 }
 
-#define dispatchReturn() \
+#define dispatchReturn()  \
     {                     \
         it = popAddr();   \
     }
@@ -180,7 +180,7 @@ class FBCCPPCompiler {
     }
     void pushStoreArray(const std::string& array,const std::string& index)
     {
-        fBlockList.addInst(array + "[" + index+ "] = " + popValue() + ";");
+        fBlockList.addInst(array + "[" + index + "] = " + popValue() + ";");
     }
 
     void pushLoadInput(int index)

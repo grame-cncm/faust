@@ -874,9 +874,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
+        if (count == 0) return;  // Beware: compiled loop don't work with an index of 0
+        
         if (TRACE > 0 && !fInitialized) {
             std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else {
+            
             // std::cout << "compute " << count << std::endl;
             T** inputs  = reinterpret_cast<T**>(inputs_aux);
             T** outputs = reinterpret_cast<T**>(outputs_aux);
@@ -997,6 +1000,8 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
 
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
+        if (count == 0) return;  // Beware: compiled loop don't work with an index of 0
+        
         T** inputs  = reinterpret_cast<T**>(inputs_aux);
         T** outputs = reinterpret_cast<T**>(outputs_aux);
 

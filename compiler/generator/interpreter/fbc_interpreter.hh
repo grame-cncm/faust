@@ -2354,8 +2354,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     void setIntValue(int offset, int value) { fIntHeap[offset] = value; }
     int  getIntValue(int offset) { return fIntHeap[offset]; }
 
-    virtual void setInput(int offset, T* buffer) { fInputs[offset] = buffer; }
-    virtual void setOutput(int offset, T* buffer) { fOutputs[offset] = buffer; }
+    virtual void setInput(int input, T* buffer) { fInputs[input] = buffer; }
+    virtual void setOutput(int output, T* buffer) { fOutputs[output] = buffer; }
 };
 
 #endif

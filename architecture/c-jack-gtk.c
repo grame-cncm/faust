@@ -74,75 +74,30 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+// Wrapping C++ class for the C object
+
 class Cdsp : public dsp {
 
   private:
 
-	mydsp* fDsp;
+	mydsp* fDSP;
 
   public:
 
 	Cdsp()
 	{
-        fDsp = newmydsp();
+        fDSP = newmydsp();
 	}
 
 	virtual ~Cdsp()
 	{
-		deletemydsp(fDsp);
+		deletemydsp(fDSP);
 	}
-	virtual int getNumInputs() 	{ return getNumInputsmydsp(fDsp); }
+	virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
     
-	virtual int getNumOutputs() { return getNumOutputsmydsp(fDsp); }
-
-	static void classInit(int samplingFreq)
-    {
-        classInitmydsp(samplingFreq);
-    }
-
-	virtual void instanceInit(int samplingFreq)
-    {
-		instanceInitmydsp(fDsp, samplingFreq);
-	}
+	virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
     
-    virtual void instanceConstants(int samplingFreq)
-    {
-        instanceConstantsmydsp(fDsp, samplingFreq);
-    }
-    
-    virtual void instanceResetUserInterface()
-    {
-        instanceResetUserInterfacemydsp(fDsp);
-    }
-    
-    virtual void instanceClear()
-    {
-        instanceClearmydsp(fDsp);
-    }
-  
-    virtual void metadata(Meta* m)
-    {
-        MetaGlue glue;
-        buildMetaGlue(&glue, m);
-        metadatamydsp(&glue);
-    }
-    
-    virtual dsp* clone()
-    {
-       return (dsp*)newmydsp();
-    }
-    
-    virtual int getSampleRate()
-    {
-        return getSampleRatemydsp(fDsp);
-    }
-
-	virtual void init(int samplingFreq)
-    {
-		initmydsp(fDsp, samplingFreq);
-	}
-
-	virtual void buildUserInterface(UI* interface)
+    virtual void buildUserInterface(UI* interface)
     {
         UIGlue glue;
         glue.uiInterface = interface;
@@ -159,13 +114,60 @@ class Cdsp : public dsp {
         glue.addVerticalBargraph = addVerticalBargraphGlueFloat;
         glue.addSoundFile = addSoundFileGlueFloat;
         glue.declare = declareGlueFloat;
+        
+        buildUserInterfacemydsp(fDSP, &glue);
+    }
 
-        buildUserInterfacemydsp(fDsp, &glue);
-  	}
+    virtual int getSampleRate()
+    {
+        return getSampleRatemydsp(fDSP);
+    }
+    
+    virtual void init(int samplingRate)
+    {
+        initmydsp(fDSP, samplingRate);
+    }
 
+	static void classInit(int samplingRate)
+    {
+        classInitmydsp(samplingRate);
+    }
+
+	virtual void instanceInit(int samplingRate)
+    {
+		instanceInitmydsp(fDSP, samplingRate);
+	}
+    
+    virtual void instanceConstants(int samplingRate)
+    {
+        instanceConstantsmydsp(fDSP, samplingRate);
+    }
+    
+    virtual void instanceResetUserInterface()
+    {
+        instanceResetUserInterfacemydsp(fDSP);
+    }
+    
+    virtual void instanceClear()
+    {
+        instanceClearmydsp(fDSP);
+    }
+  
+    virtual dsp* clone()
+    {
+        return new Cdsp();
+    }
+    
+    virtual void metadata(Meta* m)
+    {
+        MetaGlue glue;
+        buildMetaGlue(&glue, m);
+        metadatamydsp(&glue);
+    }
+  
 	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     {
-		computemydsp(fDsp, count, input, output);
+		computemydsp(fDSP, count, input, output);
 	}
 
 };

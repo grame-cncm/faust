@@ -69,13 +69,15 @@ cd dsp			# the dsp files location
 
 ###############################################################
 # functions
+###############################################################
+
 function check {
 	TOOL=$1
 	shift
 	OPTIONS=$*
 	echo ---- check using $TOOL ----
     for f in *.dsp; do
-		DSP=$(basename $f .dsp)
+        DSP=$(basename $f .dsp)
         $TOOL $OPTIONS  $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../$REF/$DSP.ir && echo "OK $f with $OPTIONS" || echo "ERROR $f with $OPTIONS"
     done
@@ -87,16 +89,18 @@ function check_with_node {
 	OPTIONS=$*
 	echo ---- check using $TOOL ----
     for f in *.dsp; do
-		DSP=$(basename $f .dsp)
+        DSP=$(basename $f .dsp)
         $TOOL $OPTIONS  $f > $D/$f.scal.ir || (echo "ERROR $f with $OPTIONS"; exit)
         cp $D/$f.scal.ir $f.scal.ir
-	    filesCompare $D/$f.scal.ir ../$REF/$DSP.ir && echo "OK $f with $OPTIONS" || echo "ERROR $f with $OPTIONS"
+        # compare the beginning of the file
+        filesCompare $D/$f.scal.ir ../$REF/$DSP.ir -1 -part && echo "OK $f with $OPTIONS" || echo "ERROR $f with $OPTIONS"
    done
 }
 
 ###############################################################
 # processing starts here
 ###############################################################
+
 if [ $BACKEND = "valgrind" ]; then
     echo "==============================================================="
     echo "Valgrind test in scalar mode "

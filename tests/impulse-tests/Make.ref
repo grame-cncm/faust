@@ -69,7 +69,7 @@ $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
 	$(COMPARE)  $@ $(refdir)/vec/$(notdir $@) 
-	$(COMPARE)  $@ $(refdir)/sched/$(notdir $@) 1e-02
+	#$(COMPARE)  $@ $(refdir)/sched/$(notdir $@) 1e-02
 
 $(refdir)/vec/%.ir: dsp/vec/% dsp/%.dsp dsp/vec/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)

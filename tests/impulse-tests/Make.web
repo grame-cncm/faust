@@ -29,7 +29,6 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 
 SRCDIR := tools
 
-
 all:
 	$(MAKE) -f Make.web asmjs
 
@@ -80,7 +79,7 @@ ir/$(outdir)/%.js : dsp/%.dsp
 # rules for wasm
 ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
 	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
-	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 	
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
 	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
@@ -97,7 +96,7 @@ ir/$(wasmdir)/control.wasm : dsp/control.dsp
 # rules for wast
 ir/$(wastdir)/%.ir: ir/$(wastdir)/%.js reference/%.ir
 	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
-	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 
 ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
 	cat $(basename $<).js $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp

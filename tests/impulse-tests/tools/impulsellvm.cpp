@@ -13,12 +13,15 @@ int main(int argc, char* argv[])
 #else
     const char* argv1[argc1];
 #endif
+    bool is_vec = false;
     for (int i = 0; i < argc - 2;  i++) {
         argv1[i] = argv[i + 2];
+        is_vec = is_vec || (strcmp(argv1[i], "-vec") == 0) || (strcmp(argv1[i], "-omp") == 0) || (strcmp(argv1[i], "-sch") == 0);
     }
     
-    string factory_str;
     llvm_dsp_factory* factory = NULL;
+    int linenum = 0;
+    int nbsamples = 60000;
     
     bool inpl = isopt(argv, "-inpl");
     
@@ -26,106 +29,209 @@ int main(int argc, char* argv[])
         // Test factory generated from compilation
         string error_msg;
         factory = createDSPFactoryFromFile(argv[1], argc1, argv1, "", error_msg, 3);
+        
         if (!factory) {
-            cerr << "createDSPFactoryFromFile " << error_msg << endl;
+            cerr << "ERROR in createDSPFactoryFromFile " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
-        runFactory(factory, argv[1], false, inpl);
         
-        testPolyphony1(factory);
-        testPolyphony1(factory, true);
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4, true);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, true, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
+        
+        /// 'inplace' only works in 'scalar' mode
+        if (!is_vec) {
+            // print general informations
+            printHeader(DSP, nbsamples);
+            
+            runDSP1(factory, argv[1], linenum, nbsamples/4, false, inpl);
+            runDSP1(factory, argv[1], linenum, nbsamples/4, false, inpl, true);
+            runPolyDSP1(factory, linenum, nbsamples/4, 4);
+            runPolyDSP1(factory, linenum, nbsamples/4, 1);
+        }
     }
     
     {
         string error_msg;
         // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
-        writeDSPFactoryToBitcodeFile(factory, "/var/tmp/llvm-factory.bc");
+        stringstream str; str << "/var/tmp/llvm-factory" << factory << ".bc";
+        writeDSPFactoryToBitcodeFile(factory, str.str());
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
-        factory = readDSPFactoryFromBitcodeFile("/var/tmp/llvm-factory.bc", "", error_msg);
+        factory = readDSPFactoryFromBitcodeFile(str.str(), "", error_msg);
         
         if (!factory) {
-            cerr << " Error in readDSPFactoryFromBitcodeFile " << error_msg << endl;
+            cerr << "ERROR in readDSPFactoryFromBitcodeFile " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
     {
         string error_msg;
         // Test writeDSPFactoryToBitcode/readDSPFactoryFromBitcode
-        factory_str = writeDSPFactoryToBitcode(factory);
+        string factory_str = writeDSPFactoryToBitcode(factory);
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromBitcode(factory_str, "", error_msg);
         
         if (!factory) {
-            cerr << " Error in readDSPFactoryFromBitcode " << error_msg << endl;
+            cerr << "ERROR in readDSPFactoryFromBitcode " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
    
     {
         string error_msg;
         // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
-        writeDSPFactoryToIRFile(factory, "/var/tmp/llvm-factory.ll");
+        stringstream str; str << "/var/tmp/llvm-factory" << factory << ".ll";
+        writeDSPFactoryToIRFile(factory, str.str());
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
-        factory = readDSPFactoryFromIRFile("/var/tmp/llvm-factory.ll", "", error_msg);
+        factory = readDSPFactoryFromIRFile(str.str(), "", error_msg);
         
         if (!factory) {
-            cerr << " Error in readDSPFactoryFromIRFile " << error_msg << endl;
+            cerr << "ERROR in readDSPFactoryFromIRFile " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
     {
         string error_msg;
         // Test writeDSPFactoryToIR/readDSPFactoryFromIR
-        factory_str = writeDSPFactoryToIR(factory);
+        string factory_str = writeDSPFactoryToIR(factory);
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromIR(factory_str, "", error_msg);
         
         if (!factory) {
-            cerr << " Error in readDSPFactoryFromIRFile " << error_msg << endl;
+            cerr << "ERROR in readDSPFactoryFromIRFile " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
     {
         string error_msg;
         // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
-        writeDSPFactoryToMachineFile(factory, "/var/tmp/" + string(argv[1]) + "-llvm-factory-machine", "");
+        string machine_file_name = "/var/tmp/" + string(argv[1]) + "-llvm-factory-machine";
+        writeDSPFactoryToMachineFile(factory, machine_file_name, "");
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
-        factory = readDSPFactoryFromMachineFile("/var/tmp/" + string(argv[1]) + "-llvm-factory-machine", "", error_msg);
+        factory = readDSPFactoryFromMachineFile(machine_file_name, "", error_msg);
         
         if (!factory) {
-            cerr << " Error in readDSPFactoryFromMachineFile " << error_msg << endl;
+            cerr << "ERROR in readDSPFactoryFromMachineFile " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
     {
         string error_msg;
         // Test writeDSPFactoryToMachine/readDSPFactoryFromMachine
-        factory_str = writeDSPFactoryToMachine(factory, "");
+        string factory_str = writeDSPFactoryToMachine(factory, "");
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromMachine(factory_str, "", error_msg);
         
         if (!factory) {
-            cerr << " Error in readDSPFactoryFromMachine " << error_msg << endl;
+            cerr << "ERROR in readDSPFactoryFromMachine " << error_msg;
             exit(-1);
         }
-        runFactory(factory, argv[1]);
-        runFactory(factory, argv[1], true);
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR : createDSPInstance " << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
     return 0;

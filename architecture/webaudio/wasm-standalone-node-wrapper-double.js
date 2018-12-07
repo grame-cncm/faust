@@ -343,7 +343,7 @@ var buffer_size = 64;
 var sample_rate = 44100;
 var inputs = [];
 var outputs = [];
-var nbsamples = 60000;
+var nbsamples = 15000;
 var linenum = 0;
 var run = 0;
 var control_data;

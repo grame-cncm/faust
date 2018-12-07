@@ -607,7 +607,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fCurrentBlock = previous;
     }
 
-    // Loop
+    // Loop : beware: compiled loop don't work with an index of 0
     virtual void visit(ForLoopInst* inst)
     {
         // Keep current block

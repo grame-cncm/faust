@@ -14,106 +14,119 @@
 
 <<includeclass>>
 
-mydsp* DSP;
+// Wrapping C++ class for the C object
+
+class Cdsp : public dsp {
+    
+    private:
+        
+        mydsp* fDSP;
+        
+    public:
+        
+        Cdsp()
+        {
+            fDSP = newmydsp();
+        }
+        
+        virtual ~Cdsp()
+        {
+            deletemydsp(fDSP);
+        }
+        virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
+        
+        virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
+        
+        virtual void buildUserInterface(UI* interface)
+        {
+            UIGlue glue;
+            glue.uiInterface = interface;
+            glue.openTabBox = openTabBoxGlueDouble;
+            glue.openHorizontalBox = openHorizontalBoxGlueDouble;
+            glue.openVerticalBox = openVerticalBoxGlueDouble;
+            glue.closeBox = closeBoxGlueDouble;
+            glue.addButton = addButtonGlueDouble;
+            glue.addCheckButton = addCheckButtonGlueDouble;
+            glue.addVerticalSlider = addVerticalSliderGlueDouble;
+            glue.addHorizontalSlider = addHorizontalSliderGlueDouble;
+            glue.addNumEntry = addNumEntryGlueDouble;
+            glue.addHorizontalBargraph = addHorizontalBargraphGlueDouble;
+            glue.addVerticalBargraph = addVerticalBargraphGlueDouble;
+            glue.addSoundFile = addSoundFileGlueDouble;
+            glue.declare = declareGlueDouble;
+            
+            buildUserInterfacemydsp(fDSP, &glue);
+        }
+        
+        virtual int getSampleRate()
+        {
+            return getSampleRatemydsp(fDSP);
+        }
+        
+        virtual void init(int samplingRate)
+        {
+            initmydsp(fDSP, samplingRate);
+        }
+        
+        static void classInit(int samplingRate)
+        {
+            classInitmydsp(samplingRate);
+        }
+        
+        virtual void instanceInit(int samplingRate)
+        {
+            instanceInitmydsp(fDSP, samplingRate);
+        }
+        
+        virtual void instanceConstants(int samplingRate)
+        {
+            instanceConstantsmydsp(fDSP, samplingRate);
+        }
+        
+        virtual void instanceResetUserInterface()
+        {
+            instanceResetUserInterfacemydsp(fDSP);
+        }
+        
+        virtual void instanceClear()
+        {
+            instanceClearmydsp(fDSP);
+        }
+        
+        virtual dsp* clone()
+        {
+            return new Cdsp();
+        }
+        
+        virtual void metadata(Meta* m)
+        {
+            MetaGlue glue;
+            buildMetaGlue(&glue, m);
+            metadatamydsp(&glue);
+        }
+        
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+        {
+            computemydsp(fDSP, count, input, output);
+        }
+    
+};
 
 int main(int argc, char* argv[])
 {
-    char rcfilename[256];
-    FUI finterface;
-    snprintf(rcfilename, 255, "%src", argv[0]);
-    
-    bool inpl = isopt(argv, "-inpl");
-    
-    DSP = newmydsp();
-    
-    CheckControlUI controlui;
-    
-    UIGlue glue2;
-    buildUIGlue(&glue2, &finterface, true);
-    buildUserInterfacemydsp(DSP, &glue2);
-    
-    // Get control and then 'initRandom'
-    UIGlue glue3;
-    buildUIGlue(&glue3, &controlui, true);
-    buildUserInterfacemydsp(DSP, &glue3);
-    controlui.initRandom();
-    
-    // init signal processor and the user interface values:
-    initmydsp(DSP, 44100);
-    
-    // Check getSampleRate
-    if (getSampleRatemydsp(DSP) != 44100) {
-        cerr << "ERROR in getSampleRate" << std::endl;
-    }
-    
-    // Check default after 'init'
-    if (!controlui.checkDefaults()) {
-        cerr << "ERROR in checkDefaults after 'init'" << std::endl;
-    }
-    
-    // Check default after 'instanceResetUserInterface'
-    controlui.initRandom();
-    instanceResetUserInterfacemydsp(DSP);
-    if (!controlui.checkDefaults()) {
-        cerr << "ERROR in checkDefaults after 'instanceResetUserInterface'" << std::endl;
-    }
-    
-    // Check default after 'instanceInit'
-    controlui.initRandom();
-    instanceInitmydsp(DSP, 44100);
-    if (!controlui.checkDefaults()) {
-        cerr << "ERROR in checkDefaults after 'instanceInit'" << std::endl;
-    }
-    
-    // Init again
-    initmydsp(DSP, 44100);
-    
-    int nins = getNumInputsmydsp(DSP);
-    int nouts = getNumOutputsmydsp(DSP);
-    
-    channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
-    channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
-    
-    int nbsamples = 60000;
     int linenum = 0;
-    int run = 0;
-    
-    // recall saved state
-    finterface.recallState(rcfilename);
+    int nbsamples = 60000;
     
     // print general informations
-    printf("number_of_inputs  : %3d\n", nins);
-    printf("number_of_outputs : %3d\n", nouts);
-    printf("number_of_frames  : %6d\n", nbsamples);
+    printHeader(new Cdsp(), nbsamples);
     
-    // print audio frames
-    int i;
-    try {
-        while (nbsamples > 0) {
-            if (run == 0) {
-                ichan->impulse();
-                finterface.setButtons(true);
-            }
-            if (run >= 1) {
-                ichan->zero();
-                finterface.setButtons(false);
-            }
-            int nFrames = min(kFrames, nbsamples);
-            computemydsp(DSP, nFrames, ichan->buffers(), ochan->buffers());
-            run++;
-            for (int i = 0; i < nFrames; i++) {
-                printf("%6d : ", linenum++);
-                for (int c = 0; c < nouts; c++) {
-                    FAUSTFLOAT f = normalize(ochan->buffers()[c][i]);
-                    printf(" %8.6f", f);
-                }
-                printf("\n");
-            }
-            nbsamples -= nFrames;
-        }
-    } catch (...) {
-        cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
-    }
+    // linenum is incremented in runDSP and runPolyDSP
+    runDSP(new Cdsp(), argv[0], linenum, nbsamples/4);
+    runDSP(new Cdsp(), argv[0], linenum, nbsamples/4, false, true);
+    runPolyDSP(new Cdsp(), linenum, nbsamples/4, 4);
+    runPolyDSP(new Cdsp(), linenum, nbsamples/4, 1);
     
     return 0;
 }
+
+
