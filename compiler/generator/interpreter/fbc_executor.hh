@@ -29,7 +29,7 @@ template <class T>
 struct FBCExecutor {
     
     virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
-    virtual void ExecuteBlock(FBCBlockInstruction<T>* block) {};
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false) {};
     
     virtual void setIntValue(int offset, int value) {}
     virtual int getIntValue(int offset) { return -1; }

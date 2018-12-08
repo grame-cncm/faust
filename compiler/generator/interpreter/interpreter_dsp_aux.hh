@@ -130,7 +130,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         
         return new FBCCompiler<T>(this, fCompiledBlocks);
 #else
-        optimize();
         return new FBCInterpreter<T, TRACE>(this);
         //return new FBCVecInterpreter<T, 1>(this);
 #endif
@@ -617,9 +616,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     void ExecuteMeta(FIRMetaBlockInstruction* block, Meta* meta)
     {
-        MetaInstructionIT it;
-        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-            meta->declare((*it)->fKey.c_str(), (*it)->fValue.c_str());
+        for (auto& it : block->fInstructions) {
+            meta->declare(it->fKey.c_str(), it->fValue.c_str());
         }
     }
 
@@ -652,80 +650,29 @@ struct interpreter_dsp_base : public dsp {
 template <class T, int TRACE>
 class interpreter_dsp_aux : public interpreter_dsp_base {
    protected:
-    /*
-    FBCBlockInstruction<T>* fStaticInitBlock;
-    FBCBlockInstruction<T>* fInitBlock;
-    FBCBlockInstruction<T>* fResetUIBlock;
-    FBCBlockInstruction<T>* fClearBlock;
-    FBCBlockInstruction<T>* fComputeBlock;
-    FBCBlockInstruction<T>* fComputeDSPBlock;
-    */
-
-    // std::map<int, int> fIntMap;
-    // std::map<int, T>   fRealMap;
     bool fInitialized;
 
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     FBCExecutor<T>*                        fFBCExecutor;
    public:
+    interpreter_dsp_aux()
+    :fFactory(nullptr), fFBCExecutor(nullptr), fInitialized(false)
+    {}
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
-        /*
-        if (this->fFactory->getMemoryManager()) {
-            this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
-            this->fOutputs = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumOutputs));
-        } else {
-            this->fInputs  = new T*[this->fFactory->fNumInputs];
-            this->fOutputs = new T*[this->fFactory->fNumOutputs];
-        }
-        */
-        this->fFactory     = factory;
-        this->fFBCExecutor = factory->createFBCExecutor();
-
-        /*
-        fFactory->fStaticInitBlock->write(&std::cout, false);
-        fFactory->fInitBlock->write(&std::cout, false);
-        fFactory->fResetUIBlock->write(&std::cout, false);
-        fFactory->fClearBlock->write(&std::cout, false);
-        fFactory->fComputeBlock->write(&std::cout, false);
-        fFactory->fComputeDSPBlock->write(&std::cout, false);
-        std::cout << "size " << fFactory->fComputeDSPBlock->size() << std::endl;
-        */
-
-        /*
-        this->fStaticInitBlock = 0;
-        this->fInitBlock = 0;
-        this->fResetUIBlock = 0;
-        this->fClearBlock = 0;
-        this->fComputeBlock = 0;
-        this->fComputeDSPBlock = 0;
-        */
-        this->fInitialized = false;
+        fFactory = factory;
+    #ifndef MACHINE
+        // Done before createFBCExecutor that may compile blocks...
+        fFactory->optimize();
+    #endif
+        fFBCExecutor = factory->createFBCExecutor();
+        fInitialized = false;
     }
 
     virtual ~interpreter_dsp_aux()
     {
-        /*
-        if (this->fFactory->getMemoryManager()) {
-            this->fFactory->destroy(this->fInputs);
-            this->fFactory->destroy(this->fOutputs);
-        } else {
-            delete[] this->fInputs;
-            delete[] this->fOutputs;
-        }
-        */
-
-        /*
-        delete this->fStaticInitBlock;
-        delete this->fInitBlock;
-        delete this->fResetUIBlock;
-        delete this->fClearBlock;
-        delete this->fComputeBlock;
-        delete this->fComputeDSPBlock;
-        */
-
-        delete this->fFBCExecutor;
-        //delete this->fFBCVecExecutor;
+        delete fFBCExecutor;
+        //delete fFBCVecExecutor;
     }
 
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
@@ -755,9 +702,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void instanceConstants(int samplingRate)
     {
-        // Store samplingRate in specialization fIntMap
-        // this->fIntMap[fFactory->fSROffset] = samplingRate;
-
         // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
         fFBCExecutor->setIntValue(fFactory->fSROffset, samplingRate);
 
@@ -779,76 +723,20 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void instanceInit(int samplingRate)
     {
-        this->instanceConstants(samplingRate);
-        this->instanceResetUserInterface();
-        this->instanceClear();
+        instanceConstants(samplingRate);
+        instanceResetUserInterface();
+        instanceClear();
     }
 
     virtual void init(int samplingRate)
     {
-        this->fInitialized = true;
-        this->classInit(samplingRate);
-        this->instanceInit(samplingRate);
+        fInitialized = true;
+        classInit(samplingRate);
+        instanceInit(samplingRate);
     }
-
-    /*
-    virtual void init(int samplingRate)
-    {
-        // Store samplingRate in specialization fIntMap
-        this->fIntMap[this->fSROffset] = samplingRate;
-
-        // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-        this->fIntHeap[this->fSROffset] = samplingRate;
-
-        this->classInit(samplingRate);
-        this->instanceInit(samplingRate);
-
-        this->fStaticInitBlock 
-            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
-        this->fInitBlock 
-            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fInitBlock->copy(), fIntMap, fRealMap);
-        this->fResetUIBlock 
-            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fResetUIBlock->copy(), fIntMap, fRealMap);
-        this->fClearBlock 
-            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fClearBlock->copy(), fIntMap, fRealMap);
-
-        // Suppress IOTA from fRealMap since we don't want specialization to use it
-        if (this->fIntMap.find(fFactory->fIOTAOffset) != this->fIntMap.end()) {
-            this->fIntMap.erase(this->fIntMap.find(fFactory->fIOTAOffset));
-        }
-
-        // Keep control ON
-        fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FBCInstruction::kAddButton);
-        //fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
-
-        // Specialization
-        //this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock->copy(), 4);
-
-        this->fComputeBlock 
-            = FBCInstructionOptimizer<T>::specialize(fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
-        this->fComputeDSPBlock 
-            = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock->copy(), 1, 4);
-        this->fComputeDSPBlock 
-            = FBCInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
-
-        // Optimization
-        this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);
-        this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeDSPBlock, 5, 6);
-
-        std::cout << "INIT" << std::endl;
-
-        this->fStaticInitBlock->write(&std::cout, false);
-        this->fInitBlock->write(&std::cout, false);
-        this->fResetUIBlock->write(&std::cout, false);
-        this->fClearBlock->write(&std::cout, false);
-        this->fComputeBlock->write(&std::cout, false);
-        this->fComputeDSPBlock->write(&std::cout, false);
-    }
-    */
 
     virtual void buildUserInterface(UITemplate* glue)
     {
-        // std::cout << "buildUserInterface" << std::endl;
         fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
     }
     
@@ -911,40 +799,179 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
     }
 
-    /*
-    // Version with specialization
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+};
+
+// Specialization using partial evaluation: making controllers constant and optimizing the code.
+
+template <class T, int TRACE>
+class interpreter_dsp_aux_pe : public interpreter_dsp_aux<T, TRACE> {
+protected:
+    
+    FBCBlockInstruction<T>* fStaticInitBlock;
+    FBCBlockInstruction<T>* fInitBlock;
+    FBCBlockInstruction<T>* fResetUIBlock;
+    FBCBlockInstruction<T>* fClearBlock;
+    FBCBlockInstruction<T>* fComputeBlock;
+    FBCBlockInstruction<T>* fComputeDSPBlock;
+    
+    std::map<int, int> fIntMap;
+    std::map<int, T>   fRealMap;
+    
+ public:
+    interpreter_dsp_aux_pe(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
-    #ifdef INTERPRETER_TRACE
-        if (!fInitialized) {
+        std::cout << "interpreter_dsp_aux_pe\n";
+        /*
+         if (this->fFactory->getMemoryManager()) {
+         this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
+         this->fOutputs = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumOutputs));
+         } else {
+         this->fInputs  = new T*[this->fFactory->fNumInputs];
+         this->fOutputs = new T*[this->fFactory->fNumOutputs];
+         }
+         */
+        
+        /*
+         fFactory->fStaticInitBlock->write(&std::cout, false);
+         fFactory->fInitBlock->write(&std::cout, false);
+         fFactory->fResetUIBlock->write(&std::cout, false);
+         fFactory->fClearBlock->write(&std::cout, false);
+         fFactory->fComputeBlock->write(&std::cout, false);
+         fFactory->fComputeDSPBlock->write(&std::cout, false);
+         std::cout << "size " << fFactory->fComputeDSPBlock->size() << std::endl;
+         */
+        
+        this->fFactory = factory;
+        this->fFBCExecutor = factory->createFBCExecutor();
+        
+        fStaticInitBlock = nullptr;
+        fInitBlock = nullptr;
+        fResetUIBlock = nullptr;
+        fClearBlock = nullptr;
+        fComputeBlock = nullptr;
+        fComputeDSPBlock = nullptr;
+    }
+    
+    virtual ~interpreter_dsp_aux_pe()
+    {
+        /*
+         if (this->fFactory->getMemoryManager()) {
+            this->fFactory->destroy(this->fInputs);
+            this->fFactory->destroy(this->fOutputs);
+         } else {
+            delete[] this->fInputs;
+            delete[] this->fOutputs;
+         }
+         */
+        
+        delete this->fStaticInitBlock;
+        delete this->fInitBlock;
+        delete this->fResetUIBlock;
+        delete this->fClearBlock;
+        delete this->fComputeBlock;
+        delete this->fComputeDSPBlock;
+    }
+    
+    virtual void instanceConstants(int samplingRate)
+    {
+        // Store samplingRate in specialization fIntMap
+        fIntMap[this->fFactory->fSROffset] = samplingRate;
+        
+        // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
+        this->fFBCExecutor->setIntValue(this->fFactory->fSROffset, samplingRate);
+        
+        // Execute state init instructions
+        this->fFBCExecutor->ExecuteBlock(this->fFactory->fInitBlock);
+    }
+    
+    virtual void init(int samplingRate)
+    {
+        this->fInitialized = true;
+
+        // Store samplingRate in specialization fIntMap
+        fIntMap[this->fFactory->fSROffset] = samplingRate;
+
+        // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
+        this->fFBCExecutor->setIntValue(this->fFactory->fSROffset, samplingRate);
+
+        this->classInit(samplingRate);
+        this->instanceInit(samplingRate);
+
+        this->fStaticInitBlock
+            = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
+        this->fInitBlock
+            = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fInitBlock->copy(), fIntMap, fRealMap);
+        this->fResetUIBlock
+            = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fResetUIBlock->copy(), fIntMap, fRealMap);
+        this->fClearBlock
+            = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fClearBlock->copy(), fIntMap, fRealMap);
+
+        // Suppress IOTA from fIntMap since we don't want specialization to use it
+        if (fIntMap.find(this->fFactory->fIOTAOffset) != fIntMap.end()) {
+            fIntMap.erase(fIntMap.find(this->fFactory->fIOTAOffset));
+        }
+
+        // Freeze all controlers
+        this->fFactory->fUserInterfaceBlock->freezeDefaultValues(fRealMap);
+
+        // Keep button ON
+        this->fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FBCInstruction::kAddButton);
+        //this->fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
+
+        // Specialization by partial evaluation
+        this->fComputeBlock
+            = FBCInstructionOptimizer<T>::specialize(this->fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
+        this->fComputeDSPBlock
+            = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock->copy(), 1, 4);
+        this->fComputeDSPBlock
+            = FBCInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
+
+        // Optimization
+        this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);
+        this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeDSPBlock, 5, 6);
+
+        /*
+        this->fStaticInitBlock->write(&std::cout, false);
+        this->fInitBlock->write(&std::cout, false);
+        this->fResetUIBlock->write(&std::cout, false);
+        this->fClearBlock->write(&std::cout, false);
+        this->fComputeBlock->write(&std::cout, false);
+        this->fComputeDSPBlock->write(&std::cout, false);
+        */
+    }
+    
+    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+    {
+        if (count == 0) return;  // Beware: compiled loop don't work with an index of 0
+        
+        if (TRACE > 0 && !this->fInitialized) {
             std::cout << "======== DSP is not initialized ! ========" << std::endl;
-        } else
-    #endif
-        {
-            //std::cout << "compute " << count << std::endl;
-
-            T** inputs = reinterpret_cast<T**>(input);
-            T** outputs = reinterpret_cast<T**>(output);
-
+        } else {
+            
+            // std::cout << "compute " << count << std::endl;
+            T** inputs  = reinterpret_cast<T**>(inputs_aux);
+            T** outputs = reinterpret_cast<T**>(outputs_aux);
+            
             // Prepare in/out buffers
-            for (int i = 0; i < fFactory->fNumInputs; i++) {
-                this->fInputs[i] = inputs[i];
+            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                this->fFBCExecutor->setInput(i, inputs[i]);
             }
-            for (int i = 0; i < fFactory->fNumOutputs; i++) {
-                this->fOutputs[i] = outputs[i];
+            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                this->fFBCExecutor->setOutput(i, outputs[i]);
             }
-
+            
             // Set count in 'count' variable at the correct offset in fIntHeap
-            this->fIntHeap[this->fCountOffset] = count;
-
-            // Executes the 'control' block
-            this->ExecuteBlock(this->fComputeBlock);
-
-            // Executes the 'DSP' block
-            this->ExecuteBlock(this->fComputeDSPBlock);
+            this->fFBCExecutor->setIntValue(this->fFactory->fCountOffset, count);
+            
+            // Executes the specialized 'control' block
+            this->fFBCExecutor->ExecuteBlock(this->fComputeBlock);
+            
+            // Executes the specialized 'DSP' block
+            //this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock, true);
+            this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock);
         }
     }
-    */
+    
 };
 
 /*
@@ -1164,7 +1191,14 @@ dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* facto
             interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE>)))
                                      interpreter_dsp_aux<T, TRACE>(this));
     } else {
-        return new interpreter_dsp(tmp, new interpreter_dsp_aux<T, TRACE>(this));
+        const char* trace = getenv("FAUST_INTERP_PE");
+        int         mode  = (trace) ? std::atoi(trace) : 0;
+        if (mode != 0) {
+            // Testing partial evaluation
+            return new interpreter_dsp(tmp, new interpreter_dsp_aux_pe<T, TRACE>(this));
+        } else {
+            return new interpreter_dsp(tmp, new interpreter_dsp_aux<T, TRACE>(this));
+        }
     }
 }
 

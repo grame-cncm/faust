@@ -293,18 +293,18 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata(string& na
     FIRMetaBlockInstruction* block = new FIRMetaBlockInstruction();
 
     // Add global metadata
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
+    for (auto& it : gGlobal->gMetaDataSet) {
+        if (it.first != tree("author")) {
             stringstream str1, str2;
-            str1 << *(i->first);
-            str2 << **(i->second.begin());
+            str1 << *(it.first);
+            str2 << **(it.second.begin());
             if (str1.str() == "name") name = unquote(str2.str());
             block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));
         } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
+            for (set<Tree>::iterator j = it.second.begin(); j != it.second.end(); j++) {
+                if (j == it.second.begin()) {
                     stringstream str1, str2;
-                    str1 << *(i->first);
+                    str1 << *(it.first);
                     str2 << **j;
                     if (str1.str() == "name") name = unquote(str2.str());
                     block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));

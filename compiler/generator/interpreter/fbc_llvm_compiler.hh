@@ -78,7 +78,7 @@ typedef llvm::Value* LLVMValue;
         pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0))); \
     }
 
-#define dispatchReturn() \
+#define dispatchReturn()  \
     {                     \
         it = popAddr();   \
     }
@@ -653,7 +653,6 @@ class FBCLLVMCompiler {
                     CompileBlock((*it)->fBranch1, then_block);
 
                     fBuilder->CreateBr(merge_block);
-                    // Codegen of 'Then' can change the current block, update then_block for the PHI
                     then_block = fBuilder->GetInsertBlock();
 
                     // Emit else block
@@ -663,7 +662,6 @@ class FBCLLVMCompiler {
                     CompileBlock((*it)->fBranch2, else_block);
 
                     pushValue(fBuilder->CreateBr(merge_block));
-                    // Codegen of 'Else' can change the current block, update else_block for the PHI
                     else_block = fBuilder->GetInsertBlock();
 
                     // Emit merge block
@@ -833,7 +831,7 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
         : FBCInterpreter<T, 0>(factory)
     {
         fCompiledBlocks = map;
-
+     
         // FBC blocks compilation
         // CompileBlock(factory->fComputeBlock);
         CompileBlock(factory->fComputeDSPBlock);
@@ -842,8 +840,12 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
     virtual ~FBCCompiler()
     {}
 
-    void ExecuteBlock(FBCBlockInstruction<T>* block)
+    void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile)
     {
+        if (compile && fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
+            CompileBlock(block);
+        }
+        
         // The 'DSP' compute block only is compiled..
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
             ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
@@ -855,12 +857,12 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
    protected:
     CompiledBlocksType* fCompiledBlocks;
 
-    void CompileBlock(FBCBlockInstruction<T>* fbc_block)
+    void CompileBlock(FBCBlockInstruction<T>* block)
     {
-        if (fCompiledBlocks->find(fbc_block) == fCompiledBlocks->end()) {
-            (*fCompiledBlocks)[fbc_block] = new FBCLLVMCompiler<T>(fbc_block);
+        if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
+            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
         } else {
-            // std::cout << "FBCCompiler : reuse compiled block" << std::endl;
+            //std::cout << "FBCCompiler: reuse compiled block" << std::endl;
         }
     }
 };

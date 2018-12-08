@@ -257,10 +257,6 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
             if (random) {
                 int randval = rand();
                 int n1 = randval % nFrames;
-                
-                if (n1 == 1) n1 = 2;
-                if (n1 == 63) n1 = 62;
-                
                 int n2 = nFrames - n1;
                 //std::cerr << "randval " << randval << " nFrames " << nFrames << " linenum " << linenum << " n1 = " << n1 << " n2 = " << n2 << std::endl;
                 

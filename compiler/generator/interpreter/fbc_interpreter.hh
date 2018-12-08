@@ -273,22 +273,20 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
     {
-        UIInstructionIT it;
+        for (auto& it : block->fInstructions) {
+            //it->write(&std::cout);
 
-        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-            //(*it)->write(&std::cout);
-
-            switch ((*it)->fOpcode) {
+            switch (it->fOpcode) {
                 case FBCInstruction::kOpenVerticalBox:
-                    glue->openVerticalBox((*it)->fLabel.c_str());
+                    glue->openVerticalBox(it->fLabel.c_str());
                     break;
 
                 case FBCInstruction::kOpenHorizontalBox:
-                    glue->openHorizontalBox((*it)->fLabel.c_str());
+                    glue->openHorizontalBox(it->fLabel.c_str());
                     break;
 
                 case FBCInstruction::kOpenTabBox:
-                    glue->openTabBox((*it)->fLabel.c_str());
+                    glue->openTabBox(it->fLabel.c_str());
                     break;
 
                 case FBCInstruction::kCloseBox:
@@ -296,48 +294,48 @@ class FBCInterpreter : public FBCExecutor<T> {
                     break;
 
                 case FBCInstruction::kAddButton:
-                    glue->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
+                    glue->addButton(it->fLabel.c_str(), &fRealHeap[it->fOffset]);
                     break;
 
                 case FBCInstruction::kAddCheckButton:
-                    glue->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
+                    glue->addCheckButton(it->fLabel.c_str(), &fRealHeap[it->fOffset]);
                     break;
 
                 case FBCInstruction::kAddHorizontalSlider:
-                    glue->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
-                                              (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                    glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit,
+                                              it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddVerticalSlider:
-                    glue->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
-                                            (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                    glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit,
+                                            it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddNumEntry:
-                    glue->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin,
-                                      (*it)->fMax, (*it)->fStep);
+                    glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin,
+                                      it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddSoundFile:
-                    glue->addSoundFile((*it)->fLabel.c_str(), (*it)->fKey.c_str(), &fSoundHeap[(*it)->fOffset]);
+                    glue->addSoundFile(it->fLabel.c_str(), it->fKey.c_str(), &fSoundHeap[it->fOffset]);
                     break;
 
                 case FBCInstruction::kAddHorizontalBargraph:
-                    glue->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
-                                                (*it)->fMax);
+                    glue->addHorizontalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin,
+                                                it->fMax);
                     break;
 
                 case FBCInstruction::kAddVerticalBargraph:
-                    glue->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
-                                              (*it)->fMax);
+                    glue->addVerticalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin,
+                                              it->fMax);
                     break;
 
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
-                    if ((*it)->fOffset == -1) {
-                        glue->declare(static_cast<T*>(NULL), (*it)->fKey.c_str(), (*it)->fValue.c_str());
+                    if (it->fOffset == -1) {
+                        glue->declare(static_cast<T*>(NULL), it->fKey.c_str(), it->fValue.c_str());
                     } else {
-                        glue->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
+                        glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
                     }
                     break;
 
@@ -347,7 +345,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
     }
 
-    virtual void ExecuteBlock(FBCBlockInstruction<T>* block)
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false)
     {
         static void* fDispatchTable[] = {
 
@@ -2337,17 +2335,16 @@ class FBCInterpreter : public FBCExecutor<T> {
     void freezeValues(std::map<int, int>& int_map, std::map<int, T>& real_map)
     {
         std::cout << "freezeValues Int " << std::endl;
-        typename std::map<int, int>::iterator it1;
-        for (it1 = int_map.begin(); it1 != int_map.end(); it1++) {
-            std::cout << "offset " << (*it1).first << " value " << (*it1).second << std::endl;
-            fIntHeap[(*it1).first] = (*it1).second;
+        for (auto& it1 : int_map) {
+            std::cout << "offset " << it1.first << " value " << it1.second << std::endl;
+            fIntHeap[it1.first] = it1.second;
         }
 
         std::cout << "freezeValues Real" << std::endl;
         typename std::map<int, T>::iterator it2;
-        for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
-            std::cout << "offset " << (*it2).first << " value " << (*it2).second << std::endl;
-            fRealHeap[(*it2).first] = (*it2).second;
+        for (auto& it2 : real_map) {
+            std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
+            fRealHeap[it2.first] = it2.second;
         }
     }
 

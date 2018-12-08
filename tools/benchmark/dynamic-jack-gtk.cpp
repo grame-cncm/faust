@@ -35,6 +35,7 @@
 #endif
 */
 
+#include "faust/dsp/dsp-optimizer.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
@@ -184,6 +185,14 @@ int main(int argc, char* argv[])
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
     
+    /*
+    measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of  measure
+    for (int i = 0; i < 2; i++) {
+        mes->measure();
+        cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
+    }
+    */
+    
     // To test compiled block reuse
     //DSP = factory->createDSPInstance();
     
@@ -271,6 +280,8 @@ int main(int argc, char* argv[])
     delete httpdinterface;
     delete oscinterface;
     delete soundinterface;
+    
+    //delete mes;
   
     if (is_llvm) {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));

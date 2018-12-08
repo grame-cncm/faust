@@ -673,22 +673,20 @@ class FBCCPPCompiler {
     
     void CompileBlock(FIRUserInterfaceBlockInstruction<T>* block, int n, ostream& out)
     {
-        UIInstructionIT it;
-        
-        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-            //(*it)->write(&std::cout);
+        for (auto& it : block->fInstructions) {
+            //it->write(&std::cout);
             
-            switch ((*it)->fOpcode) {
+            switch (it->fOpcode) {
                 case FBCInstruction::kOpenVerticalBox:
-                    tab(n, out); out << "ui_interface->openVerticalBox(\"" << (*it)->fLabel << "\");";
+                    tab(n, out); out << "ui_interface->openVerticalBox(\"" << it->fLabel << "\");";
                     break;
                     
                 case FBCInstruction::kOpenHorizontalBox:
-                    tab(n, out); out << "ui_interface->openHorizontalBox(\"" << (*it)->fLabel << "\");";
+                    tab(n, out); out << "ui_interface->openHorizontalBox(\"" << it->fLabel << "\");";
                     break;
                     
                 case FBCInstruction::kOpenTabBox:
-                    tab(n, out); out << "ui_interface->openTabBox(\"" << (*it)->fLabel << "\");";
+                    tab(n, out); out << "ui_interface->openTabBox(\"" << it->fLabel << "\");";
                     break;
                     
                 case FBCInstruction::kCloseBox:
@@ -696,41 +694,41 @@ class FBCCPPCompiler {
                     break;
                     
                 case FBCInstruction::kAddButton:
-                    tab(n, out); out << "ui_interface->addButton(\"" << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "]);";
+                    tab(n, out); out << "ui_interface->addButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
                     break;
                     
                 case FBCInstruction::kAddCheckButton:
-                    tab(n, out); out << "ui_interface->addCheckButton(\"" << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "]);";
+                    tab(n, out); out << "ui_interface->addCheckButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
                     break;
                     
                 case FBCInstruction::kAddHorizontalSlider:
                     tab(n, out);
                     out << "ui_interface->addHorizontalSlider(\"";
-                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
-                    out << (*it)->fInit << ", ";
-                    out << (*it)->fMin << ", ";
-                    out << (*it)->fMax << ", ";
-                    out << (*it)->fStep << ");";
+                    out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
+                    out << it->fInit << ", ";
+                    out << it->fMin << ", ";
+                    out << it->fMax << ", ";
+                    out << it->fStep << ");";
                     break;
                     
                 case FBCInstruction::kAddVerticalSlider:
                     tab(n, out);
                     out << "ui_interface->addVerticalSlider(\"";
-                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
-                    out << (*it)->fInit << ", ";
-                    out << (*it)->fMin << ", ";
-                    out << (*it)->fMax << ", ";
-                    out << (*it)->fStep << ");";
+                    out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
+                    out << it->fInit << ", ";
+                    out << it->fMin << ", ";
+                    out << it->fMax << ", ";
+                    out << it->fStep << ");";
                     break;
                     
                 case FBCInstruction::kAddNumEntry:
                     tab(n, out);
                     out << "ui_interface->addNumEntry(\"";
-                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
-                    out << (*it)->fInit << ", ";
-                    out << (*it)->fMin << ", ";
-                    out << (*it)->fMax << ", ";
-                    out << (*it)->fStep << ");";
+                    out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
+                    out << it->fInit << ", ";
+                    out << it->fMin << ", ";
+                    out << it->fMax << ", ";
+                    out << it->fStep << ");";
                     break;
                     
                 case FBCInstruction::kAddSoundFile:
@@ -740,26 +738,26 @@ class FBCCPPCompiler {
                 case FBCInstruction::kAddHorizontalBargraph:
                     tab(n, out);
                     out << "ui_interface->addHorizontalBargraph(\"";
-                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
-                    out << (*it)->fMin << ", ";
-                    out << (*it)->fMax << ");";
+                    out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
+                    out << it->fMin << ", ";
+                    out << it->fMax << ");";
                     break;
                     
                 case FBCInstruction::kAddVerticalBargraph:
                     tab(n, out);
                     out << "ui_interface->addVerticalBargraph(\"";
-                    out << (*it)->fLabel << "\", &fRealHeap[" << (*it)->fOffset << "], ";
-                    out << (*it)->fMin << ", ";
-                    out << (*it)->fMax << ");";
+                    out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
+                    out << it->fMin << ", ";
+                    out << it->fMax << ");";
                     break;
                     
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     tab(n, out);
-                    if ((*it)->fOffset == -1) {
-                        out << "ui_interface->declare(0, \"" << (*it)->fKey << "\", \"" << (*it)->fValue << "\");";
+                    if (it->fOffset == -1) {
+                        out << "ui_interface->declare(0, \"" << it->fKey << "\", \"" << it->fValue << "\");";
                     } else {
-                        out << "ui_interface->declare(&fRealHeap[" << (*it)->fOffset << "], \"" << (*it)->fKey << "\", \"" << (*it)->fValue << "\");";
+                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \"" << it->fKey << "\", \"" << it->fValue << "\");";
                     }
                     break;
                     
@@ -772,13 +770,11 @@ class FBCCPPCompiler {
     
     void CompileBlock(FIRMetaBlockInstruction* block, int n, ostream& out)
     {
-        MetaInstructionIT it;
-        
-        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-            //(*it)->write(&std::cout);
+        for (auto& it : block->fInstructions) {
+            //it->write(&std::cout);
             
             tab(n, out);
-            out << "m->declare(\"" << (*it)->fKey << "\", \"" << (*it)->fValue << "\");";
+            out << "m->declare(\"" << it->fKey << "\", \"" << it->fValue << "\");";
         }
     }
     
