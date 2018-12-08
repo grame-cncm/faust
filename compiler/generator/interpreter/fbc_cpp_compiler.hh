@@ -957,6 +957,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
             out << "{";
             {
                 tab(tabs+2, out);
+                out << "if (count == 0) return;  // Beware: compiled loop don't work with an index of 0";
                 out << "fIntHeap[" << this->fFactory->fCountOffset << "] = count;";
                 FBCCPPCompiler<T> compiler;
                 compiler.CompileBlock(this->fFactory->fComputeBlock, tabs+2, out, false);

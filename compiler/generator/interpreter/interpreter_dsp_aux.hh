@@ -803,11 +803,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         this->classInit(samplingRate);
         this->instanceInit(samplingRate);
 
-        this->fStaticInitBlock = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fStaticInitBlock->copy(),
-    fIntMap, fRealMap); this->fInitBlock = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fInitBlock->copy(),
-    fIntMap, fRealMap); this->fResetUIBlock =
-    FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fResetUIBlock->copy(), fIntMap, fRealMap); this->fClearBlock =
-    FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fClearBlock->copy(), fIntMap, fRealMap);
+        this->fStaticInitBlock 
+            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
+        this->fInitBlock 
+            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fInitBlock->copy(), fIntMap, fRealMap);
+        this->fResetUIBlock 
+            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fResetUIBlock->copy(), fIntMap, fRealMap);
+        this->fClearBlock 
+            = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fClearBlock->copy(), fIntMap, fRealMap);
 
         // Suppress IOTA from fRealMap since we don't want specialization to use it
         if (this->fIntMap.find(fFactory->fIOTAOffset) != this->fIntMap.end()) {
@@ -821,9 +824,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         // Specialization
         //this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock->copy(), 4);
 
-        this->fComputeBlock = FBCInstructionOptimizer<T>::specialize(fFactory->fComputeBlock->copy(), fIntMap,
-    fRealMap); this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock->copy(), 1,
-    4); this->fComputeDSPBlock = FBCInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
+        this->fComputeBlock 
+            = FBCInstructionOptimizer<T>::specialize(fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
+        this->fComputeDSPBlock 
+            = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock->copy(), 1, 4);
+        this->fComputeDSPBlock 
+            = FBCInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
 
         // Optimization
         this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);

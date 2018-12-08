@@ -74,8 +74,8 @@ struct FBCBasicInstruction : public FBCInstruction {
           fRealValue(val_real),
           fOffset1(-1),
           fOffset2(-1),
-          fBranch1(0),
-          fBranch2(0)
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
@@ -85,13 +85,13 @@ struct FBCBasicInstruction : public FBCInstruction {
           fRealValue(val_real),
           fOffset1(off1),
           fOffset2(off2),
-          fBranch1(0),
-          fBranch2(0)
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction(Opcode opcode)
-        : fOpcode(opcode), fIntValue(0), fRealValue(0), fOffset1(-1), fOffset2(-1), fBranch1(0), fBranch2(0)
+        : fOpcode(opcode), fIntValue(0), fRealValue(0), fOffset1(-1), fOffset2(-1), fBranch1(nullptr), fBranch2(nullptr)
     {
     }
 
@@ -101,12 +101,12 @@ struct FBCBasicInstruction : public FBCInstruction {
           fRealValue(0),
           fOffset1(-1),
           fOffset2(-1),
-          fBranch1(0),
-          fBranch2(0)
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
-    FBCBlockInstruction<T>* getBranch1() { return (fOpcode == kCondBranch) ? 0 : fBranch1; }
+    FBCBlockInstruction<T>* getBranch1() { return (fOpcode == kCondBranch) ? nullptr : fBranch1; }
 
     virtual ~FBCBasicInstruction()
     {
@@ -141,7 +141,7 @@ struct FBCBasicInstruction : public FBCInstruction {
     virtual FBCBasicInstruction<T>* copy()
     {
         return new FBCBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
-                                          ((getBranch1()) ? fBranch1->copy() : 0), ((fBranch2) ? fBranch2->copy() : 0));
+                                          ((getBranch1()) ? fBranch1->copy() : nullptr), ((fBranch2) ? fBranch2->copy() : nullptr));
     }
 };
 
@@ -157,8 +157,8 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
         this->fRealValue = 0;
         this->fOffset1   = offset1;
         this->fOffset2   = offset2;
-        this->fBranch1   = 0;
-        this->fBranch2   = 0;
+        this->fBranch1   = nullptr;
+        this->fBranch2   = nullptr;
         this->fNumTable  = numtable;
     }
 
@@ -195,8 +195,8 @@ struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
         this->fRealValue = 0;
         this->fOffset1   = offset1;
         this->fOffset2   = offset2;
-        this->fBranch1   = 0;
-        this->fBranch2   = 0;
+        this->fBranch1   = nullptr;
+        this->fBranch2   = nullptr;
         this->fNumTable  = numtable;
     }
 
@@ -352,7 +352,8 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     {
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            if ((*it)->fOpcode == FBCInstruction::kAddButton || (*it)->fOpcode == FBCInstruction::kAddCheckButton ||
+            if ((*it)->fOpcode == FBCInstruction::kAddButton ||
+                (*it)->fOpcode == FBCInstruction::kAddCheckButton ||
                 (*it)->fOpcode == FBCInstruction::kAddHorizontalSlider ||
                 (*it)->fOpcode == FBCInstruction::kAddVerticalSlider ||
                 (*it)->fOpcode == FBCInstruction::kAddNumEntry) {
