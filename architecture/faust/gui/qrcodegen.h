@@ -279,6 +279,6 @@ static bool qrcodegen_getModule(const uint8_t qrcode[], int x, int y);
 #endif
 
 // includes the implementation
-#include "qrcodegen.impl.h"
+#include "faust/gui/qrcodegen.impl.h"
 
 #endif

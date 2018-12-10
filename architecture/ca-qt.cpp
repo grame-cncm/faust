@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
 	httpdinterface.run();
 #ifdef QRCODECTRL
-    interface.displayQRCode(httpdinterface.getTCPPort());
+    interface->displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
 
