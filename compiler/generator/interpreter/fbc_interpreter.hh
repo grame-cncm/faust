@@ -2331,23 +2331,6 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
     }
 
-    // Freeze values
-    void freezeValues(std::map<int, int>& int_map, std::map<int, T>& real_map)
-    {
-        std::cout << "freezeValues Int " << std::endl;
-        for (auto& it1 : int_map) {
-            std::cout << "offset " << it1.first << " value " << it1.second << std::endl;
-            fIntHeap[it1.first] = it1.second;
-        }
-
-        std::cout << "freezeValues Real" << std::endl;
-        typename std::map<int, T>::iterator it2;
-        for (auto& it2 : real_map) {
-            std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
-            fRealHeap[it2.first] = it2.second;
-        }
-    }
-
     void setIntValue(int offset, int value) { fIntHeap[offset] = value; }
     int  getIntValue(int offset) { return fIntHeap[offset]; }
 

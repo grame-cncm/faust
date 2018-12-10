@@ -805,7 +805,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
     virtual ~FBCCPPGenerator()
     {}
     
-    void generateCode(std::ostream& out)
+    void generateCode(std::ostream& out, FBCBlockInstruction<T>* control_block = nullptr, FBCBlockInstruction<T>* dsp_block = nullptr)
     {
         int tabs = 0;
         tab(tabs, out);
@@ -954,10 +954,21 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
             {
                 tab(tabs+2, out);
                 out << "if (count == 0) return;  // Beware: compiled loop don't work with an index of 0";
+                tab(tabs+2, out);
                 out << "fIntHeap[" << this->fFactory->fCountOffset << "] = count;";
                 FBCCPPCompiler<T> compiler;
-                compiler.CompileBlock(this->fFactory->fComputeBlock, tabs+2, out, false);
-                compiler.CompileBlock(this->fFactory->fComputeDSPBlock, tabs+2, out);
+                if (control_block) {
+                    control_block->write(&std::cout);
+                    compiler.CompileBlock(control_block, tabs+2, out, false);
+                } else {
+                    compiler.CompileBlock(this->fFactory->fComputeBlock, tabs+2, out, false);
+                }
+                if (dsp_block) {
+                    dsp_block->write(&std::cout);
+                    compiler.CompileBlock(dsp_block, tabs+2, out);
+                } else {
+                    compiler.CompileBlock(this->fFactory->fComputeDSPBlock, tabs+2, out);
+                }
             }
             tab(tabs+1, out);
             out << "}";

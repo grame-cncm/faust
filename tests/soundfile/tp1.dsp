@@ -48,4 +48,4 @@ level = hslider("level", 0.5, 0, 1, 0.01);
 
 //process = so_loop_speed(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), part, speed);
 
-process = so_loop_speed_level(soundfile("files [url: {'RnB.wav' ;'tango.wav';  'levot.wav'}]",2), part, speed, level);
+process = so_loop_speed_level(soundfile("files [url: {'RnB.wav' ;'tango.wav'; 'levot.wav'}]",2), part, speed, level);

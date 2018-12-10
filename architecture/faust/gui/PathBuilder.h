@@ -57,6 +57,9 @@ class PathBuilder
             return res;
         }
     
+        void pushLabel(const std::string& label) { fControlsLevel.push_back(label); }
+        void popLabel() { fControlsLevel.pop_back(); }
+    
 };
 
 #endif  // FAUST_PATHBUILDER_H

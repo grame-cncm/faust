@@ -29,6 +29,7 @@
 
 #include "exception.hh"
 #include "fbc_opcode.hh"
+#include "faust/gui/PathBuilder.h"
 
 static inline std::string quote1(std::string str)
 {
@@ -329,7 +330,11 @@ struct FIRMetaInstruction : public FBCInstruction {
 template <class T>
 struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
-
+    std::map<std::string, int> fPathMap;
+    
+    FIRUserInterfaceBlockInstruction()
+    {}
+  
     virtual ~FIRUserInterfaceBlockInstruction()
     {
         for (auto& it : fInstructions) {
@@ -346,10 +351,48 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
             it->write(out, binary, small);
         }
     }
-
+    
+    std::map<std::string, int>& getPathMap()
+    {
+        // Build the [path, offset] map
+        PathBuilder path_builder;
+        
+        for (auto& it : fInstructions) {
+            switch (it->fOpcode) {
+                case FBCInstruction::kOpenVerticalBox:
+                    path_builder.pushLabel(it->fLabel);
+                    break;
+                    
+                case FBCInstruction::kOpenHorizontalBox:
+                    path_builder.pushLabel(it->fLabel);
+                    break;
+                    
+                case FBCInstruction::kOpenTabBox:
+                    path_builder.pushLabel(it->fLabel);
+                    break;
+                    
+                case FBCInstruction::kCloseBox:
+                    path_builder.popLabel();
+                    break;
+                    
+                case FBCInstruction::kAddButton:
+                case FBCInstruction::kAddCheckButton:
+                case FBCInstruction::kAddHorizontalSlider:
+                case FBCInstruction::kAddVerticalSlider:
+                case FBCInstruction::kAddNumEntry:
+                    fPathMap[path_builder.buildPath(it->fLabel)] = it->fOffset;
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+        
+        return fPathMap;
+    }
+    
     void freezeDefaultValues(std::map<int, T>& real_map)
     {
-        UIInstructionIT it;
         for (auto& it : fInstructions) {
             if (it->fOpcode == FBCInstruction::kAddButton ||
                 it->fOpcode == FBCInstruction::kAddCheckButton ||
@@ -357,12 +400,11 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
                 it->fOpcode == FBCInstruction::kAddVerticalSlider ||
                 it->fOpcode == FBCInstruction::kAddNumEntry) {
                 real_map[it->fOffset] = it->fInit;
-                //std::cout << "freezeDefaultValues offset " << it->fOffset << " value " << it->fInit << std::endl;
             }
         }
     }
 
-    void unFreezeDefaultValues(std::map<int, T>& real_map, FBCInstruction::Opcode opcode)
+    void unFreezeValue(std::map<int, T>& real_map, FBCInstruction::Opcode opcode)
     {
         for (auto& it : fInstructions) {
             if ((it->fOpcode == opcode) && real_map.find(it->fOffset) != real_map.end()) {
@@ -370,8 +412,15 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
             }
         }
     }
+    
+    void unFreezeValue(std::map<int, T>& real_map, const std::string& path)
+    {
+        if (fPathMap.find(path) != fPathMap.end()) {
+            real_map.erase(real_map.find(fPathMap[path]));
+        }
+    }
 
-    void unFreezeDefaultValues(std::map<int, T>& real_map)
+    void unFreezeValue(std::map<int, T>& real_map)
     {
         for (auto& it : fInstructions) {
             if (real_map.find(it->fOffset) != real_map.end()) {
@@ -442,7 +491,6 @@ struct FBCBlockInstruction : public FBCInstruction {
     void stackMove(int& int_index, int& real_index)
     {
         std::cout << "FBCBlockInstruction::stackMove" << std::endl;
-        InstructionIT it;
         int           tmp_int_index  = 0;
         int           tmp_real_index = 0;
         for (auto& it : fInstructions) {
@@ -458,7 +506,6 @@ struct FBCBlockInstruction : public FBCInstruction {
     virtual FBCBlockInstruction<T>* copy()
     {
         FBCBlockInstruction<T>* block = new FBCBlockInstruction<T>();
-        InstructionIT           it;
         for (auto& it : fInstructions) {
             FBCBasicInstruction<T>* inst_copy = it->copy();
             if (it->fOpcode == kCondBranch) {        // Special case for loops
@@ -471,8 +518,7 @@ struct FBCBlockInstruction : public FBCInstruction {
 
     int size()
     {
-        int           size = 0;
-        InstructionIT it;
+        int size = 0;
         for (auto& it : fInstructions) {
             size += it->size();
         }

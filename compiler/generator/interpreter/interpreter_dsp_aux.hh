@@ -37,7 +37,7 @@
 #include "interpreter_optimizer.hh"
 
 #ifdef MACHINE
-//#include "fbc_cpp_compiler.hh"
+#include "fbc_cpp_compiler.hh"
 #include "fbc_llvm_compiler.hh"
 #endif
 
@@ -125,9 +125,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FBCExecutor<T>* createFBCExecutor()
     {
 #ifdef MACHINE
-        //FBCCPPGenerator<T> cpp_generator(this);
-        //cpp_generator.generateCode(std::cout);
-        
         return new FBCCompiler<T>(this, fCompiledBlocks);
 #else
         return new FBCInterpreter<T, TRACE>(this);
@@ -649,11 +646,12 @@ struct interpreter_dsp_base : public dsp {
 
 template <class T, int TRACE>
 class interpreter_dsp_aux : public interpreter_dsp_base {
+    
    protected:
     bool fInitialized;
-
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     FBCExecutor<T>*                        fFBCExecutor;
+    
    public:
     interpreter_dsp_aux()
     :fFactory(nullptr), fFBCExecutor(nullptr), fInitialized(false)
@@ -674,7 +672,24 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         delete fFBCExecutor;
         //delete fFBCVecExecutor;
     }
-
+    
+    // Freeze values
+    void freezeValues(std::map<int, int>& int_map, std::map<int, T>& real_map)
+    {
+        std::cout << "freezeValues Int " << std::endl;
+        for (auto& it1 : int_map) {
+            std::cout << "offset " << it1.first << " value " << it1.second << std::endl;
+            this->fIntHeap[it1.first] = it1.second;
+        }
+        
+        std::cout << "freezeValues Real" << std::endl;
+        typename std::map<int, T>::iterator it2;
+        for (auto& it2 : real_map) {
+            std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
+            this->fRealHeap[it2.first] = it2.second;
+        }
+    }
+  
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
 
     virtual int getSampleRate() { return fFBCExecutor->getIntValue(fFactory->fSROffset); }
@@ -733,6 +748,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         fInitialized = true;
         classInit(samplingRate);
         instanceInit(samplingRate);
+    /*
+    #ifdef MACHINE
+        FBCCPPGenerator<T> cpp_generator(this->fFactory);
+        cpp_generator.generateCode(std::cout);
+    #endif
+    */
     }
 
     virtual void buildUserInterface(UITemplate* glue)
@@ -897,6 +918,7 @@ protected:
         this->classInit(samplingRate);
         this->instanceInit(samplingRate);
 
+        // Propagate constant values stored in the code into the heap
         this->fStaticInitBlock
             = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
         this->fInitBlock
@@ -911,25 +933,45 @@ protected:
             fIntMap.erase(fIntMap.find(this->fFactory->fIOTAOffset));
         }
 
-        // Freeze all controlers
+        // Freeze all controllers
         this->fFactory->fUserInterfaceBlock->freezeDefaultValues(fRealMap);
 
-        // Keep button ON
-        this->fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FBCInstruction::kAddButton);
-        //this->fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
-
+        // To test : unfreeze "freg, gate, gain" controllers
+        std::map<std::string, int>& map = this->fFactory->fUserInterfaceBlock->getPathMap();
+        for (auto& it : map) {
+            if ((it.first.find("freq") != std::string::npos)
+                || (it.first.find("gate") != std::string::npos)
+                || (it.first.find("gain") != std::string::npos)) {
+                this->fFactory->fUserInterfaceBlock->unFreezeValue(fRealMap, it.first);
+            }
+        }
+        // Keep button on
+        //this->fFactory->fUserInterfaceBlock->unFreezeValue(fRealMap, FBCInstruction::kAddButton);
+      
         // Specialization by partial evaluation
         this->fComputeBlock
             = FBCInstructionOptimizer<T>::specialize(this->fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
+        
+    #ifndef MACHINE
+        // LLVM JIT only works on unoptimized FBC
         this->fComputeDSPBlock
             = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock->copy(), 1, 4);
+    #else
+        this->fComputeDSPBlock = this->fFactory->fComputeDSPBlock->copy();
+    #endif
+        
+        // To test C++ generation
+        //this->fComputeDSPBlock = this->fFactory->fComputeDSPBlock->copy();
+        
         this->fComputeDSPBlock
             = FBCInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
 
-        // Optimization
+    #ifndef MACHINE
+        // // LLVM JIT only works on unoptimized FBC
         this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);
         this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeDSPBlock, 5, 6);
-
+    #endif
+        
         /*
         this->fStaticInitBlock->write(&std::cout, false);
         this->fInitBlock->write(&std::cout, false);
@@ -938,6 +980,12 @@ protected:
         this->fComputeBlock->write(&std::cout, false);
         this->fComputeDSPBlock->write(&std::cout, false);
         */
+    /*
+    #ifdef MACHINE
+        FBCCPPGenerator<T> cpp_generator(this->fFactory);
+        cpp_generator.generateCode(std::cout, this->fComputeBlock, this->fComputeDSPBlock);
+    #endif
+    */
     }
     
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
@@ -967,8 +1015,12 @@ protected:
             this->fFBCExecutor->ExecuteBlock(this->fComputeBlock);
             
             // Executes the specialized 'DSP' block
-            //this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock, true);
+        #ifndef MACHINE
             this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock);
+        #else
+            this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock, true);
+        #endif
+           
         }
     }
     
