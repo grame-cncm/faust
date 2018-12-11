@@ -23,10 +23,9 @@ SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 
 # path to max SDK
-
-SDK=/usr/local/include/c74support/
-MAXINC=$SDK/max-includes
-MSPINC=$SDK/msp-includes
+#SDK=/usr/local/include/c74support/
+MAXINC=$MAXSDK/max-includes
+MSPINC=$MAXSDK/msp-includes
 
 createInfoPList() {
 (
