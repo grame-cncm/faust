@@ -1214,25 +1214,16 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                         goto unlock;
                 }
                 
-                stringstream num_val;
-                num_val << num + i;
-                string str = num_val.str();
-                char param_name[256];
                 
-                switch (ndigit - count_digit(str)) {
-                    case 0: 
-                        sprintf(param_name, "%s%s", prefix.c_str(), str.c_str());
-                        break;
-                    case 1: 
-                        sprintf(param_name, "%s %s", prefix.c_str(), str.c_str());
-                        break;
-                    case 2: 
-                        sprintf(param_name, "%s  %s", prefix.c_str(), str.c_str());
-                        break;
+                stringstream num_val; num_val << num + i;
+                stringstream param_name; param_name << prefix;
+                for (int i = 0; i < ndigit - count_digit(num_val.str()); i++) {
+                    param_name << ' ';
                 }
-           
+                param_name << num_val.str();
+             
                 // Try special naming scheme for list of parameters
-                res = fDSPUI->setValue(param_name, value); 
+                res = fDSPUI->setValue(param_name.str(), value);
                 
                 // Otherwise try standard name
                 if (!res) {
