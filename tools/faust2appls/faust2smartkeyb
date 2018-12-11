@@ -243,7 +243,7 @@ if [ $SOURCE -eq 0 ]; then
 		chmod a+x ./gradlew
 		$FAUSTGRADLE assembleRelease > $LOG
 		cd ..
-		cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk > $LOG
+		cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk > $LOG
 		echo "An Android app \"$APPNAME.apk\" was created in the current folder"
 	elif [ $IOS -eq 1 ]; then
 		echo "Starting iOS compilation" > $LOG
