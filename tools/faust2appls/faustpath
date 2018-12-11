@@ -22,7 +22,7 @@ FAUSTLIB=$(faust -dspdir);
 FAUSTINC=$(faust -includedir); 
 [ -n "$FAUSTARCH" ] || FAUSTARCH=$(faust -archdir); 
 
-MAXSDK=/usr/local/include/c74support/
+[ -n "$MAXSDK" ] || MAXSDK=/usr/local/include/c74support/
 CSOUND_MACSDK=/Library/Frameworks/CsoundLib64.framework
 PUREDATA_MACSDK=/Applications/Pd-extended.app/Contents/Resources
 VSTSDK=""
