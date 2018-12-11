@@ -69,6 +69,7 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/JSONUIDecoder.h"
+#include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
@@ -78,7 +79,6 @@
 #define OSC_OUT_PORT    "5511"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.h"
 #endif
 
