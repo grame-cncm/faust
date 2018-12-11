@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PATH=../../build/bin:$PATH
 faust --version
 echo location $(which faust)
 
