@@ -201,7 +201,7 @@ chmod a+x ./gradlew
 $FAUSTGRADLE assembleRelease > $LOG
 cd ..
 
-cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk
+cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk
 
 # ****************
 # TREAT OPTIONS
