@@ -217,7 +217,7 @@ static void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::st
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg, const std::string& target)
+static dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target, std::string& error_msg)
 {
     std::string process_path = machine_code_path + "_machine_process";
     std::string effect_path = machine_code_path + "_machine_process";
