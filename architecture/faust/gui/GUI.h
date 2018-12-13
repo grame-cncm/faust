@@ -326,6 +326,7 @@ class uiTimedItem : public uiItem
     protected:
         
         bool fDelete;
+        using uiItem::modifyZone;
         
     public:
         

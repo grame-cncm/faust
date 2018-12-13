@@ -127,13 +127,6 @@ class FBCCPPCompiler {
     
     CPPBlockList fBlockList;
     
-    void pushBinop(const std::string& op)
-    {
-        std::string v1 = popValue();
-        std::string v2 = popValue();
-        pushValue("(" + v1 + " " + op + " " + v2 + ")");
-    }
-
     std::string genFloat(float num)
     {
         std::stringstream str;
@@ -165,7 +158,11 @@ class FBCCPPCompiler {
     {
         pushValue(name + "(" + popValue() + ", " + popValue() + ")");
     }
-
+    void pushBinopCall(const std::string& name)
+    {
+        pushValue("(" + popValue() + " " + name + " " + popValue() + ")");
+    }
+ 
     void pushLoadArray(const std::string& array, int index)
     {
         pushValue(array + "[" + std::to_string(index) + "]");
@@ -324,25 +321,25 @@ class FBCCPPCompiler {
                     // Binary math
                 case FBCInstruction::kAddReal:
                 case FBCInstruction::kAddInt:
-                    pushBinop("+");
+                    pushBinopCall("+");
                     it++;
                     break;
 
                 case FBCInstruction::kSubReal:
                     case FBCInstruction::kSubInt:
-                    pushBinop("-");
+                    pushBinopCall("-");
                     it++;
                     break;
 
                 case FBCInstruction::kMultReal:
                 case FBCInstruction::kMultInt:
-                    pushBinop("*");
+                    pushBinopCall("*");
                     it++;
                     break;
 
                 case FBCInstruction::kDivReal:
                     case FBCInstruction::kDivInt:
-                    pushBinop("/");
+                    pushBinopCall("/");
                     it++;
                     break;
 
@@ -352,68 +349,68 @@ class FBCCPPCompiler {
                     break;
 
                 case FBCInstruction::kRemInt:
-                    pushBinop("%");
+                    pushBinopCall("%");
                     it++;
                     break;
 
                 case FBCInstruction::kLshInt:
-                    pushBinop("<<");
+                    pushBinopCall("<<");
                     it++;
                     break;
 
                 case FBCInstruction::kRshInt:
-                    pushBinop(">>");
+                    pushBinopCall(">>");
                     it++;
                     break;
 
                 case FBCInstruction::kGTInt:
                 case FBCInstruction::kGTReal:
-                    pushBinop(">");
+                    pushBinopCall(">");
                     it++;
                     break;
 
                 case FBCInstruction::kLTInt:
                 case FBCInstruction::kLTReal:
-                    pushBinop("<");
+                    pushBinopCall("<");
                     it++;
                     break;
 
                 case FBCInstruction::kGEInt:
                 case FBCInstruction::kGEReal:
-                    pushBinop(">=");
+                    pushBinopCall(">=");
                     it++;
                     break;
 
                 case FBCInstruction::kLEInt:
                 case FBCInstruction::kLEReal:
-                    pushBinop("<=");
+                    pushBinopCall("<=");
                     it++;
                     break;
 
                 case FBCInstruction::kEQInt:
                 case FBCInstruction::kEQReal:
-                    pushBinop("==");
+                    pushBinopCall("==");
                     it++;
                     break;
 
                 case FBCInstruction::kNEInt:
                 case FBCInstruction::kNEReal:
-                    pushBinop("!=");
+                    pushBinopCall("!=");
                     it++;
                     break;
 
                 case FBCInstruction::kANDInt:
-                    pushBinop("&");
+                    pushBinopCall("&");
                     it++;
                     break;
 
                 case FBCInstruction::kORInt:
-                    pushBinop("|");
+                    pushBinopCall("|");
                     it++;
                     break;
 
                 case FBCInstruction::kXORInt:
-                    pushBinop("^");
+                    pushBinopCall("^");
                     it++;
                     break;
 
