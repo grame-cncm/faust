@@ -55,29 +55,6 @@ typedef llvm::Value* LLVMValue;
         std::cout << out_str.str() << std::endl; \
     }
 
-#define pushBinop(op)                                   \
-    {                                                   \
-        LLVMValue v1 = popValue();                      \
-        LLVMValue v2 = popValue();                      \
-        pushValue(fBuilder->CreateBinOp((op), v1, v2)); \
-    }
-
-#define pushRealComp(op)                                                         \
-    {                                                                            \
-        LLVMValue v1         = popValue();                                       \
-        LLVMValue v2         = popValue();                                       \
-        LLVMValue cond_value = fBuilder->CreateFCmp((op), v1, v2);               \
-        pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0))); \
-    }
-
-#define pushIntComp(op)                                                          \
-    {                                                                            \
-        LLVMValue v1         = popValue();                                       \
-        LLVMValue v2         = popValue();                                       \
-        LLVMValue cond_value = fBuilder->CreateICmp((op), v1, v2);               \
-        pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0))); \
-    }
-
 #define dispatchReturn()  \
     {                     \
         it = popAddr();   \
@@ -133,7 +110,63 @@ class FBCLLVMCompiler {
     void          pushAddr(InstructionIT addr) { fAddressStack[fAddrStackIndex++] = addr; }
     InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
     bool          emptyReturn() { return (fAddrStackIndex == 0); }
-
+    
+    void pushBinop(llvm::Instruction::BinaryOps op)
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        pushValue(fBuilder->CreateBinOp(op, v1, v2));
+    }
+    
+    void pushRealComp(CmpInst::Predicate op)
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        LLVMValue cond_value = fBuilder->CreateFCmp(op, v1, v2);
+        pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0)));
+    }
+        
+    void pushIntComp(CmpInst::Predicate op)
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        LLVMValue cond_value = fBuilder->CreateICmp(op, v1, v2);
+        pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0)));
+    }
+    
+    // Min/max
+    void pushIntMax()
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_SLT, v1, v2);
+        pushValue(fBuilder->CreateSelect(cond_value, v2, v1));
+    }
+    
+    void pushIntMin()
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_SLT, v1, v2);
+        pushValue(fBuilder->CreateSelect(cond_value, v1, v2));
+    }
+    
+    void pushRealMax()
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        LLVMValue cond_value = fBuilder->CreateICmp(FCmpInst::FCMP_OLT, v1, v2);
+        pushValue(fBuilder->CreateSelect(cond_value, v2, v1));
+    }
+    
+    void pushRealMin()
+    {
+        LLVMValue v1 = popValue();
+        LLVMValue v2 = popValue();
+        LLVMValue cond_value = fBuilder->CreateICmp(FCmpInst::FCMP_OLT, v1, v2);
+        pushValue(fBuilder->CreateSelect(cond_value, v1, v2));
+    }
+  
     void pushUnaryCall(std::string name, llvm::Type* type, bool rename)
     {
         if (rename) name = getMathName(name);
@@ -591,37 +624,25 @@ class FBCLLVMCompiler {
                     break;
 
                 case FBCInstruction::kMax: {
-                    LLVMValue v1         = popValue();
-                    LLVMValue v2         = popValue();
-                    LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_SLT, v1, v2);
-                    pushValue(fBuilder->CreateSelect(cond_value, v2, v1));
+                    pushIntMax();
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kMaxf: {
-                    LLVMValue v1         = popValue();
-                    LLVMValue v2         = popValue();
-                    LLVMValue cond_value = fBuilder->CreateFCmp(FCmpInst::FCMP_OLT, v1, v2);
-                    pushValue(fBuilder->CreateSelect(cond_value, v2, v1));
+                    pushRealMax();
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kMin: {
-                    LLVMValue v1         = popValue();
-                    LLVMValue v2         = popValue();
-                    LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_SLT, v1, v2);
-                    pushValue(fBuilder->CreateSelect(cond_value, v1, v2));
+                    pushIntMin();
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kMinf: {
-                    LLVMValue v1         = popValue();
-                    LLVMValue v2         = popValue();
-                    LLVMValue cond_value = fBuilder->CreateFCmp(FCmpInst::FCMP_OLT, v1, v2);
-                    pushValue(fBuilder->CreateSelect(cond_value, v1, v2));
+                    pushRealMin();
                     it++;
                     break;
                 }

@@ -762,7 +762,6 @@ class FBCCPPCompiler {
                     break;
             }
         }
-    
     }
     
     void CompileBlock(FIRMetaBlockInstruction* block, int n, ostream& out)
