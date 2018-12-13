@@ -34,6 +34,7 @@ More experimental branches are also available but are not documented here.
 This is an overview of the content of the top-level folders of the Faust distribution. Most of these folders contain their own README describing their content in more details.
 
 	architecture/          : the architecture files currently supported
+	build/                 : build tools and scripts (cmake based)
 	benchmark/             : tools to measure the impact of various compiler options
 	compiler/              : sources of the Faust compiler
 	debian/                : files for Debian installation
