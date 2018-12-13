@@ -173,17 +173,26 @@ winpack:
 	cd $(FAUSTDIR) && cpack -G NSIS64
 	mv  $(FAUSTDIR)/Faust-*.exe .
 
-macpack:
+macpack: package/README.html
 	make -C package/Tools
 	-[ -d $(PACK) ] && rm -rf $(PACK)
 	make cmake BACKENDs=all.cmake TARGETS=all.cmake
 	make install PREFIX=../$(PACK)/Faust-$(VERSION)
 	cp package/install $(PACK)/Faust-$(VERSION)
-	cp package/README.rtf $(PACK)
+	cp package/INSTALL.rtf $(PACK)
+	cp package/README.html $(PACK)
 	hdiutil create Faust-$(VERSION).dmg -srcfolder $(PACK) -ov
 
 linuxpack:
 	@echo Linux packaging not implemented. 
+
+package/README.html: ../README.md
+	echo "<!DOCTYPE html><html><xmp>" > package/README.html
+	cat ../README.md >> package/README.html
+	echo "</xmp>" >> package/README.html
+	echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> package/README.html
+	echo "</html>" >> package/README.html
+	
 
 #===============================================================
 # building universal binaries on macos
