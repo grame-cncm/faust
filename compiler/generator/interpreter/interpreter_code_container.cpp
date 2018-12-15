@@ -282,8 +282,10 @@ FBCBlockInstruction<T>* InterpreterScalarCodeContainer<T>::generateCompute()
 template <class T>
 FBCBlockInstruction<T>* InterpreterVectorCodeContainer<T>::generateCompute()
 {
-    // Generates the DSP loop
-    this->fDAGBlock->accept(gGlobal->gInterpreterVisitor);
+    // Rename all loop variables name to avoid name clash
+    LoopVariableRenamer loop_renamer;
+    loop_renamer.getCode(this->fDAGBlock)->accept(gGlobal->gInterpreterVisitor);
+    
     return getCurrentBlock<T>();
 }
 

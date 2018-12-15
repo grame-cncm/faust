@@ -106,8 +106,8 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler mode not supported for WebAssembly\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
-        //container = new WASTVectorCodeContainer(name, numInputs, numOutputs, dst, internal_memory);
+        //throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
+        container = new WASTVectorCodeContainer(name, numInputs, numOutputs, dst, internal_memory);
     } else {
         container = new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
@@ -494,8 +494,7 @@ void WASTVectorCodeContainer::generateCompute(int n)
 {
     generateComputeAux1(n);
     
-    BlockInst* compute_block = InstBuilder::genBlockInst();
-    compute_block->pushBackInst(fDAGBlock);
-    
-    generateComputeAux2(compute_block, n);
+    // Rename all loop variables name to avoid name clash
+    LoopVariableRenamer loop_renamer;
+    generateComputeAux2(loop_renamer.getCode(fDAGBlock), n);
 }

@@ -169,6 +169,7 @@ int main(int argc, char* argv[])
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         if (!factory) {
+            cout << "createInterpreterDSPFactoryFromFile " << error_msg;
             factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
         }
     }

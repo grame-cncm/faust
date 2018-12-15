@@ -1207,7 +1207,7 @@ struct ForLoopInst : public StatementInst {
 
     void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
 
-    string getName() { return fInit->getName(); }
+    string getLoopVarName() { return fInit->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 

@@ -1914,7 +1914,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         Function* function = fBuilder->GetInsertBlock()->getParent();
 
-        // Create blocks for the then and else cases.  Insert the 'then' block at the end of the function
+        // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
         BasicBlock* then_block  = BasicBlock::Create(fModule->getContext(), "then_code", function);
         BasicBlock* else_block  = BasicBlock::Create(fModule->getContext(), "else_code");
         BasicBlock* merge_block = BasicBlock::Create(fModule->getContext(), "if_end_code");
@@ -1957,23 +1957,22 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
 
-        string    loop_counter_name;
         Function* function = fBuilder->GetInsertBlock()->getParent();
         faustassert(function);
 
-        // Prepare init_block
+        // Create init_block
         BasicBlock* init_block = BasicBlock::Create(fModule->getContext(), "init_block", function);
 
-        // Prepare exec_block
-        BasicBlock* exec_block = BasicBlock::Create(fModule->getContext(), "exec_block", function);
+        // Create test_block
+        BasicBlock* test_block = BasicBlock::Create(fModule->getContext(), "test_block", function);
 
-        // Prepare loop_body_block
+        // Create loop_body_block
         BasicBlock* loop_body_block = BasicBlock::Create(fModule->getContext(), "loop_body_block", function);
 
-        // Create the exit_block
+        // Create exit_block
         BasicBlock* exit_block = BasicBlock::Create(fModule->getContext(), "exit_block", function);
 
-        // Init section
+        // Init condition section
         {
             // Link previous_block and init_block
             fBuilder->CreateBr(init_block);
@@ -1983,34 +1982,24 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Compute init value, now loop counter is allocated
             inst->fInit->accept(this);
-
-            // Get loop counter local variable
-            DeclareVarInst* declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-            StoreVarInst*   store_inst   = dynamic_cast<StoreVarInst*>(inst->fInit);
-
-            if (declare_inst) {
-                loop_counter_name = declare_inst->getName();
-            } else if (store_inst) {
-                loop_counter_name = store_inst->getName();
-            } else {
-                cerr << "Error in ForLoopInst " << endl;
-                faustassert(false);
-            }
-
-            faustassert(fDSPStackVars.find(loop_counter_name) != fDSPStackVars.end());
-
-            // Link init_block and exec_block
-            fBuilder->CreateBr(exec_block);
-
-            // Start insertion in exec_block
-            fBuilder->SetInsertPoint(exec_block);
+            
+            // Link init_block and test_block
+            fBuilder->CreateBr(test_block);
+            
+            // Start insertion in test_block
+            fBuilder->SetInsertPoint(test_block);
+            
         }
 
-        // Start the PHI node with an entry for start
+        // Get loop counter local variable
+        string loop_counter_name = inst->getLoopVarName();
+        faustassert(fDSPStackVars.find(loop_counter_name) != fDSPStackVars.end());
+        
+         // Start the PHI node with an entry for start
         PHINode* phi_node = CREATE_PHI(fBuilder->getInt32Ty(), loop_counter_name);
         phi_node->addIncoming(genInt32(fModule, 0), init_block);
 
-        // End condition
+        // End condition section
         {
             // Compute end condition, result in fCurValue
             inst->fEnd->accept(this);
@@ -2022,7 +2011,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fBuilder->CreateCondBr(end_cond, loop_body_block, exit_block);
         }
 
-        // Loop body
+        // Loop body section
         {
             // Start insertion in loop_body_block
             fBuilder->SetInsertPoint(loop_body_block);
@@ -2034,9 +2023,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Get last block of post code section
         BasicBlock* current_block = fBuilder->GetInsertBlock();
 
-        // Next index computation
+        // Increment section
         {
-            // Compute next index, result in fCurValue
+            // Compile increment, result in fCurValue
             StoreVarInst* store_inst1 = dynamic_cast<StoreVarInst*>(inst->fIncrement);
             faustassert(store_inst1);
             store_inst1->fValue->accept(this);
@@ -2050,7 +2039,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             phi_node->addIncoming(next_index, current_block);
 
             // Back to start of loop
-            fBuilder->CreateBr(exec_block);
+            fBuilder->CreateBr(test_block);
         }
 
         // Move insertion in exit_block
@@ -2077,8 +2066,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
 
-        // Create the exec_block and insert it
-        BasicBlock* exec_block = BasicBlock::Create(fModule->getContext(), "exec_block", function);
+        // Create the test_block and insert it
+        BasicBlock* test_block = BasicBlock::Create(fModule->getContext(), "test_block", function);
 
         // Create the exit_block and insert it
         BasicBlock* exit_block = BasicBlock::Create(fModule->getContext(), "exit_block", function);
@@ -2087,10 +2076,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Value* end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
 
         // Insert the conditional branch into the end of cond_block
-        fBuilder->CreateCondBr(end_cond, exec_block, exit_block);
+        fBuilder->CreateCondBr(end_cond, test_block, exit_block);
 
-        // Move insertion in exec_block
-        fBuilder->SetInsertPoint(exec_block);
+        // Move insertion in test_block
+        fBuilder->SetInsertPoint(test_block);
 
         // Compiles internal block
         inst->fCode->accept(this);

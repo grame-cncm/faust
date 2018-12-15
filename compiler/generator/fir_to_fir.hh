@@ -677,4 +677,34 @@ struct VarAddressRemover : public BasicCloneVisitor {
     BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
 };
 
+/*
+ Rename loop variable and all access (warning, does not work with neested loops with the same variable name...)
+*/
+struct LoopVariableRenamer : public BasicCloneVisitor {
+    
+    std::map<std::string, std::stack<std::string> > fLoopIndexMap;
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        // Rename 'loop' variables
+        if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->fAddress->getAccess() == Address::kLoop) {
+            std::string name = inst->fAddress->getName();
+            fLoopIndexMap[name].push(gGlobal->getFreshID(name));
+        }
+        return BasicCloneVisitor::visit(inst);
+    }
+    
+    virtual Address* visit(NamedAddress* address)
+    {
+        if (address->fAccess == Address::kLoop) {
+            return new NamedAddress(fLoopIndexMap[address->getName()].top(), address->fAccess);
+        } else {
+            return BasicCloneVisitor::visit(address);
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+    
+};
+
 #endif
