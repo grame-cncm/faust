@@ -15,7 +15,7 @@
 #   They need the FaustPlugin_<dspname>.cs and FaustUtilities_<dspname>.cs files to be functional.
 #   These files are automatically generated in this script.
 #   By default, all generated files are packed in a unitypackage archive to be read as a package by Unity.
-#   Several options are available, see the README file for more info.
+#   Several options are available, see architecture/unity/README.md for more info.
 
 . faustpath
 
