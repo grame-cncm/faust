@@ -678,7 +678,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
 };
 
 /*
- Rename loop variable and all access (warning, does not work with neested loops with the same variable name...)
+ Rename loop variable and all access (warning: does not work with nested loops with the same variable name...)
 */
 struct LoopVariableRenamer : public BasicCloneVisitor {
     
@@ -704,7 +704,6 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     }
     
     BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
-    
 };
 
 #endif
