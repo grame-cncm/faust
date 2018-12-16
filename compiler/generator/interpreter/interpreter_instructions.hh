@@ -624,8 +624,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         init_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'loop code' in a new block
-        FBCBlockInstruction<T>* loop_block = new FBCBlockInstruction<T>();
-        fCurrentBlock                      = loop_block;
+        FBCBlockInstruction<T>* loop_body_block = new FBCBlockInstruction<T>();
+        fCurrentBlock                           = loop_body_block;
 
         // Compile loop code
         inst->fCode->accept(this);
@@ -637,13 +637,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fEnd->accept(this);
 
         // Add branch that moves back on loop block itself
-        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, 0, 0, 0, 0, loop_block, 0));
+        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, 0, 0, 0, 0, loop_body_block, 0));
 
         // Finally add 'return'
         fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Add the loop block in previous
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_block));
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_body_block));
       
         // Restore current block
         fCurrentBlock = previous;

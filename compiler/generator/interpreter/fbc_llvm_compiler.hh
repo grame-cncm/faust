@@ -39,6 +39,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/LinkAllPasses.h>
 
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
@@ -155,7 +156,7 @@ class FBCLLVMCompiler {
     {
         LLVMValue v1 = popValue();
         LLVMValue v2 = popValue();
-        LLVMValue cond_value = fBuilder->CreateICmp(FCmpInst::FCMP_OLT, v1, v2);
+        LLVMValue cond_value = fBuilder->CreateFCmp(FCmpInst::FCMP_OLT, v1, v2);
         pushValue(fBuilder->CreateSelect(cond_value, v2, v1));
     }
     
@@ -163,7 +164,7 @@ class FBCLLVMCompiler {
     {
         LLVMValue v1 = popValue();
         LLVMValue v2 = popValue();
-        LLVMValue cond_value = fBuilder->CreateICmp(FCmpInst::FCMP_OLT, v1, v2);
+        LLVMValue cond_value = fBuilder->CreateFCmp(FCmpInst::FCMP_OLT, v1, v2);
         pushValue(fBuilder->CreateSelect(cond_value, v1, v2));
     }
   
@@ -732,7 +733,7 @@ class FBCLLVMCompiler {
                 case FBCInstruction::kLoop: {
                     Function*   function   = fBuilder->GetInsertBlock()->getParent();
                     BasicBlock* init_block = BasicBlock::Create(fModule->getContext(), "init_block", function);
-                    BasicBlock* loop_block = BasicBlock::Create(fModule->getContext(), "loop_block", function);
+                    BasicBlock* loop_body_block = BasicBlock::Create(fModule->getContext(), "loop_body_block", function);
 
                     // Link previous_block and init_block
                     fBuilder->CreateBr(init_block);
@@ -740,11 +741,11 @@ class FBCLLVMCompiler {
                     // Compile init branch (= branch1)
                     CompileBlock((*it)->fBranch1, init_block);
 
-                    // Link previous_block and loop_block
-                    fBuilder->CreateBr(loop_block);
+                    // Link previous_block and loop_body_block
+                    fBuilder->CreateBr(loop_body_block);
 
                     // Compile loop branch (= branch2)
-                    CompileBlock((*it)->fBranch2, loop_block);
+                    CompileBlock((*it)->fBranch2, loop_body_block);
 
                     it++;
                     break;
@@ -767,31 +768,41 @@ class FBCLLVMCompiler {
 
         fContext = new LLVMContext();
         fBuilder = new IRBuilder<>(getContext());
+        
+        // Set fast-math flags
+        FastMathFlags FMF;
+    #if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
+        FMF.setFast();
+    #else
+        FMF.setUnsafeAlgebra();
+    #endif
+        fBuilder->setFastMathFlags(FMF);
+        
         fModule  = new Module(std::string(FAUSTVERSION), getContext());
         fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 
         // Compile compute function
-        std::vector<llvm::Type*> llvm_execute_args;
-        llvm_execute_args.push_back(PointerType::get(getInt32Ty(), 0));
-        llvm_execute_args.push_back(PointerType::get(getRealTy(), 0));
-        llvm_execute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
-        llvm_execute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
+        std::vector<llvm::Type*> execute_args;
+        execute_args.push_back(PointerType::get(getInt32Ty(), 0));
+        execute_args.push_back(PointerType::get(getRealTy(), 0));
+        execute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
+        execute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
 
-        FunctionType* llvm_execute_type = FunctionType::get(fBuilder->getVoidTy(), llvm_execute_args, false);
-        Function* llvm_execute = Function::Create(llvm_execute_type, GlobalValue::ExternalLinkage, "execute", fModule);
-        llvm_execute->setCallingConv(CallingConv::C);
+        FunctionType* execute_type = FunctionType::get(fBuilder->getVoidTy(), execute_args, false);
+        Function* execute = Function::Create(execute_type, GlobalValue::ExternalLinkage, "execute", fModule);
+        execute->setCallingConv(CallingConv::C);
 
-        BasicBlock* code_block = BasicBlock::Create(fModule->getContext(), "entry_block", llvm_execute);
+        BasicBlock* code_block = BasicBlock::Create(fModule->getContext(), "entry_block", execute);
 
-        Function::arg_iterator llvm_execute_args_it = llvm_execute->arg_begin();
-        llvm_execute_args_it->setName("int_heap");
-        fLLVMIntHeap = llvm_execute_args_it++;
-        llvm_execute_args_it->setName("real_heap");
-        fLLVMRealHeap = llvm_execute_args_it++;
-        llvm_execute_args_it->setName("inputs");
-        fLLVMInputs = llvm_execute_args_it++;
-        llvm_execute_args_it->setName("outputs");
-        fLLVMOutputs = llvm_execute_args_it++;
+        Function::arg_iterator execute_args_it = execute->arg_begin();
+        execute_args_it->setName("int_heap");
+        fLLVMIntHeap = execute_args_it++;
+        execute_args_it->setName("real_heap");
+        fLLVMRealHeap = execute_args_it++;
+        execute_args_it->setName("inputs");
+        fLLVMInputs = execute_args_it++;
+        execute_args_it->setName("outputs");
+        fLLVMOutputs = execute_args_it++;
 
         // fbc_block->write(&std::cout);
 
@@ -804,7 +815,7 @@ class FBCLLVMCompiler {
         ReturnInst::Create(fModule->getContext(), last_block);
 
         // Check function
-        verifyFunction(*llvm_execute);
+        verifyFunction(*execute);
 
         // dumpLLVM1(fModule);
 
@@ -819,10 +830,26 @@ class FBCLLVMCompiler {
         builder.setEngineKind(EngineKind::JIT);
 
         fJIT = builder.create(tm);
+        fModule->setDataLayout(fJIT->getDataLayout());
+        
         legacy::PassManager pm;
         pm.add(createVerifierPass());
         pm.run(*fModule);
-
+        
+        // TODO : add appropriate optimization passes
+        /*
+        llvm::legacy::FunctionPassManager fpm(fModule);
+        fpm.add(llvm::createPromoteMemoryToRegisterPass());
+        fpm.add(llvm::createInstructionCombiningPass());
+        fpm.add(llvm::createCFGSimplificationPass());
+        fpm.add(llvm::createJumpThreadingPass());
+        fpm.add(llvm::createConstantPropagationPass());
+        fpm.add(llvm::createLoopVectorizePass());
+        fpm.add(llvm::createSLPVectorizerPass());
+        fpm.doInitialization();
+        for (auto& it : *fModule) { fpm.run(it); }
+        */
+     
         // Get 'execute' entry point
         fCompiledFun = (compiledFun)fJIT->getFunctionAddress("execute");
     }

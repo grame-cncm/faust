@@ -6,7 +6,7 @@ level = hslider("level", 0.5, 0, 1, 0.01);
 
 //process = (part, +(1)~_) : soundfile("files [url: {'RnB.wav';'tango.wav';'levot.wav'}]",2) :(!,!,_,_);
 
-//process = so.loop(soundfile("files [url: 				{'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), part);
+//process = so.loop(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), part);
 
 //process = so.loop_speed(soundfile("files [url: {'RnB.wav';'tango.wav';'levot.wav'}]",2), part, speed);
 
