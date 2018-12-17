@@ -31,25 +31,51 @@
  
  A Soundfile* object will have to be filled with a list of sound resources: the fLength, fOffset, fSampleRate and fBuffers fields 
  have to be completed with the appropriate values, and will be accessed in the dsp object while running.
+ *
  */
+
+// To implement
 
 struct MemoryReader : public SoundfileReader {
     
-    // To implement
+    /**
+     * Check the availability of a sound resource.
+     *
+     * @param path_name - the name of the file, or sound resource identified this way
+     *
+     * @return true if the sound resource is available, false otherwise.
+     */
     virtual bool checkFile(const std::string& path_name) { return false; }
     
+    /**
+     * Get the channels and length values of the given sound resource.
+     *
+     * @param path_name - the name of the file, or sound resource identified this way
+     * @param channels - the channels value to be filled with the sound resource number of channels
+     * @param length - the length value to be filled with the sound resource length in frames
+     *
+     */
     virtual void getParamsFile(const std::string& path_name, int& channels, int& length) {}
     
+    /**
+     * Read one sound resource and fill the 'soundfile' structure accordingly
+     *
+     * @param path_name - the name of the file, or sound resource identified this way
+     * @param part - the part number to be filled in the soundfile
+     * @param offset - the offset value to be incremented with the actual sound resource length in frames
+     * @param max_chan - the maximum number of mono channels to fill
+     *
+     */
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         /*
-         The soundfile fields have to be filled:
+         // The soundfile fields have to be filled:
          
          soundfile->fLength[part] = ...
          soundfile->fSampleRate[part] = ...
          soundfile->fOffset[part] = ...
          
-         // for each chan:
+         // Audio frames have to be written for each chan
          soundfile->fBuffers[chan][soundfile->fOffset[part]] = ...
         */
     }

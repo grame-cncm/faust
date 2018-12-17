@@ -102,13 +102,14 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
     char name[256];
     char rcfilename[256];
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
+    int control = 0;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -118,14 +119,16 @@ int main(int argc, char *argv[] )
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
 
-    CMDUI interface(argc, argv);
+    CMDUI interface(argc, argv, true);
     FUI finterface;
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
+    control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
+    
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
     if (midi_sync) {
@@ -139,11 +142,12 @@ int main(int argc, char *argv[] )
     
 #else
     nvoices = lopt(argv, "--nvoices", nvoices);
+    control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
         
 #if MIDICTRL
         if (midi_sync) {

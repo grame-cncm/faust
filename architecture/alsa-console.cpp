@@ -169,7 +169,7 @@ int main(int argc, char *argv[] )
         exit(1);
     }
 
-    CMDUI* interface = new CMDUI(argc, argv);
+    CMDUI* interface = new CMDUI(argc, argv, true);
     FUI* finterface	= new FUI();
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(finterface);

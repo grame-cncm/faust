@@ -778,7 +778,7 @@ class FBCLLVMCompiler {
     #endif
         fBuilder->setFastMathFlags(FMF);
         
-        fModule  = new Module(std::string(FAUSTVERSION), getContext());
+        fModule = new Module(std::string(FAUSTVERSION), getContext());
         fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 
         // Compile compute function

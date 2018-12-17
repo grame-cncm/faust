@@ -264,7 +264,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         
         if (INTERP_FILE_VERSION != file_num) {
             std::stringstream error;
-            error << "Interpreter file format version '" << file_num << "' different from compiled one '"
+            error << "ERROR : interpreter file format version '" << file_num << "' different from compiled one '"
             << INTERP_FILE_VERSION << "'" << std::endl;
             throw faustexception(error.str());
         }
