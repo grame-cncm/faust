@@ -22,6 +22,13 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef WIN32
+#pragma warning (disable: 4244 4800)
+#define _CRT_SECURE_NO_WARNINGS
+#else
+#include <Carbon/Carbon.h>
+#endif
+
 #include "faustgen~.h"
 #include "faust/dsp/libfaust.h"
 
@@ -186,7 +193,7 @@ faustgen_factory::faustgen_factory(const string& name)
 #endif
 
 #ifdef WIN32
-	HMODULE handle = LoadLibrary("faustgen~.mxe");
+	HMODULE handle = LoadLibrary("faustgen~.mxe64");
 	if (handle) {
 		// Get faustgen~.mxe path
 		char name[512];
@@ -1140,7 +1147,7 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 
 static bool check_digit(const string& name)
 {
-    for (int i = name.size() - 1; i >= 0; i--) {
+    for (size_t i = name.size() - 1; i >= 0; i--) {
         if (isdigit(name[i])) { return true; }
     }
     return false;
@@ -1149,7 +1156,7 @@ static bool check_digit(const string& name)
 static int count_digit(const string& name)
 {
     int count = 0;
-    for (int i = name.size() - 1; i >= 0; i--) {
+    for (size_t i = name.size() - 1; i >= 0; i--) {
         if (isdigit(name[i])) { count++; }
     }
     return count;
@@ -1185,7 +1192,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         if (check_digit(name)) {
             
             int ndigit = 0;
-            int pos;
+            size_t pos;
             
             for (pos = name.size() - 1; pos >= 0; pos--) {
                 if (isdigit(name[pos]) || name[pos] == ' ') {
@@ -1726,6 +1733,12 @@ int main(void)
 
 extern "C" void ext_main(void* r)
 {
+#ifdef WIN32
+	static bool done = false;
+	if (done) return;
+	done =true;
+#endif
+
     // Creates an instance of Faustgen
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
