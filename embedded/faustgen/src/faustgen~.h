@@ -60,7 +60,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.33"
+#define FAUSTGEN_VERSION "1.34"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -180,7 +180,7 @@ class faustgen_factory {
         void open_svg();
         void remove_svg();
         void display_svg();
-        void display_pdf();
+        void display_documentation();
         void display_libraries();
         
         ::dsp* create_dsp_instance(int nvoices = 0);
@@ -235,7 +235,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         // Compile DSP with -svg option and display the SVG files
         void display_svg();
-        void display_pdf();
+        void display_documentation();
         void display_libraries();
          
         // Create the Faust LLVM based DSP

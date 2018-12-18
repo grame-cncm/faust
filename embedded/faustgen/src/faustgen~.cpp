@@ -705,10 +705,16 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
     return (system(command) == 0);
 }
 
-void faustgen_factory::display_pdf()
+void faustgen_factory::display_documentation()
 {
-    // Open the PDF documentation
-    open_file(FAUST_PDF_DOCUMENTATION);
+    // Open the Web documentation
+    char command[512];
+#ifdef WIN32
+    sprintf(command, "start \"\" \"https://faust.grame.fr/doc/manual/index.html\"", fDrawPath.c_str(), fFaustNumber);
+#else
+    sprintf(command, "open \"https://faust.grame.fr/doc/manual/index.html\"", fDrawPath.c_str(), fFaustNumber);
+#endif
+    system(command);
 }
 
 void faustgen_factory::display_libraries_aux(const char* lib)
@@ -1376,7 +1382,7 @@ void faustgen::dblclick(long inlet)
     jpopupmenu_additem(popup, 2, "View DSP parameters", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 3, "View compile options", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 4, "View SVG diagram", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 5, "View PDF documentation", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 5, "View Web documentation", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 6, "View libraries", NULL, 0, 0, NULL);
     
     // Get mouse position
@@ -1411,8 +1417,8 @@ void faustgen::dblclick(long inlet)
             break;
             
         case 5:
-            // Open the PDF documentation
-            display_pdf();
+            // Open the documentation
+            display_documentation();
             break;
             
         case 6:
@@ -1503,9 +1509,9 @@ void faustgen::display_svg()
     fDSPfactory->display_svg();
 }
 
-void faustgen::display_pdf()
+void faustgen::display_documentation()
 {
-    fDSPfactory->display_pdf();
+    fDSPfactory->display_documentation();
 }
 
 void faustgen::display_libraries()
