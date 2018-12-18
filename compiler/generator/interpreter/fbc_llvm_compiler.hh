@@ -658,9 +658,11 @@ class FBCLLVMCompiler {
                     }
                     break;
 
-                // TO CHECK
                 case FBCInstruction::kIf: {
+                    
                     saveReturn();
+                    
+                    // Prepare condition
                     LLVMValue cond_value = fBuilder->CreateICmpEQ(popValue(), genInt32(1), "ifcond");
                     Function* function   = fBuilder->GetInsertBlock()->getParent();
 
@@ -668,13 +670,14 @@ class FBCLLVMCompiler {
                     BasicBlock* then_block  = BasicBlock::Create(fModule->getContext(), "then_code", function);
                     BasicBlock* else_block  = BasicBlock::Create(fModule->getContext(), "else_code");
                     BasicBlock* merge_block = BasicBlock::Create(fModule->getContext(), "merge_block");
-
-                    pushValue(fBuilder->CreateCondBr(cond_value, then_block, else_block));
+     
+                    fBuilder->CreateCondBr(cond_value, then_block, else_block);
 
                     // Compile then branch (= branch1)
                     CompileBlock((*it)->fBranch1, then_block);
 
                     fBuilder->CreateBr(merge_block);
+                    // Codegen of 'Then' can change the current block, update then_block for the PHI
                     then_block = fBuilder->GetInsertBlock();
 
                     // Emit else block
@@ -682,13 +685,16 @@ class FBCLLVMCompiler {
 
                     // Compile else branch (= branch2)
                     CompileBlock((*it)->fBranch2, else_block);
-
-                    pushValue(fBuilder->CreateBr(merge_block));
+   
+                    fBuilder->CreateBr(merge_block);
+                    // Codegen of 'Else' can change the current block, update else_block for the PHI
                     else_block = fBuilder->GetInsertBlock();
 
                     // Emit merge block
                     function->getBasicBlockList().push_back(merge_block);
                     fBuilder->SetInsertPoint(merge_block);
+                    
+                    it++;
                     break;
                 }
 

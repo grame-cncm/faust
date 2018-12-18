@@ -1753,3 +1753,4 @@ extern "C" void ext_main(void* r)
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);
     REGISTER_METHOD_JSAVE(faustgen, appendtodictionary);
 }
+

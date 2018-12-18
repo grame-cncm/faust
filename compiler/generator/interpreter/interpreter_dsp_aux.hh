@@ -665,6 +665,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     #endif
         fFBCExecutor = factory->createFBCExecutor();
         fInitialized = false;
+/*
+#ifdef MACHINE
+        FBCCPPGenerator<T> cpp_generator(this->fFactory);
+        cpp_generator.generateCode(std::cout);
+#endif
+*/
     }
 
     virtual ~interpreter_dsp_aux()
@@ -748,12 +754,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         fInitialized = true;
         classInit(samplingRate);
         instanceInit(samplingRate);
-    /*
+        /*
     #ifdef MACHINE
         FBCCPPGenerator<T> cpp_generator(this->fFactory);
         cpp_generator.generateCode(std::cout);
     #endif
-    */
+        */
     }
 
     virtual void buildUserInterface(UITemplate* glue)
