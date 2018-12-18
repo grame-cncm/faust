@@ -1147,7 +1147,7 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 
 static bool check_digit(const string& name)
 {
-    for (size_t i = name.size() - 1; i >= 0; i--) {
+    for (int i = name.size() - 1; i >= 0; i--) {
         if (isdigit(name[i])) { return true; }
     }
     return false;
@@ -1156,7 +1156,7 @@ static bool check_digit(const string& name)
 static int count_digit(const string& name)
 {
     int count = 0;
-    for (size_t i = name.size() - 1; i >= 0; i--) {
+    for (int i = name.size() - 1; i >= 0; i--) {
         if (isdigit(name[i])) { count++; }
     }
     return count;
@@ -1192,7 +1192,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         if (check_digit(name)) {
             
             int ndigit = 0;
-            size_t pos;
+            int pos;
             
             for (pos = name.size() - 1; pos >= 0; pos--) {
                 if (isdigit(name[pos]) || name[pos] == ' ') {
