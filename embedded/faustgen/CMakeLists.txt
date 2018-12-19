@@ -97,9 +97,9 @@ endif()
 set (PACKDIR ${ROOT}/package)
 set (DST faustgen)
 install ( TARGETS faustgen
-	RUNTIME DESTINATION ${PACKDIR}/${DST}/external/msp
-    LIBRARY DESTINATION ${PACKDIR}/${DST}/external/msp
-    ARCHIVE DESTINATION ${PACKDIR}/${DST}/external/msp
+	RUNTIME DESTINATION ${PACKDIR}/${DST}/externals/msp
+    LIBRARY DESTINATION ${PACKDIR}/${DST}/externals/msp
+    ARCHIVE DESTINATION ${PACKDIR}/${DST}/externals/msp
 )
 
 ####################################
@@ -117,7 +117,7 @@ if (WIN32)
 ####################################
 # install lib files + misc
 install (
-    FILES     ${DSPLIBS} DESTINATION ${PACKDIR}/${DST}/external/msp/faustgen-resources
+    FILES     ${DSPLIBS} DESTINATION ${PACKDIR}/${DST}/externals/msp/faustgen-resources
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
 install (
