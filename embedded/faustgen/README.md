@@ -1,0 +1,54 @@
+
+faustgen~
+============================
+## The swiss knife for [Faust](https://faust.grame.fr) development in Max.
+--------------
+
+**faustgen~** is a Max external prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. 
+
+**faustgen~** is based on the [Faust](https://faust.grame.fr) library and on [LLVM](http://llvm.org).
+
+
+## How to compile...
+
+
+### Prerequisites
+- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line.
+- you must have downloaded the [Max SDK](https://cycling74.com/downloads/sdk).
+- you must have [cmake](https://cmake.org/) installed.
+- [Windows] you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed.
+
+### Project generation
+**faustgen~** project is based on cmake. 
+It is recommended to build **faustgen~** in a separate subfolder. It isolates the compilation process from the rest of the project. Creates this folder and generate your project using `cmake`.
+
+~~~~
+$ mkdir build
+$ cd build
+$ cmake .. -DMAXSDK="/path/to/the/max/sdk" -G "you generator"
+~~~~
+
+You must define the path to the Max SDK the first time you invoke `cmake`. Next the value is cached by cmake.
+On Windows, cmake assumes that the Sndfile library is installed in C:/Program Files/Mega-Nerd/libsndfile. To override, you cand define the LIBSNDFILE variable to an alternate location (i.e. add -DLIBSNDFILE=/path/to/libsndfile on the command line).
+
+**Note:** on Windows, you should use the same runtime than the other libraries. Thus make sure everything is compiled with the same Visual Studio version (including LLVM). The current faust version (2.13.11) makes use of the following cmake generator: "Visual Studio 14 2015 Win64". You must use the same on for faustgen~.
+
+
+### Compiling
+
+You can launch your IDE and proceed as usual or you can use cmake build command from your build folder:
+
+~~~~
+$ cmake --build . --config Release
+~~~~
+
+
+
+## Limitations and known bugs
+
+
+
+
+
+--------------
+#### [Grame](http://www.grame.fr) - Centre National de Creation Musicale

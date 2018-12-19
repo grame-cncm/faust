@@ -32,7 +32,8 @@ string ( STRIP ${FLIB} FAUSTLIB )
 #######################################
 # libsndfile
 if (WIN32)
-	set (LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile")
+	if (NOT DEFINED LIBSNDFILE)
+		set (LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile")
     set (SNDFILELIB ${LIBSNDFILE}/lib/libsndfile-1.lib)
 	set (SNDFILEINC ${LIBSNDFILE}/include)
 else()
@@ -57,21 +58,12 @@ endif()
 
 ####################################
 # compiler dependent settings
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set( LIBS ../../../build/lib/libfaust ws2_32 ${LLVM_LD_FLAGS} ${LLVM_LIBS})
-else()
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set( LIBS -L../../../build/lib -lfaust -lpthread ${LLVM_LD_FLAGS} ${LLVM_LIBS})
-endif()
-
-
-set (MACLIBS "-framework CoreServices -framework IOKit")
 if (WIN32)
 	set (FAUSTLIBS ${FAUSTLIB}/libfaust.lib ${FAUSTLIB}/libOSCFaust.lib)
 	set (WINSRC ${MAXSDK}/max-includes/common/dllmain_win.c ${MAXSDK}/max-includes/common/commonsyms.c)
-#	set (WINSRC ${MAXSDK}/max-includes/common/commonsyms.c)
 else()
+	set (MACLIBS "-framework CoreServices -framework IOKit")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 	set (FAUSTLIBS ${FAUSTLIB}/libfaust.a ${FAUSTLIB}/libOSCFaust.a)
 endif()
 

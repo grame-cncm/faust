@@ -1,0 +1,125 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf470
+\cocoascreenfonts1{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red38\green38\blue38;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww19620\viewh15640\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\b\fs28 \cf0 Faust site : http://faust.grame.fr\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b0 \cf0 \
+Faust compiler development : GRAME\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b \cf0 faustgen~
+\b0  external development : Martin Di Rollo, St\'e9phane Letz\
+\
+Help patch : Christophe Lebreton\
+\
+======================================================\
+\
+
+\b How to install "faustgen~" for MAX6 (64 bits) on OSX and Windows (32 bits): \
+\
+From the "OSX/Max 6" folder\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b0 \cf0 \
+1 - Copy "faustgen~.mxo" object in the folder: Applications/Max6/Cycling '74/msp-externals\
+\
+2 - Copy "faustgen~.maxref.xml" in the folder:  Applications/Max6/patches/docs/refpages/msp-ref\
+\
+3 - Copy "faustgen~.maxhelp" in the folder: Applications/Max6/Cycling '74/msp-help\
+\
+4 - If you want to read or write .dsp Faust source files from faustgen~ (using the "read" or "write" messages), copy "faust-fileformats.txt" file in Applications/Max6/Cycling '74/init folder\
+\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b \cf0 From the "Windows" folder \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b0 \cf0 \
+1 - Copy "faustgen~.mxe" object and the "faustgen-resources" folder in the folder: Max6/Cycling '74/msp-externals\
+\
+2 - Copy "faustgen~.maxref.xml" in the folder: Max6/patches/docs/refpages/msp-ref\
+\
+3 - Copy "faustgen~.maxhelp" in the folder: Max6/Cycling '74/msp-help\
+\
+4 - If you want to read or write .dsp Faust source files from faustgen~ (using the "read" or "write" messages), copy "faust-fileformats.txt" file in  Applications/Max6/Cycling '74/init folder\
+\
+5 - Copy the "libeay32.dll" file in the Max 7 folder (so with the application executable itself)\
+\
+======================================================\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b \cf0 How to install "faustgen~" for MAX7 (64 bits) on OSX and Windows (32 bits) : \
+\
+\pard\pardeftab720\partightenfactor0
+
+\i\b0 \cf2 \expnd0\expndtw0\kerning0
+Packages
+\i0  are a convenient means of bundling objects, media, patchers, and resources for distribution.
+\f1\fs26 \
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs28 \cf0 \kerning1\expnd0\expndtw0 \
+\pard\pardeftab720\partightenfactor0
+
+\b0 \cf2 \expnd0\expndtw0\kerning0
+There are two packages folders you may use. One is the 'Max 7/Packages' in your Documents (Mac) or My Documents (Windows) folder. The other (system wide) location is the 'Max 7/Packages' in your /Users/Shared (Mac) or C:\\ProgramData (Windows) folder.
+\b \cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+\cf0 From the "OSX/Max 7" folder\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b0 \cf0 1 - Copy the "faustgen" folder in "\cf2 \expnd0\expndtw0\kerning0
+Max 7/Packages" either in "Documents" or "/Users/Shared" folder\cf0 \kerning1\expnd0\expndtw0 \
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b \cf0 From the "Windows/Max 7" folder\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b0 \cf0 1 - Copy the "faustgen" folder in "\cf2 \expnd0\expndtw0\kerning0
+Max 7/Packages" either in "My Documents" or "C:\\ProgramData (Windows)" folder\cf0 \kerning1\expnd0\expndtw0 \
+\
+1 - Copy the "libeay32.dll" file in the Max 7 folder (so with the application executable itself)\
+\
+======================================================\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\b \cf0 History : 
+\b0 \
+\
+- 11/12/2012 : First release of 0.79b version\
+- 11/20/2012 : Version 0.80b : now open menu at mouse current location\
+- 12/03/2012 : Version 0.81b : first version for Windows\
+- 12/05/2012 : Version 0.82b : all commands now quoted (on OSX and Windows)\
+- 09/03/2013 : Version 0.83b : add "write" message to save DSP in external files\
+- 03/15/2013 : Version 0.84b : crashing bug correction in LLVM code generation\
+- 03/15/2013 : Version 0.85b : memory management corrections in LLVM code generation\
+- 04/04/2013 : Version 0.86b : fix recursion limitation bug in Faust\
+- 06/05/2013 : Version 0.87b : memory management correction in Faust. Correct "write" message. 64/32 bits version on OSX\
+- 22/05/2013 : Version 0.88b : temporary folder location (for SVG...) changed on Windows\
+- 14/06/2013 : Version 0.89b : fix in Faust bargraph code generation\
+- 06/09/2013 : Version 0.90b : fix in SVG diagram generation, use latest LLVM 3.3 version on OSX.\
+- 06/03/2015 : Version 1.02 : compiled with LLVM 3.4 on Windows, various fixes.\
+- 11/09/2015 : Version 1.04 : various fixes.\
+- 11/17/2015 : Version 1.05 : fix crash bug when changing Faust DSP while audio is on.\
+- 01/14/2016 : Version 1.06 : raise MAX_CPP_MAX_DSP_SIGNALS to 512.\
+- 01/24/2016 : Version 1.07 : correct bug in compileoptions handing, rework installation procedure for Max 7.\
+- 05/01/2016 : Version 1.08 : polyphonic support using a new \'ab\'a0polyphony N\'a0\'bb message. \
+- 06/06/2016 : Version 1.09 : 32/64 bits version compiled with LLVM 3.8 on OSX.\
+- 09/21/2016 : Version 1.10 : use new library format.\
+- 12/06/2016 : Version 1.11 : internal hacked version.\
+- 01/05/2017 : Version 1.12 : updated libraries. Correct memory deallocation in faustgen destructor.\
+\
+}
