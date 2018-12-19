@@ -97,16 +97,16 @@ endif()
 set (PACKDIR ${ROOT}/package)
 set (DST faustgen)
 install ( TARGETS faustgen
-	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
+	RUNTIME DESTINATION ${PACKDIR}/${DST}/external/msp
+    LIBRARY DESTINATION ${PACKDIR}/${DST}/external/msp
+    ARCHIVE DESTINATION ${PACKDIR}/${DST}/external/msp
 )
 
 ####################################
 # install folders
 set (PACKCONTENT ${PACKDIR}/docs ${PACKDIR}/help ${PACKDIR}/init)
 install (
-    DIRECTORY ${PACKCONTENT} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}
+    DIRECTORY ${PACKCONTENT} DESTINATION ${PACKDIR}/${DST}
     FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
     DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
     	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
@@ -117,8 +117,11 @@ if (WIN32)
 ####################################
 # install lib files
 install (
-    FILES     ${DSPLIBS} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp/faustgen-resources
+    FILES     ${DSPLIBS} DESTINATION ${PACKDIR}/${DST}/external/msp/faustgen-resources
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
+)
+install (
+    FILES     ${LIBSNDFILE}/bin/libsndfile-1.dll DESTINATION ${PACKDIR}/${DST}
 )
 endif()
 
@@ -127,7 +130,16 @@ endif()
 # install various files
 set (MISC changelog.txt ${PACKDIR}/Install\ faustgen~.rtf)
 install (
-    FILES     ${MISC} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}
+    FILES     ${MISC} DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
+
+
+####################################
+# post install processing
+if (APPLE)
+install (
+    CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/faustgen.dmg -srcfolder ${PACKDIR}/faustgen -ov)"
+)
+endif()
 
