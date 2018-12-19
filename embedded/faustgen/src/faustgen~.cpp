@@ -23,7 +23,7 @@
  ************************************************************************/
 
 #ifdef WIN32
-#pragma warning (disable: 4244 4800)
+#pragma warning (disable: 4244 4800 4267)
 #define _CRT_SECURE_NO_WARNINGS
 #else
 #include <Carbon/Carbon.h>
@@ -316,8 +316,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         post("Generate SVG error : %s", error_msg.c_str());
     }
 
-#ifdef WIN32
-    argv[fCompileOptions.size()] = "-L";
+//#ifdef WIN32
+#if 0
+	argv[fCompileOptions.size()] = "-L";
     argv[fCompileOptions.size() + 1] = "llvm_math.ll";
     argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error_msg, fOptLevel);
@@ -403,8 +404,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 
     // Otherwise creates default DSP keeping the same input/output number
-#ifdef WIN32
-    // Prepare compile options
+//#ifdef WIN32
+#if 0
+	// Prepare compile options
     const char* argv[64];
     
     assert(fCompileOptions.size() < 64);
@@ -717,9 +719,9 @@ void faustgen_factory::display_documentation()
     // Open the Web documentation
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"https://faust.grame.fr/doc/manual/index.html\"", fDrawPath.c_str(), fFaustNumber);
+    sprintf(command, "start \"\" \"https://faust.grame.fr/doc/manual/index.html\"");
 #else
-    sprintf(command, "open \"https://faust.grame.fr/doc/manual/index.html\"", fDrawPath.c_str(), fFaustNumber);
+    sprintf(command, "open \"https://faust.grame.fr/doc/manual/index.html\"");
 #endif
     system(command);
 }
@@ -1740,11 +1742,11 @@ extern "C" void ext_main(void* r)
 #endif
 
     // Creates an instance of Faustgen
-    faustgen::makeMaxClass("faustgen~");
+	t_class * mclass = faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
     post("Copyright (c) 2012-2018 Grame");
-    
+
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
   
