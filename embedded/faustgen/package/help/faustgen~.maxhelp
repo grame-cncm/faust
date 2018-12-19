@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 206.0, 79.0, 1337.0, 762.0 ],
+		"rect" : [ 69.0, 79.0, 1337.0, 762.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -364,7 +364,7 @@
 									"sourcecode_size" : 241,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-d026fe0",
+									"varname" : "faustgen-ac7e180",
 									"version" : "1.34"
 								}
 
@@ -769,7 +769,7 @@
 									"sourcecode_size" : 189,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-b648650",
+									"varname" : "faustgen-b1c15d0",
 									"version" : "1.34"
 								}
 
@@ -820,7 +820,7 @@
 									"sourcecode_size" : 241,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-d602e80",
+									"varname" : "faustgen-ae9ed10",
 									"version" : "1.34"
 								}
 
@@ -925,7 +925,7 @@
 									"sourcecode_size" : 189,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-b7a32f0",
+									"varname" : "faustgen-aeb6950",
 									"version" : "1.34"
 								}
 
@@ -988,7 +988,7 @@
 									"sourcecode_size" : 185,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-cf9a1b0",
+									"varname" : "faustgen-86104a0",
 									"version" : "1.34"
 								}
 
@@ -1072,7 +1072,7 @@
 									"sourcecode_size" : 255,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-d584eb0",
+									"varname" : "faustgen-870ba60",
 									"version" : "1.34"
 								}
 
@@ -1228,7 +1228,7 @@
 									"sourcecode_size" : 243,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-d5950b0",
+									"varname" : "faustgen-ae7db60",
 									"version" : "1.34"
 								}
 
@@ -2583,7 +2583,7 @@
 									"sourcecode_size" : 682,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-cdd34e0",
+									"varname" : "faustgen-b1c2020",
 									"version" : "1.34"
 								}
 
@@ -2844,7 +2844,7 @@
 ,
 									"style" : "",
 									"text" : "autopattr",
-									"varname" : "u524000494"
+									"varname" : "u807000633"
 								}
 
 							}
@@ -3155,7 +3155,7 @@
 							"modernui" : 1
 						}
 ,
-						"rect" : [ 206.0, 105.0, 1337.0, 736.0 ],
+						"rect" : [ 0.0, 26.0, 1337.0, 736.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 13.0,
@@ -3928,7 +3928,7 @@
 									"sourcecode_size" : 520,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-e6310e0",
+									"varname" : "faustgen-b54f1f0",
 									"version" : "1.34"
 								}
 
@@ -3945,15 +3945,15 @@
 									"outlettype" : [ "", "", "", "" ],
 									"patching_rect" : [ 214.0, 7.0, 59.5, 22.0 ],
 									"restore" : 									{
-										"Reson-Decay" : [ 0.644068, 0.180328, 0.213115, 0.245902, 0.311475, 0.344262, 0.377049, 0.393443, 0.409836, 0.409836, 0.409836, 0.42623, 0.459016, 0.557377, 0.694915, 0.694915, 0.644068, 0.525424, 0.491525, 0.288136 ],
-										"Reson-Decay[1]" : [ 0.516667, 0.758065, 0.693548, 0.612903, 0.548387, 0.532258, 0.516129, 0.5, 0.467742, 0.709677, 0.709677, 0.709677, 0.709677, 0.701613, 0.693548, 0.677419, 0.653226, 0.629032, 0.548387, 0.116667 ],
-										"Reson-Freq" : [ 1355.862061, 1355.862061, 1201.724121, 379.655182, 715.333313, 864.333313, 1013.333313, 1162.333374, 1261.666626, 1261.666626, 1311.333374, 1311.333374, 1311.333374, 1311.333374, 1063.0, 1063.0, 379.655182, 225.517242, 122.758621, 1407.241333 ],
+										"Reson-Decay" : [ 0.644068, 0.180328, 0.213115, 0.245902, 0.311475, 0.344262, 0.360656, 0.377049, 0.377049, 0.377049, 0.377049, 0.377049, 0.377049, 0.557377, 0.694915, 0.694915, 0.644068, 0.525424, 0.491525, 0.288136 ],
+										"Reson-Decay[1]" : [ 0.516667, 0.887097, 1.0, 1.0, 1.0, 0.967742, 0.919355, 0.870968, 0.822581, 0.798387, 0.774194, 0.741935, 0.709677, 0.709677, 0.645161, 0.612903, 0.653226, 0.629032, 0.548387, 0.116667 ],
+										"Reson-Freq" : [ 1355.862061, 1355.862061, 1201.724121, 379.655182, 715.333313, 1013.333313, 1063.0, 1162.333374, 268.333344, 467.0, 616.0, 814.666687, 914.0, 1063.0, 1212.0, 1261.666626, 1311.333374, 1460.333374, 1559.666626, 1559.666626 ],
 										"live.gain~" : [ -19.874891 ]
 									}
 ,
 									"style" : "",
 									"text" : "autopattr",
-									"varname" : "u951000493"
+									"varname" : "u608000632"
 								}
 
 							}
@@ -4307,7 +4307,7 @@
 							"modernui" : 1
 						}
 ,
-						"rect" : [ 0.0, 26.0, 1337.0, 736.0 ],
+						"rect" : [ 69.0, 105.0, 1337.0, 736.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 13.0,
@@ -4752,13 +4752,13 @@
 									"fontname" : "Arial",
 									"fontsize" : 13.0,
 									"id" : "obj-27",
-									"linecount" : 3,
+									"linecount" : 2,
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 325.0, 728.0, 474.0, 54.0 ],
+									"patching_rect" : [ 325.0, 728.0, 480.0, 40.0 ],
 									"style" : "",
-									"text" : "the most important part to start, use and call code already existing for Faust. \nLike famous effect.lib and filter.lib of Julius O.Smith and music.lib of Yann Orlarey the creator of this DSP language... etc..."
+									"text" : "the most important part to start, use and call code already existing for Faust. \nLike famous Julius O.Smith effects.lib and filters.lib..."
 								}
 
 							}
@@ -4785,13 +4785,12 @@
 									"fontname" : "Arial",
 									"fontsize" : 13.0,
 									"id" : "obj-44",
-									"linecount" : 2,
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 325.0, 682.5, 502.0, 40.0 ],
+									"patching_rect" : [ 325.0, 685.0, 300.0, 25.0 ],
 									"style" : "",
-									"text" : "open the actual .pdf documentation of the Faust language. \n(possibly takes some time the first time you open it for this object...) "
+									"text" : "open the Faust language Web documentation "
 								}
 
 							}
@@ -4805,9 +4804,9 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 141.0, 690.0, 183.0, 25.0 ],
+									"patching_rect" : [ 141.0, 692.5, 183.0, 25.0 ],
 									"style" : "",
-									"text" : "View PDF documentation",
+									"text" : "View Web documentation",
 									"underline" : 1
 								}
 
@@ -4845,7 +4844,7 @@
 									"sourcecode_size" : 241,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-ef68b70",
+									"varname" : "faustgen-a3f0100",
 									"version" : "1.34"
 								}
 
@@ -4908,7 +4907,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 225.5, 549.0, 689.0, 25.0 ],
 									"style" : "",
-									"text" : "is vectorial mode with a vector size at 64 (by default is 32. Will be a power of 2 minus or equal at \"svs\" of maxmsp)"
+									"text" : "is vector mode with a vector size at 64 (by default is 32. Will be a power of 2 minus or equal at \"svs\" of maxmsp)"
 								}
 
 							}
@@ -4938,7 +4937,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 198.0, 519.0, 263.0, 25.0 ],
 									"style" : "",
-									"text" : "is vectorial mode with another option"
+									"text" : "is vector mode with another option"
 								}
 
 							}
@@ -4968,7 +4967,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 157.0, 492.0, 304.0, 25.0 ],
 									"style" : "",
-									"text" : "is vectorial mode ( with \"-lv0\" by default )"
+									"text" : "is vector mode ( with \"-lv0\" by default )"
 								}
 
 							}
@@ -5035,7 +5034,7 @@
 									"sourcecode_size" : 176,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-ef8e9e0",
+									"varname" : "faustgen-acdad70",
 									"version" : "1.34"
 								}
 
@@ -5074,7 +5073,7 @@
 									"sourcecode_size" : 176,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-e856840",
+									"varname" : "faustgen-ace4060",
 									"version" : "1.34"
 								}
 
@@ -5235,7 +5234,7 @@
 									"sourcecode_size" : 254,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-ed704a0",
+									"varname" : "faustgen-aca68c0",
 									"version" : "1.34"
 								}
 
@@ -5290,7 +5289,7 @@
 									"sourcecode_size" : 175,
 									"style" : "",
 									"text" : "faustgen~ plus",
-									"varname" : "faustgen-efa3d90",
+									"varname" : "faustgen-ab092e0",
 									"version" : "1.34"
 								}
 
@@ -5313,7 +5312,7 @@
 									"sourcecode_size" : 175,
 									"style" : "",
 									"text" : "faustgen~ plus",
-									"varname" : "faustgen-ed92640",
+									"varname" : "faustgen-abc0010",
 									"version" : "1.34"
 								}
 
@@ -5368,7 +5367,7 @@
 									"sourcecode_size" : 176,
 									"style" : "",
 									"text" : "faustgen~",
-									"varname" : "faustgen-ed820a0",
+									"varname" : "faustgen-ab20620",
 									"version" : "1.34"
 								}
 
@@ -5718,8 +5717,8 @@
 		"lines" : [  ],
 		"parameters" : 		{
 			"obj-8::obj-38" : [ "live.gain~[9]", "live.gain~", 0 ],
-			"obj-5::obj-38" : [ "live.gain~[4]", "live.gain~", 0 ],
-			"obj-6::obj-38" : [ "live.gain~[5]", "live.gain~", 0 ]
+			"obj-6::obj-38" : [ "live.gain~[5]", "live.gain~", 0 ],
+			"obj-5::obj-38" : [ "live.gain~[4]", "live.gain~", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
