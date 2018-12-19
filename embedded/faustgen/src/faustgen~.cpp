@@ -215,7 +215,7 @@ faustgen_factory::faustgen_factory(const string& name)
         }
 		FreeLibrary(handle);
 	} else {
-		post("Error : cannot locate faustgen~.mxe...");
+		post("Error : cannot locate faustgen~.mxe64...");
 		fDrawPath = "";
 	}
  #endif
@@ -310,22 +310,14 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
         argv[i++] = (char*)(*it).c_str();
     }
+    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     
     // Generate SVG file
     if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg)) {
         post("Generate SVG error : %s", error_msg.c_str());
     }
-
-//#ifdef WIN32
-#if 0
-	argv[fCompileOptions.size()] = "-L";
-    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
-    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error_msg, fOptLevel);
-#else
-    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
+    
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error_msg, fOptLevel);
-#endif
    
     if (factory) {
         // Reset fSoundUI with the new factory getIncludePathnames
@@ -404,26 +396,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 
     // Otherwise creates default DSP keeping the same input/output number
-//#ifdef WIN32
-#if 0
-	// Prepare compile options
-    const char* argv[64];
-    
-    assert(fCompileOptions.size() < 64);
-    StringVectorIt it;
-    int i = 0;
-    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
-        argv[i++] = (char*)(*it).c_str();
-    }
-    
-    argv[fCompileOptions.size()] = "-l";
-    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
-    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
-    
-    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, fCompileOptions.size() + 2, argv, getTarget(), error, 0);
-#else
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, 0);
-#endif
     dsp = create_dsp_instance();
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
@@ -1738,7 +1711,7 @@ extern "C" void ext_main(void* r)
 #ifdef WIN32
 	static bool done = false;
 	if (done) return;
-	done =true;
+	done = true;
 #endif
 
     // Creates an instance of Faustgen
