@@ -151,11 +151,11 @@ llvm:
 # interp backend
 interp:
 	$(MAKE) -f Make.interp
-	$(MAKE) -f Make.interp outdir=interp/lv0 FAUSTOPTIONS="-vec -lv 0"
-	$(MAKE) -f Make.interp outdir=interp/lv0/vs16 FAUSTOPTIONS="-vec -lv 0 -vs 16"
+	#$(MAKE) -f Make.interp outdir=interp/lv0 FAUSTOPTIONS="-vec -lv 0"
+	#$(MAKE) -f Make.interp outdir=interp/lv0/vs16 FAUSTOPTIONS="-vec -lv 0 -vs 16"
 	$(MAKE) -f Make.interp outdir=interp/vec/lv1 FAUSTOPTIONS="-vec -lv 1"
 	$(MAKE) -f Make.interp outdir=interp/vec/lv1/vs16 FAUSTOPTIONS="-vec -lv 1 -vs 16"
-	$(MAKE) -f Make.interp outdir=interp/vec/vs200 FAUSTOPTIONS="-vec -vs 200" 
+	#$(MAKE) -f Make.interp outdir=interp/vec/vs200 FAUSTOPTIONS="-vec -vs 200" 
 	$(MAKE) -f Make.interp outdir=interp/vec/g FAUSTOPTIONS="-vec -lv 1 -g"
 	$(MAKE) -f Make.interp outdir=interp/inpl FAUSTOPTIONS=-inpl
 	$(MAKE) -f Make.interp outdir=interp/ftz FAUSTOPTIONS="-ftz 0"

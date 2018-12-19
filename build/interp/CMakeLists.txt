@@ -42,7 +42,7 @@ set( INCLUDE
 	${FAUSTITP}/
 	/usr/local/include)
 
-set( MACHINEDEFS -DMACHINE)
+set( MACHINEDEFS -DMACHINE -D${LLVM_VERSION})
 
 ####################################
 # LLVM

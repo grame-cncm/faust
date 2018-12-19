@@ -6,6 +6,12 @@ http://www.grame.fr
 ====================================================
 Copyright GRAME (c) 2009-2018
 
+----------------------------------------------------
+Version 1.32 - 12/19/2018
+
+  - add ‘soundfile’ primitive support
+  - add OSC support
+  - various bug fixes
 
 ----------------------------------------------------
 Version 1.12 - 01/05/2017
