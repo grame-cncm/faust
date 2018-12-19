@@ -34,6 +34,7 @@ string ( STRIP ${FLIB} FAUSTLIB )
 if (WIN32)
 	if (NOT DEFINED LIBSNDFILE)
 		set (LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile")
+	endif()
     set (SNDFILELIB ${LIBSNDFILE}/lib/libsndfile-1.lib)
 	set (SNDFILEINC ${LIBSNDFILE}/include)
 else()
@@ -90,3 +91,35 @@ set_target_properties (faustgen PROPERTIES
 	SUFFIX ".mxe64"
 	OUTPUT_NAME faustgen~)
 endif()
+
+
+####################################
+# Install - used for packaging
+####################################
+set (PACKDIR ${ROOT})
+set (DST faustgen)
+install ( TARGETS faustgen
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
+)
+
+####################################
+# install folders
+set (PACKCONTENT ${PACKDIR}/docs ${PACKDIR}/help ${PACKDIR}/init)
+install (
+    DIRECTORY ${PACKCONTENT} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    PATTERN ".DS_Store" EXCLUDE
+)
+
+####################################
+# install various files
+set (MISC faustgen)
+install (
+    FILES     ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
+)
+
