@@ -97,17 +97,18 @@ endif()
 ####################################
 set (PACKDIR ${ROOT}/package)
 set (DST faustgen-${VERSION})
+set (FG ${DST}/faustgen)
 install ( TARGETS faustgen
-	RUNTIME DESTINATION ${PACKDIR}/${DST}/externals/msp
-    LIBRARY DESTINATION ${PACKDIR}/${DST}/externals/msp
-    ARCHIVE DESTINATION ${PACKDIR}/${DST}/externals/msp
+	RUNTIME DESTINATION ${PACKDIR}/${FG}/externals/msp
+    LIBRARY DESTINATION ${PACKDIR}/${FG}/externals/msp
+    ARCHIVE DESTINATION ${PACKDIR}/${FG}/externals/msp
 )
 
 ####################################
 # install folders
 set (PACKCONTENT ${PACKDIR}/docs ${PACKDIR}/help ${PACKDIR}/init)
 install (
-    DIRECTORY ${PACKCONTENT} DESTINATION ${PACKDIR}/${DST}
+    DIRECTORY ${PACKCONTENT} DESTINATION ${PACKDIR}/${FG}
     FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
     DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
     	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
@@ -118,11 +119,11 @@ if (WIN32)
 ####################################
 # install lib files + misc
 install (
-    FILES     ${DSPLIBS} DESTINATION ${PACKDIR}/${DST}/externals/msp/faustgen-resources
+    FILES     ${DSPLIBS} DESTINATION ${PACKDIR}/${FG}/externals/msp/faustgen-resources
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
 install (
-    FILES    ${PACKDIR}/install.bat  ${LIBSNDFILE}/bin/libsndfile-1.dll DESTINATION ${PACKDIR}/${DST}
+    FILES    ${LIBSNDFILE}/bin/libsndfile-1.dll DESTINATION ${PACKDIR}/${DST}
 )
 endif()
 
