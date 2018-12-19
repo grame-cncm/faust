@@ -115,13 +115,13 @@ install (
 
 if (WIN32)
 ####################################
-# install lib files
+# install lib files + misc
 install (
     FILES     ${DSPLIBS} DESTINATION ${PACKDIR}/${DST}/external/msp/faustgen-resources
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
 install (
-    FILES     ${LIBSNDFILE}/bin/libsndfile-1.dll DESTINATION ${PACKDIR}/${DST}
+    FILES    ${PACKDIR}/install.bat  ${LIBSNDFILE}/bin/libsndfile-1.dll DESTINATION ${PACKDIR}/${DST}
 )
 endif()
 
