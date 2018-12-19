@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faustgen)
+set (VERSION "1.34")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -95,7 +96,7 @@ endif()
 # Install - used for packaging
 ####################################
 set (PACKDIR ${ROOT}/package)
-set (DST faustgen)
+set (DST faustgen-${VERSION})
 install ( TARGETS faustgen
 	RUNTIME DESTINATION ${PACKDIR}/${DST}/externals/msp
     LIBRARY DESTINATION ${PACKDIR}/${DST}/externals/msp
@@ -139,7 +140,7 @@ install (
 # post install processing
 if (APPLE)
 install (
-    CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/faustgen.dmg -srcfolder ${PACKDIR}/faustgen -ov)"
+    CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}.dmg -srcfolder ${PACKDIR}/${DST} -ov)"
 )
 endif()
 
