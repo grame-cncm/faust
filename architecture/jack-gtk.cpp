@@ -123,6 +123,11 @@ int main(int argc, char *argv[])
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        exit(1);
+    }
+    
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     control = lopt(argv, "--control", control);

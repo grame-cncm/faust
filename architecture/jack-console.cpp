@@ -122,6 +122,11 @@ int main(int argc, char* argv[])
     CMDUI interface(argc, argv, true);
     FUI finterface;
     
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        exit(1);
+    }
+    
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     control = lopt(argv, "--control", control);
