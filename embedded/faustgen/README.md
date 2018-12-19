@@ -43,6 +43,21 @@ $ cmake --build . --config Release
 ~~~~
 
 
+## Packaging
+
+Packaging is based on the cmake install target and on the resources found the package folder.
+Simply call the 'install' target:
+
+~~~~
+$ cmake --build . --config Release --target install
+~~~~
+
+On output, you should find a folder named **faustgen** in the package folder.
+
+**Note:** on Mac OS, this folder is also compressed to the **faustgen.dmg** image file.
+
+
+
 
 ## Limitations and known bugs
 

@@ -128,7 +128,7 @@ endif()
 
 ####################################
 # install various files
-set (MISC changelog.txt ${PACKDIR}/Install\ faustgen~.rtf)
+set (MISC changelog.txt ${PACKDIR}/Install.html)
 install (
     FILES     ${MISC} DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
