@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using UnityEngine;
 
-/* @brief This file contains additionnal codes to communicate with the plugin and build the inspector interface
+/* @brief This file contains additional code to communicate with the plugin and build the inspector interface
 * @brief It shouldn't be changed
 */
 namespace FaustUtilities_MODEL {
@@ -75,7 +75,7 @@ namespace FaustUtilities_MODEL {
 		private void progressBar(float value, Group item) {
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
+			if (item.label == "0x00") { // If the name of the parameter hasn't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			Rect rect = GUILayoutUtility.GetRect(18, 18, "TextField");
@@ -85,13 +85,13 @@ namespace FaustUtilities_MODEL {
 			EditorGUILayout.Space();
 		}
 
-		/* @brief Method to display an horizontal slider
+		/* @brief Method to display a horizontal slider
         * @param value Current value of the param in the dsp
         * @param item Which item is displayed
         * @return the new value of the param */
 		private float hSlider(float value, Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
+			if (item.label == "0x00") { // If the name of the parameter hasn't been set, the default name 0x00 is erased now
 				item.label = "";
 			}
 			float newvalue = EditorGUILayout.Slider(new GUIContent(item.label, helpBox(item)), value, item.min, item.max);
@@ -106,7 +106,7 @@ namespace FaustUtilities_MODEL {
         * @return the new value of the entry */
 		private float numEntry(float value, Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
+			if (item.label == "0x00") { // If the name of the parameter hasn't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			float newvalue = EditorGUILayout.FloatField(new GUIContent(item.label, helpBox(item)), value);
@@ -121,7 +121,7 @@ namespace FaustUtilities_MODEL {
         * @return the new value of the param*/
 		private float checkBox(float value, Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
+			if (item.label == "0x00") { // If the name of the parameter hasn't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			// A conversion between bool and float needs to be done (Unity: bool; Faust: float)
@@ -139,7 +139,7 @@ namespace FaustUtilities_MODEL {
         * @return the new value if the button*/
 		private float button(Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
+			if (item.label == "0x00") { // If the name of the parameter hasn't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			if (GUILayout.Button(new GUIContent(item.label, helpBox(item)))) {
@@ -175,7 +175,7 @@ namespace FaustUtilities_MODEL {
 			}
 		}
 
-		/* @brief Method to add the different elements on the inspector and deals with the varition of the parameter
+		/* @brief Method to add the different elements on the inspector and deal with parameter variation
         * @param item Which item will be displayed */
 		private void addComponent(Group item) {
 			int numparam = item.numparam;
@@ -334,7 +334,7 @@ namespace FaustUtilities_MODEL {
 	}
 
 	/* @brief Class to parse the JSON
-	* @brief These attributes represent the global datas except the global metadatas (useless in this context)
+	* @brief These attributes represent the global data except the global metadata (useless in this context)
 	* @brief Also contains all methods to parse the JSON
 	*/
 	public class FaustUI {
@@ -620,7 +620,7 @@ namespace FaustUtilities_MODEL {
 		}
 	}
 
-	/* @brief Class to parse the metadatas of an item (not the global metadatas)
+	/* @brief Class to parse the metadata of an item (not the global metadata)
 	*/
 	public class Meta {
 		public string unit;

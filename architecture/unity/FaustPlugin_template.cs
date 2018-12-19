@@ -7,12 +7,12 @@ using FaustUtilities_MODEL;
 * It will create an Audio source, attach the dsp to it and display the plugin interface in the inspector
 */
 
-/* @brief This class allows to access the parameter in the plugin
-* In the plugin, the parameter are accessed using an ID
-* IDs are integers starting at 0. They are assigned following the order they have been implemented in the Faust program
-* To access the parameter, use the GetParameter() and SetParameter() methods and the parameter ID
-* IDs are displayed as tooltip in the inspector, mouse over the parameter (i.e. slider) to display the tooltip
-* Passive parameter (i.e. bargraph) cannot be set
+/* @brief This class supports parameter access in the plugin
+* In the plugin, each parameter is accessed using an ID.
+* IDs are integers starting at 0. They are assigned following the order they have been implemented in the Faust program.
+* To access the parameter, use the GetParameter() and SetParameter() methods, passing the parameter ID.
+* IDs are displayed as tooltips in the inspector, mouse over the parameter (e.g., a slider) to display the tooltip.
+* Passive parameters (bargraphs) cannot be set.
 */
 
 [RequireComponent(typeof(AudioSource))] // Automatically attached the script to an Audiosource
@@ -66,7 +66,7 @@ public class FaustPlugin_MODEL: MonoBehaviour {
 		}
 	}
 
-	/* @brief Fills the Unity audio buffer with the audio datas computed by the plugin
+	/* @brief Fills the Unity audio buffer with the audio data computed by the plugin
     */
 	private void OnAudioFilterRead(float[] buffer, int numchannels) {
 		ctx.process(buffer, buffer.Length / numchannels, numchannels);
