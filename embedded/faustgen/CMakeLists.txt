@@ -44,9 +44,7 @@ endif()
 
 #######################################
 # faust libraries
-if (APPLE)
-	file (GLOB DSPLIBS ${ROOT}/../../libraries/*.lib)
-endif()
+file (GLOB DSPLIBS ${ROOT}/../../libraries/*.lib)
 
 ####################################
 # LLVM
@@ -96,7 +94,7 @@ endif()
 ####################################
 # Install - used for packaging
 ####################################
-set (PACKDIR ${ROOT})
+set (PACKDIR ${ROOT}/package)
 set (DST faustgen)
 install ( TARGETS faustgen
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp
@@ -115,11 +113,21 @@ install (
     PATTERN ".DS_Store" EXCLUDE
 )
 
+if (WIN32)
+####################################
+# install lib files
+install (
+    FILES     ${DSPLIBS} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}/external/msp/faustgen-resources
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
+)
+endif()
+
+
 ####################################
 # install various files
-set (MISC faustgen)
+set (MISC changelog.txt ${PACKDIR}/Install\ faustgen~.rtf)
 install (
-    FILES     ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}
+    FILES     ${MISC} DESTINATION ${CMAKE_INSTALL_PREFIX}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
 
