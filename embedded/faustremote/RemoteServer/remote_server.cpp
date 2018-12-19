@@ -419,7 +419,7 @@ dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, string
     #ifdef LLVM_DSP_FACTORY
         factory = readDSPFactoryFromMachine(fFaustCode, loptions(argv, "-lm", ""), error_msg);
     #else
-        factory = readInterpreterDSPFactoryFromMachine(fFaustCode, error_msg);
+        factory = readInterpreterDSPFactoryFromBitcode(fFaustCode, error_msg);
     #endif
     } else {
         // DSP code
@@ -754,8 +754,8 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
         string machine_code = writeDSPFactoryToMachine(dynamic_cast<llvm_dsp_factory*>(factory), info->fTarget);
         dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget, error_msg);
     #else
-        string machine_code = writeInterpreterDSPFactoryToMachine(dynamic_cast<interpreter_dsp_factory*>(factory));
-        dsp_factory* new_factory = readInterpreterDSPFactoryFromMachine(machine_code, error_msg);
+        string machine_code = writeInterpreterDSPFactoryToBitcode(dynamic_cast<interpreter_dsp_factory*>(factory));
+        dsp_factory* new_factory = readInterpreterDSPFactoryFromBitcode(machine_code, error_msg);
     #endif
         
         if (new_factory) {

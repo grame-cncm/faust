@@ -240,7 +240,7 @@ bool remote_dsp_factory::init(int argc, const char* argv[],
         #ifdef LLVM_DSP_FACTORY
             string machine_code = writeDSPFactoryToMachine(factory, "");
         #else
-            string machine_code = writeInterpreterDSPFactoryToMachine(factory);
+            string machine_code = writeInterpreterDSPFactoryToBitcode(factory);
         #endif
             char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
             finalRequest << "&dsp_data=";
