@@ -22,6 +22,13 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef WIN32
+#pragma warning (disable: 4244 4800 4267)
+#define _CRT_SECURE_NO_WARNINGS
+#else
+#include <Carbon/Carbon.h>
+#endif
+
 #include "faustgen~.h"
 #include "faust/dsp/libfaust.h"
 
@@ -186,7 +193,7 @@ faustgen_factory::faustgen_factory(const string& name)
 #endif
 
 #ifdef WIN32
-	HMODULE handle = LoadLibrary("faustgen~.mxe");
+	HMODULE handle = LoadLibrary("faustgen~.mxe64");
 	if (handle) {
 		// Get faustgen~.mxe path
 		char name[512];
@@ -208,7 +215,7 @@ faustgen_factory::faustgen_factory(const string& name)
         }
 		FreeLibrary(handle);
 	} else {
-		post("Error : cannot locate faustgen~.mxe...");
+		post("Error : cannot locate faustgen~.mxe64...");
 		fDrawPath = "";
 	}
  #endif
@@ -303,21 +310,14 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
         argv[i++] = (char*)(*it).c_str();
     }
+    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     
     // Generate SVG file
     if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg)) {
         post("Generate SVG error : %s", error_msg.c_str());
     }
-
-#ifdef WIN32
-    argv[fCompileOptions.size()] = "-L";
-    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
-    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error_msg, fOptLevel);
-#else
-    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
+    
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error_msg, fOptLevel);
-#endif
    
     if (factory) {
         // Reset fSoundUI with the new factory getIncludePathnames
@@ -396,25 +396,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 
     // Otherwise creates default DSP keeping the same input/output number
-#ifdef WIN32
-    // Prepare compile options
-    const char* argv[64];
-    
-    assert(fCompileOptions.size() < 64);
-    StringVectorIt it;
-    int i = 0;
-    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
-        argv[i++] = (char*)(*it).c_str();
-    }
-    
-    argv[fCompileOptions.size()] = "-l";
-    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
-    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
-    
-    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, fCompileOptions.size() + 2, argv, getTarget(), error, 0);
-#else
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, 0);
-#endif
     dsp = create_dsp_instance();
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
@@ -705,10 +687,16 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
     return (system(command) == 0);
 }
 
-void faustgen_factory::display_pdf()
+void faustgen_factory::display_documentation()
 {
-    // Open the PDF documentation
-    open_file(FAUST_PDF_DOCUMENTATION);
+    // Open the Web documentation
+    char command[512];
+#ifdef WIN32
+    sprintf(command, "start \"\" \"https://faust.grame.fr/doc/manual/index.html\"");
+#else
+    sprintf(command, "open \"https://faust.grame.fr/doc/manual/index.html\"");
+#endif
+    system(command);
 }
 
 void faustgen_factory::display_libraries_aux(const char* lib)
@@ -1376,7 +1364,7 @@ void faustgen::dblclick(long inlet)
     jpopupmenu_additem(popup, 2, "View DSP parameters", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 3, "View compile options", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 4, "View SVG diagram", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 5, "View PDF documentation", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 5, "View Web documentation", NULL, 0, 0, NULL);
     jpopupmenu_additem(popup, 6, "View libraries", NULL, 0, 0, NULL);
     
     // Get mouse position
@@ -1411,8 +1399,8 @@ void faustgen::dblclick(long inlet)
             break;
             
         case 5:
-            // Open the PDF documentation
-            display_pdf();
+            // Open the documentation
+            display_documentation();
             break;
             
         case 6:
@@ -1503,9 +1491,9 @@ void faustgen::display_svg()
     fDSPfactory->display_svg();
 }
 
-void faustgen::display_pdf()
+void faustgen::display_documentation()
 {
-    fDSPfactory->display_pdf();
+    fDSPfactory->display_documentation();
 }
 
 void faustgen::display_libraries()
@@ -1720,12 +1708,18 @@ int main(void)
 
 extern "C" void ext_main(void* r)
 {
+#ifdef WIN32
+	static bool done = false;
+	if (done) return;
+	done = true;
+#endif
+
     // Creates an instance of Faustgen
-    faustgen::makeMaxClass("faustgen~");
+	t_class * mclass = faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
     post("Copyright (c) 2012-2018 Grame");
-    
+
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
   
@@ -1753,3 +1747,4 @@ extern "C" void ext_main(void* r)
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);
     REGISTER_METHOD_JSAVE(faustgen, appendtodictionary);
 }
+

@@ -616,11 +616,11 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
 #if defined(LLVM_35)
-        Module* module =
-            ParseIR(buffer, err, *context);  // ParseIR takes ownership of the given buffer, so don't delete it
+        // ParseIR takes ownership of the given buffer, so don't delete it
+        Module* module = ParseIR(buffer, err, *context);
 #else
-        Module* module = parseIR(buffer, err, *context)
-                             .release();  // parseIR takes ownership of the given buffer, so don't delete it
+        // parseIR takes ownership of the given buffer, so don't delete it
+        Module* module = parseIR(buffer, err, *context).release();
 #endif
         if (!module) return nullptr;
 

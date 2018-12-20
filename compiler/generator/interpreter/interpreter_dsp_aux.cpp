@@ -139,7 +139,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
             } else if (type == "double") {
                 factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double, 0>::read(&reader));
             } else {
-                faustassert(false);
+                throw faustexception("ERROR : unrecognized file format\n");
             }
 
             gInterpreterFactoryTable.setFactory(factory);

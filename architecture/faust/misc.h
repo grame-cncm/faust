@@ -43,9 +43,9 @@ struct MY_Meta : Meta, std::map<const char*, const char*>
     void declare(const char* key, const char* value) { (*this)[key] = value; }
 };
 
-static int lsr(int x, int n)	{ return int(((unsigned int)x) >> n); }
+static int lsr(int x, int n) { return int(((unsigned int)x) >> n); }
 
-static int int2pow2(int x)		{ int r = 0; while ((1<<r) < x) r++; return r; }
+static int int2pow2(int x) { int r = 0; while ((1<<r) < x) r++; return r; }
 
 static long lopt(char* argv[], const char* name, long def)
 {

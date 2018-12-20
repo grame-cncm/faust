@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
+    int control = 0;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -122,11 +123,18 @@ int main(int argc, char *argv[])
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        exit(1);
+    }
+    
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
+    control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
+    
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
     if (midi_sync) {
@@ -140,11 +148,12 @@ int main(int argc, char *argv[])
     
 #else
     nvoices = lopt(argv, "--nvoices", nvoices);
+    control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
         
 #if MIDICTRL
         if (midi_sync) {

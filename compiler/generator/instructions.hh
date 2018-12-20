@@ -1398,7 +1398,7 @@ class BasicCloneVisitor : public CloneVisitor {
     // Block
     virtual StatementInst* visit(BlockInst* inst)
     {
-        // stacktrace(40);
+        // fBlockStack is used when inlining functions
         BlockInst* cloned = new BlockInst();
         fBlockStack.push(cloned);
         list<StatementInst*>::const_iterator it;

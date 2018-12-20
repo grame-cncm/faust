@@ -1,0 +1,1 @@
+max fileformat .dsp TEXT 0 "Faust DSP language file" dspfile;

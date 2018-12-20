@@ -40,10 +40,10 @@ using namespace std;
 /*
  wast/wasm module ABI:
 
- - in internal memory mode, a memory segment is allocated, otherwise it is given by the external runtime
+ - in internal memory mode, a memory segment is allocated, otherwise it is given by the external JS runtime
  - DSP fields start at offset 0, then followed by audio buffers
- - the JSON string is written at offset 0, to be copied and converted in a string by the runtime (JS or something else)
- before using the DSP itsef.
+ - the JSON string is written at offset 0, to be copied and converted in a string 
+ by the runtime (JS or something else) before using the DSP itsef.
 
 */
 
@@ -106,12 +106,13 @@ struct WASInst {
     map<string, int>         fFunctionSymbolTable;
     map<string, MathFunDesc> fMathLibTable;  // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;    // Table : field_name, { offset, size, type }
+    
     // To generate tee_local the first time the variable access is compiled, then get_local will be used
     map<string, bool>        fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
-    bool fFastMemory;  // Is true, assume $dsp is always 0 to simplify and speed up dsp memory access code
+    bool fFastMemory;    // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
 
     WASInst(bool fast_memory = false)
     {

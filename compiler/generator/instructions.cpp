@@ -24,6 +24,7 @@
 #include "global.hh"
 #include "sigtype.hh"
 
+// Used when inlining functions
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
 DeclareStructTypeInst* isStructType(const string& name)

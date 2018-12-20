@@ -121,9 +121,9 @@ public:
     }
   }
 
-  FAUSTFLOAT* input()		{ return fInput; }
+  FAUSTFLOAT* input() { return fInput; }
 
-  FAUSTFLOAT** outputs()	{ return fOutputs; }
+  FAUSTFLOAT** outputs() { return fOutputs; }
 
   void separate()
   {
@@ -171,9 +171,9 @@ public:
     free(fOutput);
   }
 
-  FAUSTFLOAT** inputs()		{ return fInputs; }
+  FAUSTFLOAT** inputs() { return fInputs; }
 
-  FAUSTFLOAT* output()		{ return fOutput; }
+  FAUSTFLOAT* output() { return fOutput; }
 
   void interleave()
   {

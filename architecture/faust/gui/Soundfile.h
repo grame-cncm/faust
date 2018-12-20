@@ -162,13 +162,13 @@ class SoundfileReader {
      *
      * @param path_name - the name of the file, or sound resource identified this way
      * @param channels - the channels value to be filled with the sound resource number of channels
-     * @param length - the length value to be filled with the sound resource length
+     * @param length - the length value to be filled with the sound resource length in frames
      *
      */
     virtual void getParamsFile(const std::string& path_name, int& channels, int& length) = 0;
 
     /**
-     * Read one sound resource and fill the 'soundfile' accordingly
+     * Read one sound resource and fill the 'soundfile' structure accordingly
      *
      * @param path_name - the name of the file, or sound resource identified this way
      * @param part - the part number to be filled in the soundfile

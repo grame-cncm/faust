@@ -73,7 +73,7 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp	DSP;
+mydsp DSP;
 	
 #define kFrames 512
 	
