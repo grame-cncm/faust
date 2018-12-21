@@ -25,9 +25,12 @@ endif()
 
 #######################################
 # Faust part
-execute_process (COMMAND faust --includedir OUTPUT_VARIABLE FINC)
+if (NOT DEFINED FAUST)
+	set (FAUST faust)
+endif()
+execute_process (COMMAND ${FAUST} --includedir OUTPUT_VARIABLE FINC)
 string ( STRIP ${FINC} FAUSTINC )
-execute_process (COMMAND faust --libdir OUTPUT_VARIABLE FLIB)
+execute_process (COMMAND ${FAUST} --libdir OUTPUT_VARIABLE FLIB)
 string ( STRIP ${FLIB} FAUSTLIB )
 
 #######################################
