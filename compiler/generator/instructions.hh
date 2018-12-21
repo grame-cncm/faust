@@ -367,7 +367,6 @@ struct NullStatementInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-
 // ==========================
 //  Instruction with a type
 // ==========================

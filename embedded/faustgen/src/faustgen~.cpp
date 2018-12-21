@@ -737,7 +737,9 @@ void faustgen_factory::display_libraries()
     open_file("reducemaps.lib");
     open_file("reverbs.lib");
     open_file("routes.lib");
+    open_file("sf.lib");
     open_file("signals.lib");
+    open_file("soundfiles.lib");
     open_file("spats.lib");
     open_file("stdfaust.lib");
     open_file("synths.lib");
@@ -767,7 +769,9 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("reducemaps.lib");
     display_libraries_aux("reverbs.lib");
     display_libraries_aux("routes.lib");
+    display_libraries_aux("sf.lib");
     display_libraries_aux("signals.lib");
+    display_libraries_aux("soundfiles.lib");
     display_libraries_aux("spats.lib");
     display_libraries_aux("stdfaust.lib");
     display_libraries_aux("synths.lib");
