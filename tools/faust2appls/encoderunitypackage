@@ -9,7 +9,7 @@
 #####################################################
 
 
-# Structure of an unitypackage archive
+# Structure of a unitypackage archive
 #----------------------------------------------------------------------------------
 #   FaustPlugin_<dspname>.unitypackage/
 #        <md5 key of file1>/
@@ -17,7 +17,7 @@
 #           pathname (file containing the address of file1 in the Unity hierarchy
 #        <md5 key of file2>/
 #           asset (file2 renamed)
-#           pathnama (file containing the address of file2 in the Unity hierarchy
+#           pathname (file containing the address of file2 in the Unity hierarchy
 #        <md5 key of file3>/
 #           ...
 
@@ -32,9 +32,9 @@ for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "encoderunitypackage <folder>"
         echo "Builds a unity package according to the specified sub folder hierarchy."
-        echo "Handles if the folder isn't called Assets/ (adds a parent folder called Assets/)"
-        echo "If the package is called FaustPlugin_<pluginname>, change <pluginname> with the correct name"
-        echo "See architecture/unity/README.md for more info"
+        echo "Handles if the folder isn't called Assets/ (adds a parent folder called Assets/)."
+        echo "If the package is called FaustPlugin_<pluginname>, change <pluginname> to the correct name."
+        echo "See architecture/unity/README.md for more info."
         exit
     fi
 
@@ -49,14 +49,14 @@ done
 
 for p in $FOLDER; do
 
-    # Checks if the parent folder is called "Assets", if not creates it (to respect the Unity hierarchy)
+    # If the parent folder is not called "Assets", create it (to respect the Unity hierarchy).
     if [ ! $p = "Assets" ]; then
         mkdir Assets
         mv $p Assets
         p=Assets
     fi
 
-    # Retrieves the name of the dsp file stored in ".VAR"
+    # Retrieve the name of the dsp file stored in ".VAR"
     if [ -f .VAR ]; then
         FNAME=FaustPlugin_$(cat .VAR)
     else
@@ -79,7 +79,7 @@ for p in $FOLDER; do
             DIR=$(md5sum $f | cut -f1 -d" ")
         fi
 
-        # Creates the folder namaed with the md5 key of the file
+        # Creates the folder named with the md5 key of the file
         if [ -d "$DIR" ]; then
             rm -rf "$DIR"
         fi
