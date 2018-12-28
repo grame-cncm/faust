@@ -141,7 +141,7 @@ help :
 	@echo " 'parser'        : generates the parser from the lex and yacc files"
 	@echo
 	@echo "Distribution target"
-	@echo " 'world'         : the 'all' target and sound2faust
+	@echo " 'world'         : the 'all' target and sound2faust"
 	@echo
 	@echo "Platform specific targets:"
 	@echo " 'universal'     : [MacOSX] switch to universal binaries mode"
