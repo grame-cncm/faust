@@ -31,8 +31,8 @@ NVOICES=-1
 
 #------------------------------------------------
 # Compiler settings
-
-CXXFLAGS="-I. -O3 -fPIC -arch i386 -arch x86_64"
+ARCH="-arch x86_64"
+CXXFLAGS="-I. -O3 -fPIC"
 LDFLAGS="-bundle"
 CXX="c++"
 
@@ -117,9 +117,10 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2osxiosunity [-ios] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
+        echo "faust2osxiosunity [-ios] [-universal] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
         echo "Use '-ios' to create an iOS static library"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+        echo "Use '-universal' to generate a 64/32 bits external"
         echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
         echo "See architecture/unity/README.md for more info"
         exit
@@ -132,7 +133,9 @@ do
         shift
         NVOICES=$1
     elif [ $p = "-source" ]; then
-        SOURCE=1
+    	SOURCE=1
+    elif [ $p = "-universal" ]; then
+    	ARCH="-arch i386 -arch x86_64"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -200,9 +203,9 @@ for p in $FILES; do
         faust -i -a $FAUSTLIB/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
         
         if [ $NVOICES == -1 ]; then
-        	 $CXX $CXXFLAGS $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+        	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         else
-        	 $CXX $CXXFLAGS $LDFLAGS -DPOLY -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+        	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DPOLY -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         fi
        
         rm "$MOS/$NAME.cpp"
