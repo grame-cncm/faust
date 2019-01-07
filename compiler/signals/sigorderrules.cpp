@@ -168,7 +168,7 @@ static int infereSigOrder(Tree sig)
         return max(O(s1), O(s2));  // O(s1);
 
     else if (isSigSoundfile(sig, l))
-        throw faustexception("ERROR infering signal order : isSigSoundfile\n");  // not supposed to happen.;
+        throw faustexception("ERROR inferring signal order : isSigSoundfile\n");  // not supposed to happen.;
 
     else if (isSigSoundfileLength(sig, sf, x))
         return 2;
@@ -183,10 +183,10 @@ static int infereSigOrder(Tree sig)
         return max(1, O(s1));  // at least a constant
 
     else if (isRec(sig, var, body))
-        throw faustexception("ERROR infering signal order : isRec\n");  // return 3;  // not supposed to happen.
+        throw faustexception("ERROR inferring signal order : isRec\n");  // return 3;  // not supposed to happen.
 
     else if (isRef(sig, var))
-        throw faustexception("ERROR infering signal order : isRef\n");  // return 3;  // not supposed to happen.
+        throw faustexception("ERROR inferring signal order : isRef\n");  // return 3;  // not supposed to happen.
 
     else if (isProj(sig, &i, s1))
         return 3;

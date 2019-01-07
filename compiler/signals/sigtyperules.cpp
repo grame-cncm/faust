@@ -528,7 +528,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
     SimpleType* st = isSimpleType(wi);
     if (st == 0 || st->nature() > kInt) {
         stringstream error;
-        error << "ERROR infering write table type, wrong write index type : " << wi << endl;
+        error << "ERROR inferring write table type, wrong write index type : " << wi << endl;
         throw faustexception(error.str());
     }
 
@@ -554,7 +554,7 @@ static Type infereReadTableType(Type tbl, Type ri)
     SimpleType* st = isSimpleType(ri);
     if (st == 0 || st->nature() > kInt) {
         stringstream error;
-        error << "ERROR infering read table type, wrong write index type : " << ri << endl;
+        error << "ERROR inferring read table type, wrong write index type : " << ri << endl;
         throw faustexception(error.str());
     }
     Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(),

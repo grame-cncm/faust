@@ -196,7 +196,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 
     bool addDSP(T factory, dsp* dsp)
     {
-        // Remove 'dsp' from its factory
+        // Add 'dsp' in its factory
         factory_iterator it = this->find(factory);
 
         if (it != this->end()) {
