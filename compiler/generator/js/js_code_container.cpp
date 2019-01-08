@@ -47,7 +47,7 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, int 
     CodeContainer* container;
 
     if (gGlobal->gMemoryManager) {
-        throw faustexception("ERROR : -mem not suported for JavaScript\n");
+        throw faustexception("ERROR : -mem not supported for JavaScript\n");
     }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for JavaScript\n");

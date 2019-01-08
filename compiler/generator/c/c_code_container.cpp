@@ -48,7 +48,7 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     CodeContainer* container;
 
     if (gGlobal->gMemoryManager) {
-        throw faustexception("ERROR : -mem not suported for C\n");
+        throw faustexception("ERROR : -mem not supported for C\n");
     }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for C\n");
