@@ -47,17 +47,17 @@ Tree unquote(char* str)
     
     //-----------copy unquoted filename-------------
     char* buf = (char*)alloca(size);
-    int j=0;
+    size_t j=0;
 
     if (str[0] == '"') {
         //it is a quoted string, we remove the quotes
-        for (int i=1; j<size-1 && str[i];) {
+        for (size_t i=1; j<size-1 && str[i];) {
             buf[j++] = replaceCR(str[i++]);
         }
         // remove last quote
         if (j>0) buf[j-1] = 0;
     } else {
-        for (int i=0; j<size-1 && str[i];) {
+        for (size_t i=0; j<size-1 && str[i];) {
             buf[j++] = replaceCR(str[i++]);
         }
     }

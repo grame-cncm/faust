@@ -178,7 +178,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 76 "faustparser.y" /* yacc.c:1919  */
+#line 73 "faustparser.y" /* yacc.c:1919  */
 
 	CTree* 	exp;
 	char* str;

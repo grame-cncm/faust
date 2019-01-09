@@ -65,9 +65,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Check pointer size
 #ifndef LLVM_35
-    faustassert((gGlobal->gMachinePtrSize == fModule->getDataLayout().getPointerSize()));
+    faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout().getPointerSize())));
 #else
-    faustassert((gGlobal->gMachinePtrSize == fModule->getDataLayout()->getPointerSize()));
+    faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout()->getPointerSize())));
 #endif
 
     // Set "-fast-math"

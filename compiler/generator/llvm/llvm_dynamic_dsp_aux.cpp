@@ -690,7 +690,7 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
         return module;
     } else {
         // Otherwise use import directories
-        for (int i = 0; i < gGlobal->gImportDirList.size(); i++) {
+        for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
             string file_name = gGlobal->gImportDirList[i] + '/' + module_name;
             if (ModulePTR module = loadSingleModule(file_name, context)) {
                 return module;
@@ -719,7 +719,7 @@ bool linkModules(Module* dst, ModulePTR src, char* error_msg)
 
 Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
 {
-    for (int i = 0; i < gGlobal->gLibraryList.size(); i++) {
+    for (size_t i = 0; i < gGlobal->gLibraryList.size(); i++) {
         string    module_name = gGlobal->gLibraryList[i];
         ModulePTR src         = loadModule(module_name, context);
         if (!src) {

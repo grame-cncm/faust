@@ -36,7 +36,7 @@ wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(cons
 {
     int         argc1 = 0;
     const char* argv1[64];
-    for (int i = 0; i < argv.size(); i++) {
+    for (size_t i = 0; i < argv.size(); i++) {
         argv1[argc1++] = argv[i].c_str();
     }
     argv1[argc1] = 0;  // NULL terminated argv
