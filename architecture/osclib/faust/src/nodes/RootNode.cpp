@@ -38,6 +38,7 @@
 
 #ifdef WIN32
 # include "winsock2.h"
+# pragma warning (disable: 4800)
 #else
 # include "ip/NetworkingUtils.h"
 #endif
@@ -168,7 +169,7 @@ std::vector<std::pair<std::string, double> > RootNode::getAliases(const std::str
         vector<aliastarget> targets = (*it).second;
         for (size_t i = 0; i < targets.size(); i++) {
             if (targets[i].fTarget == address) {
-                res.push_back(std::make_pair((*it).first, targets[i].invscale(value)));
+                res.push_back(std::make_pair((*it).first, targets[i].invscale( float(value) )));
             }
         }
     }

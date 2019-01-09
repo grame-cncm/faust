@@ -36,6 +36,10 @@
 #include "OSCFError.h"
 #include "OSCRegexp.h"
 
+#ifdef WIN32
+# pragma warning (disable: 4800)
+#endif
+
 using namespace std;
 
 namespace oscfaust
