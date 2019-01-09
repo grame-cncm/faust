@@ -60,6 +60,12 @@ else()
 	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/posix/*.cpp ${OSC}/faust/src/threads/pthreads_impl.cpp)
 endif()
 
+####################################
+# compiler dependent settings
+if (NOT MSVC)
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -Wextra -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wextra -Wno-unused-parameter")
+endif()
 
 #######################################
 # add libraries
