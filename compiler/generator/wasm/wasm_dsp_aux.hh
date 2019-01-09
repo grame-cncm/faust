@@ -32,7 +32,7 @@
 #include "wasm_binary.hh"
 
 class wasm_dsp_factory;
-class JSONUIDecoder;
+struct JSONUIDecoder;
 
 /*
  Read the wasm binary module, extract the JSON, define a new end for the module (without the last 'data segment'

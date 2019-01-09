@@ -364,7 +364,9 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     std::map<string, FunTyped*>             fFunTypes;    // function name, function type
     std::map<string, pair<string, string> > fFunImports;  // function name, [module, base]
 
-    FunAndTypeCounter() : WASInst()
+    using DispatchVisitor::visit;
+    
+    FunAndTypeCounter() : DispatchVisitor(), WASInst()
     {
         // Additional functions defined in the module
         {
@@ -1345,6 +1347,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // End of loop block
         *fOut << int8_t(BinaryConsts::End);
     }
+    
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        // TODO
+        throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
+    }
+    
 };
 
 #endif

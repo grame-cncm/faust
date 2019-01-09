@@ -30,7 +30,6 @@
 #include <string>
 
 #include "exception.hh"
-#include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
 #include "fbc_executor.hh"
 

@@ -30,10 +30,9 @@
 //----------------------------------------------------------------------
 
 class SignalPromotion : public SignalIdentity {
-    bool fVisitGen;
 
    public:
-    SignalPromotion() : fVisitGen(true) {}
+    SignalPromotion() {}
 
    protected:
     virtual Tree transformation(Tree sig);

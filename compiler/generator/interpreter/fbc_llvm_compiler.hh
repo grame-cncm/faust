@@ -754,11 +754,18 @@ class FBCLLVMCompiler {
         fLLVMRealHeap = LLVMGetParam(execute, 1);
         fLLVMInputs = LLVMGetParam(execute, 2);
         fLLVMOutputs = LLVMGetParam(execute, 3);
-        
+  
+    #if defined(LLVM_50) || defined(LLVM_60)
+        LLVMSetValueName(fLLVMIntHeap, "int_heap");
+        LLVMSetValueName(fLLVMRealHeap, "real_heap");
+        LLVMSetValueName(fLLVMInputs, "inputs");
+        LLVMSetValueName(fLLVMOutputs, "outputs");
+    #else
         LLVMSetValueName2(fLLVMIntHeap, "int_heap", 8);
         LLVMSetValueName2(fLLVMRealHeap, "real_heap", 9);
         LLVMSetValueName2(fLLVMInputs, "inputs", 6);
         LLVMSetValueName2(fLLVMOutputs, "outputs", 7);
+    #endif
   
         // fbc_block->write(&std::cout);
 

@@ -122,7 +122,6 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
 {
     try {
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        interpreter_dsp_factory* factory = 0;
         string sha_key = generateSHA1(bitcode);
         
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {

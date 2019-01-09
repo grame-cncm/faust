@@ -42,15 +42,18 @@ class TextInstVisitor : public InstVisitor {
     string             fObjectAccess;
     StringTypeManager* fTypeManager;
 
-    virtual void EndLine()
+    virtual void EndLine(char end_line = ';')
     {
         if (fFinishLine) {
-            *fOut << ";";
+            *fOut << end_line;
             tab(fTab, *fOut);
         }
     }
 
    public:
+    
+    using InstVisitor::visit;
+    
     TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
     {

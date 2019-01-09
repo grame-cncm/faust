@@ -82,7 +82,7 @@ class Module;
 }  // namespace llvm
 
 class llvm_dsp_factory;
-class JSONUIDecoder;
+struct JSONUIDecoder;
 
 // Public C++ interface
 

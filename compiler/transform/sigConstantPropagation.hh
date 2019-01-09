@@ -26,10 +26,9 @@
 
 // Make explicit automatic promotion to float
 class SignalConstantPropagation : public SignalIdentity {
-    bool fVisitGen;
-
+    
    public:
-    SignalConstantPropagation() : fVisitGen(true) {}
+    SignalConstantPropagation() {}
 
    protected:
     virtual Tree transformation(Tree sig);

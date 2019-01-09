@@ -95,7 +95,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                                 FBCBlockInstruction<T>* clear, FBCBlockInstruction<T>* compute_control,
                                 FBCBlockInstruction<T>* compute_dsp)
         : dsp_factory_imp(name, sha_key, ""),
-          fCompileOptions(compile_options),
           fVersion(version_num),
           fNumInputs(inputs),
           fNumOutputs(outputs),
@@ -107,6 +106,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fIOTAOffset(iota_offset),
           fOptLevel(opt_level),
           fOptimized(false),
+          fCompileOptions(compile_options),
           fMetaBlock(meta),
           fUserInterfaceBlock(firinterface),
           fStaticInitBlock(static_init),
@@ -654,7 +654,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     
    public:
     interpreter_dsp_aux()
-    :fFactory(nullptr), fFBCExecutor(nullptr), fInitialized(false)
+    :fInitialized(false), fFactory(nullptr), fFBCExecutor(nullptr)
     {}
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {

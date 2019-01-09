@@ -37,6 +37,8 @@ struct FBCExecutor {
     virtual void setInput(int offset, T* buffer) {}
     virtual void setOutput(int offset, T* buffer) {}
     
+    virtual ~FBCExecutor() {}
+    
 };
 
 #endif

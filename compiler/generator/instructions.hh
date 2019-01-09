@@ -1222,7 +1222,7 @@ struct SimpleForLoopInst : public StatementInst {
     BlockInst* fCode;
 
     SimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
-        : fUpperBound(upperBound), fName(index), fLowerBound(lowerBound), fReverse(reverse), fCode(code)
+        : fUpperBound(upperBound), fLowerBound(lowerBound), fName(index), fReverse(reverse), fCode(code)
     {
     }
 

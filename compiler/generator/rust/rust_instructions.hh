@@ -72,14 +72,6 @@ class RustInstVisitor : public TextInstVisitor {
     static map<string, bool> gFunctionSymbolTable;
     map<string, string>      fMathLibTable;
 
-    void EndLine(char end_line = ';')
-    {
-        if (fFinishLine) {
-            *fOut << end_line;
-            tab(fTab, *fOut);
-        }
-    }
-
    public:
     using TextInstVisitor::visit;
 

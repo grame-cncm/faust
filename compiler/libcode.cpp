@@ -66,68 +66,6 @@
 #pragma warning(disable : 4996)
 #endif
 
-static string makeBackendsString()
-{
-    stringstream backends;
-    const char*  sep = " ";
-    backends << "DSP to";
-#ifdef C_BUILD
-    backends << sep << "C";
-    sep = ", ";
-#endif
-
-#ifdef CPP_BUILD
-    backends << sep << "C++";
-    sep = ", ";
-#endif
-
-#ifdef FIR_BUILD
-    backends << sep << "FIR";
-    sep = ", ";
-#endif
-
-#ifdef INTERP_BUILD
-    backends << sep << "Interpreter";
-    sep = ", ";
-#endif
-
-#ifdef JAVA_BUILD
-    backends << sep << "Java";
-    sep = ", ";
-#endif
-
-#ifdef JS_BUILD
-    backends << sep << "JavaScript";
-    sep = ", ";
-#endif
-
-#ifdef LLVM_BUILD
-    backends << sep << "LLVM IR";
-    sep = ", ";
-#endif
-
-#ifdef OCPP_BUILD
-    backends << sep << "old C++";
-    sep = ", ";
-#endif
-
-#ifdef RUST_BUILD
-    backends << sep << "Rust";
-    sep = ", ";
-#endif
-
-#ifdef ASMJS_BUILD
-    backends << sep << "asm.js";
-    sep = ", ";
-#endif
-
-#ifdef WASM_BUILD
-    backends << sep << "WebAssembly (wast/wasm)";
-#endif
-    backends << " compiler";
-    return backends.str();
-}
-
 static void enumBackends(ostream& out)
 {
     const char* dspto = "   DSP to ";
@@ -778,10 +716,6 @@ static void printPaths()
 
 static void printVersion()
 {
-#if 0
-    cout << "FAUST : " << makeBackendsString() << ", Version " << FAUSTVERSION << "\n";
-    cout << "Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
-#else
     cout << "FAUST Version " << FAUSTVERSION << "\n";
     cout << "Embedded backends: \n";
     enumBackends(cout);
@@ -789,7 +723,6 @@ static void printVersion()
     cout << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
     cout << "Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
-#endif
 }
 
 static void printHelp()
@@ -956,95 +889,6 @@ static void printHelp()
 
     cout << endl << "Example:" << line;
     cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
-}
-
-static void oldprintHelp()
-{
-    cout << "FAUST version " << FAUSTVERSION << "\n";
-    //    printVersion();
-    cout << "usage : faust [options] file1 [file2 ...]\n";
-    cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file "
-            "(.dsp extension).\n";
-
-    cout << "\noptions :\n";
-    cout << "---------\n";
-
-    cout << "-h \t\tprint this --help message\n";
-    cout << "-v \t\tprint compiler --version information\n";
-    cout << "-d \t\tprint compilation --details\n";
-    cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
-    cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
-    cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \t\tprint block-diagram --svg file\n";
-    cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
-    cout << "-mdlang <l>\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripmdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
-    cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
-    cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
-    cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
-    cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
-    cout << "-xml \t\tgenerate an XML description file\n";
-    cout << "-exp10 \t\t--generate-exp10 function call instead of pow(10) function\n";
-    cout << "-json \t\tgenerate a JSON description file\n";
-    cout << "-blur \t\tadd a --shadow-blur to SVG boxes\n";
-    cout << "-lb \t\tgenerate --left-balanced expressions\n";
-    cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
-    cout << "-rb \t\tgenerate --right-balanced expressions\n";
-    cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
-    cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 "
-            "samples)\n";
-    cout << "-mem \t\t--memory allocate static in global state using a custom memory manager\n";
-    cout << "-a <file> \twrapper architecture file\n";
-    cout << "-i \t\t--inline-architecture-files \n";
-    cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
-    cout << "-scn <name> \t--super-class-name <name> specify the name of the super class to be used instead of dsp \n";
-    cout << "-pn <name> \t--process-name <name> specify the name of the dsp entry-point instead of process \n";
-    cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
-    cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
-    cout << "-o <file> \tC, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR or FVM (interpreter) output "
-            "file\n";
-    cout << "-scal   \t--scalar generate non-vectorized code\n";
-    cout << "-vec    \t--vectorize generate easier to vectorize code\n";
-    cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
-    cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
-    cout << "-omp    \t--openmp generate OpenMP pragmas, activates --vectorize option\n";
-    cout << "-pl     \t--par-loop generate parallel loops in --openmp mode\n";
-    cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
-    cout << "-ocl    \t--opencl generate tasks with OpenCL (experimental) \n";
-    cout << "-cuda   \t--cuda generate tasks with CUDA (experimental) \n";
-    cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
-    cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
-    cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, ocpp, cpp, rust, java, js, ajs, llvm, "
-            "cllvm, fir, wast/wasm, interp (default cpp)\n";
-    cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
-    cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
-    cout << "-double \tuse --double-precision-floats for internal computations\n";
-    cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
-    cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise (default 1)\n";
-    cout << "-lcc \t\t--local-causality-check, check causality also at local level \n";
-    cout << "-light \t\t--light-mode, do not generate the entire DSP API \n";
-    cout << "-clang \t\t--clang, when compiled with clang/clang++, adds specific #pragma for auto-vectorization\n";
-    cout << "-flist \t\tuse --file-list used to eval process\n";
-    cout << "-norm \t\t--normalized-form print signals in normalized form and exits\n";
-    cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
-    cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
-    cout << "-L <file> \t--library <file> link with the LLVM module <file>\n";
-    cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated output code, and the output "
-            "directory of additional generated files (SVG, XML...)\n";
-    cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
-    cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode "
-            "only) \n";
-    cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
-    cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based "
-            "(fastest)]\n";
-    cout << "-fm <default|file> \t--fast-math <file> use optimized versions of mathematical functions implemented in "
-            "<file>, "
-            "take the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
-    cout << "\nexample :\n";
-    cout << "---------\n";
-
-    cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp\n";
 }
 
 static void printDeclareHeader(ostream& dst)

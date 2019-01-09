@@ -66,7 +66,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void EndLine()
+    virtual void EndLine(char end_line = ';')
     {
         if (fFinishLine) {
             tab(fTab, *fOut);
@@ -672,6 +672,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
         *fOut << ")";
         tab(fTab, *fOut);
+    }
+    
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        // TODO
+        throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
     }
 };
 

@@ -109,14 +109,6 @@ static string getParam(int argc, const char* argv[], const string& param, const 
     return def;
 }
 
-static bool isParam(int argc, const char* argv[], const string& param)
-{
-    for (int i = 0; i < argc; i++) {
-        if (string(argv[i]) == param) return true;
-    }
-    return false;
-}
-
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, string* ErrMsg)
 {

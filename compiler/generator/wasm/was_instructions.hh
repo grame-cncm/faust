@@ -217,11 +217,6 @@ struct WASInst {
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
 
-    virtual void visit(AddSoundfileInst* inst)
-    {
-        // TODO
-        throw faustexception("ERROR : AddSoundfileInst not supported for wast/wasm\n");
-    }
 };
 
 #endif
