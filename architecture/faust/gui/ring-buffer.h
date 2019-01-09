@@ -28,7 +28,9 @@
 #include <string.h>
 
 #ifdef WIN32
-#pragma warning (disable: 4334)
+# pragma warning (disable: 4334)
+#else
+# pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 typedef struct {
