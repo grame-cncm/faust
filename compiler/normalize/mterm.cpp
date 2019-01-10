@@ -325,10 +325,10 @@ mterm mterm::operator/(const mterm& m) const
  */
 static int common(int a, int b)
 {
-    if (a > 0 & b > 0) {
-        return min(a, b);
-    } else if (a < 0 & b < 0) {
-        return max(a, b);
+    if ((a > 0) & (b > 0)) {
+        return (int)min(a, b);
+    } else if ((a < 0) & (b < 0)) {
+        return (int)max(a, b);
     } else {
         return 0;
     }

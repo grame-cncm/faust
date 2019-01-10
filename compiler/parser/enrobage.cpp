@@ -125,7 +125,7 @@ class myparser {
         size_t saved = p;
         if (p < N) {
             char c = str[p++];
-            if (c == '<' | c == '"') {
+            if ((c == '<') | (c == '"')) {
                 fname = "";
                 while (p < N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
                 p++;
