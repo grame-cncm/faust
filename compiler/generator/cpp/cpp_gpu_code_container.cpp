@@ -1081,7 +1081,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
                                                         InstBuilder::genFunCallInst("get_global_id", args)));
 
     // Generate DAG
-    for (int l = dag.size() - 1; l >= 0; l--) {
+    for (int l = int(dag.size() - 1); l >= 0; l--) {
         ValueInst*    switch_cond  = InstBuilder::genLoadStackVar("tasknum");
         ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 

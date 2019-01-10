@@ -49,9 +49,9 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
 
     if (loop_var_in_bytes) {
         loop_end = InstBuilder::genLessThan(
-            loop_decl->load(), InstBuilder::genMul(InstBuilder::genInt32NumInst(pow(2, gGlobal->gFloatSize + 1)),
+            loop_decl->load(), InstBuilder::genMul(InstBuilder::genInt32NumInst( (int)pow(2, gGlobal->gFloatSize + 1)),
                                                    InstBuilder::genLoadFunArgsVar(counter)));
-        loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), pow(2, gGlobal->gFloatSize + 1)));
+        loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
     } else {
         loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
         loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));

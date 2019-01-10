@@ -357,7 +357,7 @@ void WASMCodeContainer::produceClass()
         // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
         // and DSP + audio buffer size
         fBinaryOut.writeAt(begin_memory, U32LEB(genMemSize(gGlobal->gWASMVisitor->getStructSize(),
-                                                           fNumInputs + fNumOutputs, json.size())));
+                                                           fNumInputs + fNumOutputs, (int)json.size())));
     }
 
     // Data segment contains the JSON string starting at offset 0,

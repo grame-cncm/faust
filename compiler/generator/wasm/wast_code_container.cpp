@@ -361,7 +361,7 @@ void WASTCodeContainer::produceClass()
         *fOut << "(memory (export \"memory\") ";
         // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
         // and DSP + audio buffer size
-        *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, json.size())
+        *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size())
               << ")";  // memory initial pages
     } else {
         // Memory size set by JS code, so use a minimum value that contains the data segment size (shoud be OK for any

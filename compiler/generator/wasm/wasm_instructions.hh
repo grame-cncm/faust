@@ -180,7 +180,7 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
     BufferWithRandomAccess& operator<<(const std::string& str)
     {
         if (debug) std::cerr << "writeString: " << str << " (at " << size() << ")" << std::endl;
-        int32_t size = str.size();
+        int32_t size = int32_t(str.size());
         *this << U32LEB(size);
         for (int32_t i = 0; i < size; i++) {
             *this << int8_t(str[i]);
@@ -215,7 +215,7 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
 
     int32_t writeU32LEBPlaceholder()
     {
-        int32_t ret = size();
+        int32_t ret = int32_t(size());
         *this << int32_t(0);
         *this << int8_t(0);
         return ret;
@@ -243,7 +243,7 @@ inline int32_t startSectionAux(BufferWithRandomAccess* out, BinaryConsts::Sectio
 
 inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
 {
-    int32_t size = out->size() - start - 5;  // section size does not include the 5 bytes of the size field itself
+    int32_t size = int32_t(out->size()) - start - 5;  // section size does not include the 5 bytes of the size field itself
     out->writeAt(start, U32LEB(size));
 }
 
@@ -546,7 +546,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
             // Otherwise module defined function
         } else {
-            int i = fFunImports.size();
+            int i = int(fFunImports.size());
             for (auto& type : fFunTypes) {
                 if (fFunImports.find(type.first) == fFunImports.end()) {
                     if (type.first == name) {
@@ -580,12 +580,12 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     void generateFunTypes(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
-        *out << U32LEB(fFunTypes.size());
+        *out << U32LEB(uint32_t(fFunTypes.size()));
 
         for (auto& type_int : fFunTypes) {
             FunTyped* type = type_int.second;
             *out << S32LEB(BinaryConsts::EncodedType::Func);
-            *out << U32LEB(type->fArgsTypes.size());
+            *out << U32LEB(uint32_t(type->fArgsTypes.size()));
             for (auto param : type->fArgsTypes) {
                 *out << type2Binary(param->getType());
             }
@@ -604,7 +604,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     void generateImports(BufferWithRandomAccess* out, int channels, bool internal_memory)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
-        *out << U32LEB(fFunImports.size() + ((internal_memory) ? 0 : 1));
+        *out << U32LEB(uint32_t(fFunImports.size()) + ((internal_memory) ? 0 : 1));
 
         if (!internal_memory) {
             // Memory
@@ -639,7 +639,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     void generateFuncSignatures(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Function);
-        *out << U32LEB(fFunTypes.size() - fFunImports.size());
+        *out << U32LEB(uint32_t(fFunTypes.size() - fFunImports.size()));
 
         // Module internally defined functions (those not in FunImports)
         for (auto& type : fFunTypes) {
@@ -763,7 +763,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Generate end
         *fOut << int8_t(BinaryConsts::End);
         size_t size = fOut->size() - start;
-        fOut->writeAt(size_pos, U32LEB(size));
+        fOut->writeAt(size_pos, U32LEB(uint32_t(size)));
     }
 
     // (adhoc generation for now since currently FIR cannot be generated to handle this case)
@@ -791,7 +791,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Generate end
         *fOut << int8_t(BinaryConsts::End);
         size_t size = fOut->size() - start;
-        fOut->writeAt(size_pos, U32LEB(size));
+        fOut->writeAt(size_pos, U32LEB(uint32_t(size)));
     }
 
     void generateJSON(const string& json)
@@ -808,7 +808,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         *fOut << int8_t(BinaryConsts::End);
         // Write the JSON string
         size_t size = json.size();
-        *fOut << U32LEB(json.size());
+        *fOut << U32LEB(uint32_t(json.size()));
         for (size_t i = 0; i < size; i++) {
             *fOut << int8_t(json[i]);
         }
@@ -880,7 +880,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Generate end
         *fOut << int8_t(BinaryConsts::End);
         size_t size = fOut->size() - start;
-        fOut->writeAt(size_pos, U32LEB(size));
+        fOut->writeAt(size_pos, U32LEB(uint32_t(size)));
     }
 
     virtual void visit(LoadVarInst* inst)

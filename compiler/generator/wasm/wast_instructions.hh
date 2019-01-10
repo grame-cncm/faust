@@ -578,7 +578,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         } else {
             *fOut << "(call $" << inst->fName << " ";
         }
-        generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+        generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), (int)inst->fArgs.size());
         *fOut << ")";
     }
 
