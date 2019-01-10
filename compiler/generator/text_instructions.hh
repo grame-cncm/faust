@@ -201,10 +201,10 @@ class TextInstVisitor : public InstVisitor {
     }
 
     virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
-                                     int size)
+                                     size_t size)
     {
-        list<ValueInst*>::const_iterator it = beg;
-        int                              i  = 0;
+		list<ValueInst*>::const_iterator it = beg;
+        size_t                            i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
