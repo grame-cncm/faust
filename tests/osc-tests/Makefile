@@ -3,7 +3,7 @@
 #
 
 MAKE     ?= make
-LIBDIR   ?= ../../build/lib
+LIBDIR   ?= $(shell faust -libdir)
 version  := $(shell cat osc-version.txt)
 
 outfiles   = $(shell [ -d $(version) ] && find $(version) -name "*.txt" || echo)
