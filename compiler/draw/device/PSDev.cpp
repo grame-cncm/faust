@@ -31,6 +31,10 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef WIN32
+# define strdup _strdup
+#endif
+
 using namespace std;
 
 static char* addFileNum(const char* fname)

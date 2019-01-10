@@ -31,6 +31,10 @@
 #include <cstring>
 #include <string>
 
+#ifdef WIN32
+# define strdup _strdup
+#endif
+
 static const std::string base64_chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
@@ -41,7 +45,7 @@ static inline bool is_base64(unsigned char c)
     return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-static inline std::string base64_encode_aux(const char* str, unsigned int in_len)
+static inline std::string base64_encode_aux(const char* str, size_t in_len)
 {
     std::string   ret = "";
     int           i   = 0;
@@ -88,7 +92,7 @@ static inline std::string base64_encode_aux(const char* str, unsigned int in_len
     return ret;
 }
 
-static inline std::string base64_decode_aux(const char* str, unsigned int in_len)
+static inline std::string base64_decode_aux(const char* str, size_t in_len)
 {
     int           i   = 0;
     int           j   = 0;
@@ -101,7 +105,7 @@ static inline std::string base64_decode_aux(const char* str, unsigned int in_len
         in_++;
         if (i == 4) {
             for (i = 0; i < 4; i++) {
-                char_array_4[i] = base64_chars.find(char_array_4[i]);
+                char_array_4[i] = (unsigned char)base64_chars.find(char_array_4[i]);
             }
 
             char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
@@ -121,7 +125,7 @@ static inline std::string base64_decode_aux(const char* str, unsigned int in_len
         }
 
         for (j = 0; j < 4; j++) {
-            char_array_4[j] = base64_chars.find(char_array_4[j]);
+            char_array_4[j] = (unsigned char)base64_chars.find(char_array_4[j]);
         }
 
         char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
