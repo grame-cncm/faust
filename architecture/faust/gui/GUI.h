@@ -224,7 +224,7 @@ class uiTypedItem : public uiItemBase
         virtual ~uiTypedItem()
         {}
     
-        virtual void modifyZone(REAL v)
+        void modifyZone(REAL v)
         {
             fCache = v;
             if (*fZone != v) {
@@ -248,6 +248,15 @@ class uiItem : public uiTypedItem<FAUSTFLOAT> {
 
         virtual ~uiItem() 
         {}
+
+		void modifyZone(FAUSTFLOAT v)
+		{
+			fCache = v;
+			if (*fZone != v) {
+				*fZone = v;
+				fGUI->updateZone(fZone);
+			}
+		}
 
 };
 
