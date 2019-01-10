@@ -722,7 +722,7 @@ static void printVersion()
 #ifdef LLVM_BUILD
     cout << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
-    cout << "Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
+    cout << "Copyright (C) 2002-2019, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
 static void printHelp()
