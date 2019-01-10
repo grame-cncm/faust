@@ -296,38 +296,38 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         fClass->addUICode(subst("ui_interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
                                 checkNullLabel(varname, label), tree2str(varname), T(tree2float(c)), T(tree2float(x)),
                                 T(tree2float(y)), T(tree2float(z))));
-        fJSON.addVerticalSlider(checkNullLabel(varname, label).c_str(), NULL, tree2float(c), tree2float(x),
-                                tree2float(y), tree2float(z));
+        fJSON.addVerticalSlider(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(c), (float)tree2float(x),
+                                (float)tree2float(y), (float)tree2float(z));
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
         fClass->incUIActiveCount();
         fClass->addUICode(subst("ui_interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
                                 checkNullLabel(varname, label), tree2str(varname), T(tree2float(c)), T(tree2float(x)),
                                 T(tree2float(y)), T(tree2float(z))));
-        fJSON.addHorizontalSlider(checkNullLabel(varname, label).c_str(), NULL, tree2float(c), tree2float(x),
-                                  tree2float(y), tree2float(z));
+        fJSON.addHorizontalSlider(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(c), (float)tree2float(x),
+								(float)tree2float(y), (float)tree2float(z));
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
         fClass->incUIActiveCount();
         fClass->addUICode(subst("ui_interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
                                 checkNullLabel(varname, label), tree2str(varname), T(tree2float(c)), T(tree2float(x)),
                                 T(tree2float(y)), T(tree2float(z))));
-        fJSON.addNumEntry(checkNullLabel(varname, label).c_str(), NULL, tree2float(c), tree2float(x), tree2float(y),
-                          tree2float(z));
+        fJSON.addNumEntry(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(c), (float)tree2float(x), (float)tree2float(y),
+								(float)tree2float(z));
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
         fClass->incUIPassiveCount();
         fClass->addUICode(subst("ui_interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
                                 checkNullLabel(varname, label, true), tree2str(varname), T(tree2float(x)),
                                 T(tree2float(y))));
-        fJSON.addVerticalBargraph(checkNullLabel(varname, label).c_str(), NULL, tree2float(x), tree2float(y));
+        fJSON.addVerticalBargraph(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(x), (float)tree2float(y));
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
         fClass->incUIPassiveCount();
         fClass->addUICode(subst("ui_interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
                                 checkNullLabel(varname, label, true), tree2str(varname), T(tree2float(x)),
                                 T(tree2float(y))));
-        fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL, tree2float(x), tree2float(y));
+        fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL, (float)tree2float(x), (float)tree2float(y));
 
     } else if (isSigSoundfile(sig, path)) {
         fClass->incUIActiveCount();

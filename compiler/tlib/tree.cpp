@@ -83,6 +83,10 @@ storage of trees.
 #include "exception.hh"
 #include "tree.hh"
 
+#ifdef WIN32
+# pragma warning (disable: 4800)
+#endif
+
 #define ERROR(s, t)              \
     {                            \
         throw faustexception(s); \
