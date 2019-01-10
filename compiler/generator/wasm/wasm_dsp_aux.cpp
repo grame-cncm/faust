@@ -25,6 +25,10 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef WIN32
+# pragma warning (disable: 4251 4275 4800)
+#endif
+
 #include "Text.hh"
 #include "compatibility.hh"
 #include "faust/gui/JSONUIDecoder.h"

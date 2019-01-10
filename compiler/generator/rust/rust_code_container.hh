@@ -31,6 +31,10 @@
 
 using namespace std;
 
+#ifdef WIN32
+# pragma warning (disable: 4250)
+#endif
+
 class RustCodeContainer : public virtual CodeContainer {
    protected:
     RustInstVisitor fCodeProducer;

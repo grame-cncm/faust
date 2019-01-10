@@ -19,6 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef WIN32
+# pragma warning (disable: 4146 4244 4275)
+#endif
+
 #include "llvm_code_container.hh"
 #include "compatibility.hh"
 #include "exception.hh"

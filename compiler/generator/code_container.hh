@@ -38,6 +38,10 @@
 #include "sigtype.hh"
 #include "tlib.hh"
 
+#ifdef WIN32
+# pragma warning (disable: 4250)
+#endif
+
 class TextInstVisitor;
 
 class CodeContainer : public virtual Garbageable {

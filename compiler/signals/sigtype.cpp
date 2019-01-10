@@ -144,7 +144,7 @@ Type operator|(const Type& t1, const Type& t2)
 
     } else if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
         vector<Type> v;
-        int          n = min(nt1->arity(), nt2->arity());
+        int          n = (int)min(nt1->arity(), nt2->arity());
         for (int i = 0; i < n; i++) {
             v.push_back((*nt1)[i] | (*nt2)[i]);
         }

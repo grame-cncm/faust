@@ -19,6 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef WIN32
+# pragma warning (disable: 4141 4146 4244 4267 4275 4800)
+//# define strdup _strdup
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <fstream>

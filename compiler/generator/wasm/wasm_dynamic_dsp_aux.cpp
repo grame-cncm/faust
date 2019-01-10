@@ -19,9 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef WIN32
+# pragma warning (disable: 4251 4275 4800)
+#endif
+
 #include "wasm_dynamic_dsp_aux.hh"
 #include "Text.hh"
 #include "compatibility.hh"
+
+#ifdef WIN32
+# define strdup _strdup
+#endif
 
 #ifdef EMCC
 #include <emscripten.h>
@@ -181,7 +189,7 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
 
         // 'Binary' string, so directly copy its raw content
         string code    = factory->getBinaryCode();
-        res->fCodeSize = code.size();
+        res->fCodeSize = (int)code.size();
         res->fCode     = (char*)malloc(res->fCodeSize);
         memcpy(res->fCode, code.c_str(), res->fCodeSize);
 

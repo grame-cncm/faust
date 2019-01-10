@@ -29,6 +29,10 @@
 #include <string>
 #include <vector>
 
+#ifdef WIN32
+# pragma warning (disable: 4800)
+#endif
+
 #include "exception.hh"
 #include "faust/dsp/dsp.h"
 

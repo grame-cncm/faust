@@ -19,6 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef WIN32
+#pragma warning(disable : 4996 4146 4244)
+#endif
+
 #include <float.h>
 #include <limits.h>
 #include <stdio.h>
@@ -61,10 +65,6 @@
 #include "simplify.hh"
 #include "sourcereader.hh"
 #include "timing.hh"
-
-#ifdef WIN32
-#pragma warning(disable : 4996)
-#endif
 
 static void enumBackends(ostream& out)
 {

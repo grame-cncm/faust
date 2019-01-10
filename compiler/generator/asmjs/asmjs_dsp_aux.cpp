@@ -25,6 +25,11 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef WIN32
+# pragma warning (disable: 4275 4800)
+# define strdup _strdup
+#endif
+
 #include "Text.hh"
 #include "asmjs_dsp_aux.hh"
 #include "compatibility.hh"
