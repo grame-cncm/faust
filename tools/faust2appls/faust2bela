@@ -9,7 +9,7 @@
 [ -z "$BELA_CPPFLAGS" ] && BELA_CPPFLAGS=""
 [ -z "$BELA_LDLIBS" ] && BELA_LDLIBS=""
 
-BELA_CPPFLAGS="-Wno-overloaded-virtual $BELA_CPPFLAGS"
+BELA_CPPFLAGS="$BELA_CPPFLAGS"
 
 #variables:
 NVOICES=0
