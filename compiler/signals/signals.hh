@@ -157,10 +157,7 @@ inline Tree sigDiv(Tree x, Tree y)
 {
     return sigBinOp(kDiv, x, y);
 }
-inline Tree sigRem(Tree x, Tree y)
-{
-    return sigBinOp(kRem, x, y);
-}
+Tree sigRem(Tree x, Tree y);
 
 inline Tree sigAND(Tree x, Tree y)
 {

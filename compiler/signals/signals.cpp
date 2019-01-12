@@ -48,6 +48,16 @@ Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
  */
 ///////////////////////////////////////////////////////////////////////
 
+Tree sigRem(Tree x, Tree y)
+{
+    if (isZero(y)) {
+        stringstream error;
+        error << "ERROR : % by 0 in " << ppsig(x) << " % " << ppsig(y) << endl;
+        throw faustexception(error.str());
+    }
+    return sigBinOp(kRem, x, y);
+}
+
 Tree sigInt(int i)
 {
     return tree(i);

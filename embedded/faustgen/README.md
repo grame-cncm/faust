@@ -31,7 +31,7 @@ $ cmake .. -DMAXSDK="/path/to/the/max/sdk/source/c74support" -G "your generator"
 You must define the path to the Max SDK the first time you invoke `cmake`. Next the value is cached by cmake.
 On Windows, cmake assumes that the libsndfile library is installed in C:/Program Files/Mega-Nerd/libsndfile. To override, you cand define the LIBSNDFILE variable to an alternate location (i.e. add -DLIBSNDFILE=/path/to/libsndfile on the command line).
 
-**Note:** on Windows, you should use the same runtime than the other libraries. Thus make sure everything is compiled with the same Visual Studio version (including LLVM). The current faust version (2.13.14) makes use of the following cmake generator: "Visual Studio 14 2015 Win64". You must use the same on for faustgen~.
+**Note:** on Windows, you should use the same runtime than the other libraries. Thus make sure everything is compiled with the same Visual Studio version (including LLVM). The current Faust version (2.13.14) makes use of the following cmake generator: "Visual Studio 14 2015 Win64". You must use the same for **faustgen~**.
 
 
 ### Compiling
