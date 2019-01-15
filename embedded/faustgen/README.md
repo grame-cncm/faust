@@ -8,9 +8,7 @@ faustgen~
 
 **faustgen~** is based on the [Faust](https://faust.grame.fr) library and on [LLVM](http://llvm.org).
 
-
 ## How to compile...
-
 
 ### Prerequisites
 - you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line.
@@ -33,7 +31,6 @@ On Windows, cmake assumes that the libsndfile library is installed in C:/Program
 
 **Note:** on Windows, you should use the same runtime than the other libraries. Thus make sure everything is compiled with the same Visual Studio version (including LLVM). The current Faust version (2.13.14) makes use of the following cmake generator: "Visual Studio 14 2015 Win64". You must use the same for **faustgen~**.
 
-
 ### Compiling
 
 You can launch your IDE and proceed as usual or you can use cmake build command from your build folder:
@@ -41,7 +38,6 @@ You can launch your IDE and proceed as usual or you can use cmake build command 
 ~~~~
 $ cmake --build . --config Release
 ~~~~
-
 
 ## Packaging
 
@@ -56,14 +52,7 @@ On output, you should find a folder named **faustgen** in the package folder.
 
 **Note:** on Mac OS, this folder is also compressed to the **faustgen.dmg** image file.
 
-
-
-
 ## Limitations and known bugs
-
-
-
-
 
 --------------
 #### [Grame](http://www.grame.fr) - Centre National de Creation Musicale

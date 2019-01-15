@@ -327,43 +327,51 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         // HACK for Rust backend
         if (gGlobal->gOutputLang != "rust") {
             // "input" and "inputs" used as a name convention
-            for (int index = 0; index < fContainer->inputs(); index++) {
-                string name = subst("input$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                    name, InstBuilder::genArrayTyped(type, 0),
-                    InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
-                if (gGlobal->gInPlace) {
-                    CS(sigInput(index));
+            if (!gGlobal->gOneSample) {
+                for (int index = 0; index < fContainer->inputs(); index++) {
+                    string name = subst("input$0", T(index));
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(
+                        name, InstBuilder::genArrayTyped(type, 0),
+                        InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
+                    if (gGlobal->gInPlace) {
+                        CS(sigInput(index));
+                    }
                 }
             }
         }
 
         // HACK for Rust backend
         if (gGlobal->gOutputLang != "rust") {
-            // "output" and "outputs" used as a name convention
-            for (int index = 0; index < fContainer->outputs(); index++) {
-                string name = subst("output$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                    name, InstBuilder::genArrayTyped(type, 0),
-                    InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
+            if (!gGlobal->gOneSample) {
+                // "output" and "outputs" used as a name convention
+                for (int index = 0; index < fContainer->outputs(); index++) {
+                    string name = subst("output$0", T(index));
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(
+                        name, InstBuilder::genArrayTyped(type, 0),
+                        InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
+                }
             }
         }
     }
 
     for (int index = 0; isList(L); L = tl(L), index++) {
-        Tree   sig = hd(L);
-        string name;
-
-        // HACK for Rust backend
-        if (gGlobal->gOutputLang == "rust") {
-            name = subst("outputs[$0]", T(index));
-        } else {
-            name = subst("output$0", T(index));
-        }
-
+        Tree sig = hd(L);
+       
         // Cast to external float
         ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+      
+        // HACK for Rust backend
+        string name;
+        if (gGlobal->gOutputLang == "rust") {
+            name = subst("outputs[$0]", T(index));
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+        } else if (gGlobal->gOneSample) {
+            name = "outputs";
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, InstBuilder::genInt32NumInst(index), res));
+        } else {
+            name = subst("output$0", T(index));
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+        }
 
         // 09/12/11 : HACK
         // int rate = getSigRate(sig);
@@ -656,7 +664,9 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     if (gGlobal->gOutputLang == "rust") {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar(subst("inputs[$0]", T(idx)), getCurrentLoopIndex()));
-    } else {
+    } else if (gGlobal->gOneSample) {
+        res = InstBuilder::genCastFloatInst(InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx)));
+   } else {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
     }

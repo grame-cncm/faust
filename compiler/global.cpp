@@ -170,6 +170,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFastMath             = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
+    gOneSample            = false;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version

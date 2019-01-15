@@ -427,17 +427,28 @@ void CScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gOneSample) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, $0* inputs, $0* outputs) {", xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
-
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+    
+    if (gGlobal->gOneSample) {
+        // Generates one sample computation
+        BlockInst* block = fCurLoop->generateOneSample();
+        block->accept(&fCodeProducer);
+    } else {
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(&fCodeProducer);
+    }
 
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);

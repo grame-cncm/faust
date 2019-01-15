@@ -164,6 +164,7 @@ struct global {
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
+    bool   gOneSample;             // Generate one sample computation
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions

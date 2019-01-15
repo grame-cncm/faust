@@ -85,6 +85,17 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
     return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
 }
 
+BlockInst* CodeLoop::generateOneSample()
+{
+    BlockInst* block = InstBuilder::genBlockInst();
+    pushBlock(fPreInst, block);
+    pushBlock(fComputeInst, block);
+    pushBlock(fPostInst, block);
+    
+    BasicCloneVisitor cloner;
+    return static_cast<BlockInst*>(block->clone(&cloner));
+}
+
 void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
     // Generate code for extra loops

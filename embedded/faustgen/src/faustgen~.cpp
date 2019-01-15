@@ -539,11 +539,11 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
 read_sourcecode:
-    
     // Load fLibraryPath
     int i = 0;
     const char* read_library_path;
     char library_path[32];
+    
 loop:
     snprintf(library_path, 32, "library_path%d", i++);
     err = dictionary_getstring(d, gensym(library_path), &read_library_path);
@@ -568,7 +568,6 @@ loop:
     }
     
 default_sourcecode:
-
     // Otherwise tries to create from default source code
     fSourceCodeSize = strlen(DEFAULT_SOURCE_CODE);
     fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);
@@ -1205,7 +1204,6 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                         post("Invalid argument in parameter setting"); 
                         goto unlock;
                 }
-                
                 
                 stringstream num_val; num_val << num + i;
                 stringstream param_name; param_name << prefix;

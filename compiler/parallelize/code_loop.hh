@@ -170,6 +170,8 @@ class CodeLoop : public virtual Garbageable {
     ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
 
     SimpleForLoopInst* generateSimpleScalarLoop(const string& counter);
+    
+    BlockInst* generateOneSample();
 
     void generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 

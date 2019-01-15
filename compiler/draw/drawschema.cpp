@@ -221,10 +221,8 @@ static void writeSchemaFile(Tree bd)
     gGlobal->gSchemaFileName = res1;
 
     // generate the label of the schema
-    stringstream s2;
-    s2 << tree2str(id);
     string link = gGlobal->gBackLink[bd];
-    ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, s2.str(), link);
+    ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, tree2str(id), link);
     // draw to the device defined by gDevSuffix
     if (strcmp(gGlobal->gDevSuffix, "svg") == 0) {
         SVGDev dev(res1.c_str(), ts->width(), ts->height());
@@ -348,18 +346,15 @@ static schema* generateDiagramSchema(Tree t)
         (boxComplexity(t) > 2) && getDefNameProperty(t, id)) {
         char temp[1024];
         getBoxType(t, &ins, &outs);
-        stringstream s, l;
-        s << tree2str(id);
+        stringstream l;
         l << legalFileName(t, 1024, temp) << "." << gGlobal->gDevSuffix;
         scheduleDrawing(t);
-        return makeBlockSchema(ins, outs, s.str(), linkcolor, l.str());
+        return makeBlockSchema(ins, outs, tree2str(id), linkcolor, l.str());
 
     } else if (getDefNameProperty(t, id) && !isPureRouting(t)) {
         // named case : not a slot, with a name
         // draw a line around the object with its name
-        stringstream s;
-        s << tree2str(id);
-        return makeDecorateSchema(generateInsideSchema(t), 10, s.str());
+        return makeDecorateSchema(generateInsideSchema(t), 10, tree2str(id));
 
     } else {
         // normal case
@@ -508,7 +503,7 @@ static schema* generateInsideSchema(Tree t)
 /**
  * Convert User interface element into a textual representation
  */
-static void UserInterfaceDescription(Tree box, string& d)
+static string userInterfaceDescription(Tree box)
 {
     Tree         t1, label, cur, min, max, step, chan;
     stringstream fout;
@@ -541,7 +536,7 @@ static void UserInterfaceDescription(Tree box, string& d)
     } else {
         throw faustexception("ERROR : unknown user interface element\n");
     }
-    d = fout.str();
+    return fout.str();
 }
 
 /**
@@ -549,9 +544,7 @@ static void UserInterfaceDescription(Tree box, string& d)
  */
 static schema* generateUserInterfaceSchema(Tree t)
 {
-    string s;
-    UserInterfaceDescription(t, s);
-    return makeBlockSchema(0, 1, s, uicolor, "");
+    return makeBlockSchema(0, 1, userInterfaceDescription(t), uicolor, "");
 }
 
 /**
@@ -559,9 +552,7 @@ static schema* generateUserInterfaceSchema(Tree t)
  */
 static schema* generateBargraphSchema(Tree t)
 {
-    string s;
-    UserInterfaceDescription(t, s);
-    return makeBlockSchema(1, 1, s, uicolor, "");
+    return makeBlockSchema(1, 1, userInterfaceDescription(t), uicolor, "");
 }
 
 /**
@@ -572,9 +563,7 @@ static schema* generateSoundfileSchema(Tree t)
     Tree label, chan;
     if (isBoxSoundfile(t, label, chan)) {
         int    n = tree2int(chan);
-        string s;
-        UserInterfaceDescription(t, s);
-        return makeBlockSchema(2, 2 + n, s, uicolor, "");
+        return makeBlockSchema(2, 2 + n, userInterfaceDescription(t), uicolor, "");
     } else {
         throw faustexception("ERROR : soundfile\n");
     }
@@ -587,9 +576,7 @@ static schema* generateInputSlotSchema(Tree a)
 {
     Tree id;
     faustassert(getDefNameProperty(a, id));
-    stringstream s;
-    s << tree2str(id);
-    return makeBlockSchema(1, 0, s.str(), slotcolor, "");
+    return makeBlockSchema(1, 0, tree2str(id), slotcolor, "");
 }
 
 /**
@@ -599,9 +586,7 @@ static schema* generateOutputSlotSchema(Tree a)
 {
     Tree id;
     faustassert(getDefNameProperty(a, id));
-    stringstream s;
-    s << tree2str(id);
-    return makeBlockSchema(0, 1, s.str(), slotcolor, "");
+    return makeBlockSchema(0, 1, tree2str(id), slotcolor, "");
 }
 
 /**

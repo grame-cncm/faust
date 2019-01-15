@@ -535,6 +535,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-exp10", "--generate-exp10")) {
             gGlobal->gHasExp10 = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-os", "--one-sample")) {
+            gGlobal->gOneSample = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
             gGlobal->gFTZMode = std::atoi(argv[i + 1]);
@@ -643,7 +647,11 @@ static bool processCmdline(int argc, const char* argv[])
     }
 
     if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : 'ocpp' option can only be used in scalar mode\n");
+        throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
+    }
+    
+    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c") {
+        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp' or 'c' backends\n");
     }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
@@ -785,6 +793,7 @@ static void printHelp()
          << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
+    cout << tab << "-os         --one-sample                generate one sample computation." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;

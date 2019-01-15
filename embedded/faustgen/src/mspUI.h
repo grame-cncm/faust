@@ -38,7 +38,6 @@
 #include <string>
 #include <map>
 
-
 #define STR_SIZE 512
 
 #ifdef WIN32
