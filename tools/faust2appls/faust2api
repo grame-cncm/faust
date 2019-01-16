@@ -251,11 +251,11 @@ if [ "$EFFECT" = "auto" ]; then
 
     process = adaptor(library("$FILE").process, library("$FILE").effect) : library("$FILE").effect;
 EndOfCode
-    # We check this is a faust valid code. No error if it is not
-    faust $EFFECT -o /dev/null 2> /dev/null|| POLY2="0" EFFECT=""
+    # We check this is a faust valid code. No error if it is not.
+    faust $EFFECT -o /dev/null 2> /dev/null || POLY2="0" EFFECT=""
 fi
 else
-    # No polyphony, make shure no effect
+    # No polyphony, make sure no effect
     POLY2="0" EFFECT=""
 fi
 
