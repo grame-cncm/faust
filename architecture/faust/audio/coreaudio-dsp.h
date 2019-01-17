@@ -1284,7 +1284,7 @@ class TCoreAudioRenderer
           
             {
                 // Setup number of output channels to actually map
-                fDefaultPhysicalOutputs = std::min(fDefaultPhysicalOutputs, inChan);
+                fDefaultPhysicalOutputs = std::min(fDefaultPhysicalOutputs, outChan);
                 
                 SInt32 chanArr[fPhysicalOutputs];
                 for (int i = 0;	i < fPhysicalOutputs; i++) {
