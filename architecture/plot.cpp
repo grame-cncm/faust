@@ -47,6 +47,8 @@
 #include <string>
 #include <map>
 #include <iostream> 
+#include <limits> 
+#include <iomanip>
 
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
@@ -77,48 +79,51 @@ mydsp DSP;
 	
 #define kFrames 512
 	
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-	float fnbsamples;
+    FAUSTFLOAT fnbsamples;
 
-	CMDUI* interface = new CMDUI(argc, argv);
-	DSP.buildUserInterface(interface);
-	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
-	
-	if (DSP.getNumInputs() > 0) {
-		fprintf(stderr, "no inputs allowed\n");
-		exit(1);
-	}
-	
-	// init signal processor and the user interface values
-	DSP.init(44100);
-	
-	// modify the UI values according to the command line options
-	interface->process_command();
-	
-	int nouts = DSP.getNumOutputs();
-	channels chan (kFrames, nouts);
+    CMDUI* interface = new CMDUI(argc, argv);
+    DSP.buildUserInterface(interface);
+    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
 
-	int nbsamples = int(fnbsamples);
-	while (nbsamples > kFrames) {
-		DSP.compute(kFrames, 0, chan.buffers());
-		for (int i = 0; i < kFrames; i++) {
-			for (int c = 0; c < nouts; c++) {
-				printf("%8f\t", chan.buffers()[c][i]);
-			}
-			std::cout << std::endl;
-		}
-		nbsamples -= kFrames;
-	}
-	
-	DSP.compute(nbsamples, 0, chan.buffers());
-	for (int i = 0; i < nbsamples; i++) {
-		for (int c = 0; c < nouts; c++) {
-			printf("%8f\t", chan.buffers()[c][i]);
-		}
-		std::cout << std::endl;
-	}
-	return 0;
+    if (DSP.getNumInputs() > 0) {
+        fprintf(stderr, "no inputs allowed\n");
+        exit(1);
+    }
+    
+    //std::cout <<"sizeof(FAUSTFLOAT) = " << sizeof(FAUSTFLOAT) << std::endl;;
+
+    // init signal processor and the user interface values
+    DSP.init(44100);
+
+    // modify the UI values according to the command line options
+    interface->process_command();
+
+    int nouts = DSP.getNumOutputs();
+    channels chan(kFrames, nouts);
+  
+    int nbsamples = int(fnbsamples);
+    std::cout << std::setprecision(std::numeric_limits<FAUSTFLOAT>::max_digits10);
+    while (nbsamples > kFrames) {
+        DSP.compute(kFrames, 0, chan.buffers());
+        for (int i = 0; i < kFrames; i++) {
+            for (int c = 0; c < nouts; c++) {
+                std::cout << chan.buffers()[c][i];
+            }
+            std::cout << std::endl;
+        }
+        nbsamples -= kFrames;
+    }
+
+    DSP.compute(nbsamples, 0, chan.buffers());
+    for (int i = 0; i < nbsamples; i++) {
+        for (int c = 0; c < nouts; c++) {
+            std::cout << chan.buffers()[c][i];
+        }
+        std::cout << std::endl;
+    }
+    return 0;
 } 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
