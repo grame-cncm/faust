@@ -54,7 +54,7 @@
 #include <mach/mach_time.h>
 #endif
 
-#define SAMPLE_RATE 44100.0
+#define BENCH_SAMPLE_RATE 44100.0
 #define NV 4096     // number of vectors in BIG buffer (should exceed cache)
 
 template <typename VAL_TYPE>
@@ -292,7 +292,7 @@ class measure_dsp : public decorator_dsp {
     
         void init()
         {
-            fDSP->init(SAMPLE_RATE);
+            fDSP->init(BENCH_SAMPLE_RATE);
             
             fInputIndex = 0;
             fOutputIndex = 0;
@@ -486,7 +486,7 @@ class measure_dsp : public decorator_dsp {
     
         float getCPULoad()
         {
-            return (fBench->measureDurationUsec() / 1000.0 * SAMPLE_RATE) / (fBench->getCount() * fBufferSize * 1000.0);
+            return (fBench->measureDurationUsec() / 1000.0 * BENCH_SAMPLE_RATE) / (fBench->getCount() * fBufferSize * 1000.0);
         }
     
         int getCount() { return fCount; }

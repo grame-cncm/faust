@@ -36,7 +36,6 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-bench.h"
 
-#define SAMPLE_RATE 44100.0
 /*
     A class to find optimal Faust compiler parameters for a given DSP.
 */

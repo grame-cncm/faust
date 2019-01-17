@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "faust/gui/UI.h"
 
