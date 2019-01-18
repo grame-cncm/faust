@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    //std::cout <<"sizeof(FAUSTFLOAT) = " << sizeof(FAUSTFLOAT) << std::endl;;
+    //std::cout << "sizeof(FAUSTFLOAT) = " << sizeof(FAUSTFLOAT) << std::endl;;
 
     // init signal processor and the user interface values
     DSP.init(44100);

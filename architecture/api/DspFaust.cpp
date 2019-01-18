@@ -244,7 +244,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     argv[9] = "-bundle";
     argv[10] = "1";             // TODO same
     fOSCInterface = new OSCUI("Faust", 11, (char**)argv); // TODO fix name
-    driver->setComputeCb(osc_compute_callback, fOSCInterface);
+    driver->addControlCallback(osc_compute_callback, fOSCInterface);
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif

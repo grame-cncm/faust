@@ -24,6 +24,9 @@
 #ifndef __audio__
 #define __audio__
 
+#include <set>
+#include <utility>
+
 class dsp;
 
 typedef void (* shutdown_callback)(const char* message, void* arg);
@@ -34,17 +37,42 @@ class audio {
     
     protected:
     
+        shutdown_callback fShutdown;    // Shutdown callback
+        void* fShutdownArg;             // Shutdown callback data
+    
+        std::set<std::pair<compute_callback, void*> > fComputeCallbackList;
+    
     public:
     
-        audio() {}
+        audio():fShutdown(nullptr), fShutdownArg(nullptr) {}
         virtual ~audio() {}
 
         virtual bool init(const char* name, dsp* dsp) = 0;
+    
         virtual bool start() = 0;
         virtual void stop() = 0;
-        virtual void setShutdownCb(shutdown_callback cb, void* arg) {}
-        virtual void setComputeCb(compute_callback cb, void* arg) {}
-
+    
+        void setShutdownCallback(shutdown_callback cb, void* arg)
+        {
+            fShutdown = cb;
+            fShutdownArg = arg;
+        }
+    
+        void addControlCallback(compute_callback cb, void* arg)
+        {
+            fComputeCallbackList.insert(std::make_pair(cb, arg));
+        }
+        bool removeControlCallback(compute_callback cb, void* arg)
+        {
+            return (fComputeCallbackList.erase(std::make_pair(cb, arg)) == 1);
+        }
+        void runControlCallbacks()
+        {
+            for (auto& it : fComputeCallbackList) {
+                it.first(it.second);
+            }
+        }
+    
         virtual int getBufferSize() = 0;
         virtual int getSampleRate() = 0;
 

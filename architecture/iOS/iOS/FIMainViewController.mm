@@ -1090,7 +1090,7 @@ static inline const char* transmit_value(int num)
     argv[10] = "1";
     oscinterface = new OSCUI(_name, 11, (char**)argv);
     DSP->buildUserInterface(oscinterface);
-    audio_device->setComputeCb(osc_compute_callback, self);
+    audio_device->addControlCallback(osc_compute_callback, self);
     oscinterface->run();
 #endif
 }

@@ -140,9 +140,6 @@ class androidaudio : public audio {
         SLRecordItf fRecordInterface;
         SLPlayItf fPlayInterface;
     
-        compute_callback fControlCb;
-        void* fControlCbArg;
-    
         int64_t getTimeUsec() 
         {
             struct timespec now;
@@ -168,9 +165,7 @@ class androidaudio : public audio {
             // Compute DSP
             fDSP->compute(fBufferSize, fInputs, fOutputs);
             
-            if (fControlCb) {
-                fControlCb(fControlCbArg);
-            }
+            runControlCallbacks();
             
             // Converting float to short output
             if (fNumOutChans > 0) {
@@ -226,8 +221,7 @@ class androidaudio : public audio {
         : fDSP(0), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0),
-        fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS),
-        fControlCb(NULL), fControlCbArg(NULL)
+        fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
             
@@ -554,12 +548,6 @@ class androidaudio : public audio {
                     __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetPlayState/fPlayInterface error = %s", res_str(result));
                 }
             }
-        }
-    
-        void setComputeCb(compute_callback cb, void* arg)
-        {
-            fControlCb = cb;
-            fControlCbArg = arg;
         }
     
         virtual int getBufferSize()

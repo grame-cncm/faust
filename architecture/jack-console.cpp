@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
-    audio.setComputeCb(osc_compute_callback, &oscinterface);
+    audio.addControlCallback(osc_compute_callback, &oscinterface);
 #endif
 
 #ifdef MIDICTRL

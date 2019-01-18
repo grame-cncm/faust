@@ -11,7 +11,7 @@
 . faustoptflags
 
 CXX=g++
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS="$MYGCCFLAGS -std=c++11"
 
 OSCDEFS=""
 POLY="POLY"

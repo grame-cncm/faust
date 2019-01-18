@@ -123,8 +123,6 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
             fStream.stop();
         }
     
-        void setShutdownCb(shutdown_callback cb, void* arg) {}
-
         int getBufferSize()
         {
             return fStream.getBufferSize();

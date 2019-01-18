@@ -226,15 +226,14 @@ class TCoreAudioRenderer
         bool fIsOutJackDevice;
         
         dsp* fDSP;
+    
+        audio* fAudio;
 
         AudioBufferList* fInputData;
         AudioDeviceID fDeviceID;
         AudioUnit fAUHAL;
         bool fState;
     
-        compute_callback fControlCb;
-        void* fControlCbArg;
-
         OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& sample_rate, AudioDeviceID* device)
         {
             UInt32 theSize = sizeof(UInt32);
@@ -996,9 +995,7 @@ class TCoreAudioRenderer
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
                 fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
-                if (fControlCb) {
-                    fControlCb(fControlCbArg);
-                }
+                fAudio->runControlCallbacks();
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
                 printError(err);
@@ -1008,7 +1005,7 @@ class TCoreAudioRenderer
         
     public:
     
-        TCoreAudioRenderer()
+        TCoreAudioRenderer(audio* audio)
             :fAggregateDeviceID(-1),fAggregatePluginID(-1),
             fDevNumInChans(0),fDevNumOutChans(0),
             fPhysicalInputs(0), fPhysicalOutputs(0),
@@ -1018,11 +1015,10 @@ class TCoreAudioRenderer
             fIsInJackDevice(false),
             fIsOutJackDevice(false),
             fDSP(0),
+            fAudio(audio),
             fInputData(0),
             fDeviceID(0),fAUHAL(0),
-            fState(false),
-            fControlCb(NULL),
-            fControlCbArg(NULL)
+            fState(false)
         {}
 
         virtual ~TCoreAudioRenderer()
@@ -1031,12 +1027,6 @@ class TCoreAudioRenderer
         int GetBufferSize() {return fBufferSize;}
         int GetSampleRate() {return fSampleRate;}
     
-        void setComputeCb(compute_callback cb, void* arg)
-        {
-            fControlCb = cb;
-            fControlCbArg = arg;
-        }
-
         static OSStatus RestartProc(AudioObjectID objectID, UInt32 numberAddresses,
                                    const AudioObjectPropertyAddress inAddresses[],
                                    void *clientData) 
@@ -1238,18 +1228,16 @@ class TCoreAudioRenderer
       
             err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
             if (err != noErr) {
-                printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
-                printError(err);
-                goto error;
+                //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
+                //printError(err);
             } else {
                 fPhysicalInputs = outSize / sizeof(SInt32);
             }
                     
             err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
             if (err != noErr) {
-                printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
-                printError(err);
-                goto error;
+                //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
+                //printError(err);
             } else {
                 fPhysicalOutputs = outSize / sizeof(SInt32);
             }
@@ -1521,8 +1509,8 @@ class coreaudio : public audio {
 
     public:
       
-        coreaudio(int srate, int bsize) : fSampleRate(srate), fBufferSize(bsize) {}
-            coreaudio(int bsize) : fSampleRate(-1), fBufferSize(bsize) {}
+        coreaudio(int srate, int bsize) : fAudioDevice(this), fSampleRate(srate), fBufferSize(bsize) {}
+            coreaudio(int bsize) : fAudioDevice(this), fSampleRate(-1), fBufferSize(bsize) {}
         virtual ~coreaudio() { fAudioDevice.Close(); }
 
         virtual bool init(const char* /*name*/, dsp* DSP) 
@@ -1551,11 +1539,6 @@ class coreaudio : public audio {
             fAudioDevice.Stop();
         }
     
-        virtual void setComputeCb(compute_callback cb, void* arg)
-        {
-            fAudioDevice.setComputeCb(cb, arg);
-        }
- 
         virtual int getBufferSize() { return fAudioDevice.GetBufferSize(); }
         virtual int getSampleRate() { return fAudioDevice.GetSampleRate(); }
         

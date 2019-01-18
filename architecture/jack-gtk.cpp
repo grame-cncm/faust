@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
     std::cout << "OSC is on" << std::endl;
-    audio.setComputeCb(osc_compute_callback, &oscinterface);
+    audio.addControlCallback(osc_compute_callback, &oscinterface);
 #endif
     
 #ifdef MIDICTRL

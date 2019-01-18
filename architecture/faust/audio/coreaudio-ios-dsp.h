@@ -66,10 +66,9 @@ class TiPhoneCoreAudioRenderer
         int fHWNumInChans;
         int fHWNumOutChans;
 
-        compute_callback fControlCb;
-        void* fControlCbArg;
-  
         dsp* fDSP;
+    
+        audio* fAudio;
 
         AudioBufferList* fCAInputData;
 
@@ -160,9 +159,7 @@ class TiPhoneCoreAudioRenderer
 
                 fDSP->compute((int)inNumberFrames, fInChannel, fOutChannel);
                 
-                if (fControlCb) {
-                    fControlCb(fControlCbArg);
-                }
+                fAudio->runControlCallbacks();
             }
             return err;
         }
@@ -610,10 +607,10 @@ class TiPhoneCoreAudioRenderer
 
     public:
 
-        TiPhoneCoreAudioRenderer()
+        TiPhoneCoreAudioRenderer(audio* audio)
             :fAUHAL(0), fDevNumInChans(0), fDevNumOutChans(0),
             fHWNumInChans(0), fHWNumOutChans(0),
-            fDSP(0), fCAInputData(NULL), fControlCb(NULL), fControlCbArg(NULL)
+            fDSP(0), fAudio(audio), fCAInputData(NULL)
         {}
 
         virtual ~TiPhoneCoreAudioRenderer()
@@ -626,12 +623,6 @@ class TiPhoneCoreAudioRenderer
             }
         }
     
-        void setComputeCb(compute_callback cb, void* arg)
-        {
-            fControlCb = cb;
-            fControlCbArg = arg;
-        }
- 
         int Open(dsp* dsp, int inChan, int outChan, int buffersize, int samplerate)
         {
             fDSP = dsp;
@@ -708,16 +699,11 @@ class iosaudio : public audio {
     public:
 
         iosaudio(int srate, int bsize)
-        :fSampleRate(srate), fBufferSize(bsize)
+        :fAudioDevice(this), fSampleRate(srate), fBufferSize(bsize)
         {}
 
         virtual ~iosaudio() { fAudioDevice.Close(); }
-    
-        virtual void setComputeCb(compute_callback cb, void* arg)
-        {
-            fAudioDevice.setComputeCb(cb, arg);
-        }
-
+   
         virtual bool init(const char* /*name*/, dsp* DSP)
         {
             DSP->init(fSampleRate);
