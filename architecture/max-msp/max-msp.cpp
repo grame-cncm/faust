@@ -75,8 +75,6 @@
 
 // Always included
 #include "faust/gui/OSCUI.h"
-#define OSC_IN_PORT     "5510"
-#define OSC_OUT_PORT    "5511"
 
 #ifdef POLY2
 #include "effect.h"
@@ -119,7 +117,7 @@ using namespace std;
 #define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION    "0.66"
+#define EXTERNAL_VERSION    "0.67"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -598,49 +596,49 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 }
 
 /*--------------------------------------------------------------------------*/
-void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
+void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
-    if (systhread_mutex_lock(obj->m_mutex) == MAX_ERR_NONE) {
+    if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
     #ifdef MIDICTRL
-        mydsp_poly* poly = dynamic_cast<mydsp_poly*>(obj->m_dsp);
+        mydsp_poly* poly = dynamic_cast<mydsp_poly*>(x->m_dsp);
         if (poly) {
-            obj->m_midiHandler->removeMidiIn(poly);
+            x->m_midiHandler->removeMidiIn(poly);
         }
     #endif
         // Delete old
-        delete obj->m_dsp;
-        obj->m_dspUI->clear();
+        delete x->m_dsp;
+        x->m_dspUI->clear();
         mydsp_poly* dsp_poly = NULL;
         // Allocate new one
         if (av[0].a_w.w_long > 0) {
             post("polyphonic DSP voices = %d", av[0].a_w.w_long);
             dsp_poly = new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true);
         #ifdef POLY2
-            obj->m_dsp = new dsp_sequencer(dsp_poly, new effect());
+            x->m_dsp = new dsp_sequencer(dsp_poly, new effect());
         #else
-            obj->m_dsp = dsp_poly;
+            x->m_dsp = dsp_poly;
         #endif
         } else {
-            obj->m_dsp = new mydsp();
+            x->m_dsp = new mydsp();
             post("monophonic DSP");
         }
         // Initialize User Interface (here connnection with controls)
-        obj->m_dsp->buildUserInterface(obj->m_dspUI);
+        x->m_dsp->buildUserInterface(x->m_dspUI);
     #ifdef MIDICTRL
-        obj->m_midiHandler->addMidiIn(dsp_poly);
-        obj->m_dsp->buildUserInterface(obj->m_midiUI);
+        x->m_midiHandler->addMidiIn(dsp_poly);
+        x->m_dsp->buildUserInterface(x->m_midiUI);
     #endif
    
         // Initialize at the system's sampling rate
-        obj->m_dsp->init(long(sys_getsr()));
+        x->m_dsp->init(long(sys_getsr()));
         
         // Prepare JSON
-        faust_make_json(obj);
+        faust_make_json(x);
       
         // Send JSON to JS script
-        faust_create_jsui(obj);
+        faust_create_jsui(x);
         
-        systhread_mutex_unlock(obj->m_mutex);
+        systhread_mutex_unlock(x->m_mutex);
     } else {
         post("Mutex lock cannot be taken...");
     }
@@ -648,18 +646,18 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 
 /*--------------------------------------------------------------------------*/
 #ifdef MIDICTRL
-void faust_midievent(t_faust* obj, t_symbol* s, short ac, t_atom* av) 
+void faust_midievent(t_faust* x, t_symbol* s, short ac, t_atom* av) 
 {
     if (ac > 0) {
         int type = (int)av[0].a_w.w_long & 0xf0;
         int channel = (int)av[0].a_w.w_long & 0x0f;
                 
         if (ac == 1) {
-            obj->m_midiHandler->handleSync(0.0, av[0].a_w.w_long);
+            x->m_midiHandler->handleSync(0.0, av[0].a_w.w_long);
         } else if (ac == 2) {
-            obj->m_midiHandler->handleData1(0.0, type, channel, av[1].a_w.w_long);
+            x->m_midiHandler->handleData1(0.0, type, channel, av[1].a_w.w_long);
         } else if (ac == 3) {
-            obj->m_midiHandler->handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
+            x->m_midiHandler->handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
         }
     }
 }
@@ -801,26 +799,65 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 #endif
     
 #ifdef OSCCTRL
-    const char* argv[32];
-    int argc = 0;
-    argv[argc++] = "Faust";
-    argv[argc++] = "-xmit";
-    argv[argc++] = "1";
-    argv[argc++] = "-port";
-    argv[argc++] = OSC_IN_PORT;
-    argv[argc++] = "-outport";
-    argv[argc++] = OSC_OUT_PORT;
-    argv[argc++] = "-bundle";
-    argv[argc++] = "1";
-    x->m_oscInterface = new OSCUI("Faust", argc, (char**)argv);
-    x->m_dsp->buildUserInterface(x->m_oscInterface);
-    x->m_oscInterface->run();
+    x->m_oscInterface = NULL;
 #endif
     
     // Send JSON to JS script
     faust_create_jsui(x);
     return x;
 }
+
+#ifdef OSCCTRL
+// osc 'IP inport outport xmit bundle'
+void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
+{
+    if (ac == 5) {
+        if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
+            
+            delete x->m_oscInterface;
+            
+            const char* argv1[32];
+            int argc1 = 0;
+            
+            argv1[argc1++] = "Faust";
+            
+            argv1[argc1++]  = "-desthost";
+            argv1[argc1++]  = atom_getsym(&av[0])->s_name;
+            
+            char inport[32];
+            snprintf(inport, 32, "%ld", long(av[1].a_w.w_long));
+            argv1[argc1++] = "-port";
+            argv1[argc1++] = inport;
+            
+            char outport[32];
+            snprintf(outport, 32, "%ld", long(av[2].a_w.w_long));
+            argv1[argc1++] = "-outport";
+            argv1[argc1++] = outport;
+            
+            char xmit[32];
+            snprintf(xmit, 32, "%ld", long(av[3].a_w.w_long));
+            argv1[argc1++] = "-xmit";
+            argv1[argc1++] = xmit;
+            
+            char bundle[32];
+            snprintf(bundle, 32, "%ld", long(av[4].a_w.w_long));
+            argv1[argc1++] = "-bundle";
+            argv1[argc1++] = bundle;
+            
+            x->m_oscInterface = new OSCUI("Faust", argc1, (char**)argv1);
+            x->m_dsp->buildUserInterface(x->m_oscInterface);
+            x->m_oscInterface->run();
+            
+            post(x->m_oscInterface->getInfos().c_str());
+            systhread_mutex_unlock(x->m_mutex);
+        } else {
+            post("Mutex lock cannot be taken...");
+        }
+    } else {
+        post("Should be : osc 'IP inport outport xmit(0|1|2) bundle(0|1)'");
+    }
+}
+#endif
 
 /*--------------------------------------------------------------------------*/
 void faust_dblclick(t_faust* x, long inlet)
@@ -888,7 +925,7 @@ t_int* faust_perform(t_int* w)
         if (x->m_dsp) {
             x->m_dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset + x->m_dsp->getNumInputs()]));
         #ifdef OSCCTRL
-            x->m_oscInterface->endBundle();
+            if (x->m_oscInterface) x->m_oscInterface->endBundle();
         #endif
             faust_update_outputs(x);
         }
@@ -930,6 +967,9 @@ extern "C" int main(void)
     // 03/11/14 : use 'anything' to handle all parameter changes
     addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
     addmess((method)faust_polyphony, (char*)"polyphony", A_GIMME, 0);
+#ifdef OSCCTRL
+    addmess((method)faust_osc, (char*)"osc", A_GIMME, 0);
+#endif
 #ifdef MIDICTRL
     addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);
 #endif
@@ -940,7 +980,7 @@ extern "C" int main(void)
     dsp_initclass();
     
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012-2018 Grame");
+    post((char*)"Copyright (c) 2012-2019 Grame");
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {

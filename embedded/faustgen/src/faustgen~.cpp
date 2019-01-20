@@ -1279,20 +1279,19 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
-// osc 'IP inport outport bundle'
+// osc 'IP inport outport xmit bundle'
 void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    if (ac == 4) {
+    if (ac == 5) {
         if (fDSPfactory->lock()) {
         
             delete fOSCUI;
+            
             const char* argv1[32];
             int argc1 = 0;
             
             argv1[argc1++] = "Faust";
-            argv1[argc1++] = "-xmit";
-            argv1[argc1++] = "1";
-            
+          
             argv1[argc1++]  = "-desthost";
             argv1[argc1++]  = atom_getsym(&av[0])->s_name;
         
@@ -1306,10 +1305,15 @@ void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
             argv1[argc1++] = "-outport";
             argv1[argc1++] = outport;
             
-            if (av[3].a_w.w_long == 1) {
-                argv1[argc1++] = "-bundle";
-                argv1[argc1++] = "1";
-            }
+            char xmit[32];
+            snprintf(xmit, 32, "%ld", long(av[3].a_w.w_long));
+            argv1[argc1++] = "-xmit";
+            argv1[argc1++] = xmit;
+            
+            char bundle[32];
+            snprintf(bundle, 32, "%ld", long(av[4].a_w.w_long));
+            argv1[argc1++] = "-bundle";
+            argv1[argc1++] = bundle;
             
             fOSCUI = new OSCUI("Faust", argc1, (char**)argv1); 
             fDSP->buildUserInterface(fOSCUI);
@@ -1321,7 +1325,7 @@ void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
             post("Mutex lock cannot be taken...");
         }
     } else {
-        post("Should be : osc 'IP inport outport bundle(0/1)'");
+        post("Should be : osc 'IP inport outport xmit(0|1|2) bundle(0|1)'");
     }
 }
 
@@ -1720,7 +1724,7 @@ extern "C" void ext_main(void* r)
 	t_class * mclass = faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
-    post("Copyright (c) 2012-2018 Grame");
+    post("Copyright (c) 2012-2019 Grame");
 
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();

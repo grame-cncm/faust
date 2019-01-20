@@ -186,18 +186,19 @@ static std::string quote(const char* str)
 // start the network services
 string OSCControler::getInfos() const
 {
-	SRootNode rootnode = fFactory->root();		// first get the root node
-	if (!rootnode) return "no root node defined";
+    SRootNode rootnode = fFactory->root();		// first get the root node
+    if (!rootnode) return "no root node defined";
 
-	stringstream sstr;
-	sstr << "Faust OSC version " << versionstr() << " - " << quote(rootnode->getName()) << " is running on UDP ports "
+    stringstream sstr;
+    sstr << "Faust OSC version " << versionstr() << " - " << quote(rootnode->getName()) << " is running on UDP ports "
     << fUDPPort << ", " << fUDPOut << ", " << fUPDErr << ", sending on " << fDestAddress;
-	if (gBundle) sstr << ", with bundle mode ON.";
-	if (!fBindAddress.empty())
-		 sstr << " Listening is bound to " << fBindAddress << ".";
-	if (fIO)
-		sstr << " Using OSC IO with " << fIO->numInputs() << " input channel(s) and " << fIO->numOutputs() << " output channel(s)" << fIO->numOutputs();
-	return sstr.str();
+    if (gXmit > 0) sstr << ", with xmit mode = " << gXmit;
+    if (gBundle) sstr << ", with bundle mode ON.";
+    if (!fBindAddress.empty())
+        sstr << " Listening is bound to " << fBindAddress << ".";
+    if (fIO)
+        sstr << " Using OSC IO with " << fIO->numInputs() << " input channel(s) and " << fIO->numOutputs() << " output channel(s)" << fIO->numOutputs();
+    return sstr.str();
 }
 
 //--------------------------------------------------------------------------

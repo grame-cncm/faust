@@ -43,10 +43,7 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/SoundUI.h"
-
 #include "faust/gui/OSCUI.h"
-#define OSC_IN_PORT     "5510"
-#define OSC_OUT_PORT    "5511"
 
 #include "maxcpp5.h"
 
@@ -60,7 +57,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.34"
+#define FAUSTGEN_VERSION "1.35"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
