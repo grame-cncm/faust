@@ -52,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
             // MIDI Support
             final FaustMidiReceiver midiReceiver = new FaustMidiReceiver();
             final MidiManager m = (MidiManager) context.getSystemService(Context.MIDI_SERVICE);
+            if (m == null) {
+                Log.e("", "could not open MIDI service");
+                return;
+            }
             final MidiDeviceInfo[] infos = m.getDevices();
 
             // opening all the available ports and devices already connected
