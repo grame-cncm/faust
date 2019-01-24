@@ -18,7 +18,7 @@ if [[ $(uname -m) == armv6l ]]; then		# for Raspberry PI
 elif [[ $(uname -s) == Darwin ]]; then		# for MacOSX (intel)
 	MYGCCFLAGS="-Ofast -march=native"
 else 										# for Linux (intel)
-    MYGCCFLAGS="-Ofast -march=native"
+    MYGCCFLAGS="-std=c++11 -Ofast -march=native"
 fi
 
 # for Linux (intel) with icc
