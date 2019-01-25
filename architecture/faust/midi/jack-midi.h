@@ -38,8 +38,7 @@ class MapUI;
 //-----------------------------------------------
 
 class jack_midi_handler : public midi_handler {
-    
-    
+        
     protected:
 
         ringbuffer_t* fOutBuffer;
