@@ -289,9 +289,9 @@ void WASTCodeContainer::produceClass()
     tab(n + 2, fOutAux);
     fOutAux << "(" << realStr << ".store ";
     tab(n + 3, fOutAux);
-    fOutAux << "(i32.add (get_local $dsp) (get_local $index))";
+    fOutAux << "(i32.add (local.get $dsp) (local.get $index))";
     tab(n + 3, fOutAux);
-    fOutAux << "(get_local $value)";
+    fOutAux << "(local.get $value)";
     tab(n + 2, fOutAux);
     fOutAux << ")";
     tab(n + 1, fOutAux);
@@ -301,7 +301,7 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     fOutAux << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
     tab(n + 2, fOutAux);
-    fOutAux << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
+    fOutAux << "(return (" << realStr << ".load (i32.add (local.get $dsp) (local.get $index))))";
     tab(n + 1, fOutAux);
     fOutAux << ")";
 

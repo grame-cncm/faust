@@ -107,7 +107,7 @@ struct WASInst {
     map<string, MathFunDesc> fMathLibTable;  // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;    // Table : field_name, { offset, size, type }
     
-    // To generate tee_local the first time the variable access is compiled, then get_local will be used
+    // To generate tee_local the first time the variable access is compiled, then local.get will be used
     map<string, bool>        fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure

@@ -923,7 +923,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         LocalVarDesc local = fLocalVarTable[name];
 
         // 'tee_local' is generated the first time the variable is used
-        // All future access simply use a get_local
+        // All future access simply use a local.get
         if (fTeeMap.find(name) == fTeeMap.end()) {
             inst->fValue->accept(this);
             *fOut << int8_t(BinaryConsts::TeeLocal) << U32LEB(local.fIndex);

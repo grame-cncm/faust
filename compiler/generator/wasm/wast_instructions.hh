@@ -240,14 +240,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << ")";
             }
         } else {
-            *fOut << "(get_local $" << inst->fAddress->getName() << ")";
+            *fOut << "(local.get $" << inst->fAddress->getName() << ")";
         }
     }
 
     virtual void visit(TeeVarInst* inst)
     {
         // 'tee_local' is generated the first time the variable is used
-        // All future access simply use a get_local
+        // All future access simply use a local.get
         string name = inst->fAddress->getName();
         
         if (fTeeMap.find(name) == fTeeMap.end()) {
@@ -256,7 +256,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             *fOut << ")";
             fTeeMap[name] = true;
         } else {
-            *fOut << "(get_local $" << name << ")";
+            *fOut << "(local.get $" << name << ")";
         }
     }
 
@@ -289,7 +289,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << ")";
             }
         } else {
-            *fOut << "(set_local $" << inst->fAddress->getName() << " ";
+            *fOut << "(local.set $" << inst->fAddress->getName() << " ";
             inst->fValue->accept(this);
             *fOut << ")";
         }
@@ -305,10 +305,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (fFastMemory) {
                 *fOut << "(i32.const " << tmp.fOffset << ")";
             } else {
-                *fOut << "(i32.add (get_local $dsp) (i32.const " << tmp.fOffset << "))";
+                *fOut << "(i32.add (local.get $dsp) (i32.const " << tmp.fOffset << "))";
             }
         } else {
-            *fOut << "(get_local $" << named->getName() << ")";
+            *fOut << "(local.get $" << named->getName() << ")";
         }
     }
 
@@ -321,16 +321,16 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             // Since indexed->fIndex is always a known constant value, offset can be directly generated
             Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex);
             faustassert(num);
-            *fOut << "(i32.add (get_local $" << indexed->getName() << ") (i32.const " << (num->fNum << 2) << "))";
+            *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.const " << (num->fNum << 2) << "))";
             // HACK : completely adhoc code for input/output...
         } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
             // If 'i' loop variable moves in bytes, save index code generation of input/output
             if (gGlobal->gLoopVarInBytes) {
-                *fOut << "(i32.add (get_local $" << indexed->getName() << ") ";
+                *fOut << "(i32.add (local.get $" << indexed->getName() << ") ";
                 indexed->fIndex->accept(this);
                 *fOut << ")";
             } else {
-                *fOut << "(i32.add (get_local $" << indexed->getName() << ") (i32.shl ";
+                *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.shl ";
                 indexed->fIndex->accept(this);
                 // Force "output" access to be coherent with fSubContainerType (integer or real)
                 if (fSubContainerType == kInt) {
@@ -352,7 +352,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     if (fFastMemory) {
                         *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
                     } else {
-                        *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum))
+                        *fOut << "(i32.add (local.get $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum))
                               << "))";
                     }
                 } else {
@@ -371,11 +371,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     } else {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
-                            *fOut << "(i32.add (get_local $dsp) (i32.shl ";
+                            *fOut << "(i32.add (local.get $dsp) (i32.shl ";
                             indexed->fIndex->accept(this);
                             *fOut << " (i32.const " << offStr << ")))";
                         } else {
-                            *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                            *fOut << "(i32.add (local.get $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
                             indexed->fIndex->accept(this);
                             *fOut << " (i32.const " << offStr << "))))";
                         }
@@ -385,10 +385,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // Local variable
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                    *fOut << "(i32.add (get_local " << indexed->getName() << ") (i32.const " << (num->fNum << offStrNum)
+                    *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.const " << (num->fNum << offStrNum)
                           << "))";
                 } else {
-                    *fOut << "(i32.add (get_local " << indexed->getName() << ") (i32.shl ";
+                    *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
                     indexed->fIndex->accept(this);
                     *fOut << " (i32.const " << offStr << ")))";
                 }
@@ -497,7 +497,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
                 inst->fInst->accept(this);
             } else {
-                *fOut << "(i32.trunc_s/" << realStr << " ";
+                *fOut << "(i32.trunc_" << realStr << "_s ";
                 inst->fInst->accept(this);
                 *fOut << ")";
             }
@@ -506,7 +506,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
                 inst->fInst->accept(this);
             } else {
-                *fOut << "(" << realStr << ".convert_s/i32 ";
+                *fOut << "(" << realStr << ".convert_i32_s ";
                 inst->fInst->accept(this);
                 *fOut << ")";
             }
@@ -519,22 +519,22 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         switch (inst->fType->getType()) {
             case Typed::kInt32:
-                *fOut << "(i32.reinterpret/" << realStr << " ";
+                *fOut << "(i32.reinterpret_" << realStr << " ";
                 inst->fInst->accept(this);
                 *fOut << ")";
                 break;
             case Typed::kInt64:
-                *fOut << "(i64.reinterpret/" << realStr << " ";
+                *fOut << "(i64.reinterpret_" << realStr << " ";
                 inst->fInst->accept(this);
                 *fOut << ")";
                 break;
             case Typed::kFloat:
-                *fOut << "(" << realStr << ".reinterpret/i32 ";
+                *fOut << "(" << realStr << ".reinterpret_i32 ";
                 inst->fInst->accept(this);
                 *fOut << ")";
                 break;
             case Typed::kDouble:
-                *fOut << "(" << realStr << ".reinterpret/i64 ";
+                *fOut << "(" << realStr << ".reinterpret_i64 ";
                 inst->fInst->accept(this);
                 *fOut << ")";
                 break;
