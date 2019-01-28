@@ -124,12 +124,16 @@ class FaustPolyEngine {
             fFinalDSP->metadata(&meta);
             if (midi) midi->setName(meta.fName);
             
-            // If driver cannot be initialized, start will fail later on...
-            if (!driver->init(meta.fName.c_str(), fFinalDSP)) {
-                delete driver;
-                fDriver = NULL;
+            if (driver) {
+                // If driver cannot be initialized, start will fail later on...
+                if (!driver->init(meta.fName.c_str(), fFinalDSP)) {
+                    delete driver;
+                    fDriver = NULL;
+                } else {
+                    fDriver = driver;
+                }
             } else {
-                fDriver = driver;
+                fDriver = NULL;
             }
         }
     
@@ -177,7 +181,7 @@ class FaustPolyEngine {
         {
             if (fRunning) {
                 fRunning = false;
-                fDriver->stop();
+                if (fDriver) fDriver->stop();
             }
         }
     
@@ -304,6 +308,11 @@ class FaustPolyEngine {
         void buildUserInterface(UI* ui_interface)
         {
             fFinalDSP->buildUserInterface(ui_interface);
+        }
+    
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            fFinalDSP->compute(count, inputs, outputs);
         }
 
         /*
@@ -516,7 +525,7 @@ class FaustPolyEngine {
          */
         void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
         {
-           fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
+            fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
         }
 
         /*

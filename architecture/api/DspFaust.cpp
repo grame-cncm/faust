@@ -122,23 +122,25 @@ static void osc_compute_callback(void* arg)
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-DspFaust::DspFaust()
+DspFaust::DspFaust(bool use_driver)
 {
-    audio* driver = 0;
+    audio* driver = NULL;
+    if (use_driver) {
 #if JACK_DRIVER
-    // JACK has its own sample rate and buffer size
+        // JACK has its own sample rate and buffer size
 #if MIDICTRL
-    driver = new jackaudio_midi();
+        driver = new jackaudio_midi();
 #else
-    driver = new jackaudio();
+        driver = new jackaudio();
 #endif
 #elif JUCE_DRIVER
-    // JUCE audio device has its own sample rate and buffer size
-    driver = new juceaudio();
+        // JUCE audio device has its own sample rate and buffer size
+        driver = new juceaudio();
 #else
-    std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
-    throw std::bad_alloc();
+        std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
+        throw std::bad_alloc();
 #endif
+    }
     init(NULL, driver);
 }
 

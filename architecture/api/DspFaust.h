@@ -70,7 +70,7 @@ class DspFaust
         // (like JACK and JUCE)
         //
         //----
-        DspFaust();
+        DspFaust(bool use_driver = true);
         
         //--------------`DspFaust(int SR, int BS)`----------------
         // Constructor.
