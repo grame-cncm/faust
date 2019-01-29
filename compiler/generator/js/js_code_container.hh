@@ -36,7 +36,7 @@ class JAVAScriptCodeContainer : public virtual CodeContainer {
     JAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
         : fCodeProducer(out), fOut(out)
     {
-        initializeCodeContainer(numInputs, numOutputs);
+        initialize(numInputs, numOutputs);
         fKlassName = name;
     }
     virtual ~JAVAScriptCodeContainer() {}

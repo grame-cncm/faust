@@ -76,7 +76,7 @@ static void setCurrentBlock(FBCBlockInstruction<T>* block)
 template <class T>
 InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int numInputs, int numOutputs)
 {
-    initializeCodeContainer(numInputs, numOutputs);
+    initialize(numInputs, numOutputs);
     fKlassName = name;
 
     // Allocate one static visitor

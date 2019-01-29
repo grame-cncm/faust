@@ -466,6 +466,22 @@ void CPPCodeContainer::produceClass()
     generateUserInterface(&fCodeProducer);
     tab(n + 1, *fOut);
     *fOut << "}";
+    
+    if (gGlobal->gOneSample) {
+        tab(n + 1, *fOut);
+        *fOut << subst("virtual void control(int* icontrol, $0* fcontrol) {", xfloat());
+        tab(n + 2, *fOut);
+        fCodeProducer.Tab(n + 2);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
+        tab(n + 1, *fOut);
+        *fOut << "};" << endl;
+        
+        tab(n + 1, *fOut);
+        *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";
+        tab(n + 1, *fOut);
+        *fOut << "virtual int getNumRealControls() { return " << fRealControlNum << "; }";
+    }
 
     // Compute
     generateCompute(n);
@@ -522,15 +538,17 @@ void CPPScalarCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     if (gGlobal->gOneSample) {
-        *fOut << subst("virtual void compute($0* inputs, $0* outputs) {", xfloat());
+        *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* icontrol, $0* fcontrol) {", xfloat());
     } else {
         *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+    if (!gGlobal->gOneSample) {
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
+    }
 
     if (gGlobal->gOneSample) {
         // Generates one sample computation

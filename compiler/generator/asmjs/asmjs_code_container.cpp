@@ -68,7 +68,7 @@ ASMJAVAScriptCodeContainer::ASMJAVAScriptCodeContainer(const string& name, int n
                                                        std::ostream* out)
     : fOut(out)
 {
-    initializeCodeContainer(numInputs, numOutputs);
+    initialize(numInputs, numOutputs);
     fKlassName = name;
 
     // Allocate one static visitor

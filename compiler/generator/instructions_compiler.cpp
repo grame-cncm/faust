@@ -863,9 +863,19 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             return InstBuilder::genLoadStructVar(vname);
 
         case kBlock:
-            getTypedNames(t, "Slow", ctype, vname);
-            pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
-            return InstBuilder::genLoadStackVar(vname);
+            if (gGlobal->gOneSample) {
+                if (t->nature() == kInt) {
+                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum++), exp));
+                    return InstBuilder::genLoadArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
+                } else {
+                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum++), exp));
+                    return InstBuilder::genLoadArrayStackVar("fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
+                }
+            } else {
+                getTypedNames(t, "Slow", ctype, vname);
+                pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
+                return InstBuilder::genLoadStackVar(vname);
+            }
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);

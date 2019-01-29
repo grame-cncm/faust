@@ -46,7 +46,7 @@ class RustCodeContainer : public virtual CodeContainer {
     RustCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
         : fCodeProducer(out, name), fOut(out)
     {
-        initializeCodeContainer(numInputs, numOutputs);
+        initialize(numInputs, numOutputs);
         fKlassName = name;
     }
     virtual ~RustCodeContainer() {}

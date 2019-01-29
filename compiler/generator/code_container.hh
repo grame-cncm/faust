@@ -54,7 +54,7 @@ class CodeContainer : public virtual Garbageable {
 
     int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
     int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
-
+    
     string fKlassName;
 
     vector<int> fInputRates;
@@ -176,7 +176,7 @@ class CodeContainer : public virtual Garbageable {
 
    public:
     CodeContainer();
-    void initializeCodeContainer(int numInputs, int numOutputs);
+    void initialize(int numInputs, int numOutputs);
     virtual ~CodeContainer();
 
     CodeLoop* getCurLoop() { return fCurLoop; }
@@ -548,6 +548,10 @@ class CodeContainer : public virtual Garbageable {
         faustassert(false);
         return 0;
     }
+    
+    int fInt32ControlNum;   // number of 'int32' intermediate control values
+    int fRealControlNum;    // number of 'real' intermediate control values
+
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)

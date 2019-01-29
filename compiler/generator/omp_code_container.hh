@@ -37,7 +37,7 @@ class OpenMPCodeContainer : public virtual CodeContainer {
 
     OpenMPCodeContainer(int numInputs, int numOutputs)
     {
-        initializeCodeContainer(numInputs, numOutputs);
+        initialize(numInputs, numOutputs);
         fFullCount = "fullcount";
     }
 };

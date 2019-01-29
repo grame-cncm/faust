@@ -38,7 +38,7 @@ class JAVACodeContainer : public virtual CodeContainer {
     JAVACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
         : fCodeProducer(out), fOut(out), fSuperKlassName(super)
     {
-        initializeCodeContainer(numInputs, numOutputs);
+        initialize(numInputs, numOutputs);
         fKlassName = name;
     }
     virtual ~JAVACodeContainer() {}

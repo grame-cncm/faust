@@ -44,7 +44,7 @@ class CCodeContainer : public virtual CodeContainer {
     CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
         : fCodeProducer(out, name), fOut(out)
     {
-        initializeCodeContainer(numInputs, numOutputs);
+        initialize(numInputs, numOutputs);
         fKlassName = name;
 
         // For mathematical functions

@@ -65,7 +65,7 @@ WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numO
                                      bool internal_memory)
     : fOut(out)
 {
-    initializeCodeContainer(numInputs, numOutputs);
+    initialize(numInputs, numOutputs);
     fKlassName      = name;
     fInternalMemory = internal_memory;
 

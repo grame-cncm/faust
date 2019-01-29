@@ -350,6 +350,22 @@ void CCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
     }
+    
+    if (gGlobal->gOneSample) {
+        tab(n, *fOut);
+        *fOut << "void control" << fKlassName << subst("(int* icontrol, $0* fcontrol) {", xfloat());
+        tab(n + 1, *fOut);
+        fCodeProducer.Tab(n + 1);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
+        tab(n, *fOut);
+        *fOut << "};" << endl;
+        
+        tab(n, *fOut);
+        *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fInt32ControlNum << "; }";
+        tab(n, *fOut);
+        *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fRealControlNum << "; }";
+    }
 
     // Compute
     generateCompute(n);
@@ -429,7 +445,7 @@ void CScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     if (gGlobal->gOneSample) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-              << subst("* dsp, $0* inputs, $0* outputs) {", xfloat());
+              << subst("* dsp, $0* inputs, $0* outputs, int* iControl, $0* fControl) {", xfloat());
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
               << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -437,8 +453,10 @@ void CScalarCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+    if (!gGlobal->gOneSample) {
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
+    }
     
     if (gGlobal->gOneSample) {
         // Generates one sample computation

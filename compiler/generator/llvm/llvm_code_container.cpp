@@ -54,7 +54,7 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
-    initializeCodeContainer(numInputs, numOutputs);
+    initialize(numInputs, numOutputs);
     fKlassName = name;
     fContext   = new LLVMContext();
     stringstream compile_options;
@@ -98,7 +98,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
                                      LLVMContext* context)
 {
-    initializeCodeContainer(numInputs, numOutputs);
+    initialize(numInputs, numOutputs);
     fKlassName = name;
     fModule    = module;
     fContext   = context;

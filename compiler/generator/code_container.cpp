@@ -32,7 +32,7 @@
 
 using namespace std;
 
-void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
+void CodeContainer::initialize(int numInputs, int numOutputs)
 {
     fNumInputs  = numInputs;
     fNumOutputs = numOutputs;

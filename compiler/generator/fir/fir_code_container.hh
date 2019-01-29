@@ -55,7 +55,7 @@ class FIRCodeContainer : public virtual CodeContainer {
         fTopLevel  = top_level;
         fKlassName = name;
         fOut       = dst;
-        initializeCodeContainer(numInputs, numOutputs);
+        initialize(numInputs, numOutputs);
     }
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
