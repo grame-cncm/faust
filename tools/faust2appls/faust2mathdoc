@@ -118,7 +118,7 @@ for FILEPATH in $@ ; do
 	    fi
 		faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
 		cd ${FILEPATH%.dsp}-mdoc/ && 
-		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
+		cd svg && convert_svgprocesses2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
 		mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
 		mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
