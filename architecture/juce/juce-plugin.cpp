@@ -523,7 +523,8 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         fDSP = new dsp_adapter(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }
    
-    // Setting the DSP default values has already been done by 'buildUserInterface(&fStateUI)' call
+    // Setting the DSP control values has already been done by 'buildUserInterface(&fStateUI)', using the saved values.
+    // What has to be done to finish the DSP initialization is done now.
     mydsp::classInit(int(sampleRate));
     fDSP->instanceConstants(int(sampleRate));
     fDSP->instanceClear();

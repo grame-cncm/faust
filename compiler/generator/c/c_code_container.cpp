@@ -445,7 +445,7 @@ void CScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     if (gGlobal->gOneSample) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-              << subst("* dsp, $0* inputs, $0* outputs, int* iControl, $0* fControl) {", xfloat());
+              << subst("* dsp, $0* inputs, $0* outputs, int* icontrol, $0* fcontrol) {", xfloat());
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
               << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
