@@ -105,12 +105,7 @@ The `/examples` folder contains dozen of example Faust codes organized by catego
 
 ### Faust Editor
 
-The [Faust Editor](https://faust.grame.fr/editor-page/) can be used to edit, compile and run Faust code from any recent Web Browser with WebAssembly support.
-
-### Faust Online Compiler
-
-The [Faust Online Compiler](https://faust.grame.fr/onlinecompiler/) allows to write and compile Faust codes for a wide range of targets and platforms. Unlike, the Faust playground presented above, it doesn't permit to run a Faust program in a web browser.
-
+The [Faust Editor](https://faust.grame.fr/editor) can be used to edit, compile and run Faust code from any recent Web Browser with WebAssembly support.
 
 ### FaustPlayground
 
@@ -118,7 +113,7 @@ The [Faust Online Compiler](https://faust.grame.fr/onlinecompiler/) allows to wr
 
 ### FaustLive
 
-[FaustLive](https://sourceforge.net/p/faudiostream/faustlive/ci/master/tree/) is a program that was designed to facilitate the prototyping of Faust codes. It embeds the LLVM on-the-fly compiler of Faust2 allowing you to very rapidly compile Faust codes on your computer. Binaries and installation packages of FaustLive are available for [Linux, Windows and OSX](https://sourceforge.net/projects/faudiostream/files/).
+[FaustLive](https://github.com/grame-cncm/faustlive) is a program that was designed to facilitate the prototyping of Faust codes. It embeds the LLVM on-the-fly compiler of Faust2 allowing you to very rapidly compile Faust codes on your computer. Binaries and installation packages of FaustLive are available for [Linux, Windows and OSX](https://github.com/grame-cncm/faustlive/releases).
 
 ### `faust2...` Scripts and Programs
 
@@ -173,7 +168,7 @@ Obviously, the corresponding dependencies for each of them must be installed on 
 
 * `/documentation/faust-quick-reference.pdf` contains the most up-to-date documentation of Faust.
 * `/documentation/library.pdf` contains the documentation of the Faust DSP libraries.
-* The Faust website: <https://faust.grame.fr> contains useful resources around Faust.
+* The [Faust website](https://faust.grame.fr) contains useful resources around Faust.
 * The [Faust online course](https://ccrma.stanford.edu/~rmichon/faustWorkshops/course2015/) or the [Faust Hero in 2 Hours tutorial](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours) might be good starting points for beginners.
 * [Julius Smith's website](https://ccrma.stanford.edu/~jos) is an incredible resource on various topics around DSP and Faust.
 
