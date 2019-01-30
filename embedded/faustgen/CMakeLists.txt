@@ -144,7 +144,7 @@ install (
 # post install processing
 if (APPLE)
 install (
-    CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}.dmg -srcfolder ${PACKDIR}/${DST} -ov)"
+    CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}.dmg -fs HFS+ -srcfolder ${PACKDIR}/${DST} -format UDBZ -ov)"
 )
 endif()
 

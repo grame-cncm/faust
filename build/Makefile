@@ -179,9 +179,9 @@ macpack: package/README.html
 	make cmake BACKENDs=all.cmake TARGETS=all.cmake
 	make install PREFIX=../$(PACK)/Faust-$(VERSION)
 	cp package/install $(PACK)/Faust-$(VERSION)
-	cp package/INSTALL.rtf $(PACK)
+	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
-	hdiutil create Faust-$(VERSION).dmg -srcfolder $(PACK) -ov
+	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 
 linuxpack:
 	@echo Linux packaging not implemented. 
