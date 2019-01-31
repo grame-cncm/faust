@@ -1,15 +1,19 @@
 #! /bin/bash -e
-if [[ $(uname) == Darwin ]]; then
-	APPL='open -a Safari'
-else
-	APPL=xdg-open
+
+VIEWER_LAUNCH=${FAUST2FIREFOX_VIEWER_LAUNCH}
+if [[ -z "${VIEWER_LAUNCH}" ]]; then
+    if [[ $(uname) == Darwin ]]; then
+	VIEWER_LAUNCH='open -a Safari'
+    else
+	VIEWER_LAUNCH=xdg-open
+    fi
 fi
 
 faust2svg $@ || exit
-$APPL ${1%.dsp}-svg/process.svg&
+${VIEWER_LAUNCH} ${1%.dsp}-svg/process.svg&
 shift
 for f in $@; do
     sleep 1
-    $APPL ${f%.dsp}-svg/process.svg&
+    ${VIEWER_LAUNCH} ${f%.dsp}-svg/process.svg&
 done
 
