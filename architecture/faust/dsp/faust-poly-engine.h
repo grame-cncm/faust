@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "faust/misc.h"
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
 #include "faust/gui/meta.h"
@@ -38,7 +37,6 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/faust-engine.h"
-#include "faust/dsp/dsp-combiner.h"
 
 //**************************************************************
 // Mono or polyphonic audio DSP engine
@@ -67,11 +65,9 @@ class FaustPolyEngine {
         {
             bool midi_sync = false;
             int nvoices = 0;
+            fRunning = false;
             
             MidiMeta::analyse(mono_dsp, midi_sync, nvoices);
-            
-            fDriver = driver;
-            fRunning = false;
             
             // Getting the UI JSON
             JSONUI jsonui1(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
@@ -126,8 +122,19 @@ class FaustPolyEngine {
       
             MyMeta meta;
             fFinalDSP->metadata(&meta);
-            fDriver->init(meta.fName.c_str(), fFinalDSP);
             if (midi) midi->setName(meta.fName);
+            
+            if (driver) {
+                // If driver cannot be initialized, start will fail later on...
+                if (!driver->init(meta.fName.c_str(), fFinalDSP)) {
+                    delete driver;
+                    fDriver = NULL;
+                } else {
+                    fDriver = driver;
+                }
+            } else {
+                fDriver = NULL;
+            }
         }
     
     public:
@@ -151,11 +158,11 @@ class FaustPolyEngine {
         bool start()
         {
             if (!fRunning) {
-                fRunning = fDriver->start();
+                fRunning = (fDriver) ? fDriver->start() : false;
             }
             return fRunning;
         }
-        
+    
         /*
          * isRunning()
          * Returns true if the DSP frames are being computed and
@@ -174,9 +181,12 @@ class FaustPolyEngine {
         {
             if (fRunning) {
                 fRunning = false;
-                fDriver->stop();
+                if (fDriver) fDriver->stop();
             }
         }
+    
+        void setGroup(bool group) { if (fPolyDSP) fPolyDSP->setGroup(group); }
+        bool getGroup() { return (fPolyDSP) ? fPolyDSP->getGroup() : false; }
     
         /*
          * keyOn(pitch, velocity)
@@ -298,6 +308,11 @@ class FaustPolyEngine {
         void buildUserInterface(UI* ui_interface)
         {
             fFinalDSP->buildUserInterface(ui_interface);
+        }
+    
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            fFinalDSP->compute(count, inputs, outputs);
         }
 
         /*
@@ -510,7 +525,7 @@ class FaustPolyEngine {
          */
         void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
         {
-           fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
+            fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
         }
 
         /*
@@ -536,7 +551,7 @@ class FaustPolyEngine {
          * getCPULoad()
          * Return DSP CPU load.
          */
-        float getCPULoad() { return fDriver->getCPULoad(); }
+        float getCPULoad() { return (fDriver) ? fDriver->getCPULoad() : 0.f; }
 
         /*
          * getScreenColor() -> c:int

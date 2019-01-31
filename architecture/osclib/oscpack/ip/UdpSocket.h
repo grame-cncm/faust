@@ -158,6 +158,7 @@ public:
 	UdpListeningReceiveSocket( const IpEndpointName& localEndpoint, PacketListener *listener )
         : listener_( listener )
     {
+        if (localEndpoint.IsMulticastAddress()) SetAllowReuse(true);
         Bind( localEndpoint );
         mux_.AttachSocketListener( this, listener_ );
     }

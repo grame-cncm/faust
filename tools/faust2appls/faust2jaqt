@@ -29,6 +29,7 @@ QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
+POLY="POLY"
 DEPLOY=""
 NVOICES=-1
 SOUNDFILE="0"
@@ -40,11 +41,13 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jaqt [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
+        echo "faust2jaqt [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         exit
@@ -69,6 +72,11 @@ do
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="DEFINES += POLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-soundfile" ]; then
@@ -136,8 +144,27 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
- 	faust -json -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-  
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
+            rm "$TMP/effect.dsp"
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        fi
+    else
+        faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+    fi
+
     # compile c++ to binary
     (
 	    cd "$TMP"
@@ -145,30 +172,43 @@ for p in $FILES; do
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit
-    
-     if [ "$SOUNDFILE" = "1" ]; then
-        # get all soundfiles from the JSON file
-        cat $p.json | awk '
-                        BEGIN { FS=":"; SOFI=0; }
-                            /"soundfile"/ { SOFI=1; }
-                            /"label"/ {
-                            if (SOFI) {
-                                match($2, /"[^"]*/);
-                                print substr($2, RSTART+1, RLENGTH-1);
-                                SOFI=0;
+
+    if [[ $(uname) == Darwin ]]; then
+        if [ "$SOUNDFILE" = "1" ]; then
+            # get all soundfiles from the JSON file
+            cat $p.json | awk '
+                            BEGIN { FS=":"; SOFI=0; }
+                                /"soundfile"/ { SOFI=1; }
+                                /"url"/ {
+                                if (SOFI) {
+                                    match($2, /"[^"]*/);
+                                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                    for (x in res) print substr(res[x], 2, length(res[x])-2);
+                                    SOFI=0;
+                                }
                             }
-                        }
-        ' > $p-tmp.txt
-        # copy found soundfiles in the final binary
-        for snd in $(cat $p-tmp.txt); do
-            if [ -f $snd ]; then
-                echo "Copy $snd in ${f%.dsp}$EXT"
-                cp $snd "$TMP/${f%.dsp}$EXT/Contents/Resources/"
-            else
-                echo "Error: file $snd not found !"
-            fi
-        done
-        rm $p-tmp.txt
+            ' > $p-tmp.txt
+            # copy found soundfiles in the final binary
+            for snd in $(cat $p-tmp.txt); do
+                if [ -f $snd ]; then
+                    if [ ${snd:0:1} = "/" ]; then 
+                        echo "Warning: soundfile with absolute path is not copied !"
+                    else
+                        #create destination path and possibly create directory
+                        sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
+                        if ! [ -d $sfpath ]; then
+                            echo "Create $sfpath"
+                            mkdir $sfpath
+                        fi
+                        echo "Copy $snd in ${f%.dsp}$EXT"
+                        cp $snd $sfpath
+                    fi
+                else
+                    echo "Error: file $snd not found !"
+                fi
+            done
+            rm $p-tmp.txt
+        fi
     fi
 
     # on Mac add the qt libraries to the bundle
@@ -178,10 +218,11 @@ for p in $FILES; do
         fi
     fi
 
+    #remove tempory stuff
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
-    rm $p.json
+    rm -f $p.json
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"

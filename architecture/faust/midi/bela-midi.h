@@ -78,27 +78,77 @@ class bela_midi : public midi_handler {
                     break;
                 case kmmPitchBend:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte(1) * 128.0 + message.getDataByte(0)) - 8192) / 8192.0);
+                        midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte(1) << 7) + message.getDataByte(0)));
                     }
-                    break;
+                case kmmSystem:
+                    {
+                        // We have to re-build the MIDI message:
+                        int channel = message.getChannel();
+                        int status = message.getStatusByte();
+                        int systemRealtimeByte = channel | status;
+
+                        switch (systemRealtimeByte)
+                        {
+                            case MIDI_CLOCK:
+                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                                    midi->fMidiInputs[i]->clock(0);
+                                }
+                                break;
+                            case MIDI_START:
+                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                                    midi->fMidiInputs[i]->startSync(0);
+                                }
+                                break;
+                            case MIDI_CONT:
+                                // We can consider start and continue as identical messages.
+                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                                    midi->fMidiInputs[i]->startSync(0);
+                                }
+                                break;
+                            case MIDI_STOP:
+                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                                    midi->fMidiInputs[i]->stopSync(0);
+                                }
+                                break;
+                            case MIDI_SYSEX_START:
+#if 0 // this is not implemented on Bela yet
+                                std::vector<unsigned char> sysex;
+                                for (unsigned int j = 0; j < message.getNumDataBytes(); j++) {
+                                    sysex.push_back(message.getDataByte(j));
+                                }
+                    
+                                // Would be nice to do this:
+                                // std::vector<unsigned char> sysex(message.getData(), message.getData() + message.getNumDataBytes());
+                                
+                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                                    midi->fMidiInputs[i]->sysEx(sysex);
+                                }
+#endif
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    }
                 case kmmNone:
                 case kmmAny:
                 default:
                     break;
-            } 
+            }
         }
-       
+    
     public:
     
-        bela_midi():midi_handler("bela")
+        bela_midi()
+            :midi_handler("bela")
         {}
-        
+    
         virtual ~bela_midi()
         {
-            stop_midi();
+            stopMidi();
         }
-        
-        bool start_midi()
+    
+        bool startMidi()
         {
             if (fBelaMidi.readFrom(0) < 0) {
                 return false;
@@ -113,7 +163,7 @@ class bela_midi : public midi_handler {
             return true;
         }
         
-        void stop_midi()
+        void stopMidi()
         { 
             // Nothing todo?
         }
@@ -182,13 +232,13 @@ class bela_midi : public midi_handler {
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
          
-        void start_sync(double date) 
+        void startSync(double date) 
         {
             unsigned char buffer[1] = { MIDI_START };
             fBelaMidi.writeOutput(buffer, 1);
         }
        
-        void stop_sync(double date) 
+        void stopSync(double date)
         {
             unsigned char buffer[1] = { MIDI_STOP };
             fBelaMidi.writeOutput(buffer, 1);
@@ -199,7 +249,12 @@ class bela_midi : public midi_handler {
             unsigned char buffer[1] = { MIDI_CLOCK };
             fBelaMidi.writeOutput(buffer, 1);
         }
-        
+    
+        void sysEx(double date, std::vector<unsigned char>& message)
+        {
+            fBelaMidi.writeOutput(message.data(), message.size());
+        }
+    
 };
 
 #endif // __bela_midi__

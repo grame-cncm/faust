@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,70 +23,77 @@
 #define _INTERPRETER_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "vec_code_container.hh"
+#include "fir_to_fir.hh"
+#include "instructions_compiler.hh"
 #include "interpreter_dsp_aux.hh"
 #include "interpreter_instructions.hh"
-#include "instructions_compiler.hh"
-#include "fir_to_fir.hh"
 
-using namespace std;           
+using namespace std;
 
 template <class T>
 class InterpreterCodeContainer : public virtual CodeContainer {
+   protected:
+    static InterpreterInstVisitor<T>* gInterpreterVisitor;
 
-    protected:
+    FIRMetaBlockInstruction* produceMetadata(string& name);
 
-        static InterpreterInstVisitor<T>* gInterpreterVisitor;
-    
-        FIRMetaBlockInstruction* produceMetadata(string& name);
-    
-        virtual void generateSR()
-        {
-            if (!fGeneratedSR) {
-                pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
-            }
+    virtual void generateSR()
+    {
+        if (!fGeneratedSR) {
+            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
         }
-
-    public:
-
-        InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
+    }
     
-        virtual ~InterpreterCodeContainer()
-        {}
+    // To be implemented in each InterpreterScalarCodeContainer and InterpreterVectorCodeContainer classes
+    virtual FBCBlockInstruction<T>* generateCompute() = 0;
 
-        void produceInternal();
-        virtual dsp_factory_base* produceFactory();
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+   public:
+    InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
-    
+    virtual ~InterpreterCodeContainer() {}
+
+    void                      produceInternal();
+    virtual dsp_factory_base* produceFactory();
+
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
 };
 
 template <class T>
 class InterpreterScalarCodeContainer : public InterpreterCodeContainer<T> {
-
-    protected:
-
-    public:
-
-        InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type);
-        virtual ~InterpreterScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    
+   protected:
+    virtual FBCBlockInstruction<T>* generateCompute();
+    
+   public:
+    InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type);
+    virtual ~InterpreterScalarCodeContainer();
 };
 
-class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
-
+template <class T>
+class InterpreterVectorCodeContainer : public VectorCodeContainer, public InterpreterCodeContainer<T> {
+    
+    protected:
+      virtual FBCBlockInstruction<T>* generateCompute();
+    
     public:
+    InterpreterVectorCodeContainer(const string& name, int numInputs, int numOutputs)
+        : VectorCodeContainer(numInputs, numOutputs), InterpreterCodeContainer<T>(name, numInputs, numOutputs)
+    {}
+    virtual ~InterpreterVectorCodeContainer() {}
+ };
+
+class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
     
-        InterpreterInstructionsCompiler(CodeContainer* container):InstructionsCompiler(container)
-        {}
-    
-        StatementInst* generateShiftArray(const string& vname, int delay)
-        {
-            return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
-        }
+   public:
+    InterpreterInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container) {}
+
+    StatementInst* generateShiftArray(const string& vname, int delay)
+    {
+        return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
+    }
 };
 
 #endif

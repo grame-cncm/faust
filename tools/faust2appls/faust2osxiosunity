@@ -7,8 +7,8 @@
 #  (c) Grame, 2017                                                                      #
 #                                                                                       #
 #########################################################################################
-#
-#
+
+
 #   This script shouldn't be used on its own, use the "faust2unity" script instead
 #   The libraries are firstly wrapped by the unityplugin.cpp architecture file
 #   They have to be used in the Unity environment
@@ -27,10 +27,12 @@
 
 . faustpath
 
+NVOICES=-1
+
 #------------------------------------------------
 # Compiler settings
-
-CXXFLAGS="-I. -O3 -fPIC -arch i386 -arch x86_64"
+ARCH="-arch x86_64"
+CXXFLAGS="-I. -O3 -fPIC"
 LDFLAGS="-bundle"
 CXX="c++"
 
@@ -110,11 +112,15 @@ DELIM
 CUR=$(pwd)
 SOURCE=0
 
-for p in $@; do
+while [ $1 ] 
+do
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2osxiosunity [-ios] <file1.dsp> [<file2.dsp>]"
+        echo "faust2osxiosunity [-ios] [-universal] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
         echo "Use '-ios' to create an iOS static library"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+        echo "Use '-universal' to generate a 64/32 bits external"
         echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
         echo "See architecture/unity/README.md for more info"
         exit
@@ -123,8 +129,13 @@ for p in $@; do
     if [ $p = "-ios" ]; then
         IOS=1
         CXXFLAGS="-arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2"
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
     elif [ $p = "-source" ]; then
-        SOURCE=1
+    	SOURCE=1
+    elif [ $p = "-universal" ]; then
+    	ARCH="-arch i386 -arch x86_64"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -133,6 +144,7 @@ for p in $@; do
         OPTIONS="$OPTIONS $p"
     fi
 
+shift
 done
 
 #--------------------------------------
@@ -189,8 +201,13 @@ for p in $FILES; do
 
         # compile Faust DSP to c++
         faust -i -a $FAUSTLIB/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
-
-        $CXX $CXXFLAGS $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+        
+        if [ $NVOICES == -1 ]; then
+        	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+        else
+        	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DPOLY -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+        fi
+       
         rm "$MOS/$NAME.cpp"
         createInfoPList "lib$FNAME" "$BNDL/Contents/Info.plist" || (echo "$FNAME : Info.plist gerenation failed in faust2osxiosunity"; exit 1)
 

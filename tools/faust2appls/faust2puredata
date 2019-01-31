@@ -67,8 +67,8 @@ done
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
-if [[ $(uname) == Darwin ]]; then
-    LIB="-I/Applications/Pd-extended.app/Contents/Resources/include/ -I. -bundle -undefined suppress -flat_namespace"    
+if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+    LIB="-I$PUREDATA_MACSDK/include/ -I. -bundle -undefined suppress -flat_namespace"    
     EXT="~.pd_darwin"
 else
     LIB="-I/usr/include/pd -I/usr/include/pdextended -I. -fPIC -shared"
@@ -103,13 +103,13 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-		if [[ $(uname) == Darwin ]]; then
+		if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
 			# On Darwin we build 32-bits and 64-bits plugins combined with lipo
-			${CXX=g++}  -arch i386 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.i386 ${f%.dsp}.cpp || exit
-			${CXX=g++}  -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 ${f%.dsp}.cpp || exit
-			lipo -create "${f%.dsp}.i386" "${f%.dsp}.x86_64"  -output "${f%.dsp}$EXT" || exit
+			$CXX -arch i386 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.i386 ${f%.dsp}.cpp || exit
+			$CXX -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 ${f%.dsp}.cpp || exit
+			$LIPO -create "${f%.dsp}.i386" "${f%.dsp}.x86_64"  -output "${f%.dsp}$EXT" || exit
 		else
-			${CXX=g++} $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp || exit
+			$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp || exit
 		fi		
         if [ $(which faust2pd) ]; then
         	faust2pd -s $F2PDPOLY $f.xml

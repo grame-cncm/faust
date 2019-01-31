@@ -26,6 +26,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 /*
 #ifndef FAUSTFLOAT
@@ -33,21 +35,20 @@
 #endif
 */
 
+#include "faust/dsp/dsp-optimizer.h"
 #include "faust/audio/jack-dsp.h"
-
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
-
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
-
+#include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -71,6 +72,13 @@ struct malloc_memory_manager : public dsp_memory_manager {
     
 };
 
+static void printList(const vector<string>& list)
+{
+    for (int i = 0; i < list.size(); i++) {
+        std::cout << "item: " << list[i] << "\n";
+    }
+}
+
 int main(int argc, char* argv[])
 {
     char name[256];
@@ -92,17 +100,13 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-    #ifdef INTERP_PLUGIN
-        cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
-    #else
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
-        cout << "Use '-interp' to use Interpreter backend\n";
+        cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
         cout << "Use '-httpd' to activate HTTP control\n";
-    #endif
         exit(EXIT_FAILURE);
     }
     
@@ -139,39 +143,73 @@ int main(int argc, char* argv[])
     
     argv1[argc1] = 0;  // NULL terminated argv
     
-#ifdef INTERP_PLUGIN
-    cout << "Using interpreter plugin backend" << endl;
-    factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
-#else
     if (is_llvm) {
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+        
+        //cout << "getDSPMachineTarget " << getDSPMachineTarget() << endl;
+        
+        /*
+        // Test Write/Read
+        string path_name = factory->getName();
+        
+        cout << "Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile" << endl;
+        writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory), path_name);
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        factory = readDSPFactoryFromBitcodeFile(path_name, "", -1);
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+        */
+        
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
+        if (!factory) {
+            cout << "createInterpreterDSPFactoryFromFile " << error_msg;
+            factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
+        }
     }
-#endif
     
     if (!factory) {
         cerr << "Cannot create factory : " << error_msg;
         exit(EXIT_FAILURE);
     }
     
+    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+    printList(factory->getLibraryList());
+    printList(factory->getIncludePathnames());    
+    
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
+    
+    /*
+    measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of  measure
+    for (int i = 0; i < 2; i++) {
+        mes->measure();
+        cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
+    }
+    */
+    
+    // To test compiled block reuse
+    //DSP = factory->createDSPInstance();
+    
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
     }
     
     cout << "getName " << factory->getName() << endl;
-    //cout << "getSHAKey " << factory->getSHAKey() << endl;
+    cout << "getSHAKey " << factory->getSHAKey() << endl;
+    
+    //exit(1);
   
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
-        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, false);
+        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, true);
     }
     
     if (isopt(argv, "-double")) {
@@ -183,11 +221,17 @@ int main(int argc, char* argv[])
     
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
-   
+    
+    SoundUI* soundinterface = new SoundUI();
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    DSP->buildUserInterface(soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(true);
+    
     if (!audio.init(filename, DSP)) {
         return 0;
     }
-
+  
     // After audio.init that calls 'init'
     finterface->recallState(rcfilename);
     
@@ -236,16 +280,15 @@ int main(int argc, char* argv[])
     delete midiinterface;
     delete httpdinterface;
     delete oscinterface;
+    delete soundinterface;
+    
+    //delete mes;
   
-#ifdef INTERP_PLUGIN
-    deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-#else
     if (is_llvm) {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     } else {
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     }
-#endif
     
     return 0;
 }

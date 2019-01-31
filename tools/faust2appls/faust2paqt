@@ -2,14 +2,13 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to PortAudio-qt             #
+#               Compiles Faust programs to PortAudio and QT         #
 #               (c) Grame, 2009                                     #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
-
 CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="pa-qt.cpp"
@@ -22,48 +21,44 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
 #PHASE 2 : dispatch command arguments
 
-OSCINC=""
 QTDEFS=""
 OSCLIB=""
+POLY="POLY"
+EFFECT=""
+NVOICES=-1
 
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2paqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] <file.dsp>"
+        echo "faust2paqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-osc' to activate OSC control"
         exit
     fi
     
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
+    if [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-poly" ]; then
-        POLYDEFS="DEFINES += POLY"
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="DEFINES += POLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -81,6 +76,9 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+
+shift
+
 done
 
 #-------------------------------------------------------------------
@@ -109,12 +107,31 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
+            rm "$TMP/effect.dsp"
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        fi
+    else
+        faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+    fi
 
     # compile c++ to binary
     (
 	    cd "$TMP"
-        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "$OSCINC" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
+        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit
@@ -122,6 +139,7 @@ for p in $FILES; do
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
+    rm $p.json
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"

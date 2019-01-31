@@ -25,7 +25,7 @@ sources =  $(wildcard *.cpp)
 objects = $(sources:.cpp=.o)
 
 ifeq ($(system), Darwin)
-	LIBS = ../../../build/lib/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -lportaudio -ljack -ljacknet -L/opt/local/lib ../../../build/lib/libOSCFaust.a ../../../architecture/httpdlib/libHTTPDFaust.a -framework CoreMIDI -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
+	LIBS = ../../../build/lib/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -lportaudio -ljack -ljacknet -L/opt/local/lib ../../../build/lib/libOSCFaust.a ../../../build/lib/libHTTPDFaust.a -framework CoreMIDI -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 else 
 	LIBS = ../../../build/lib/libfaust.a ../../../build/lib/libOSCFaust.a ../../../architecture/httpdlib/libHTTPDFaust.a -ljack -ljacknet -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 endif

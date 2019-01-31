@@ -1292,7 +1292,7 @@ template <class CHART> int CConditionElxT <CHART> :: Match(CContext * pContext) 
 template <class CHART> int CConditionElxT <CHART> :: MatchNext(CContext * pContext) const
 {
 	// pop
-	int ncsize, condition_yes;
+	int ncsize=0, condition_yes=0;
 
 	pContext->m_stack.Pop(condition_yes);
 	pContext->m_stack.Pop(ncsize);

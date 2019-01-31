@@ -1,13 +1,4 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
 /************************************************************************
     FAUST Architecture File
     Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
@@ -54,7 +45,7 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile...
+// Always include this file, otherwise -nvoices only mode does not compile...
 #include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 
@@ -118,9 +109,15 @@ int main(int argc, char *argv[])
 
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
+    
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--poly] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        exit(1);
+    }
 
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 512);
+    bool is_virtual = lopt(argv, "--virtual-midi", false);
 
 #ifdef POLY
     int poly = lopt(argv, "--poly", 4);
@@ -162,7 +159,7 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
-    rt_midi midi_handler(name);
+    rt_midi midi_handler(name, is_virtual);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
@@ -185,8 +182,8 @@ int main(int argc, char *argv[])
     finterface.recallState(rcfilename);
     audio.start();
 
-    printf("ins %d\n", audio.getNumInputs());
-    printf("outs %d\n", audio.getNumOutputs());
+    std::cout << "ins " << audio.getNumInputs() << std::endl;
+    std::cout << "outs " << audio.getNumOutputs() << std::endl;
 
 #ifdef HTTPCTRL
     httpdinterface.run();
@@ -218,7 +215,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
 
 

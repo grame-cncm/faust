@@ -1,0 +1,149 @@
+#!/bin/bash
+
+#************************************************************************
+# Copyright (c) 2017 Analog Devices, Inc.  All rights reserved.
+#************************************************************************
+
+#####################################################################
+#     Generates inline faust objects for the SHARC Audio Module     #
+#           Gregory Pat Scandalis, moForte, ADI                     #
+#           based on faust2api by Romain Michon                     #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+# change if you want to get the log of what's happening
+LOG="/dev/null"
+#LOG="log"
+
+# exit if a command fails
+set -e
+
+# global option variables
+
+NVOICES="0"
+#PACKAGENAME="0"
+POLY2="0"
+MIDI="0"
+NODOC="0"
+EFFECT=""
+
+echoHelp ()
+{
+    echo ""
+    echo "faust2sam can be used to generate faust-based dsp objects for the ADI SHARC Audio Module board"
+    echo ""
+    echo ""
+    echo "Global options:"
+    echo "   -midi"
+    echo "   -nvoices <num> : creates a polyphonic object with <num> voices."
+    echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
+    echo "" 
+}
+
+createAPI ()
+{
+    cp -r $FAUSTLIB/sam/fast_pow2.h $APIFOLDER
+    cp -r $FAUSTLIB/sam/samFaustDSP.h $APIFOLDER
+    faust -i -a sam/samFaustDSP.cpp $OPTIONS "$FILE" -o "$APIFOLDER/samFaustDSP.cpp" || exit 1
+    if [ "$POLY2" = "1" ]; then
+        faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp" || exit 1
+        echo "#define POLY2 1" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+    fi
+    if [ "$NVOICES" -gt "0" ]; then
+        echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+    fi
+    if [ "$MIDI" = "1" ]; then
+        echo "#define MIDICTRL 1" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+    fi
+    # These are things that always need to be at the top and bottom
+    echo "#if USE_FAUST_ALGORITHM" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+    echo "#include \"./samFaustDSPCore.h\"" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+    echo "#include \"common/audio_system_config.h\"" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+    echo "#endif" >> "$APIFOLDER/samFaustDSP.cpp"
+
+    echo "#if USE_FAUST_ALGORITHM" | cat - "$APIFOLDER/samFaustDSP.h" > temp && mv temp "$APIFOLDER/samFaustDSP.h"
+    echo "#include \"./samFaustDSPCore.h\"" | cat - "$APIFOLDER/samFaustDSP.h" > temp && mv temp "$APIFOLDER/samFaustDSP.h"
+    echo "#include \"common/audio_system_config.h\"" | cat - "$APIFOLDER/samFaustDSP.h" > temp && mv temp "$APIFOLDER/samFaustDSP.h"
+    echo "#endif" >> "$APIFOLDER/samFaustDSP.h"
+    
+    echo "#if USE_FAUST_ALGORITHM" | cat - "$APIFOLDER/fast_pow2.h" > temp && mv temp "$APIFOLDER/fast_pow2.h"
+    echo "#include \"./samFaustDSPCore.h\"" | cat - "$APIFOLDER/fast_pow2.h" > temp && mv temp "$APIFOLDER/fast_pow2.h"
+    echo "#include \"common/audio_system_config.h\"" | cat - "$APIFOLDER/fast_pow2.h" > temp && mv temp "$APIFOLDER/fast_pow2.h"
+    echo "#endif" >> "$APIFOLDER/fast_pow2.h"
+    
+    # fix things that won't compile on the sharc
+    cat "$APIFOLDER/samFaustDSP.cpp"  | \
+    sed     -e 's/\(std::cerr.*;\)/\/* \1 *\/ /' \
+	    -e 's/std::cout/\/\/std::cout/' \
+	    -e 's/getCPULoad(void/faustGetCPULoad(void/' \
+	    -e 's/std::stringstream/std::ostringstream/' \
+	    -e 's/dynamic_cast/static_cast/' \
+	    > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+}
+
+# dispatch command arguments
+while [ $1 ]
+do
+	p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+        exit
+    elif [ "$PACKAGENAME" = "-1" ]; then
+		PACKAGENAME="$p"
+    elif [[ -f "$p" ]]; then
+		FILE="$p"
+    elif [ "$p" = "-effect" ]; then
+        POLY2="1"
+		shift
+		EFFECT=$1
+    elif [ "$p" = "-midi" ]; then
+        MIDI="1"
+    elif [ $p = "-nvoices" ]; then
+		shift
+		NVOICES=$1
+    elif [ $p = "-package" ]; then
+        PACKAGENAME="-1"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+if [ -z $FILE ]; then
+    echoHelp
+    exit 1
+fi
+
+###################################
+# GENERATING API
+###################################
+
+APIFOLDER="${FILE%.*}-sam"
+
+rm -r "$APIFOLDER" 2> /dev/null || true
+mkdir "$APIFOLDER"
+
+    echo "Your $APIFOLDER.zip package is being created"
+    createAPI
+
+###################################
+# POST PROCESSING
+###################################
+
+ZIPOUT="$APIFOLDER.zip"
+
+rm $ZIPOUT 2> /dev/null || true
+zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
+rm -r $APIFOLDER || exit 1
+
+# echos generated files for FaustWorks
+echo "$ZIPOUT;"

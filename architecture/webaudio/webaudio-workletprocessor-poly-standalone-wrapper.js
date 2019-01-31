@@ -134,7 +134,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
 
-    static get parameterDescriptors () 
+    static get parameterDescriptors() 
     {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
@@ -186,7 +186,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
     }
     
-    constructor (options)
+    constructor(options)
     {
         super(options);
         
@@ -207,9 +207,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.dspInChannnels = [];
         this.dspOutChannnels = [];
         
-        this.fFreqLabel = "";
-        this.fGateLabel = "";
-        this.fGainLabel = "";
+        this.fFreqLabel = [];
+        this.fGateLabel = [];
+        this.fGainLabel = [];
         this.fDate = 0;
         
         this.fPitchwheelLabel = [];
@@ -223,11 +223,11 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.ptr_size = 4;
         this.sample_size = 4;
         
-        this.memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, mydspPolyProcessor.polyphony);
+        var wasm_memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, mydspPolyProcessor.polyphony);
 
         // Create Mixer
-        this.mixObject = { imports: { print: arg => console.log(arg) } }
-        this.mixObject["memory"] = { "memory": this.memory };
+        this.mixerObject = { imports: { print: arg => console.log(arg) } }
+        this.mixerObject["memory"] = { "memory": wasm_memory };
 
         this.importObject = {
             env: {
@@ -279,20 +279,30 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 _sqrt: Math.sqrt,
                 _tan: Math.tan,
                 
-                memory: this.memory,
+                memory: wasm_memory,
                 
                 table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
             }
         }
 
+        // wasm mixer
+        this.mixer = new WebAssembly.Instance(mydspPolyProcessor.wasm_mixer_module, this.mixerObject).exports;
+
+        // wasm instance
         this.factory = new WebAssembly.Instance(mydspPolyProcessor.wasm_module, this.importObject).exports;
-        this.HEAP = this.memory.buffer;
+        
+        // wasm effect
+        this.effect = (mydspPolyProcessor.wasm_effect_module) ? new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports : null;
+        
+        this.HEAP = wasm_memory.buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
         
+        /*
         console.log(this.HEAP);
         console.log(this.HEAP32);
         console.log(this.HEAPF32);
+        */
         
         // bargraph
         this.outputs_timer = 5;
@@ -302,8 +312,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.inputs_items = [];
         
         // Start of HEAP index
-        // this.audio_heap_ptr = 0; Fails when 0...
-        this.audio_heap_ptr = 65536;
+        this.audio_heap_ptr = 0; // Fails when 0...
         
         // Setup pointers offset
         this.audio_heap_ptr_inputs = this.audio_heap_ptr;
@@ -318,15 +327,11 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Setup DSP voices offset
         this.dsp_start = this.audio_heap_mixing + (this.numOut * mydspPolyProcessor.buffer_size * this.sample_size);
         
-        // wasm mixer
-        this.mixer = new WebAssembly.Instance(mydspPolyProcessor.wasm_mixer_module, this.mixObject).exports;
-        
-        // wasm effect
-        this.effect = (mydspPolyProcessor.wasm_effect_module) ? new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports : null;
-        
-        console.log(this.mixer);
-        console.log(this.factory);
-        console.log(this.effect);
+        if (this.debug) {
+            console.log(this.mixer);
+            console.log(this.factory);
+            console.log(this.effect);
+        }
         
         // Start of DSP memory ('polyphony' DSP voices)
         this.polyphony = mydspPolyProcessor.polyphony;
@@ -334,7 +339,6 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.dsp_voices_state = [];
         this.dsp_voices_level = [];
         this.dsp_voices_date = [];
-        this.dsp_voices_trigger = [];
         
         this.kActiveVoice = 0;
         this.kFreeVoice = -1;
@@ -351,11 +355,32 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             this.dsp_voices_state[i] = this.kFreeVoice;
             this.dsp_voices_level[i] = 0;
             this.dsp_voices_date[i] = 0;
-            this.dsp_voices_trigger[i] = false;
         }
         
         // Effect memory starts after last voice
         this.effect_start = this.dsp_voices[this.polyphony - 1] + parseInt(this.json_object.size);
+        
+        this.printMemory = function ()
+        {
+            console.log("============== Memory layout ==============");
+            console.log("json_object.size: " + this.json_object.size);
+            
+            console.log("audio_heap_ptr: " + this.audio_heap_ptr);
+            
+            console.log("audio_heap_ptr_inputs: " + this.audio_heap_ptr_inputs);
+            console.log("audio_heap_ptr_outputs: " + this.audio_heap_ptr_outputs);
+            console.log("audio_heap_ptr_mixing: " + this.audio_heap_ptr_mixing);
+            
+            console.log("audio_heap_inputs: " + this.audio_heap_inputs);
+            console.log("audio_heap_outputs: " + this.audio_heap_outputs);
+            console.log("audio_heap_mixing: " + this.audio_heap_mixing);
+            
+            console.log("dsp_start: " + this.dsp_start);
+            for (var i = 0; i <  this.polyphony; i++) {
+                console.log("dsp_voices[i]: " + i + " " + this.dsp_voices[i]);
+            }
+            console.log("effect_start: " + this.effect_start);
+        }
     
         this.getPlayingVoice = function(pitch)
         {
@@ -378,8 +403,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Always returns a voice
         this.allocVoice = function(voice)
         {
+            // so that envelop is always re-initialized
+            this.factory.instanceClear(this.dsp_voices[voice]);
             this.dsp_voices_date[voice] = this.fDate++;
-            this.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
             this.dsp_voices_state[voice] = this.kActiveVoice;
             return voice;
         }
@@ -416,12 +442,14 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             
             // Then decide which one to steal
             if (oldest_date_release != Number.MAX_VALUE) {
-                if (this.debug)
+                if (this.debug) {
                     console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_release], this.fDate, voice_release);
+                }
                 return this.allocVoice(voice_release);
             } else if (oldest_date_playing != Number.MAX_VALUE) {
-                if (this.debug)
+                if (this.debug) {
                     console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_playing], this.fDate, voice_playing);
+                }
                 return this.allocVoice(voice_playing);
             } else {
                 return this.kNoVoice;
@@ -487,19 +515,16 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             // keep 'keyOn/keyOff' labels
             for (i = 0; i < this.inputs_items.length; i++) {
                 if (this.inputs_items[i].endsWith("/gate")) {
-                    this.fGateLabel = this.pathTable[this.inputs_items[i]];
-                    console.log(this.fGateLabel);
+                    this.fGateLabel.push(this.pathTable[this.inputs_items[i]]);
                 } else if (this.inputs_items[i].endsWith("/freq")) {
-                    this.fFreqLabel = this.pathTable[this.inputs_items[i]];
-                    console.log(this.fFreqLabel);
+                    this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
                 } else if (this.inputs_items[i].endsWith("/gain")) {
-                    this.fGainLabel = this.pathTable[this.inputs_items[i]];
-                    console.log(this.fGainLabel);
+                    this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
                 }
             }
             
             // Init DSP voices
-            for (i = 0; i <  this.polyphony; i++) {
+            for (i = 0; i < this.polyphony; i++) {
                 this.factory.init(this.dsp_voices[i], sampleRate);  // 'sampleRate' is defined in AudioWorkletGlobalScope
             }
             
@@ -507,15 +532,26 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             if (this.effect) {
                 this.effect.init(this.effect_start, sampleRate);
             }
+            
+            // Print memory layout
+            this.printMemory();
         }
         
         this.keyOn = function (channel, pitch, velocity)
         {
             var voice = this.getFreeVoice();
-            if (this.debug)
+            if (this.debug) {
                 console.log("keyOn voice %d", voice);
-            this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel, this.midiToFreq(pitch));
-            this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel, velocity/127.);
+            }
+            for (var i = 0; i < this.fFreqLabel.length; i++) {
+                this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
+            }
+            for (var i = 0; i < this.fGateLabel.length; i++) {
+                this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
+            }
+            for (var i = 0; i < this.fGainLabel.length; i++) {
+                this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
+            }
             this.dsp_voices_state[voice] = pitch;
         }
         
@@ -523,22 +559,28 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         {
             var voice = this.getPlayingVoice(pitch);
             if (voice !== this.kNoVoice) {
-                if (this.debug)
+                if (this.debug) {
                     console.log("keyOff voice %d", voice);
+                }
                 // No use of velocity for now...
-                this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel, 0.0);
+                for (var i = 0; i < this.fGateLabel.length; i++) {
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 0.0);
+                }
                 // Release voice
                 this.dsp_voices_state[voice] = this.kReleaseVoice;
             } else {
-                if (this.debug)
+                if (this.debug) {
                     console.log("Playing voice not found...");
+                }
             }
         }
         
         this.allNotesOff = function ()
         {
-            for (var i = 0; i <  this.polyphony; i++) {
-                this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
+            for (var i = 0; i < this.polyphony; i++) {
+                for (var j = 0; j < this.fGateLabel.length; j++) {
+                    this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 0.0);
+                }
                 this.dsp_voices_state[i] = this.kReleaseVoice;
             }
         }
@@ -639,7 +681,18 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
     {
         var input = inputs[0];
         var output = outputs[0];
-      
+        
+        // Check inputs
+        if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            //console.log("Process input error");
+            return true;
+        }
+        // Check outputs
+        if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            //console.log("Process output error");
+            return true;
+        }
+        
         // Copy inputs
         if (input !== undefined) {
             for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
@@ -659,21 +712,12 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Compute all running voices
         for (var i = 0; i < this.polyphony; i++) {
             if (this.dsp_voices_state[i] != this.kFreeVoice) {
-                if (this.dsp_voices_trigger[i]) {
-                    // FIXME : properly cut the buffer in 2 slices...
-                    this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
-                    this.factory.compute(this.dsp_voices[i], 1, this.ins, this.mixing);
-                    this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 1.0);
-                    this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                    this.dsp_voices_trigger[i] = false;
-                } else {
-                    // Compute regular voice
-                    this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                }
+                // Compute voice
+                this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
                 // Mix it in result
                 this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
-                if ((this.dsp_voices_level[i] < 0.001) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
+                if ((this.dsp_voices_level[i] < 0.0005) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
                     this.dsp_voices_state[i] = this.kFreeVoice;
                 }
             }
@@ -700,8 +744,6 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
 }
 
 // Globals
-
-// Create memory block
 mydspPolyProcessor.buffer_size = 128;
 mydspPolyProcessor.polyphony = 16;
 

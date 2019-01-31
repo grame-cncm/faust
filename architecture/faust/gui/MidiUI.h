@@ -28,6 +28,8 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <cstdlib>
+#include <cmath>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
@@ -78,7 +80,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
         MidiMeta meta;
         tmp_dsp->metadata(&meta);
         std::string numVoices = meta.get("nvoices", "0");
-        nvoices = atoi(numVoices.c_str());
+        nvoices = std::atoi(numVoices.c_str());
         if (nvoices < 0) nvoices = 0;
     #endif
     }
@@ -107,6 +109,10 @@ class uiMidi {
     
 };
 
+/*****************************************************************************
+ * Base class for MIDI aware UI items
+ ******************************************************************************/
+
 class uiMidiItem : public uiMidi, public uiItem {
     
     public:
@@ -120,6 +126,10 @@ class uiMidiItem : public uiMidi, public uiItem {
         virtual void reflectZone() {}
     
 };
+
+/*****************************************************************************
+ * Base class for MIDI aware UI items with timestamp support
+ ******************************************************************************/
 
 class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
@@ -135,7 +145,9 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
 };
 
+//-------------
 // MIDI sync
+//-------------
 
 class uiMidiStart : public uiMidiTimedItem
 {
@@ -153,7 +165,13 @@ class uiMidiStart : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->start_sync(0);
+                fMidiOut->startSync(0);
+            }
+        }
+        void modifyZone(double date, FAUSTFLOAT v)
+        {
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(v));
             }
         }
         
@@ -175,7 +193,14 @@ class uiMidiStop : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(1)) {
-                fMidiOut->stop_sync(0);
+                fMidiOut->stopSync(0);
+            }
+        }
+    
+        void modifyZone(double date, FAUSTFLOAT v)
+        {
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(v));
             }
         }
 };
@@ -206,11 +231,16 @@ class uiMidiClock : public uiMidiTimedItem
         {
             if (fInputCtrl) {
                 fState = !fState;
-                uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
+                //uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
+                uiItem::modifyZone(FAUSTFLOAT(fState));//uiMidiTimedItem
             }
         }
 
 };
+
+//----------------------
+// Standard MIDI events
+//----------------------
 
 class uiMidiProgChange : public uiMidiItem
 {
@@ -285,7 +315,7 @@ class uiMidiCtrlChange : public uiMidiItem
             fMidiOut->ctrlChange(0, fCtrl, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -302,12 +332,12 @@ class uiMidiPitchWheel : public uiMidiItem
 		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
         FAUSTFLOAT wheel2bend(float v)
         {
-            return pow(2.0,(v/16383.0*4-2)/12);
+            return std::pow(2.0,(v/16383.0*4-2)/12);
         }
 
         int bend2wheel(float v)
         {
-            return (int)((12*log(v)/log(2)+2)/4*16383);
+            return (int)((12*std::log(v)/std::log(2.0)+2)/4*16383);
         }
  
     public:
@@ -325,7 +355,7 @@ class uiMidiPitchWheel : public uiMidiItem
             fMidiOut->pitchWheel(0, bend2wheel(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(wheel2bend(v));
@@ -357,7 +387,7 @@ class uiMidiKeyOn : public uiMidiItem
             fMidiOut->keyOn(0, fKeyOn, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -389,7 +419,7 @@ class uiMidiKeyOff : public uiMidiItem
             fMidiOut->keyOff(0, fKeyOff, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -422,7 +452,7 @@ class uiMidiKeyPress : public uiMidiItem
             fMidiOut->keyPress(0, fKey, fConverter.faust2ui(v));
         }
         
-        void modifyZone(int v) 	
+        void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
@@ -432,6 +462,19 @@ class uiMidiKeyPress : public uiMidiItem
 };
 
 class MapUI;
+
+/******************************************************************************************
+ * MidiUI : Faust User Interface
+ * This class decodes MIDI metadata and maps incoming MIDI messages to them.
+ * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend
+ * start/stop/clock meta data are handled.
+ *
+ * Maps associating MIDI event ID (like each ctrl number) with all MIDI aware UI items
+ * are defined and progressively filled when decoding MIDI related metadata.
+ * MIDI aware UI items are used in both directions:
+ *  - modifying their internal state when receving MIDI input events
+ *  - sending their internal state as MIDI output events
+ *******************************************************************************************/
 
 class MidiUI : public GUI, public midi
 {
@@ -476,15 +519,14 @@ class MidiUI : public GUI, public midi
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
-                        } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
-                            || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
+                        } else if (fMetaAux[i].second == "pitchwheel" || fMetaAux[i].second == "pitchbend") {
                             fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, input));
                         // MIDI sync
-                        } else if (strcmp(fMetaAux[i].second.c_str(), "start") == 0) {
+                        } else if (fMetaAux[i].second == "start") {
                             fStartTable.push_back(new uiMidiStart(fMidiHandler, this, zone, input));
-                        } else if (strcmp(fMetaAux[i].second.c_str(), "stop") == 0) {
+                        } else if (fMetaAux[i].second == "stop") {
                             fStopTable.push_back(new uiMidiStop(fMidiHandler, this, zone, input));
-                        } else if (strcmp(fMetaAux[i].second.c_str(), "clock") == 0) {
+                        } else if (fMetaAux[i].second == "clock") {
                             fClockTable.push_back(new uiMidiClock(fMidiHandler, this, zone, input));
                         }
                     }
@@ -511,8 +553,8 @@ class MidiUI : public GUI, public midi
             if (fDelete) delete fMidiHandler;
         }
         
-        bool run() { return fMidiHandler->start_midi(); }
-        void stop() { fMidiHandler->stop_midi(); }
+        bool run() { return fMidiHandler->startMidi(); }
+        void stop() { fMidiHandler->stopMidi(); }
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
         void removeMidiIn(midi* midi_dsp) { fMidiHandler->removeMidiIn(midi_dsp); }
@@ -639,14 +681,14 @@ class MidiUI : public GUI, public midi
         
         // MIDI sync
         
-        void start_sync(double date)
+        void startSync(double date)
         {
             for (unsigned int i = 0; i < fStartTable.size(); i++) {
                 fStartTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
         
-        void stop_sync(double date)
+        void stopSync(double date)
         {
             for (unsigned int i = 0; i < fStopTable.size(); i++) {
                 fStopTable[i]->modifyZone(date, FAUSTFLOAT(0));

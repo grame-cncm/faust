@@ -25,27 +25,31 @@
 #define __audio_channels__
 
 #include <string.h>
+#include <assert.h>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
 
-class channels
+template <class REAL>
+class real_channels
 {
     private:
-    
+        
         int fNumFrames;
         int fNumChannels;
-        FAUSTFLOAT** fBuffers;
-
+        REAL** fBuffers;
+        REAL** fSliceBuffers;
+        
     public:
-
-        channels(int nframes, int nchannels)
+        
+        real_channels(int nframes, int nchannels)
         {
-            fBuffers = new FAUSTFLOAT*[nchannels];
+            fBuffers = new REAL*[nchannels];
+            fSliceBuffers = new REAL*[nchannels];
             fNumFrames = nframes;
             fNumChannels = nchannels;
-
+            
             // allocate audio channels
             for (int chan = 0; chan < fNumChannels; chan++) {
                 fBuffers[chan] = new FAUSTFLOAT[fNumFrames];
@@ -53,26 +57,26 @@ class channels
             
             zero();
         }
-
+        
         void zero()
         {
             // allocate audio channels
             for (int chan = 0; chan < fNumChannels; chan++) {
-                memset(fBuffers[chan], 0, sizeof(FAUSTFLOAT) * fNumFrames);
+                memset(fBuffers[chan], 0, sizeof(REAL) * fNumFrames);
             }
         }
-
+        
         void impulse()
         {
             // allocate audio channels
             for (int chan = 0; chan < fNumChannels; chan++) {
                 fBuffers[chan][0] = FAUSTFLOAT(1.0);
                 for (int frame = 1; frame < fNumFrames; frame++) {
-                    fBuffers[chan][frame] = FAUSTFLOAT(0.0);
+                    fBuffers[chan][frame] = REAL(0.0);
                 }
             }
         }
-    
+        
         void display()
         {
             for (int chan = 0; chan < fNumChannels; chan++) {
@@ -81,18 +85,35 @@ class channels
                 }
             }
         }
-
-        virtual ~channels()
+        
+        virtual ~real_channels()
         {
             // free separate input channels
             for (int chan = 0; chan < fNumChannels; chan++) {
                 delete [] fBuffers[chan];
             }
             delete [] fBuffers;
+            delete [] fSliceBuffers;
         }
-
-        FAUSTFLOAT** buffers() { return fBuffers; }
+        
+        REAL** buffers() { return fBuffers; }
+        
+        REAL** buffers(int index)
+        {
+            assert(index < fNumFrames);
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                fSliceBuffers[chan] = &fBuffers[chan][index];
+            }
+            return fSliceBuffers;
+        }
     
+};
+
+class channels : public real_channels<FAUSTFLOAT> {
+
+    public:
+    
+        channels(int nframes, int nchannels):real_channels<FAUSTFLOAT>(nframes, nchannels) {}
 };
 
 #endif

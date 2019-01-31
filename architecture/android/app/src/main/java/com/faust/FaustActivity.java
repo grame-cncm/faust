@@ -39,6 +39,7 @@ package com.faust;
 
 import com.DspFaust.DspFaust;
 
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -65,11 +66,29 @@ import android.net.wifi.WifiManager;
 
 import android.media.AudioManager;
 
-public class FaustActivity extends Activity {
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+// For audio input request permission
+import android.support.v4.app.ActivityCompat;
+import android.Manifest;
+import android.widget.Toast;
+import android.support.annotation.NonNull;
+import android.content.pm.PackageManager;
+
+public class FaustActivity extends Activity
+implements ActivityCompat.OnRequestPermissionsResultCallback {
     
     private int sampleRate = 44100;
     private int bufferSize = 512;
     private int sensorIntervalMs = 0;
+    
+    // For audio input request permission
+    private static final int AUDIO_ECHO_REQUEST = 0;
+    private boolean permissionToRecordAccepted = false;
     
 	private SensorManager mSensorManager;
 	private int numberOfParameters;
@@ -81,7 +100,6 @@ public class FaustActivity extends Activity {
     private boolean fBuildUI;
     private MonochromeView fMonoView;
     public static DspFaust dspFaust;
-    
 
     /**
      * Detects and toggles immersive mode (also known as "hidey bar" mode).
@@ -98,9 +116,9 @@ public class FaustActivity extends Activity {
         boolean isImmersiveModeEnabled =
                 ((uiOptions | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY) == uiOptions);
         if (isImmersiveModeEnabled) {
-            Log.i("FaustJava", "Turning immersive mode mode off.");
+            Log.i("FaustJava", "Turning immersive mode mode off");
         } else {
-            Log.i("FaustJava", "Turning immersive mode mode on.");
+            Log.i("FaustJava", "Turning immersive mode mode on");
         }
 
         // Navigation bar hiding:  Backwards compatible to ICS.
@@ -128,15 +146,55 @@ public class FaustActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
         //END_INCLUDE (set_ui_flags)
     }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+    
+    private void createFaust() {
         
-        Log.d("FaustJava", "onCreate");
+        Log.d("FaustJava", "createFaust");
         sensorIntervalMs = bufferSize/sampleRate*1000;
         
         if (dspFaust == null) {
-
+            // check if audio files were saved in internal storage
+            String[] internalStorageList = getFilesDir().list();
+            boolean fileWereCopied = false;
+            for(int i=0; i<internalStorageList.length; i++){
+                if(internalStorageList[i].contains(".aif") || internalStorageList[i].contains(".wav") || internalStorageList[i].contains(".flac")) {
+                    fileWereCopied = true;
+                    break;
+                }
+            }
+            
+            // if audio files were not saved in internal storage, then transfer them
+            if(!fileWereCopied) {
+                AssetManager assets = getAssets();
+                try {
+                    String[] assetsList = assets.list("");
+                    for (int i = 0; i < assetsList.length; i++) {
+                        if (assetsList[i].contains(".aif") || assetsList[i].contains(".wav") || assetsList[i].contains(".flac")) {
+                            InputStream in = null;
+                            OutputStream out = null;
+                            in = assets.open(assetsList[i]);
+                            File outFile = new File(getFilesDir().getPath(), assetsList[i]);
+                            out = new FileOutputStream(outFile);
+                            
+                            // copy content
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+                            in.close();
+                            in = null;
+                            out.flush();
+                            out.close();
+                            out = null;
+                        }
+                    }
+                    
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            
             WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             if (wifi != null) {
                 WifiManager.MulticastLock lock = wifi.createMulticastLock("Log_Tag");
@@ -146,44 +204,43 @@ public class FaustActivity extends Activity {
             int oscPortNumber = 5510;
             while (!Osc.init(oscPortNumber)) oscPortNumber++;
             Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
-
+            
             // Use machine buffer size and sample rate
             AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
             
             // Do not work on Android 4.xx
             /*
-            String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
-            String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
-            Log.d("FaustJava", "Size :" + size + " Rate: " + rate);
-            dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
-            */
-
+             String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+             String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+             Log.d("FaustJava", "Size :" + size + " Rate: " + rate);
+             dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
+             */
+            
             // TODO: sr and buffer length should change in function of the device for best latency perfs
             dspFaust = new DspFaust(sampleRate, bufferSize);
-
+            
             Osc.startListening();
         }
-
+        
         fBuildUI = (dspFaust.getScreenColor() < 0);
         if (!fBuildUI) {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
-			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
-        super.onCreate(savedInstanceState);
         if (fBuildUI) {
             setContentView(R.layout.main);
         } else {
             fMonoView = new MonochromeView(getApplicationContext());
             setContentView(fMonoView);
         }
-
+        
         numberOfParameters = dspFaust.getParamsCount();
-
+        
         Log.d("FaustJava", "onCreate : numberOfParameters " + numberOfParameters);
-
+        
         parametersInfo.init(numberOfParameters);
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-
+        
         if (fBuildUI) {
             LinearLayout mainGroup = (LinearLayout) findViewById(R.id.the_layout);
             HorizontalScrollView horizontalScroll = (HorizontalScrollView) findViewById(R.id.horizontalScroll);
@@ -194,8 +251,22 @@ public class FaustActivity extends Activity {
             Log.d("FaustJava", "Don't create User Interface");
             toggleHideyBar();
         }
-
+        
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        
+        Log.d("FaustJava", "onCreate");
+        super.onCreate(savedInstanceState);
+        
+        if (Build.VERSION.SDK_INT >= 23 && !isRecordPermissionGranted()){
+            requestRecordPermission();
+        } else {
+            permissionToRecordAccepted = true;
+            createFaust();
+        }
     }
 
     private void updatecolor(double x, double y, double z) {
@@ -324,26 +395,30 @@ public class FaustActivity extends Activity {
     @Override
    	protected void onPause() {
         Log.d("FaustJava", "onPause");
-   		mSensorManager.unregisterListener(mSensorListener);
-   		super.onPause();
+        if (permissionToRecordAccepted) {
+            mSensorManager.unregisterListener(mSensorListener);
+        }
+        super.onPause();
    	}
 
     @Override
     protected void onResume() {
         Log.d("FaustJava", "onResume");
-		super.onResume();
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
-	    		Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+        super.onResume();
+        if (permissionToRecordAccepted) {
+            if (!isChangingConfigurations()) {
+                dspFaust.start();
+            }
+            ui.updateUIstate();
+            mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
+                    Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+        }
    }
 
     @Override
     protected void onStart() {
         Log.d("FaustJava", "onStart");
         super.onStart();
-        if (!isChangingConfigurations()) {
-            dspFaust.start();
-        }
-        ui.updateUIstate();
     }
 
     @Override
@@ -360,7 +435,7 @@ public class FaustActivity extends Activity {
         // correctly work
         /*
         if (!isChangingConfigurations()) {
-            dsp_faust.stop();
+            dspFaust.stop();
         }
         */
     }
@@ -368,15 +443,46 @@ public class FaustActivity extends Activity {
     @Override
     public void onDestroy() {
         Log.d("FaustJava", "onDestroy");
-    	// only stops audio when the user press the return button (and not when the screen is rotated)
-    	if (!isChangingConfigurations()) {
-            Osc.stopListening();
-            dspFaust.stop(); // TODO: not sure if needed
-    		dspFaust.delete();
-        dspFaust = null;
+        if (permissionToRecordAccepted) {
+            // only stops audio when the user press the return button (and not when the screen is rotated)
+            if (!isChangingConfigurations()) {
+                Osc.stopListening();
+                dspFaust.stop(); // TODO: not sure if needed
+                dspFaust.delete();
+                dspFaust = null;
+            }
+            SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+            parametersInfo.saveParameters(settings);
         }
-        SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        parametersInfo.saveParameters(settings);
         super.onDestroy();
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+        @NonNull int[] grantResults) {
+
+        if (AUDIO_ECHO_REQUEST != requestCode) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            return;
+        }
+
+        if (grantResults.length != 1 ||
+            grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            finish();
+        } else {
+            // Permission was granted
+            permissionToRecordAccepted = true;
+            createFaust();
+        }
+    }
+
+    // For audio input request permission
+    private boolean isRecordPermissionGranted() {
+        return (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, AUDIO_ECHO_REQUEST);
+    }
+
 }

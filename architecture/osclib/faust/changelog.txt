@@ -8,6 +8,18 @@ research@grame.fr
 Copyright GRAME (c) 2011 - 2018
 
 ----------------------------------------------------
+Version 1.20                           [Aout. 30 2018]
+- new bundle mode, with ‘endBundle’ API and -bundle option
+- new ‘getInfos’ API
+
+----------------------------------------------------
+Version 1.10                           [Jul. 27 2018]
+- new -reuse option supported on command line to share
+  a listening port between several applications on the same host
+- new -help option supported on command line
+- new alias message supported by UI elements to dynamically manage aliases
+
+----------------------------------------------------
 Version 1.00                           [Feb. 19 2018]
 - update to latest oscpack version 1.1.0
 

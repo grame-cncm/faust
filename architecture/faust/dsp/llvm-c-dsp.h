@@ -34,13 +34,19 @@ extern "C"
     /* Opaque types */
 	
     /*!
-     \addtogroup llvm C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context.
+     \addtogroup llvm C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context. 
     @{
      */
     
+#ifdef _MSC_VER
+    typedef void llvm_dsp_factory;
+    
+    typedef void llvm_dsp;
+#else
     typedef struct {} llvm_dsp_factory;
     
     typedef struct {} llvm_dsp;
+#endif
     
     /**
      * Get the library version.
@@ -76,7 +82,9 @@ extern "C"
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
-     * @param target - the LLVM machine target (using empty string will take current machine settings)
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings, 
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions)
@@ -99,7 +107,9 @@ extern "C"
      * @param dsp_content - the Faust program as a string
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
-     * @param target - the LLVM machine target (using empty string will take current machine settings)
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions)
@@ -164,13 +174,31 @@ extern "C"
     char* getCTarget(llvm_dsp_factory* factory);
   
     /**
-     * Get the list of library dependancies of the Faust DSP factory as a null-terminated array.
+     * Get the Faust DSP factory list of library dependancies as a null-terminated array.
      *
      * @param factory - the DSP factory.
      * 
-     * @return the library dependancies (the array and it's contain has to be deleted by the caller using freeCMemory).
+     * @return the library dependancies (the array and it's content has to be deleted by the caller using freeCMemory).
      */
     const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
+    
+    /**
+     * Get the list of all used includes as a null-terminated array.
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the includes list (the array and it's content has to be deleted by the caller using freeCMemory).
+     */
+    const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
+    
+    /**
+     * Get the compile options of the Faust DSP factory.
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the LLVM compile options as a string (to be deleted by the caller using freeCMemory).
+     */
+    char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
     
     /**
      * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables...) thus become invalid.
@@ -205,14 +233,17 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param bit_code - the LLVM bitcode string
-     * @param target - the LLVM machine target (using empty string will take current machine settings)
-     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
      * since the maximum value may change with new LLVM versions), a higher value 
      * than the one used when calling createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
+    llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a base64 encoded LLVM bitcode string.
@@ -230,14 +261,17 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param bit_code_path - the LLVM bitcode file pathname
-     * @param target - the LLVM machine target (using empty string will takes current machine settings)
-     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
      * since the maximum value may change with new LLVM versions). A higher value than the one used when 
      * calling createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level);
+    llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM bitcode file.
@@ -255,13 +289,16 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param ir_code - the LLVM IR (textual) string
-     * @param target - the LLVM machine target (using empty string will takes current machine settings)
-     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'). 
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value').
      * A higher value than the one used when calling createDSPFactory can possibly be used
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level);
+    llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM IR (textual) string.
@@ -279,14 +316,17 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param ir_code_path - the LLVM IR (textual) file pathname
-     * @param target - the LLVM machine target (using empty string will takes current machine settings)
-     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
      * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
      * createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level);
+    llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM IR (textual) file.
@@ -304,17 +344,22 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code - the machine code string
-     * @param target - the LLVM machine target (using empty string will takes current machine settings)
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
+    llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, char* error_msg, const char* target);
 
     /**
      * Write a Faust DSP factory into a base64 encoded machine code string.
      * 
      * @param factory - the Faust DSP factory
-     * @param target - the LLVM machine target (using empty string will takes current machine settings)
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      *
      * @return the machine code as a string (to be deleted by the caller using freeCMemory).
      */
@@ -327,18 +372,23 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code_path - the machine code file pathname
-     * @param target - the LLVM machine target (using empty string will takes current machine settings)
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
+    llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg);
 
     /**
      * Write a Faust DSP factory into a machine code file.
      * 
      * @param factory - the Faust DSP factory
      * @param machine_code_path - the machine code file pathname
-     * @param target - the LLVM machine target (using empty string will takes current machine settings).
+     * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+     *                 using an empty string takes the current machine settings,
+     *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      *
      */
     void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);

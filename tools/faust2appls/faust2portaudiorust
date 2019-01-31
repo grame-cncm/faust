@@ -1,0 +1,64 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#          Compiles Faust programs to PortAudio and Rust binary     #
+#               (c) Grame, 2018                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+ARCHFILE="minimal-portaudio.rs"
+
+#PHASE 2 : dispatch command arguments
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2portaudiorust [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    fi
+
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+
+for p in $FILES; do
+
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+
+    # creates the dir
+    dspName="${f%.dsp}-rust"
+    rm -rf "$SRCDIR/$dspName"
+
+    # create rust project
+    cargo new $dspName --bin
+
+    # compile Faust DSP and put in the cargo folder
+    faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
+
+    # add JACK dependency
+    echo "portaudio = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
+
+    # build the project
+    cd "$SRCDIR/$dspName"
+    cargo build --release
+    cargo build
+
+done

@@ -2,6 +2,7 @@ package com.faust;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -72,6 +73,7 @@ class Radio{
 			
 			RadioButton button = new RadioButton(c);
 			button.setText(parameterName);
+			button.setTextColor(ContextCompat.getColor(c,R.color.progress_gray));
 			button.setId(i);
 			if (init == i) {
 				button.setChecked(true);

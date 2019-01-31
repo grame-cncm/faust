@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,17 +30,17 @@ void collector::computeVisibleTraits()
     do {
         modified = false;
         for (set<trait>::iterator p = fTraits.begin(); p != fTraits.end(); p++) {
-            if (fWithInput.count(*p) == 0) {        // not connected to a real output
+            if (fWithInput.count(*p) == 0) {  // not connected to a real output
                 if (fOutputs.count(p->start) > 0) {
-                    fWithInput.insert(*p);          // the cable is connected to a real output
-                    fOutputs.insert(p->end);        // end become a real output too
+                    fWithInput.insert(*p);    // the cable is connected to a real output
+                    fOutputs.insert(p->end);  // end become a real output too
                     modified = true;
                 }
             }
-            if (fWithOutput.count(*p) == 0) {       // not connected to a real input
+            if (fWithOutput.count(*p) == 0) {  // not connected to a real input
                 if (fInputs.count(p->end) > 0) {
-                    fWithOutput.insert(*p);         // the cable is connected to a real input
-                    fInputs.insert(p->start);       // start become a real input too
+                    fWithOutput.insert(*p);    // the cable is connected to a real input
+                    fInputs.insert(p->start);  // start become a real input too
                     modified = true;
                 }
             }
@@ -60,4 +60,3 @@ void collector::draw(device& dev)
         if (isVisible(*p)) p->draw(dev);
     }
 }
-

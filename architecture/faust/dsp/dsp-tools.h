@@ -46,7 +46,7 @@ class Deinterleaver
         {
             fNumFrames = numFrames;
             fNumInputs = numInputs;
-            fNumOutputs = max(numInputs, numOutputs);
+            fNumOutputs = std::max<int>(numInputs, numOutputs);
             
             // allocate interleaved input channel
             fInput = new FAUSTFLOAT[fNumFrames * fNumInputs];
@@ -180,10 +180,10 @@ class AudioChannels
         void interleavedRead(float* inbuffer, unsigned int length, unsigned int inchannels)
         {
             assert(length <= fNumFrames);
-            unsigned int C = std::min(inchannels, fNumChannels);
-            unsigned int L = std::min(length, fNumFrames);
+            unsigned int C = std::min<unsigned int>(inchannels, fNumChannels);
+            unsigned int F = std::min<unsigned int>(length, fNumFrames);
             
-            for (unsigned int f = 0; f < L; f++) {
+            for (unsigned int f = 0; f < F; f++) {
                 unsigned int p = f * inchannels;
                 for (unsigned int c = 0; c < C; c++) {
                     fChannels[c][f] = inbuffer[p++];
@@ -201,8 +201,8 @@ class AudioChannels
         void interleavedWrite(float* outbuffer, unsigned int length, unsigned int outchannels)
         {
             assert(length <= fNumFrames);
-            unsigned int C = std::min(outchannels, fNumChannels);
-            unsigned int F = std::min(length, fNumFrames);
+            unsigned int C = std::min<unsigned int>(outchannels, fNumChannels);
+            unsigned int F = std::min<unsigned int>(length, fNumFrames);
             
             for (unsigned int f = 0; f < F; f++) {
                 unsigned int p = f * outchannels;

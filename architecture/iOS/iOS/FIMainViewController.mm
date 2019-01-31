@@ -59,7 +59,7 @@
 
 #if POLY2
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif
 
 #if MIDICTRL
@@ -88,7 +88,11 @@ SoundUI* soundinterface = NULL;
 #endif
 
 #if OSCCTRL
-GUI* oscinterface = NULL;
+OSCUI* oscinterface = NULL;
+static void osc_compute_callback(void* arg)
+{
+    oscinterface->endBundle();
+}
 #endif
 
 MY_Meta metadata;
@@ -120,7 +124,6 @@ static void jack_shutdown_callback(const char* message, void* arg)
         [self closeJack :message];
     });
 }
-
 #endif
 
 - (void)viewDidLoad
@@ -138,9 +141,11 @@ static void jack_shutdown_callback(const char* message, void* arg)
     int nvoices = 0;
     mydsp_poly* dsp_poly = NULL;
     
+#if MIDICTRL
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
+ #endif
     
 #if POLY2
     bool group = true;
@@ -227,22 +232,26 @@ static void jack_shutdown_callback(const char* message, void* arg)
     oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
     oscOutputPortText = (oscOutputPortText) ? oscOutputPortText : @"5511";
     
-    [self openAudio];
-    
-    // Build Faust interface
-    DSP->init(int(sample_rate));
     DSP->buildUserInterface(uiinterface);
     DSP->buildUserInterface(finterface);
     
 #if SOUNDFILE
     // Use bundle path
     soundinterface = new SoundUI(SoundUI::getBinaryPath());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #if MIDICTRL
     DSP->buildUserInterface(midiinterface);
 #endif
+    
+    [self openAudio];
+    
+    // Build Faust interface
+    DSP->init(int(sample_rate));
     
     [self displayTitle];
 
@@ -270,7 +279,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     // Abstract layout is the layout computed without regarding screen dimensions. To be displayed, we adapt it to the device and orientation
     uiinterface->saveAbstractLayout();
     
-    // Used to refresh bargraphes
+    // Used to refresh bargraphs
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:kRefreshTimerInterval target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
     // Views initilizations
@@ -364,7 +373,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         }
     }
     
-    audio_device->shutdown(jack_shutdown_callback, self);
+    audio_device->setShutdownCb(jack_shutdown_callback, self);
     return TRUE;
     
 error:
@@ -831,6 +840,8 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Locked box : box currently zoomed in
 - (void)zoomToLockedBox
 {
+    if (!_lockedBox) return;
+    
     if (_lockedBox == uiinterface->getMainBox())
     {
         [_dspScrollView setZoomScale:_dspScrollView.minimumZoomScale animated:YES];
@@ -1065,7 +1076,7 @@ static inline const char* transmit_value(int num)
 {
 #if OSCCTRL
     delete oscinterface;
-    const char* argv[9];
+    const char* argv[11];
     argv[0] = (char*)_name;
     argv[1] = "-xmit";
     argv[2] = transmit_value(transmit);
@@ -1075,8 +1086,11 @@ static inline const char* transmit_value(int num)
     argv[6] = [inputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
     argv[7] = "-outport";
     argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
-    oscinterface = new OSCUI(_name, 9, (char**)argv);
+    argv[9] = "-bundle";
+    argv[10] = "1";
+    oscinterface = new OSCUI(_name, 11, (char**)argv);
     DSP->buildUserInterface(oscinterface);
+    audio_device->addControlCallback(osc_compute_callback, self);
     oscinterface->run();
 #endif
 }
@@ -1700,7 +1714,7 @@ static inline const char* transmit_value(int num)
             printf("startGyroUpdates\n");
         }
         
-        if (_hasAcc || _hasGyr) {
+        if (_hasAcc || _hasGyr || uiinterface->isScreenUI()) {
             _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
                                                             target:self
                                                           selector:@selector(updateMotion)

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,73 +23,68 @@
 #define _WAST_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "wast_instructions.hh"
+#include "vec_code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "wast_instructions.hh"
 
 using namespace std;
 
 class WASTCodeContainer : public virtual CodeContainer {
+   protected:
+    std::ostream*     fOut;
+    std::stringstream fOutAux;
+    std::stringstream fHelper;
+    int               fInternalMemory;
 
-    protected:
+    void generateWASTBlock(BlockInst* instructions)
+    {
+        // Moves all variables declaration at the beginning of the block
+        MoveVariablesInFront3 mover;
+        BlockInst*            block = mover.getCode(instructions);
+        block->accept(gGlobal->gWASTVisitor);
+    }
 
-        std::ostream* fOut;
-        std::stringstream fOutAux;
-        std::stringstream fHelper;
-        int fInternalMemory;
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
+                                            bool addreturn);
     
-        void generateWASTBlock(BlockInst* instructions)
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront3 mover;
-            BlockInst* block = mover.getCode(instructions);
-            block->accept(gGlobal->gWASTVisitor);
-        }
-    
-        DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
-    
-    public:
+    void generateComputeAux1(int n);
+    void generateComputeAux2(BlockInst* compute_block, int n);
 
-        WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-        virtual ~WASTCodeContainer()
-        {}
+   public:
+    WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    virtual ~WASTCodeContainer() {}
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-    
-        void produceInternal();
-        virtual dsp_factory_base* produceFactory();
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst, bool internal_memory);
+    void                      produceInternal();
+    virtual dsp_factory_base* produceFactory();
+
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
+                                          bool internal_memory);
 };
 
 class WASTScalarCodeContainer : public WASTCodeContainer {
+   protected:
+   public:
+    WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                            int sub_container_type, bool internal_memory);
+    virtual ~WASTScalarCodeContainer() {}
 
-    protected:
-
-    public:
-
-        WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory);
-        virtual ~WASTScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
-class WASTVectorCodeContainer : public WASTCodeContainer {
-    
-    protected:
-        
-    public:
-        
-        WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-        virtual ~WASTVectorCodeContainer();
-        
-        void generateCompute(int tab);
-    
+class WASTVectorCodeContainer : public VectorCodeContainer, public WASTCodeContainer {
+   protected:
+   public:
+    WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    virtual ~WASTVectorCodeContainer() {}
+
+    void generateCompute(int tab);
 };
 
 #endif

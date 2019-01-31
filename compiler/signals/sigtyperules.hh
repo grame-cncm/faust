@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,9 +42,11 @@ extern bool gVectorSwitch;
  **/
 
 /**
- *	Annotates a signal term and its subterms with type information
+ * Fully annotate every subtree of term with type information.
+ * @param sig the signal term tree to annotate
+ * @param causality when true check causality issues
  */
-void typeAnnotation(Tree term);
+void typeAnnotation(Tree sig, bool causality);
 
 /**
  *	Return the type of a previously annotated signal term
@@ -57,4 +59,3 @@ void typeAnnotation(Tree term);
 void annotationStatistics();
 
 #endif
-

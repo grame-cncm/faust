@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2010-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2012-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -42,6 +42,9 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MidiUI.h"
+#include "faust/gui/SoundUI.h"
+#include "faust/gui/OSCUI.h"
+
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -54,7 +57,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.22"
+#define FAUSTGEN_VERSION "1.35"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -72,7 +75,7 @@
 #endif
 
 #define LLVM_OPTIMIZATION -1  // means 'maximum'
-#define DEFAULT_CODE "process = _,_;"
+#define DEFAULT_CODE "process = 0,0;"
 
 const char* TEXT_APPL_LIST[] = {"Atom", "Smultron", "TextWrangler", "TextExit", "" };
 
@@ -85,21 +88,24 @@ class faustgen;
 class faustgen_factory {
 
     typedef vector<string>::const_iterator StringVectorIt;
+    typedef set<string>::const_iterator StringSetIt;
+
     friend class faustgen;
 
     private:
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        midi_handler fMidiHandler;      // Generic MIDI handler          
-   
+        midi_handler fMidiHandler;      // generic MIDI handler
+        SoundUI* fSoundUI;              // generic Soundfile interface
+    
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string
         
         long fBitCodeSize;              // length of the bitcode string
         char** fBitCode;                // bitcode string
         
-        vector<string> fLibraryPath;    // path towards the Faust libraries
+        set<string> fLibraryPath;       // path towards the Faust libraries
         string fDrawPath;               // path where to put SVG files
         
         vector<string> fOptions;        // options set in the 'compileoptions' message
@@ -116,7 +122,7 @@ class faustgen_factory {
         int fOptLevel;                  // the LLVM optimization level
         bool fPolyphonic;               // Whether the created DSP is polyphonic
     
-        short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
+        short fDefaultPath;             // default path to be saved in factory constructor (using path_getdefault)
                                         // and explicitely set in 'read' and 'write' (using path_setdefault)
     
         int m_siginlets;
@@ -171,7 +177,7 @@ class faustgen_factory {
         void open_svg();
         void remove_svg();
         void display_svg();
-        void display_pdf();
+        void display_documentation();
         void display_libraries();
         
         ::dsp* create_dsp_instance(int nvoices = 0);
@@ -207,14 +213,16 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
-        map<string, vector <t_object*> > fOutputTable;
+        map<string, vector<t_object*> > fOutputTable;
         
-        mspUI fDSPUI;               // DSP UI
-        MidiUI* fMidiUI;            // Midi UI
-        ::dsp* fDSP;                // pointer to the LLVM Faust dsp
-        t_object* fEditor;          // text editor object
-        bool fMute;                 // DSP mute state
-        static t_jrgba gDefaultColor;  // Color of the object to be used when restoring default color
+        mspUI* fDSPUI;                  // Control UI
+        MidiUI* fMidiUI;                // Midi UI
+        OSCUI* fOSCUI;                  // OSC UI
+    
+        ::dsp* fDSP;                    // LLVM Faust dsp
+        t_object* fEditor;              // text editor object
+        bool fMute;                     // DSP mute state
+        static t_jrgba gDefaultColor;   // color of the object to be used when restoring default color
          
         // Display DSP text source
         void display_dsp_source();
@@ -224,7 +232,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         // Compile DSP with -svg option and display the SVG files
         void display_svg();
-        void display_pdf();
+        void display_documentation();
         void display_libraries();
          
         // Create the Faust LLVM based DSP
@@ -240,7 +248,9 @@ class faustgen : public MspCpp5<faustgen> {
         void update_outputs();
         
         bool allocate_factory(const string& effect_name);
-        
+    
+        void init_controllers();
+    
         t_dictionary* json_reader(const char* jsontext);
     
         void add_midihandler();
@@ -275,6 +285,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
         
         void librarypath(long inlet, t_symbol* s);
    

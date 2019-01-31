@@ -1,29 +1,71 @@
 declare name "Faust Audio Effect Library";
-declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
-declare copyright "Julius O. Smith III";
-declare version "1.33";
-declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 
 // The following utilities (or equivalents) could go in music.lib:
 
 //----------------------- midikey2hz,pianokey2hz ------------------------
+declare midikey2hz author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare midikey2hz copyright "Julius O. Smith III";
+declare midikey2hz license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 midikey2hz(mk)  = 440.0*pow(2.0, (mk-69.0)/12); // MIDI key 69 = A440
+
+//-----------------------------------------------------------------------
+declare pianokey2hz author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare pianokey2hz copyright "Julius O. Smith III";
+declare pianokey2hz license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 pianokey2hz(pk) = 440.0*pow(2.0, (pk-49.0)/12); // piano key 49 = A440
+
+//-----------------------------------------------------------------------
+declare hz2pianokey author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare hz2pianokey copyright "Julius O. Smith III";
+declare hz2pianokey license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 hz2pianokey(f)  = 12*log2(f/440.0) + 49.0;
+
+//-----------------------------------------------------------------------
+declare log2 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare log2 copyright "Julius O. Smith III";
+declare log2 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 log2(x) = log(x)/log(2.0);
 
 //---------------- cross2, bypass1, bypass2, select2stereo --------------
 //
+
+//-----------------------------------------------------------------------
+declare cross2 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare cross2 copyright "Julius O. Smith III";
+declare cross2 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
+
+
+//-----------------------------------------------------------------------
+declare bypass1 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare bypass1 copyright "Julius O. Smith III";
+declare bypass1 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
                  with {inswitch = select2(bpc,_,0);};
 
+
+//-----------------------------------------------------------------------
+declare bypass2 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare bypass2 copyright "Julius O. Smith III";
+declare bypass2 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
   inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
 };
+
+
+//-----------------------------------------------------------------------
+declare select2stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare select2stereo copyright "Julius O. Smith III";
+declare select2stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 select2stereo(bpc) = cross2 : select2(bpc), select2(bpc) : _,_;
 
@@ -37,6 +79,12 @@ select2stereo(bpc) = cross2 : select2(bpc), select2(bpc) : _,_;
 // REFERENCE:
 // https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html
 //
+
+//-----------------------------------------------------------------------
+declare levelfilter author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare levelfilter copyright "Julius O. Smith III";
+declare levelfilter license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
 with {
   L0 = pow(L,1/3);
@@ -45,6 +93,12 @@ with {
   Lpole2 = (1.0 - Lw) / (1.0 + Lw);
   lp2out = *(Lgain) : + ~ *(Lpole2);
 };
+
+
+//-----------------------------------------------------------------------
+declare levelfilterN author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare levelfilterN copyright "Julius O. Smith III";
+declare levelfilterN license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 
@@ -63,6 +117,12 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 //
 // Requires filter.lib
 //
+
+//-----------------------------------------------------------------------
+declare speakerbp author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare speakerbp copyright "Julius O. Smith III";
+declare speakerbp license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass(4,f2);
 
 
@@ -79,6 +139,12 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass(4,f2);
 //   https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html
 //   https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html
 //
+
+//-----------------------------------------------------------------------
+declare cubicnl author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare cubicnl copyright "Julius O. Smith III";
+declare cubicnl license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 cubicnl(drive,offset) = *(pregain) : +(offset) : clip(-1,1) : cubic
 with {
     pregain = pow(10.0,2*drive);
@@ -87,11 +153,23 @@ with {
     postgain = max(1.0,1.0/pregain);
 };
 
+
+//-----------------------------------------------------------------------
+declare cubicnl_nodc author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare cubicnl_nodc copyright "Julius O. Smith III";
+declare cubicnl_nodc license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : dcblocker;
 
 //--------------------------- cubicnl_demo --------------------------
 // USAGE: _ : cubicnl_demo : _;
 //
+
+//-----------------------------------------------------------------------
+declare cubicnl_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare cubicnl_demo copyright "Julius O. Smith III";
+declare cubicnl_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 cubicnl_demo = bypass1(bp,
    cubicnl_nodc(drive:smooth(0.999),offset:smooth(0.999)))
 with {
@@ -116,11 +194,11 @@ with {
 //  https://secure.aes.org/forum/pubs/ebriefs/?elib=16939
 //  https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter
 
-declare exciter_name "Harmonic Exciter";
-declare exciter_author "Priyanka Shekar (pshekar@ccrma.stanford.edu)";
-declare exciter_copyright "Copyright (c) 2013 Priyanka Shekar";
-declare exciter_version "1.0";
-declare exciter_license "MIT License (MIT)";
+declare exciter name "Harmonic Exciter";
+declare exciter author "Priyanka Shekar (pshekar@ccrma.stanford.edu)";
+declare exciter copyright "Copyright (c) 2013 Priyanka Shekar";
+declare exciter version "1.0";
+declare exciter license "MIT License (MIT)";
 
 exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _ : balance with {
 
@@ -165,11 +243,11 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
                         [tooltip: Cutoff frequency for highpassed components to be excited]",
                         5000, 1000, 10000, 100));
   highpass = component("filter.lib").highpass(2, fc);
-  
+
   //Pre-distortion gain - selectable percentage of harmonics
   ph = ex_group(hslider("[1] Harmonics [unit:percent] [style:knob] [tooltip: Percentage of harmonics generated]", 20, 0, 200, 1)) / 100;
   pregain = * (ph);
-  
+
   //Asymmetric cubic soft clipper
   harmonicCreator(x) = x <: cubDist1, cubDist2, cubDist3 :> _;
   cubDist1(x) = (x < 0) * x;
@@ -206,6 +284,12 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
 //   [1] https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
 //   [2] https://ccrma.stanford.edu/~jos/pasp/vegf.html
 //
+
+//-----------------------------------------------------------------------
+declare moog_vcf author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare moog_vcf copyright "Julius O. Smith III";
+declare moog_vcf license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 moog_vcf(res,fr) = (+ : seq(i,4,pole(p)) : *(unitygain(p))) ~ *(mk)
 with {
      p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
@@ -237,6 +321,12 @@ with {
 //
 // REQUIRES: filter.lib
 //
+
+//-----------------------------------------------------------------------
+declare moog_vcf_2b author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare moog_vcf_2b copyright "Julius O. Smith III";
+declare moog_vcf_2b license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 moog_vcf_2b(res,fr) = tf2s(0,0,b0,a11,a01,w1) : tf2s(0,0,b0,a12,a02,w1)
 with {
  s = 1; // minus the open-loop location of all four poles
@@ -252,6 +342,12 @@ with {
  a01 = b0 * (1 + s2k + k^2);
  a02 = b0 * (1 - s2k + k^2);
 };
+
+
+//-----------------------------------------------------------------------
+declare moog_vcf_2bn author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare moog_vcf_2bn copyright "Julius O. Smith III";
+declare moog_vcf_2bn license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 moog_vcf_2bn(res,fr) = tf2snp(0,0,b0,a11,a01,w1) : tf2snp(0,0,b0,a12,a02,w1)
 with {
@@ -271,6 +367,12 @@ with {
 // (called by <faust>/examples/vcf_wah_pedals.dsp).
 //
 // USAGE: _ : moog_vcf_demo : _;
+
+
+//-----------------------------------------------------------------------
+declare moog_vcf_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare moog_vcf_demo copyright "Julius O. Smith III";
+declare moog_vcf_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 moog_vcf_demo = bypass1(bp,vcf) with {
    mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)
@@ -305,10 +407,22 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
 // REFERENCE "https://ccrma.stanford.edu/~jos/pasp/vegf.html";
 //
+
+//-----------------------------------------------------------------------
+declare wah4 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare wah4 copyright "Julius O. Smith III";
+declare wah4 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 wah4(fr) = 4*moog_vcf((3.2/4),fr:smooth(0.999));
 
 //------------------------- wah4_demo ---------------------------
 // USAGE: _ : wah4_demo : _;
+
+
+//-----------------------------------------------------------------------
+declare wah4_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare wah4_demo copyright "Julius O. Smith III";
+declare wah4_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 wah4_demo = bypass1(bp, wah4(fr)) with {
   wah4_group(x)  = hgroup("WAH4
@@ -327,6 +441,12 @@ wah4_demo = bypass1(bp, wah4(fr)) with {
 // USAGE: _ : autowah(level) : _;
 // where level = amount of effect desired (0 to 1).
 //
+
+//-----------------------------------------------------------------------
+declare autowah author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare autowah copyright "Julius O. Smith III";
+declare autowah license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 autowah(level,x) = level * crybaby(amp_follower(0.1,x),x) + (1.0-level)*x;
 
 //-------------------------- crybaby(wah) -----------------------------
@@ -335,6 +455,12 @@ autowah(level,x) = level * crybaby(amp_follower(0.1,x),x) + (1.0-level)*x;
 // where wah = "pedal angle" from 0 to 1.
 // REFERENCE: https://ccrma.stanford.edu/~jos/pasp/vegf.html
 //
+
+//-----------------------------------------------------------------------
+declare crybaby author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare crybaby copyright "Julius O. Smith III";
+declare crybaby license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 crybaby(wah) = *(gs) : tf2(1,-1,0,a1s,a2s)
 with {
   Q  = pow(2.0,(2.0*(1.0-wah)+1.0)); // Resonance "quality factor"
@@ -359,6 +485,12 @@ with {
 
 //------------------------- crybaby_demo ---------------------------
 // USAGE: _ : crybaby_demo : _ ;
+
+
+//-----------------------------------------------------------------------
+declare crybaby_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare crybaby_demo copyright "Julius O. Smith III";
+declare crybaby_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 crybaby_demo = bypass1(bp, crybaby(wah)) with {
    crybaby_group(x)  = hgroup("CRYBABY [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/vegf.html]", x);
@@ -410,6 +542,12 @@ crybaby_demo = bypass1(bp, crybaby(wah)) with {
 //    encompassing dissertation (and below).
 //   See also: http://www.acoustics.hut.fi/research/asp/piano/
 //
+
+//-----------------------------------------------------------------------
+declare piano_dispersion_filter author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare piano_dispersion_filter copyright "Julius O. Smith III";
+declare piano_dispersion_filter license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 piano_dispersion_filter(M,B,f0) = -Df0*M,seq(i,M,tf1(a1,1,a1))
 with {
  a1 = (1-D)/(1+D); // By Eq. 3, have D >= 0, hence a1 >= 0 also
@@ -452,10 +590,22 @@ with {
 // REFERENCE:
 //    https://ccrma.stanford.edu/~jos/pasp/Flanging.html
 //
+
+//-----------------------------------------------------------------------
+declare flanger_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare flanger_mono copyright "Julius O. Smith III";
+declare flanger_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 flanger_mono(dmax,curdel,depth,fb,invert)
   = _ <: _, (-:fdelay(dmax,curdel)) ~ *(fb) : _,
   *(select2(invert,depth,0-depth))
   : + : *(0.5);
+
+
+//-----------------------------------------------------------------------
+declare flanger_stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare flanger_stereo copyright "Julius O. Smith III";
+declare flanger_stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
   =  flanger_mono(dmax,curdel1,depth,fb,invert),
@@ -464,6 +614,12 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 //------------------------- flanger_demo ---------------------------
 // USAGE:  _,_ : flanger_demo : _,_;
 //
+
+//-----------------------------------------------------------------------
+declare flanger_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare flanger_demo copyright "Julius O. Smith III";
+declare flanger_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    flanger_group(x) =
     vgroup("FLANGER [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
@@ -526,6 +682,12 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
 //    Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.
 //    CCRMA Tech. Report STAN-M-21: https://ccrma.stanford.edu/STANM/stanms/stanm21/
 
+
+//-----------------------------------------------------------------------
+declare vibrato2_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare vibrato2_mono copyright "Julius O. Smith III";
+declare vibrato2_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
  (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
 with {
@@ -548,6 +710,12 @@ with {
      th(i) = (fratio^(i+1))*th1;
 };
 
+
+//-----------------------------------------------------------------------
+declare phaser2_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare phaser2_mono copyright "Julius O. Smith III";
+declare phaser2_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 phaser2_mono(Notches,phase01,width,frqmin,fratio,frqmax,speed,depth,fb,invert) =
       _ <: *(g1) + g2mi*vibrato2_mono(Notches,phase01,fb,width,frqmin,fratio,frqmax,speed)
 with {               // depth=0 => direct-signal only
@@ -556,6 +724,12 @@ with {               // depth=0 => direct-signal only
      g2mi = select2(invert,g2,-g2); // inversion negates the allpass-chain signal
 };
 
+
+//-----------------------------------------------------------------------
+declare phaser2_stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare phaser2_stereo copyright "Julius O. Smith III";
+declare phaser2_stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
    = phaser2_mono(Notches,0,width,frqmin,fratio,frqmax,speed,depth,fb,invert),
      phaser2_mono(Notches,1,width,frqmin,fratio,frqmax,speed,depth,fb,invert);
@@ -563,6 +737,10 @@ phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
 //------------------------- phaser2_demo ---------------------------
 // USAGE:  _,_ : phaser2_demo : _,_;
 //
+declare phaser2_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare phaser2_demo copyright "Julius O. Smith III";
+declare phaser2_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    phaser2_group(x) =
     vgroup("PHASER2 [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
@@ -615,11 +793,19 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
 // source = Modulation signal
 // excitation = Excitation/Carrier signal
 
+declare oneVocoderBand author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare oneVocoderBand copyright "Julius O. Smith III";
+declare oneVocoderBand license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 oneVocoderBand(band,bandsNumb,bwRatio,bandGain,x) = x : resonbp(bandFreq,bandQ,bandGain) with{
         bandFreq = 25*pow(2,(band+1)*(9/bandsNumb));
         BW = (bandFreq - 25*pow(2,(band)*(9/bandsNumb)))*bwRatio;
         bandQ = bandFreq/BW;
 };
+
+declare vocoder author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare vocoder copyright "Julius O. Smith III";
+declare vocoder license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : amp_follower_ar(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
 
@@ -628,6 +814,12 @@ vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVo
 // as excitation.
 // USAGE:
 //              _ : vocoder_demo : _;
+
+
+//-----------------------------------------------------------------------
+declare vocoder_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare vocoder_demo copyright "Julius O. Smith III";
+declare vocoder_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 vocoder_demo = hgroup("My Vocoder",_,impTrain(freq)*gain : vocoder(bands,att,rel,BWRatio) <: _,_) with{
         bands = 32;
@@ -655,6 +847,12 @@ vocoder_demo = hgroup("My Vocoder",_,impTrain(freq)*gain : vocoder(bands,att,rel
 // "Applications of Blumlein Shuffling to Stereo Microphone Techniques"
 // Michael A. Gerzon, JAES vol. 42, no. 6, June 1994
 //
+
+//-----------------------------------------------------------------------
+declare stereo_width author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare stereo_width copyright "Julius O. Smith III";
+declare stereo_width license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 stereo_width(w) = shuffle : *(mgain),*(sgain) : shuffle
 with {
      shuffle =  _,_ <: +,-; // normally scaled by 1/sqrt(2) for orthonormality,
@@ -676,6 +874,12 @@ with {
 // REFERENCES:
 //  Musical Engineer's Handbook, Bernie Hutchins, Ithaca NY, 1975
 //  Electronotes Newsletter, Bernie Hutchins
+
+
+//-----------------------------------------------------------------------
+declare amp_follower author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare amp_follower copyright "Julius O. Smith III";
+declare amp_follower license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 amp_follower(rel) = abs : env with {
  p = tau2pole(rel);
@@ -706,6 +910,12 @@ amp_follower(rel) = abs : env with {
 //   Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss
 //   http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf
 
+
+//-----------------------------------------------------------------------
+declare amp_follower_ud author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare amp_follower_ud copyright "Julius O. Smith III";
+declare amp_follower_ud license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
 // Begin contributions by Jonatan Liljedahl at http://kymatica.com
@@ -720,6 +930,12 @@ above).
 
 *****************************************************/
 
+
+//-----------------------------------------------------------------------
+declare amp_follower_ar author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare amp_follower_ar copyright "Julius O. Smith III";
+declare amp_follower_ar license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 amp_follower_ar(att,rel) = abs : lag_ud(att,rel);
 
 /*****************************************************
@@ -727,6 +943,12 @@ amp_follower_ar(att,rel) = abs : lag_ud(att,rel);
 
     Lag filter with separate times for up and down.
 *****************************************************/
+
+
+//-----------------------------------------------------------------------
+declare lag_ud author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare lag_ud copyright "Julius O. Smith III";
+declare lag_ud license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 lag_ud(up,dn) = _ <: ((>,tau2pole(up),tau2pole(dn):select2),_:smooth) ~ _;
 
@@ -739,6 +961,12 @@ lag_ud(up,dn) = _ <: ((>,tau2pole(up),tau2pole(dn):select2),_:smooth) ~ _;
     1 - Track and hold max value.
 *****************************************************/
 
+
+//-----------------------------------------------------------------------
+declare peakhold author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare peakhold copyright "Julius O. Smith III";
+declare peakhold license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 peakhold = (*,_:max) ~ _;
 
 /*****************************************************
@@ -748,6 +976,12 @@ peakhold = (*,_:max) ~ _;
     Outsputs zero while 'run' is 0.
 *****************************************************/
 
+
+//-----------------------------------------------------------------------
+declare sweep author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare sweep copyright "Julius O. Smith III";
+declare sweep license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 sweep = %(int(*:max(1)))~+(1);
 
 /*****************************************************
@@ -755,6 +989,12 @@ sweep = %(int(*:max(1)))~+(1);
 
     Tracks abs peak and holds peak for 'holdtime' samples.
 *****************************************************/
+
+
+//-----------------------------------------------------------------------
+declare peakholder author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare peakholder copyright "Julius O. Smith III";
+declare peakholder license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 peakholder(holdtime) = peakhold2 ~ reset : (!,_) with {
     reset = sweep(holdtime) > 0;
@@ -785,11 +1025,29 @@ peakholder(holdtime) = peakhold2 ~ reset : (!,_) with {
 // - http://www.soundonsound.com/sos/apr01/articles/advanced.asp
 // - http://en.wikipedia.org/wiki/Gating_(sound_engineering)
 
+
+//-----------------------------------------------------------------------
+declare gate_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare gate_mono copyright "Julius O. Smith III";
+declare gate_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 gate_mono(thresh,att,hold,rel,x) = x * gate_gain_mono(thresh,att,hold,rel,x);
+
+
+//-----------------------------------------------------------------------
+declare gate_stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare gate_stereo copyright "Julius O. Smith III";
+declare gate_stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
   ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
 };
+
+
+//-----------------------------------------------------------------------
+declare gate_gain_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare gate_gain_mono copyright "Julius O. Smith III";
+declare gate_gain_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ar(att,rel) with {
   extendedrawgate(x) = max(float(rawgatesig(x)),holdsig(x));
@@ -822,11 +1080,29 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ar(at
 // - Albert Graef's <faust2pd>/examples/synth/compressor_.dsp
 // - More features: https://github.com/magnetophon/faustCompressors
 
+
+//-----------------------------------------------------------------------
+declare compressor_stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare compressor_stereo copyright "Julius O. Smith III";
+declare compressor_stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 compressor_mono(ratio,thresh,att,rel,x) = x * compression_gain_mono(ratio,thresh,att,rel,x);
+
+
+//-----------------------------------------------------------------------
+declare midikey2hz author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare midikey2hz copyright "Julius O. Smith III";
+declare midikey2hz license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 compressor_stereo(ratio,thresh,att,rel,x,y) = cgm*x, cgm*y with {
   cgm = compression_gain_mono(ratio,thresh,att,rel,abs(x)+abs(y));
 };
+
+
+//-----------------------------------------------------------------------
+declare compression_gain_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare compression_gain_mono copyright "Julius O. Smith III";
+declare compression_gain_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 compression_gain_mono(ratio,thresh,att,rel) =
   amp_follower_ar(att,rel) : linear2db : outminusindb(ratio,thresh) :
@@ -844,6 +1120,12 @@ with {
 //---------------------------- gate_demo -------------------------
 // USAGE: _,_ : gate_demo : _,_;
 //
+
+//-----------------------------------------------------------------------
+declare gate_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare gate_demo copyright "Julius O. Smith III";
+declare gate_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 gate_demo = bypass2(gbp,gate_stereo_demo) with {
 
    gate_group(x)  = vgroup("GATE  [tooltip: Reference: http://en.wikipedia.org/wiki/Noise_gate]", x);
@@ -878,6 +1160,12 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
 //---------------------------- compressor_demo -------------------------
 // USAGE: _,_ : compressor_demo : _,_;
 //
+
+//-----------------------------------------------------------------------
+declare compressor_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare compressor_demo copyright "Julius O. Smith III";
+declare compressor_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    comp_group(x) = vgroup("COMPRESSOR  [tooltip: Reference: http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
@@ -946,7 +1234,19 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 //     Faster attack gives "more bite" (e.g. on vocals)
 //     He hears a bright, clear eq effect as well (not implemented here)
 //
+
+//-----------------------------------------------------------------------
+declare limiter_1176_R4_mono author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare limiter_1176_R4_mono copyright "Julius O. Smith III";
+declare limiter_1176_R4_mono license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
+
+//-----------------------------------------------------------------------
+declare limiter_1176_R4_stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare limiter_1176_R4_stereo copyright "Julius O. Smith III";
+declare limiter_1176_R4_stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 
 //========================== Schroeder Reverberators  ======================
@@ -968,6 +1268,12 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 // which was recovered from an old SAIL DART backup tape.
 // John Chowning thinks this might be the one that became the
 // well known and often copied JCREV:
+
+
+//-----------------------------------------------------------------------
+declare jcrev author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare jcrev copyright "Julius O. Smith III";
+declare jcrev license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 
@@ -998,6 +1304,12 @@ jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 // John Chowning thinks this might be the one used on his
 // often-heard brass canon sound examples, one of which can be found at
 // https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav
+
+
+//-----------------------------------------------------------------------
+declare satrev author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare satrev copyright "Julius O. Smith III";
+declare satrev license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 
@@ -1037,6 +1349,12 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 // damp = damping of the lowpass comb filter (0-1)
 // spread = spatial spread in number of samples (for stereo)
 
+
+//-----------------------------------------------------------------------
+declare mono_freeverb author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare mono_freeverb copyright "Julius O. Smith III";
+declare mono_freeverb license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp)) :> seq(i,4,allpass_comb(1024, allpasstuningL(i)+spread, -fb2))
 with{
         origSR = 44100;
@@ -1060,11 +1378,23 @@ with{
         lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 };
 
+
+//-----------------------------------------------------------------------
+declare stereo_freeverb author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare stereo_freeverb copyright "Julius O. Smith III";
+declare stereo_freeverb license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
 
 //---------------------------- freeverb_demo -------------------------
 // USAGE: _,_ : freeverb_demo : _,_;
 //
+
+
+//-----------------------------------------------------------------------
+declare freeverb_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare freeverb_demo copyright "Julius O. Smith III";
+declare freeverb_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), *(1-g), *(1-g) :> _,_ with{
         scaleroom   = 0.28;
@@ -1105,6 +1435,12 @@ freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed
 //   https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html
 //
 // DEPENDENCIES: filter.lib (filterbank)
+
+
+//-----------------------------------------------------------------------
+declare fdnrev0 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare fdnrev0 copyright "Julius O. Smith III";
+declare fdnrev0 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax, nonl)
   = (bus(2*N) :> bus(N) : delaylines(N)) ~
@@ -1161,6 +1497,12 @@ with {
 // REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/Prime_Power_Delay_Line.html
 //
+
+//-----------------------------------------------------------------------
+declare prime_power_delays author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare prime_power_delays copyright "Julius O. Smith III";
+declare prime_power_delays license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
   Np = 16;
   primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;
@@ -1182,6 +1524,12 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 
 //--------------------- stereo_reverb_tester --------------------
 // Handy test inputs for reverberator demos below.
+
+
+//-----------------------------------------------------------------------
+declare stereo_reverb_tester author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare stereo_reverb_tester copyright "Julius O. Smith III";
+declare stereo_reverb_tester license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 stereo_reverb_tester(revin_group,x,y) = inx,iny with {
   ck_group(x) = revin_group(vgroup("[1] Input Config",x));
@@ -1216,6 +1564,12 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
 // BBSO = Butterworth band-split order
 //      = order of lowpass/highpass bandsplit used at each crossover freq
 //      = odd positive integer
+
+
+//-----------------------------------------------------------------------
+declare fdnrev0_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare fdnrev0_demo copyright "Julius O. Smith III";
+declare fdnrev0_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 fdnrev0_demo(N,NB,BBSO,x,y) = stereo_reverb_tester(revin_group,x,y)
           <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
@@ -1291,6 +1645,12 @@ with {
 //   filter.lib (allpass_comb, lowpass, smooth)
 //   math.lib (hadamard, take, etc.)
 
+
+//-----------------------------------------------------------------------
+declare zita_rev_fdn author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_rev_fdn copyright "Julius O. Smith III";
+declare zita_rev_fdn license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) =
   ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~
    (delayfilters(N,freqs,durs) : fbdelaylines(N)))
@@ -1346,11 +1706,23 @@ with {
 };
 
 // Stereo input delay used by zita_rev1 in both stereo and ambisonics mode:
+
+//-----------------------------------------------------------------------
+declare zita_in_delay author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_in_delay copyright "Julius O. Smith III";
+declare zita_in_delay license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 zita_in_delay(rdel) = zita_delay_mono(rdel), zita_delay_mono(rdel) with {
   zita_delay_mono(rdel) = delay(8192,SR*rdel*0.001) * 0.3;
 };
 
 // Stereo input mapping used by zita_rev1 in both stereo and ambisonics mode:
+
+//-----------------------------------------------------------------------
+declare zita_distrib2 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_distrib2 copyright "Julius O. Smith III";
+declare zita_distrib2 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 zita_distrib2(N) = _,_ <: fanflip(N) with {
    fanflip(4) = _,_,*(-1),*(-1);
    fanflip(N) = fanflip(N/2),fanflip(N/2);
@@ -1364,6 +1736,12 @@ zita_distrib2(N) = _,_ <: fanflip(N) with {
 //
 // WHERE
 //   (args and references as for zita_rev_fdn above)
+
+
+//-----------------------------------------------------------------------
+declare zita_rev_fdn_demo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_rev_fdn_demo copyright "Julius O. Smith III";
+declare zita_rev_fdn_demo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 zita_rev_fdn_demo = zita_rev_fdn(f1,f2,t60dc,t60m,fsmax)
 with {
@@ -1395,6 +1773,12 @@ with {
 //   rdel  = delay (in ms) before reverberation begins (e.g., 0 to ~100 ms)
 //   (remaining args and refs as for zita_rev_fdn above)
 
+
+//-----------------------------------------------------------------------
+declare zita_rev1_stereo author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_rev1_stereo copyright "Julius O. Smith III";
+declare zita_rev1_stereo license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) =
    zita_in_delay(rdel)
  : zita_distrib2(N)
@@ -1418,6 +1802,12 @@ with {
 // WHERE
 //   rgxyz = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9)
 //   (remaining args and references as for zita_rev1_stereo above)
+
+
+//-----------------------------------------------------------------------
+declare zita_rev1_ambi author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_rev1_ambi copyright "Julius O. Smith III";
+declare zita_rev1_ambi license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) =
    zita_in_delay(rdel)
@@ -1444,6 +1834,12 @@ with {
 //
 // DEPENDENCIES:
 //   filter.lib (peak_eq_rm)
+
+
+//-----------------------------------------------------------------------
+declare zita_rev1 author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare zita_rev1 copyright "Julius O. Smith III";
+declare zita_rev1 license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 zita_rev1(x,y) = zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
           : out_eq : dry_wet(x,y) : out_level
@@ -1591,6 +1987,12 @@ with {
 // A routing matrix can be used to obtain other connection geometries.
 
 // four-port scattering junction:
+
+//-----------------------------------------------------------------------
+declare mesh_square author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare mesh_square copyright "Julius O. Smith III";
+declare mesh_square license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+
 mesh_square(1) =
           bus(4) <: par(i,4,*(-1)), (bus(4) :> (*(.5)) <: bus(4)) :> bus(4);
 

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,19 +24,19 @@
 
 using namespace std;
 
-#include <string>
+#include <string.h>
+#include <algorithm>
+#include <iostream>
 #include <list>
 #include <map>
-#include <vector>
-#include <stack>
-#include <iostream>
 #include <sstream>
-#include <algorithm>
-#include <string.h>
+#include <stack>
+#include <string>
+#include <vector>
 
-#include "instructions.hh"
-#include "global.hh"
 #include "exception.hh"
+#include "global.hh"
+#include "instructions.hh"
 
 /*
     void compute(int count, float** inputs, float** ouputs)
@@ -81,29 +81,27 @@ using namespace std;
 */
 
 struct Loop2FunctionBuider : public DispatchVisitor {
-
     // Variable management
-    map <string, Address::AccessType> fLocalVarTable;
-    list <string> fAddedVarTable;
+    map<string, Address::AccessType> fLocalVarTable;
+    list<string>                     fAddedVarTable;
 
     // Function definition creation
     list<NamedTyped*> fArgsTypeList;
-    DeclareFunInst* fFunctionDef;
+    DeclareFunInst*   fFunctionDef;
 
     // Function call creation
     list<ValueInst*> fArgsValueList;
-    DropInst* fFunctionCall;
+    DropInst*        fFunctionCall;
 
     void createParameter(Address* address)
     {
-        switch(address->getAccess()) {
-
+        switch (address->getAccess()) {
             case Address::kStack:
             case Address::kLoop: {
                 string name = address->getName();
                 if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
-
-                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
+                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) ==
+                        fAddedVarTable.end()) {  // First encounter
 
                         // Be sure variable is defined
                         //cerr << "createParameter kStack " << name << endl;
@@ -111,7 +109,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Local in the enclosing context, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(
+                            InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list
                         fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
@@ -128,15 +127,17 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
             case Address::kFunArgs: {
                 string name = address->getName();
-                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
+                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) ==
+                    fAddedVarTable.end()) {  // First encounter
 
                     // Be sure variable is defined
-                    cout << "createParameter kFunArgs " << name << endl;
+                    //cerr << "createParameter kFunArgs " << name << endl;
                     faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                     // Parameter in the enclosing function, becomes a fun parameter
                     BasicCloneVisitor cloner;
-                    fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                    fArgsTypeList.push_back(
+                        InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                     // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                     fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
@@ -178,8 +179,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         createParameter(inst->fAddress);
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
-    {}
+    virtual void visit(LoadVarAddressInst* inst) {}
 
     virtual void visit(StoreVarInst* inst)
     {
@@ -194,11 +194,9 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
         // Change the status of all variables used in function parameter list
         struct LoopCloneVisitor : public BasicCloneVisitor {
+            list<string>& fAddedVarTable;
 
-            list <string>& fAddedVarTable;
-
-            LoopCloneVisitor(list <string>& table):fAddedVarTable(table)
-            {}
+            LoopCloneVisitor(list<string>& table) : fAddedVarTable(table) {}
 
             virtual Address* visit(NamedAddress* address)
             {
@@ -208,13 +206,12 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                     return BasicCloneVisitor::visit(address);
                 }
             }
-
         };
 
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
-        BlockInst* function_code = static_cast<BlockInst*>(block->clone(&cloner));
-        //BlockInst* function_code = InstBuilder::genBlockInst();
+        BlockInst*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
+        // BlockInst* function_code = InstBuilder::genBlockInst();
 
         // Add a Ret (void) instruction
         function_code->pushBackInst(InstBuilder::genRetInst());
@@ -226,8 +223,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         }
 
         // Create function type
-        BasicTyped* result = InstBuilder::genBasicTyped(Typed::kVoid);
-        FunTyped* fun_type = InstBuilder::genFunTyped(fArgsTypeList, result, FunTyped::kLocal);
+        BasicTyped* result   = InstBuilder::genBasicTyped(Typed::kVoid);
+        FunTyped*   fun_type = InstBuilder::genFunTyped(fArgsTypeList, result, FunTyped::kVirtual);
 
         // Creates function definition
         fFunctionDef = InstBuilder::genDeclareFunInst(fun_name, fun_type, function_code);
@@ -235,17 +232,13 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Creates function call
         fFunctionCall = InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
     }
-
 };
 
 // To be used to clone the annotated code
 struct LoadStoreCloneVisitor : public BasicCloneVisitor {
+    map<string, ValueInst*>& fLinkTable;
 
-    map<string, ValueInst*>&  fLinkTable;
-
-    LoadStoreCloneVisitor(map<string, ValueInst*>& linktable)
-        :fLinkTable(linktable)
-    {}
+    LoadStoreCloneVisitor(map<string, ValueInst*>& linktable) : fLinkTable(linktable) {}
 
     // Rewrite Declare as a no-op (DropInst)
     StatementInst* visit(DeclareVarInst* inst)
@@ -278,12 +271,10 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
             return BasicCloneVisitor::visit(inst);
         }
     }
-
 };
 
 // Remove linked Declare/Load/Store with a given name family
 struct StackVariableRemover : public DispatchVisitor {
-
     ForLoopInst* fResultLoop;
 
     // Table used to "link" direct Store and Load
@@ -291,19 +282,16 @@ struct StackVariableRemover : public DispatchVisitor {
 
     // Store operation makes the "link" stuff
     struct VariableMarker : public DispatchVisitor {
-
         map<string, ValueInst*>& fLinkTable;
-        string fName;
+        string                   fName;
 
-        VariableMarker(map<string, ValueInst*>& linktable, const string& name)
-            :fLinkTable(linktable),fName(name)
-        {}
+        VariableMarker(map<string, ValueInst*>& linktable, const string& name) : fLinkTable(linktable), fName(name) {}
 
         virtual void visit(DeclareVarInst* inst)
         {
             DispatchVisitor::visit(inst);
             string name = inst->fAddress->getName();
-            
+
             if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
                 fLinkTable[name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
@@ -325,7 +313,8 @@ struct StackVariableRemover : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+            if (inst->fAddress->getAccess() == Address::kStack &&
+                inst->fAddress->getName().find(fName) != string::npos) {
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -338,31 +327,29 @@ struct StackVariableRemover : public DispatchVisitor {
         VariableMarker marker(fLinkTable, name);
         loop->accept(&marker);
 
-        // Clone the code of each loop, "linked" Declare/Store/Load are transformed : DeclareInst -> DropInst, StoreInst -> DropInst, LoadInst -> direct access to stored value
+        // Clone the code of each loop, "linked" Declare/Store/Load are transformed : DeclareInst -> DropInst, StoreInst
+        // -> DropInst, LoadInst -> direct access to stored value
         LoadStoreCloneVisitor remover(fLinkTable);
         fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
     }
-
 };
 
 // Remove linked Declare/Load/Store with a given name of name family
 struct LLVMStackVariableRemover : public DispatchVisitor {
-
     ForLoopInst* fResultLoop;
 
     // Store operation makes the "link" stuff
     struct VariableMarker : public DispatchVisitor {
-
         string fName;
 
-        VariableMarker(const string& name):fName(name)
-        {}
+        VariableMarker(const string& name) : fName(name) {}
 
         virtual void visit(DeclareVarInst* inst)
         {
             DispatchVisitor::visit(inst);
 
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+            if (inst->fAddress->getAccess() == Address::kStack &&
+                inst->fAddress->getName().find(fName) != string::npos) {
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -371,7 +358,8 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+            if (inst->fAddress->getAccess() == Address::kStack &&
+                inst->fAddress->getName().find(fName) != string::npos) {
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -380,7 +368,8 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
 
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+            if (inst->fAddress->getAccess() == Address::kStack &&
+                inst->fAddress->getName().find(fName) != string::npos) {
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -397,8 +386,7 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
         fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
     }
 
-    LLVMStackVariableRemover()
-    {}
+    LLVMStackVariableRemover() {}
 
     void Mark(ForLoopInst* loop, const string& name)
     {
@@ -429,20 +417,16 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
 */
 
 struct SeqLoopBuilder : public DispatchVisitor {
-
     ForLoopInst* fResultLoop;
 
     // Table used to "link" direct Store and Load
-    map<string, ValueInst*>  fLinkTable;
+    map<string, ValueInst*> fLinkTable;
 
     // Store operation makes the "link" stuff
     struct FirstLoopVisitor : public DispatchVisitor {
+        map<string, ValueInst*>& fLinkTable;
 
-        map<string, ValueInst*>&  fLinkTable;
-
-        FirstLoopVisitor(map<string, ValueInst*>& linktable)
-            :fLinkTable(linktable)
-        {}
+        FirstLoopVisitor(map<string, ValueInst*>& linktable) : fLinkTable(linktable) {}
 
         virtual void visit(StoreVarInst* inst)
         {
@@ -450,7 +434,7 @@ struct SeqLoopBuilder : public DispatchVisitor {
             string name = inst->fAddress->getName();
 
             if (name.find("output") != string::npos) {
-                string link_name = "link" + name.substr(strlen("output"), 0xFFFF);
+                string link_name      = "link" + name.substr(strlen("output"), 0xFFFF);
                 fLinkTable[link_name] = inst->fValue;
                 inst->fAddress->setAccess(Address::kLink);
                 inst->fAddress->setName(link_name);
@@ -460,18 +444,15 @@ struct SeqLoopBuilder : public DispatchVisitor {
 
     // Load operation sees the "link" stuff
     struct SecondLoopVisitor : public DispatchVisitor {
+        map<string, ValueInst*>& fLinkTable;
 
-        map<string, ValueInst*>&  fLinkTable;
-
-        SecondLoopVisitor(map<string, ValueInst*>& linktable)
-            :fLinkTable(linktable)
-        {}
+        SecondLoopVisitor(map<string, ValueInst*>& linktable) : fLinkTable(linktable) {}
 
         virtual void visit(LoadVarInst* inst)
         {
             DispatchVisitor::visit(inst);
             string name = inst->fAddress->getName();
-            
+
             if (name.find("input") != string::npos) {
                 string link_name = "link" + name.substr(strlen("input"), 0xFFFF);
                 inst->fAddress->setAccess(Address::kLink);
@@ -491,9 +472,10 @@ struct SeqLoopBuilder : public DispatchVisitor {
         SecondLoopVisitor second_loop(fLinkTable);
         loop2->accept(&second_loop);
 
-        // Clone the code of each loop, "linked" Store/Load are transformed : StoreInst -> DropInst, LoadInst -> direct access to stored value
+        // Clone the code of each loop, "linked" Store/Load are transformed : StoreInst -> DropInst, LoadInst -> direct
+        // access to stored value
         LoadStoreCloneVisitor remover(fLinkTable);
-        fResultLoop = static_cast<ForLoopInst*>(loop1->clone(&remover));
+        fResultLoop        = static_cast<ForLoopInst*>(loop1->clone(&remover));
         ForLoopInst* loop3 = static_cast<ForLoopInst*>(loop2->clone(&remover));
 
         faustassert(fResultLoop);
@@ -510,23 +492,18 @@ struct SeqLoopBuilder : public DispatchVisitor {
         */
     }
 
-    virtual ~SeqLoopBuilder()
-    {}
-
+    virtual ~SeqLoopBuilder() {}
 };
 
 // Parallel of loops
 
 struct ParLoopBuilder : public DispatchVisitor {
-
     StatementInst* fFunction_def1;
     StatementInst* fFunction_def2;
 
-    ParLoopBuilder(ForLoopInst* loop1, ForLoopInst* loop2)
-    {}
+    ParLoopBuilder(ForLoopInst* loop1, ForLoopInst* loop2) {}
 
-    virtual ~ParLoopBuilder()
-    {}
+    virtual ~ParLoopBuilder() {}
 };
 
 /*
@@ -538,8 +515,7 @@ Constant propagation :
 */
 
 struct ConstantPropagationBuilder : public BasicCloneVisitor {
-
-    map <string, ValueInst*> fValueTable;
+    map<string, ValueInst*> fValueTable;
 
     virtual ValueInst* visit(BinopInst* inst)
     {
@@ -553,8 +529,8 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
         Int32NumInst* int2 = dynamic_cast<Int32NumInst*>(val2);
 
-        //if (float1) float1->dump();
-        //if (float2) float2->dump();
+        // if (float1) float1->dump();
+        // if (float2) float2->dump();
 
         if (float1 && float2) {
             switch (inst->fOpcode) {
@@ -573,7 +549,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (int1 && int2) {
             faustassert(false);
             return 0;
-            //return new Int32NumInst(inst->fOpcode(int1->fNum, int2->fNum));
+            // return new Int32NumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
             return InstBuilder::genBinopInst(inst->fOpcode, val1, val2);
         }
@@ -581,9 +557,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(CastInst* inst)
     {
-        ValueInst* val1 = inst->fInst->clone(this);
+        ValueInst*    val1   = inst->fInst->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
+        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (inst->fType->getType() == Typed::kFloat) {
             return (float1) ? float1 : InstBuilder::genFloatNumInst(float(int1->fNum));
@@ -597,7 +573,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(FunCallInst* inst)
     {
-        list<ValueInst*> cloned;
+        list<ValueInst*>                 cloned;
         list<ValueInst*>::const_iterator it;
         for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
             cloned.push_back((*it)->clone(this));
@@ -608,9 +584,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(Select2Inst* inst)
     {
-        ValueInst* val1 = inst->fCond->clone(this);
+        ValueInst*    val1   = inst->fCond->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
+        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (float1) {
             return (float1->fNum > 0.f) ? inst->fThen->clone(this) : inst->fElse->clone(this);
@@ -623,13 +599,13 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
-        ValueInst* val1 = inst->fValue->clone(this);
+        ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
-        string name = inst->fAddress->getName();
+        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
+        string        name   = inst->fAddress->getName();
 
         if (float1) {
-            //float1->dump();
+            // float1->dump();
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = float1;
             return InstBuilder::genDropInst();
@@ -646,7 +622,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     virtual ValueInst* visit(LoadVarInst* inst)
     {
         string name = inst->fAddress->getName();
-        if (fValueTable.find(name) != fValueTable.end())  {
+        if (fValueTable.find(name) != fValueTable.end()) {
             return fValueTable[name];
         } else {
             BasicCloneVisitor cloner;
@@ -656,13 +632,13 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual StatementInst* visit(StoreVarInst* inst)
     {
-        ValueInst* val1 = inst->fValue->clone(this);
+        ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
-        string name = inst->fAddress->getName();
+        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
+        string        name   = inst->fAddress->getName();
 
         if (float1) {
-            //float1->dump();
+            // float1->dump();
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = float1;
             return InstBuilder::genDropInst();
@@ -675,7 +651,6 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), val1);
         }
     }
-
 };
 
 #endif

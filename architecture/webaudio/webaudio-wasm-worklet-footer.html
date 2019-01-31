@@ -4,10 +4,13 @@
 'use strict';
 
 // Faust part
+//var contextOptions = { latencyHint: 0.001 };
+var contextOptions = { latencyHint: "interactive" };
+//var contextOptions = { latencyHint: "playback" };
 
 var isWasm = (typeof(WebAssembly) !== "undefined");
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var context = (isWebKitAudio) ? new webkitAudioContext(contextOptions) : new AudioContext(contextOptions);
 var factory = null;
 var node = null;
 
@@ -108,27 +111,59 @@ function getDevice(device)
 }
 
 // Save/Load functions using local storage
-function saveDSP()
+
+//set item from local storage 'item_key' key
+function getStorageItemValue(item_key, key)
 {
-    if (typeof(Storage) !== "undefined") {
-        var params = node.getParams();
-        for (var i = 0; i < params.length; i++) {
-            localStorage.setItem(params[i], node.getParamValue(params[i]));
-        }
+    if (localStorage.getItem(item_key)) {
+        var item_value = JSON.parse(localStorage.getItem(item_key));
+        var item_index = item_value.findIndex((obj => obj[0] === key));
+        return (item_index >= 0) ? item_value[item_index][1]: null;
+    } else {
+        return null;
     }
 }
 
-function loadDSP()
+//get [key, value] in local storage item_key key
+function setStorageItemValue(item_key, key, value)
 {
-    if (typeof(Storage) !== "undefined") {
-        var params = node.getParams();
-        for (var i = 0; i < params.length; i++) {
-            if (localStorage.getItem(params[i])) {
-                // Restore DSP state
-                node.setParamValue(params[i], Number(localStorage.getItem(params[i])));
-                // Restore GUI state
-                node.getOutputParamHandler()(params[i], Number(localStorage.getItem(params[i])));
-            }
+    var item_value;
+    if (localStorage.getItem(item_key)) {
+        item_value = JSON.parse(localStorage.getItem(item_key));
+    } else {
+        item_value = [];
+    }
+    
+    // Possibly update an existing 'key'
+    var item_index = item_value.findIndex((obj => obj[0] === key));
+    if (item_index >= 0) {
+        item_value[item_index][1] = value;
+        // Otherwise push a new [key, value]
+    } else {
+        item_value.push([key, value]);
+    }
+    
+    localStorage.setItem(item_key, JSON.stringify(item_value));
+}
+
+function saveDSPState()
+{
+    var params = node.getParams();
+    for (var i = 0; i < params.length; i++) {
+        setStorageItemValue('DSP', params[i], node.getParamValue(params[i]));
+    }
+}
+
+function loadDSPState()
+{
+    var params = node.getParams();
+    for (var i = 0; i < params.length; i++) {
+        var value = getStorageItemValue('DSP', params[i]);
+        if (value) {
+            // Restore DSP state
+            node.setParamValue(params[i], Number(value));
+            // Restore GUI state
+            node.getOutputParamHandler()(params[i], Number(value));
         }
     }
 }
@@ -141,14 +176,8 @@ function startDSPAux(aw_node)
         activateAudioInput();
     }
     
-    console.log("startDSPAux");
-    console.log(node.parameters);
-    
     node.connect(context.destination);
     console.log(node.getJSON());
-
-    // TODO: emcc
-    //node.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(node.getParams());
 
     // No polling from the server needed, so use an empty loop
@@ -160,7 +189,7 @@ function startDSPAux(aw_node)
     node.setOutputParamHandler(_f4u$t.main(node.getJSON(), faustsvg, function(path, val) { node.setParamValue(path, val); }));
 
     // Load DSP state from local storage
-    loadDSP();
+    loadDSPState();
 }
 
 function startDSP()
@@ -170,8 +199,8 @@ function startDSP()
 
 function startNewDSP()
 {
-     if (isWasm && workletAvailable()) {
-        factory = new DSP(context, "");
+    if (isWasm && workletAvailable()) {
+        factory = new window.DSP(context, "");
         factory.load()
         .then((aw_node) => startDSPAux(aw_node))
         .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
@@ -207,6 +236,6 @@ if (typeof (Module) !== "undefined") {
 }
 
 // Save DSP state to local storage
-setInterval(function() { if (node) saveDSP(); }, 1000);
+setInterval(function() { if (node) saveDSPState(); }, 1000);
 
 </script>

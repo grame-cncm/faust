@@ -1,4 +1,5 @@
 #! /bin/bash -e
+#set -x
 
 #####################################################################
 #                                                                   #
@@ -17,6 +18,7 @@
 . faustoptflags
 
 PATH=$PATH:/usr/local/bin
+ARCHFILE="supercollider.cpp"
 
 #-------------------------------------------------------------------
 # Need SuperCollider 'plugin_interface' include path to compile UGens:
@@ -48,7 +50,7 @@ else
 fi 
 ###echo Using SC Headers in $SC
 
-INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTLIB"
+INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTINC"
 
 if [ $# = 0 ]; then
     echo USAGE:
@@ -141,7 +143,7 @@ fi
 #-------------------------------------------------------------------
 # Check plateform specifics
 #
-if [[ $(uname) == Darwin ]]; then
+if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
     EXT="scx"
 	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
 elif [[ $(uname) == Linux ]]; then
@@ -168,7 +170,7 @@ for p in $FILES; do
 
     # compile the .dsp file to c++ and xml
     
-    faust -i -a supercollider.cpp -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     mv "$SRCDIR/$f.xml" $TMP/
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
@@ -183,11 +185,11 @@ for p in $FILES; do
         BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""
         
         #build for build scsynth
-        ${CXX=g++} $BUILDFLAGS -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        $CXX $BUILDFLAGS -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
         
         #build for supernova
         if [ $SUPERNOVA_FLAG = 1 ]; then
-          ${CXX=g++} $BUILDFLAGS -std=c++11 -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
+          $CXX $BUILDFLAGS -std=c++11 -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
         fi
 
     )> $OUTDEV || exit

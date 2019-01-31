@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,40 +22,33 @@
 #ifndef __RECSCHEMA__
 #define __RECSCHEMA__
 
-
 #include "schema.h"
-
 
 /**
  * place and connect two diagrams in recursive composition
  */
 
-class recSchema : public schema
-{
-	schema*			fSchema1;
-	schema*			fSchema2;
-	vector<point>	fInputPoint;
-	vector<point>	fOutputPoint;
+class recSchema : public schema {
+    schema*       fSchema1;
+    schema*       fSchema2;
+    vector<point> fInputPoint;
+    vector<point> fOutputPoint;
 
-  public:
-    friend schema*  makeRecSchema (schema* s1, schema* s2);
+   public:
+    friend schema* makeRecSchema(schema* s1, schema* s2);
 
-	virtual void 	place(double ox, double oy, int orientation);
-	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i)	const;
-	virtual point 	outputPoint(unsigned int i)	const;
-    virtual void 	collectTraits(collector& c);
+    virtual void  place(double ox, double oy, int orientation);
+    virtual void  draw(device& dev);
+    virtual point inputPoint(unsigned int i) const;
+    virtual point outputPoint(unsigned int i) const;
+    virtual void  collectTraits(collector& c);
 
-  private:
-	recSchema (schema* s1, schema* s2, double width);
-	void 			drawDelaySign(device& dev, double x, double y, double size);
+   private:
+    recSchema(schema* s1, schema* s2, double width);
+    void drawDelaySign(device& dev, double x, double y, double size);
 
-    void 			collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
-    void 			collectFeedfront(collector& c, const point& src, const point& dst, double dx);
-
+    void collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
+    void collectFeedfront(collector& c, const point& src, const point& dst, double dx);
 };
 
-
 #endif
-
-

@@ -49,4 +49,3 @@ llvm_dsp_factory* createCDSPFactoryFromStringAux(const char* name_app,
                                                 
 const char* getCDSPLastError();
 
-    

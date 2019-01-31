@@ -1,6 +1,7 @@
 #LIB := ../../compiler
 LIB ?= ../../build/lib
 INC = ../../architecture
+INC1 = ../../compiler/generator/interpreter/
 FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
 #FASTMATH = ../../architecture/faust/dsp/fastmath-light.cpp
 
@@ -9,7 +10,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath
+all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
@@ -18,13 +19,13 @@ faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm-interp
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0`  -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack sndfile gtk+-2.0`  -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
 
-dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp -I $(INC) $(LIB)/libfaustmachine.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-machine-jack-gtk
+dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a 
+	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp -I $(INC1) $(LIB)/libfaustmachine.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-machine-jack-gtk
 
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp
-	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
+	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0 sndfile` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
 
 dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
 	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN -I $(INC) $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o dynamic-jack-gtk-plugin

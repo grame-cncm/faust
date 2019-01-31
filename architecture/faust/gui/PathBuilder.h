@@ -53,9 +53,12 @@ class PathBuilder
                 res += "/";
             }
             res += label;
-            replace(res.begin(), res.end(), ' ', '_');
+            std::replace(res.begin(), res.end(), ' ', '_');
             return res;
         }
+    
+        void pushLabel(const std::string& label) { fControlsLevel.push_back(label); }
+        void popLabel() { fControlsLevel.pop_back(); }
     
 };
 

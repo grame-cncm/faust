@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,64 +22,57 @@
 #ifndef _STRUCT_MANAGER_H
 #define _STRUCT_MANAGER_H
 
-#include <string>
 #include <map>
+#include <string>
 
 #include "instructions.hh"
 
-// Describe a field memory location the the DSP structure
+// Describe a field memory location in the DSP structure
 struct MemoryDesc {
-    
-    MemoryDesc(): fOffset(-1),
-                fSize(-1),
-                fType(Typed::kNoType)
-    {}
-    
-    MemoryDesc(int offset, int size, Typed::VarType type):
-        fOffset(offset),
-        fSize(size),
-        fType(type)
-    {}
-    
-    int fOffset;
-    int fSize;
+    MemoryDesc() : fOffset(-1), fSize(-1), fType(Typed::kNoType) {}
+
+    MemoryDesc(int offset, int size, Typed::VarType type)
+        :fOffset(offset), fSize(size), fType(type) {}
+
+    int            fOffset;
+    int            fSize;
     Typed::VarType fType;
 };
 
 /*
  Compute all fields addresses and DSP structure size
  */
-
 struct StructMemoryInstVisitor : public DispatchVisitor {
-    
-    int fStructOffset;                      // Keep the offset in bytes of the structure
-    map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
-    
-    StructMemoryInstVisitor():fStructOffset(0)
-    {}
-    
+    int                     fStructOffset;  // Keep the offset in bytes of the structure
+    map<string, MemoryDesc> fFieldTable;    // Table : field_name, { offset, size, type }
+
+    StructMemoryInstVisitor() : fStructOffset(0) {}
+
     // Return the index of a given field
     int getFieldOffset(const string& name)
     {
         return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
     }
-    
+
     // Return the DSP size in bytes
     int getStructSize() { return fStructOffset; }
-    
-    map <string, MemoryDesc>& getFieldTable() { return fFieldTable; }
-    
+
+    map<string, MemoryDesc>& getFieldTable() { return fFieldTable; }
+
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        //dump2FIR(inst);
-        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        // dump2FIR(inst);
+        bool is_struct =
+            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        
+
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset += (array_typed->fSize * audioSampleSize()); // Always use biggest size so that int/real access are correctly aligned
+                fFieldTable[inst->fAddress->getName()] =
+                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize *  audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -87,14 +80,14 @@ struct StructMemoryInstVisitor : public DispatchVisitor {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset += audioSampleSize(); // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);
             }
         }
     }
-    
 };
 
 #endif

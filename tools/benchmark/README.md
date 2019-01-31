@@ -18,6 +18,23 @@ Here are the available options:
 
 Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
 
+## poly-dynamic-jack-gtk
+
+The **poly-dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, activate the -effect auto model by default, and runs it with the LLVM or Interpreter backend.
+
+`poly-dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp`
+
+Here are the available options:
+
+- `-llvm/interp to choose either LLVM or Interpreter backend`
+- `-nvoices N to start the DSP in polyphonic mode with N voices`
+- `-midi to activate MIDI control`
+- `-osc to activate OSC control`
+- `-httpd to activate HTTPD control`
+
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
+
+
 ## interp-tracer
 
 The **interp-tracer** tool runs and instruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN or INTEGER_OVERFLOW values are produced. The -control mode allows to check control parameters, by explicitly setting their *min* and *max* values (for now).
@@ -37,12 +54,14 @@ Here are the available options:
 
 The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
 
-`faustbench [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
+ - `-notrace to only generate the best compilation parameters`
+ - `-generic' to compile for a generic processor, otherwise -march=native will be used`
  - `-ios to generate an iOS project`
- - `-single to only scalar test`
+ - `-single to only execute the scalar test`
  - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
@@ -53,10 +72,12 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust compiler options can be given beside the ones that will be automatically explored by the tool.
 
-`faustbench-llvm [-single] [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench-llvm [-notrace] [-generic] [-single] [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
+- `-notrace to only generate the best compilation parameters`
+- `-generic to compile for a generic processor, otherwise the native CPU will be used`
 - `-single to only scalar test`
 - `-run <num> to execute each test <num> times`
 
@@ -78,5 +99,4 @@ Here is the available options:
 - `-html to generate a ready to use HTML test page`
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
 - `-jsmem to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
-
 

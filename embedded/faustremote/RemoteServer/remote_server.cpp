@@ -86,7 +86,7 @@ class netjackaudio_slave : public netjackaudio_midicontrol {
     public:
     
         netjackaudio_slave(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
+            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency, 2, 2)
         {
             fNumberRestartAttempts = 0;
         }
@@ -335,7 +335,11 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
                 tmp_dsp->getNumOutputs(),
                 factory->getSHAKey(),
                 base64_encode(code.c_str(), int(code.size())),
-                "", "", "", std::map<std::string, int>());
+                "", "",
+                std::vector<std::string>(),
+                std::vector<std::string>(),
+                "",
+                std::map<std::string, int>());
     tmp_dsp->metadata(&json);
     tmp_dsp->buildUserInterface(&json);
     delete tmp_dsp;
@@ -408,13 +412,14 @@ dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, string
     }
     
     dsp_factory* factory = NULL;
+    string error_msg;
      
     if (isopt(argc, argv, "-lm")) {
         // Machine code
     #ifdef LLVM_DSP_FACTORY
-        factory = readDSPFactoryFromMachine(fFaustCode, loptions(argv, "-lm", ""));
+        factory = readDSPFactoryFromMachine(fFaustCode, loptions(argv, "-lm", ""), error_msg);
     #else
-        factory = readInterpreterDSPFactoryFromMachine(fFaustCode);
+        factory = readInterpreterDSPFactoryFromBitcode(fFaustCode, error_msg);
     #endif
     } else {
         // DSP code
@@ -739,6 +744,7 @@ bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_
 bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     dsp_factory* factory;
+    string error_msg;
     
     if ((factory = info->crossCompileFactory(this, info->fAnswer))) {
         fFactories.insert(factory);
@@ -746,10 +752,10 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
         // Return machine_code to client, and keep the new compiled target, so that is it "cached"
     #ifdef LLVM_DSP_FACTORY
         string machine_code = writeDSPFactoryToMachine(dynamic_cast<llvm_dsp_factory*>(factory), info->fTarget);
-        dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget, error_msg);
     #else
-        string machine_code = writeInterpreterDSPFactoryToMachine(dynamic_cast<interpreter_dsp_factory*>(factory));
-        dsp_factory* new_factory = readInterpreterDSPFactoryFromMachine(machine_code);
+        string machine_code = writeInterpreterDSPFactoryToBitcode(dynamic_cast<interpreter_dsp_factory*>(factory));
+        dsp_factory* new_factory = readInterpreterDSPFactoryFromBitcode(machine_code, error_msg);
     #endif
         
         if (new_factory) {

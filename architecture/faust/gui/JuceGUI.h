@@ -495,7 +495,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
          * \param   scale                           Scale of the slider, exponential, logarithmic, or linear.
          * \param   type                            Type of slider (see SliderType).
          */
-        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
+        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
         {
             if (scale == MetaDataUI::kLog) {
                 fConverter = new LogValueConverter(min, max, min, max);
@@ -749,7 +749,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
     private:
         
         ComboBox fComboBox;
-        vector<double> fValues;
+        std::vector<double> fValues;
 
     public:
         /**
@@ -773,8 +773,8 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
             fComboBox.addListener(this);
             addAndMakeVisible(fComboBox);
 
-            vector<string> names;
-            vector<double> values;
+            std::vector<std::string> names;
+            std::vector<double> values;
 
             if (parseMenuList(mdescr, names, values)) {
 
@@ -860,7 +860,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         
         bool fIsVertical;
         OwnedArray<ToggleButton> fButtons;
-        vector<double> fValues;
+        std::vector<double> fValues;
 
     public:
         /**
@@ -882,7 +882,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
          * \param   fRadioGroupID               RadioButton being multiple CheckButton in JUCE,
          *                                      we need an ID to know which are linked together.
          */
-        uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
+        uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, std::vector<std::string>& names, std::vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
         {
             ToggleButton* defaultbutton = 0;
             double mindelta = FLT_MAX;
@@ -1829,7 +1829,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         int fRadioGroupID;               // In case of radio buttons.
         //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
-        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V3();
+        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V4();
     
         FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
         {
@@ -1856,15 +1856,15 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             } else if (isMenu(zone)) {
                 addMenu(label, zone, defaultVal(zone, init), min, max, step, fMenuDescription[zone].c_str());
             } else {
-                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, min, max, defaultVal(zone, init), step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
+                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
             }
         }
         
         /** Add a radio buttons to the user interface. */
         void addRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr, bool vert)
         {
-            vector<string> names;
-            vector<double> values;
+            std::vector<std::string> names;
+            std::vector<double> values;
             parseMenuList(mdescr, names, values); // Set names and values vectors
             
             // and not just n checkButtons :
@@ -1890,7 +1890,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         /** Add a ciruclar slider to the user interface. */
         void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, defaultVal(zone, init), step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
+            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
         }
         
         /** Add a bargraph to the user interface. */
@@ -1911,7 +1911,9 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \details Initialize the JuceGUI specific variables. 
          */
         JuceGUI(bool def = true):fDefault(def), fRadioGroupID(1) // fRadioGroupID must start at 1
-        {}
+        {
+            setLookAndFeel(fLaf);
+        }
         
         /**
          * \brief   Destructor.
@@ -1919,6 +1921,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          */
         virtual ~JuceGUI()
         {
+            setLookAndFeel(nullptr);
             delete fCurrentBox;
         }
 
@@ -2002,7 +2005,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         {
             // kMargin pixels between the slider and his name
             int newWidth = Font().getStringWidth(String(label)) + kNumEntryWidth + kMargin;
-            fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
+            fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
         }
         
         /** Add a vertical bargraph to the user interface. */

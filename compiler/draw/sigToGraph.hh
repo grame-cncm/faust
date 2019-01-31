@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 #ifndef SIGTOGRAPH_HH
 #define SIGTOGRAPH_HH
 
-#include "signals.hh"
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
+#include "signals.hh"
 
 using namespace std;
 
@@ -33,6 +33,6 @@ using namespace std;
  * Draw a list of signals L as a directed graph using
  * graphviz's dot language
  */
-void sigToGraph (Tree sig, ofstream& fout);
+void sigToGraph(Tree sig, ofstream& fout);
 
-#endif // SIGTOGRAPH_HH
+#endif  // SIGTOGRAPH_HH

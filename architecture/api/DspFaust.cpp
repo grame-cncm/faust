@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File 
+ FAUST API Architecture File
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2017 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -17,11 +17,12 @@
  ************************************************************************
  ************************************************************************/
 
-#include <math.h>
 #include <cmath>
+#include <cstring>
 
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/JSONUIDecoder.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/meta.h"
@@ -89,7 +90,7 @@
 // Interface
 //**************************************************************
 
-#if MIDICTRL 
+#if MIDICTRL
 #if JACK_DRIVER
     // Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
@@ -106,6 +107,10 @@
 #else
     #include "faust/gui/OSCUI.h"
 #endif
+static void osc_compute_callback(void* arg)
+{
+    static_cast<OSCUI*>(arg)->endBundle();
+}
 #endif
 
 #if DYNAMIC_DSP
@@ -117,23 +122,25 @@
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-DspFaust::DspFaust()
+DspFaust::DspFaust(bool use_driver)
 {
-    audio* driver = 0;
+    audio* driver = NULL;
+    if (use_driver) {
 #if JACK_DRIVER
-    // JACK has its own sample rate and buffer size
+        // JACK has its own sample rate and buffer size
 #if MIDICTRL
-    driver = new jackaudio_midi();
+        driver = new jackaudio_midi();
 #else
-    driver = new jackaudio();
+        driver = new jackaudio();
 #endif
 #elif JUCE_DRIVER
-    // JUCE audio device has its own sample rate and buffer size
-    driver = new juceaudio();
+        // JUCE audio device has its own sample rate and buffer size
+        driver = new juceaudio();
 #else
-    std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
-    throw std::bad_alloc();
+        std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
+        throw std::bad_alloc();
 #endif
+    }
     init(NULL, driver);
 }
 
@@ -146,7 +153,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
 DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
 {
     string error_msg;
-    
+
     // Is dsp_content a filename ?
     fFactory = createDSPFactoryFromFile(dsp_content, 0, NULL, "", error_msg, -1);
     if (!fFactory) {
@@ -158,7 +165,7 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
             throw bad_alloc();
         }
     }
-  
+
     dsp* dsp = fFactory->createDSPInstance();
     if (!dsp) {
         std::cerr << "Cannot allocate DSP instance\n";
@@ -221,12 +228,12 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #else
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
 #endif
-    
+
 #if OSCCTRL
 #if JUCE_DRIVER
     fOSCInterface = new JuceOSCUI(OSC_IP_ADDRESS, atoi(OSC_IN_PORT), atoi(OSC_OUT_PORT));
 #else
-    const char* argv[9];
+    const char* argv[11];
     argv[0] = "Faust";  // TODO may be should retrieve the actual name
     argv[1] = "-xmit";
     argv[2] = "1";      // TODO retrieve that from command line or somewhere
@@ -236,15 +243,27 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     argv[6] = OSC_IN_PORT;      // TODO same
     argv[7] = "-outport";
     argv[8] = OSC_OUT_PORT;     // TODO same
-    fOSCInterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
+    argv[9] = "-bundle";
+    argv[10] = "1";             // TODO same
+    fOSCInterface = new OSCUI("Faust", 11, (char**)argv); // TODO fix name
+    driver->addControlCallback(osc_compute_callback, fOSCInterface);
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
-    
+
 #if SOUNDFILE
+#if JUCE_DRIVER
+    auto file = File::getSpecialLocation(File::currentExecutableFile)
+        .getParentDirectory().getParentDirectory().getChildFile("Resources");
+    fSoundInterface = new SoundUI(file.getFullPathName().toStdString());
+#else
     // Use bundle path
     fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
+#endif
+    // SoundUI has to be dispatched on all internal voices
+    fPolyEngine->setGroup(false);
     fPolyEngine->buildUserInterface(fSoundInterface);
+    fPolyEngine->setGroup(true);
 #endif
 }
 
@@ -416,37 +435,37 @@ float DspFaust::getParamMin(const char* address)
 {
     return fPolyEngine->getParamMin(address);
 }
-      
+
 float DspFaust::getParamMin(int id)
 {
     return fPolyEngine->getParamMin(id);
 }
-      
+
 float DspFaust::getParamMax(const char* address)
 {
     return fPolyEngine->getParamMax(address);
 }
-      
+
 float DspFaust::getParamMax(int id)
 {
     return fPolyEngine->getParamMax(id);
 }
-      
+
 float DspFaust::getParamInit(const char* address)
 {
     return fPolyEngine->getParamInit(address);
 }
-      
+
 float DspFaust::getParamInit(int id)
 {
     return fPolyEngine->getParamInit(id);
 }
-      
+
 const char* DspFaust::getMetadata(const char* address, const char* key)
 {
     return fPolyEngine->getMetadata(address, key);
 }
-      
+
 const char* DspFaust::getMetadata(int id, const char* key)
 {
     return fPolyEngine->getMetadata(id, key);

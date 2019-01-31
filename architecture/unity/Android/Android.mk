@@ -10,5 +10,4 @@ LOCAL_CPPFLAGS          := -frtti -fexceptions
 LOCAL_CFLAGS            := -O3 -ffast-math -fPIC
 LOCAL_LDLIBS            := -latomic
 
-
 include $(BUILD_SHARED_LIBRARY)

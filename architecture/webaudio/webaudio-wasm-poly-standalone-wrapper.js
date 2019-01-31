@@ -85,9 +85,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     sp.dspInChannnels = [];
     sp.dspOutChannnels = [];
 
-    sp.fFreqLabel = "";
-    sp.fGateLabel = "";
-    sp.fGainLabel = "";
+    sp.fFreqLabel = [];
+    sp.fGateLabel = [];
+    sp.fGainLabel = [];
     sp.fDate = 0;
 
     sp.fPitchwheelLabel = [];
@@ -151,8 +151,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     sp.dsp_voices_state = [];
     sp.dsp_voices_level = [];
     sp.dsp_voices_date = [];
-    sp.dsp_voices_trigger = [];
-
+  
     sp.kActiveVoice = 0;
     sp.kFreeVoice = -1;
     sp.kReleaseVoice = -2;
@@ -165,7 +164,6 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
         sp.dsp_voices_state[i] = sp.kFreeVoice;
         sp.dsp_voices_level[i] = 0;
         sp.dsp_voices_date[i] = 0;
-        sp.dsp_voices_trigger[i] = false;
     }
     
     // Effect memory starts after last voice
@@ -192,8 +190,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     // Always returns a voice
     sp.allocVoice = function(voice)
     {
+        // so that envelop is always re-initialized
+        sp.factory.instanceClear(sp.dsp_voices[voice]);
         sp.dsp_voices_date[voice] = sp.fDate++;
-        sp.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
         sp.dsp_voices_state[voice] = sp.kActiveVoice;
         return voice;
     }
@@ -230,12 +229,14 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
 
         // Then decide which one to steal
         if (oldest_date_release != Number.MAX_VALUE) {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", sp.dsp_voices_date[voice_release], sp.fDate, voice_release);
+            }
             return sp.allocVoice(voice_release);
         } else if (oldest_date_playing != Number.MAX_VALUE) {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", sp.dsp_voices_date[voice_playing], sp.fDate, voice_playing);
+            }
             return sp.allocVoice(voice_playing);
         } else {
             return sp.kNoVoice;
@@ -274,21 +275,12 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
         // Compute all running voices
         for (i = 0; i < polyphony; i++) {
             if (sp.dsp_voices_state[i] != sp.kFreeVoice) {
-                if (sp.dsp_voices_trigger[i]) {
-                    // FIXME : properly cut the buffer in 2 slices...
-                    sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
-                    sp.factory.compute(sp.dsp_voices[i], 1, sp.ins, sp.mixing);
-                    sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 1.0);
-                    sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
-                    sp.dsp_voices_trigger[i] = false;
-                } else {
-                    // Compute regular voice
-                    sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
-                }
+                // Compute voice
+                sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
                 // Mix it in result
                 sp.dsp_voices_level[i] = sp.mixer.mixVoice(buffer_size, sp.numOut, sp.mixing, sp.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
-                if ((sp.dsp_voices_level[i] < 0.001) && (sp.dsp_voices_state[i] === sp.kReleaseVoice)) {
+                if ((sp.dsp_voices_level[i] < 0.0005) && (sp.dsp_voices_state[i] === sp.kReleaseVoice)) {
                     sp.dsp_voices_state[i] = sp.kFreeVoice;
                 }
             }
@@ -420,14 +412,11 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
         // keep 'keyOn/keyOff' labels
         for (i = 0; i < sp.inputs_items.length; i++) {
             if (sp.inputs_items[i].endsWith("/gate")) {
-                sp.fGateLabel = sp.pathTable[sp.inputs_items[i]];
-                console.log(sp.fGateLabel);
+                sp.fGateLabel.push(sp.pathTable[sp.inputs_items[i]]);
             } else if (sp.inputs_items[i].endsWith("/freq")) {
-                sp.fFreqLabel = sp.pathTable[sp.inputs_items[i]];
-                console.log(sp.fFreqLabel);
+                sp.fFreqLabel.push(sp.pathTable[sp.inputs_items[i]]);
             } else if (sp.inputs_items[i].endsWith("/gain")) {
-                sp.fGainLabel = sp.pathTable[sp.inputs_items[i]];
-                console.log(sp.fGainLabel);
+                sp.fGainLabel.push(sp.pathTable[sp.inputs_items[i]]);
             }
         }
 
@@ -562,10 +551,18 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     sp.keyOn = function (channel, pitch, velocity)
     {
         var voice = sp.getFreeVoice();
-        if (faust.debug)
+        if (faust.debug) {
             console.log("keyOn voice %d", voice);
-        sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel, sp.midiToFreq(pitch));
-        sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel, velocity/127.);
+        }
+        for (var i = 0; i < sp.fFreqLabel.length; i++) {
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.midiToFreq(pitch));
+        }
+        for (var i = 0; i < sp.fGateLabel.length; i++) {
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 1.0);
+        }
+        for (var i = 0; i < sp.fGainLabel.length; i++) {
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity/127.);
+        }
         sp.dsp_voices_state[voice] = pitch;
     }
 
@@ -579,16 +576,18 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     sp.keyOff = function (channel, pitch, velocity)
     {
         var voice = sp.getPlayingVoice(pitch);
-        if (voice !== sp.kNoVoice) {
-            if (faust.debug)
+        if (voice !== sp.kNoVoice) { 
+            if (faust.debug) {
                 console.log("keyOff voice %d", voice);
+            }
             // No use of velocity for now...
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel, 0.0);
             // Release voice
             sp.dsp_voices_state[voice] = sp.kReleaseVoice;
         } else {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("Playing voice not found...");
+            }
         }
     }
 

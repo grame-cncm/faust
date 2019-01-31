@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to core audio-qt for ios    #
-#               (c) Grame, 2016                                     #
+#          Compiles Faust programs to CoreAudio and QT for iOS      #
+#                   (c) Grame, 2016                                 #
 #                                                                   #
 #####################################################################
 
@@ -50,7 +50,7 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqtios [-httpd] [-qrcode] [-poly] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "faust2caqtios [-httpd] [-qrcode] [-poly] [-midi] [-osc] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"

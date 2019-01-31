@@ -1,18 +1,19 @@
 #! /bin/bash -e
 
-. faustpath
-. faustoptflags
-
-CXXFLAGS=$MYGCCFLAGS
-
-OSCDEFS=""
-
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to ladspa plugins           #
 #               (c) Grame, 2011                                     #
 #                                                                   #
 #####################################################################
+
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
+OSCDEFS=""
+ARCHFILE="ladspa.cpp"
 
 #-------------------------------------------------------------------
 # Check darwin specifics
@@ -83,7 +84,7 @@ for f in $FILES; do
 	module=`basename $f .dsp`
 	
 	# compile faust to c++
-	faust -i -a ladspa.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

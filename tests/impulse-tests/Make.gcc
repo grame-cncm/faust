@@ -41,7 +41,6 @@ SRCDIR := tools
 
 all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
 
-
 test:
 #	$(file > faustoptions.txt, "some text")
 	@echo $(call listwebfiles,$(asmjsdir))
@@ -67,11 +66,91 @@ filesCompare:
 	$(MAKE) filesCompare
 
 #########################################################################
+# precision issues 
+
+ir/$(lang)/float/omp/zita_rev1.ir:			precision=0.00001
+ir/$(lang)/float/omp/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/omp/thru_zero_flanger.ir: 	precision=0.002
+ir/$(lang)/float/omp/tester2.ir:			precision=0.000003
+ir/$(lang)/float/omp/tester.ir:				precision=0.00008
+ir/$(lang)/float/omp/spectral_tilt.ir:		precision=0.003
+ir/$(lang)/float/omp/phaser_flanger.ir:		precision=0.005
+ir/$(lang)/float/omp/parametric_eq.ir:		precision=0.015
+ir/$(lang)/float/omp/osci.ir:				precision=0.005
+ir/$(lang)/float/omp/osc.ir:				precision=0.002
+ir/$(lang)/float/omp/lowcut.ir:				precision=0.000005
+ir/$(lang)/float/omp/lfboost.ir:			precision=0.000005
+ir/$(lang)/float/omp/cubic_distortion.ir:	precision=0.03
+ir/$(lang)/float/omp/comb_delay2.ir:		precision=0.065
+ir/$(lang)/float/omp/comb_delay1.ir:		precision=0.065
+ir/$(lang)/float/omp/carre_volterra.ir:		precision=0.002
+
+ir/$(lang)/float/sched/zita_rev1.ir:		precision=0.00001
+ir/$(lang)/float/sched/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/sched/thru_zero_flanger.ir: precision=0.002
+ir/$(lang)/float/sched/tester2.ir:			precision=0.000003
+ir/$(lang)/float/sched/tester.ir:			precision=0.00008
+ir/$(lang)/float/sched/spectral_tilt.ir:	precision=0.003
+ir/$(lang)/float/sched/phaser_flanger.ir:	precision=0.005
+ir/$(lang)/float/sched/parametric_eq.ir:	precision=0.015
+ir/$(lang)/float/sched/osci.ir:				precision=0.005
+ir/$(lang)/float/sched/osc.ir:				precision=0.002
+ir/$(lang)/float/sched/lowcut.ir:			precision=0.000005
+ir/$(lang)/float/sched/lfboost.ir:			precision=0.000005
+ir/$(lang)/float/sched/cubic_distortion.ir:	precision=0.03
+ir/$(lang)/float/sched/comb_delay2.ir:		precision=0.065
+ir/$(lang)/float/sched/comb_delay1.ir:		precision=0.065
+ir/$(lang)/float/sched/carre_volterra.ir:	precision=0.002
+
+ir/$(lang)/float/vec/zita_rev1.ir:			precision=0.00001
+ir/$(lang)/float/vec/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/vec/thru_zero_flanger.ir:	precision=0.002
+ir/$(lang)/float/vec/tester2.ir:			precision=0.000003
+ir/$(lang)/float/vec/tester.ir:				precision=0.00008
+ir/$(lang)/float/vec/spectral_tilt.ir:		precision=0.003
+ir/$(lang)/float/vec/phaser_flanger.ir:		precision=0.005
+ir/$(lang)/float/vec/parametric_eq.ir:		precision=0.015
+ir/$(lang)/float/vec/osci.ir:				precision=0.005
+ir/$(lang)/float/vec/osc.ir:				precision=0.002
+ir/$(lang)/float/vec/lowcut.ir:				precision=0.000005
+ir/$(lang)/float/vec/lfboost.ir:			precision=0.000005
+ir/$(lang)/float/vec/cubic_distortion.ir:	precision=0.03
+ir/$(lang)/float/vec/comb_delay2.ir:		precision=0.065
+ir/$(lang)/float/vec/comb_delay1.ir:		precision=0.065
+ir/$(lang)/float/vec/carre_volterra.ir:		precision=0.002
+ 
+ir/$(lang)/float/zita_rev1.ir:				precision=0.00001
+ir/$(lang)/float/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/thru_zero_flanger.ir:		precision=0.002
+ir/$(lang)/float/tester2.ir:				precision=0.000003
+ir/$(lang)/float/tester.ir:					precision=0.00008
+ir/$(lang)/float/spectral_tilt.ir:			precision=0.003
+ir/$(lang)/float/phaser_flanger.ir:			precision=0.005
+ir/$(lang)/float/parametric_eq.ir:			precision=0.015
+ir/$(lang)/float/osci.ir:					precision=0.005
+ir/$(lang)/float/osc.ir:					precision=0.002
+ir/$(lang)/float/lowcut.ir:					precision=1e-05
+ir/$(lang)/float/lfboost.ir:				precision=5e-05
+ir/$(lang)/float/cubic_distortion.ir:		precision=0.03
+ir/$(lang)/float/comb_delay2.ir:			precision=0.065
+ir/$(lang)/float/comb_delay1.ir:			precision=0.065
+ir/$(lang)/float/carre_volterra.ir: 		precision=0.0015
+
+ir/c/double/sched/parametric_eq.ir:		precision=0.004
+ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
+
+#########################################################################
 # rules 
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
 	$(COMPARE)  $@ reference/$(notdir $@) $(precision)
+	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $<  -o $@
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+ir/$(outdir)/control.cpp : dsp/control.dsp
+	$(FAUST) -lang ocpp -double -i -A ../../architecture -a archs/$(arch) $<  -o $@
+
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
-	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -a ../archs/$(arch) $<  -o $@
+	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -A ../../architecture -a archs/$(arch) $<  -o $@

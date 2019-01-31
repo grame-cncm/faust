@@ -27,12 +27,17 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <assert.h>
 
 class MapUI;
 
-//----------------------------------------------------------------
-//  MIDI processor definition
-//----------------------------------------------------------------
+/*******************************************************************************
+ * MIDI processor definition.
+ *
+ * MIDI input or output handling classes will implement this interface,
+ * so the same method names (keyOn, ctrlChange...) will be used either
+ * when decoding MIDI input or encoding MIDI output events.
+ *******************************************************************************/
 
 class midi {
 
@@ -51,22 +56,7 @@ class midi {
         {
             keyOff(channel, pitch, velocity);
         }
-        
-        virtual void pitchWheel(double, int channel, int wheel)
-        {
-            pitchWheel(channel, wheel);
-        }
-           
-        virtual void ctrlChange(double, int channel, int ctrl, int value)
-        {
-            ctrlChange(channel, ctrl, value);
-        }
-       
-        virtual void progChange(double, int channel, int pgm)
-        {
-            progChange(channel, pgm);
-        }
-        
+    
         virtual void keyPress(double, int channel, int pitch, int press)
         {
             keyPress(channel, pitch, press);
@@ -76,15 +66,35 @@ class midi {
         {
             chanPress(channel, press);
         }
-       
+    
+        virtual void pitchWheel(double, int channel, int wheel)
+        {
+            pitchWheel(channel, wheel);
+        }
+           
+        virtual void ctrlChange(double, int channel, int ctrl, int value)
+        {
+            ctrlChange(channel, ctrl, value);
+        }
+    
         virtual void ctrlChange14bits(double, int channel, int ctrl, int value)
         {
             ctrlChange14bits(channel, ctrl, value);
         }
 
+        virtual void progChange(double, int channel, int pgm)
+        {
+            progChange(channel, pgm);
+        }
+    
+        virtual void sysEx(double, std::vector<unsigned char>& message)
+        {
+            sysEx(message);
+        }
+
         // MIDI sync
-        virtual void start_sync(double date)  {}
-        virtual void stop_sync(double date)   {}
+        virtual void startSync(double date)  {}
+        virtual void stopSync(double date)   {}
         virtual void clock(double date)  {}
 
         // Standard MIDI API
@@ -96,6 +106,7 @@ class midi {
         virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
         virtual void pitchWheel(int channel, int wheel)                 {}
         virtual void progChange(int channel, int pgm)                   {}
+        virtual void sysEx(std::vector<unsigned char>& message)         {}
 
         enum MidiStatus {
 
@@ -109,7 +120,10 @@ class midi {
             MIDI_POLY_AFTERTOUCH = 0xA0,    // aka key pressure
             MIDI_CLOCK = 0xF8,
             MIDI_START = 0xFA,
-            MIDI_STOP = 0xFC
+            MIDI_CONT = 0xFB,
+            MIDI_STOP = 0xFC,
+            MIDI_SYSEX_START = 0xF0,
+            MIDI_SYSEX_STOP = 0xF7
 
         };
 
@@ -121,9 +135,14 @@ class midi {
         };
 };
 
-//----------------------------------------------------------------
-//  Base class for MIDI API handling
-//----------------------------------------------------------------
+/****************************************************
+ * Base class for MIDI input handling.
+ *
+ * Shared common code used for input handling:
+ * - decoding Real-Time messages: handleSync
+ * - decoding one data byte messages: handleData1
+ * - decoding two data byte messages: handleData2
+ ****************************************************/
 
 class midi_handler : public midi {
 
@@ -131,7 +150,9 @@ class midi_handler : public midi {
 
         std::vector<midi*> fMidiInputs;
         std::string fName;
-
+    
+        int range(int min, int max, int val) { return (val < min) ? min : ((val >= max) ? max : val); }
+  
     public:
 
         midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
@@ -146,8 +167,8 @@ class midi_handler : public midi {
             }
         }
 
-        virtual bool start_midi() { return true; }
-        virtual void stop_midi() {}
+        virtual bool startMidi() { return true; }
+        virtual void stopMidi() {}
     
         void setName(const std::string& name) { fName = name; }
         std::string getName() { return fName; }
@@ -160,11 +181,11 @@ class midi_handler : public midi {
                 }
             } else if (type == MIDI_START) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->start_sync(time);
+                    fMidiInputs[i]->startSync(time);
                 }
             } else if (type == MIDI_STOP) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->stop_sync(time);
+                    fMidiInputs[i]->stopSync(time);
                 }
             }
         }
@@ -198,7 +219,7 @@ class midi_handler : public midi {
                 }
             } else if (type == MIDI_PITCH_BEND) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->pitchWheel(time, channel, (data2 * 128.0) + data1);
+                    fMidiInputs[i]->pitchWheel(time, channel, (data2 << 7) + data1);
                 }
             } else if (type == MIDI_POLY_AFTERTOUCH) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
@@ -206,7 +227,38 @@ class midi_handler : public midi {
                 }
             }
         }
+    
+        void handleMessage(double time, int type, std::vector<unsigned char>& message)
+        {
+            if (type == MIDI_SYSEX_START) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->sysEx(time, message);
+                }
+            }
+        }
 
+};
+
+//-------------------------------
+// For timestamped MIDI messages
+//-------------------------------
+
+struct DatedMessage {
+    
+    double fDate;
+    unsigned char fBuffer[3];
+    size_t fSize;
+    
+    DatedMessage(double date, unsigned char* buffer, size_t size)
+    :fDate(date), fSize(size)
+    {
+        assert(size <= 3);
+        memcpy(fBuffer, buffer, size);
+    }
+    
+    DatedMessage():fDate(0.0), fSize(0)
+    {}
+    
 };
 
 #endif // __midi__

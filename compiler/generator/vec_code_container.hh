@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,29 +25,28 @@
 #include "code_container.hh"
 
 class VectorCodeContainer : public virtual CodeContainer {
+   private:
+    void moveStack2Struct();
 
-    private:
+    BlockInst* generateDAGLoopVariant0(const string& counter);
+    BlockInst* generateDAGLoopVariant1(const string& counter);
+    
+    void generateLocalInputs(BlockInst* loop_code, const string& index);
+    void generateLocalOutputs(BlockInst* loop_code, const string& index);
 
-        void moveStack2Struct();
-        
-        BlockInst* generateDAGLoopVariant0(const string& counter);
-        BlockInst* generateDAGLoopVariant1(const string& counter);
-        
-        void processFIR(void);
-        BlockInst* flattenFIR(void);
+    void       processFIR(void);
+    BlockInst* flattenFIR(void);
 
-    protected:
+   protected:
+    BlockInst* fDAGBlock;
 
-        BlockInst* fDAGBlock;
-
-    public:
-
-        VectorCodeContainer(int numInputs, int numOutputs)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fFullCount = "count";
-        }
-
+   public:
+    VectorCodeContainer(int numInputs, int numOutputs)
+    {
+        initialize(numInputs, numOutputs);
+        fFullCount = "count";
+        fDAGBlock = InstBuilder::genBlockInst();
+    }
 };
 
 #endif

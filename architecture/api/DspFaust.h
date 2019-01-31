@@ -70,7 +70,7 @@ class DspFaust
         // (like JACK and JUCE)
         //
         //----
-        DspFaust();
+        DspFaust(bool use_driver = true);
         
         //--------------`DspFaust(int SR, int BS)`----------------
         // Constructor.
@@ -92,7 +92,7 @@ class DspFaust
         // * `BS`: buffer size
         //--------------------------------------------------------
     #if DYNAMIC_DSP
-        DspFaust(const string&, int, int);
+        DspFaust(const std::string&, int, int);
     #endif
     
         // No virtual destructor since DspFaust does not have any virtual methods and is not supposed to be subclassed

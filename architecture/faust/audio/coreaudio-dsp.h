@@ -212,7 +212,10 @@ class TCoreAudioRenderer
         
         int fPhysicalInputs;
         int fPhysicalOutputs;
-        
+    
+        int fDefaultPhysicalInputs;
+        int fDefaultPhysicalOutputs;
+    
         float** fInChannel;
         float** fOutChannel;
 
@@ -223,15 +226,16 @@ class TCoreAudioRenderer
         bool fIsOutJackDevice;
         
         dsp* fDSP;
+    
+        audio* fAudio;
 
         AudioBufferList* fInputData;
         AudioDeviceID fDeviceID;
         AudioUnit fAUHAL;
         bool fState;
-
+    
         OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& sample_rate, AudioDeviceID* device)
         {
-            
             UInt32 theSize = sizeof(UInt32);
             AudioDeviceID inDefault;
             AudioDeviceID outDefault;
@@ -306,9 +310,38 @@ class TCoreAudioRenderer
                 // Otherwise force the one we want...
                 SetupSampleRateAux(*device, sample_rate);
             }
-            //printf("samplerate %d\n", sample_rate);
             fSampleRate = sample_rate;
+            
+            // Get default input total channels
+            GetTotalChannels(inDefault, fDefaultPhysicalInputs, true);
+            
+            // Get default output total channels
+            GetTotalChannels(outDefault, fDefaultPhysicalOutputs, false);
+            
             return noErr;
+        }
+    
+        OSStatus GetTotalChannels(AudioDeviceID device, int& channelCount, bool isInput)
+        {
+            OSStatus err = noErr;
+            UInt32 outSize;
+            Boolean outWritable;
+            
+            channelCount = 0;
+            err = AudioDeviceGetPropertyInfo(device, 0, isInput, kAudioDevicePropertyStreamConfiguration, &outSize, &outWritable);
+            if (err == noErr) {
+                int stream_count = outSize / sizeof(AudioBufferList);
+                //printf("GetTotalChannels stream_count = %d\n", stream_count);
+                AudioBufferList bufferList[stream_count];
+                err = AudioDeviceGetProperty(device, 0, isInput, kAudioDevicePropertyStreamConfiguration, &outSize, bufferList);
+                if (err == noErr) {
+                    for (uint i = 0; i < bufferList->mNumberBuffers; i++) {
+                        channelCount += bufferList->mBuffers[i].mNumberChannels;
+                        //printf("GetTotalChannels stream = %d channels = %d\n", i, bufferList->mBuffers[i].mNumberChannels);
+                    }
+                }
+            }
+            return err;
         }
 
         OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int& sample_rate)
@@ -962,6 +995,7 @@ class TCoreAudioRenderer
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
                 fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
+                fAudio->runControlCallbacks();
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
                 printError(err);
@@ -971,15 +1005,17 @@ class TCoreAudioRenderer
         
     public:
     
-        TCoreAudioRenderer()
+        TCoreAudioRenderer(audio* audio)
             :fAggregateDeviceID(-1),fAggregatePluginID(-1),
             fDevNumInChans(0),fDevNumOutChans(0),
             fPhysicalInputs(0), fPhysicalOutputs(0),
+            fDefaultPhysicalInputs(0), fDefaultPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
             fBufferSize(0),fSampleRate(0),
             fIsInJackDevice(false),
             fIsOutJackDevice(false),
             fDSP(0),
+            fAudio(audio),
             fInputData(0),
             fDeviceID(0),fAUHAL(0),
             fState(false)
@@ -990,7 +1026,7 @@ class TCoreAudioRenderer
         
         int GetBufferSize() {return fBufferSize;}
         int GetSampleRate() {return fSampleRate;}
-        
+    
         static OSStatus RestartProc(AudioObjectID objectID, UInt32 numberAddresses,
                                    const AudioObjectPropertyAddress inAddresses[],
                                    void *clientData) 
@@ -1189,14 +1225,13 @@ class TCoreAudioRenderer
                     goto error;
                 }
             }
-            
+      
             err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
             if (err != noErr) {
                 //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 1\n");
                 //printError(err);
             } else {
-                fPhysicalInputs = (err == noErr) ? outSize / sizeof(SInt32) : 0;
-                //printf("fPhysicalInputs = %ld\n", fPhysicalInputs);
+                fPhysicalInputs = outSize / sizeof(SInt32);
             }
                     
             err = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
@@ -1204,53 +1239,65 @@ class TCoreAudioRenderer
                 //printf("Error calling AudioUnitGetPropertyInfo - kAudioOutputUnitProperty_ChannelMap 0\n");
                 //printError(err);
             } else {
-                fPhysicalOutputs = (err == noErr) ? outSize / sizeof(SInt32) : 0;
-                //printf("fPhysicalOutputs = %ld\n", fPhysicalOutputs);
+                fPhysicalOutputs = outSize / sizeof(SInt32);
             }
             
-            /*
-             Just ignore this case : seems to work without any further change...
-             
-             if (outChan > fPhysicalOutputs) {
-                printf("This device hasn't required output channels\n");
-                goto error;
-             }
-             if (inChan > fPhysicalInputs) {
-                printf("This device hasn't required input channels\n");
-                goto error;
-             }
-             */
-            
-            if (inChan < fPhysicalInputs) {
+            {
+                // Setup number of input channels to actually map
+                fDefaultPhysicalInputs = std::min(fDefaultPhysicalInputs, inChan);
+                
                 SInt32 chanArr[fPhysicalInputs];
                 for (int i = 0; i < fPhysicalInputs; i++) {
                     chanArr[i] = -1;
                 }
-                for (int i = 0; i < inChan; i++) {
-                    chanArr[i] = i;
+            
+                //printf("fDefaultPhysicalInputs %d fPhysicalInputs %d\n", fDefaultPhysicalInputs, fPhysicalInputs);
+                
+                /*
+                 If aggregated device, default physical inputs to activate are placed at the begining of the channel list
+                 The DSP channels will be accessed from 0 to fDefaultPhysicalInputs
+                */
+                int offset = 0;
+                for (int i = 0; i < fDefaultPhysicalInputs; i++) {
+                    chanArr[offset++] = i;
                 }
+            
                 AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * fPhysicalInputs);
                 if (err != noErr) {
                     printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 1\n");
                     printError(err);
+                    goto error;
                 }
             }
-            
-            if (outChan < fPhysicalOutputs) {
+          
+            {
+                // Setup number of output channels to actually map
+                fDefaultPhysicalOutputs = std::min(fDefaultPhysicalOutputs, outChan);
+                
                 SInt32 chanArr[fPhysicalOutputs];
                 for (int i = 0;	i < fPhysicalOutputs; i++) {
                     chanArr[i] = -1;
                 }
-                for (int i = 0; i < outChan; i++) {
-                    chanArr[i] = i;
+                
+                //printf("fDefaultPhysicalOutputs %d fPhysicalOutputs %d\n", fDefaultPhysicalOutputs, fPhysicalOutputs);
+                
+                /*
+                 If aggregated device, default physical outputs to activate are placed at the end of the channel list
+                 The DSP channels will be accessed from 0 to fDefaultPhysicalOutputs
+                */
+                int offset = fPhysicalOutputs - fDefaultPhysicalOutputs;
+                for (int i = 0; i < fDefaultPhysicalOutputs; i++) {
+                    chanArr[offset++] = i;
                 }
+        
                 err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, chanArr, sizeof(SInt32) * fPhysicalOutputs);
                 if (err != noErr) {
                     printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 0\n");
                     printError(err);
+                    goto error;
                 }
             }
-            
+       
             if (inChan > 0) {
                 outSize = sizeof(AudioStreamBasicDescription);
                 err = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
@@ -1441,8 +1488,8 @@ class TCoreAudioRenderer
             fDSP = DSP;
         }
         
-        int GetNumInputs() { return fPhysicalInputs; }
-        int GetNumOutputs() { return fPhysicalOutputs; }
+        int GetNumInputs() { return fDefaultPhysicalInputs; }
+        int GetNumOutputs() { return fDefaultPhysicalOutputs; }
 
 };
 
@@ -1462,8 +1509,8 @@ class coreaudio : public audio {
 
     public:
       
-        coreaudio(int srate, int bsize) : fSampleRate(srate), fBufferSize(bsize) {}
-            coreaudio(int bsize) : fSampleRate(-1), fBufferSize(bsize) {}
+        coreaudio(int srate, int bsize) : fAudioDevice(this), fSampleRate(srate), fBufferSize(bsize) {}
+            coreaudio(int bsize) : fAudioDevice(this), fSampleRate(-1), fBufferSize(bsize) {}
         virtual ~coreaudio() { fAudioDevice.Close(); }
 
         virtual bool init(const char* /*name*/, dsp* DSP) 
@@ -1486,12 +1533,12 @@ class coreaudio : public audio {
             }
             return true;
         }
-
-        virtual void stop() 
+    
+        virtual void stop()
         {
             fAudioDevice.Stop();
         }
-        
+    
         virtual int getBufferSize() { return fAudioDevice.GetBufferSize(); }
         virtual int getSampleRate() { return fAudioDevice.GetSampleRate(); }
         

@@ -1,7 +1,7 @@
 /*
  faust2wasm: GRAME 2017-2018
 */
- 
+
 'use strict';
 
 if (typeof (AudioWorkletNode) === "undefined") {
@@ -9,11 +9,11 @@ if (typeof (AudioWorkletNode) === "undefined") {
 }
 
 class mydspPolyNode extends AudioWorkletNode {
-    
-    constructor(context, options) 
+
+    constructor(context, baseURL, options)
     {
         var json_object = JSON.parse(getJSONmydsp());
-      
+
         // Setting values for the input, the output and the channel count.
         options.numberOfInputs = (parseInt(json_object.inputs) > 0) ? 1 : 0;
         options.numberOfOutputs = (parseInt(json_object.outputs) > 0) ? 1 : 0;
@@ -21,9 +21,10 @@ class mydspPolyNode extends AudioWorkletNode {
         options.outputChannelCount = [parseInt(json_object.outputs)];
         options.channelCountMode = "explicit";
         options.channelInterpretation = "speakers";
-        
+
         super(context, 'mydspPoly', options);
-        
+        this.baseURL = baseURL;
+
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
         {
@@ -31,21 +32,21 @@ class mydspPolyNode extends AudioWorkletNode {
                 this.parse_group(ui[i], obj);
             }
         }
-        
+
         this.parse_group = function(group, obj)
         {
             if (group.items) {
                 this.parse_items(group.items, obj);
             }
         }
-        
+
         this.parse_items = function(items, obj)
         {
             for (var i = 0; i < items.length; i++) {
             	this.parse_item(items[i], obj);
             }
         }
-        
+
         this.parse_item = function(item, obj)
         {
             if (item.type === "vgroup"
@@ -62,33 +63,42 @@ class mydspPolyNode extends AudioWorkletNode {
                        || item.type === "checkbox"
                        || item.type === "nentry") {
                 // Keep inputs adresses
-                obj.inputs_items.push(item.address);
+                obj.inputs_items.push(item.address);         
+                // Define setXXX/getXXX, replacing '/c' with 'C' everywhere in the string
+                var set_name = "set" + item.address;
+                var get_name = "get" + item.address;
+                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                obj[set_name] = (val) => { obj.setParamValue(item.address, val); };
+                obj[get_name] = () => { return obj.getParamValue(item.address); };
+                //console.log(set_name);
+                //console.log(get_name);
             }
         }
-        
+
         this.json_object = json_object;
-        
+
         if (typeof (getJSONeffect) !== "undefined") {
             this.effect_json_object = JSON.parse(getJSONeffect());
         }
-        
+
         this.output_handler = null;
-        
+
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
-    
+
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
-        
+
         if (this.effect_json_object) {
             this.parse_ui(this.effect_json_object.ui, this);
         }
-        
+
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
     }
-    
+
     // To be called by the message port with messages coming from the processor
     handleMessage(event)
     {
@@ -97,9 +107,9 @@ class mydspPolyNode extends AudioWorkletNode {
             this.output_handler(msg.path, msg.value);
         }
     }
-    
+
     // Public API
-  
+
     /**
      *  Returns a full JSON description of the DSP.
      */
@@ -133,6 +143,19 @@ class mydspPolyNode extends AudioWorkletNode {
         }
     }
     
+    // For WAP
+    async getMetadata()
+    {
+        return new Promise(resolve => {
+            let real_url = (this.baseURL === "") ? "main.json" : (this.baseURL + "/main.json");
+            fetch(real_url).then(responseJSON => {
+                return responseJSON.json();
+            }).then(json => {
+                resolve(json);
+            })
+        });
+    }
+
     /**
      *  Set the control value at a given path.
      *
@@ -145,6 +168,13 @@ class mydspPolyNode extends AudioWorkletNode {
         this.parameters.get(path).setValueAtTime(val, 0);
     }
     
+    // For WAP
+    setParam(path, val)
+    {
+        this.port.postMessage({ type:"param", key:path, value:val });
+        this.parameters.get(path).setValueAtTime(val, 0);
+    }
+
     /**
      *  Get the control value at a given path.
      *
@@ -155,6 +185,12 @@ class mydspPolyNode extends AudioWorkletNode {
         return this.parameters.get(path).value;
     }
     
+    // For WAP
+    getParam(path)
+    {
+        return this.parameters.get(path).value;
+    }
+
     /**
      * Setup a control output handler with a function of type (path, value)
      * to be used on each generated output value. This handler will be called
@@ -166,7 +202,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.output_handler = handler;
     }
-    
+
     /**
      * Get the current output handler.
      */
@@ -174,17 +210,28 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         return this.output_handler;
     }
-    
+
     getNumInputs()
     {
         return parseInt(this.json_object.inputs);
     }
-    
+
     getNumOutputs()
     {
         return parseInt(this.json_object.outputs);
     }
     
+    // For WAP
+    inputChannelCount()
+    {
+        return parseInt(this.json_object.inputs);
+    }
+    
+    outputChannelCount()
+    {
+        return parseInt(this.json_object.outputs);
+    }
+
     /**
      * Returns an array of all input paths (to be used with setParamValue/getParamValue)
      */
@@ -192,7 +239,21 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         return this.inputs_items;
     }
-     
+        
+    // For WAP
+    getDescriptor()
+    {
+        var desc = {};
+        for (const item in this.descriptor) {
+            if (this.descriptor.hasOwnProperty(item)) {
+                if (this.descriptor[item].label != "bypass") {
+                    desc = Object.assign({ [this.descriptor[item].label]: { minValue: this.descriptor[item].min, maxValue: this.descriptor[item].max, defaultValue: this.descriptor[item].init } }, desc);
+                }
+            }
+        }
+        return desc;
+    }
+
     /**
      * Instantiates a new polyphonic voice.
      *
@@ -204,7 +265,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.port.postMessage({ type: "keyOn", data: [channel, pitch, velocity] });
     }
-    
+
     /**
      * De-instantiates a polyphonic voice.
      *
@@ -236,7 +297,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
     }
-    
+
     /**
      * PitchWeel
      *
@@ -247,7 +308,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
     }
-    
+
     /**
      * Generic MIDI message handler.
      */
@@ -256,60 +317,109 @@ class mydspPolyNode extends AudioWorkletNode {
     	this.port.postMessage({ type:"midi", data:data });
     }
     
+    /**
+     * @returns {Object} describes the path for each available param and its current value
+     */
+    async getState()
+    {
+        var params = new Object();
+        for (let i = 0; i < this.getParams().length; i++) {
+            Object.assign(params, { [this.getParams()[i]]: `${this.getParam(this.getParams()[i])}` });
+        }
+        return new Promise(resolve => { resolve(params) });
+    }
+    
+    /**
+     * Sets each params with the value indicated in the state object
+     * @param {Object} state
+     */
+    async setState(state)
+    {
+        return new Promise(resolve => {
+            for (const param in state) {
+                if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
+            }
+            try {
+                this.gui.setAttribute('state', JSON.stringify(state));
+            } catch (error) {
+                console.warn("Plugin without gui or GUI not defined", error);
+            }
+            resolve(state);
+        })
+    }
+
 }
 
 // Factory class
+class mydspPoly {
 
-class mydsp {
-    
     /**
      * Factory constructor.
      *
      * @param context - the audio context
-     * @param baseUrl - the baseUrl of the plugin folder
+     * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseUrl)
+    constructor(context, baseURL = "")
     {
-    	// Resume audio context each time...
-    	context.resume();
-    	
-        this.context = context;
-        this.baseUrl = baseUrl;
-    }
+        // Resume audio context each time...
+        context.resume();
+        
+    	console.log("baseLatency " + context.baseLatency);
+    	console.log("outputLatency " + context.outputLatency);
+    	console.log("sampleRate " + context.sampleRate);
     
+        this.context = context;
+        this.baseURL = baseURL;
+    }
+
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
     load()
     {
-    	return new Promise((resolve, reject) => {
-        		this.context.audioWorklet.addModule(this.baseUrl + "mydsp-processor.js").then(() => {
-        		this.node = new mydspPolyNode(this.context, {});
-        		return (this.node);
-        	}).then((node) => {
+    	return new Promise((resolve, reject) => {   
+            let real_url = (this.baseURL === "") ? "mydsp-processor.js" : (this.baseURL + "/mydsp-processor.js");
+            this.context.audioWorklet.addModule(real_url).then(() => {
+            this.node = new mydspPolyNode(this.context, this.baseURL, {});
+            this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
+            return (this.node);
+            }).then((node) => {
                 resolve(node);
             }).catch((e) => {
                 reject(e);
             });
         });
     }
-    
+
     loadGui() 
     {
         return new Promise((resolve, reject) => {
             try {
-            	var link = document.createElement('link');
-            	link.rel = 'import';
-            	link.id = 'urlPlugin';
-            	link.href = this.baseUrl + "main.html";
-            	document.head.appendChild(link);
-            	var element = document.createElement("faust-mydsp");
-            	element._plug = this.node;
-            	resolve(element);
-        	} catch (e) {
-            	console.log(e);
-            	reject(e);
-        	}
-    	});
+                // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
+                let real_url = (this.baseURL === "") ? "main.html" : (this.baseURL + "/main.html");
+                if (!this.linkExists(real_url)) {
+                    // LINK DOES NOT EXIST, let's add it to the document
+                    var link = document.createElement('link');
+                    link.rel = 'import';
+                    link.href = real_url;
+                    document.head.appendChild(link);
+                    link.onload = (e) => {
+                        // the file has been loaded, instanciate GUI
+                        // and get back the HTML elem
+                        // HERE WE COULD REMOVE THE HARD CODED NAME
+                        var element = createmydspGUI(this.node);
+                        resolve(element);
+                    }
+                } else {
+                    // LINK EXIST, WE AT LEAST CREATED ONE INSTANCE PREVIOUSLY
+                    // so we can create another instance
+                    var element = createmydspGUI(this.node);
+                    resolve(element);
+                }
+            } catch (e) {
+                console.log(e);
+                reject(e);
+            }
+        });
     };
 }

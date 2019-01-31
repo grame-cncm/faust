@@ -2,6 +2,9 @@
 
 #set -x
 
+. faustpath
+. faustoptflags
+
 # Check for some common locations of the VST SDK files. This falls back to
 # /usr/local/src/vstsdk if none of these are found. In that case, or if make
 # picks the wrong location, you can also set the SDK variable explicitly.
@@ -10,7 +13,7 @@
 
 # Note that the paths to be searched are listed in reverse order here, so that
 # the preferred path comes *last*.
-sdkpaths='/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst*'
+sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst* $VSTSDK"
 # This should hopefully work on *BSD, Linux and Mac OSX.
 [ -z "$SDK" ] && SDK=$(ls -f -d $sdkpaths 2>/dev/null | tail -n 1)
 [ -z "$SDK" ] && SDK=/usr/local/src/vstsdk
@@ -31,16 +34,20 @@ sdkpaths='/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/l
 # Where the Faust includes live. We assume that this is under the prefix of
 # whatever Faust binary 'which' locates. You can also specify this explicitly
 # by setting the FAUSTINC environment variable accordingly.
-[ -z "$FAUSTINC" ] && FAUSTINC=$(which faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
+# FAUSTINC is now set by faustpath
+#[ -z "$FAUSTINC" ] && FAUSTINC=$(which faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
 
 # Where our own Faust library files are. This may be under a different prefix
 # or not installed anywhere. We try 'ls' on faustvstqt.h in some common
 # locations here, and fall back to the current directory if the file isn't
 # found, so that you can run the script from the faust-vst source
-# directory. You can also specify this explicitly by setting the FAUSTLIB
+# directory. You can also specify this explicitly by setting the FAUSTARCH
 # environment variable accordingly.
-[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/share/faust/faustvstqt.h /usr/local/share/faust/faustvstqt.h /opt/local/share/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
-[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
+
+# the part below is obsolete
+# architecture location is now defined by faustpath and stored in a variable named FAUSTARCH
+#[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/share/faust/faustvstqt.h /usr/local/share/faust/faustvstqt.h /opt/local/share/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
+#[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
 
 # defaults (these can be changed with the options listed below)
 FAUST_META=1
@@ -55,12 +62,12 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+CXXFLAGS="-O3 -std=c++11 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 
 # Darwin-specific
 ARCH="-arch i386 -arch x86_64"
-if [[ $(uname) == Darwin ]]; then
-    CXXFLAGS="-O3 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+    CXXFLAGS="-O3 -std=c++11 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
     dllext=".vst"
 fi
 
@@ -87,8 +94,8 @@ Options:
 Environment variables:
 FAUSTINC: specify the location of the Faust include directory
   Default: $FAUSTINC
-FAUSTLIB: specify the location of the Faust VST library files
-  Default: $FAUSTLIB
+FAUSTARCH: specify the location of the Faust VST library files
+  Default: $FAUSTARCH
 QMAKE: specify the location of the qmake binary
   Default: $QMAKE
 SDK: specify the location of the VST SDK
@@ -101,7 +108,7 @@ EOF
 	: ignore
     elif [ $p = "-icc" ]; then
 	CXX=icpc
-	CXXFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+	CXXFLAGS="-O3 -std=c++11 -xHost -ftz -fno-alias -fp-model fast=2"
     elif [ $p = "-osc" ]; then
 	OSCDEFS="DEFINES += OSCCTRL"
 	OSCLIBS="-lOSCFaust"
@@ -137,7 +144,7 @@ EOF
     elif [ $p = "-arch64" ]; then
 	PROCARCH="-m64 -fPIC"
     elif [ $p = "-osx" ]; then
-	CXXFLAGS="-O3 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+	CXXFLAGS="-O3 -std=c++11 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
 	dllext=".vst"
     elif [ $p = "-keep" ]; then
 	KEEP="yes"
@@ -164,8 +171,8 @@ fi
 
 # Check to see whether the required include and library files are where we
 # expect them, and bail out with an error message otherwise.
-if [ ! -f "$FAUSTINC/gui/faustqt.h" ]; then echo "$0: faust include files not found" >&2; exit 1; fi
-if [ ! -f "$FAUSTLIB/faustvstqt.h" ]; then echo "$0: faust-vst library files not found" >&2; exit 1; fi
+if [ ! -f "$FAUSTINC/faust/gui/faustqt.h" ]; then echo "$0: faust include files not found" >&2; exit 1; fi
+if [ ! -f "$FAUSTARCH/faustvstqt.h" ]; then echo "$0: faust-vst library files not found" >&2; exit 1; fi
 
 # Determine the Qt version so that we can pick the needed compilation options.
 QTVERSION=$($QMAKE -v 2>/dev/null | tail -1 | sed 's/.*Qt version \([0-9]\).*/\1/')
@@ -189,11 +196,12 @@ tmpdir=`mktemp -d /tmp/faust2faustvst.XXXXXX`
 RESOURCES=
 STYLE_CXXFLAGS=
 if [ -n "$STYLE" ]; then
-    RESOURCES="RESOURCES+=$FAUSTINC/gui/Styles/$STYLE.qrc"
+    RESOURCES="RESOURCES+=$FAUSTINC/faust/gui/Styles/$STYLE.qrc"
     STYLE_CXXFLAGS="QMAKE_CXXFLAGS+=-DSTYLE=\"$STYLE\""
 fi
 
-CXX=g++
+# now set in faustoptflags
+#CXX=g++
 CPPFLAGS="-DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS -I$SDK -I$SDKSRC -D__cdecl="
 if [ $NVOICES -ge 0 ]; then
 CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
@@ -214,18 +222,18 @@ sdksrc="$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx"
 mkdir -p $tmpdir
 #trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
 # Compile the Faust module.
-faust -i -a "$FAUSTLIB/$arch" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
+faust -i -a "$FAUSTARCH/$arch" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
 if [ -n "$plugin_gui" ]; then
 # We have to use qmake here.
 # XXXTODO: OSX support
 (
     cd "$tmpdir"
-    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTLIB/faustvstqt.h $FAUSTINC/gui/faustqt.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/faustqt.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
     $QMAKE *.pro
     make
 ) > /dev/null || exit 1
 else
-if [[ $(uname) == Darwin ]]; then
+if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
     mkdir -p $tmpdir/$soname/Contents/MacOS
     printf '%s' 'BNDL????' > $tmpdir/$soname/Contents/PkgInfo
     sed -e "s?@name@?$clsname?g;s?@version@?1.0.0?g" > $tmpdir/$soname/Contents/Info.plist <<EOF

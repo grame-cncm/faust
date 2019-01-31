@@ -27,7 +27,7 @@
 //  mspUI.h for faustgen
 //
 //  Created by Martin Di Rollo on 18/04/12.
-//  Copyright (c) 2012-2014 Grame. All rights reserved.
+//  Copyright (c) 2012-2018 Grame. All rights reserved.
 //
 
 #ifndef faustgen_mspUI_h
@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string>
 #include <map>
-
 
 #define STR_SIZE 512
 
@@ -126,7 +125,7 @@ class mspSlider : public mspUIObject {
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
-        void setValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
+        void setValue(FAUSTFLOAT f) { *fZone = range(fMin, fMax, f); }
 };
 
 /*--------------------------------------------------------------------------*/
@@ -213,9 +212,7 @@ class mspUI : public UI
         
         mspUI() {}
         virtual ~mspUI()
-        {
-            clear();
-        }
+        {}
         
         void addButton(const char* label, FAUSTFLOAT* zone) 
         {
@@ -309,15 +306,6 @@ class mspUI : public UI
         iterator end() { return fUITable1.end(); }
         
         int itemsCount() { return fUITable1.size(); }
-        void clear() 
-        { 
-            iterator it;
-            for (it = begin(); it != end(); it++) {
-                delete (*it).second;
-            }
-            fUITable1.clear(); 
-            fUITable2.clear(); 
-        }
     
         void displayControls()
         {

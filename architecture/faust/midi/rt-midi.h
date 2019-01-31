@@ -31,13 +31,18 @@
 
 class MapUI;
 
+//-------------------------------------------------
+// MIDI input/output handling using RtMidi library
+//-------------------------------------------------
+
 class rt_midi : public midi_handler {
 
     private:
     
         std::vector<RtMidiIn*> fInput;
         std::vector<RtMidiOut*> fOutput;
-        
+        bool fIsVirtual;
+    
         static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
             rt_midi* midi = static_cast<rt_midi*>(arg);
@@ -48,11 +53,15 @@ class rt_midi : public midi_handler {
             // MIDI sync
             if (nBytes == 1) {
                 midi->handleSync(time, (int)message->at(0));
+            // One data byte messages
             } else if (nBytes == 2) {
                 midi->handleData1(time, type, channel, (int)message->at(1));
+            // Two data bytes messages
             } else if (nBytes == 3) {
                 midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
-            } 
+            } else {
+                midi->handleMessage(time, (int)message->at(0), *message);
+            }
         }
         
         bool openMidiInputPorts()
@@ -72,8 +81,7 @@ class rt_midi : public midi_handler {
                 fInput.push_back(midi_in);
                 midi_in->openPort(i);
                 midi_in->setCallback(&midiCallback, this);
-                std::string portName = midi_in->getPortName(i);
-                std::cout << "Input port #" << i << ": " << portName << '\n';
+                //std::cout << "Input port #" << i << ": " << midi_in->getPortName(i) << '\n';
             }
             return true;
         }
@@ -93,8 +101,7 @@ class rt_midi : public midi_handler {
                 RtMidiOut* midi_out = new RtMidiOut();
                 fOutput.push_back(midi_out);
                 midi_out->openPort(i);
-                std::string portName = midi_out->getPortName(i);
-                std::cout << "Output port #" << i << ": " << portName << '\n';
+                //std::cout << "Output port #" << i << ": " << midi_out->getPortName(i) << '\n';
             }
             return true;
         }
@@ -125,35 +132,40 @@ class rt_midi : public midi_handler {
     
     public:
     
-        rt_midi(const std::string& name = "RtMidi"):midi_handler(name)
+        rt_midi(const std::string& name = "RtMidi", bool is_virtual = false):midi_handler(name), fIsVirtual(is_virtual)
         {}
         
         virtual ~rt_midi()
         {
-            stop_midi();
+            stopMidi();
         }
         
-        bool start_midi()
+        bool startMidi()
         {
             try {
             
             #if TARGET_OS_IPHONE
-                if (!openMidiInputPorts())  { stop_midi(); return false; }
-                if (!openMidiOutputPorts()) { stop_midi(); return false; }
+                if (!openMidiInputPorts())  { stopMidi(); return false; }
+                if (!openMidiOutputPorts()) { stopMidi(); return false; }
             #else
-                chooseMidiInputPort(fName);
-                chooseMidiOutPort(fName);
+                if (fIsVirtual) {
+                    chooseMidiInputPort(fName);
+                    chooseMidiOutPort(fName);
+                } else {
+                    if (!openMidiInputPorts())  { stopMidi(); return false; }
+                    //std::cout << "Warning : MIDI outputs are not started in this mode !\n";
+                }
             #endif
                 return true;
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
-                stop_midi();
+                stopMidi();
                 return false;
             }
         }
         
-        void stop_midi()
+        void stopMidi()
         {
             std::vector<RtMidiIn*>::iterator it1;
             for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
@@ -167,7 +179,8 @@ class rt_midi : public midi_handler {
             }
             fOutput.clear();
         }
-        
+    
+        // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             std::vector<unsigned char> message;
@@ -232,14 +245,14 @@ class rt_midi : public midi_handler {
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
          
-        void start_sync(double date) 
+        void startSync(double date)
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_START);
             sendMessage(message);
         }
        
-        void stop_sync(double date) 
+        void stopSync(double date)
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_STOP);
@@ -252,7 +265,12 @@ class rt_midi : public midi_handler {
             message.push_back(MIDI_CLOCK);
             sendMessage(message);
         }
-        
+    
+        void sysEx(double, std::vector<unsigned char>& message)
+        {
+            sendMessage(message);
+        }
+    
 };
 
 

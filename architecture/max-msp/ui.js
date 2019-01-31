@@ -26,7 +26,7 @@ faust.theSliders = new Array(128);
 faust.theMessages = new Array(128);
 faust.thenumberBoxes = new Array(128);
 
-faust.ui = function (json, name, patcher) {
+faust.ui = function (json, patcher) {
  
     var widgHeight = 30;
     var hBase = 150;
@@ -162,8 +162,32 @@ faust.ui = function (json, name, patcher) {
             //patcher.hiddenconnect(faust.thenumberBoxes[faust.numwidgets], 0, target, 0)
             
         } else if (item.type === "nentry") {
-        
-            
+			
+            faust.numwidgets++;
+
+            faust.theComments[faust.numwidgets] = patcher.newdefault(hBase, 20 + widgHeight * faust.numwidgets, "comment");
+            faust.theComments[faust.numwidgets].message("set", item.label);
+
+            if (parseFloat(item.step) == 1.0)  {
+                post("integer : nentry \n");
+                faust.thenumberBoxes[faust.numwidgets] = patcher.newobject("number", hBase + 258, 20 + widgHeight * faust.numwidgets, 80, 13);
+            } else {
+                post("float : nentry \n");
+                faust.thenumberBoxes[faust.numwidgets] = patcher.newobject("flonum", hBase + 258, 20 + widgHeight * faust.numwidgets, 80, 13);
+            }
+
+            faust.thenumberBoxes[faust.numwidgets].message('min', parseFloat(item.min));
+            faust.thenumberBoxes[faust.numwidgets].message('max', parseFloat(item.max));
+            faust.thenumberBoxes[faust.numwidgets].message(parseFloat(item.init));
+                
+            faust.theMessages[faust.numwidgets] = patcher.newobject("message", hBase + 345, 23 + widgHeight * faust.numwidgets, 350, 9);
+            faust.theMessages[faust.numwidgets].message("set", item.address,"\$1");
+
+            patcher.hiddenconnect(faust.thenumberBoxes[faust.numwidgets], 0, faust.theMessages[faust.numwidgets], 0);
+            patcher.hiddenconnect(faust.theMessages[faust.numwidgets], 0, target, 0); 
+
+            // direct connection to faustgen~ does not work...
+            //patcher.hiddenconnect(faust.thenumberBoxes[faust.numwidgets], 0, target, 0);       
         }
     }
     
@@ -190,7 +214,7 @@ faust.ui = function (json, name, patcher) {
             parse_ui(parsed_json.ui, dsp_object2, patcher);
         } else {
             // Tries to find the compiled object from the "name" argument (used with faustgen~)
-            var dsp_object = get_dsp_name(patcher, name);
+            var dsp_object = get_dsp_name(patcher, "faustgen");
             if (dsp_object !== patcher.getnamed("null_object")) {
                 parse_ui(parsed_json.ui, dsp_object, patcher);
             } else {
@@ -203,6 +227,6 @@ faust.ui = function (json, name, patcher) {
 function anything()
 {	
     var args = arrayfromargs(messagename, arguments);
-    dsp_ui_table.push(faust.ui(args[1], args[2], this.patcher));
+    dsp_ui_table.push(faust.ui(args[1], this.patcher));
 }
 

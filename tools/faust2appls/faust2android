@@ -14,6 +14,9 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
+# FAUSTGRADLE environement variable. By default we use ./gradlew 
+FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+
 # exit if a command fails
 set -e
 
@@ -25,6 +28,7 @@ SWIG=0
 FAUST=0
 KEYBOARD=0
 REUSE=0
+SOUNDFILE=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -35,6 +39,8 @@ for p in $@; do
 	    FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
+	elif [ $p = "-soundfile" ]; then
+    	SOUNDFILE="1"
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
@@ -48,15 +54,14 @@ for p in $@; do
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
 	elif [ $p = "-h" ]; then
-		echo "Usage: faust2android faustFile.dsp"
-		echo "OPTIONS:"
-		echo "-install: once compilation is over, installs the generated app on the Android device connected to the computer."
-		echo "-source: creates an eclipse project of the app in the current directory."
-		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
-		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
-		echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
-		echo "-reuse: keep build directory and reuse it to speedup compilation."
-		echo "-debug: verbose output."
+        echo "Usage: faust2android [-install] [-source] [-swig] [-faust] [-reuse] [-soundfile] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use '-install' once compilation is over, installs the generated app on the Android device connected to the computer."
+        echo "Use '-source' creates an eclipse project of the app in the current directory."
+        echo "Use '-swig' regenerate the C++ and the JAVA interface for the native portion of the app."
+        echo "Use '-faust' only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+        echo "Use '-reuse' keep build directory and reuse it to speedup compilation."
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        echo "Use '-debug' verbose output."
 		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
@@ -143,15 +148,60 @@ mkdir $APPFOLDER/java/com/DspFaust
 cp $FAUSTLIB/api/android/jni/*.java $APPFOLDER/java/com/DspFaust
 
 # Compile the Faust code for the NDK
-faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
+faust $OPTIONS -i -json -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
+
+# Add soundfile support if needed
+if [ $SOUNDFILE -eq 1 ]; then
+	cat $APPNAME.dsp.json | awk '
+									BEGIN { FS=":"; SOFI=0; }
+											/"soundfile"/ { SOFI=1; }
+											/"url"/ {
+											if (SOFI) {
+													match($2, /"[^"]*/);
+                                                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                                    for (x in res) print substr(res[x], 2, length(res[x])-2);
+													SOFI=0;
+											}
+									}
+							' > $APPNAME-tmp.txt
+	for snd in $(cat $APPNAME-tmp.txt); do
+			if [ -f $snd ]; then
+					if [ ${snd:0:1} = "/" ]; then
+							echo "Warning: soundfile with absolute path is not copied !"
+					else
+							#create destination path and possibly create directory
+							sfpath="$APPFOLDER/assets"
+							if ! [ -d $sfpath ]; then
+									echo "Create $sfpath"
+									mkdir $sfpath
+							fi
+							echo "Copy $snd in apk"
+							cp $snd $sfpath		
+					fi
+			else
+					echo "Error: file $snd not found !"
+			fi
+	done
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
+	else
+		sed -i 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
+	fi
+	mv $BUILDDIR/app/CMakeLists_sndfile.txt $BUILDDIR/app/CMakeLists.txt
+	rm $APPNAME-tmp.txt
+else
+	rm $BUILDDIR/app/CMakeLists_sndfile.txt 
+	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
+fi
+rm $APPNAME.dsp.json
 
 # Run Gradle
 cd $BUILDDIR
 chmod a+x ./gradlew
-./gradlew assembleRelease > $LOG
+$FAUSTGRADLE assembleRelease > $LOG
 cd ..
 
-cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk
+cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk
 
 # ****************
 # TREAT OPTIONS

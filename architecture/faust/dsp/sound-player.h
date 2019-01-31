@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -43,14 +43,14 @@
 class sound_base_player : public dsp {
     
     protected:
-    
+        
         typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
         
         SF_INFO fInfo;
         SNDFILE* fFile;
         std::string fFileName;
         int fSamplingRate;
-    
+        
         // File current frame while playing
         FAUSTFLOAT fCurFrames;
         
@@ -59,26 +59,26 @@ class sound_base_player : public dsp {
         FAUSTFLOAT fLoopButton;
         FAUSTFLOAT fSetFrames;
         FAUSTFLOAT fLastSetFrames;
-    
-        // To protect postion change
+        
+        // To protect position change
         std::mutex fMutex;
-    
+        
         // Generic reader function
         sample_read fReaderFun;
         
         virtual void playSlice(int count, int src, int dst, FAUSTFLOAT** outputs) {}
-    
+        
         virtual void setFrame(int frames) {}
-    
+        
         void clearSlice(int count, int dst, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fInfo.channels; i++) {
                 memset(&(outputs[i])[dst], 0, sizeof(FAUSTFLOAT) * count);
             }
         }
-    
+        
     public:
-    
+        
         sound_base_player(const std::string& filename)
         {
             fFileName = filename;
@@ -96,10 +96,10 @@ class sound_base_player : public dsp {
                 throw std::bad_alloc();
             }
         }
-    
+        
         virtual ~sound_base_player()
         {}
-    
+        
         virtual int getNumInputs() { return 0; }
         virtual int getNumOutputs() { return fInfo.channels; }
         
@@ -110,7 +110,6 @@ class sound_base_player : public dsp {
             ui_interface->addCheckButton("Loop", &fLoopButton);
             ui_interface->addHorizontalSlider("Set position", &fSetFrames, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames), FAUSTFLOAT(100));
             ui_interface->addHorizontalBargraph("Current position", &fCurFrames, FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames));
-            
             ui_interface->closeBox();
         }
         
@@ -149,7 +148,7 @@ class sound_base_player : public dsp {
         {
             fCurFrames = FAUSTFLOAT(0);
         }
-    
+        
         virtual sound_base_player* clone() { return new sound_base_player(fFileName); }
         
         virtual void metadata(Meta* m)
@@ -161,7 +160,7 @@ class sound_base_player : public dsp {
         {
             if (fPlayButton == FAUSTFLOAT(1) && fMutex.try_lock()) {
                 
-                int rcount = std::min(count, int(fInfo.frames - fCurFrames));
+                int rcount = std::min<int>(count, int(fInfo.frames - fCurFrames));
                 playSlice(rcount, fCurFrames, 0, outputs);
                 
                 if (rcount < count) {
@@ -186,44 +185,44 @@ class sound_base_player : public dsp {
                 clearSlice(count, 0, outputs);
             }
         }
-    
+        
         static void setFrame(FAUSTFLOAT val, void* arg)
         {
             static_cast<sound_base_player*>(arg)->setFrame(int(val));
         }
-    
+        
         FAUSTFLOAT* getCurFramesZone()
         {
             return &fCurFrames;
         }
-    
+        
         FAUSTFLOAT* getSetFramesZone()
         {
             return &fSetFrames;
         }
-   
+    
 };
 
 /**
-* Memory player
-*/
+ * Memory player
+ */
 
 class sound_memory_player : public sound_base_player {
     
     private:
-    
+        
         FAUSTFLOAT** fBuffer;   // Buffer of non-interleased frames
-    
+        
         void playSlice(int count, int src, int dst, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fInfo.channels; i++) {
                 memcpy(&(outputs[i])[dst], &(fBuffer[i])[src], sizeof(FAUSTFLOAT) * count);
             }
         }
-    
+        
         void setFrame(int frames)
         {
-             // If position change
+            // If position change
             if (fSetFrames != fLastSetFrames
                 && std::abs(fSetFrames - fLastSetFrames) > BUFFER_SIZE
                 && std::abs(fSetFrames - fCurFrames) > BUFFER_SIZE) {
@@ -233,9 +232,9 @@ class sound_memory_player : public sound_base_player {
                 fMutex.unlock();
             }
         }
- 
+        
     public:
-
+        
         sound_memory_player(const std::string& filename):sound_base_player(filename)
         {
             fBuffer = new FAUSTFLOAT*[fInfo.channels];
@@ -245,7 +244,7 @@ class sound_memory_player : public sound_base_player {
             
             FAUSTFLOAT buffer[BUFFER_SIZE * fInfo.channels];
             sf_count_t nbf, index = 0;
-     
+            
             do {
                 // Read buffer
                 nbf = fReaderFun(fFile, buffer, BUFFER_SIZE);
@@ -259,7 +258,7 @@ class sound_memory_player : public sound_base_player {
                 index += nbf;
             } while (nbf == BUFFER_SIZE);
         }
-    
+        
         virtual ~sound_memory_player()
         {
             for (int i = 0; i < fInfo.channels; i++) {
@@ -268,9 +267,9 @@ class sound_memory_player : public sound_base_player {
             delete [] fBuffer;
             sf_close(fFile);
         }
-
+        
         sound_memory_player* clone() { return new sound_memory_player(fFileName); }
-
+    
 };
 
 /**
@@ -282,7 +281,7 @@ class sound_dtd_player : public sound_base_player {
     private:
         
         ringbuffer_t* fBuffer;  // Ringbuffer written in setFrame and read in playSlice
-    
+        
         void playSlice(int count, int src, int dst, FAUSTFLOAT** outputs)
         {
             size_t read_space_frames = convertToFrames(ringbuffer_read_space(fBuffer));
@@ -304,14 +303,14 @@ class sound_dtd_player : public sound_base_player {
                 std::cerr << "PlaySlice : missing " << (count - read_space_frames) << " frames\n";
             }
         }
-    
+        
         size_t readAndwrite(FAUSTFLOAT* buffer, size_t size)
         {
             size_t nbf = fReaderFun(fFile, buffer, size);
             ringbuffer_write(fBuffer, (char*)buffer, convertFromFrames(nbf));
             return nbf;
         }
-    
+        
         void setFrame(int frames)
         {
             // If position change
@@ -343,10 +342,10 @@ class sound_dtd_player : public sound_base_player {
                 }
             }
         }
-    
+        
         size_t convertToFrames(size_t bytes) { return bytes / (sizeof(FAUSTFLOAT) * fInfo.channels); }
         size_t convertFromFrames(size_t frames) { return frames * sizeof(FAUSTFLOAT) * fInfo.channels; }
-  
+        
     public:
         
         sound_dtd_player(const std::string& filename):sound_base_player(filename)
@@ -363,15 +362,15 @@ class sound_dtd_player : public sound_base_player {
             ringbuffer_free(fBuffer);
             sf_close(fFile);
         }
-    
+        
         sound_dtd_player* clone() { return new sound_dtd_player(fFileName); }
     
 };
 
 /**
-    PositionManager is a GUI : changing the slider position of a sound_base_player
-    (sound_memory_player or sound_dtd_player) will be reflected in the internal buffer
-    position using the GUI::updateAllGuis mecanism.
+ PositionManager is a GUI : changing the slider position of a sound_base_player
+ (sound_memory_player or sound_dtd_player) will be reflected in the internal buffer
+ position using the GUI::updateAllGuis mecanism.
  */
 
 class PositionManager : public GUI {
@@ -387,15 +386,15 @@ class PositionManager : public GUI {
         
         ~PositionManager()
         {}
-    
+        
         // Add a sound_base_player (sound_memory_player or sound_dtd_player) in the PositionManager
         void addDSP(sound_base_player* dsp)
         {
             fFileReader[dsp] = std::make_pair(new uiCallbackItem(this, dsp->getCurFramesZone(), sound_base_player::setFrame, dsp),
                                               new uiCallbackItem(this, dsp->getSetFramesZone(), sound_base_player::setFrame, dsp));
         }
-    
-        // Remove a sound_base_player (sound_memory_player or sound_dtd_player) in the PositionManager
+        
+        // Remove a sound_base_player (sound_memory_player or sound_dtd_player) from the PositionManager
         void removeDSP(sound_base_player* dsp)
         {
             fFileReader.erase(dsp);
@@ -422,6 +421,6 @@ class PositionManager : public GUI {
  // When the application quits...
  delete manager;
  
-*/
+ */
 
 #endif

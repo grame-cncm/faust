@@ -1,4 +1,5 @@
 dox/*
+build/xcode/*
 build/bin/*
 build/lib/*
 *~

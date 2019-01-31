@@ -43,7 +43,7 @@ echoHelp ()
     fi
     echo "faust2nodejs can be used to generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: alsa, JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC suport, polyphony, separate effect file, etc.)."
     echo ""
-    echo "USAGE: faust2nodejs [DRIVER] [OPTIONS] faustFile.dsp"
+    echo "USAGE: faust2nodejs [DRIVER] [OPTIONS] <file.dsp>"
     echo ""
     echo "The following drivers (DRIVER) are available: -coreaudio // -alsa // -jack // -portaudio // -rtaudio // -dummy. For example, to create a native nodejs addon with a JACK audio engine, run: faust2nodjs -jack faustFile.dsp"
     echo ""

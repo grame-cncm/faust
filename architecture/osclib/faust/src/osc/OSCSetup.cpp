@@ -44,9 +44,9 @@ class OscThread : public TThreads
 	
         OscThread(MessageProcessor* mp, int udpport) { fListener = OSCListener::create(mp, udpport); }
 
-        OscThread(MessageProcessor* mp, int udpport, ErrorCallback errCallback, void* arg)
+        OscThread(MessageProcessor* mp, int udpport, ErrorCallback errCallback, void* arg, const char* bindAddress)
         {
-            fListener = OSCListener::create(mp, udpport);
+            fListener = OSCListener::create(mp, udpport, bindAddress);
             fErrCallback = errCallback;
             fArg = arg;
         }
@@ -78,7 +78,7 @@ OSCSetup::~OSCSetup()			{ stop(); }
 bool OSCSetup::running() const	{ return fOSCThread ? fOSCThread->isRunning() : false; }
 
 //--------------------------------------------------------------------------
-bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address)
+bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort, bool bundlemode, const char* address, const char* bindAddress)
 {
 	int port = inPort;
 	bool done = false;
@@ -89,7 +89,8 @@ bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort
 			oscerr.setPort (errPort);
 			oscout.setAddress(address);
 			oscerr.setAddress(address);
-			fOSCThread = new OscThread(mp, port, fErrCallback, fArg);
+			oscout.setBundle(bundlemode);
+			fOSCThread = new OscThread(mp, port, fErrCallback, fArg, bindAddress);
             fOSCThread->start();
 			done = true;
 		}
@@ -104,6 +105,10 @@ bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort
 	inPort = port;
 	return true;
 }
+
+//--------------------------------------------------------------------------
+void OSCSetup::endBundle()			{ oscout.endBundle(); }
+void OSCSetup::bundle(bool state)	{ oscout.setBundle(state); }
 
 //--------------------------------------------------------------------------
 void OSCSetup::stop()

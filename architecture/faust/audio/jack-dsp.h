@@ -63,9 +63,7 @@ class jackaudio : public audio {
 
         std::vector<char*> fPhysicalInputs;
         std::vector<char*> fPhysicalOutputs;
-
-        shutdown_callback fShutdown;        // Shutdown callback to be called by libjack
-        void*           fShutdownArg;       // Shutdown callback data
+    
         void*           fIconData;          // iOS specific
         int             fIconSize;          // iOS specific
         bool            fAutoConnect;       // autoconnect with system in/out ports
@@ -191,13 +189,16 @@ class jackaudio : public audio {
             }
 
             fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
+            
+            runControlCallbacks();
+            
             return 0;
         }
  
     public:
 
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
-            : fDSP(0), fClient(0), fShutdown(0), fShutdownArg(0), fAutoConnect(auto_connect)
+            : fDSP(0), fClient(0), fAutoConnect(auto_connect)
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);
@@ -307,12 +308,6 @@ class jackaudio : public audio {
                 saveConnections();
                 jack_deactivate(fClient);
             }
-        }
-
-        virtual void shutdown(shutdown_callback cb, void* arg)
-        {
-            fShutdown = cb;
-            fShutdownArg = arg;
         }
 
         virtual int getBufferSize() { return jack_get_buffer_size(fClient); }

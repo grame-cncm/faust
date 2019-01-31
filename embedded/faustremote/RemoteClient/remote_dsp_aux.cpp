@@ -26,11 +26,11 @@
 
 #include "faust/gui/ControlUI.h"
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/MidiUI.h"
+#include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "remote_dsp_aux.h"
 #include "libfaust.h"
-#include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/interpreter-dsp.h"
 #include "utilities.h"
 #include "rn_base64.h"
 
@@ -175,9 +175,13 @@ static remote_dsp_factory* crossCompile(int argc, const char* argv[],
     string url = serverURL.str() + "/CrossCompileFactory";
    
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        llvm_dsp_factory* factory = readDSPFactoryFromMachine(response, getDSPMachineTarget());
-        remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
-        return reinterpret_cast<remote_dsp_factory*>(factory); 
+        llvm_dsp_factory* factory = readDSPFactoryFromMachine(response, getDSPMachineTarget(), error_msg);
+        if (factory) {
+            remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
+            return reinterpret_cast<remote_dsp_factory*>(factory);
+        } else {
+            return NULL;
+        }
     } else {
         error_msg = response;
         return NULL;
@@ -236,7 +240,7 @@ bool remote_dsp_factory::init(int argc, const char* argv[],
         #ifdef LLVM_DSP_FACTORY
             string machine_code = writeDSPFactoryToMachine(factory, "");
         #else
-            string machine_code = writeInterpreterDSPFactoryToMachine(factory);
+            string machine_code = writeInterpreterDSPFactoryToBitcode(factory);
         #endif
             char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
             finalRequest << "&dsp_data=";

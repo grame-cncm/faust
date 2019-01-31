@@ -4,7 +4,7 @@ if [[ $(uname) == Darwin ]]; then
 	#On Darwin build a Jack internal client
 	for f in $@; do
 		faust -i -a jack-internal.cpp $f -o $f.cpp || exit
-		${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS `pkg-config --cflags jack` $f.cpp -I/usr/local/include -L/usr/local/lib -ljackserver -fPIC -bundle -o ${f%.dsp}.so || exit
+		${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS `pkg-config --cflags jack` $f.cpp -I/usr/local/include -L/usr/local/lib -ljackserver -fPIC -lOSCFaust -bundle -o ${f%.dsp}.so || exit
 	done
 
 else

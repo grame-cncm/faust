@@ -22,6 +22,12 @@
 #ifndef INTERPRETER_DSP_H
 #define INTERPRETER_DSP_H
 
+#ifdef _WIN32
+#define DEPRECATED(fun) __declspec(deprecated) fun
+#else
+#define DEPRECATED(fun) fun __attribute__ ((deprecated));
+#endif
+
 #include <string>
 #include <vector>
 #include "faust/dsp/dsp.h"
@@ -109,6 +115,12 @@ class interpreter_dsp_factory : public dsp_factory {
         
         /* Return the currently set custom memory manager */
         dsp_memory_manager* getMemoryManager();
+    
+        /* Get the Faust DSP factory list of library dependancies */
+        std::vector<std::string> getLibraryList();
+    
+        /* Get the list of all used includes */
+        std::vector<std::string> getIncludePathnames();
 
 };
 
@@ -137,8 +149,8 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  * @return a DSP factory on success, otherwise a null pointer.
  */
 interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename,
-                                                           int argc, const char* argv[], 
-                                                           std::string& error_msg);
+                                                             int argc, const char* argv[],
+                                                             std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -155,9 +167,9 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& 
  * @return a DSP factory on success, otherwise a null pointer.
  */ 
 interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
-                                                            const std::string& dsp_content,
-                                                            int argc, const char* argv[],
-                                                            std::string& error_msg);
+                                                               const std::string& dsp_content,
+                                                               int argc, const char* argv[],
+                                                               std::string& error_msg);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.
@@ -172,11 +184,13 @@ bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
 /**
  * Get the list of library dependancies of the Faust DSP factory.
  *
+ * @deprecated : use factory getInterpreterDSPFactoryLibraryList method.
+ *
  * @param factory - the DSP factory
  * 
  * @return the list as a vector of strings.
  */
-std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory);
+DEPRECATED(std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory));
 
 /**
  * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory and DSP pointers (in local variables...) thus become invalid.
@@ -192,46 +206,48 @@ void deleteAllInterpreterDSPFactories();
 std::vector<std::string> getAllInterpreterDSPFactories();
 
 /**
- * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all
- * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
+ * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same bitcode code string) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code - the machine code string
+ * @param bitcode_code - the bitcode string
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
 
 /**
- * Write a Faust DSP factory into a machine code string.
+ * Write a Faust DSP factory into a bitcode string.
  *
  * @param factory - the DSP factory
  *
- * @return the machine code as a string.
+ * @return the bitcode as a string.
  */
-std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory);
+std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
 
 /**
- * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
- * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return
+ * Create a Faust DSP factory from a bitcode file. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same Bitcode file) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code_path - the machine code file pathname
+ * @param bitcode_path - the bitcode file pathname
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path, std::string& error_msg);
 
 /**
- * Write a Faust DSP factory into a machine code file.
+ * Write a Faust DSP factory into a bitcode file.
  *
  * @param factory - the DSP factory
- * @param machine_code_path - the machine code file pathname
+ * @param bitcode_path - the bitcode file pathname
  *
  */
-void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
+void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
 
 /*!
  @}

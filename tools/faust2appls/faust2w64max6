@@ -3,17 +3,32 @@
 #####################################################################
 #                                                                   #
 #               Cross-compiles Faust programs to Max/MSP            #
-#			from 	: Linux or OSX			                        #
-#			to	    : Windows 64bits			                    #
-#               (c) Grame, 2018                                     #
+#                      from : Linux or OSX                          #
+#                        to : Windows 32                            #
+#                       (c) Grame, 2018                             #
 #                                                                   #
 #####################################################################
+
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" -fbracket-depth=512"
+
+POLY=""
+NOPATCH="0"
+NVOICES=-1
+EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
+
+JSFILE_PATH="ui.js"
 
 #------------------------------------------------------------------------------
 # 1/ MAX/MSP SDK Should be installed somewhere
 MAXSDK=/usr/local/include/c74support
-. faustpath
-EXT="~.mxe"
+EXT="~.mxe64"
 
 if [ ! -d "${MAXSDK}" ]; then
 	echo "Unable to locate Max/Msp SDK: MAXSDK=${MAXSDK}" 1>&2
@@ -38,21 +53,6 @@ LIBS="$MAXSDK/max-includes/x64/MaxAPI.lib  $MAXSDK/msp-includes/x64/MaxAudio.lib
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
 CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION"
 
-#-------------------------------------------------------------------
-# Set Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-	FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/local/share/faust
-elif [ -f /usr/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/share/faust
-else
-    echo " ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
-fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -113,10 +113,6 @@ for p in $FILES; do
 		$CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
 		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
 		$STRIP "${f%.dsp}$EXT"
-
-        # $CXX $CXXINCS $CXXFLAGS $LIBS -static-libstdc++ -static-libgcc "${f%.dsp}.cpp" -o "${f%.dsp}$EXT"
-
-
     ) > /dev/null || exit
 
 	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
@@ -126,6 +122,25 @@ for p in $FILES; do
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+            
+    # create Max patch
+    if [ "$NOPATCH" = "0" ]; then
+        if [ "$POLY" = "POLY1" ]; then
+            cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+        else
+            cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+        fi
+        sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
+        sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+
+        # copy JavaScript UI file
+        cp $FAUSTLIB/max-msp/ui.js .
+        rm ${f%.dsp}-temp1.maxpat
+        rm ${f%.dsp}-temp2.maxpat
+
+        BINARIES="$BINARIES ${f%.dsp}.maxpat ui.js"
+    fi
+
 done
 
 echo "$BINARIES"

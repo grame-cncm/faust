@@ -52,6 +52,7 @@ class OSCControler
 	int fUDPPort,   fUDPOut, fUPDErr;	// the udp ports numbers
 	std::string     fDestAddress;		// the osc messages destination address, used at initialization only
 										// to collect the address from the command line
+	std::string     fBindAddress;		// when non empty, the address used to bind the socket for listening
 	OSCSetup*		fOsc;				// the network manager (handles the udp sockets)
 	OSCIO*			fIO;				// hack for OSC IO support (actually only relayed to the factory)
 	FaustFactory*	fFactory;			// a factory to build the memory represetnatin
@@ -88,8 +89,10 @@ class OSCControler
 	   
 		//--------------------------------------------------------------------------
 		void run();				// starts the network services
+		void endBundle();		// when bundle mode is on, close and send the current bundle (if any)
 		void stop();			// stop the network services
-		
+		std::string getInfos() const; // gives information about the current environment (version, port numbers,...)
+
 		int	getUDPPort() const			{ return fUDPPort; }
 		int	getUDPOut()	const			{ return fUDPOut; }
 		int	getUDPErr()	const			{ return fUPDErr; }
@@ -111,6 +114,7 @@ class OSCControler
 		static const char* versionstr();	// the Faust OSC library version number as a string
 		static int gXmit;                   // a static variable to control the transmission of values
                                             // i.e. the use of the interface as a controler
+		static int gBundle;                 // a static variable to control the osc bundle mode
 };
 
 #define kNoXmit     0

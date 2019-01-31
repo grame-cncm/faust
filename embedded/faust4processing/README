@@ -1,9 +1,0 @@
-faust4processing : a Faust library for processing
--------------------------------------------------
-
-- you'll to have 'swig' installed
-
-- you'll need to have faust2 compiled and installed
-
-- check and change if needed the location of Processing in the Makefile
-Then 'make' and 'make install'

@@ -42,7 +42,7 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile....
+// Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
@@ -70,7 +70,7 @@ using namespace std;
 
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif
 
 dsp* DSP;
@@ -97,6 +97,7 @@ int main(int argc, char* argv[])
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
+    int control = 0;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -113,9 +114,11 @@ int main(int argc, char* argv[])
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
+    control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
+    
     cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
     if (midi_sync) {
@@ -129,11 +132,12 @@ int main(int argc, char* argv[])
     
 #else
     nvoices = lopt(argv, "--nvoices", nvoices);
+    control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     
     if (nvoices > 0) {
         cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
         
     #if MIDICTRL
         if (midi_sync) {
@@ -253,9 +257,6 @@ int main(int argc, char* argv[])
     
 #ifdef HTTPCTRL
     httpdinterface.run();
-#ifdef QRCODECTRL
-    interface.displayQRCode(httpdinterface.getTCPPort());
-#endif
 #endif
     
 #ifdef OSCCTRL

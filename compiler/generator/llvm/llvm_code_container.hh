@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,10 +24,9 @@
 
 #include "code_container.hh"
 #include "llvm_instructions.hh"
-#include "vec_code_container.hh"
 #include "omp_code_container.hh"
+#include "vec_code_container.hh"
 #include "wss_code_container.hh"
-#include "llvm_dynamic_dsp_aux.hh"
 
 #include <llvm/Support/FileSystem.h>
 
@@ -35,190 +34,147 @@
 
 #if defined(LLVM_35)
 #define STREAM_ERROR string
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
 #else
 #define STREAM_ERROR std::error_code
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 #endif
 
 using namespace std;
 using namespace llvm;
 
 class LLVMCodeContainer : public virtual CodeContainer {
+   protected:
+    using CodeContainer::generateInstanceInitFun;
 
-    protected:
-		using CodeContainer::generateInstanceInitFun;
+    // UI structure creation
+    llvm::PointerType* fStructDSP;
 
-        // UI structure creation
-        llvm::PointerType* fStructDSP;
+    IRBuilder<>* fBuilder;
+    // To be used for "alloca", which have to be added in the first "entry" block of the function.
+    IRBuilder<>* fAllocaBuilder;
 
-        IRBuilder<>* fBuilder;
-        IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
-        LLVMInstVisitor* fCodeProducer;
-      
-        Module* fModule;
-        LLVMContext* fContext;
+    LLVMInstVisitor* fCodeProducer;
+
+    Module*      fModule;
+    LLVMContext* fContext;
+
+    void generateComputeBegin(const string& counter);
+    void generateComputeEnd();
+    void generateComputeDouble();
+
+    void generateFillBegin(const string& counter);
+    void generateFillEnd();
+
+    void generateGetSampleRate(int field_index);
+
+    void generateInfoFunctions(const string& classname, bool isvirtual);
+
+    void generateClassInitBegin();
+    void generateClassInitEnd();
+
+    void generateInitFun();
+    void generateInstanceInitFun();
+
+    void generateInstanceInitBegin(const string& funname, bool internal = false);
+    void generateInstanceInitEnd(const string& funname);
+
+    void generateInstanceResetUserInterfaceBegin(bool internal = false);
+    void generateInstanceResetUserInterfaceEnd();
+
+    void generateInstanceClearBegin(bool internal = false);
+    void generateInstanceClearEnd();
+
+    void generateAllocateBegin();
+    void generateAllocateEnd();
+
+    void generateDestroyBegin();
+    void generateDestroyEnd();
+
+    void generateMetadata(llvm::PointerType* meta_type_ptr);
+
+    void generateBuildUserInterfaceBegin();
+    void generateBuildUserInterfaceEnd();
+
+    void generateGetJSON(int dsp_size);
+
+    LLVMContext& getContext();
+
+    // To be used for mathematical function mapping (-fm and exp10 on OSX)
+    void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
+    void generateFunMaps();
     
-        void generateComputeBegin(const string& counter);
-        void generateComputeEnd();
-        void generateComputeDouble();
+    // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer classes
+    virtual void generateCompute() = 0;
 
-        void generateFillBegin(const string& counter);
-        void generateFillEnd();
+   public:
+    LLVMCodeContainer(const string& name, int numInputs, int numOutputs);
+    LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context);
+    virtual ~LLVMCodeContainer();
 
-        void generateGetSampleRate(int field_index);
-  
-        void generateInfoFunctions(const string& classname, bool isvirtual);
+    virtual dsp_factory_base* produceFactory();
+    void         produceInternal();
 
-        void generateClassInitBegin();
-        void generateClassInitEnd();
-    
-        void generateInitFun();
-        void generateInstanceInitFun();
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        void generateInstanceInitBegin(const string& funname, bool internal = false);
-        void generateInstanceInitEnd(const string& funname);
-    
-        void generateInstanceResetUserInterfaceBegin(bool internal = false);
-        void generateInstanceResetUserInterfaceEnd();
-    
-        void generateInstanceClearBegin(bool internal = false);
-        void generateInstanceClearEnd();
-    
-        void generateAllocateBegin();
-        void generateAllocateEnd();
-
-        void generateDestroyBegin();
-        void generateDestroyEnd();
-
-        void generateMetadata(llvm::PointerType* meta_type_ptr);
-
-        void generateBuildUserInterfaceBegin();
-        void generateBuildUserInterfaceEnd();
-    
-        void generateGetSize(LlvmValue size);
-    
-        LlvmValue genInt1(int number)
-        {
-            return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), number);
-        }
-
-        LlvmValue genInt32(int number)
-        {
-            return ConstantInt::get(llvm::Type::getInt32Ty(getContext()), number);
-        }
-
-        LlvmValue genInt64(int number)
-        {
-            return ConstantInt::get(llvm::Type::getInt64Ty(getContext()), number);
-        }
-
-        LlvmValue genFloat(const string& number)
-        {
-        #if defined(LLVM_60)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
-        #elif defined(LLVM_40) || defined(LLVM_50)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
-        #else
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));
-        #endif
-        }
-
-        LlvmValue genFloat(float number)
-        {
-            return ConstantFP::get(getContext(), APFloat(number));
-        }
-        
-        LLVMContext& getContext();
-    
-        // To be used for mathematical function mapping (-fm and exp10 on OSX)
-        void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
-    
-        void generateFunMaps();
-
-    public:
-
-        LLVMCodeContainer(const string& name, int numInputs, int numOutputs);
-        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context);
-        virtual ~LLVMCodeContainer();
-      
-        virtual dsp_factory_base* produceFactory();
-    
-        virtual void generateCompute() = 0;
-        void produceInternal();
-
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
-
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
 };
 
 class LLVMScalarCodeContainer : public LLVMCodeContainer {
+   protected:
+   public:
+    LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
+    LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context,
+                            int sub_container_type);
+    virtual ~LLVMScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
-        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context, int sub_container_type);
-        virtual ~LLVMScalarCodeContainer();
-
-        void generateCompute();
-
+    void generateCompute();
 };
 
 class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeContainer {
+   protected:
+   public:
+    LLVMVectorCodeContainer(const string& name, int numInputs, int numOutputs);
+    virtual ~LLVMVectorCodeContainer();
 
-    protected:
-
-    public:
-
-        LLVMVectorCodeContainer(const string& name, int numInputs, int numOutputs);
-        virtual ~LLVMVectorCodeContainer();
-
-        void generateCompute();
-
+    void generateCompute();
 };
 
 class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeContainer {
+   protected:
+    void generateOMPDeclarations();
+    void generateOMPCompute();
 
-    protected:
+    void      generateGOMP_parallel_start();
+    void      generateGOMP_parallel_end();
+    LLVMValue generateGOMP_single_start();
+    void      generateGOMP_barrier();
+    void      generateGOMP_sections_start(LLVMValue num);
+    void      generateGOMP_sections_end();
+    void      generateGOMP_sections_next();
 
-        void generateOMPDeclarations();
-        void generateOMPCompute();
+    void generateDSPOMPCompute();
 
-        void generateGOMP_parallel_start();
-        void generateGOMP_parallel_end();
-        LlvmValue generateGOMP_single_start();
-        void generateGOMP_barrier();
-        void generateGOMP_sections_start(LlvmValue number);
-        void generateGOMP_sections_end();
-        void generateGOMP_sections_next();
+   public:
+    LLVMOpenMPCodeContainer(const string& name, int numInputs, int numOutputs);
+    virtual ~LLVMOpenMPCodeContainer();
 
-        void generateDSPOMPCompute();
-
-    public:
-
-        LLVMOpenMPCodeContainer(const string& name, int numInputs, int numOutputs);
-        virtual ~LLVMOpenMPCodeContainer();
-
-        void generateCompute();
-
+    void generateCompute();
 };
 
 class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeContainer {
+   protected:
+    void generateComputeThreadBegin();
+    void generateComputeThreadEnd();
+    void generateComputeThreadExternal();
 
-    protected:
+   public:
+    LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs);
+    virtual ~LLVMWorkStealingCodeContainer();
 
-        void generateComputeThreadBegin();
-        void generateComputeThreadEnd();
-        void generateComputeThreadExternal();
-
-    public:
-
-        LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs);
-        virtual ~LLVMWorkStealingCodeContainer();
-
-        void generateCompute();
-
+    void generateCompute();
 };
 
 #endif

@@ -658,8 +658,6 @@ void http_perror(const char* string)
  */
 const char* http_strerror()
 {
-	extern int errno;
-
 	if (errorSource == ERRNO)
 		return strerror(errno);
 	else if (errorSource == H_ERRNO)
@@ -683,7 +681,7 @@ const char* http_strerror()
 			convertedError[0] = 0;	/* Start off with NULL */
 			stringIndex = strstr(originalError, "%d");
 			strncat(convertedError, originalError,	/* Copy up to %d */
-            labs(stringIndex - originalError));
+            labs(long(stringIndex - originalError)));
 			sprintf(&convertedError[strlen(convertedError)], "%d", errorInt);
 			stringIndex += 2;	/* Skip past the %d */
 			strcat(convertedError, stringIndex);
@@ -769,7 +767,7 @@ int makeSocket(char* host)
 	/* Check for port number specified in URL */
 	p = strchr(host, ':');
 	if (p) {
-		port = atoi(p + 1);
+        port = std::atoi(p + 1);
 		*p = '\0';
 	} else
 		port = PORT_NUMBER;

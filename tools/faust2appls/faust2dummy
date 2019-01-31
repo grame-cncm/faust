@@ -1,22 +1,22 @@
 #!/bin/bash
 
-. faustpath
-. faustoptflags
-
-CXXFLAGS=$MYGCCFLAGS
-
-OSCDEFS=""
-NVOICES=-1
-OSCDEFS=""
-HTTPDEFS=""
-MIDIDEFS=""
-
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to dummy                    #
 #               (c) Grame, 2017                                     #
 #                                                                   #
 #####################################################################
+
+. faustpath
+. faustoptflags
+
+CXXFLAGS="$MYGCCFLAGS -std=c++11"
+
+OSCDEFS=""
+NVOICES=-1
+OSCDEFS=""
+HTTPDEFS=""
+MIDIDEFS=""
 
 #-------------------------------------------------------------------
 # Analyze command arguments :

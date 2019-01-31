@@ -54,7 +54,7 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile....
+// Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
@@ -79,7 +79,7 @@
 
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif
 
 /***************************END USER SECTION ***************************/
@@ -169,7 +169,7 @@ int main(int argc, char *argv[] )
         exit(1);
     }
 
-    CMDUI* interface = new CMDUI(argc, argv);
+    CMDUI* interface = new CMDUI(argc, argv, true);
     FUI* finterface	= new FUI();
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(finterface);

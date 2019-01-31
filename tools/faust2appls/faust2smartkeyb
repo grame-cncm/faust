@@ -12,6 +12,9 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
+# FAUSTGRADLE environement variable. By default we use ./gradlew 
+FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+
 # exit if a command fails
 set -e
 
@@ -238,9 +241,9 @@ if [ $SOURCE -eq 0 ]; then
 		echo "Starting Android compilation" > $LOG
 		cd $BUILDDIR
 		chmod a+x ./gradlew
-		./gradlew assembleRelease > $LOG
+		$FAUSTGRADLE assembleRelease > $LOG
 		cd ..
-		cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk > $LOG
+		cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk > $LOG
 		echo "An Android app \"$APPNAME.apk\" was created in the current folder"
 	elif [ $IOS -eq 1 ]; then
 		echo "Starting iOS compilation" > $LOG

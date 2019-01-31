@@ -30,20 +30,80 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 
-// Combine two DSP in sequence
+// Base class and common code for binary combiners
 
-class dsp_sequencer : public dsp {
+class dsp_binary_combiner : public dsp {
     
-    private:
+    protected:
         
         dsp* fDSP1;
         dsp* fDSP2;
+        
+     public:
+        
+        dsp_binary_combiner(dsp* dsp1, dsp* dsp2):fDSP1(dsp1), fDSP2(dsp2)
+        {}
+        
+        virtual ~dsp_binary_combiner()
+        {
+            delete fDSP1;
+            delete fDSP2;
+        }
+    
+        virtual int getSampleRate()
+        {
+            return fDSP1->getSampleRate();
+        }
+        
+        virtual void init(int samplingRate)
+        {
+            fDSP1->init(samplingRate);
+            fDSP2->init(samplingRate);
+        }
+        
+        virtual void instanceInit(int samplingRate)
+        {
+            fDSP1->instanceInit(samplingRate);
+            fDSP2->instanceInit(samplingRate);
+        }
+        
+        virtual void instanceConstants(int samplingRate)
+        {
+            fDSP1->instanceConstants(samplingRate);
+            fDSP2->instanceConstants(samplingRate);
+        }
+        
+        virtual void instanceResetUserInterface()
+        {
+            fDSP1->instanceResetUserInterface();
+            fDSP2->instanceResetUserInterface();
+        }
+        
+        virtual void instanceClear()
+        {
+            fDSP1->instanceClear();
+            fDSP2->instanceClear();
+        }
+    
+        virtual void metadata(Meta* m)
+        {
+            fDSP1->metadata(m);
+            fDSP2->metadata(m);
+        }
+ 
+};
+
+// Combine two 'compatible' DSP in sequence
+
+class dsp_sequencer : public dsp_binary_combiner {
+    
+    private:
+    
         FAUSTFLOAT** fSeqBuffer;
          
     public:
         
-        dsp_sequencer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096)
-            :fDSP1(dsp1), fDSP2(dsp2)
+        dsp_sequencer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
         {
             assert(fDSP1->getNumOutputs() == fDSP2->getNumInputs());
             fSeqBuffer = new FAUSTFLOAT*[fDSP1->getNumOutputs()];
@@ -59,8 +119,6 @@ class dsp_sequencer : public dsp {
             }
             
             delete [] fSeqBuffer;
-            delete fDSP1;
-            delete fDSP2;
         }
                
         virtual int getNumInputs() { return fDSP1->getNumInputs(); }
@@ -77,80 +135,43 @@ class dsp_sequencer : public dsp {
             ui_interface->closeBox();
             ui_interface->closeBox();
         }
-        
-        virtual int getSampleRate()
-        {
-            return fDSP1->getSampleRate();
-        }
     
-        virtual void init(int samplingRate)
-        {
-            fDSP1->init(samplingRate);
-            fDSP2->init(samplingRate);
-        }
-    
-        virtual void instanceInit(int samplingRate)
-        {
-            fDSP1->instanceInit(samplingRate);
-            fDSP2->instanceInit(samplingRate);
-        }
-    
-        virtual void instanceConstants(int samplingRate)
-        {
-            fDSP1->instanceConstants(samplingRate);
-            fDSP2->instanceConstants(samplingRate);
-        }
-    
-        virtual void instanceResetUserInterface()
-        {
-            fDSP1->instanceResetUserInterface();
-            fDSP2->instanceResetUserInterface();
-        }
-    
-        virtual void instanceClear()
-        {
-            fDSP1->instanceClear();
-            fDSP2->instanceClear();
-        }
-        
         virtual dsp* clone()
         {
             return new dsp_sequencer(fDSP1->clone(), fDSP2->clone());
         }
     
-        virtual void metadata(Meta* m)
-        {
-            fDSP1->metadata(m);
-            fDSP2->metadata(m);
-        }
- 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, fSeqBuffer);
             fDSP2->compute(count, fSeqBuffer, outputs);
         }
+    
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+    
 };
 
 // Combine two DSP in parallel
 
-class dsp_parallelizer : public dsp {
+class dsp_parallelizer : public dsp_binary_combiner {
     
     private:
         
-        dsp* fDSP1;
-        dsp* fDSP2;
-         
+        FAUSTFLOAT** fInputsDSP2;
+        FAUSTFLOAT** fOutputsDSP2;
+    
     public:
         
-        dsp_parallelizer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096)
-            :fDSP1(dsp1), fDSP2(dsp2)
-        {}
+        dsp_parallelizer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
+        {
+            fInputsDSP2 = new FAUSTFLOAT*[fDSP2->getNumInputs()];
+            fOutputsDSP2 = new FAUSTFLOAT*[fDSP2->getNumOutputs()];
+        }
         
         virtual ~dsp_parallelizer()
         {
-            delete fDSP1;
-            delete fDSP2;
+            delete [] fInputsDSP2;
+            delete [] fOutputsDSP2;
         }
                
         virtual int getNumInputs() { return fDSP1->getNumInputs() + fDSP2->getNumInputs(); }
@@ -167,71 +188,29 @@ class dsp_parallelizer : public dsp {
             ui_interface->closeBox();
             ui_interface->closeBox();
         }
-        
-        virtual int getSampleRate()
-        {
-            return fDSP1->getSampleRate();
-        }
     
-        virtual void init(int samplingRate)
-        {
-            fDSP1->init(samplingRate);
-            fDSP2->init(samplingRate);
-        }
-    
-        virtual void instanceInit(int samplingRate)
-        {
-            fDSP1->instanceInit(samplingRate);
-            fDSP2->instanceInit(samplingRate);
-        }
-    
-        virtual void instanceConstants(int samplingRate)
-        {
-            fDSP1->instanceConstants(samplingRate);
-            fDSP2->instanceConstants(samplingRate);
-        }
-        
-        virtual void instanceResetUserInterface()
-        {
-            fDSP1->instanceResetUserInterface();
-            fDSP2->instanceResetUserInterface();
-        }
-
-        virtual void instanceClear()
-        {
-            fDSP1->instanceClear();
-            fDSP2->instanceClear();
-        }
-        
         virtual dsp* clone()
         {
             return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone());
         }
 
-        virtual void metadata(Meta* m)
-        {
-            fDSP1->metadata(m);
-            fDSP2->metadata(m);
-        }
-    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, outputs);
             
             // Shift inputs/outputs channels for fDSP2
-            FAUSTFLOAT** inputs_dsp2 = (FAUSTFLOAT**)alloca(fDSP2->getNumInputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < fDSP2->getNumInputs(); chan++) {
-                inputs_dsp2[chan] = inputs[fDSP1->getNumInputs() + chan];
+                fInputsDSP2[chan] = inputs[fDSP1->getNumInputs() + chan];
             }
-            
-            FAUSTFLOAT** outputs_dsp2 = (FAUSTFLOAT**)alloca(fDSP2->getNumOutputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < fDSP2->getNumOutputs(); chan++) {
-                outputs_dsp2[chan] = outputs[fDSP1->getNumOutputs() + chan];
+                fOutputsDSP2[chan] = outputs[fDSP1->getNumOutputs() + chan];
             }
             
-            fDSP2->compute(count, inputs_dsp2, outputs_dsp2);
+            fDSP2->compute(count, fInputsDSP2, fOutputsDSP2);
         }
+    
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+    
 };
 
 #endif

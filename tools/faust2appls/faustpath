@@ -17,12 +17,25 @@
 # add line << . faustpath >> to your script
 # and use -L$FAUSTLIB and -I$FAUSTINC where needed
 
-FAUSTLIB=""; FAUSTINC=""; 
+FAUSTLDDIR=$(faust -libdir); 
+FAUSTLIB=$(faust -dspdir); 
+FAUSTINC=$(faust -includedir); 
+[ -n "$FAUSTARCH" ] || FAUSTARCH=$(faust -archdir); 
+
+[ -n "$MAXSDK" ] || MAXSDK=/usr/local/include/c74support/
+CSOUND_MACSDK=/Library/Frameworks/CsoundLib64.framework
+PUREDATA_MACSDK=/Applications/Pd-extended.app/Contents/Resources
+VSTSDK=""
+[ -n "$SUPERCOLLIDER_HEADERS" ] || SUPERCOLLIDER_HEADERS=/usr/local/include/SuperCollider/
+
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
+if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
 for f in $FPATH; do
 	if [ -e $f/share/faust ]; 	then FAUSTLIB=$f/share/faust;	fi
 	if [ -e $f/include/faust ];	then FAUSTINC=$f/include/; fi
 done
+fi
+
 for f in $FPATH; do
 	if [ -e $f/lib/libmicrohttpd.a ]; 	then HTTPLIB=$f/share/faust;	fi
 done

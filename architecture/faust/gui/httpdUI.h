@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/DecoratorUI.h"
@@ -214,7 +215,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                     std::string path = (*it).first;
                     http_fetch(path.c_str(), &answer);
                     std::string answer_str = answer;
-                    (*(*it).second) = (FAUSTFLOAT)strtod(answer_str.substr(answer_str.find(' ')).c_str(), NULL);
+                    (*(*it).second) = (FAUSTFLOAT)std::strtod(answer_str.substr(answer_str.find(' ')).c_str(), NULL);
                     // 'http_fetch' result must be deallocated
                     free(answer);
                 }
@@ -239,7 +240,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
             http_fetch(json_url.c_str(), &json_buffer);
             if (json_buffer) {
                 fJSON = json_buffer;
-                fTCPPort = atoi(server_url.substr(server_url.find_last_of(':') + 1).c_str());
+                fTCPPort = std::atoi(server_url.substr(server_url.find_last_of(':') + 1).c_str());
                 // 'http_fetch' result must be deallocated
                 free(json_buffer);
                 std::cout << "Faust httpd client controling server '" << server_url << "'" << std::endl;

@@ -72,12 +72,12 @@ static float mystrtof(const char* str, const char** endptr)
 	// fix part
 	while (isdigit(*p)) { val = val*10 + (*p++ - '0'); }
 	// decimal part
-	if (*p == '.' | *p == ',') {
+	if ((*p == '.') || (*p == ',')) {
 		p++;
 		// decimal part
 		int virgule = 10; 
 		while (isdigit(*p)) { 
-			val = val + double((*p++ - '0'))/virgule; 
+			val = val + float(*p++ - '0')/virgule; 
 			virgule *= 10; 
 		}
 	}

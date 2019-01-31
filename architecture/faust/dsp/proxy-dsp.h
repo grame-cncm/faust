@@ -46,7 +46,7 @@ class proxy_dsp : public dsp {
         
     public:
     
-        proxy_dsp(const string& json)
+        proxy_dsp(const std::string& json)
         {
             fDecoder = new JSONUIDecoder(json);
             fSamplingFreq = -1;
@@ -72,13 +72,13 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingFreq)
+        virtual void init(int samplingRate)
         {
-            instanceInit(samplingFreq);
+            instanceInit(samplingRate);
         }
-        virtual void instanceInit(int samplingFreq)
+        virtual void instanceInit(int samplingRate)
         {
-            instanceConstants(samplingFreq);
+            instanceConstants(samplingRate);
             instanceResetUserInterface();
             instanceClear();
         }

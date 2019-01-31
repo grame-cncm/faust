@@ -1,0 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// SCANNER = passing smoothly between 'n' input to 1 output. ///////////////////////////////////////
+
+// Version for a maximum of 4 inputs :
+scanner4(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)
+    with {
+        coef = 3.14159 * ((nb-1)*0.5);
+        soustraction = select2( position>0, 0, (position/(nb-1)) );
+    };
+
+// Version for more than 4 inputs.
+scanner(nb, position) = _ <: (_ , scan) : compare
+    with {
+        coef = 3.14159 * ((nb-1)*0.5);
+        soustraction = select2( position>0, 0, (position/(nb-1)) );
+
+        minimum = ((1/(nb-1))*(position-1)); //
+        maximum = ((1/(nb-1))*(position+1)); //
+        compare(in, sig) = select2(in>minimum, 0, sig) : select2(in<maximum, 0, _);
+
+        scan = _ : (-(_,soustraction) : *(_,coef) : cos);// : max(0)
+    };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Wavetable generator, for waveshapping or wavetable synthesis ////////////////////////////////////
+
+WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0))-2) -1.;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// RS latch (Reset-Set) ////////////////////////////////////////////////////////////////////////////
+
+RSLatch(S, R) = latch(S,R)
+    with {
+        trig = _<:_,mem: >;
+        latch(S,R) = _~(ba.if(S>0.5,1,_) : ba.if(R>0.5, 0, _));
+    };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Count until a number, then wait until Reset to re-start /////////////////////////////////////////
+
+counterUpReset(nb, in, reset) = (in:trig), reset : (routage : memo2,_)~_
+    with {
+        trig = _<:_,mem: >;
+        memo2(a, b)	= (ba.if(b>0.5, 0, _))~(+(a));
+        compare(value) = ba.if(value>nb, 1, 0); // :trig;
+        routage(d,e,f) = e, (f, compare(d) : RSLatch : +(f) <: _,_);
+    };

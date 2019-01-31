@@ -5,19 +5,20 @@
 system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
- FAUST ?= ../../build/bin/faust.exe
+ FAUST ?= faust.exe
 else
- FAUST ?= ../../build/bin/faust
+ FAUST ?= faust
 endif
 MAKE     ?= make
-LIBDIR   ?= ../../build/lib
-FAUSTINC ?= ../../architecture
+LIBDIR   ?= $(shell faust -libdir)
+FAUSTINC ?= $(shell faust -includedir)
+OSCLIB   ?= ../../architecture/osclib
 version  := $(shell cat osc-version.txt)
 size 	 ?= float
 
 dspfiles  = $(shell find dsp -name "*.dsp")
 outfiles  = $(dspfiles:dsp/%.dsp=$(version)/$(size)/%.ir.txt) $(dspfiles:dsp/%.dsp=$(version)/$(size)/%.ir.dyn.txt) 
-OPTIONS  := -I$(FAUSTINC) -I$(FAUSTINC)/osclib/oscpack  -I$(FAUSTINC)/osclib/faust
+OPTIONS  := -I$(FAUSTINC) -I$(OSCLIB)/oscpack 
 
 
 #########################################################################

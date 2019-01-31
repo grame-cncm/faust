@@ -19,7 +19,6 @@
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-CXX=g++
 CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
@@ -69,7 +68,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+		$CXX $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

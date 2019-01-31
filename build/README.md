@@ -20,7 +20,7 @@ If you're familiar with cmake, you can directly use cmake commands otherwise, a 
 
 ## Using the Makefile
 The Makefile includes 2 kind of targets, addressing the 2 phases of the compilation (see above):
-- 1) targets to configure the project: these targets are named `configxxx` and add components to the project (e.g. `make configstatic` adds the libfaust static library to the project)
+- 1) targets to configure the project: these targets are named `configxxx` and add components to the project (e.g. `make configstatic` adds the libfaust static library to the project). This scheme is now obsolete but maintained for compatibility. See the _"Customizing the project targets"_ section for more details.
 - 2) targets to compile
 
 By default, you can simply type `make` in the `build` folder to compile the **Faust** compiler and the **OSC and HTTP** libraries.
@@ -29,8 +29,12 @@ On output, you'll find applications in the `build/bin` folder and libraries in t
 Type `make help` for details on targets and options.
 
 ## Customizing the embedded backends
-The folder `backends` contains a set of files describing the Faust backends to be embedded into  each possible output (compiler, static library, dynamic library). By default, the project makes use of `backends.cmake`.
+The `backends` folder contains a set of files describing the Faust backends to be embedded into  each possible output (compiler, static library, dynamic library). By default, the project makes use of `backends.cmake`.
 You can freely customize this file to your needs or create a new one. A `BACKENDS` option is provided by the Makefile to use any file (note it always look for the backends files into the backends folder). At cmake level, use of the `-C backend_file.cmake` will populate the cmake cache with the correponding settings.
+
+## Customizing the project targets
+The `targets` folder contains a set of files describing the targets to be embedded into your ptoject. By default, the project includes the faust, osc and http targets, corresponding to the faust compiler, the osc and the httpd static libraries.
+You can freely customize this file to your needs or create a new one. A `TARGETS` option is provided by the Makefile to use any file (note it always look for the targets files into the targets folder). At cmake level, use of the `-C targets_file.cmake` will populate the cmake cache with the correponding settings.
 
 
 ## Advanced settings with cmake
@@ -47,13 +51,8 @@ You can have a look at the `Makefile` for examples of cmake invocations and at t
 
 ## Compiling on Windows
 #### Using MSYS2
-Use of the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
+Use of the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed with development tools. Read the MSYS2 [specific note](README-MSYS2.md).
 
-Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
-> pacman -S mingw-w64-x86_64-gcc
-
-In this case, make sure to uninstall the previous gcc version first:
-> pacman -R gcc
 
 #### Using MSVC
 To compile using Visual Studio, you can configure manually your project using a commands prompt (e.g. Windows PowerShell):
@@ -70,6 +69,7 @@ If `make` is available from your commands prompt, you can get similar results wi
 
 `> make  GENERATOR="Visual Studio 14 2015 Win64"`
 
+Read the MSVC [specific note](README-MSVC.md) for more details.
 
 ## Notes regarding the backends compilation
 
@@ -81,13 +81,16 @@ If `make` is available from your commands prompt, you can get similar results wi
 
 
 #### LLVM on windows:
+##### Using MSYS2:
+
 Install the following msys2 packages using pacman if you compile using MSYS2 environment:
 - pacman -S mingw-w64-x86_64-llvm
 
-Compiling using Visual Studio and LLVM 5.0.0 may lead to a link error:
+##### Using Visual Studio:
+Pre-built binaries of LLVM for Windows provided on [llvm.org](http://releases.llvm.org/download.html) generally don't include the necessary for development (in particular llvm-config).You'll have to compile LLVM from source code and to build your own package.
 
+Doing so with LLVM 5.0.0 may lead to a link error:
 `Error	LNK1181	cannot open input file 'LTO-NOTFOUND.obj'`
-
 This is due to an incorrect `llvm-config` output. Open the solution and edit the project properties and remove the faulty input LTO-NOTFOUND entry from the `Linker->Input` section.
 
 #### LLVM on GNU/Linux:

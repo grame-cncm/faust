@@ -32,6 +32,17 @@ The various options of `faust2api` can be displayed at any point by running:
 
 `faust2api` is part of the [Faust distribution](https://github.com/grame-cncm/faust). To use it, Faust must be properly installed on your system (read the Faust README in the previous link to get more information on how to do that).
 
+
+Common options for all platforms:
+
+- `-opt native|generic`: to activate the best compilation options for the native or generic CPU.
+- `-nvoices <num>` : creates a polyphonic object with <num> voices.
+- `-effect <effect.dsp>`: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified).
+- `-effect auto`: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified).
+- `-nodoc` : prevents documentation from being generated.
+- `-nozip` : prevents generated files to be put in a zip file.
+
+
 ### Android Support
 
 To turn a Faust code into an Android API, just run the following command:
@@ -55,7 +66,6 @@ faust2api -ios yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add RtMidi support to the API.
-
 The `-osc` option can be used to add OSC support to the API.
 
 ### OSX CoreAudio Support
@@ -67,7 +77,6 @@ faust2api -coreaudio yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add RtMidi support to the API.
-
 The `-osc` option can be used to add OSC support to the API.
 
 ### ALSA Support
@@ -79,7 +88,6 @@ faust2api -alsa yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add RtMidi support to the API.
-
 The `-osc` option can be used to add OSC support to the API.
 
 ### JACK Support
@@ -91,7 +99,6 @@ faust2api -jack yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add JACK MIDI support to the API.
-
 The `-osc` option can be used to add OSC support to the API.
 
 ### PortAudio Support
@@ -103,7 +110,6 @@ faust2api -portaudio yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add RtMidi support to the API.
-
 The `-osc` option can be used to add OSC support to the API.
 
 ### RTAudio Support
@@ -115,7 +121,6 @@ faust2api -rtaudio yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add RtMidi support to the API.
-
 The `-osc` option can be used to add OSC support to the API.
 
 ### OpenFrameworks Support
@@ -135,7 +140,6 @@ faust2api -juce yourFaustCode.dsp
 ```
 
 The `-midi` option can be used to add JUCE MIDI support to the API.
-
 The `-osc` option can be used to add JUCE OSC support to the API.
 
 ### Customizing the API

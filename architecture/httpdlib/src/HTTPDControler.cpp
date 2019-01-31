@@ -142,7 +142,7 @@ template<> void HTTPDControler::addnode<double>(const char* type, const char* la
 {
 	fFactory->addnode(label, zone, min, max, fInit);
 	fJson->addnode<double>(type, label, min, max, fCurrentMeta);
-	fHtml->addnode(type, label, min, max);
+	fHtml->addnode(type, label, float(min), float(max));
 	fCurrentMeta.clear();
 }
 
@@ -150,7 +150,7 @@ template<> void HTTPDControler::addnode<double>(const char* type, const char* la
 {
 	fFactory->addnode(label, zone, init, min, max, fInit);
 	fJson->addnode<double>(type, label, init, min, max, step, fCurrentMeta);
-	fHtml->addnode(type, label, init, min, max, step);
+	fHtml->addnode(type, label, float(init), float(min), float(max), float(step));
 	fCurrentMeta.clear();
 }
 template<> void HTTPDControler::addnode<double>(const char* type, const char* label, double* zone)

@@ -69,13 +69,15 @@ cd dsp			# the dsp files location
 
 ###############################################################
 # functions
+###############################################################
+
 function check {
 	TOOL=$1
 	shift
 	OPTIONS=$*
 	echo ---- check using $TOOL ----
     for f in *.dsp; do
-		DSP=$(basename $f .dsp)
+        DSP=$(basename $f .dsp)
         $TOOL $OPTIONS  $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../$REF/$DSP.ir && echo "OK $f with $OPTIONS" || echo "ERROR $f with $OPTIONS"
     done
@@ -87,17 +89,18 @@ function check_with_node {
 	OPTIONS=$*
 	echo ---- check using $TOOL ----
     for f in *.dsp; do
-		DSP=$(basename $f .dsp)
+        DSP=$(basename $f .dsp)
         $TOOL $OPTIONS  $f > $D/$f.scal.ir || (echo "ERROR $f with $OPTIONS"; exit)
         cp $D/$f.scal.ir $f.scal.ir
-	    filesCompare $D/$f.scal.ir ../$REF/$DSP.ir && echo "OK $f with $OPTIONS" || echo "ERROR $f with $OPTIONS"
+        # compare the beginning of the file
+        filesCompare $D/$f.scal.ir ../$REF/$DSP.ir -1 -part && echo "OK $f with $OPTIONS" || echo "ERROR $f with $OPTIONS"
    done
 }
-
 
 ###############################################################
 # processing starts here
 ###############################################################
+
 if [ $BACKEND = "valgrind" ]; then
     echo "==============================================================="
     echo "Valgrind test in scalar mode "
@@ -154,22 +157,22 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     echo "============================================================================="
     echo "Impulse response tests in various compilation modes and double : C++ backend "
     echo "============================================================================="
-	check faust2impulse -double  $f > $D/$f.scal.ir
-	check faust2impulse -double -fm def $f > $D/$f.scal.ir
-	check faust2impulse1 -double $f > $D/$f.scal.ir
-	check faust2impulseter -inpl -double $f > $D/$f.scal.ir
-	check faust2impulseter -ftz 1 -double $f > $D/$f.scal.ir
-	check faust2impulseter -ftz 2 -double $f > $D/$f.scal.ir
+	check faust2impulse -double
+	check faust2impulse -double -fm def
+	check faust2impulse1 -double
+	check faust2impulseter -inpl -double
+	check faust2impulseter -ftz 1 -double
+	check faust2impulseter -ftz 2 -double
     #   faust2impulsebis -double $f > $D/$f.scal.ir
-	check faust2impulse -double -vec -lv 0 $f > $D/$f.vec.ir
+	check faust2impulse -double -vec -lv 0
     #   faust2impulsebis -double -vec -lv 0 $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 -vs 200 $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 -g $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 -g -fun $f > $D/$f.vec.ir
-	check faust2impulse -double -sch $f > $D/$f.sch.ir
-	check faust2impulse -double -sch -vs 100 $f > $D/$f.sch.ir
-	check faust2impulse -double -sch -vs 100 -fun $f > $D/$f.sch.ir
+	check faust2impulse -double -vec -lv 1
+	check faust2impulse -double -vec -lv 1 -vs 200
+	check faust2impulse -double -vec -lv 1 -g
+	check faust2impulse -double -vec -lv 1 -g -fun
+	check faust2impulse -double -sch
+	check faust2impulse -double -sch -vs 100
+	check faust2impulse -double -sch -vs 100 -fun 
 
 fi
 
@@ -208,16 +211,16 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     echo "=============================================================================="
     echo "Impulse response tests in various compilation modes and double : LLVM backend "
     echo "=============================================================================="
-	check faust2impulse4 -double 
-	check faust2impulse4 -double -fm def -L fastmath.bc 
-	check faust2impulse4bis -inpl -double
-	check faust2impulse4 -double -ftz 1 
-	check faust2impulse4 -double -ftz 2
-	check faust2impulse4 -double -vec -lv 0
-	check faust2impulse4 -double -vec -lv 1
-	check faust2impulse4 -double -vec -lv 1 -vs 200
-	check faust2impulse4 -double -vec -lv 1 -g 
-	check faust2impulse4 -double -vec -lv 1 -g -fun 
+    check faust2impulse4 -double
+    check faust2impulse4 -double -fm def -L fastmath.bc
+    check faust2impulse4bis -inpl -double
+    check faust2impulse4 -double -ftz 1
+    check faust2impulse4 -double -ftz 2
+    check faust2impulse4 -double -vec -lv 0
+    check faust2impulse4 -double -vec -lv 1
+    check faust2impulse4 -double -vec -lv 1 -vs 200
+    check faust2impulse4 -double -vec -lv 1 -g 
+    check faust2impulse4 -double -vec -lv 1 -g -fun 
 fi
 
 if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then

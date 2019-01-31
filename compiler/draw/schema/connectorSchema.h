@@ -22,43 +22,37 @@
 #ifndef __connectorSchema__
 #define __connectorSchema__
 
-
-#include "schema.h"
-#include <vector>
 #include <string>
+#include <vector>
+#include "schema.h"
 
 /**
  * A simple rectangular box with a text and inputs and outputs.
  * The constructor is private in order to make sure
  * makeconnectorSchema is used instead
  */
-class connectorSchema : public schema
-{
-  protected:
+class connectorSchema : public schema {
+   protected:
     // fields only defined after place() is called
-    vector<point>	fInputPoint;	///< input connection points
-    vector<point>	fOutputPoint;	///< output connection points
+    vector<point> fInputPoint;   ///< input connection points
+    vector<point> fOutputPoint;  ///< output connection points
 
+   public:
+    friend schema* makeConnectorSchema();
 
-  public:
-    friend schema*  makeConnectorSchema ();
+    virtual void  place(double x, double y, int orientation);
+    virtual void  draw(device& dev);
+    virtual point inputPoint(unsigned int i) const;
+    virtual point outputPoint(unsigned int i) const;
+    virtual void  collectTraits(collector& c);
 
-    virtual void 	place(double x, double y, int orientation);
-    virtual void 	draw(device& dev);
-    virtual point	inputPoint(unsigned int i) const;
-    virtual point 	outputPoint(unsigned int i) const;
-    virtual void    collectTraits(collector& c);
-
-  protected:
-    connectorSchema ();
+   protected:
+    connectorSchema();
 
     void placeInputPoints();
     void placeOutputPoints();
     void collectInputWires(collector& c);
     void collectOutputWires(collector& c);
-
 };
 
 #endif
-
-

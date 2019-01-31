@@ -24,20 +24,8 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
 
 #PHASE 2 : dispatch command arguments
 
@@ -47,7 +35,7 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2raqt [-osc] [-httpd] [-poly] [-midi] <file.dsp>"
+        echo "faust2raqt [-osc] [-httpd] [-poly] [-midi] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
@@ -56,17 +44,7 @@ for p in $@; do
         exit
     fi
     
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-poly" ]; then
+    if [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
@@ -133,7 +111,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit

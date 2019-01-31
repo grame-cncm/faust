@@ -38,6 +38,7 @@
 
 #ifdef WIN32
 # include "winsock2.h"
+# pragma warning (disable: 4800)
 #else
 # include "ip/NetworkingUtils.h"
 #endif
@@ -51,6 +52,7 @@ static const char* kHelloMsg		= "hello";
 static const char* kDestMsg         = "desthost";
 static const char* kUdpOutPortMsg	= "outport";
 static const char* kUdpErrPortMsg	= "errport";
+static const char* kBundleMsg       = "bundle";
 static const char* kXmitMsg         = "xmit";
 static const char* kXmitFilter      = "xmitfilter";
 
@@ -103,6 +105,8 @@ void RootNode::get(unsigned long ipdest, const std::string& what) const		///< ha
 
 	if (what == kXmitMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
+	if (what == kBundleMsg)
+		oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	else if (what == kDestMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
 	else if (what == kUdpOutPortMsg)
@@ -123,6 +127,7 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 	oscout.setAddress(ipdest);						// sets the osc stream dest IP to the request src IP
 
 	oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
@@ -133,7 +138,8 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 		for (size_t n = 0; n < targets.size(); n++) {
 			// send a alias message for each target
 			const aliastarget& t = targets[n];
-			oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
+//			oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
+			oscout << OSCStart(targets[n].fTarget.c_str()) << "alias" << i->first.c_str() << t.fMinIn << t.fMaxIn << OSCEnd();
 		}
 		i++;
 	}
@@ -163,7 +169,7 @@ std::vector<std::pair<std::string, double> > RootNode::getAliases(const std::str
         vector<aliastarget> targets = (*it).second;
         for (size_t i = 0; i < targets.size(); i++) {
             if (targets[i].fTarget == address) {
-                res.push_back(std::make_pair((*it).first, targets[i].invscale(value)));
+                res.push_back(std::make_pair((*it).first, targets[i].invscale( float(value) )));
             }
         }
     }
@@ -221,6 +227,75 @@ bool RootNode::acceptSignal(const Message* msg)
 }
 
 //--------------------------------------------------------------------------
+void RootNode::eraseAliases (const string& target)
+{
+	for (TAliasMap::iterator i = fAliases.begin(); i != fAliases.end(); ) {
+		vector<aliastarget>::iterator j = i->second.begin();
+		while (j != i->second.end()) {
+			if (j->fTarget == target) j = i->second.erase(j);
+			else j++;
+		}
+		if (i->second.empty()) i = fAliases.erase(i);
+		else i++;
+	}
+}
+
+//--------------------------------------------------------------------------
+void RootNode::eraseAlias (const string& target, const string& alias)
+{
+	TAliasMap::iterator i = fAliases.find(alias);
+	if (i != fAliases.end()) {
+		vector<aliastarget>::iterator j = i->second.begin();
+		while (j != i->second.end()) {
+			if (j->fTarget == target) j = i->second.erase(j);
+			else j++;
+		}
+		if (i->second.empty()) fAliases.erase(i);
+	}
+}
+
+//--------------------------------------------------------------------------
+bool RootNode::aliasError(const Message* msg)
+{
+	oscerr << msg->address().c_str() << ": incorrect alias message received" << OSCEnd();
+	cerr << msg->address().c_str() << ": incorrect alias message received" << endl;
+	return false;
+}
+
+//--------------------------------------------------------------------------
+bool RootNode::aliasMsg(const Message* msg, float omin, float omax)
+{
+	string addr = msg->address();
+	switch (msg->size()) {
+		case 1:			// remove all aliases for dest address
+			eraseAliases (addr);
+			break;
+		case 2:			// remove one alias for dest address
+			{
+				string alias;
+				if (msg->param(1, alias)) eraseAlias (addr, alias);
+				else return aliasError (msg);
+			}
+			break;
+		case 4:			// create an alias for dest address
+			{
+				string alias; float min, max; int imin, imax;
+				if (msg->param(1, alias)) {
+					if (msg->param(2, imin)) min = float(imin);
+					else if (!msg->param(2, min)) return aliasError (msg);
+					if (msg->param(3, imax)) max = float(imax);
+					else if (!msg->param(3, max)) return aliasError (msg);
+					addAlias (alias.c_str(), addr.c_str(), min, max, omin,omax);
+				}
+			}
+			break;
+		default:
+			return aliasError (msg);
+	}
+	return true;
+}
+
+//--------------------------------------------------------------------------
 bool RootNode::accept(const Message* msg)
 {
  	string val;
@@ -242,6 +317,10 @@ bool RootNode::accept(const Message* msg)
 		} else if ((val == kUdpErrPortMsg) && (msg->param(1, num))) {
 			*fUDPErr = num;
 			oscerr.setPort(num);
+		} else if ((val == kBundleMsg) && (msg->param(1, num))) {
+			OSCControler::gBundle = num;
+			oscout.setBundle(num);
+			
 		} else if ((val == kXmitMsg) && (msg->param(1, num))) {
 			OSCControler::gXmit = num;
         } else if (val == kXmitFilter) {
@@ -250,10 +329,13 @@ bool RootNode::accept(const Message* msg)
                 OSCControler::addFilteredPath(str);
             }
         }
-    } else if ((msg->size() == 1) && (msg->param(0, val))) { 
+    } else if ((msg->size() == 1) && (msg->param(0, val))) {
         if (val == kXmitFilter) {
             OSCControler::resetFilteredPaths();
         }
+        if (val == kBundleMsg) {
+            oscout.endBundle();
+		}
     } else if (fIO) {						// when still not handled and if a IO controler is set
 		return acceptSignal(msg);			// try to read signal data
     }

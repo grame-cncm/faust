@@ -3,9 +3,9 @@
 #####################################################################
 #                                                                   #
 #               Cross-compiles Faust programs to Max/MSP            #
-#			from 	: Linux or OSX			    #
-#			to	: Windows 32			    #
-#               (c) Grame, 2011                                     #
+#                      from : Linux or OSX                          #
+#                        to : Windows 32                            #
+#                       (c) Grame, 2011                             #
 #                                                                   #
 #####################################################################
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # id2dsp.py
 # Copyright Pierre-Amaury Grumiaux, Pierre Jouvelot, Emilio Jesus Gallego Arias,
-# and Romain Michon
+# Romain Michon and Jakob Dübel
 
 from __future__ import division
 import math
@@ -26,13 +27,17 @@ ars = parser.parse_args ()
 script, soundFile, modelName, peakThreshold, peakDistance = argv
 
 # Reading file
+print("Reading wav file...")
 (fs, x) = read(soundFile)
+if x.shape[1] == 2:
+    x = x[:, 0]
 # Normalizing sound
-x = x/max(x)
+x = x/np.max(x)
 
 # FFT
+print("Computing FFT...")
 X = np.abs(np.fft.fft(x))
-X = X/(max(X))
+X = X/(np.max(X))
 # computing corresponding frequencies
 time_step = 1/fs
 freqs = np.fft.fftfreq(x.size, time_step)
@@ -43,6 +48,7 @@ idx = np.argsort(freqs)
 # plt.show()
 
 # detecting peaks
+print("Detecting FFT peaks...")
 threshold = math.pow(10, float(peakThreshold)/20) # from dB to X unit
 distance = int(peakDistance)/(fs/x.size)
 indexes = peakutils.indexes(X[idx], thres = threshold, min_dist = distance)
@@ -56,9 +62,10 @@ for i in indexes :
 		peaksFreq.append(freqs[idx][i])
 		peaksGains.append(X[idx][i])
 		nbOfPeaks += 1
-peaksGains = peaksGains/(max(peaksGains))
+peaksGains = peaksGains/(np.max(peaksGains))
 
 #Computing t60 values
+print("Calculating T60 values...")
 peakst60 = []
 for i in range(0, nbOfPeaks) :
 	offset = pow(10, -3/20) # conversion of -3 dB in X unit
@@ -75,26 +82,22 @@ for i in range(0, nbOfPeaks) :
 	b = n
 
 	bandwidth = (b-a)/(fs/x.size) # bandwidth in Hz
-	print(bandwidth)
 	peakst60.append(6.91/fs/(1-math.exp(-math.pi*bandwidth/fs)))
 
-print(" peaks frequencies : ")
-print(peaksFreq)
-print(" corresponding gains : ")
-print(peaksGains)
-print(" corresponding t60 : ")
-print(peakst60)
+print("Frequency peaks and corresponding gains and T60 has been successfully calculated.")
 
 # Writing the dsp file #
 # #######################
+print("Writing the dsp file...")
 file = open(modelName + ".dsp", "w")
-file.write("import(\"pm.lib\");\n")
-file.write("import(\"libraries/old/music.lib\");\n\n")
-file.write("pi = 4*atan(1.0);\n")
+file.write("// -*-Faust-*-\n")
+file.write("// generated with ir2dsp.py {0} {1} {2}\n".format(modelName, peakThreshold, peakDistance))
+file.write("declare name \"{0}\";\n".format(modelName))
+file.write("import(\"stdfaust.lib\");\n\n")
 file.write("nModes = ")
 file.write(str(len(peaksGains)))
 file.write(";\n")
-file.write("modeFrequencies=("); # writing the frequencies list
+file.write("modeFrequencies = ("); # writing the frequencies list
 k = 0
 for i in peaksFreq:
 	file.write(str(i))
@@ -102,7 +105,7 @@ for i in peaksFreq:
 		file.write(",")
 	k += 1
 file.write(");\n");
-file.write("massEigenValues=("); # writing the masses list
+file.write("massEigenValues = ("); # writing the masses list
 k = 0
 for i in peaksGains:
 	file.write(str(i))
@@ -110,7 +113,7 @@ for i in peaksGains:
 		file.write(",")
 	k += 1
 file.write(");\n");
-file.write("t60=("); # writing the t60 list
+file.write("t60 = ("); # writing the t60 list
 k = 0
 for i in peakst60:
 	file.write(str(i))
@@ -118,11 +121,26 @@ for i in peakst60:
 		file.write(",")
 	k += 1
 file.write(");\n");
-file.write("modeFreqs=par(i,nModes,take(i+1, modeFrequencies));\n")
-file.write("modeGains=par(i,nModes,take(i+1, massEigenValues));\n")
-file.write("modeT60 = par(i,nModes,take(i+1,t60));\n")
+# file.write("modeFreqs=par(i,nModes,ba.take(i+1, modeFrequencies));\n")
+# file.write("modeGains=par(i,nModes,ba.take(i+1, massEigenValues));\n")
+# file.write("modeT60 = par(i,nModes,ba.take(i+1,t60));\n")
+# file.write(modelName)
+# file.write("=pm.modalModel(nModes,modeFreqs,modeT60,modeGains);");
+# file.write('\ngate = button("gate");')
+# file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
+
+file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,gain(i)*pm.modeFilter(freqs(i),res(i))) :> _\n")
+file.write("with{\n")
+file.write("freqs(i) = ba.take(i+1,modeFreqs);\n")
+file.write("res(i) = ba.take(i+1,modeRes);\n")
+file.write("gain(i) = ba.take(i+1,modeGains);\n")
+file.write("};\n\n")
+
 file.write(modelName)
-file.write("=modalModel(nModes,modeFrequencies,modeGains,modeT60);");
+file.write(" = modalModel(nModes,modeFrequencies,t60,massEigenValues);");
 file.write('\ngate = button("gate");')
-file.write("\nprocess = impulseExcitation(gate) : " + modelName + " <: _,_; ")
+file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
+
 file.close();
+
+print(modelName + ".dsp has been successfully created!")

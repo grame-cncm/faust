@@ -34,7 +34,7 @@ for f in $FILES; do
 
 
 	# run the resulting binary to generate the impulse response
-	./"${f%.dsp}" -n 60000
+	./"${f%.dsp}" -n 30000
 
 	# cleanup
     rm "${f%.dsp}" "$f.cpp"

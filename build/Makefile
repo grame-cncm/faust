@@ -11,21 +11,33 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
+VERSION := 2.14.4
 
 #===============================================================
 # current generator and backends
 CACHE  = $(FAUSTDIR)/CMakeCache.txt
 BCACHE = $(FAUSTDIR)/backends.txt
+TCACHE = $(FAUSTDIR)/targets.txt
 ifeq ($(system),  MINGW)
 	GENERATOR ?= $(shell [ -f $(CACHE) ] && (grep CMAKE_GENERATOR:INTERNAL $(CACHE) | cut -d= -f2) || echo MSYS Makefiles)
+	NATIVEPACK = winpack
 else
 	PREFIX ?= /usr/local
 	GENERATOR ?= $(shell [ -f $(CACHE) ] && (grep CMAKE_GENERATOR:INTERNAL $(CACHE) | cut -d= -f2) || echo Unix Makefiles)
 endif
 DESTDIR ?=
 
+ifeq ($(system),  MINGW)
+	NATIVEPACK = winpack
+else ifeq ($(system),  Darwin)
+	NATIVEPACK = macpack
+else
+	NATIVEPACK = linuxpack
+endif
+DESTDIR ?=
 
-.PHONY: faust install uninstall osc http
+
+.PHONY: faust install uninstall osc http package
 
 MAKE ?= make
 
@@ -38,51 +50,59 @@ BUILDOPT ?= --config Release
 #===============================================================
 # options
 JOBS	 ?= -j 4
-BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo backends.cmake)
+BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo regular.cmake)
+TARGETS  ?= $(shell [ -f $(TCACHE) ] && (grep TARGETS $(TCACHE) | cut -d= -f2) || echo regular.cmake)
 EMCC 	 ?= emcc
 
 #===============================================================
 ifeq ($(GENERATOR), Xcode)
 	PROJ = $(FAUSTDIR)/faust.xcodeproj
-	JOBS = -jobs 4
+	JOBS ?= -jobs 4
 endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
 ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
-	JOBS = /maxcpucount:4
+	JOBS ?= /maxcpucount:4
 endif
 
-
 #===============================================================
-# main target
+# main targets
 all: $(PROJ)
 	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
-clean: $(FAUSTDIR)
+clean:
 	cmake --build $(FAUSTDIR) --target clean
+
+distclean:
+	rm -rf $(FAUSTDIR)
+
 
 #===============================================================
 help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
-	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust, osc and http)."
+	@echo " 'all' (default) : builds the current targets (as defined by your targets setup)."
+	@echo
+	@echo "Targets that require specific setup (see TARGETS option):"
 	@echo " 'faust' 	 : builds the Faust compiler."
-	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'osc'        : builds the static Faust OSC libraries"
 	@echo " 'http'       : builds the static Faust HTTPD libraries"
+	@echo " 'staticlib'  : builds the libfaust library in static mode."
+	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode."
+	@echo " 'oscdynamic' : builds the OSC library in dynamic mode."
+	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode."
+	@echo
+	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
+	@echo
+	@echo "Cleaning:"
 	@echo " 'clean'      : removes the output of the 'all' targets"
+	@echo " 'distclean'  : removes the 'FAUSTDIR' folder ($(FAUSTDIR)) but preserves the bin and lib folders"
 	@echo
 	@echo "Targets excluded from all:"
 	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
 	@echo " 'asmjslib'   : builds the libfaust as an ASMJS library"
-	@echo
-	@echo "Targets that require specific configs:"
-	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
-	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
-	@echo " 'oscdynamic' : builds the OSC library in dynamic mode (requires configoscdynamic)."
-	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode (requires confighttpdynamic)."
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
@@ -90,23 +110,19 @@ help:
 	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake for project generation."
 	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
 	@echo "  BACKENDS=<backends file>    : see 'Backends' below"
+	@echo "  TARGETS=<targets file>      : see 'Targets' below"
 	@echo "  JOBS        : intended to set the number of tasks to run in parallel (default is $(JOBS))"
 	@echo
 	@echo "Backends:"
-	@echo "  the FAUST backends included by default are described in the '$(BACKENDS)' file"
+	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
 	@echo
-	@echo "Project configuration targets:"
-	@echo "the following targets do not recompile but change the cmake generated project."
-	@echo " 'configstatic'  : includes the static library in the project."
-	@echo " 'configdynamic' : includes the dynamic library in the project."
-	@echo " 'configall'     : includes all libraries in the project."
-	@echo " 'configoscdynamic'  : includes the dynamic OSC library in the project."
-	@echo " 'confighttpdynamic' : includes the dynamic HTTP library in the project."
-	@echo " 'reset'      : reset the project to the basic targets (faust, osc and http)."
-	@echo " 'cmake'      : regenerate the project using the current config"
+	@echo "Targets:"
+	@echo "  the targets currently included are described in the '$(TARGETS)' file"
+	@echo "  you can freely customize this file or use another file with the TARGETS option"
 	@echo
 	@echo "Utilities targets:"
+	@echo " 'cmake'      : regenerate the project using the current config"
 	@echo " 'universal'  : [MacOSX] set the universal binaries option ON."
 	@echo " 'native'     : [MacOSX] set the universal binaries option OFF."
 	@echo " 'verbose'    : turn the verbose makefile option ON."
@@ -121,6 +137,9 @@ help:
 	@echo " 'PREFIX'     : the destination prefix,"
 	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 	@echo "------ see also the README.md file ------"
+	@echo
+	@echo "Packaging targets:"
+	@echo " 'package'    : build a faust package for the current platform"
 
 	
 faust: $(PROJ) 
@@ -141,6 +160,37 @@ httpdynamic: $(PROJ)
 jsscripts: 
 	make -C ../architecture/httpdlib/src/hexa
 
+#===============================================================
+# packaging
+#===============================================================
+PACK := package/Faust-$(VERSION)
+package:
+	make $(NATIVEPACK)
+
+winpack:
+	cd $(FAUSTDIR) && cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
+	make
+	cd $(FAUSTDIR) && cpack -G NSIS64
+	mv  $(FAUSTDIR)/Faust-*.exe .
+
+macpack: package/README.html
+	-[ -d $(PACK) ] && rm -rf $(PACK)
+	make cmake BACKENDs=all.cmake TARGETS=all.cmake
+	make install PREFIX=../$(PACK)/Faust-$(VERSION)
+	cp package/INSTALL.html $(PACK)
+	cp package/README.html $(PACK)
+	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
+
+linuxpack:
+	@echo Linux packaging not implemented. 
+
+package/README.html: ../README.md
+	echo "<!DOCTYPE html><html><xmp>" > package/README.html
+	cat ../README.md >> package/README.html
+	echo "</xmp>" >> package/README.html
+	echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> package/README.html
+	echo "</html>" >> package/README.html
+	
 
 #===============================================================
 # building universal binaries on macos
@@ -165,10 +215,10 @@ dynamiclib: $(PROJ)
 #===============================================================
 # building libfaust.a for ios
 #===============================================================
-ioslib: JOBS = "-jobs 4"
+ioslib: JOBS ?= -jobs 4
 ioslib: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
 	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
-	cmake --build $(IOSDIR) --target OSCFaust $(BUILDOPT) --  $(JOBS)
+	cmake --build $(IOSDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
 
 $(IOSDIR)/faust.xcodeproj: CMakeLists.txt backends/ios.cmake
 	cd $(IOSDIR) && cmake -C ../backends/ios.cmake ..  -DINCLUDE_STATIC=on -DINCLUDE_HTTP=off -G Xcode
@@ -193,31 +243,9 @@ silent: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
 cmake: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -G '$(GENERATOR)' ..
+	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -G '$(GENERATOR)' ..
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
-
-configstatic: STATIC ?= on
-configstatic: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) ..
-
-configdynamic: DYNAMIC ?= on
-configdynamic: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=$(DYNAMIC) ..
-
-confighttp: HTTP ?= on
-confighttp: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=$(HTTP) ..
-
-configoscdynamic: OSCDYN ?= on
-configoscdynamic:
-	cd $(FAUSTDIR) && cmake -DOSCDYNAMIC=$(OSCDYN) ..
-
-confighttpdynamic: HTTPDYN ?= on
-confighttpdynamic:
-	cd $(FAUSTDIR) && cmake -DHTTPDYNAMIC=$(HTTPDYN) ..
-
-configall: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
+	@echo TARGETS=$(TARGETS) > $(TCACHE)
 
 reset: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=off -DINCLUDE_DYNAMIC=off -DINCLUDE_HTTP=on -DOSCDYNAMIC=off -DHTTPDYNAMIC=off ..

@@ -27,7 +27,8 @@
 #include <vector>
 #include <map>
 #include <utility>
-#include <assert.h>
+#include <cstdlib>
+#include <sstream>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
@@ -38,46 +39,54 @@
 #define snprintf _snprintf
 #endif
 
-inline FAUSTFLOAT STR2REAL(const std::string& s) { return (strtod(s.c_str(), NULL)); }
+static FAUSTFLOAT STR2REAL(const std::string& s) { return FAUSTFLOAT(std::strtod(s.c_str(), NULL)); }
 
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
 
-typedef std::map<std::string, pair <int, FAUSTFLOAT*> > controlMap;
+struct Soundfile;
+
+typedef std::map<std::string, std::pair <int, FAUSTFLOAT*> > controlMap;
 
 struct JSONUIDecoder {
 
     std::string fName;
     std::string fFileName;
     
-    std::map<std::string, std::string> fMetadatas; 
+    std::map<std::string, std::string> fMetadatas;
     std::vector<itemInfo*> fUiItems;     
     
     FAUSTFLOAT* fInControl;
     FAUSTFLOAT* fOutControl;
+    Soundfile** fSoundfiles;
     
     std::string fJSON;
     
     int fNumInputs, fNumOutputs; 
-    int fInputItems, fOutputItems;
+    int fInputItems, fOutputItems, fSoundfileItems;
     
     std::string fVersion;
-    std::string fOptions;
+    std::string fCompileOptions;
+    
+    std::vector<std::string> fLibraryList;
+    std::vector<std::string> fIncludePathnames;
     
     int fDSPSize;
     
     controlMap fPathInputTable;     // [path, <index, zone>]
     controlMap fPathOutputTable;    // [path, <index, zone>]
-    
-    bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
-    bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
+
+    bool isInput(const std::string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
+    bool isOutput(const std::string& type) { return (type == "hbargraph" || type == "vbargraph"); }
+    bool isSoundfile(const std::string& type) { return (type == "soundfile"); }
 
     JSONUIDecoder(const std::string& json) 
     {
         fJSON = json;
         const char* p = fJSON.c_str();
-        parseJson(p, fMetadatas, fUiItems);
+        std::map<std::string, std::vector<std::string> > meta_datas;
+        parseJson(p, fMetadatas, meta_datas, fUiItems);
         
         // fMetadatas will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
         if (fMetadatas.find("name") != fMetadatas.end()) {
@@ -101,29 +110,39 @@ struct JSONUIDecoder {
             fVersion = "";
         }
         
-        if (fMetadatas.find("options") != fMetadatas.end()) {
-            fOptions = fMetadatas["options"];
-            fMetadatas.erase("options");
+        if (fMetadatas.find("compile_options") != fMetadatas.end()) {
+            fCompileOptions = fMetadatas["compile_options"];
+            fMetadatas.erase("compile_options");
         } else {
-            fOptions = "";
+            fCompileOptions = "";
         }
         
+        if (meta_datas.find("library_list") != meta_datas.end()) {
+            fLibraryList = meta_datas["library_list"];
+            meta_datas.erase("library_list");
+        }
+        
+        if (meta_datas.find("include_pathnames") != meta_datas.end()) {
+            fIncludePathnames = meta_datas["include_pathnames"];
+            meta_datas.erase("include_pathnames");
+        }
+  
         if (fMetadatas.find("size") != fMetadatas.end()) {
-            fDSPSize = atoi(fMetadatas["size"].c_str());
+            fDSPSize = std::atoi(fMetadatas["size"].c_str());
             fMetadatas.erase("size");
         } else {
             fDSPSize = -1;
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
-            fNumInputs = atoi(fMetadatas["inputs"].c_str());
+            fNumInputs = std::atoi(fMetadatas["inputs"].c_str());
             fMetadatas.erase("inputs");
         } else {
             fNumInputs = -1;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
-            fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+            fNumOutputs = std::atoi(fMetadatas["outputs"].c_str());
             fMetadatas.erase("outputs");
         } else {
             fNumOutputs = -1;
@@ -131,30 +150,34 @@ struct JSONUIDecoder {
        
         fInputItems = 0;
         fOutputItems = 0;
+        fSoundfileItems = 0;
         
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            string type = (*it)->type;
+            std::string type = (*it)->type;
             if (isInput(type)) {
                 fInputItems++;
             } else if (isOutput(type)) {
                 fOutputItems++;          
+            } else if (isSoundfile(type)) {
+                fSoundfileItems++;
             }
         }
         
         fInControl = new FAUSTFLOAT[fInputItems];
         fOutControl = new FAUSTFLOAT[fOutputItems];
+        fSoundfiles = new Soundfile*[fSoundfileItems];
         
         int counterIn = 0;
         int counterOut = 0;
         
         // Prepare the fPathTable and init zone
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            string type = (*it)->type;
+            std::string type = (*it)->type;
             // Meta data declaration for input items
             if (isInput(type)) {
                 if ((*it)->address != "") {
-                    fPathInputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fInControl[counterIn]);
+                    fPathInputTable[(*it)->address] = std::make_pair(std::atoi((*it)->index.c_str()), &fInControl[counterIn]);
                 }
                 fInControl[counterIn] = STR2REAL((*it)->init);
                 counterIn++;
@@ -162,7 +185,7 @@ struct JSONUIDecoder {
             // Meta data declaration for output items
             else if (isOutput(type)) {
                 if ((*it)->address != "") {
-                    fPathOutputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fOutControl[counterOut]);
+                    fPathOutputTable[(*it)->address] = std::make_pair(std::atoi((*it)->index.c_str()), &fOutControl[counterOut]);
                 }
                 fOutControl[counterOut] = FAUSTFLOAT(0);
                 counterOut++;
@@ -172,12 +195,13 @@ struct JSONUIDecoder {
     
     virtual ~JSONUIDecoder() 
     {
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             delete(*it);
         }
         delete [] fInControl;
         delete [] fOutControl;
+        delete [] fSoundfiles;
     }
     
     void metadata(Meta* m)
@@ -190,7 +214,7 @@ struct JSONUIDecoder {
     
     void resetUserInterface()
     {
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         int item = 0;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             if (isInput((*it)->type)) {
@@ -207,24 +231,17 @@ struct JSONUIDecoder {
 
         int counterIn = 0;
         int counterOut = 0;
-        vector<itemInfo*>::iterator it;
+        int counterSound = 0;
+        std::vector<itemInfo*>::iterator it;
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             
-            bool isInItem = false;
-            bool isOutItem = false;
-            string type = (*it)->type;
+            std::string type = (*it)->type;
             
             FAUSTFLOAT init = STR2REAL((*it)->init);
             FAUSTFLOAT min = STR2REAL((*it)->min);
             FAUSTFLOAT max = STR2REAL((*it)->max);
             FAUSTFLOAT step = STR2REAL((*it)->step);
-            
-            if (isInput(type)) {
-                isInItem = true;
-            } else if (isOutput(type)) {
-                isOutItem = true;
-            }
             
             // Meta data declaration for input items
             if (isInput(type)) {
@@ -259,6 +276,8 @@ struct JSONUIDecoder {
                 ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
             } else if (type == "checkbox") {
                 ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
+            } else if (type == "soundfile") {
+                ui->addSoundfile((*it)->label.c_str(), (*it)->url.c_str(), &fSoundfiles[counterSound]);
             } else if (type == "hbargraph") {
                 ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
             } else if (type == "vbargraph") {
@@ -270,20 +289,29 @@ struct JSONUIDecoder {
             } else if (type == "close") {
                 ui->closeBox();
             }
-                
-            if (isInItem) {
+            
+            if (isInput(type)) {
                 counterIn++;
-            }
-                
-            if (isOutItem) {
+            } else if (isOutput(type)) {
                 counterOut++;
+            } else if (isSoundfile(type)) {
+                counterSound++;
             }
         }
         
         setlocale(LC_ALL, tmp_local);
     }
     
+    bool hasCompileOption(const std::string& option)
+    {
+        std::istringstream iss(fCompileOptions);
+        std::string token;
+        while (std::getline(iss, token, ' ')) {
+            if (token == option) return true;
+        }
+        return false;
+    }
+    
 };
-
 
 #endif

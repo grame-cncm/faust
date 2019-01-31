@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,27 +21,31 @@
 
 #include "errormsg.hh"
 #include "boxes.hh"
-#include "ppbox.hh"
-#include "global.hh"
 #include "exception.hh"
 #include "export.hh"
+#include "global.hh"
+#include "ppbox.hh"
 
 #include <iostream>
 using namespace std;
 
-const char* yyfilename  = "????";
+const char* yyfilename = "????";
 
-void faustassert(bool cond)
+void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {
-    #ifndef EMCC
-        stacktrace(20);
-    #endif
         std::stringstream str;
-        str << "ASSERT : please report the stack trace and the failing DSP file to Faust developers (";
-        str << "version: " << FAUSTVERSION << ", ";
-        str << "options: "; gGlobal->printCompilationOptions(str);
+        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
+        str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
+        str << "version: " << FAUSTVERSION;
+        if (gGlobal) {
+            str << ", options: ";
+            gGlobal->printCompilationOptions(str);
+        }
         str << ")\n";
+#ifndef EMCC
+        stacktrace(str, 20);
+#endif
         throw faustexception(str.str());
     }
 }
@@ -92,7 +96,7 @@ void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 
 void setDefProp(Tree sym, const char* filename, int lineno)
 {
-	setProperty(sym, gGlobal->DEFLINEPROP, cons(tree(filename), tree(lineno)));
+    setProperty(sym, gGlobal->DEFLINEPROP, cons(tree(filename), tree(lineno)));
 }
 
 bool hasDefProp(Tree sym)
