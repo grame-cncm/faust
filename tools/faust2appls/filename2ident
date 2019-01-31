@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Defines the best optimisation flags to use          #
+#				on the various platforms. This file is called		#
+#				by the faust2xxx scripts. It sets two variables		#
+#				$MYGCCFLAGS and $MYICCFLAGS							#
+#               (c) Grame, 2013                                		#
+#                                                                   #
+#####################################################################
+
+echo $1 | tr ' \-' '__'
+

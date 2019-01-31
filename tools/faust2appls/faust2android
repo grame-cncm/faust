@@ -80,6 +80,7 @@ fi
 
 APPNAME=$(basename "$FILE")
 APPNAME="${APPNAME%.dsp}"
+APPNAME=`filename2ident $APPNAME`
 BUILDDIR="faustandro.$APPNAME"
 APPFOLDER="$BUILDDIR/app/src/main"
 JNIFOLDER="$APPFOLDER/cpp"
@@ -152,7 +153,7 @@ faust $OPTIONS -i -json -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp"
 
 # Add soundfile support if needed
 if [ $SOUNDFILE -eq 1 ]; then
-	cat $APPNAME.dsp.json | awk '
+	cat $FILE.json | awk '
 									BEGIN { FS=":"; SOFI=0; }
 											/"soundfile"/ { SOFI=1; }
 											/"url"/ {
@@ -193,7 +194,7 @@ else
 	rm $BUILDDIR/app/CMakeLists_sndfile.txt 
 	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
 fi
-rm $APPNAME.dsp.json
+rm $FILE.json
 
 # Run Gradle
 cd $BUILDDIR
