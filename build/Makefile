@@ -174,11 +174,9 @@ winpack:
 	mv  $(FAUSTDIR)/Faust-*.exe .
 
 macpack: package/README.html
-	make -C package/Tools
 	-[ -d $(PACK) ] && rm -rf $(PACK)
 	make cmake BACKENDs=all.cmake TARGETS=all.cmake
 	make install PREFIX=../$(PACK)/Faust-$(VERSION)
-	cp package/install $(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
 	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
