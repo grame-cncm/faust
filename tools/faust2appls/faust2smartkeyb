@@ -127,6 +127,7 @@ fi
 
 APPNAME=$(basename "$FILE")
 APPNAME="${APPNAME%.dsp}"
+APPNAME=`filename2ident "$APPNAME"`
 BUILDDIR="faustsmartkeyb.$APPNAME"
 
 # making sure that platform is set and generate corresponding global vars
