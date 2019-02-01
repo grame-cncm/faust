@@ -33,7 +33,6 @@ all:
 	$(MAKE) cpp
 	$(MAKE) c
 	$(MAKE) mute
-#   $(MAKE) asmjs
 	$(MAKE) wasm
 	$(MAKE) wast
 	$(MAKE) llvm
@@ -47,7 +46,6 @@ help:
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'mute'   : check double output with mute"
-	@echo " 'asmjs'  : check double output with asmjs backend and various options"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
 	@echo " 'wast'   : check double output with wast backend and various options"
 	@echo " 'llvm'   : check double output with llvm backend and various options"
@@ -56,7 +54,7 @@ help:
 	@echo
 	@echo "Specific targets:"
 	@echo " 'travis'    : tests subset for travis"
-	@echo " 'web'       : call the asmjs and wast/wasm targets"
+	@echo " 'web'       : call the wast/wasm targets"
 	@echo " 'reference' : builds the reference files"
 	@echo " 'tools'     : builds binary tools used by the tests"
 	@echo
@@ -117,13 +115,8 @@ mute: ir/mute  $(mutefiles)
 #########################################################################
 # web backends
 web:
-	$(MAKE) asmjs
 	$(MAKE) wasm
 	$(MAKE) wast
-
-asmjs:
-	$(MAKE) -f Make.web asmjs
-	$(MAKE) -f Make.web asmjs outdir=asmjs/inpl FAUSTOPTIONS=-inpl
 
 wasm:
 	$(MAKE) -f Make.web wasm
