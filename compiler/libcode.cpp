@@ -179,8 +179,7 @@ static void callFun(compile_fun fun)
 #else
 static void callFun(compile_fun fun)
 {
-    if (gGlobal->gOutputLang == "ajs" || startWith(gGlobal->gOutputLang, "wast") ||
-        startWith(gGlobal->gOutputLang, "wasm")) {
+    if (startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm")) {
         // No thread support in asm.js and wast/wasm
         fun(NULL);
     } else {
@@ -755,7 +754,7 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, "
+         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
             "llvm, cllvm, fir, wast/wasm, interp."
          << endl;
     cout << tab

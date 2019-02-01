@@ -76,9 +76,9 @@ This will give you the version of the Faust compiler with a list of the
 available backends:
 
 ```
-FAUST : DSP to C, C++, Java, JavaScript, old C++, asm.js, WebAssembly 
-(wast/wasm) compiler, Version 2.11.1
-Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All 
+FAUST : DSP to C, C++, Java, old C++, WebAssembly 
+(wast/wasm) compiler, Version 2.15.0
+Copyright (C) 2002-2019, GRAME - Centre National de Creation Musicale. All 
 rights reserved. 
 ```
 
