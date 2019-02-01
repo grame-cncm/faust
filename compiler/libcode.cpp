@@ -89,10 +89,6 @@ static void enumBackends(ostream& out)
     out << dspto << "Java" << endl;
 #endif
 
-#ifdef JS_BUILD
-    out << dspto << "JavaScript" << endl;
-#endif
-
 #ifdef LLVM_BUILD
     out << dspto << "LLVM IR" << endl;
 #endif
@@ -129,10 +125,6 @@ static void enumBackends(ostream& out)
 
 #ifdef JAVA_BUILD
 #include "java_code_container.hh"
-#endif
-
-#ifdef JS_BUILD
-#include "js_code_container.hh"
 #endif
 
 #ifdef LLVM_BUILD
@@ -1381,14 +1373,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                                                            numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
-#endif
-
-        } else if (gGlobal->gOutputLang == "js") {
-#ifdef JS_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
-#else
-            throw faustexception("ERROR : -lang js not supported since JS backend is not built\n");
 #endif
 
         } else if (startWith(gGlobal->gOutputLang, "wast")) {

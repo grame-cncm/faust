@@ -2,9 +2,9 @@
 # values are among ON or OFF 
 # it includes MacOS Specific settings
 
-set ( INCLUDE_EXECUTABLE  ON  CACHE STRING  "Include faust compiler" FORCE )
-set ( INCLUDE_STATIC      OFF CACHE STRING  "Include static faust library" FORCE )
-set ( INCLUDE_DYNAMIC     OFF CACHE STRING  "Include dynamic faust library" FORCE )
+set ( INCLUDE_EXECUTABLE  ON  CACHE STRING  "Include Faust compiler" FORCE )
+set ( INCLUDE_STATIC      OFF CACHE STRING  "Include static Faust library" FORCE )
+set ( INCLUDE_DYNAMIC     OFF CACHE STRING  "Include dynamic Faust library" FORCE )
 
 set ( INCLUDE_OSC         ON  CACHE STRING  "Include Faust OSC static library" FORCE )
 set ( INCLUDE_HTTP        ON  CACHE STRING  "Include Faust HTTPD library" FORCE )
