@@ -21,8 +21,8 @@
  architecture section is not modified.
  ************************************************************************/
 
-#ifndef __faustqt__
-#define __faustqt__
+#ifndef __QTUI__
+#define __QTUI__
 
 #include <cassert>
 #include <cmath>

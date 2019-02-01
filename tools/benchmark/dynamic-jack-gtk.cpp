@@ -44,7 +44,7 @@
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
-#include "faust/gui/faustgtk.h"
+#include "faust/gui/GTKUI.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"

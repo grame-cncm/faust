@@ -28,7 +28,7 @@
 #include "faust/audio/coreaudio-dsp.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
-#include "faust/gui/faustgtk.h"
+#include "faust/gui/QTKUI.h"
 
 using namespace std;
 

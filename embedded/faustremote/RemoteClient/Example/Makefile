@@ -27,7 +27,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED
 CFLAGS        = -pipe -g -gdwarf-2 -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5 -Wall -W $(DEFINES)
-CXXFLAGS      = -pipe -Wno-unused-variable -g -g -gdwarf-2 -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5 -Wall -W $(DEFINES)
+CXXFLAGS      = -pipe -Wno-unused-variable -g -g -gdwarf-2 -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5 -std=c++11 -Wall -W $(DEFINES)
 INCPATH       = -I/usr/local/Qt4.8/mkspecs/macx-g++ -I. -I/Library/Frameworks/QtCore.framework/Versions/4/Headers -I/usr/include/QtCore -I/Library/Frameworks/QtGui.framework/Versions/4/Headers -I/usr/include/QtGui -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I/opt/local/include/faust
 LINK          = g++
 LFLAGS        = -headerpad_max_install_names -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5
@@ -38,7 +38,7 @@ LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` $(SUBLIBS) -F
 
 first: all
 
-OBJECTS = utilities.o main.o moc_faustqt.o 
+OBJECTS = utilities.o main.o moc_QTUI.o 
 
 TARGET = ./RemoteClient
 
@@ -56,8 +56,8 @@ FORCE:
 
 ####### Compile
 
-moc_faustqt.o: moc_faustqt.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_faustqt.o moc_faustqt.cpp
+moc_QTUI.o: moc_QTUI.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_QTUI.o moc_QTUI.cpp
 	
 utilities.o: ../../utilities.cpp ../../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../../utilities.cpp
@@ -65,7 +65,7 @@ utilities.o: ../../utilities.cpp ../../utilities.h
 main.o: main.cpp ../../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
-moc_faustqt.cpp: /usr/local/include/faust/gui/faustqt.h
-	/Developer/Tools/Qt/moc $(DEFINES) $(INCPATH) -D__APPLE__ -D__GNUC__ /usr/local/include/faust/gui/faustqt.h -o moc_faustqt.cpp
+moc_QTUI.cpp: /usr/local/include/faust/gui/QTUI.h
+	/Developer/Tools/Qt/moc $(DEFINES) $(INCPATH) -D__APPLE__ -D__GNUC__ /usr/local/include/faust/gui/QTUI.h -o moc_QTUI.cpp
 
 	

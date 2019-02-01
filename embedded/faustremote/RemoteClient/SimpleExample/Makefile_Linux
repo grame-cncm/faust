@@ -44,10 +44,10 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = main.cpp \
-		../../utilities.cpp moc_faustqt.cpp
+		../../utilities.cpp moc_QTUI.cpp
 OBJECTS       = main.o \
 		utilities.o \
-		moc_faustqt.o
+		moc_QTUI.o
 DIST          = /usr/share/qt4/mkspecs/common/unix.conf \
 		/usr/share/qt4/mkspecs/common/linux.conf \
 		/usr/share/qt4/mkspecs/common/gcc-base.conf \
@@ -162,7 +162,7 @@ qmake:  FORCE
 
 dist: 
 	@$(CHK_DIR_EXISTS) .tmp/SimpleExample1.0.0 || $(MKDIR) .tmp/SimpleExample1.0.0 
-	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/SimpleExample1.0.0/ && $(COPY_FILE) --parents ../../utilities.h /usr/local/include/faust/gui/faustqt.h .tmp/SimpleExample1.0.0/ && $(COPY_FILE) --parents main.cpp ../../utilities.cpp .tmp/SimpleExample1.0.0/ && (cd `dirname .tmp/SimpleExample1.0.0` && $(TAR) SimpleExample1.0.0.tar SimpleExample1.0.0 && $(COMPRESS) SimpleExample1.0.0.tar) && $(MOVE) `dirname .tmp/SimpleExample1.0.0`/SimpleExample1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/SimpleExample1.0.0
+	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/SimpleExample1.0.0/ && $(COPY_FILE) --parents ../../utilities.h /usr/local/include/faust/gui/QTUI.h .tmp/SimpleExample1.0.0/ && $(COPY_FILE) --parents main.cpp ../../utilities.cpp .tmp/SimpleExample1.0.0/ && (cd `dirname .tmp/SimpleExample1.0.0` && $(TAR) SimpleExample1.0.0.tar SimpleExample1.0.0 && $(COMPRESS) SimpleExample1.0.0.tar) && $(MOVE) `dirname .tmp/SimpleExample1.0.0`/SimpleExample1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/SimpleExample1.0.0
 
 
 clean:compiler_clean 
@@ -185,11 +185,11 @@ mocclean: compiler_moc_header_clean compiler_moc_source_clean
 
 mocables: compiler_moc_header_make_all compiler_moc_source_make_all
 
-compiler_moc_header_make_all: moc_faustqt.cpp
+compiler_moc_header_make_all: moc_QTUI.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_faustqt.cpp
-moc_faustqt.cpp: /usr/local/include/faust/gui/faustqt.h
-	/usr/bin/moc-qt4 $(DEFINES) $(INCPATH) /usr/local/include/faust/gui/faustqt.h -o moc_faustqt.cpp
+	-$(DEL_FILE) moc_QTUI.cpp
+moc_QTUI.cpp: /usr/local/include/faust/gui/QTUI.h
+	/usr/bin/moc-qt4 $(DEFINES) $(INCPATH) /usr/local/include/faust/gui/QTUI.h -o moc_QTUI.cpp
 
 compiler_rcc_make_all:
 compiler_rcc_clean:
@@ -216,8 +216,8 @@ main.o: main.cpp ../../utilities.h
 utilities.o: ../../utilities.cpp ../../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../../utilities.cpp
 
-moc_faustqt.o: moc_faustqt.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_faustqt.o moc_faustqt.cpp
+moc_QTUI.o: moc_QTUI.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_QTUI.o moc_QTUI.cpp
 
 ####### Install
 

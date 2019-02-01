@@ -43,7 +43,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/misc.h"
-#include "faust/gui/faustgtk.h"
+#include "faust/gui/GTKUI.h"
 #include "faust/audio/alsa-dsp.h"
 
 #ifdef OSCCTRL

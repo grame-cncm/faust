@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <aeffeditor.h>
-#include <faust/gui/faustqt.h>
+#include <faust/gui/QTUI.h>
 
 class VSTWrapper;
 #ifdef OSCCTRL

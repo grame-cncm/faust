@@ -39,7 +39,7 @@ LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs`  -L/usr/local
 
 first: all
 
-OBJECTS = utilities.o main.o moc_faustqt.o
+OBJECTS = utilities.o main.o moc_QTUI.o
 
 TARGET = ./RemoteClient
 
@@ -57,8 +57,8 @@ FORCE:
 
 ####### Compile
 
-moc_faustqt.o: moc_faustqt.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_faustqt.o moc_faustqt.cpp
+moc_QTUI.o: moc_QTUI.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_QTUI.o moc_QTUI.cpp
 	
 utilities.o: ../../utilities.cpp ../../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utilities.o ../../utilities.cpp
@@ -66,7 +66,7 @@ utilities.o: ../../utilities.cpp ../../utilities.h
 main.o: main.cpp ../../utilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
-moc_faustqt.cpp: /usr/local/include/faust/gui/faustqt.h
-	/Developer/Tools/Qt/moc $(DEFINES) $(INCPATH) -D__APPLE__ -D__GNUC__ /usr/local/include/faust/gui/faustqt.h -o moc_faustqt.cpp
+moc_QTUI.cpp: /usr/local/include/faust/gui/QTUI.h
+	/Developer/Tools/Qt/moc $(DEFINES) $(INCPATH) -D__APPLE__ -D__GNUC__ /usr/local/include/faust/gui/QTUI.h -o moc_QTUI.cpp
 
 	

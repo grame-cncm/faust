@@ -29,7 +29,7 @@
 #include "faust/dsp/dsp-bench.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/misc.h"
-#include "faust/gui/faustgtk.h"
+#include "faust/gui/QTKUI.h"
 
 using namespace std;
 

@@ -40,7 +40,7 @@ LIBS += -lrt
 LIBS += -ldaemon
 
 HEADERS += ../../utilities.h \
-			/usr/local/include/faust/gui/faustqt.h
+			/usr/local/include/faust/gui/QTUI.h
 
 SOURCES += main.cpp \
 			../../utilities.cpp
