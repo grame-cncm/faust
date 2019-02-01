@@ -29,7 +29,7 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
+.PHONY: all world benchmark httpd remote win32 ios ios-llvm wasm sound2faust
 
 # The main targets
 
@@ -109,9 +109,6 @@ plugin :
 ioslib :
 	$(MAKE) -C $(BUILDLOCATION) ioslib
 
-asmjs :
-	$(MAKE) -C $(BUILDLOCATION) asmjslib
-
 wasm :
 	$(MAKE) -C $(BUILDLOCATION) wasmlib
 
@@ -133,8 +130,7 @@ help :
 	@echo 
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
-	@echo " 'asmjs'         : builds the Faust asm-js library"
-	@echo " 'wasm'          : builds the Faust web assembly library"
+	@echo " 'wasm'          : builds the Faust WebAssembly library"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
 	@echo " 'remote'        : builds the libfaustremote.a library and the Faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
@@ -177,7 +173,6 @@ readme:
 # 	@echo "make or make all : compile the Faust compiler and osc support library"
 # 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
 # 	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
-# 	@echo "make asmjs : compile asmjs libfaust.js"
 # 	@echo "make wasm : compile wasm libfaust-wasm.js"
 # 	@echo "make universal : on OSX, compile 32/64bits version of compiler and libraries"
 # 	@echo "make light : only compile C/C++ backend (to avoid dependency with LLVM)"

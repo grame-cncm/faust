@@ -105,18 +105,10 @@ static void enumBackends(ostream& out)
     out << dspto << "Rust" << endl;
 #endif
 
-#ifdef ASMJS_BUILD
-    out << dspto << "asm.js" << endl;
-#endif
-
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
 #endif
 }
-
-#ifdef ASMJS_BUILD
-#include "asmjs_code_container.hh"
-#endif
 
 #ifdef C_BUILD
 #include "c_code_container.hh"
@@ -1399,17 +1391,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             throw faustexception("ERROR : -lang js not supported since JS backend is not built\n");
 #endif
 
-        } else if (gGlobal->gOutputLang == "ajs") {
-#ifdef ASMJS_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
-            gGlobal->gWaveformInDSP        = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
-#else
-            throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
-#endif
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions

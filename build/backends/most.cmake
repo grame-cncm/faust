@@ -5,11 +5,9 @@
 #    COMPILER  embed the backend in the faust compiler
 #    STATIC    embed the backend in the faust static library
 #    DYNAMIC   embed the backend in the faust dynamic library
-#    ASMJS     embed the backend in the faust asmjs library
 #    WASM      embed the backend in the faust wasm library
 
 
-set ( ASMJS_BACKEND  COMPILER STATIC DYNAMIC ASMJS  CACHE STRING  "Include ASMJS backend" FORCE )
 set ( C_BACKEND      COMPILER STATIC DYNAMIC        CACHE STRING  "Include C backend"         FORCE )
 set ( CPP_BACKEND    COMPILER STATIC DYNAMIC        CACHE STRING  "Include CPP backend"       FORCE )
 set ( FIR_BACKEND    COMPILER STATIC DYNAMIC        CACHE STRING  "Include FIR backend"       FORCE )

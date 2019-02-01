@@ -53,10 +53,6 @@
 #pragma warning(disable : 4996)
 #endif
 
-#ifdef ASMJS_BUILD
-#include "asmjs_instructions.hh"
-#endif
-
 #ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
@@ -392,10 +388,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang          = "";
-
-#ifdef ASMJS_BUILD
-    gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
-#endif
 
 #ifdef WASM_BUILD
     gWASMVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend

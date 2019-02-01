@@ -56,7 +56,6 @@ class Garbageable;
 struct LLVMResult;
 
 struct DispatchVisitor;
-class ASMJAVAScriptInstVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
 struct DeclareStructTypeInst;
@@ -475,11 +474,6 @@ struct global {
     int gAllocationCount;  // Internal signal types counter
 
     bool gEnableFlag;
-
-#ifdef ASMJS_BUILD
-    // One single global visitor for asm.js, so that sub-containers and global container use the same heap
-    ASMJAVAScriptInstVisitor* gASMJSVisitor;
-#endif
 
 #ifdef WASM_BUILD
     // One single global visitor for WebAssembly, so that sub-containers and global container use the same heap
