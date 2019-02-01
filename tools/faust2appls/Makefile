@@ -95,6 +95,7 @@ install:
 	install faust2webaudiowast $(dest)
 	install faustoptflags $(dest)
 	install faustpath $(dest)
+	install filename2ident $(dest)
 
 uninstall:
 	rm -f $(dest)/encoderunitypackage
@@ -178,3 +179,4 @@ uninstall:
 	rm -f $(dest)/faust2webaudiowast
 	rm -f $(dest)/faustoptflags
 	rm -f $(dest)/faustpath
+	rm -f $(dest)/filename2ident

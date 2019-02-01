@@ -2,13 +2,11 @@
 
 #####################################################################
 #                                                                   #
-#               Defines the best optimisation flags to use          #
-#				on the various platforms. This file is called		#
-#				by the faust2xxx scripts. It sets two variables		#
-#				$MYGCCFLAGS and $MYICCFLAGS							#
-#               (c) Grame, 2013                                		#
+#       filename2ident "foo-3.dsp" -> "foo_3_dsp"                   #
+#       Transform filenames by replacing '-', '.' and ' ' with '_'  #
+#       Useful when the filename is used as a PL identifier         #
 #                                                                   #
 #####################################################################
 
-echo $1 | tr ' \-' '__'
+echo $1 | tr ' .\-' '___'
 
