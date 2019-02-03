@@ -133,10 +133,6 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     }
 }
 
-DeclareVarInst::~DeclareVarInst()
-{
-}
-
 // Function types (return type) are kept in the global name <===> type table
 DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
     : fName(name), fType(type), fCode(code)
@@ -162,10 +158,6 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
             throw faustexception(str.str());
         }
     }
-}
-
-DeclareFunInst::~DeclareFunInst()
-{
 }
 
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)

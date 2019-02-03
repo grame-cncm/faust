@@ -758,7 +758,9 @@ struct DeclareVarInst : public StatementInst {
 
     DeclareVarInst(Address* address, Typed* typed, ValueInst* value);
 
-    virtual ~DeclareVarInst();
+    virtual ~DeclareVarInst()
+    {
+    }
 
     void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
     Address::AccessType getAccess() { return fAddress->getAccess(); }
@@ -1165,7 +1167,9 @@ struct DeclareFunInst : public StatementInst {
 
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
-    virtual ~DeclareFunInst();
+    virtual ~DeclareFunInst()
+    {
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1177,7 +1181,9 @@ struct DeclareStructTypeInst : public StatementInst {
 
     DeclareStructTypeInst(StructTyped* type) : fType(type) {}
 
-    virtual ~DeclareStructTypeInst() {}
+    virtual ~DeclareStructTypeInst()
+    {
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 

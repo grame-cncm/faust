@@ -53,8 +53,6 @@ class AudioType;
 
 class Garbageable;
 
-struct LLVMResult;
-
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
@@ -148,8 +146,7 @@ struct global {
     string gProcessName;     // name of the entry point of the faust program, by default 'process'
 
     // Backend configuration
-    string gOutputLang;  // Chosen backend
-
+    string gOutputLang;            // Chosen backend
     bool   gGenerateSelectWithIf;  // Generates select with an 'if'
     bool   gAllowForeignFunction;  // Can use foreign functions
     bool   gComputeIOTA;           // Cache some computation done with IOTA variable

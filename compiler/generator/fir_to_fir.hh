@@ -599,6 +599,7 @@ struct VariableSizeCounter : public DispatchVisitor {
 
 // Remove unnecessary cast
 struct CastRemover : public BasicTypingCloneVisitor {
+    
     virtual ValueInst* visit(::CastInst* inst)
     {
         inst->fInst->accept(&fTypingVisitor);
