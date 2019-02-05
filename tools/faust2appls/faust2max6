@@ -82,7 +82,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-opt native|generic] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2max6 [-opt native|generic] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
@@ -92,6 +92,7 @@ do
         echo "Use '-universal' to generate a 64/32 bits external"
         echo "Use '-nopatch' to deactivate patch generation"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        echo "Use '-soundfile-static' when compiling DSP using 'soundfile' primitive, to add needed resources in static mode"
         exit
     fi
 
@@ -118,6 +119,11 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-soundfile-static" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTLIB/max-msp/sndfile"
+        SFDIR=$FAUSTLIB/max-msp/sndfile
+        SOUNDFILELIBS="$SFDIR/libFLAC.a $SFDIR/libogg.a $SFDIR/libsndfile.a $SFDIR/libvorbis.a $SFDIR/libvorbisenc.a"
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
