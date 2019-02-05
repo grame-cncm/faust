@@ -331,16 +331,17 @@ class TCoreAudioRenderer
             err = AudioDeviceGetPropertyInfo(device, 0, isInput, kAudioDevicePropertyStreamConfiguration, &outSize, &outWritable);
             if (err == noErr) {
                 int stream_count = outSize / sizeof(AudioBufferList);
-                //printf("GetTotalChannels stream_count = %d\n", stream_count);
+                printf("GetTotalChannels stream_count = %d\n", stream_count);
                 AudioBufferList bufferList[stream_count];
                 err = AudioDeviceGetProperty(device, 0, isInput, kAudioDevicePropertyStreamConfiguration, &outSize, bufferList);
                 if (err == noErr) {
                     for (uint i = 0; i < bufferList->mNumberBuffers; i++) {
                         channelCount += bufferList->mBuffers[i].mNumberChannels;
-                        //printf("GetTotalChannels stream = %d channels = %d\n", i, bufferList->mBuffers[i].mNumberChannels);
+                        printf("GetTotalChannels stream = %d channels = %d\n", i, bufferList->mBuffers[i].mNumberChannels);
                     }
                 }
             }
+            printf("GetTotalChannels channelCount = %d\n", channelCount);
             return err;
         }
 
@@ -1251,7 +1252,7 @@ class TCoreAudioRenderer
                     chanArr[i] = -1;
                 }
             
-                //printf("fDefaultPhysicalInputs %d fPhysicalInputs %d\n", fDefaultPhysicalInputs, fPhysicalInputs);
+                printf("fDefaultPhysicalInputs %d fPhysicalInputs %d\n", fDefaultPhysicalInputs, fPhysicalInputs);
                 
                 /*
                  If aggregated device, default physical inputs to activate are placed at the begining of the channel list
@@ -1279,7 +1280,7 @@ class TCoreAudioRenderer
                     chanArr[i] = -1;
                 }
                 
-                //printf("fDefaultPhysicalOutputs %d fPhysicalOutputs %d\n", fDefaultPhysicalOutputs, fPhysicalOutputs);
+                printf("fDefaultPhysicalOutputs %d fPhysicalOutputs %d\n", fDefaultPhysicalOutputs, fPhysicalOutputs);
                 
                 /*
                  If aggregated device, default physical outputs to activate are placed at the end of the channel list
