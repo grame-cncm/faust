@@ -89,25 +89,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             }
         }
     
-        // Add escape (that is  '\') for internal strings
         std::string flatten(const std::string& src)
         {
-            bool in_string = false;
             std::stringstream dst;
             for (size_t i = 0; i < src.size(); i++) {
                 switch (src[i]) {
                     case '\n':
                     case '\t':
                         break;
-                    case ' ':
-                        if (in_string) dst << src[i];
-                        break;
-                    case '"':
-                        dst << "\\" << '"';
-                        in_string = !in_string;
-                        break;
-                    case '\\':
-                        dst << '\\' << '\\';
+                    // add escape for single quote
+                    case '\'':
+                        dst << "\\'";
                         break;
                     default:
                         dst << src[i];

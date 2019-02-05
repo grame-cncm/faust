@@ -883,8 +883,10 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     
     // Add DSP file enclosing folder pathname in the '-I' list
     char full_path[MAX_FILENAME_CHARS];
-    if (path_topathname(path, filename, full_path) == 0) {
+    if ((err = path_topathname(path, filename, full_path)) == 0) {
         add_library_path(getFolderFromFilename(full_path));
+    } else {
+        post("path_topathname err = %d", err);
     }
     
     // Update all instances

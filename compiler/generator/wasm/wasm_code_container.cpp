@@ -351,7 +351,7 @@ void WASMCodeContainer::produceClass()
     generateMetaData(&json_visitor2);
 
     string json = json_visitor2.JSON(true);
-
+  
     // Memory size can now be written
     if (fInternalMemory) {
         // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
@@ -361,7 +361,7 @@ void WASMCodeContainer::produceClass()
     }
 
     // Data segment contains the JSON string starting at offset 0,
-    gGlobal->gWASMVisitor->generateJSON(removeChar(json, '\\'));
+    gGlobal->gWASMVisitor->generateJSON(json);
 
     // Finally produce output stream
     fBinaryOut.writeTo(*fOut);
@@ -381,10 +381,9 @@ void WASMCodeContainer::produceClass()
     tab(n, fHelper);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return \"";
+    fHelper << "return '";
     fHelper << json;
-    fHelper << "\";";
-    // fHelper << "return `\""; fHelper << json; fHelper << "`\";";
+    fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";

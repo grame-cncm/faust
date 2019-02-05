@@ -346,7 +346,7 @@ void WASTCodeContainer::produceClass()
     generateMetaData(&json_visitor2);
 
     string json = json_visitor2.JSON(true);
-
+ 
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();
     string begin   = tmp_aux.substr(0, begin_memory);
@@ -390,9 +390,9 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return \"";
+    fHelper << "return '";
     fHelper << json;
-    fHelper << "\";";
+    fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";

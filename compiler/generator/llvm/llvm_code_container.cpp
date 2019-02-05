@@ -732,8 +732,8 @@ void LLVMCodeContainer::generateGetJSON(int dsp_size)
     generateMetaData(&json_visitor);
 
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getJSON);
-    ReturnInst::Create(getContext(), fCodeProducer->getStringConstant(removeChar(json_visitor.JSON(true), '\\')),
-                       return_block);
+    ReturnInst::Create(getContext(), fCodeProducer->getStringConstant(json_visitor.JSON(true)), return_block);
+    
     verifyFunction(*llvm_getJSON);
     fBuilder->ClearInsertionPoint();
 }
