@@ -4,15 +4,14 @@
 #                                                                   #
 #               Compiles Faust programs to Max externals            #
 #               using simple precision samples                      #
-#               (c) Grame, 2012-2018                                #
+#               (c) Grame, 2012-2019                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
-CXXFLAGS+=" -fbracket-depth=512"
+CXXFLAGS=$MYGCCFLAGSGENERIC
 
 OSCDEFS=""
 OSCLIB=""
@@ -73,7 +72,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2msp [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2msp [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use '-native' to compile for the native CPU"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
@@ -111,6 +111,8 @@ do
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
+    elif [ $p = "-native" ]; then
+        CXXFLAGS=$MYGCCFLAGS
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -122,6 +124,10 @@ do
 shift
 
 done
+
+#customize CXXFLAGS
+
+CXXFLAGS+=" -fbracket-depth=512"
 
 #-------------------------------------------------------------------
 # Check darwin specifics
