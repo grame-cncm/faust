@@ -47,7 +47,6 @@ struct CloneVisitor;
 struct Typed : public Printable {
     enum VarType {
         kInt32,
-        kInt32ish,
         kInt32_ptr,
         kInt32_vec,
         kInt32_vec_ptr,
@@ -60,7 +59,6 @@ struct Typed : public Printable {
         kBool_vec,
         kBool_vec_ptr,
         kFloat,
-        kFloatish,
         kFloat_ptr,
         kFloat_ptr_ptr,
         kFloat_vec,
@@ -69,7 +67,6 @@ struct Typed : public Printable {
         kFloatMacro_ptr,
         kFloatMacro_ptr_ptr,
         kDouble,
-        kDoublish,
         kDouble_ptr,
         kDouble_ptr_ptr,
         kDouble_vec,

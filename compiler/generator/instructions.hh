@@ -114,8 +114,7 @@ struct IndexedAddress;
 
 inline bool isRealType(Typed::VarType type)
 {
-    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kFloatish || type == Typed::kDouble ||
-            type == Typed::kDoublish);
+    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble);
 }
 
 inline bool isRealPtrType(Typed::VarType type)
@@ -125,12 +124,12 @@ inline bool isRealPtrType(Typed::VarType type)
 
 inline bool isIntType(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
+    return (type == Typed::kInt32 || type == Typed::kInt64);
 }
 
 inline bool isIntType32(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt32ish);
+    return (type == Typed::kInt32);
 }
 
 inline bool isIntType64(Typed::VarType type)

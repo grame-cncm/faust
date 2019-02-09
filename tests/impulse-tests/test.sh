@@ -27,9 +27,6 @@ for p in $@; do
         echo "Use '-rust' to check 'Rust' backend"
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
-        echo "Use '-ajs' to check 'asm.js' backend"
-        echo "Use '-ajs-e' to check 'asm.js' backend on expanded code"
-        echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
         echo "Use '-wast' to check 'wasm' backend"
         echo "Use '-wasm' to check 'wasm' backend"
         echo "Use '-wavm' to check 'wasm' backend running in WAVM runtime"
@@ -45,12 +42,6 @@ for p in $@; do
         BACKEND="rust"
     elif [ $p = "-interp" ]; then
         BACKEND="interp"
-    elif [ $p = "-ajs" ]; then
-        BACKEND="ajs"
-    elif [ $p = "-ajs-e" ]; then
-        BACKEND="ajs-e"
-    elif [ $p = "-lf-ajs" ]; then
-        BACKEND="lf-ajs"
     elif [ $p = "-wast" ]; then
         BACKEND="wast"
     elif [ $p = "-wasm" ]; then
@@ -223,32 +214,6 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     check faust2impulse4 -double -vec -lv 1 -g -fun 
 fi
 
-if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
-
-    echo "================================================================================"
-    echo "Impulse response tests in various compilation modes and double : asm.js backend "
-    echo "================================================================================"
-	check_with_node faust2impulse5 -double
-	check_with_node faust2impulse5 -inpl -double
-fi
-
-if [ $BACKEND = "ajs-e" ] || [ $BACKEND = "all" ]; then
-
-    echo "================================================================================================="
-    echo "Impulse response tests in various compilation modes and double : asm.js backend on expanded code "
-    echo "================================================================================================="
-	check_with_node faust2impulse5bis -double
-	check_with_node faust2impulse5bis -inpl -double
-fi
-
-if [ $BACKEND = "lf-ajs" ] || [ $BACKEND = "all" ]; then
-
-    echo "==============================================================================================================="
-    echo "Impulse response tests in various compilation modes and double : libfaust.js + asm.js backend on expanded code "
-    echo "==============================================================================================================="
-	check_with_node faust2impulse5ter -double
-fi
-
 if [ $BACKEND = "wasm" ] || [ $BACKEND = "all" ]; then
 
     echo "================================================================================"
@@ -341,5 +306,3 @@ if [ $BACKEND = "wavm" ] || [ $BACKEND = "all" ]; then
     done
 
 fi
-
-
