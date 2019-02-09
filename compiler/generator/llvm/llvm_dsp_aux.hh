@@ -186,7 +186,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     getJSONFun            fGetJSON;
     setDefaultSoundFun    fSetDefaultSound;
 
-    void* loadOptimize(const std::string& function);
+    uint64_t loadOptimize(const std::string& function);
 
     void init(const std::string& dsp_name, const std::string& type_name);
 

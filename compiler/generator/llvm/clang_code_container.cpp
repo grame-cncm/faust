@@ -220,7 +220,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
 
         // Possibly output file
         if (filename != "") {
-            std::string    err;
+            string    err;
             raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
             WriteBitcodeToFile(result->fModule, out);
         }

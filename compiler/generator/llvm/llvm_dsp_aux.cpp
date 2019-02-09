@@ -82,22 +82,22 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 // Debug tools
 extern "C" EXPORT void printInt32(int val)
 {
-    std::cout << "printInt32 : " << val << std::endl;
+    cout << "printInt32 : " << val << endl;
 }
 
 extern "C" EXPORT void printFloat(float val)
 {
-    std::cout << "printFloat : " << val << std::endl;
+    cout << "printFloat : " << val << endl;
 }
 
 extern "C" EXPORT void printDouble(double val)
 {
-    std::cout << "printDouble : " << val << std::endl;
+    cout << "printDouble : " << val << endl;
 }
 
 extern "C" EXPORT void printPtr(void* val)
 {
-    std::cout << "printPtr : " << val << std::endl;
+    cout << "printPtr : " << val << endl;
 }
 
 // Factories instances management
@@ -108,9 +108,9 @@ dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 // Global API access lock
 TLockAble* llvm_dsp_factory_aux::gDSPFactoriesLock = nullptr;
 
-void* llvm_dsp_factory_aux::loadOptimize(const string& function)
+uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
 {
-    void* fun = (void*)fJIT->getFunctionAddress(function);
+    uint64_t fun = fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
     } else {
@@ -351,15 +351,15 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
     }
 }
 
-std::string llvm_dsp_factory_aux::getCompileOptions()
+string llvm_dsp_factory_aux::getCompileOptions()
 {
     return fDecoder->fCompileOptions;
 }
-std::vector<std::string> llvm_dsp_factory_aux::getLibraryList()
+vector<string> llvm_dsp_factory_aux::getLibraryList()
 {
     return fDecoder->fLibraryList;
 }
-std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames()
+vector<string> llvm_dsp_factory_aux::getIncludePathnames()
 {
     return fDecoder->fIncludePathnames;
 }
@@ -559,7 +559,7 @@ void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
 }
 
 #ifndef LLVM_35
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, std::string& error_msg)
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, string& error_msg)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
@@ -570,7 +570,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
         return sfactory;
     } else {
         string                   error_msg;
-        std::vector<std::string> dummy_list;
+        vector<string> dummy_list;
         llvm_dsp_factory_aux* factory_aux = new llvm_dsp_factory_aux(sha_key, MEMORY_BUFFER_GET(buffer).str(), target);
 
         if (factory_aux->initJIT(error_msg)) {
@@ -588,7 +588,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
 #endif
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, std::string& error_msg)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
 #ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
@@ -600,7 +600,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target, std::string& error_msg)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target, string& error_msg)
 {
 #ifndef LLVM_35
     TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
@@ -779,8 +779,8 @@ EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
 EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
 {
     if (factory) {
-        string const dspcode = factory->getCompileOptions();
-        return strdup(dspcode.c_str());
+        string options = factory->getCompileOptions();
+        return strdup(options.c_str());
     } else {
         return nullptr;
     }

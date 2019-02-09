@@ -724,9 +724,9 @@ void LLVMCodeContainer::generateGetJSON(int dsp_size)
     gGlobal->printCompilationOptions(compile_options, false);
 
     // Prepare JSON
-    std::map<std::string, int> path_index_table;
+    map<string, int> path_index_table;
     JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                 gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, std::to_string(dsp_size),
+                                 gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(dsp_size),
                                  path_index_table);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
@@ -855,7 +855,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Now we can create the DSP type
     fStructDSP = fTypeBuilder.getDSPType(false);
 
-    std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
+    map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(),
@@ -1382,7 +1382,7 @@ InstBuilder::genBasicTyped(Typed::kVoid)), code); fun1->accept(fCodeProducer);
 
 /*
 ExecutionEngine* fJIT;
-std::string ErrorMessage;
+string ErrorMessage;
 fJIT = EngineBuilder(fModule).setErrorStr(&ErrorMessage).create();
 cout << ErrorMessage;
 faustassert(fJIT);

@@ -93,7 +93,7 @@ using namespace std;
         string             res;                  \
         raw_string_ostream out_str(res);         \
         out_str << *val;                         \
-        std::cout << out_str.str() << std::endl; \
+        cout << out_str.str() << endl; \
     }
 
 static void splitTarget(const string& target, string& triple, string& cpu)
@@ -117,7 +117,7 @@ static string getParam(int argc, const char* argv[], const string& param, const 
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, string* ErrMsg)
 {
     using namespace llvm;
-    Expected<std::unique_ptr<Module>> ModuleOrErr = parseBitcodeFile(Buffer, Context);
+    Expected<unique_ptr<Module>> ModuleOrErr = parseBitcodeFile(Buffer, Context);
     if (!ModuleOrErr) {
         if (ErrMsg) *ErrMsg = "Failed to read bitcode";
         return nullptr;
@@ -152,7 +152,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, stri
 }
 #endif
 
-void llvm_dynamic_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
+void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
 {
     string             res;
     raw_string_ostream out_str(res);
@@ -400,7 +400,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
 #if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
-        // TargetRegistry::printRegisteredTargetsForVersion(std::cout);
+        // TargetRegistry::printRegisteredTargetsForVersion(cout);
 #else
             TargetRegistry::printRegisteredTargetsForVersion();
 #endif
