@@ -412,6 +412,8 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             ui.updateUIstate();
             mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
                     Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+            mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
+                    Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_FASTEST);
         }
    }
 

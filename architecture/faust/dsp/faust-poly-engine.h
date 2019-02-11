@@ -79,9 +79,9 @@ class FaustPolyEngine {
             mono_dsp->metadata(&jsonui1M);
             fJSONMeta = jsonui1M.JSON();
             
-            if (fJSONUI.find("keyboard") != std::string::npos
-                || fJSONUI.find("poly") != std::string::npos
-                || nvoices > 0) {
+            if ((fJSONUI.find("keyboard") != std::string::npos
+                || fJSONUI.find("poly") != std::string::npos)
+                && (nvoices > 0)) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
                 fMidiHandler.addMidiIn(fPolyDSP);
