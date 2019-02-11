@@ -181,6 +181,7 @@ for p in $FILES; do
     if [ "$OPT" = "generic" ]; then
         echo "Look for best compilation options in generic mode..."
         OPTIONS="$(faustbench-llvm -notrace -generic $f)"
+        echo $OPTIONS
     elif [ "$OPT" = "native" ]; then
         echo "Look for best compilation options in native mode..."
         OPTIONS="$(faustbench-llvm -notrace $f)"
