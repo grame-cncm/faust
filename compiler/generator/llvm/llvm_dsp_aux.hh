@@ -48,21 +48,21 @@
 #define LLVM_MAX_OPT_LEVEL 5
 
 #if defined(LLVM_35)
-#define STREAM_ERROR string
-#define MEMORY_BUFFER MemoryBuffer*
+#define STREAM_ERROR std::string
+#define MEMORY_BUFFER llvm::MemoryBuffer*
 #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
+#define MEMORY_BUFFER_CREATE(stringref) (llvm::MemoryBuffer::getMemBuffer(stringref))
 #define ModulePTR Module*
 #define MovePTR(ptr) ptr
 #define PASS_MANAGER legacy::PassManager
 #define FUNCTION_PASS_MANAGER FunctionPassManager
 #else
 #define STREAM_ERROR std::error_code
-#define MEMORY_BUFFER MemoryBufferRef
+#define MEMORY_BUFFER llvm::MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
+#define MEMORY_BUFFER_CREATE(stringref) (llvm::MemoryBufferRef(stringref, ""))
 #define ModulePTR std::unique_ptr<Module>
 #define MovePTR(ptr) std::move(ptr)
 #define PASS_MANAGER legacy::PassManager
@@ -214,6 +214,8 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     virtual bool initJIT(std::string& error_msg);
     bool         initJITAux(std::string& error_msg);
 
+    static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target, std::string& error_msg);
+    
     // Bitcode
     virtual std::string writeDSPFactoryToBitcode() { return ""; }
 

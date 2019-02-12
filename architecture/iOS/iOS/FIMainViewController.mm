@@ -1087,7 +1087,7 @@ static inline const char* transmit_value(int num)
     argv[7] = "-outport";
     argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
     /*
-    // Deativated for now (sometimes crashing)
+    // Deactivated for now (sometimes crashing)
     argv[9] = "-bundle";
     argv[10] = "1";
     */

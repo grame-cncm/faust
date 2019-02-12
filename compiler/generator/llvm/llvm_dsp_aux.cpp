@@ -115,7 +115,7 @@ uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
         return fun;
     } else {
         stringstream error;
-        error << "ERROR : loadOptimize failed for '" << function << "'" << endl;
+        error << "ERROR : loadOptimize failed for '" << function << "'";
         throw faustexception(error.str());
     }
 }
@@ -242,6 +242,14 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 bool llvm_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
+    
+    // For host target support
+    InitializeNativeTarget();
+    InitializeNativeTargetAsmPrinter();
+    InitializeNativeTargetAsmParser();
+    
+    // For ObjectCache to work...
+    LLVMLinkInMCJIT();
  
     // Restoring from machine code
 #if defined(LLVM_35)
@@ -255,7 +263,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     TargetMachine* tm = builder.selectTarget();
     fJIT              = builder.create(tm);
     if (!fJIT) {
-        error_msg = "ERROR : cannot create LLVM JIT : " + buider_error;
+        error_msg = buider_error;
         return false;
     }
  
@@ -297,8 +305,7 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         
         endTiming("initJIT");
         return true;
-    } catch (
-        faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...
+    } catch (faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...
         error_msg = e.Message();
         endTiming("initJIT");
         return false;
@@ -559,7 +566,7 @@ void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
 }
 
 #ifndef LLVM_35
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, string& error_msg)
+llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, string& error_msg)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
@@ -569,17 +576,15 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
         sfactory->addReference();
         return sfactory;
     } else {
-        string                   error_msg;
         vector<string> dummy_list;
         llvm_dsp_factory_aux* factory_aux = new llvm_dsp_factory_aux(sha_key, MEMORY_BUFFER_GET(buffer).str(), target);
-
         if (factory_aux->initJIT(error_msg)) {
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
             llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            error_msg = "ERROR : readDSPFactoryFromMachine failed : " + error_msg;
+            error_msg = "ERROR : readDSPFactoryFromMachine failed : " + error_msg  + "\n";
             delete factory_aux;
             return nullptr;
         }
@@ -592,7 +597,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 {
 #ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
+    return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
 #else
 #warning "machine code is not supported..."
     return nullptr;
@@ -609,7 +614,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
         error_msg = "ERROR : readDSPFactoryFromMachineFile failed : " + ec.message() + "\n";
         return nullptr;
     } else {
-        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
+        return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
     }
 #else
 #warning "machine code is not supported..."

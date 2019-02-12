@@ -291,6 +291,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
             post("sound_directories %d %s", i, sound_directories[i].c_str());
         }
         */
+    } else {
+        post("%s", error_msg.c_str());
     }
     return factory;
 }
@@ -393,6 +395,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
             dsp->metadata(&meta);
             post("Compilation from bitcode succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
+        } else {
+            post("Compilation from bitcode failed...");
         }
     }
 
@@ -404,7 +408,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
             dsp->metadata(&meta);
             post("Compilation from source code succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
-        } 
+        } else {
+            post("Compilation from source code failed...");
+        }
     }
 
     // Otherwise creates default DSP keeping the same input/output number
@@ -514,7 +520,7 @@ void faustgen_factory::default_compile_options()
 
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
-    // Read machine serial number 
+    // Read machine serial number
     const char* serial_number;  
     t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
     if (err != MAX_ERR_NONE || strcmp(serial_number, getSerialNumber().c_str()) != 0) {

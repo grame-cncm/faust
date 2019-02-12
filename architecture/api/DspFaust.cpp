@@ -250,7 +250,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     argv[7] = "-outport";
     argv[8] = OSC_OUT_PORT;     // TODO same
     /*
-    // Deativated for now (sometimes crashing)
+    // Deactivated for now (sometimes crashing)
     argv[9] = "-bundle";
     argv[10] = "1";             // TODO same
     */
