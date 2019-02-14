@@ -149,11 +149,11 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     }
 };
 
-// Used in asm.js and WebAssembly backends
+// Used in WebAssembly backends
 
 /*
  For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation
- (using in ASMJavaScript and wast/wasm backends)
+ (used in wast/wasm backends)
 */
 
 struct DspRenamer : public BasicCloneVisitor {

@@ -165,15 +165,13 @@ select (or discard) the corresponding backend for each binary output i.e.:
 * the Faust compiler,
 * the `libfaust` static library,
 * the `libfaust` dynamic library,
-* the `libfaust asmjs` library,
 * the `libfaust wasm` library.
 
-The following example selects the `ASMJS` backend for the `asmjs library`, the 
-`cpp` backend for the compiler and the faust static and dynamic libraries and 
+The following example selects the `cpp` backend for the compiler 
+and the faust static and dynamic libraries and 
 discards the interpreter backend. 
 
 ```
-set (ASMJS_BACKEND ASMJS CACHE STRING "Include ASMJS backend" FORCE)
 set (CPP_BACKEND COMPILER STATIC DYNAMIC CACHE STRING "Include CPP backend" FORCE)
 set (INTERP_BACKEND OFF CACHE STRING "Include INTERPRETER backend" FORCE)
 ```
@@ -206,26 +204,23 @@ During project generation, `cmake` prints a list of all the backends that will
 be compiled for each component. Below you have an example of this output:
 
 ```
--- In target faust: include ASMJS backend
 -- In target faust: include C backend
 -- In target faust: include CPP backend
 -- In target faust: include OCPP backend
 -- In target faust: include WASM backend
--- In target staticlib: include ASMJS backend
 -- In target staticlib: include C backend
 -- In target staticlib: include CPP backend
 -- In target staticlib: include OCPP backend
 -- In target staticlib: include WASM backend
 -- In target staticlib: include LLVM backend
 -- In target wasmlib: include WASM backend
--- In target asmjslib: include ASMJS backend
 ```
 
 Note also that the command `faust -v` prints the list of embedded backends
 support by the compiler e.g.:
 
 ```
-FAUST : DSP to C, C++, FIR, Java, JavaScript, old C++, Rust, asm.js, WebAssembly 
+FAUST : DSP to C, C++, FIR, Java, JavaScript, old C++, Rust, WebAssembly 
 (wast/wasm) compiler, Version 2.11.1
 Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All 
 rights reserved. 
@@ -375,7 +370,6 @@ Single targets are available to use with `make` or `cmake`:
 #### Targets Excluded From All
 
 * `wasmlib`: to build `libfaust` as a Web Assembly library.
-* `asmjslib`: to build `libfaust` as an ASM JS library.
 
 These targets require the `emcc` compiler to be available from your path.
 

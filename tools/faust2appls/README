@@ -50,11 +50,7 @@ faust2vst  <file.dsp>...  		: create a VST plugin for each input file
 
 faust2webaudio  <file.dsp>...         : create a HTML/WebAudioAPI (with JavaScript code) application for each input file
   
-faust2asmjs  <file.dsp>...            : using Emscripten compiler or asm.js backend, create a WebAudioAPI node for each input file
-
 faust2wasm  <file.dsp>...            : using Emscripten compiler or wasm backend, create a WebAudioAPI node for each input file
-
-faust2webaudioasm  <file.dsp>...   	: using Emscripten compiler or asm.js backend, create a HTML/WebAudioAPI (with asm.js code) application for each input file
 
 faust2webaudiowasm  <file.dsp>...   	: using Emscripten compiler or wasm backend, create a HTML/WebAudioAPI (with wasm code) application for each input file
 

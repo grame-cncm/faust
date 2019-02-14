@@ -4,7 +4,7 @@ While the Faust compiler is available in different forms (e.g.,
 [Embedded Compiler](TODO), etc.), its most "common" one is the command line
 version, which can be invoked using the `faust` command. It translates 
 a Faust program into code in a wide range of languages (C, O-C++, C++, Rust, 
-JAVA, JavaScript, ASM JavaScript, LLVM, C-LLVM, FIR, and WebAssembly). The 
+JAVA, LLVM, C-LLVM, FIR, and WebAssembly). The 
 generated code can be wrapped into an optional *architecture file* allowing to 
 directly produce a fully operational program.
 
@@ -234,7 +234,7 @@ initialize the static shared state.
 | `-pn <name>` | `--process-name <name>` | Specify the name of the dsp entry-point instead of process |
 | `-t <sec>` | `--timeout <sec>` | Abort compilation after `<sec>` seconds (default 120) |
 | `-time` | `--compilation-time` | Flag to display compilation phases timing information |
-| `-o <file>` | `-o <file>` | C, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR or FVM (interpreter) output file |
+| `-o <file>` | `-o <file>` | C, C++, JAVA, WebAssembly, LLVM IR or FVM (interpreter) output file |
 | `-scal` | `--scalar` | Generate non-vectorized code |
 | `-vec` | `--vectorize` | Generate easier to vectorize code |
 | `-vs <n>` | `--vec-size <n>` | Size of the vector (default 32 samples) |

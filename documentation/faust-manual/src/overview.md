@@ -283,29 +283,6 @@ faust2api -h
 
 for additional help and options.
 
-### `faust2asmjs`
-
-`faust2asmjs` converts a Faust program into an [AMS JavaScript](TODO) object to
-be used in a web-app.
-
-**Platforms**
-
-* Web
-
-**Usage**
-
-```
-faust2asmjs [OPTIONS] faustFile.dsp
-```
-
-Run:
-
-```
-faust2asmjs -h
-```
-
-for additional help and options.
-
 <!-- NOTE: skipping faust2atomsnippets here -->
 
 ### `faust2au`
