@@ -14,12 +14,19 @@ By default it will create *file~.mxo* external along with a *file.maxpat* patch 
 
 The following options are available: 
 
+  - `-opt native` : to activate the best compilation options for the native CPU
+  - `-opt generic` : to activate the best compilation options for a generic CPU
+  - `-native` to compile for the native CPU
   - `-nvoices <num>` : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
   - `-effect <effect.dsp>` : to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI
   - `-midi` : to activate MIDI control
+  - `-osc` : to activate OSC control
+  - `-universal` : to generate a 64/32 bits external
   - `-nopatch` : to deactivate patch generation
+  - `-soundfile` : when compiling DSP using 'soundfile' primitive, to add needed resources
+  - `-soundfile-static` when compiling DSP using 'soundfile' primitive, to add needed resources in static mode
   - `-help or -h` : shows the different options 
-
+ 
 The *faust2msp* tools has to be used to create old Max5 compatible externals, the *faust2max6* tools has to be used starting with Max6. 
 
 ## Configuration
