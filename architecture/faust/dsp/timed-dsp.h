@@ -159,7 +159,7 @@ class timed_dsp : public decorator_dsp {
             return std::max<double>(0., (double(getSampleRate()) * (usec - fDateUsec)) / 1000000.);
         }
         
-        ztimedmap::iterator getNextControl(DatedControl& res, bool convert_ts)
+        ztimedmap::iterator getNextControl(DatedControl& res)
         {
             DatedControl date1(DBL_MAX, 0);
             ztimedmap::iterator it1, it2 = GUI::gTimedZoneMap.end();
@@ -179,11 +179,6 @@ class timed_dsp : public decorator_dsp {
                 }
             }
             
-            // If needed, convert date1 in samples from begining of the buffer, possible moving to 0 (if negative)
-            if (convert_ts) {
-                date1.fDate = convertUsecToSample(date1.fDate);
-            }
-                
             res = date1;
             return it2;
         }
@@ -195,7 +190,12 @@ class timed_dsp : public decorator_dsp {
             DatedControl next_control;
              
             // Do audio computation "slice" by "slice"
-            while ((it = getNextControl(next_control, convert_ts)) != GUI::gTimedZoneMap.end()) {
+            while ((it = getNextControl(next_control)) != GUI::gTimedZoneMap.end()) {
+                
+                // If needed, convert next_control in samples from begining of the buffer, possible moving to 0 (if negative)
+                if (convert_ts) {
+                    next_control.fDate = convertUsecToSample(next_control.fDate);
+                }
                      
                 // Compute audio slice
                 slice = int(next_control.fDate) - offset;
@@ -259,12 +259,13 @@ class timed_dsp : public decorator_dsp {
             } else {
                 // Save the timestamp offset in the first callback
                 if (fFirstCallback) {
-                    fOffsetUsec = ::GetCurrentTimeInUsec() - date_usec;
-                    fDateUsec = date_usec + fOffsetUsec;
                     fFirstCallback = false;
+                    double current_date_usec = ::GetCurrentTimeInUsec();
+                    fDateUsec = current_date_usec;
+                    fOffsetUsec = current_date_usec - date_usec;
                 }
                 
-                // RtMidi mode : timestamp must be converted in frames
+                // RtMidi mode: timestamp must be converted in frames
                 computeAux(count, inputs, outputs, true);
                 
                 // Keep call date 
