@@ -21,3 +21,11 @@ The following options are available:
   - `-help or -h` : shows the different options 
 
 The *faust2msp* tools has to be used to create old Max5 compatible externals, the *faust2max6* tools has to be used starting with Max6. 
+
+## Configuration
+
+If you plan to use faust2max6/faust2msp on your own machine, you will have to:
+
+- install [Max/MSP SDK](https://cycling74.com/downloads/sdk)
+- edit the `faust/tools/faust2appls/faustpath` script to properly setup the $MAXSDK variable
+- install Faust again using `sudo make install`
