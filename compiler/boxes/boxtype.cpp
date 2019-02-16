@@ -240,9 +240,9 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if (x % v != 0) {
             stringstream error;
             error << "Connection error in : " << boxpp(t) << endl
-                  << "The number of outputs " << v
-                  << " of the first expression should be a divisor of the number of inputs " << x
-                  << " of the second expression" << endl;
+                  << "The number of outputs (" << v
+                  << ") of the first expression should be a divisor of the number of inputs (" << x
+                  << ") of the second expression" << endl;
             throw faustexception(error.str());
         }
 
@@ -271,9 +271,9 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if (v % x != 0) {
             stringstream error;
             error << "Connection error in : " << boxpp(t) << endl
-                  << "The number of outputs " << v
-                  << " of the first expression should be a multiple of the number of inputs " << x
-                  << " of the second expression" << endl;
+                  << "The number of outputs (" << v
+                  << ") of the first expression should be a multiple of the number of inputs (" << x
+                  << ") of the second expression" << endl;
             throw faustexception(error.str());
         }
 
@@ -284,17 +284,17 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;
         if (!getBoxType(b, &x, &y)) return false;
-        if ((x > v) | (y > u)) {
+        if ((x > v) || (y > u)) {
             stringstream error;
             error << "Connection error in : " << boxpp(t) << endl;
             if (x > v)
-                error << "The number of outputs " << v
-                      << " of the first expression should be greater or equal \n  to the number of inputs " << x
-                      << " of the second expression" << endl;
+                error << "The number of outputs (" << v
+                      << ") of the first expression should be greater or equal to the number of inputs (" << x
+                      << ") of the second expression" << endl;
             if (y > u)
-                error << "The number of inputs " << u
-                      << " of the first expression should be greater or equal \n  to the number of outputs " << y
-                      << " of the second expression" << endl;
+                error << "The number of inputs (" << u
+                      << ") of the first expression should be greater or equal to the number of outputs (" << y
+                      << ") of the second expression" << endl;
             throw faustexception(error.str());
         }
         *inum = max(0, u - y);
