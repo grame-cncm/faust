@@ -1,0 +1,83 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#          SmartKeyboard App Generator for iOS and Android          #
+#               (c) Romain Michon CCRMA and Grame, 2016             #
+#                                                                   #
+#####################################################################
+
+. faustpath
+
+# change if you want to get the log of what's happening
+LOG="/dev/null"
+
+# exit if a command fails
+set -e
+
+# global option variables
+LIB="0"
+
+echoHelp ()
+{
+    echo "FAUST2TEENSY HELP"
+    echo "faust2teensy can be used to fully program the Teensy microncontroller and to generate DSP objects compatible with the Teensy audio library. In bose cases, we strongly recommend to use the Teensy 3.6 which hosts an FPU (i.e., the Teensy 3.2 doesn't have one). Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
+    echo ""
+    echo "USAGE:"
+    echo "faust2teensy -lib faustFile.dsp: Generates a package containing an object compatible with the Teensy audio library."
+}
+
+###########################
+# Processing Arguments
+###########################
+
+while [ $1 ]
+do
+	p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+		echoHelp
+		exit 0
+    elif [[ -f "$p" ]]; then
+		FILE="$p"
+    elif [ $p = "-lib" ]; then
+		LIB=1
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+if [ -z $FILE ]; then
+    echo "Please, provide a Faust file to process"
+    exit 1
+fi
+
+###########################
+# Post Argument Processing
+###########################
+
+BASENAME=$(basename "$FILE")
+MODULENAME="${BASENAME%.dsp}"
+
+###########################
+# Generating a lib package
+###########################
+
+if [ $LIB -eq 1 ]; then
+    mkdir -p $MODULENAME
+    faust -a teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
+    cp /usr/local/share/faust/teensy/teensy.h $MODULENAME/$MODULENAME.h
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+    echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
+    echo "$TMP" > $MODULENAME/$MODULENAME.h
+    TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/teensy.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+    echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+    TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_teensy/,modName)}1' $MODULENAME/$MODULENAME.h)
+    echo "$TMP" > $MODULENAME/$MODULENAME.h
+    zip -r $MODULENAME.zip $MODULENAME > $LOG
+    rm -r $MODULENAME
+fi
