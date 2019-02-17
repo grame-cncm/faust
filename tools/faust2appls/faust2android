@@ -14,7 +14,7 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
-# FAUSTGRADLE environement variable. By default we use ./gradlew 
+# FAUSTGRADLE environement variable. By default we use ./gradlew
 FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
 
 # exit if a command fails
@@ -29,6 +29,7 @@ FAUST=0
 KEYBOARD=0
 REUSE=0
 SOUNDFILE=0
+OSCCTRL=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -41,6 +42,8 @@ for p in $@; do
 		INSTALL=1
 	elif [ $p = "-soundfile" ]; then
     	SOUNDFILE="1"
+	elif [ $p = "-osc" ]; then
+	    OSCCTRL="1"
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
@@ -61,21 +64,22 @@ for p in $@; do
         echo "Use '-faust' only carries out the Faust compilation and install the generated C++ file in the JNI folder."
         echo "Use '-reuse' keep build directory and reuse it to speedup compilation."
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+				echo "Use '-osc' to active OSC interface"
         echo "Use '-debug' verbose output."
 		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"
 	fi
 done
 
-# only carry out the faust compilation 
+# only carry out the faust compilation
 if [ $FAUST -eq 1 ]; then
 	faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "app/src/main/cpp/DspFaust.cpp"
 	exit 1
 fi
- 
+
 # Create the temporary directory where compilation will take place
 
 APPNAME=$(basename "$FILE")
@@ -91,16 +95,16 @@ if [ $REUSE -eq 0 ]; then
 		rm -rf "$BUILDDIR"
 	fi
 fi
-		
+
 if [ ! -d "$BUILDDIR" ]; then
   	echo "Creating new Android project $BUILDDIR"  > $LOG
-  	
+
   	mkdir -p "$BUILDDIR"
 	cp -r $FAUSTLIB/android/*  "$BUILDDIR"
 	install -d $JNIFOLDER
 	# Copy include files *.h if any (ignore any error here)
 	(cp *.h $JNIFOLDER 2> $LOG) || true
-	
+
 	# change 'faust' with real *APPNAME
 	PLATFORM=$(uname)
 
@@ -129,7 +133,7 @@ if [ ! -d "$BUILDDIR" ]; then
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
 		sed -i 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 	fi
-	
+
 	mv $APPFOLDER/java/com/faust $APPFOLDER/java/com/$APPNAME
 
 	# TODO wrong: should be checked
@@ -177,7 +181,7 @@ if [ $SOUNDFILE -eq 1 ]; then
 									mkdir $sfpath
 							fi
 							echo "Copy $snd in apk"
-							cp $snd $sfpath		
+							cp $snd $sfpath
 					fi
 			else
 					echo "Error: file $snd not found !"
@@ -189,9 +193,15 @@ if [ $SOUNDFILE -eq 1 ]; then
 		sed -i 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
 	fi
 	mv $BUILDDIR/app/CMakeLists_sndfile.txt $BUILDDIR/app/CMakeLists.txt
+	if [ $OSCCTRL -eq 1 ]; then
+	sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+  fi
 	rm $APPNAME-tmp.txt
 else
-	rm $BUILDDIR/app/CMakeLists_sndfile.txt 
+	rm $BUILDDIR/app/CMakeLists_sndfile.txt
+	if [ $OSCCTRL -eq 1 ]; then
+	sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+  fi
 	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
 fi
 rm $FILE.json
@@ -224,5 +234,3 @@ else
 fi
 
 echo "$APPNAME.apk;"
-
-

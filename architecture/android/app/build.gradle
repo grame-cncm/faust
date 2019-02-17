@@ -11,7 +11,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++11 -O3 -fexceptions -frtti -lOpenSLES"
+                cppFlags "-lstdc++ -O3 -fexceptions -frtti -lOpenSLES"
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
             }
         }
@@ -19,7 +19,7 @@ android {
 
     sourceSets {
         main {
-            jniLibs.srcDirs 'lib/libsndfile/lib'
+            jniLibs.srcDirs = ['/usr/local/share/faust/osclib/android/libs','lib/libsndfile/lib']
         }
     }
 

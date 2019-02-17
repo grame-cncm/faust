@@ -19,8 +19,9 @@ public class dsp_faustJNI {
     }
   }
 
-  public final static native long new_DspFaust__SWIG_0();
-  public final static native long new_DspFaust__SWIG_1(int jarg1, int jarg2);
+  public final static native long new_DspFaust__SWIG_0(boolean jarg1);
+  public final static native long new_DspFaust__SWIG_1();
+  public final static native long new_DspFaust__SWIG_2(int jarg1, int jarg2);
   public final static native void delete_DspFaust(long jarg1);
   public final static native boolean DspFaust_start(long jarg1, DspFaust jarg1_);
   public final static native void DspFaust_stop(long jarg1, DspFaust jarg1_);
@@ -57,6 +58,7 @@ public class dsp_faustJNI {
   public final static native void DspFaust_propagateGyr(long jarg1, DspFaust jarg1_, int jarg2, float jarg3);
   public final static native void DspFaust_setGyrConverter(long jarg1, DspFaust jarg1_, int jarg2, int jarg3, int jarg4, float jarg5, float jarg6, float jarg7);
   public final static native float DspFaust_getCPULoad(long jarg1, DspFaust jarg1_);
-  public final static native boolean DspFaust_configureOSC(long jarg1, DspFaust jarg1_, boolean jarg2, int jarg3, int jarg4, int jarg5, String jarg6);
+  public final static native boolean DspFaust_configureOSC(long jarg1, DspFaust jarg1_, int jarg2, int jarg3, int jarg4, int jarg5, String jarg6);
+  public final static native boolean DspFaust_isOSCOn(long jarg1, DspFaust jarg1_);
   public final static native int DspFaust_getScreenColor(long jarg1, DspFaust jarg1_);
 }
