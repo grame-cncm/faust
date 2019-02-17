@@ -410,86 +410,89 @@ class dsp_recursiver : public dsp_binary_combiner {
 };
 
 // DSP algebra API
+/*
+ Each operation takes two DSP as parameters, returns the combined DSPs, or null if failure and an error message.
+ */
 
-dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error_aux)
+dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() != dsp2->getNumInputs()) {
-        std::stringstream error;
-        error << "ERROR in sequential composition (A:B) : "
-        << "the number of outputs (" << dsp1->getNumOutputs() << ") of A "
-        << "must be equal to the number of inputs (" << dsp2->getNumInputs() << ") of B" << std::endl;
-        error_aux = error.str();
+        std::stringstream error_aux;
+        error_aux << "Connection error int dsp_sequencer : the number of outputs ("
+                  << dsp1->getNumOutputs() << ") of A "
+                  << "must be equal to the number of inputs (" << dsp2->getNumInputs() << ") of B" << std::endl;
+        error = error_aux.str();
         return nullptr;
     } else {
         return new dsp_sequencer(dsp1, dsp2);
     }
 }
 
-dsp* createDSPParallelize(dsp* dsp1, dsp* dsp2, std::string& error_aux)
+dsp* createDSPParallelize(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     return new dsp_parallelizer(dsp1, dsp2);
 }
 
-dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error_aux)
+dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() == 0) {
-        error_aux = "Connection error in dsp_spitter : the first expression has no outputs\n";
+        error = "Connection error in dsp_splitter : the first expression has no outputs\n";
         return nullptr;
     } else if (dsp2->getNumInputs() == 0) {
-        error_aux = "Connection error in dsp_spitter : the second expression has no inputs\n";
+        error = "Connection error in dsp_splitter : the second expression has no inputs\n";
         return nullptr;
     } else if (dsp2->getNumInputs() % dsp1->getNumOutputs() != 0) {
-        std::stringstream error;
-        error << "Connection error in dsp_spitter : the number of outputs (" << dsp1->getNumOutputs()
-              << ") of the first expression should be a divisor of the number of inputs ("
-              << dsp2->getNumInputs()
-              << ") of the second expression" << std::endl;
-        error_aux = error.str();
+        std::stringstream error_aux;
+        error_aux << "Connection error in dsp_splitter : the number of outputs (" << dsp1->getNumOutputs()
+                  << ") of the first expression should be a divisor of the number of inputs ("
+                  << dsp2->getNumInputs()
+                  << ") of the second expression" << std::endl;
+        error = error_aux.str();
         return nullptr;
     } else {
         return new dsp_splitter(dsp1, dsp2);
     }
 }
 
-dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error_aux)
+dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() == 0) {
-        error_aux = "Connection error in dsp_spitter : the first expression has no outputs\n";
+        error = "Connection error in dsp_merger : the first expression has no outputs\n";
         return nullptr;
     } else if (dsp2->getNumInputs() == 0) {
-        error_aux = "Connection error in dsp_spitter : the second expression has no inputs\n";
+        error = "Connection error in dsp_merger : the second expression has no inputs\n";
         return nullptr;
     } else if (dsp1->getNumOutputs() % dsp2->getNumInputs() != 0) {
-        std::stringstream error;
-        error << "Connection error in dsp_merger : the number of outputs (" << dsp1->getNumOutputs()
-              << ") of the first expression should be a multiple of the number of inputs ("
-              << dsp2->getNumInputs()
-              << ") of the second expression" << std::endl;
-        error_aux = error.str();
+        std::stringstream error_aux;
+        error_aux << "Connection error in dsp_merger : the number of outputs (" << dsp1->getNumOutputs()
+                  << ") of the first expression should be a multiple of the number of inputs ("
+                  << dsp2->getNumInputs()
+                  << ") of the second expression" << std::endl;
+        error = error_aux.str();
         return nullptr;
     } else {
         return new dsp_merger(dsp1, dsp2);
     }
 }
     
-dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error_aux)
+dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if ((dsp2->getNumInputs() > dsp1->getNumOutputs()) || (dsp2->getNumOutputs() > dsp1->getNumInputs())) {
-        std::stringstream error;
-        error << "Connection error in : dsp_recursiver" << std::endl;
+        std::stringstream error_aux;
+        error_aux << "Connection error in : dsp_recursiver" << std::endl;
         if (dsp2->getNumInputs() > dsp1->getNumOutputs()) {
-            error << "The number of outputs " << dsp1->getNumOutputs()
-                  << " of the first expression should be greater or equal to the number of inputs ("
-                  << dsp2->getNumInputs()
-                  << ") of the second expression" << std::endl;
+            error_aux << "The number of outputs " << dsp1->getNumOutputs()
+                      << " of the first expression should be greater or equal to the number of inputs ("
+                      << dsp2->getNumInputs()
+                      << ") of the second expression" << std::endl;
         }
         if (dsp2->getNumOutputs() > dsp1->getNumInputs()) {
-            error << "The number of inputs " << dsp1->getNumInputs()
-                  << " of the first expression should be greater or equal to the number of outputs ("
-                  << dsp2->getNumOutputs()
-                  << ") of the second expression" << std::endl;
+            error_aux << "The number of inputs " << dsp1->getNumInputs()
+                      << " of the first expression should be greater or equal to the number of outputs ("
+                      << dsp2->getNumOutputs()
+                      << ") of the second expression" << std::endl;
         }
-        error_aux = error.str();
+        error = error_aux.str();
         return nullptr;
     } else {
         return new dsp_recursiver(dsp1, dsp2);
