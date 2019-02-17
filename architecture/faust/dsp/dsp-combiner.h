@@ -430,7 +430,7 @@ dsp* createDSPParallelize(dsp* dsp1, dsp* dsp2, std::string& error_aux)
     return new dsp_parallelizer(dsp1, dsp2);
 }
 
-dsp* createDSPSpitter(dsp* dsp1, dsp* dsp2, std::string& error_aux)
+dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error_aux)
 {
     if (dsp1->getNumOutputs() == 0) {
         error_aux = "Connection error in dsp_spitter : the first expression has no outputs\n";
