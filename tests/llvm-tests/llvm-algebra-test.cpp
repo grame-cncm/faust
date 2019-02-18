@@ -28,6 +28,7 @@
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
+#include "faust/dsp/dsp-optimizer.h"
 
 using namespace std;
 
@@ -36,6 +37,7 @@ using namespace std;
 static void testDSP(dsp* dsp)
 {
     cout << "testDSP\n";
+    assert(dsp);
     
     FAUSTFLOAT* inputs[dsp->getNumInputs()];
     for (int chan = 0; chan < dsp->getNumInputs(); chan++) {
@@ -79,6 +81,34 @@ static void testDSP(dsp* dsp)
     }
 }
 
+static dsp* createDSP(const string& code)
+{
+    string error_msg;
+    dsp_factory* factory = createDSPFactoryFromString("FaustDSP", code, 0, nullptr, "", error_msg);
+    assert(factory);
+    return factory->createDSPInstance();
+}
+
+static void benchDSP(const string& title, const string& code, dsp* combined)
+{
+    cout << title << endl;
+    
+    dsp* dsp = createDSP(code);
+    assert(dsp);
+  
+    measure_dsp mes1(dsp, 512, 5.);  // Buffer_size and duration in sec of measure
+    mes1.measure();
+    double res1 = mes1.getStats() ;
+    cout << res1 << " " << "(DSP CPU % : " << (mes1.getCPULoad() * 100) << ")" << endl;
+    
+    measure_dsp mes2(combined, 512, 5.);  // Buffer_size and duration in sec of measure
+    mes2.measure();
+    double res2 = mes2.getStats() ;
+    cout << res2 << " " << "(DSP CPU % : " << (mes2.getCPULoad() * 100) << ")" << endl;
+    
+    cout << "Ratio = " << (res1/res2) << endl;
+}
+
 int main(int argc, char* argv[])
 {
     dsp_factory* factory1, *factory2, *factory3;
@@ -87,24 +117,18 @@ int main(int argc, char* argv[])
     
     cout << "Testing createDSPSequencer\n";
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (_);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (_);");
+    dsp2 = createDSP("process = (_,_);");
     combined1 = createDSPSequencer(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (_,_);");
+    dsp2 = createDSP("process = (_);");
     combined1 = createDSPSequencer(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (1,2);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (1,2);");
+    dsp2 = createDSP("process = (_,_);");
     combined1 = createDSPSequencer(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
@@ -116,13 +140,14 @@ int main(int argc, char* argv[])
     }
     
     testDSP(combined1);
+    testDSP(createDSP("process = (1,2):(_,_);"));
+    
+    benchDSP("\ncreateDSPSequencer CPU test\n", "process = (1,2):(_,_);", combined1);
     
     cout << "\nTesting createDSPParallelizer\n";
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (1,1);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (2,2);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (1,1);");
+    dsp2 = createDSP("process = (2,2);");
     combined1 = createDSPParallelize(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
@@ -134,20 +159,19 @@ int main(int argc, char* argv[])
     }
     
     testDSP(combined1);
+    testDSP(createDSP("process = (1,1),(2,2);"));
+    
+    benchDSP("\ncreateDSPParallelizer CPU test\n", "process = (1,1),(2,2);", combined1);
     
     cout << "\nTesting createDSPSplitter\n";
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (_,_);");
+    dsp2 = createDSP("process = (_,_,_);");
     combined1 = createDSPSplitter(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (1,2);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_,_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (1,2);");
+    dsp2 = createDSP("process = (_,_,_,_);");
     combined1 = createDSPSplitter(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
@@ -160,20 +184,19 @@ int main(int argc, char* argv[])
     }
 
     testDSP(combined1);
+    testDSP(createDSP("process = (1,2)<:(_,_,_,_);"));
     
+    benchDSP("\ncreateDSPSplitter CPU test\n", "process = (1,2)<:(_,_,_,_);", combined1);
+   
     cout << "\nTesting createDSPMerger\n";
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (_,_,_);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (_,_,_);");
+    dsp2 = createDSP("process = (_,_);");
     combined1 = createDSPMerger(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (1,1,2,2);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (1,1,2,2);");
+    dsp2 = createDSP("process = (_,_);");
     combined1 = createDSPMerger(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
@@ -186,22 +209,20 @@ int main(int argc, char* argv[])
     }
     
     testDSP(combined1);
+    testDSP(createDSP("process = (1,1,2,2):>(_,_);"));
+    
+    benchDSP("\ncreateDSPMerger CPU test\n", "process = (1,1,2,2):>(_,_);", combined1);
     
     cout << "\nTesting createDSPRecursiver\n";
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (_);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
+    dsp1 = createDSP("process = (_);");
+    dsp2 = createDSP("process = (_,_);");
     combined1 = createDSPRecursiver(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
-    factory1 = createDSPFactoryFromString("FaustDSP", "process = (+,+);", 0, nullptr, "", error_msg);
-    factory2 = createDSPFactoryFromString("FaustDSP", "process = (_,_);", 0, nullptr, "", error_msg);
-    factory3 = createDSPFactoryFromString("FaustDSP", "process = (1,1);", 0, nullptr, "", error_msg);
-    dsp1 = factory1->createDSPInstance();
-    dsp2 = factory2->createDSPInstance();
-    dsp3 = factory3->createDSPInstance();
+    dsp1 = createDSP("process = (+,+);");
+    dsp2 = createDSP("process = (_,_);");
+    dsp3 = createDSP("process = (1,1);");
     combined1 = createDSPRecursiver(dsp1, dsp2, error_msg);
     combined2 = createDSPSequencer(dsp3, combined1, error_msg);
     printError(combined2, error_msg);
@@ -215,6 +236,9 @@ int main(int argc, char* argv[])
     }
     
     testDSP(combined2);
+    testDSP(createDSP("process = (1,1):(+,+)~(_,_);"));
+    
+    benchDSP("\ncreateDSPRecursiver CPU test\n", "process = (+,+)~(_,_);", combined1);
     
     return 0;
 }
