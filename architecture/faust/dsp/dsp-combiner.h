@@ -449,6 +449,8 @@ dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
                   << ") of the second expression" << std::endl;
         error = error_aux.str();
         return nullptr;
+    } else if (dsp2->getNumInputs() == dsp1->getNumOutputs()) {
+        return new dsp_sequencer(dsp1, dsp2);
     } else {
         return new dsp_splitter(dsp1, dsp2);
     }
@@ -470,6 +472,8 @@ dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
                   << ") of the second expression" << std::endl;
         error = error_aux.str();
         return nullptr;
+    } else if (dsp2->getNumInputs() == dsp1->getNumOutputs()) {
+        return new dsp_sequencer(dsp1, dsp2);
     } else {
         return new dsp_merger(dsp1, dsp2);
     }
