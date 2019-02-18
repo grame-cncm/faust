@@ -60,7 +60,7 @@ class DspFaust
     #endif
     
         void init(dsp* mono_dsp, audio* driver);
-        audio* createDriver(int sample_rate, int buffer_size);
+        audio* createDriver(int sample_rate, int buffer_size, bool auto_connect = true);
     
     public:
         
@@ -69,8 +69,12 @@ class DspFaust
         /// that impose their sample rate and buffer size
         // (like JACK and JUCE)
         //
+        // #### Arguments
+        //
+        // * `auto_connect`: whether to automatically connect audio outpus to the hardware (usable with JACK)
+        //
         //----
-        DspFaust(bool use_driver = true);
+        DspFaust(bool auto_connect = true);
         
         //--------------`DspFaust(int SR, int BS)`----------------
         // Constructor.
@@ -79,8 +83,9 @@ class DspFaust
         //
         // * `SR`: sampling rate
         // * `BS`: buffer size
+        // * `auto_connect`: whether to automatically connect audio outputs to the hardware (usable with JACK)
         //--------------------------------------------------------
-        DspFaust(int, int);
+        DspFaust(int, int, bool auto_connect = true);
     
         //--------------`DspFaust(cinst string& dsp_content, int SR, int BS)`----------------
         // Constructor.
@@ -90,9 +95,10 @@ class DspFaust
         // * `dsp_content`: the DSP as a file or string
         // * `SR`: sampling rate
         // * `BS`: buffer size
+        // * `auto_connect`: whether to automatically connect audio outputs to the hardware (usable with JACK)
         //--------------------------------------------------------
     #if DYNAMIC_DSP
-        DspFaust(const std::string&, int, int);
+        DspFaust(const std::string&, int, int, bool auto_connect = true);
     #endif
     
         // No virtual destructor since DspFaust does not have any virtual methods and is not supposed to be subclassed

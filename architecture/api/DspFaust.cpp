@@ -124,37 +124,35 @@ static void osc_compute_callback(void* arg)
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-DspFaust::DspFaust(bool use_driver)
+DspFaust::DspFaust(bool auto_connect)
 {
     audio* driver = NULL;
-    if (use_driver) {
 #if JACK_DRIVER
-        // JACK has its own sample rate and buffer size
+    // JACK has its own sample rate and buffer size
 #if MIDICTRL
-        driver = new jackaudio_midi();
+    driver = new jackaudio_midi(auto_connect);
 #else
-        driver = new jackaudio();
+    driver = new jackaudio(auto_connect);
 #endif
 #elif TEENSY_DRIVER
-        driver = new teensyaudio();
+    driver = new teensyaudio();
 #elif JUCE_DRIVER
-        // JUCE audio device has its own sample rate and buffer size
-        driver = new juceaudio();
+    // JUCE audio device has its own sample rate and buffer size
+    driver = new juceaudio();
 #else
-        std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
-        throw std::bad_alloc();
+    std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
+    throw std::bad_alloc();
 #endif
-    }
     init(NULL, driver);
 }
 
-DspFaust::DspFaust(int sample_rate, int buffer_size)
+DspFaust::DspFaust(int sample_rate, int buffer_size, bool auto_connect)
 {
-    init(NULL, createDriver(sample_rate, buffer_size));
+    init(NULL, createDriver(sample_rate, buffer_size, auto_connect));
 }
 
 #if DYNAMIC_DSP
-DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
+DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size, bool auto_connect)
 {
     string error_msg;
 
@@ -175,11 +173,11 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
         std::cerr << "Cannot allocate DSP instance\n";
         throw bad_alloc();
     }
-    init(dsp, createDriver(sample_rate, buffer_size));
+    init(dsp, createDriver(sample_rate, buffer_size, auto_connect));
 }
 #endif
 
-audio* DspFaust::createDriver(int sample_rate, int buffer_size)
+audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connect)
 {
 #if COREAUDIO_DRIVER
     audio* driver = new coreaudio(sample_rate, buffer_size);
@@ -193,9 +191,9 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size)
     // JACK has its own sample rate and buffer size
     std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
 #if MIDICTRL
-    audio* driver = new jackaudio_midi();
+    audio* driver = new jackaudio_midi(auto_connect);
 #else
-    audio* driver = new jackaudio();
+    audio* driver = new jackaudio(auto_connect);
 #endif
 #elif PORTAUDIO_DRIVER
     audio* driver = new portaudio(sample_rate, buffer_size);
