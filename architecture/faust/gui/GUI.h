@@ -405,7 +405,7 @@ static void deleteClist(clist* cl)
 {
     std::list<uiItemBase*>::iterator it;
     for (it = cl->begin(); it != cl->end(); it++) {
-        uiOwnedItem* owned = static_cast<uiOwnedItem*>(*it);
+        uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(*it);
         // owned items are deleted by external code
         if (!owned) {
             delete (*it);

@@ -82,8 +82,6 @@
     #include "faust/audio/ofaudio-dsp.h"
 #elif JUCE_DRIVER
     #include "faust/audio/juce-dsp.h"
-#elif TEENSY_DRIVER
-    #include "faust/audio/teensy-dsp.h"
 #elif DUMMY_DRIVER
     #include "faust/audio/dummy-audio.h"
 #endif
@@ -134,8 +132,6 @@ DspFaust::DspFaust(bool auto_connect)
 #else
     driver = new jackaudio(auto_connect);
 #endif
-#elif TEENSY_DRIVER
-    driver = new teensyaudio();
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
     driver = new juceaudio();
@@ -205,8 +201,6 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
     // JUCE audio device has its own sample rate and buffer size
     std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
     audio* driver = new juceaudio();
-#elif TEENSY_DRIVER
-    audio* driver = new teensyaudio();
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
 #endif

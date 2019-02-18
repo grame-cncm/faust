@@ -57,11 +57,9 @@ class FaustPolyEngine {
         string fJSONMeta;
         bool fRunning;
         audio* fDriver;
-
-        #if MIDICTRL    
+    
         midi_handler fMidiHandler;
         MidiUI fMidiUI;
-        #endif
     
         void init(dsp* mono_dsp, audio* driver, midi_handler* midi)
         {
@@ -86,9 +84,7 @@ class FaustPolyEngine {
                 && (nvoices > 0)) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
-            #if MIDICTRL 
                 fMidiHandler.addMidiIn(fPolyDSP);
-            #endif
                 if (midi) midi->addMidiIn(fPolyDSP);
                 
             #if POLY2
@@ -110,9 +106,7 @@ class FaustPolyEngine {
                 fFinalDSP = mono_dsp;
             }
             
-          #if MIDICTRL 
             fFinalDSP->buildUserInterface(&fMidiUI);
-          #endif
             fFinalDSP->buildUserInterface(&fAPIUI);
             
             // Retrieving DSP object name
@@ -144,12 +138,8 @@ class FaustPolyEngine {
         }
     
     public:
-
-#if MIDICTRL     
+    
         FaustPolyEngine(dsp* mono_dsp, audio* driver = NULL, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
-#else
-        FaustPolyEngine(dsp* mono_dsp, audio* driver = NULL, midi_handler* midi = NULL)
-#endif
         {
             init(((mono_dsp) ? mono_dsp : new mydsp()), driver, midi);
         }
@@ -285,12 +275,10 @@ class FaustPolyEngine {
          */
         void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
         {
-#if MIDICTRL
             if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
             else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
             else if (count == 1) fMidiHandler.handleSync(time, type);
             GUI::updateAllGuis();
-#endif
         }
     
         /*
