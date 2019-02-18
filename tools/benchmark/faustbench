@@ -113,6 +113,15 @@ for p in $FILES; do
         faust -cn dsp_vec0_128 $OPTIONS -vec -lv 0 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec0_128.h"
         faust -cn dsp_vec0_256 $OPTIONS -vec -lv 0 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec0_256.h"
         faust -cn dsp_vec0_512 $OPTIONS -vec -lv 0 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec0_512.h"
+        
+        faust -cn dsp_vec0_fun_4 $OPTIONS -vec -fun -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_4.h"
+        faust -cn dsp_vec0_fun_8 $OPTIONS -vec -fun -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_8.h"
+        faust -cn dsp_vec0_fun_16 $OPTIONS -vec -fun -lv 0 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_16.h"
+        faust -cn dsp_vec0_fun_32 $OPTIONS -vec -fun -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_32.h"
+        faust -cn dsp_vec0_fun_64 $OPTIONS -vec -fun -lv 0 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_64.h"
+        faust -cn dsp_vec0_fun_128 $OPTIONS -vec -fun -lv 0 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_128.h"
+        faust -cn dsp_vec0_fun_256 $OPTIONS -vec -fun -lv 0 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_256.h"
+        faust -cn dsp_vec0_fun_512 $OPTIONS -vec -fun -lv 0 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_512.h"
 
         faust -cn dsp_vec0g_4 $OPTIONS -vec -lv 0 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_4.h"
         faust -cn dsp_vec0g_8 $OPTIONS -vec -lv 0 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_8.h"
