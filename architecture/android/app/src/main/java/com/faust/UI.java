@@ -418,57 +418,81 @@ public class UI {
 		}
 		for (int i = 0; i < parameterNumber; i++) {
 			if (parametersInfo.parameterType[i] == 0) {       //0: hslider
-				//if(isSavedParameters){
-					FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[0]].address, parametersInfo.values[i]);
-				//}
-				//else {
-					hsliders[parametersCounters[0]].setValue(FaustActivity.dspFaust.getParamValue(hsliders[parametersCounters[0]].address));
-				//}
+
+				hsliders[parametersCounters[0]].setValue(FaustActivity.dspFaust.getParamValue(hsliders[parametersCounters[0]].address));
 				parametersCounters[0]++;
 			}
 			else if (parametersInfo.parameterType[i] == 1) {  //1: vslider
-				//if(isSavedParameters){
-					FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[1]].address, parametersInfo.values[i]);
-				//}
-				//else {
-					vsliders[parametersCounters[1]].setValue(FaustActivity.dspFaust.getParamValue(vsliders[parametersCounters[1]].address));
-				//}
+
+				vsliders[parametersCounters[1]].setValue(FaustActivity.dspFaust.getParamValue(vsliders[parametersCounters[1]].address));
 				parametersCounters[1]++;
 			}
 			else if (parametersInfo.parameterType[i] == 2) {  //2 : knob
-				//if(isSavedParameters){
-					FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[2]].address, parametersInfo.values[i]);
-				//}
-				//else {
-					knobs[parametersCounters[2]].setValue(FaustActivity.dspFaust.getParamValue(knobs[parametersCounters[2]].address));
-				//}
+
+				knobs[parametersCounters[2]].setValue(FaustActivity.dspFaust.getParamValue(knobs[parametersCounters[2]].address));
 
 				parametersCounters[2]++;
 			}
 			else if (parametersInfo.parameterType[i] == 3) {  //3 : nentry
-				//if(isSavedParameters){
-					FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[3]].address, parametersInfo.values[i]);
-				//}
-				//else {
-					nentries[parametersCounters[3]].setValue(FaustActivity.dspFaust.getParamValue(nentries[parametersCounters[3]].address));
-				//}
+
+				nentries[parametersCounters[3]].setValue(FaustActivity.dspFaust.getParamValue(nentries[parametersCounters[3]].address));
 				parametersCounters[3]++;
 			}
-            else if (parametersInfo.parameterType[i] == 9) {  //9 : hbargraph
-				//if(isSavedParameters){
-					FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[9]].address, parametersInfo.values[i]);
-				//}
-				//else {
-					bargraphs[parametersCounters[9]].setValue(FaustActivity.dspFaust.getParamValue(bargraphs[parametersCounters[9]].address));
-				//}
-                parametersCounters[9]++;
+			else if (parametersInfo.parameterType[i] == 9) {  //9 : hbargraph
+
+				bargraphs[parametersCounters[9]].setValue(FaustActivity.dspFaust.getParamValue(bargraphs[parametersCounters[9]].address));
+				parametersCounters[9]++;
 
 
-            }
+			}
 		}
 		// Other parameters are ignored because they are not continuous
 	}
 
+	public void reloadUIstate() {
+		for (int i = 0; i < 10; i++){
+			parametersCounters[i] = 0;
+		}
+		for (int i = 0; i < parameterNumber; i++) {
+			if (parametersInfo.parameterType[i] == 0) {       //0: hslider
+
+				FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[0]].address, parametersInfo.values[i]);
+				hsliders[parametersCounters[0]].setValue(FaustActivity.dspFaust.getParamValue(hsliders[parametersCounters[0]].address));
+
+				parametersCounters[0]++;
+			}
+			else if (parametersInfo.parameterType[i] == 1) {  //1: vslider
+
+				FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[1]].address, parametersInfo.values[i]);
+				vsliders[parametersCounters[1]].setValue(FaustActivity.dspFaust.getParamValue(vsliders[parametersCounters[1]].address));
+				parametersCounters[1]++;
+			}
+			else if (parametersInfo.parameterType[i] == 2) {  //2 : knob
+
+				FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[2]].address, parametersInfo.values[i]);
+				knobs[parametersCounters[2]].setValue(FaustActivity.dspFaust.getParamValue(knobs[parametersCounters[2]].address));
+
+				parametersCounters[2]++;
+			}
+			else if (parametersInfo.parameterType[i] == 3) {  //3 : nentry
+
+				FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[3]].address, parametersInfo.values[i]);
+				nentries[parametersCounters[3]].setValue(FaustActivity.dspFaust.getParamValue(nentries[parametersCounters[3]].address));
+				parametersCounters[3]++;
+			}
+			else if (parametersInfo.parameterType[i] == 9) {  //9 : hbargraph
+
+				FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[9]].address, parametersInfo.values[i]);
+				bargraphs[parametersCounters[9]].setValue(FaustActivity.dspFaust.getParamValue(bargraphs[parametersCounters[9]].address));
+
+				parametersCounters[9]++;
+
+
+			}
+		}
+		// Other parameters are ignored because they are not continuous
+	}
+	
 	public void initUIstate() {
 		for (int i = 0; i < 10; i++){
 			parametersCounters[i] = 0;

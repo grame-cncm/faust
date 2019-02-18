@@ -433,7 +433,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             if (!isChangingConfigurations()) {
                 dspFaust.start();
             }
-            ui.updateUIstate();
+            ui.reloadUIstate();
             mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
                     Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
             mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
