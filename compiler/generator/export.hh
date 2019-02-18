@@ -22,7 +22,7 @@
 #ifndef __export__
 #define __export__
 
-#define FAUSTVERSION "2.15.5"
+#define FAUSTVERSION "2.15.6"
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)

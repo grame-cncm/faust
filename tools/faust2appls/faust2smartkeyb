@@ -64,7 +64,7 @@ while [ $1 ]
 do
 	p=$1
 
-    if [ $p = "-help" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
 		echoHelp
 		exit 0
     elif [[ -f "$p" ]]; then

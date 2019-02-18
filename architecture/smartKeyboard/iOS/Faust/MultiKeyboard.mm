@@ -19,6 +19,7 @@
 
 #import "MultiKeyboard.h"
 #include <string>
+#include <assert.h>
 
 // Accelerometer useful parameters
 #define kMotionUpdateRate 30
@@ -281,6 +282,7 @@
     // case where no pitch keyboard is on: we trigger the main voice on startup
     if([keyboardParameters[@"Max Keyboard Polyphony"] intValue] == 0){
         voices[0] = faustDsp->newVoice();
+        assert(voices[0]);
     }
 
     [self resetDspToDefault];
@@ -653,6 +655,7 @@
         if([keyboardParameters[@"Max Keyboard Polyphony"] intValue] > 0){
             // allocating new voice to finger
             voices[fingerId] = faustDsp->newVoice();
+            assert(voices[fingerId]);
         }
         else {
             voices[fingerId] = voices[0];
