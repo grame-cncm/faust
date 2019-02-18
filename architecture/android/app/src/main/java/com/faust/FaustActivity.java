@@ -341,10 +341,8 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
 
             if (OSCisOn) {
                 menu.getItem(5).setVisible(true);
-                menu.getItem(6).setVisible(true);
             } else {
                 menu.getItem(5).setVisible(false);
-                menu.getItem(6).setVisible(false);
             }
             return super.onCreateOptionsMenu(menu);
         } else {
@@ -388,6 +386,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             case R.id.action_reset:
                 parametersInfo.saved = 0;
                 recreate();
+                ui.settingWindow.initOSC(parametersInfo);
                 return true;
             case R.id.action_lock:
             	if (parametersInfo.locked) {
@@ -403,13 +402,6 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             case R.id.action_settings:
                     Log.d("FaustJava", "OSC setting");
                     ui.settingWindow.showWindow(parametersInfo);
-                return true;
-            case R.id.action_init:
-                Log.d("FaustJava", "Init setting");
-                parametersInfo.saved = 0;
-                recreate();
-                ui.initUIstate();
-                ui.settingWindow.initOSC(parametersInfo);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
