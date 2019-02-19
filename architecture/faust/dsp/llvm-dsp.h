@@ -359,10 +359,10 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code - the machine code string
- * @param error_msg - the error string to be filled
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
@@ -387,10 +387,10 @@ std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::strin
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code_path - the machine code file pathname
- * @param error_msg - the error string to be filled
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */

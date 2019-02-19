@@ -61,8 +61,7 @@ int main(int argc, char* argv[])
     
     cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
-        if ((string(argv[i]) == "-llvm")
-            || (string(argv[i]) == "-interp")) {
+        if ((string(argv[i]) == "-llvm") || (string(argv[i]) == "-interp")) {
             continue;
         }
         argv1[argc1++] = argv[i];
