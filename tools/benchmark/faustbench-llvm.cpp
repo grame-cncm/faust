@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
                 exit(EXIT_FAILURE);
             }
             
-            measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of  measure
+            measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
             for (int i = 0; i < run; i++) {
                 mes.measure();
                 if (is_trace) cout << argv[argc-1] << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;

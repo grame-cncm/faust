@@ -31,9 +31,6 @@
 #include <string.h>
 #include <jack/jack.h>
 #include <jack/midiport.h>
-#ifdef JACK_IOS
-#include <jack/custom.h>
-#endif
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-adapter.h"
@@ -64,8 +61,6 @@ class jackaudio : public audio {
         std::vector<char*> fPhysicalInputs;
         std::vector<char*> fPhysicalOutputs;
     
-        void*           fIconData;          // iOS specific
-        int             fIconSize;          // iOS specific
         bool            fAutoConnect;       // autoconnect with system in/out ports
 
         std::list<std::pair<std::string, std::string> > fConnections;		// Connections list
@@ -197,18 +192,9 @@ class jackaudio : public audio {
  
     public:
 
-        jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
+        jackaudio(bool auto_connect = true)
             : fDSP(0), fClient(0), fAutoConnect(auto_connect)
-        {
-            if (icon_data) {
-                fIconData = malloc(icon_size);
-                fIconSize = icon_size;
-                memcpy(fIconData, icon_data, icon_size);
-            } else {
-                fIconData = NULL;
-                fIconSize = 0;
-            }
-        }
+        {}
 
         virtual ~jackaudio()
         {
@@ -222,10 +208,6 @@ class jackaudio : public audio {
                     jack_port_unregister(fClient, fOutputPorts[i]);
                 }
                 jack_client_close(fClient);
-
-                if (fIconData) {
-                    free(fIconData);
-                }
             }
         }
 
@@ -245,10 +227,7 @@ class jackaudio : public audio {
                 fprintf(stderr, "JACK server not running ?\n");
                 return false;
             }
-        #ifdef JACK_IOS
-            jack_custom_publish_data(fClient, "icon.png", fIconData, fIconSize);
-        #endif
-
+      
         #ifdef _OPENMP
             jack_set_process_thread(fClient, _jack_thread, this);
         #else
@@ -541,8 +520,8 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
 
     public:
 
-        jackaudio_midi(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
-            :jackaudio(icon_data, icon_size, auto_connect), jack_midi_handler("JACKMidi"),
+        jackaudio_midi(bool auto_connect = true)
+            :jackaudio(auto_connect), jack_midi_handler("JACKMidi"),
             fInputMidiPort(0), fOutputMidiPort(0)
         {}
 

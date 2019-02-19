@@ -158,6 +158,14 @@ class MapUI : public UI, public PathBuilder
             while (it++ != fPathZoneMap.end());
             return "";
         }
+    
+        static bool endsWith(std::string const& str, std::string const& end)
+        {
+            size_t l1 = str.length();
+            size_t l2 = end.length();
+            return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
+        }
 };
+
 
 #endif // FAUST_MAPUI_H

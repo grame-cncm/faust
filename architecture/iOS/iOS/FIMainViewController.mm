@@ -115,17 +115,6 @@ int uiCocoaItem::gItemCount = 0;
     [super loadView];
 }
 
-#ifdef JACK_IOS
-
-static void jack_shutdown_callback(const char* message, void* arg)
-{
-    FIMainViewController* self = (FIMainViewController*)arg;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self closeJack :message];
-    });
-}
-#endif
-
 - (void)viewDidLoad
 {
     // General UI initializations
@@ -300,117 +289,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
     if (_assignatedWidgets.size() > 0 || uiinterface->isScreenUI()) [self startMotion];
-
-#ifdef JACK_IOS
-    // Test Jack
-    _swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(openJackView)];
-    _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionUp;
-    _swipeRecognizer.numberOfTouchesRequired = 3;
-    [_dspScrollView addGestureRecognizer:_swipeRecognizer];
-    
-    _tapRecognizerToDismissJackView = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closeJackView)];
-    _tapRecognizerToDismissJackView.numberOfTapsRequired = 1;
-    _tapRecognizerToDismissJackView.numberOfTouchesRequired = 1;
-    [_dspScrollView addGestureRecognizer:_tapRecognizerToDismissJackView];
-    
-    _jackButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_jackButton setImage:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Icon-Jack" ofType:@"png"]]
-                 forState:UIControlStateNormal];
-    [_jackButton addTarget:self action:@selector(openJackView) forControlEvents:UIControlEventTouchUpInside];
-
-    _jackButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin & UIViewAutoresizingFlexibleTopMargin;
-    [self.view addSubview:_jackButton];
-    
-    [self.view bringSubviewToFront:_widgetPreferencesView];
-    
-    _jackView = nil;
-    _orientationIsChanging = NO;
-#endif
 }
-
-#ifdef JACK_IOS
-
-- (BOOL)checkJack
-{
-    jackaudio audio;
-    
-    if (audio.init("dummy", &DSP)) {
-        audio.stop();
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
-- (BOOL)openJack
-{
-    if (!audio_device) {
-        
-        NSString* iconFile;
-        if (DSP->getNumInputs() > 0 && DSP->getNumOutputs() > 0) {
-            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Fx136" ofType:@"png"];
-        } else if (DSP->getNumOutputs() > 0) {
-            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Output136" ofType:@"png"];
-        } else {
-            iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Analyzer136" ofType:@"png"];
-        }
-        NSFileHandle* fileHandle = [NSFileHandle fileHandleForReadingAtPath:iconFile];
-        NSData* data = [fileHandle readDataToEndOfFile];
-        const void* icon_data = [data bytes];
-        const size_t size = [data length];
-        NSLog(@"publishAppIcon rawDataSize = %ld", size);
-        [fileHandle closeFile];
-        
-        audio_device = new jackaudio(icon_data, size, true);
-        if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
-            printf("Cannot connect to JACK server\n");
-            goto error;
-        }
-        
-        if (audio_device->start() < 0) {
-            printf("Cannot start JACK client\n");
-            goto error;
-        }
-    }
-    
-    audio_device->setShutdownCb(jack_shutdown_callback, self);
-    return TRUE;
-    
-error:
-    
-    UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio warning"
-                                                        message:@"JACK server is not running !" delegate:self
-                                              cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    [alertView show];
-    [alertView release];
-    
-    [self closeAudio];
-    return FALSE;
-}
-
-// Save widgets values
-- (void)closeJack:(const char*)reason 
-{
-    NSString* errorString = [[NSString alloc] initWithCString:reason encoding:NSASCIIStringEncoding];
-    
-    if ([errorString compare:@"Client closed from JACK server!"] != NSOrderedSame)
-    {
-        UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Audio error"
-                                                            message:errorString delegate:self
-                                                            cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        [alertView show];
-        [alertView release];
-    }
-
-    [self closeAudio];
-}
-
-- (BOOL)isJackAudio
-{
-    return (dynamic_cast<jackaudio*>(audio_device) != NULL);
-}
-
-#endif
 
 - (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate
 {
@@ -442,28 +321,10 @@ error:
     return FALSE;
 }
 
-#ifdef JACK_IOS
-
-- (void)openAudio
-{
-    // If CA audio running and JACK server running, will switch to JACK
-    if (audio_device && dynamic_cast<iosaudio*>(audio_device) && [self checkJack]) {
-        [self closeAudio];
-    }
-    
-    if (![self openJack]) {
-        [self openCoreAudio:bufferSize :sample_rate];
-    }
-}
-
-#else
-
 - (void)openAudio
 {
     [self openCoreAudio:buffer_size :sample_rate];
 }
-
-#endif
 
 - (void)closeAudio
 {
@@ -552,11 +413,6 @@ error:
     [_refreshTimer invalidate];
     [self stopMotion];
 
-#ifdef JACK_IOS
-    // Test Jack
-    [_swipeRecognizer release];
-#endif
-    
     [_curveSegmentedControl release];
     [_minText release];
     [_maxText release];
@@ -724,15 +580,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         return;
     }
     
-#ifdef JACK_IOS
-    _orientationIsChanging = YES;
-#endif
-    
     [self updateGui];
-    
-#ifdef JACK_IOS
-    _orientationIsChanging = NO;
-#endif
     
     // Compute layout
     if (deviceOrientation == UIDeviceOrientationPortrait
@@ -827,14 +675,6 @@ T findCorrespondingUiItem(FIResponder* sender)
             // TO min/mid/max
         }
     }
-
-#ifdef JACK_IOS    
-    // Test Jack
-    if ([self isJackAudio])
-    {
-        [self performSelector:@selector(autoResizeJackViews) withObject:nil afterDelay:0.1];
-    }
-#endif
 }
 
 // Locked box : box currently zoomed in
@@ -957,11 +797,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-#ifdef JACK_IOS
-    [self closeJackView];
-#endif
-}
+{}
 
 // Function called just after scroll view scrolled
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
@@ -982,11 +818,6 @@ T findCorrespondingUiItem(FIResponder* sender)
 // User just double tapped somewhere in the DSP view
 - (void)doubleTap
 {
-#ifdef JACK_IOS
-    // Test Jack
-    [self closeJackView];
-#endif
-    
     uiBox* tapedBox = uiinterface->getBoxForPoint([_tapGesture locationInView:_dspView]);
 
     // Avoid a strange bug
@@ -1277,10 +1108,6 @@ static inline const char* transmit_value(int num)
     [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];	
     
     [[_dspView.window layer] addAnimation:animation forKey:@"ShowWidgetPreferences"];
- 
-#ifdef JACK_IOS
-    [self closeJackView];
-#endif
 }
 
 // Display right values for parameters
@@ -1799,102 +1626,4 @@ static inline const char* transmit_value(int num)
     return result;
 }
 
-#ifdef JACK_IOS
-// Test Jack
-- (void)openJackView
-{
-    if (_jackView) return;
-    
-    // Construct view
-    _jackView = [[JackView alloc] initWithFrame:CGRectMake(0,
-                                                           _dspScrollView.frame.size.height,
-                                                           _dspScrollView.frame.size.width,
-                                                           kJackViewHeight)];
-    _jackView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    
-    // Load client in view
-    [_jackView loadJackClient:dynamic_cast<jackaudio*>(audio_device)->get_client()];
-    
-    // Insert view in super view
-    [_dspScrollView.superview addSubview:_jackView];
-    
-    // Gesture recognizers
-    [_swipeRecognizer removeTarget:self action:@selector(openJackView)];
-    [_swipeRecognizer addTarget:self action:@selector(closeJackView)];
-    _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionDown;
-    
-    // Animation
-    [UIView animateWithDuration:kJackViewAnimationDuration
-                    delay:0.0
-                    options:UIViewAnimationOptionCurveLinear
-                    animations:^
-     {
-         [_jackView setFrame:CGRectMake(0,
-                                        _dspScrollView.frame.size.height - kJackViewHeight + 44,
-                                        _dspScrollView.frame.size.width,
-                                        kJackViewHeight)];
-     }
-                     completion:^(BOOL finished)
-     {
-     }];
-}
-
-- (void)closeJackView
-{
-    if (!_jackView) return;
-    
-    // Gesture recognizers
-    [_swipeRecognizer removeTarget:self action:@selector(closeJackView)];
-    [_swipeRecognizer addTarget:self action:@selector(openJackView)];
-    _swipeRecognizer.direction = UISwipeGestureRecognizerDirectionUp;
-        
-    // Animation
-    [UIView animateWithDuration:kJackViewAnimationDuration
-                          delay:0.0
-                        options:UIViewAnimationOptionCurveLinear
-                     animations:^
-     {
-         [_jackView setFrame:CGRectMake(0,
-                                        _dspScrollView.frame.size.height + 44,
-                                        _dspScrollView.frame.size.width,
-                                        kJackViewHeight)];
-     }
-                     completion:^(BOOL finished)
-     {
-         [_jackView removeFromSuperview];
-         [_jackView release];
-         _jackView = nil;
-     }];
-}
-
-- (void)autoResizeJackViews
-{
-    if (_jackView)
-    {
-        [_jackView setFrame:CGRectMake(0,
-                                       _dspScrollView.frame.size.height - kJackViewHeight + 44,
-                                       _dspScrollView.frame.size.width,
-                                       kJackViewHeight)];
-    }
-    
-    if (_jackButton)
-    {
-        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
-        {
-            [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 50,
-                                             _dspScrollView.frame.size.height,
-                                             70,
-                                             32)];
-        }
-        else
-        {
-            [_jackButton setFrame:CGRectMake(_dspScrollView.frame.size.width - 70 - 10,
-                                             _dspScrollView.frame.size.height,
-                                             70,
-                                             32)];
-        }
-    }
-}
-
-#endif
 @end

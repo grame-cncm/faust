@@ -35,6 +35,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/MapUI.h"
 #include "faust/midi/midi.h"
 #include "faust/gui/ValueConverter.h"
 
@@ -64,10 +65,10 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
         }
     }
     
-    static void analyse(dsp* tmp_dsp, bool& midi_sync, int& nvoices)
+    static void analyse(dsp* mono_dsp, bool& midi_sync, int& nvoices)
     {
         JSONUI jsonui;
-        tmp_dsp->buildUserInterface(&jsonui);
+        mono_dsp->buildUserInterface(&jsonui);
         std::string json = jsonui.JSON();
         midi_sync = ((json.find("midi") != std::string::npos) &&
                      ((json.find("start") != std::string::npos) ||
@@ -79,12 +80,29 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
         nvoices = NVOICES;
     #else
         MidiMeta meta;
-        tmp_dsp->metadata(&meta);
+        mono_dsp->metadata(&meta);
         std::string numVoices = meta.get("nvoices", "0");
         nvoices = std::atoi(numVoices.c_str());
         if (nvoices < 0) nvoices = 0;
     #endif
     }
+    
+    static bool checkPolyphony(dsp* mono_dsp)
+    {
+        MapUI map_ui;
+        mono_dsp->buildUserInterface(&map_ui);
+        bool has_freq = false;
+        bool has_gate = false;
+        bool has_gain = false;
+        for (int i = 0; i < map_ui.getParamsCount(); i++) {
+            std::string path = map_ui.getParamAddress(i);
+            has_freq |= MapUI::endsWith(path, "/freq");
+            has_gate |= MapUI::endsWith(path, "/gate");
+            has_gain |= MapUI::endsWith(path, "/gain");
+        }
+        return (has_freq && has_gate && has_gain);
+    }
+    
 };
 
 /*******************************************************************************

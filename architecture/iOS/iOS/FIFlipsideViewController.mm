@@ -96,14 +96,6 @@
     _oscOutputPort.keyboardType = UIKeyboardTypeNumberPad;
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
-    
-#ifdef JACK_IOS
-    // Test Jack
-    if ([((FIMainViewController*)self.delegate) isJackAudio])
-    {
-        [self disableAudioWidgets];
-    }
-#endif
 }
 
 - (void)viewDidUnload

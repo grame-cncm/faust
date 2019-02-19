@@ -180,7 +180,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             FAUSTFLOAT* zone = fZone[p];
             for (size_t i = 0; i < table[val].size(); i++) {
-                if (zone == table[val][i]->getZone()) return i;
+                if (zone == table[val][i]->getZone()) return int(i);
             }
             return -1;
         }
