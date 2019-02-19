@@ -2,11 +2,17 @@
 
 Several programs and tools are available to test the dynamic compilation chain, benchmark and trace the compiled programs. 
 
+## dynamic-faust
+
+The **dynamic-faust** tool uses the dynamic compilation chain, and compiles a Faust DSP source to a machine code (.mc) output file when using the LLVM backend, or byte code (.bc) output file when using the Interpreter backend.
+
+`dynamic-faust [-llvm/interp] [additional Faust options (-vec -vs 8...)] foo.dsp`
+
 ## dynamic-jack-gtk
 
-The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend.
+The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend. It can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.bc) when using the Interpreter backend.
 
-`dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp`
+`dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
 
 Here are the available options:
 
@@ -33,7 +39,6 @@ Here are the available options:
 - `-httpd to activate HTTPD control`
 
 Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
-
 
 ## interp-tracer
 
