@@ -32,7 +32,7 @@ template <typename T>
 static void bench(dsp_optimizer<T> optimizer, const string& name, bool trace)
 {
     pair<double, vector<std::string> > res = optimizer.findOptimizedParameters();
-    if (trace) cout << "Best value is for '" << name << "' is : " << res.first << " with ";
+    if (trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
     for (int i = 0; i < res.second.size(); i++) {
         cout << res.second[i] << " ";
     }
@@ -63,14 +63,12 @@ int main(int argc, char* argv[])
     bool is_trace = !isopt(argv, "-notrace");
     bool is_single = isopt(argv, "-single");
     bool is_generic = isopt(argv, "-generic");
-    
     int run = lopt(argv, "-run", 1);
-    
     int buffer_size = 1024;
     
     if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
     
-    // Possiby activate 'generic' generation mode
+    // Possibly activate 'generic' generation mode
     string target;
     if (is_generic) {
         string triple, cpu;
@@ -104,12 +102,14 @@ int main(int argc, char* argv[])
     argv1[argc1] = 0;  // NULL terminated argv
     
     //FAUSTBENCH_LOG<string>("faustbench LLVM");
+    
+    string in_filename = argv[argc-1];
    
     try {
         if (is_single) {
             string error_msg;
             
-            dsp_factory* factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+            dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, -1);
             if (!factory) {
                 cerr << "Cannot create factory : " << error_msg;
                 exit(EXIT_FAILURE);
@@ -124,15 +124,15 @@ int main(int argc, char* argv[])
             measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
             for (int i = 0; i < run; i++) {
                 mes.measure();
-                if (is_trace) cout << argv[argc-1] << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+                if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
                 FAUSTBENCH_LOG<double>(mes.getStats());
             }
 
         } else {
             if (is_double) {
-                bench(dsp_optimizer<double>(argv[argc-1], argc1, argv1, target, buffer_size, run, -1, is_trace), argv[argc-1], is_trace);
+                bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace), in_filename, is_trace);
             } else {
-                bench(dsp_optimizer<float>(argv[argc-1], argc1, argv1, target, buffer_size, run, -1, is_trace), argv[argc-1], is_trace);
+                bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace), in_filename, is_trace);
             }
         }
     } catch (...) {}

@@ -27,33 +27,58 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/dsp-optimizer.h"
 #include "faust/misc.h"
 
 using namespace std;
 
+static bool endWith(const string& str, const string& suffix)
+{
+    size_t i = str.rfind(suffix);
+    return (i != string::npos) && (i == (str.length() - suffix.length()));
+}
+
+static void splitTarget(const string& target, string& triple, string& cpu)
+{
+    size_t pos1 = target.find_first_of(':');
+    triple = target.substr(0, pos1);
+    if (pos1 != string::npos) {
+        cpu = target.substr(pos1 + 1);
+    }
+}
+
+template <typename T>
+static vector<string> bench(dsp_optimizer<T> optimizer, const string& name)
+{
+    pair<double, vector<std::string> > res = optimizer.findOptimizedParameters();
+    return res.second;
+}
+
 int main(int argc, char* argv[])
 {
-    char name[256];
-    char filename[256];
-    char* home = getenv("HOME");
-    
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(filename, 255, "%s", basename(argv[argc-1]));
-    
-    bool is_llvm = isopt(argv, "-llvm");
-    bool is_interp = isopt(argv, "-interp");
-    
-    if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-faust [-llvm/interp] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
-        cout << "Use '-llvm' to use LLVM backend\n";
-        cout << "Use '-interp' to use Interpreter backend\n";
-        exit(EXIT_FAILURE);
+    if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
+        cout << "dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "Use '-target xxx' to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')\n";
+        cout << "Use '-opt (native|generic)' to discover and compile with the optimal compilation parameters\n";
+        cout << "Use '-o foo.ll' to generate a LLVM IR textual file\n";
+        cout << "Use '-o foo.bc' to generate a LLVM bitcode file\n";
+        cout << "Use '-o foo.mc' to generate a LLVM machine code file\n";
+        cout << "Use '-o foo.o' to generate a LLVM object code file\n";
+        return 0;
     }
     
+    string target = lopts(argv, "-target", "");
+    bool is_opt = isopt(argv, "-opt");
+    string opt = lopts(argv, "-opt", "generic");
+    bool is_double = isopt(argv, "-double");
+    
+    string in_filename = "";
+    string out_filename = "";
     string error_msg;
+    
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
     int argc1 = 0;
@@ -61,46 +86,95 @@ int main(int argc, char* argv[])
     
     cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
-        if ((string(argv[i]) == "-llvm") || (string(argv[i]) == "-interp")) {
+        if ((string(argv[i]) == "-target") || string(argv[i]) == "-opt"){
+            i++;
+            continue;
+        } else if (endWith(string(argv[i]), ".dsp")) {
+            in_filename = argv[i];
+            continue;
+        } else if (string(argv[i]) == "-o") {
+            out_filename = argv[i+1];
+            i++;
             continue;
         }
         argv1[argc1++] = argv[i];
         cout << argv[i] << " ";
     }
     cout << endl;
-    
+
     argv1[argc1] = 0;  // NULL terminated argv
     
-    if (is_llvm) {
-        cout << "Using LLVM backend" << endl;
-        // argc : without the filename (last element);
-        llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+    if (out_filename == "") {
+        cerr << "ERROR : no output file given...\n";
+        exit(EXIT_FAILURE);
+    }
+  
+    string optimal;
+    string opt_target;
+    vector<string> optimal_options;
+    
+    if (is_opt) {
         
-        if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
-            exit(EXIT_FAILURE);
-        }
-        // Write machine code file
-        writeDSPFactoryToMachineFile(factory, string(argv[argc-1]) + ".mc", "");
-        
-        deleteDSPFactory(factory);
-        
-    } else {
-        cout << "Using interpreter backend" << endl;
-        // argc : without the filename (last element);
-        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
-        
-        if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
-            exit(EXIT_FAILURE);
+        if (opt == "generic") {
+            string triple, cpu;
+            splitTarget(getDSPMachineTarget(), triple, cpu);
+            opt_target = triple + ":generic";
+            cout << "Using 'generic' mode\n";
+        } else {
+            cout << "Using 'native' mode\n";
         }
         
-        // Write byte code file
-        writeInterpreterDSPFactoryToBitcodeFile(factory, string(argv[argc-1]) + ".fbc");
+        cout << "Looking for optimal parameters... \n";
+        int buffer_size = 512;
         
-        deleteInterpreterDSPFactory(factory);
+        if (is_double) {
+            optimal_options = bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+        } else {
+            optimal_options = bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+        }
+        
+        cout << "Compiled with optimal options : ";
+        for (int i = 0; i < optimal_options.size(); i++) {
+            argv1[argc1++] = optimal_options[i].c_str();
+            cout << optimal_options[i] << " ";
+        }
+        cout << endl;
     }
     
+    // Create factory
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, -1);
+    if (!factory) {
+        cerr << "ERROR : cannot create factory : " << error_msg;
+        exit(EXIT_FAILURE);
+    }
+    
+    // Save it
+    if (endWith(out_filename, ".ll")) {
+        if (!writeDSPFactoryToIRFile(factory, out_filename)) {
+            cerr << "ERROR : writeDSPFactoryToIRFile...\n";
+            exit(EXIT_FAILURE);
+        }
+    } else if (endWith(out_filename, ".bc")) {
+        if (!writeDSPFactoryToBitcodeFile(factory, out_filename)) {
+            cerr << "ERROR : writeDSPFactoryToBitcodeFile...\n";
+            exit(EXIT_FAILURE);
+        }
+    } else if (endWith(out_filename, ".mc")) {
+        if (!writeDSPFactoryToMachineFile(factory, out_filename, "")) {
+            cerr << "ERROR : writeDSPFactoryToMachineFile...\n";
+            exit(EXIT_FAILURE);
+        }
+    } else if (endWith(out_filename, ".o")) {
+        if (!writeDSPFactoryToObjectcodeFile(factory, out_filename, "")) {
+            cerr << "ERROR : writeDSPFactoryToObjectcodeFile...\n";
+            exit(EXIT_FAILURE);
+        }
+    } else  {
+        cerr << "ERROR : unrognized file extension " << out_filename << "\n";
+        exit(EXIT_FAILURE);
+    }
+     
+    deleteDSPFactory(factory);
     return 0;
 }
 

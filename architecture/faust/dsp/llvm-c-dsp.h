@@ -279,8 +279,9 @@ extern "C"
      * @param factory - the Faust DSP factory
      * @param bit_code_path - the LLVM bitcode file pathname
      *
+     * @return true on success, false on failure.
      */
-    void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
+    bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
     
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
@@ -334,8 +335,9 @@ extern "C"
      * @param factory - the Faust DSP factory
      * @param ir_code_path - the LLVM bitcode file pathname.
      *
+     * @return true on success, false on failure.
      */
-    void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
+    bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
     
     /**
      * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
@@ -390,8 +392,9 @@ extern "C"
      *                 using an empty string takes the current machine settings,
      *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
      *
+     * @return true on success, false on failure.
      */
-    void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+    bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
     
     /**
      * Instance functions.

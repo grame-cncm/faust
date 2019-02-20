@@ -1,4 +1,4 @@
-% man(1) Version 2.15.0 (1 February 2019) | Faust man page
+% man(1) Version 2.15.7 (21 February 2019) | Faust man page
 
 NAME
 ====
@@ -196,7 +196,7 @@ faust **-a** jack-gtk.cpp -o myfx.cpp myfx.dsp
 SEE ALSO
 ========
 
-Grame Faust site at: **<http://faust.grame.fr>**
+Grame Faust site at: **<https://faust.grame.fr>**
 
 BUGS
 ====

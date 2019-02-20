@@ -73,7 +73,9 @@ int main(int argc, char* argv[])
         string error_msg;
         // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
         stringstream str; str << "/var/tmp/llvm-factory" << factory << ".bc";
-        writeDSPFactoryToBitcodeFile(factory, str.str());
+        if (!writeDSPFactoryToBitcodeFile(factory, str.str())) {
+             cerr << "ERROR in writeDSPFactoryToBitcodeFile \n";
+        }
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromBitcodeFile(str.str(), "", error_msg);
         
@@ -128,7 +130,9 @@ int main(int argc, char* argv[])
         string error_msg;
         // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
         stringstream str; str << "/var/tmp/llvm-factory" << factory << ".ll";
-        writeDSPFactoryToIRFile(factory, str.str());
+        if (!writeDSPFactoryToIRFile(factory, str.str())) {
+            cerr << "ERROR in writeDSPFactoryToIRFile \n";
+        }
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromIRFile(str.str(), "", error_msg);
         
@@ -183,7 +187,9 @@ int main(int argc, char* argv[])
         string error_msg;
         // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
         string machine_file_name = "/var/tmp/" + string(argv[1]) + "-llvm-factory-machine";
-        writeDSPFactoryToMachineFile(factory, machine_file_name, "");
+        if (!writeDSPFactoryToMachineFile(factory, machine_file_name, "")) {
+            cerr << "ERROR in writeDSPFactoryToMachineFile \n";
+        }
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromMachineFile(machine_file_name, "", error_msg);
         

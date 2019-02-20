@@ -2,7 +2,7 @@
 SEE ALSO
 ========
 
-Grame Faust site at: **<http://faust.grame.fr>**
+Grame Faust site at: **<https://faust.grame.fr>**
 
 BUGS
 ====

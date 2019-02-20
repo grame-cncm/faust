@@ -534,9 +534,9 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
         return fObjectCache->getMachineCode();
     } else {
         string old_target = getTarget();
-        if (crossCompile(target)) {  // Recompilation is required
+        if (crossCompile(target)) {     // Recompilation is required
             string machine_code = fObjectCache->getMachineCode();
-            crossCompile(old_target);  // Restore old target
+            crossCompile(old_target);   // Restore old target
             return machine_code;
         } else {
             return "";
@@ -553,13 +553,18 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachine(const string& target)
     return base64_encode(writeDSPFactoryToMachineAux(target));
 }
 
-void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target)
+bool llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target)
 {
 #ifndef LLVM_35
-    STREAM_ERROR   err;
+    STREAM_ERROR err;
     raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
+    if (err) {
+        std::cerr << "ERROR : writeDSPFactoryToMachineFile could not open file : " << err.message();
+        return false;
+    }
     out << writeDSPFactoryToMachineAux(target);
     out.flush();
+    return true;
 #else
 #warning "machine code is not supported..."
 #endif
@@ -628,13 +633,17 @@ EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& 
     return factory->writeDSPFactoryToMachine(target);
 }
 
-EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
+EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
                                          const string& target)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    if (factory) {
-        factory->writeDSPFactoryToMachineFile(machine_code_path, target);
-    }
+    return (factory) ? factory->writeDSPFactoryToMachineFile(machine_code_path, target) : false;
+}
+
+EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const std::string& object_code_path, const std::string& target)
+{
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    return (factory) ? factory->writeDSPFactoryToObjectcodeFile(object_code_path, target) : false;
 }
 
 // Instance
@@ -817,11 +826,14 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code
     return factory;
 }
 
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)
+EXPORT bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)
 {
-    if (factory) {
-        writeDSPFactoryToMachineFile(factory, machine_code_path, target);
-    }
+    return (factory) ? writeDSPFactoryToMachineFile(factory, machine_code_path, target) : false;
+}
+    
+EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path, const char* target)
+{
+     return (factory) ? writeDSPFactoryToObjectcodeFile(factory, object_code_path, target) : false;
 }
 
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)

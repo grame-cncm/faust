@@ -4,9 +4,18 @@ Several programs and tools are available to test the dynamic compilation chain, 
 
 ## dynamic-faust
 
-The **dynamic-faust** tool uses the dynamic compilation chain, and compiles a Faust DSP source to a machine code (.mc) output file when using the LLVM backend, or byte code (.bc) output file when using the Interpreter backend.
+The **dynamic-faust** tool uses the dynamic compilation chain, and compiles a Faust DSP source to a LLVM IR (.ll), bicode (.bc), machine code (.mc) or object code (.o) output file.
 
-`dynamic-faust [-llvm/interp] [additional Faust options (-vec -vs 8...)] foo.dsp`
+`dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp`
+
+Here are the available options:
+
+- `-target xxx to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')`
+- `-opt (native|generic) to discover and compile with the best compilation parameters`
+- `-o foo.ll to generate a LLVM IR textual file`
+- `-o foo.bc to generate a LLVM bitcode file`
+- `-o foo.mc to generate a LLVM machine code file`
+- `-o foo.o to generate a LLVM object code file`
 
 ## dynamic-jack-gtk
 

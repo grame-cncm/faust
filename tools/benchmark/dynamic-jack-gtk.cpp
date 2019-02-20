@@ -51,6 +51,8 @@
 #include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 
+#include "faust/dsp/llvm-dsp-adapter.h"
+
 using namespace std;
 
 list<GUI*> GUI::fGuiList;
@@ -201,6 +203,9 @@ int main(int argc, char* argv[])
     
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
+    
+    // For test
+    //DSP = new mydsp();
     
     /*
     measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of  measure

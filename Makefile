@@ -1,4 +1,4 @@
-version := 2.15.6
+version := 2.15.7
 
 system	?= $(shell uname -s)
 
@@ -178,9 +178,6 @@ updatesubmodules :
 
 doclib : updatesubmodules
 	./libraries/generateDoc
-
-#man :
-#	pandoc --standalone --to man compiler/README.md -o faust.1
 
 man :
 	make -C documentation/man man
