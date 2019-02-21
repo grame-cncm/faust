@@ -109,8 +109,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
   
-    string optimal;
-    string opt_target;
+    string opt_target = "";
     vector<string> optimal_options;
     
     if (is_opt) {
@@ -139,10 +138,14 @@ int main(int argc, char* argv[])
             cout << optimal_options[i] << " ";
         }
         cout << endl;
+        
+        // Compilation target is the opt_target
+        target = opt_target;
     }
     
     // Create factory
-    llvm_dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, -1);
+    cout << "Compiled with target : " << target << endl;
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, target, error_msg, -1);
     if (!factory) {
         cerr << "ERROR : cannot create factory : " << error_msg;
         exit(EXIT_FAILURE);

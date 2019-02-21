@@ -608,7 +608,11 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const std:
     legacy::PassManager pass;
     auto FileType = TargetMachine::CGFT_ObjectFile;
     
+#if defined(LLVM_70) || defined(LLVM_80)
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+#else
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, FileType, true)) {
+#endif
         errs() << "ERROR : writeDSPFactoryToObjectcodeFile : can't emit a file of this type";
         return false;
     }
