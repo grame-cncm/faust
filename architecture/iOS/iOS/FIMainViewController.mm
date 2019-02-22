@@ -22,32 +22,16 @@
 
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
-#import "ios-faust.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
 
-#include "faust/dsp/timed-dsp.h"
-#include "faust/gui/JSONUI.h"
-#include "faust/audio/coreaudio-ios-dsp.h"
-
-#if OSCCTRL
-#include "faust/gui/OSCUI.h"
-#endif
-
-#if MIDICTRL
-#include "faust/gui/MidiUI.h"
-#endif
+// faust -i (options) generated file
+#import "ios-faust.h"
 
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
-
 #define kRefreshTimerInterval       0.04
-
 #define ONE_G 9.81
-
-// Test Jack
-#define kJackViewHeight 130
-#define kJackViewAnimationDuration 0.2
 
 #define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
 #define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
@@ -55,16 +39,7 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
-#include "faust/dsp/poly-dsp.h"
-
-#if POLY2
-#include "faust/dsp/dsp-combiner.h"
-#include "effect.h"
-#endif
-
 #if MIDICTRL
-#include "faust/midi/rt-midi.h"
-#include "faust/midi/RtMidi.cpp"
 rt_midi* midi_handler;
 MidiUI* midiinterface = NULL;
 #endif

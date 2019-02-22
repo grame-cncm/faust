@@ -86,7 +86,7 @@ class mydsp : public dsp {
             delete fDecoder;
         }
     
-        virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
+        virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
         
         virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
         

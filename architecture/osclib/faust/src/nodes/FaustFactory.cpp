@@ -25,7 +25,6 @@
 #include <sstream>
 
 #include "faust/osc/FaustFactory.h"
-#include "faust/osc/FaustNode.h"
 #include "faust/osc/MessageDriven.h"
 #include "faust/osc/RootNode.h"
 #include "OSCAddress.h"

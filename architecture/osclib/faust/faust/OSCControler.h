@@ -55,7 +55,7 @@ class OSCControler
 	std::string     fBindAddress;		// when non empty, the address used to bind the socket for listening
 	OSCSetup*		fOsc;				// the network manager (handles the udp sockets)
 	OSCIO*			fIO;				// hack for OSC IO support (actually only relayed to the factory)
-	FaustFactory*	fFactory;			// a factory to build the memory represetnatin
+	FaustFactory*	fFactory;			// a factory to build the memory representation
 
     bool            fInit;
     

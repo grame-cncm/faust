@@ -5,7 +5,7 @@
 // license: "BSD"
 // copyright: "(c)GRAME 2006"
 //
-// Code generated with Faust 0.9.73 (http://faust.grame.fr)
+// Dummmy code
 //----------------------------------------------------------
 
 /* link with  */
@@ -69,8 +69,7 @@
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
-#endif  
-
+#endif
 
 #ifndef FAUSTCLASS
 #define FAUSTCLASS mydsp
@@ -78,45 +77,16 @@
 
 class mydsp : public dsp {
 private:
-    float 	fConst0;
-    float 	fTempPerm0;
-    float 	fRec0[2];
-    FAUSTFLOAT 	fbargraph0;
-    float 	fTempPerm1;
-    float 	fRec1[2];
-    FAUSTFLOAT 	fbargraph1;
-    int fSamplingFreq;
     
 public:
     virtual void metadata(Meta* m) 	{
-        m->declare("name", "vumeter");
-        m->declare("version", "1.0");
-        m->declare("author", "Grame");
-        m->declare("license", "BSD");
-        m->declare("copyright", "(c)GRAME 2006");
-        m->declare("math.lib/name", "Math Library");
-        m->declare("math.lib/author", "GRAME");
-        m->declare("math.lib/copyright", "GRAME");
-        m->declare("math.lib/version", "1.0");
-        m->declare("math.lib/license", "LGPL with exception");
-        m->declare("music.lib/name", "Music Library");
-        m->declare("music.lib/author", "GRAME");
-        m->declare("music.lib/copyright", "GRAME");
-        m->declare("music.lib/version", "1.0");
-        m->declare("music.lib/license", "LGPL with exception");
     }
     
-    virtual int getNumInputs() 	{ return 2; }
-    virtual int getNumOutputs() 	{ return 2; }
+    virtual int getNumInputs() { return -1; }
+    virtual int getNumOutputs() { return -1; }
     static void classInit(int samplingFreq) {
     }
     virtual void instanceInit(int samplingFreq) {
-        fSamplingFreq = samplingFreq;
-        fConst0 = (1.0f / min(1.92e+05f, max(1.0f, (float)fSamplingFreq)));
-        fTempPerm0 = 0;
-        for (int i=0; i<2; i++) fRec0[i] = 0;
-        fTempPerm1 = 0;
-        for (int i=0; i<2; i++) fRec1[i] = 0;
     }
     virtual void init(int samplingFreq) {
         classInit(samplingFreq);
@@ -129,41 +99,11 @@ public:
         return fSamplingFreq;
     }
     virtual void buildUserInterface(UI* interface) {
-        interface->openVerticalBox("0x00");
-        interface->declare(&fbargraph0, "2", "");
-        interface->declare(&fbargraph0, "unit", "dB");
-        interface->addHorizontalBargraph("0x7fdd89d68530", &fbargraph0, -7e+01f, 5.0f);
-        interface->declare(&fbargraph1, "2", "");
-        interface->declare(&fbargraph1, "unit", "dB");
-        interface->addHorizontalBargraph("0x7fdd89d69520", &fbargraph1, -7e+01f, 5.0f);
-        interface->closeBox();
     }
     virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-        //zone1
-        //zone2
-        //zone2b
-        //zone3
-        FAUSTFLOAT* input0 = input[0];
-        FAUSTFLOAT* input1 = input[1];
-        FAUSTFLOAT* output0 = output[0];
-        FAUSTFLOAT* output1 = output[1];
-        //LoopGraphScalar
-        for (int i=0; i<count; i++) {
-            fTempPerm0 = (float)input0[i];
-            fRec0[0] = max((fRec0[1] - fConst0), fabsf(fTempPerm0));
-            fbargraph0 = (20 * log10f(max(0.00031622776f, fRec0[0])));
-            output0[i] = (FAUSTFLOAT)fTempPerm0;
-            fTempPerm1 = (float)input1[i];
-            fRec1[0] = max((fRec1[1] - fConst0), fabsf(fTempPerm1));
-            fbargraph1 = (20 * log10f(max(0.00031622776f, fRec1[0])));
-            output1[i] = (FAUSTFLOAT)fTempPerm1;
-            // post processing
-            fRec1[1] = fRec1[0];
-            fRec0[1] = fRec0[0];
-        }
+    
     }
 };
-
 
 /***************************END USER SECTION ***************************/
 
