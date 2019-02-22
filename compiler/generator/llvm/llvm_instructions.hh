@@ -1025,9 +1025,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 mth_index = fUICallTable["openTabBox"];
                 break;
             default:
-                stringstream error;
-                error << "ERROR : in user interface generation" << inst->fOrient << endl;
-                throw faustexception(error.str());
+                string error = "ERROR : in user interface generation" + to_string(inst->fOrient) + "\n";
+                throw faustexception(error);
         }
 
         Value* idx[2];

@@ -33,7 +33,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup llvmcpp C++ interface for compiling Faust code.
+ \addtogroup llvmcpp C++ interface for reading LLVM machine code.
  @{
  */
  

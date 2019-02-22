@@ -96,6 +96,9 @@ int main(int argc, char* argv[])
             out_filename = argv[i+1];
             i++;
             continue;
+        } else if (string(argv[i]) == "-a") {
+            cerr << "ERROR : -a parameter cannot be used!\n";
+            exit(EXIT_FAILURE);
         }
         argv1[argc1++] = argv[i];
         cout << argv[i] << " ";

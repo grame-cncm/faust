@@ -260,9 +260,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 
         it++;
         Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
-        stringstream  num;
-        num << arg1->fNum;
-        string faust_power_name = name + num.str() + ((result == Typed::kInt32) ? "_i" : "_f");
+        string faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
 
         list<NamedTyped*> named_args;
         named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
@@ -287,9 +285,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
     } else {
         list<NamedTyped*> named_args;
         for (size_t i = 0; i < types.size(); i++) {
-            stringstream num;
-            num << i;
-            named_args.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped(types[i])));
+            named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
         }
         pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         return InstBuilder::genFunCallInst(name, args);

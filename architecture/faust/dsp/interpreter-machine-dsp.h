@@ -30,11 +30,12 @@
 
 #include <string>
 #include <vector>
+
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup interpretercpp C++ interface for compiling Faust code. Note that the API is not thread safe.
+ \addtogroup interpretercpp C++ interface for reading FBC code. Note that the API is not thread safe.
  @{
  */
 

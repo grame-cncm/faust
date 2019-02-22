@@ -23,6 +23,11 @@
 #define LLVM_DSP_ADAPTER_H
 
 #include "faust/gui/CGlue.h"
+#include "faust/gui/JSONUIDecoder.h"
+
+/*
+ Wraps a LLVM module compiled as object code in a 'dsp' class.
+ */
 
 #ifdef __cplusplus
 extern "C"
@@ -52,7 +57,9 @@ extern "C"
     
     void metadatamydsp(MetaGlue* meta);
     
-    void computemydsp(comp_llvm_dsp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    char* getJSONmydsp();
+    
+    void computemydsp(comp_llvm_dsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 #ifdef __cplusplus
 }
@@ -63,19 +70,22 @@ class mydsp : public dsp {
     private:
         
         comp_llvm_dsp* fDSP;
-        bool fIsDouble;
+        JSONUIDecoder* fDecoder;
     
     public:
         
-        mydsp(bool is_double = false):fIsDouble(is_double)
+        mydsp()
         {
             fDSP = newmydsp();
+            fDecoder = new JSONUIDecoder(getJSONmydsp());
         }
         
         virtual ~mydsp()
         {
             deletemydsp(fDSP);
+            delete fDecoder;
         }
+    
         virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
         
         virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
@@ -83,7 +93,7 @@ class mydsp : public dsp {
         virtual void buildUserInterface(UI* ui_interface)
         {
             UIGlue glue;
-            buildUIGlue(&glue, ui_interface, fIsDouble);
+            buildUIGlue(&glue, ui_interface, fDecoder->hasCompileOption("-double"));
             buildUserInterfacemydsp(fDSP, &glue);
         }
         
