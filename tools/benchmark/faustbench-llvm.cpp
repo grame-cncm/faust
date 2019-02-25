@@ -31,7 +31,7 @@ using namespace std;
 template <typename T>
 static void bench(dsp_optimizer<T> optimizer, const string& name, bool trace)
 {
-    pair<double, vector<std::string> > res = optimizer.findOptimizedParameters();
+    pair<double, vector<string> > res = optimizer.findOptimizedParameters();
     if (trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
     for (int i = 0; i < res.second.size(); i++) {
         cout << res.second[i] << " ";
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     int run = lopt(argv, "-run", 1);
     int buffer_size = 1024;
     
-    if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
+    if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
     // Possibly activate 'generic' generation mode
     string target;
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
             }
         }
     } catch (...) {
-        std::cerr << "libfaust error...";
+        cerr << "libfaust error...";
         exit(EXIT_FAILURE);
     }
     

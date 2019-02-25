@@ -53,7 +53,7 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 template <typename T>
 static vector<string> bench(dsp_optimizer<T> optimizer, const string& name)
 {
-    pair<double, vector<std::string> > res = optimizer.findOptimizedParameters();
+    pair<double, vector<string> > res = optimizer.findOptimizedParameters();
     return res.second;
 }
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
                 optimal_options = bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
             }
         } catch (...) {
-            std::cerr << "libfaust error...";
+            cerr << "libfaust error...";
             exit(EXIT_FAILURE);
         }
         
