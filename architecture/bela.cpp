@@ -49,7 +49,6 @@
 #include <cstdlib>
 #include <Bela.h>
 #include <Utilities.h>
-#include "faust/gui/JSONUIDecoder.h"
 
 using namespace std;
 
