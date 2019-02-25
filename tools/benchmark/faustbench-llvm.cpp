@@ -135,7 +135,10 @@ int main(int argc, char* argv[])
                 bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace), in_filename, is_trace);
             }
         }
-    } catch (...) {}
+    } catch (...) {
+        std::cerr << "libfaust error...";
+        exit(EXIT_FAILURE);
+    }
     
   	return 0;
 }

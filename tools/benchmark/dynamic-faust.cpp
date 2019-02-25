@@ -129,10 +129,15 @@ int main(int argc, char* argv[])
         cout << "Looking for optimal parameters... \n";
         int buffer_size = 512;
         
-        if (is_double) {
-            optimal_options = bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
-        } else {
-            optimal_options = bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+        try {
+            if (is_double) {
+                optimal_options = bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+            } else {
+                optimal_options = bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+            }
+        } catch (...) {
+            std::cerr << "libfaust error...";
+            exit(EXIT_FAILURE);
         }
         
         cout << "Compiled with optimal options : ";
