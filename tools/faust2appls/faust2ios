@@ -86,6 +86,12 @@ addOptions ()
 {
     # OSC source always copied in the project
     cp -r $FAUSTLIB/osclib "$T"
+    # FaustNode.h still has a dependency with public Faust headers, create a self-contained version
+    echo "process = !;" >> "$T"/tmp.dsp
+    echo "" >> "$T"/tmp.cpp
+    faust -i -inj "$T"/tmp.cpp -a $FAUSTLIB/osclib/faust/faust/osc/FaustNode.h "$T"/tmp.dsp -o "$T"/osclib/faust/faust/osc/FaustNode.h
+    rm "$T"/tmp.dsp "$T"/tmp.cpp
+  
     if [ "$OSCCTRL" = "1" ]; then
         echo "#define OSCCTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
@@ -101,6 +107,10 @@ addOptions ()
     if [ $NVOICES -ge 0 ]; then
         echo "#define NVOICES $NVOICES" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
+    
+    # Copy libsndfile in the project
+    cp -r /usr/local/lib/ios-libsndfile.a "$T"
+    
     if [ "$SOUNDFILE" = "1" ]; then
         echo "#define SOUNDFILE 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
