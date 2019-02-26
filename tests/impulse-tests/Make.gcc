@@ -33,11 +33,9 @@ dspfiles := $(wildcard dsp/*.dsp)
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
 listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) 
 
-
 TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
 LIB    ?= ../../build/lib/libfaust.a
 SRCDIR := tools
-
 
 all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
 
@@ -143,10 +141,10 @@ ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
 # rules 
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
-	$(COMPARE)  $@ reference/$(notdir $@) $(precision)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision)
 	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
-	$(CXX) $(GCCOPTIONS) $<  -o $@
+	$(CXX) $(GCCOPTIONS) $< -o $@
 
 # Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
 ir/$(outdir)/control.cpp : dsp/control.dsp

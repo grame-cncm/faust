@@ -104,6 +104,7 @@ class mydsp : public dsp {
         
         virtual void init(int samplingRate)
         {
+            classInitmydsp(samplingRate);
             initmydsp(fDSP, samplingRate);
         }
     

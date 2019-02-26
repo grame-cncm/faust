@@ -36,6 +36,7 @@ all:
 	$(MAKE) wasm
 	$(MAKE) wast
 	$(MAKE) llvm
+	$(MAKE) llvm1
 	$(MAKE) interp
 
 help:
@@ -49,6 +50,7 @@ help:
 	@echo " 'wasm'   : check double output with wasm backend and various options"
 	@echo " 'wast'   : check double output with wast backend and various options"
 	@echo " 'llvm'   : check double output with llvm backend and various options"
+	@echo " 'llvm1'  : check double output with llvm backend in object mode and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
@@ -139,6 +141,20 @@ llvm:
 	$(MAKE) -f Make.llvm outdir=llvm/vec/g FAUSTOPTIONS="-vec -lv 1 -g"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/gfun FAUSTOPTIONS="-vec -lv 1 -g -fun" 
 #	$(MAKE) -f Make.llvm outdir=llvm/sch FAUSTOPTIONS="-sch" 
+
+#########################################################################
+# llvm backend in object mode
+llvm1:
+	$(MAKE) -f Make.llvm1 FAUSTOPTIONS=-double
+	$(MAKE) -f Make.llvm1 outdir=llvm1/inpl FAUSTOPTIONS="-double -inpl"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv0 FAUSTOPTIONS="-double -vec -lv 0"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv0/vs16 FAUSTOPTIONS="-double -vec -lv 0 -vs 16"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv1 FAUSTOPTIONS="-double -vec -lv 1"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv1/vs16 FAUSTOPTIONS="-double -vec -lv 1 -vs 16"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/vs200 FAUSTOPTIONS="-double -vec -vs 200"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/g FAUSTOPTIONS="-double -vec -lv 1 -g"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/gfun FAUSTOPTIONS="-double -vec -lv 1 -g -fun"
+	#	$(MAKE) -f Make.llvm1 outdir=llvm1/sch FAUSTOPTIONS="-sch"
 
 #########################################################################
 # interp backend
