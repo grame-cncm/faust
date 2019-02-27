@@ -100,6 +100,9 @@ endif()
 ####################################
 set (PACKDIR ${ROOT}/package)
 set (DST faustgen-${VERSION})
+if (WIN32)
+set (DST ${DST}-win64)
+endif()
 set (FG ${DST}/faustgen)
 install ( TARGETS faustgen
 	RUNTIME DESTINATION ${PACKDIR}/${FG}/externals/msp
