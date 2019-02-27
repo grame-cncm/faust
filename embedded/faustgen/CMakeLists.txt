@@ -145,9 +145,9 @@ install (
 ####################################
 # install VS redistributables
 if (WIN32)
-set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
+set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
 install (
-    FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}
+    FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 endif()
