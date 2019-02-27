@@ -142,6 +142,16 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
 
+####################################
+# install VS redistributables
+if (WIN32)
+set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
+install (
+    FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+endif()
+
 
 ####################################
 # post install processing
