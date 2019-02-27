@@ -480,13 +480,8 @@ static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
         return new dsp_merger(dsp1, dsp2);
     }
 }
-<<<<<<< HEAD
 
-dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
-=======
-    
 static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
->>>>>>> grame-cncm/master-dev
 {
     if ((dsp2->getNumInputs() > dsp1->getNumOutputs()) || (dsp2->getNumOutputs() > dsp1->getNumInputs())) {
         std::stringstream error_aux;
