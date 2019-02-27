@@ -51,7 +51,7 @@ STRIP="${MINGWPREFIX}strip"
 # Compilation flags
 LIBS="$MAXSDK/max-includes/MaxAPI.lib  $MAXSDK/msp-includes/MaxAudio.lib"
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
-CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION"
+CXXFLAGS="-std=c++11 -DWIN_VERSION -DWIN_EXT_VERSION"
 
 
 #-------------------------------------------------------------------

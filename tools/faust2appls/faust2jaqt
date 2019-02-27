@@ -10,7 +10,7 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS="$MYGCCFLAGS -std=c++11"
 
 #-------------------------------------------------------------------
 # Set Faust include path

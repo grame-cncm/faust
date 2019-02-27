@@ -34,7 +34,7 @@ STRIP="${MINGWPREFIX}strip"
 
 #-----------------------------------------------------------------------------
 # Compilation flags
-CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -DBUILDING_DLL -Wno-multichar -Wno-write-strings"
+CXXFLAGS="-std=c++11 -O3 -mfpmath=sse -msse -ffast-math -DBUILDING_DLL -Wno-multichar -Wno-write-strings"
 CXXINCS=" -I$VST -I$VST/public.sdk/source/vst2.x"
 EXT=".dll"
 
