@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2faustvst faust2graph faust2jack faust2jackconsole faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc faust2netjackconsole faust2netjackqt faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2sig faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole"
+LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2bela faust2csound faust2dssi faust2faustvst faust2graph faust2jack faust2jackconsole faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc faust2netjackconsole faust2netjackqt faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2sig faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2netjackconsole"
 LINUXMIDI="faust2jaqt"
 LINUXPOLY="faust2jaqt faust2juce"
 LINUXPOLYMIDI="faust2jaqt faust2juce"
