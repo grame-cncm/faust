@@ -1465,7 +1465,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #endif
         } else {
             stringstream error;
-            error << "ERROR : cannot find compiler for "
+            error << "ERROR : cannot find backend for "
                   << "\"" << gGlobal->gOutputLang << "\"" << endl;
             throw faustexception(error.str());
         }

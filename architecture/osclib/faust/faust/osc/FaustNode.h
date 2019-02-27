@@ -33,8 +33,6 @@
 #include "faust/osc/smartpointer.h"
 #include "faust/osc/RootNode.h"
 
-class GUI;
-
 namespace oscfaust
 {
 

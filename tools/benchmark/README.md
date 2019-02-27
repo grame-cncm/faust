@@ -2,11 +2,26 @@
 
 Several programs and tools are available to test the dynamic compilation chain, benchmark and trace the compiled programs. 
 
+## dynamic-faust
+
+The **dynamic-faust** tool uses the dynamic compilation chain, and compiles a Faust DSP source to a LLVM IR (.ll), bicode (.bc), machine code (.mc) or object code (.o) output file.
+
+`dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp`
+
+Here are the available options:
+
+- `-target xxx to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')`
+- `-opt (native|generic) to discover and compile with the best compilation parameters`
+- `-o foo.ll to generate a LLVM IR textual file`
+- `-o foo.bc to generate a LLVM bitcode file`
+- `-o foo.mc to generate a LLVM machine code file`
+- `-o foo.o to generate a LLVM object code file`
+
 ## dynamic-jack-gtk
 
-The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend.
+The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend. It can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.bc) when using the Interpreter backend.
 
-`dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp`
+`dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
 
 Here are the available options:
 
@@ -33,7 +48,6 @@ Here are the available options:
 - `-httpd to activate HTTPD control`
 
 Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
-
 
 ## interp-tracer
 

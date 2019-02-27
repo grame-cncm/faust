@@ -413,10 +413,10 @@ class dsp_recursiver : public dsp_binary_combiner {
 #define __dsp_algebra_api__
 // DSP algebra API
 /*
- Each operation takes two DSP as parameters, returns the combined DSPs, or null if failure and an error message.
+ Each operation takes two DSP as parameters, returns the combined DSPs, or null if failure with an error message.
  */
 
-dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
@@ -430,12 +430,12 @@ dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
     }
 }
 
-dsp* createDSPParallelize(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPParallelize(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     return new dsp_parallelizer(dsp1, dsp2);
 }
 
-dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_splitter : the first expression has no outputs\n";
@@ -458,7 +458,7 @@ dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
     }
 }
 
-dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_merger : the first expression has no outputs\n";
@@ -480,8 +480,13 @@ dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
         return new dsp_merger(dsp1, dsp2);
     }
 }
+<<<<<<< HEAD
 
 dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
+=======
+    
+static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
+>>>>>>> grame-cncm/master-dev
 {
     if ((dsp2->getNumInputs() > dsp1->getNumOutputs()) || (dsp2->getNumOutputs() > dsp1->getNumInputs())) {
         std::stringstream error_aux;

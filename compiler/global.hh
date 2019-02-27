@@ -143,7 +143,7 @@ struct global {
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
-    string gProcessName;     // name of the entry point of the faust program, by default 'process'
+    string gProcessName;     // name of the entry point of the Faust program, by default 'process'
 
     // Backend configuration
     string gOutputLang;            // Chosen backend
@@ -211,8 +211,8 @@ struct global {
     bool gMemoryManager;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
-    bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
-                      ///< (negative delay)
+    bool gCausality;            ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
+                                ///< (negative delay)
 
     Tree BOXTYPEPROP;
     Tree NUMERICPROPERTY;
@@ -473,13 +473,13 @@ struct global {
     bool gEnableFlag;
 
 #ifdef WASM_BUILD
-    // One single global visitor for WebAssembly, so that sub-containers and global container use the same heap
+    // One single global visitor for WebAssembly, so that sub-containers and the global container use the same heap
     WASMInstVisitor* gWASMVisitor;
     WASTInstVisitor* gWASTVisitor;
 #endif
 
 #ifdef INTERP_BUILD
-    // One single global visitor Interpreter backend, so that sub-containers and global container use the same heap
+    // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
 #endif
 
@@ -545,6 +545,7 @@ struct global {
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
+    
 };
 
 // Unique shared global pointer

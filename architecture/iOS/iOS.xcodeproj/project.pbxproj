@@ -1592,7 +1592,7 @@
 					"$(PROJECT_DIR)/osclib",
 					"$(PROJECT_DIR)/osclib/oscpack",
 				);
-				OTHER_LDFLAGS = "/usr/local/lib/ios-libsndfile.a";
+				OTHER_LDFLAGS = "ios-libsndfile.a";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1627,7 +1627,7 @@
 					"$(PROJECT_DIR)/osclib",
 					"$(PROJECT_DIR)/osclib/oscpack",
 				);
-				OTHER_LDFLAGS = "/usr/local/lib/ios-libsndfile.a";
+				OTHER_LDFLAGS = "ios-libsndfile.a";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";

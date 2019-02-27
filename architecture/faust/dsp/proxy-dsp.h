@@ -66,7 +66,7 @@ class proxy_dsp : public dsp {
             delete fDecoder;
         }
        
-        virtual int getNumInputs() 	{ return fDecoder->fNumInputs; }
+        virtual int getNumInputs() { return fDecoder->fNumInputs; }
         virtual int getNumOutputs() { return fDecoder->fNumOutputs; }
         
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }

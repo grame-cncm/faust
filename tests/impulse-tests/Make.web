@@ -43,7 +43,6 @@ help:
 	@echo " 'outdir' 	   : define the output directory (default to 'wasm')"
 	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
 
-
 #########################################################################
 # web backends
 wasm:  ir/$(wasmdir) $(call listfiles,$(wasmdir))

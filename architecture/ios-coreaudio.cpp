@@ -34,14 +34,37 @@
  ************************************************************************/
 
 #include "faust/dsp/dsp.h"
+#include "faust/dsp/timed-dsp.h"
+
+#include "faust/midi/midi.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/MapUI.h"
 #include "faust/gui/APIUI.h"
 #include "faust/gui/SimpleParser.h"
+#include "faust/gui/JSONUI.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
 #include "faust/misc.h"
 
 #if SOUNDFILE
 #include "faust/gui/SoundUI.h"
+#endif
+
+#if OSCCTRL
+#include "faust/gui/OSCUI.h"
+#endif
+
+#if MIDICTRL
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
+#endif
+
+#include "faust/dsp/poly-dsp.h"
+
+#if POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.h"
 #endif
 
 #import "FICocoaUI.h"
