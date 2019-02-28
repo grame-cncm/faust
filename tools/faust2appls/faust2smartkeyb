@@ -12,9 +12,6 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
-# FAUSTGRADLE environement variable. By default we use ./gradlew 
-FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
-
 # exit if a command fails
 set -e
 
@@ -241,7 +238,22 @@ if [ $SOURCE -eq 0 ]; then
 	if [ $ANDROID -eq 1 ]; then
 		echo "Starting Android compilation" > $LOG
 		cd $BUILDDIR
-		chmod a+x ./gradlew
+
+		# Try to use installed gradle instead of local ./gradlew in order
+		# to avoid potential problems when compiling in a shared folder
+		# where execution rights may not be granted (i.e. on a google VM)
+		# In order to install gradle-4.6: 
+		#		wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
+		#   unzip -d /opt/gradle gradle-4.6-bin.zip
+
+		if [ -f /opt/gradle/gradle-4.6/bin/gradle ]; then
+			FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.6/bin/gradle}
+		else 
+			FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+			chmod a+x ./gradlew
+		fi
+		echo "USED GRADLE=$FAUSTGRADLE" > $LOG
+
 		$FAUSTGRADLE assembleRelease > $LOG
 		cd ..
 		cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk > $LOG
