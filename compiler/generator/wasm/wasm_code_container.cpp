@@ -321,6 +321,12 @@ void WASMCodeContainer::produceClass()
     generateComputeFunctions(gGlobal->gWASMVisitor);
 
     gGlobal->gWASMVisitor->finishSection(functions_start);
+    
+    // TO REMOVE when 'soundfile' is implemented
+    {
+        // Generate UI: only to trigger exception when using 'soundfile' primitive
+        generateUserInterface(gGlobal->gWASMVisitor);
+    }
 
     // JSON generation
 

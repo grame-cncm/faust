@@ -1350,7 +1350,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
     virtual void visit(AddSoundfileInst* inst)
     {
-        // TODO
+        // Not supported for now
         throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
     }
     

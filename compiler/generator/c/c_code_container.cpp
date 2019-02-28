@@ -97,7 +97,7 @@ void CCodeContainer::produceInternal()
         tab(n, *fOut);
         tab(n, *fOut);
         *fOut << "static " << fKlassName << "* new" << fKlassName << "() {"
-              << " return (" << fKlassName << "*)malloc(sizeof(" << fKlassName << ")); }";
+              << " return (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << ")); }";
 
         tab(n, *fOut);
         *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { free(dsp); }";
@@ -221,7 +221,7 @@ void CCodeContainer::produceClass()
 
         *fOut << fKlassName << "* new" << fKlassName << "() { ";
         tab(n + 1, *fOut);
-        *fOut << fKlassName << "* dsp = (" << fKlassName << "*)malloc(sizeof(" << fKlassName << "));";
+        *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n + 1, *fOut);
             *fOut << "allocate" << fKlassName << "(dsp);";

@@ -2,8 +2,8 @@
 #define FAUSTFLOAT double
 #endif
 
-#include "faust/dsp/llvm-dsp-adapter.h"
 #include "controlTools.h"
+#include "faust/dsp/llvm-dsp-adapter.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code

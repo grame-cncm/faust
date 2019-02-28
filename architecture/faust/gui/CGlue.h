@@ -66,7 +66,7 @@ class UIFloat
     
         // -- soundfiles
     
-        virtual void addSoundFile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 
@@ -139,10 +139,10 @@ static void addVerticalBargraphGlueFloat(void* cpp_interface, const char* label,
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
     
-static void addSoundFileGlueFloat(void* cpp_interface, const char* label, const char* url, Soundfile** sf_zone)
+static void addSoundfileGlueFloat(void* cpp_interface, const char* label, const char* url, Soundfile** sf_zone)
 {
     UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
-    ui_interface->addSoundFile(label, url, sf_zone);
+    ui_interface->addSoundfile(label, url, sf_zone);
 }
 
 static void declareGlueFloat(void* cpp_interface, float* zone, const char* key, const char* value)
@@ -182,7 +182,7 @@ class UIDouble
     
         // -- soundfiles
     
-        virtual void addSoundFile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 
@@ -255,10 +255,10 @@ static void addVerticalBargraphGlueDouble(void* cpp_interface, const char* label
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
     
-static void addSoundFileGlueDouble(void* cpp_interface, const char* label, const char* url, Soundfile** sf_zone)
+static void addSoundfileGlueDouble(void* cpp_interface, const char* label, const char* url, Soundfile** sf_zone)
 {
     UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
-    ui_interface->addSoundFile(label, url, sf_zone);
+    ui_interface->addSoundfile(label, url, sf_zone);
 }
 
 static void declareGlueDouble(void* cpp_interface, double* zone, const char* key, const char* value)
@@ -283,7 +283,7 @@ static void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
         glue->addNumEntry = (addNumEntryFun)addNumEntryGlueDouble;
         glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueDouble;
         glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueDouble;
-        glue->addSoundFile = (addSoundFileFun)addSoundFileGlueDouble;
+        glue->addSoundfile = (addSoundfileFun)addSoundfileGlueDouble;
         glue->declare = (declareFun)declareGlueDouble;
     } else {
         glue->openTabBox = (openTabBoxFun)openTabBoxGlueFloat;
@@ -297,7 +297,7 @@ static void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
         glue->addNumEntry = (addNumEntryFun)addNumEntryGlueFloat;
         glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueFloat;
         glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueFloat;
-        glue->addSoundFile = (addSoundFileFun)addSoundFileGlueFloat;
+        glue->addSoundfile = (addSoundfileFun)addSoundfileGlueFloat;
         glue->declare = (declareFun)declareGlueFloat;
     }
 }
@@ -410,9 +410,9 @@ class UITemplate
     
         // -- soundfiles
         
-        virtual void addSoundFile(const char* label, const char* url, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
-            addSoundFileGlueFloat(fCPPInterface, label, url, sf_zone);
+            addSoundfileGlueFloat(fCPPInterface, label, url, sf_zone);
         }
     
         // -- passive widgets

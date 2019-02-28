@@ -30,11 +30,15 @@
  A 'MemoryReader' object can be used to prepare a set of sound resources in memory, to be used by SoundUI::addSoundfile.
  
  A Soundfile* object will have to be filled with a list of sound resources: the fLength, fOffset, fSampleRate and fBuffers fields 
- have to be completed with the appropriate values, and will be accessed in the dsp object while running.
+ have to be completed with the appropriate values, and will be accessed in the DSP object while running.
  *
  */
 
-// To implement
+// To adapt
+
+#define SOUND_CHAN      2
+#define SOUND_LENGTH    4096
+#define SOUND_SR        40100
 
 struct MemoryReader : public SoundfileReader {
     
@@ -45,7 +49,7 @@ struct MemoryReader : public SoundfileReader {
      *
      * @return true if the sound resource is available, false otherwise.
      */
-    virtual bool checkFile(const std::string& path_name) { return false; }
+    virtual bool checkFile(const std::string& path_name) { return true; }
     
     /**
      * Get the channels and length values of the given sound resource.
@@ -55,7 +59,11 @@ struct MemoryReader : public SoundfileReader {
      * @param length - the length value to be filled with the sound resource length in frames
      *
      */
-    virtual void getParamsFile(const std::string& path_name, int& channels, int& length) {}
+    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
+    {
+        channels = SOUND_CHAN;
+        length = SOUND_LENGTH;
+    }
     
     /**
      * Read one sound resource and fill the 'soundfile' structure accordingly
@@ -68,16 +76,19 @@ struct MemoryReader : public SoundfileReader {
      */
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        /*
-         // The soundfile fields have to be filled:
-         
-         soundfile->fLength[part] = ...
-         soundfile->fSampleRate[part] = ...
-         soundfile->fOffset[part] = ...
-         
-         // Audio frames have to be written for each chan
-         soundfile->fBuffers[chan][soundfile->fOffset[part]] = ...
-        */
+        soundfile->fLength[part] = SOUND_LENGTH;
+        soundfile->fSampleRate[part] = SOUND_SR;
+        soundfile->fOffset[part] = offset;
+        
+        // Audio frames have to be written for each chan
+        for (int sample = 0; sample < SOUND_LENGTH; sample++) {
+            for (int chan = 0; chan < SOUND_CHAN; chan++) {
+                soundfile->fBuffers[chan][offset + sample] = 0.f;
+            }
+        }
+        
+        // Update offset
+        offset += SOUND_LENGTH;
     }
     
 };

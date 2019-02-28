@@ -33,7 +33,8 @@ class Cdsp : public dsp {
         {
             deletemydsp(fDSP);
         }
-        virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
+    
+        virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
         
         virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
         
