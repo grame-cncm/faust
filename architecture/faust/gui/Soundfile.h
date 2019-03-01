@@ -25,6 +25,7 @@
 #define __Soundfile__
 
 #include <iostream>
+#include <string.h>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
