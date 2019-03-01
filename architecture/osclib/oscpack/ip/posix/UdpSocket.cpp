@@ -479,7 +479,7 @@ public:
                 if( FD_ISSET( breakPipe_[0], &tempfds ) ){
                     // clear pending data from the asynchronous break pipe
                     char c;
-                    read( breakPipe_[0], &c, 1 );
+                    int n = read( breakPipe_[0], &c, 1 );
                 }
                 
                 if( break_ )
@@ -534,7 +534,7 @@ public:
 		break_ = true;
 
 		// Send a termination message to the asynchronous break pipe, so select() will return
-		write( breakPipe_[1], "!", 1 );
+		int n = write( breakPipe_[1], "!", 1 );
 	}
 };
 
