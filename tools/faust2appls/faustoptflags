@@ -14,17 +14,17 @@
 # Default compilation flags for gcc and icc :
 #
 if [[ $(uname -m) == armv6l ]]; then		# for Raspberry PI
-	MYGCCFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
+	MYGCCFLAGS="-std=c++11 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
 elif [[ $(uname -s) == Darwin ]]; then		# for MacOSX (intel)
-	MYGCCFLAGS="-Ofast -march=native"
-    MYGCCFLAGSGENERIC="-Ofast"
+	MYGCCFLAGS="-std=c++11 -Ofast -march=native"
+    MYGCCFLAGSGENERIC="-std=c++11 -Ofast"
 else 										# for Linux (intel)
     MYGCCFLAGS="-std=c++11 -Ofast -march=native"
     MYGCCFLAGSGENERIC="-std=c++11 -Ofast"
 fi
 
 # for Linux (intel) with icc
-MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+MYICCFLAGS="-std=c++11 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 # Default compiler
 CXX=c++
