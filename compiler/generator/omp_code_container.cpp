@@ -174,8 +174,8 @@ void OpenMPCodeContainer::processFIR()
     // Default FIR to FIR transformations
     CodeContainer::processFIR();
 
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    // Sort arrays to be at the begining (break code genaration when 'soundfile' is used)
+    //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Prepare global loop
     fGlobalLoopBlock = generateDAGLoopOMP(fFullCount);

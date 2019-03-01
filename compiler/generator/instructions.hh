@@ -1451,7 +1451,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
     }
-    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
+    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr); }
     virtual Typed* visit(StructTyped* typed)
     {
         vector<NamedTyped*>                 cloned;
@@ -1976,7 +1976,7 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
+    static ArrayTyped* genArrayTyped(Typed* type, int size, bool is_ptr = false)
     {
         return new ArrayTyped(type, size, is_ptr);
     }
