@@ -66,46 +66,6 @@
 #include "sourcereader.hh"
 #include "timing.hh"
 
-static void enumBackends(ostream& out)
-{
-    const char* dspto = "   DSP to ";
-#ifdef C_BUILD
-    out << dspto << "C" << endl;
-#endif
-
-#ifdef CPP_BUILD
-    out << dspto << "C++" << endl;
-#endif
-
-#ifdef FIR_BUILD
-    out << dspto << "FIR" << endl;
-#endif
-
-#ifdef INTERP_BUILD
-    out << dspto << "Interpreter" << endl;
-#endif
-
-#ifdef JAVA_BUILD
-    out << dspto << "Java" << endl;
-#endif
-
-#ifdef LLVM_BUILD
-    out << dspto << "LLVM IR" << endl;
-#endif
-
-#ifdef OCPP_BUILD
-    out << dspto << "old C++" << endl;
-#endif
-
-#ifdef RUST_BUILD
-    out << dspto << "Rust" << endl;
-#endif
-
-#ifdef WASM_BUILD
-    out << dspto << "WebAssembly (wast/wasm)" << endl;
-#endif
-}
-
 #ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
@@ -170,6 +130,46 @@ CodeContainer*        container = NULL;
 typedef void* (*compile_fun)(void* arg);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
+
+static void enumBackends(ostream& out)
+{
+    const char* dspto = "   DSP to ";
+#ifdef C_BUILD
+    out << dspto << "C" << endl;
+#endif
+    
+#ifdef CPP_BUILD
+    out << dspto << "C++" << endl;
+#endif
+    
+#ifdef FIR_BUILD
+    out << dspto << "FIR" << endl;
+#endif
+    
+#ifdef INTERP_BUILD
+    out << dspto << "Interpreter" << endl;
+#endif
+    
+#ifdef JAVA_BUILD
+    out << dspto << "Java" << endl;
+#endif
+    
+#ifdef LLVM_BUILD
+    out << dspto << "LLVM IR" << endl;
+#endif
+    
+#ifdef OCPP_BUILD
+    out << dspto << "old C++" << endl;
+#endif
+    
+#ifdef RUST_BUILD
+    out << dspto << "Rust" << endl;
+#endif
+    
+#ifdef WASM_BUILD
+    out << dspto << "WebAssembly (wast/wasm)" << endl;
+#endif
+}
 
 #ifdef _WIN32
 static void callFun(compile_fun fun)

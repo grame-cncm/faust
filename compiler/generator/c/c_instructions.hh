@@ -321,7 +321,7 @@ class CInstVisitor : public TextInstVisitor {
             // To generate C99 compatible loops...
             c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
             c99_declare_inst =
-                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt32));
+                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
             // C99 loop variable declared outside the loop
             c99_declare_inst->accept(this);
         }

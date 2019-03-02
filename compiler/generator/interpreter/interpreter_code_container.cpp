@@ -146,7 +146,7 @@ template <class T>
 dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 {
     // "count" variable added to be set up later by 'compute'
-    pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt32)));
+    pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genInt32Typed()));
 
     // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines
     // 'defaultsound')

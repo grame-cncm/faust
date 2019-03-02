@@ -374,7 +374,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt32));
             args.push_back(InstBuilder::genNamedTyped("arg2", Typed::kInt32));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["min_i"] = fun_type;
             fFunTypes["max_i"] = fun_type;
         }
@@ -386,7 +386,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getNumInputs"]  = fun_type;
             fFunTypes["getNumOutputs"] = fun_type;
         }
@@ -396,7 +396,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getSampleRate"] = fun_type;
         }
 
@@ -406,7 +406,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["init"]              = fun_type;
             fFunTypes["classInit"]         = fun_type;
             fFunTypes["instanceConstants"] = fun_type;
@@ -418,7 +418,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["instanceClear"]              = fun_type;
             fFunTypes["instanceResetUserInterface"] = fun_type;
         }
@@ -430,7 +430,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
             args.push_back(InstBuilder::genNamedTyped("value", itfloat()));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["setParamValue"] = fun_type;
         }
 
@@ -454,7 +454,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             args.push_back(
                 InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));  // so that fun type is correcty generated
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["compute"] = fun_type;
         }
     }

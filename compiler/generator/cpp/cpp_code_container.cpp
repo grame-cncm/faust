@@ -312,7 +312,7 @@ void CPPCodeContainer::produceClass()
 
     if (gGlobal->gMemoryManager) {
         tab(n + 1, *fOut);
-        *fOut << "static dsp_memory_manager* fManager;" << endl;
+        *fOut << "static dsp_memory_manager* fManager;";
     }
 
     // Print metadata declaration
@@ -495,29 +495,14 @@ void CPPCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "};" << endl;
 
-    // To improve (generalization for all backend...)
+    // To improve (generalization for all backends...)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
         *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
     }
 
     // Generate user interface macros if needed
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "#ifdef FAUST_UIMACROS";
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_INPUTS " << fNumInputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_ACTIVES " << fNumActives;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_PASSIVES " << fNumPassives;
-        printlines(n + 1, fUIMacro, *fOut);
-        tab(n, *fOut);
-        *fOut << "#endif";
-        tab(n, *fOut);
-    }
+    printMacros(*fOut, n);
 }
 
 // Scalar

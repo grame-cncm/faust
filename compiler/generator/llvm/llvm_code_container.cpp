@@ -696,21 +696,6 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
     fBuilder->ClearInsertionPoint();
 }
 
-/*
-void LLVMCodeContainer::generateGetSize(LLVMValue size)
-{
-    VECTOR_OF_TYPES llvm_getSize_args;
-    FunctionType*   llvm_getSize_type =
-        FunctionType::get(fBuilder->getInt64Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
-    Function* llvm_getSize =
-        Function::Create(llvm_getSize_type, GlobalValue::ExternalLinkage, "getSize" + fKlassName, fModule);
-
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getSize);
-    ReturnInst::Create(getContext(), size, return_block);
-    verifyFunction(*llvm_getSize);
-    fBuilder->ClearInsertionPoint();
-}
-*/
 void LLVMCodeContainer::generateGetJSON(int dsp_size)
 {
     PointerType*    string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
@@ -1330,13 +1315,13 @@ list<NamedTyped*> types1;
 list<ValueInst*> args1;
 list<ValueInst*> args2;
 
-types.push_back(InstBuilder::genNamedTyped("arg1", InstBuilder::genBasicTyped(Typed::kFloat)));
-types.push_back(InstBuilder::genNamedTyped("arg2", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloat),
+types.push_back(InstBuilder::genNamedTyped("arg1", InstBuilder::genFloatTyped()));
+types.push_back(InstBuilder::genNamedTyped("arg2", InstBuilder::genArrayTyped(InstBuilder::genFloatTyped(),
 0)));
 
-types1.push_back(InstBuilder::genNamedTyped("arg1", InstBuilder::genBasicTyped(Typed::kFloat)));
+types1.push_back(InstBuilder::genNamedTyped("arg1", InstBuilder::genFloatTyped()));
 types1.push_back(InstBuilder::genNamedTyped("arg2",
-InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloat), 0)));
+InstBuilder::genArrayTyped(InstBuilder::genFloatTyped(), 0)));
 
 args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("temp1", Address::kStack)));
 args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("arg2", Address::kFunArgs)));
@@ -1345,25 +1330,25 @@ args2.push_back(InstBuilder::genFloatNumInst(60));
 args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("arg2", Address::kFunArgs)));
 
 StatementInst* fun2 = InstBuilder::genDeclareFunInst("fun2", InstBuilder::genFunTyped(types1,
-InstBuilder::genBasicTyped(Typed::kFloat)), code2); fun2->accept(fCodeProducer);
+InstBuilder::genFloatTyped()), code2); fun2->accept(fCodeProducer);
 
 StatementInst* fun3 = InstBuilder::genDeclareFunInst("fun3", InstBuilder::genFunTyped(types1,
 InstBuilder::genBasicTyped(Typed::kVoid)), code2); fun3->accept(fCodeProducer);
 
 fModule->dump();
 
-StatementInst* inst1 = InstBuilder::genDeclareVarInst("temp1", InstBuilder::genBasicTyped(Typed::kFloat),
+StatementInst* inst1 = InstBuilder::genDeclareVarInst("temp1", InstBuilder::genFloatTyped(),
 Address::kStack, InstBuilder::genFloatNumInst(3)); StatementInst* inst2 = InstBuilder::genDeclareVarInst("temp2",
-InstBuilder::genBasicTyped(Typed::kFloat), Address::kStack, InstBuilder::genBinopInst(0,
+InstBuilder::genFloatTyped(), Address::kStack, InstBuilder::genBinopInst(0,
 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("arg1", Address::kFunArgs)),
 InstBuilder::genFloatNumInst(60))); StatementInst* inst3 = InstBuilder::genDeclareVarInst("temp3",
-InstBuilder::genBasicTyped(Typed::kFloat), Address::kStack, InstBuilder::genBinopInst(0,
+InstBuilder::genFloatTyped(), Address::kStack, InstBuilder::genBinopInst(0,
 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("temp1", Address::kStack)), InstBuilder::genFloatNumInst(60)));
-StatementInst* inst4 = InstBuilder::genDeclareVarInst("temp4", InstBuilder::genBasicTyped(Typed::kFloat),
+StatementInst* inst4 = InstBuilder::genDeclareVarInst("temp4", InstBuilder::genFloatTyped(),
 Address::kStack, InstBuilder::genBinopInst(2, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("temp3",
 Address::kStack)), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("temp1", Address::kStack))));
 
-StatementInst* inst5 = InstBuilder::genDeclareVarInst("temp5", InstBuilder::genBasicTyped(Typed::kFloat),
+StatementInst* inst5 = InstBuilder::genDeclareVarInst("temp5", InstBuilder::genFloatTyped(),
 Address::kStack, InstBuilder::genFunCallInst("fun2", args1));
 //StatementInst* inst6 = InstBuilder::genFunCallInst("fun3", args2);
 

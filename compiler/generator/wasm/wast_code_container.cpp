@@ -149,7 +149,7 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid),
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
@@ -419,7 +419,7 @@ DeclareFunInst* WASInst::generateIntMin()
                                                                             InstBuilder::genLoadFunArgsVar(v1),
                                                                             InstBuilder::genLoadFunArgsVar(v2))));
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("min_i", fun_type, block);
 }
 
@@ -438,7 +438,7 @@ DeclareFunInst* WASInst::generateIntMax()
                                                                             InstBuilder::genLoadFunArgsVar(v2),
                                                                             InstBuilder::genLoadFunArgsVar(v1))));
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
 }
 

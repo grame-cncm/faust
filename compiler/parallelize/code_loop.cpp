@@ -42,7 +42,7 @@ using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_in_bytes)
 {
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32),
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(),
                                                            InstBuilder::genInt32NumInst(0));
     ValueInst*      loop_end;
     StoreVarInst*   loop_increment;
@@ -114,7 +114,7 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bo
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32),
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(),
                                                                InstBuilder::genInt32NumInst(0));
         ValueInst*      loop_end  = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst*   loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));

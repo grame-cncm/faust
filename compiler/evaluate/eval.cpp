@@ -1373,7 +1373,7 @@ Tree numericBoxSimplification(Tree box)
 
     if (!getBoxType(box, &ins, &outs)) {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : ";
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", can't compute the box type of : ";
         error << *box << endl;
         throw faustexception(error.str());
     }

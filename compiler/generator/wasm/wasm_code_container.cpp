@@ -118,6 +118,8 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
+// DSP API generation
+
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
@@ -128,7 +130,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -145,7 +147,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -162,7 +164,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -179,7 +181,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -212,7 +214,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid),
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
@@ -460,7 +462,7 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 

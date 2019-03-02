@@ -372,22 +372,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
 
     // Generate user interface macros if needed
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "#ifdef FAUST_UIMACROS";
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_INPUTS " << fNumInputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_ACTIVES " << fNumActives;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_PASSIVES " << fNumPassives;
-        printlines(n + 1, fUIMacro, *fOut);
-        tab(n, *fOut);
-        *fOut << "#endif";
-        tab(n, *fOut);
-    }
+    printMacros(*fOut, n);
 
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;

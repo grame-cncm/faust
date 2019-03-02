@@ -548,12 +548,12 @@ void global::init()
     sf_type_fields.push_back(
         InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fLength", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
+        "fLength", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fSampleRate", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
+        "fSampleRate", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fOffset", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genBasicTyped(Typed::kInt32)));
+        "fOffset", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 }

@@ -237,6 +237,8 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(BlockInst* inst) {}
 };
 
+// Clone a FIR expression
+
 struct CloneVisitor : public virtual Garbageable {
     CloneVisitor() {}
     virtual ~CloneVisitor() {}
@@ -1903,7 +1905,6 @@ struct InstBuilder {
     }
 
     static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
-
     static ValueInst* genCastFloatInst(ValueInst* inst);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
     static ValueInst* genCastInt32Inst(ValueInst* inst);
@@ -1912,7 +1913,7 @@ struct InstBuilder {
     static RetInst*  genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
     static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
 
-    // Conditionnal
+    // Conditional
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
     {
         return new Select2Inst(cond_inst, then_inst, else_inst);
@@ -1966,6 +1967,11 @@ struct InstBuilder {
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
+    
+    static BasicTyped* genInt32Typed() { return genBasicTyped(Typed::kInt32); }
+    static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
+    static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
+    static BasicTyped* genFloatMacroTyped() { return genBasicTyped(Typed::kFloatMacro); }
 
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
@@ -1996,7 +2002,6 @@ struct InstBuilder {
     }
 
     // Helper build methods
-
     static DeclareVarInst* genDecArrayVar(const string& vname, Address::AccessType var_access, Typed* type, int size)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
@@ -2466,7 +2471,7 @@ Statement   := DeclareVar (Address, Type, Value)
             | Return (Value)
             | BlockInst (Statement*)
             | If (Value, BlockInst, BlockInst)
-            | Switch (Value, <int, BlockInst>*)
+            | Switch (Value, <int>, BlockInst>*)
 
 Value       := LoadVar (Address)
             | Float | Int | Double | Bool
@@ -2535,6 +2540,6 @@ manipulent les indices de la boucle ?? (pas besoin, ils n'apparaissent pas dans 
 l'indice de la boucle est utilisé dans le corps de la boucle, il faut le faire correspondre au nouvel indice de boucle,
 renommage nécessaire ?)
 
- - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop
+ - utiliser le *même* nom d'index dans ForLoopInst et dans le code interne de la loop
 
 */
