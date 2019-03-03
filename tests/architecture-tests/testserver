@@ -6,11 +6,9 @@ LINUXPOLY="faust2jaqt faust2juce"
 LINUXPOLYMIDI="faust2jaqt faust2juce"
 LINUXOSCHTTPD="faust2jaqt"
 
-
 echo "------------------------------"
 echo Run tests for the Faust server
 echo "------------------------------"
-
 
 for scriptname in $LINUX; do
     ($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")

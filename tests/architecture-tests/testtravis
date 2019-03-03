@@ -11,7 +11,6 @@ echo "------------------------------"
 echo Run limited architecture tests
 echo "------------------------------"
 
-
 for scriptname in $LINUX; do
     ($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
 done

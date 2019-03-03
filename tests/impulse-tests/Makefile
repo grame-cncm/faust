@@ -26,8 +26,9 @@ dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
 
 TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
-LIB    ?= ../../build/lib/libfaust.a
-MACHINE_LIB    ?= ../../build/lib/libfaustmachine.a
+LIB ?= ../../build/lib/libfaust.a
+MACHINE_LIB ?= ../../build/lib/libfaustmachine.a
+LLVM_LIB ?= `llvm-config --ldflags --libs all --system-libs`
 SRCDIR := tools
 
 all:
@@ -54,6 +55,7 @@ help:
 	@echo " 'llvm'   : check double output with llvm backend and various options"
 	@echo " 'llvm1'  : check double output with llvm backend in object mode and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
+	@echo " 'interp1' : check double output with interpreter/LLVM backend and various options"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
@@ -73,8 +75,8 @@ help:
 travis:
 	$(MAKE) -f Make.gcc outdir=cpp/double       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/double/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
-
 
 #########################################################################
 # c and c++ backends
@@ -217,13 +219,13 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(CXX) $(TOOLSOPTIONS) $(SRCDIR)/filesCompare.cpp -o filesCompare
 
 impulseinterp: $(SRCDIR)/impulseinterp.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulseinterp.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` -o impulseinterp
+	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulseinterp.cpp $(LIB) $(LLVM_LIB) -o impulseinterp
 
 impulseinterp1: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) `llvm-config --ldflags --libs all --system-libs` -o impulseinterp1
+	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) $(LLVM_LIB) -o impulseinterp1
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` $(WINSOCK) -o impulsellvm
+	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
 
 #########################################################################
 # rules for mute tests
