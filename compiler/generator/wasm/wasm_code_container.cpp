@@ -336,9 +336,6 @@ void WASMCodeContainer::produceClass()
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
 
-    stringstream size;
-    size << gGlobal->gWASMVisitor->getStructSize();
-
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
 
@@ -353,7 +350,7 @@ void WASMCodeContainer::produceClass()
 
     // "name", "filename" found in metadata
     JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, size.str(),
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(gGlobal->gWASMVisitor->getStructSize()),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);

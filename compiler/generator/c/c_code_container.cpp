@@ -453,8 +453,11 @@ void CScalarCodeContainer::generateCompute(int n)
         loop->accept(&fCodeProducer);
     }
 
+    /* 
+    // TODO : atomic switch
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);
+    */
 
     tab(n, *fOut);
     *fOut << "}" << endl;
@@ -477,7 +480,7 @@ void CVectorCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     generateComputeFunctions(&fCodeProducer);
 
-    // Compute declaration
+    // Generates declaration
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
           << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
