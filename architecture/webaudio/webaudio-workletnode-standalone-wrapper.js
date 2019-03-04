@@ -382,7 +382,7 @@ class mydspNode extends AudioWorkletNode {
 }
 
 // Factory class
-window.mydsp = class mydsp {
+class mydsp {
 
     /**
      * Factory constructor.
@@ -501,7 +501,11 @@ window.mydsp = class mydsp {
 
 }
 
-// WAP factory
-window.Faustmydsp = window.mydsp;
-    
+// WAP factory or npm package module
+if (typeof module === "undefined") {
+    window.mydsp = mydsp;
+    window.Faustmydsp = mydsp;
+} else {
+    module.exports = { mydsp };
+}
 
