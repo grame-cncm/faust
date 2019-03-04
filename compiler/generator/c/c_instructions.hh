@@ -51,7 +51,6 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["min"] = true;
 
         // Float version
-        gFunctionSymbolTable["absf"]       = true;
         gFunctionSymbolTable["fabsf"]      = true;
         gFunctionSymbolTable["acosf"]      = true;
         gFunctionSymbolTable["asinf"]      = true;
@@ -73,7 +72,6 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["tanf"]       = true;
 
         // Double version
-        gFunctionSymbolTable["abs"]       = true;
         gFunctionSymbolTable["fabs"]      = true;
         gFunctionSymbolTable["acos"]      = true;
         gFunctionSymbolTable["asin"]      = true;
