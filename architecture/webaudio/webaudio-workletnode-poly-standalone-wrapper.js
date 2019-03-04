@@ -351,7 +351,7 @@ class mydspPolyNode extends AudioWorkletNode {
 }
 
 // Factory class
-window.mydspPoly = class mydspPoly {
+class mydspPoly {
 
     /**
      * Factory constructor.
@@ -424,5 +424,10 @@ window.mydspPoly = class mydspPoly {
     };
 }
 
-// WAP factory
-window.FaustmydspPoly = window.mydspPoly;
+// WAP factory or npm package module
+if (typeof module === "undefined") {
+    window.mydspPoly = mydspPoly;
+    window.FaustmydspPoly = mydspPoly;
+} else {
+    module.exports = { mydspPoly };
+}
