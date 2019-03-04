@@ -1,5 +1,5 @@
 /*
- faust2wasm: GRAME 2017-2018
+ faust2wasm: GRAME 2017-2019
 */
 
 'use strict';
@@ -351,7 +351,7 @@ class mydspPolyNode extends AudioWorkletNode {
 }
 
 // Factory class
-class mydspPoly {
+window.mydspPoly = class mydspPoly {
 
     /**
      * Factory constructor.
@@ -423,3 +423,6 @@ class mydspPoly {
         });
     };
 }
+
+// WAP factory
+window.FaustmydspPoly = window.mydspPoly;
