@@ -273,7 +273,7 @@ template <class T>
 FBCBlockInstruction<T>* InterpreterScalarCodeContainer<T>::generateCompute()
 {
     // Generate one single scalar loop
-    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(this->fFullCount);
+    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(fFullCount);
     
     loop->accept(gGlobal->gInterpreterVisitor);
     return getCurrentBlock<T>();

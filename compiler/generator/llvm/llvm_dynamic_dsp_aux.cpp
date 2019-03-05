@@ -782,16 +782,16 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
     }
 }
 
-bool linkModules(Module* dst, ModulePTR src, char* error_msg)
+bool linkModules(Module* dst, ModulePTR src, string& error)
 {
     bool res = false;
 #if defined(LLVM_35)
     string err;
     if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
-        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
+        error = "cannot link module : " + err;
 #else
     if (Linker::linkModules(*dst, MovePTR(src))) {
-        snprintf(error_msg, 256, "%s", "cannot link module");
+        error = "cannot link module";
 #endif
     } else {
         res = true;
@@ -799,13 +799,13 @@ bool linkModules(Module* dst, ModulePTR src, char* error_msg)
     return res;
 }
 
-Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
+Module* linkAllModules(llvm::LLVMContext* context, Module* dst, string& error)
 {
     for (size_t i = 0; i < gGlobal->gLibraryList.size(); i++) {
         string    module_name = gGlobal->gLibraryList[i];
         ModulePTR src         = loadModule(module_name, context);
         if (!src) {
-            sprintf(error, "cannot load module : %s", module_name.c_str());
+            error = "cannot load module : " + module_name;
             return nullptr;
         }
         if (!linkModules(dst, MovePTR(src), error)) {
@@ -816,7 +816,7 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
     return dst;
 }
 
-    // Public C interface : lock management is done by called C++ API
+// Public C interface : lock management is done by called C++ API
 
 #ifdef __cplusplus
 extern "C" {

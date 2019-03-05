@@ -41,9 +41,9 @@ using namespace std;
 */
 
 // Helper functions
-bool      linkModules(Module* dst, ModulePTR src, char* error_msg);
+bool      linkModules(Module* dst, ModulePTR src, string& error);
 ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context);
-Module*   linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
+Module*   linkAllModules(llvm::LLVMContext* context, Module* dst, string& error);
 
 list<string> LLVMInstVisitor::gMathLibTable;
 
@@ -899,7 +899,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Link LLVM modules defined in 'ffunction'
     set<string>           S;
     set<string>::iterator f;
-    char                  error_msg[512];
+    string error;
 
     collectLibrary(S);
     if (S.size() > 0) {
@@ -908,15 +908,14 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
             if (endWith(module_name, ".bc") || endWith(module_name, ".ll")) {
                 ModulePTR module = loadModule(module_name, fContext);
                 if (module) {
-                    bool res = linkModules(fModule, MovePTR(module), error_msg);
-                    if (!res) cout << "Link LLVM modules " << error_msg << endl;
+                    bool res = linkModules(fModule, MovePTR(module), error);
+                    if (!res) cerr << "WARNING : " << error << endl;
                 }
             }
         }
     }
 
     // Possibly link with additional LLVM modules
-    char error[256];
     if (!linkAllModules(fContext, fModule, error)) {
         stringstream llvm_error;
         llvm_error << "ERROR : " << error << endl;
