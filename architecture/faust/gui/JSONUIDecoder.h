@@ -47,10 +47,10 @@ static FAUSTFLOAT STR2REAL(const std::string& s) { return FAUSTFLOAT(std::strtod
 
 struct Soundfile;
 
-typedef std::map<std::string, std::pair <int, FAUSTFLOAT*> > controlMap;
-
 struct JSONUIDecoder {
 
+    typedef std::map<std::string, std::pair <int, FAUSTFLOAT*> > controlMap;
+    
     std::string fName;
     std::string fFileName;
     

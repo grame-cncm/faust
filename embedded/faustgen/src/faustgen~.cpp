@@ -285,6 +285,14 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
         // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
         fSoundUI = new SoundUI(factory->getIncludePathnames());
+        /*
+        std::vector<std::string> sound_directories = factory->getIncludePathnames();
+        for (int i = 0; i < sound_directories.size(); i++) {
+            post("sound_directories %d %s", i, sound_directories[i].c_str());
+        }
+        */
+    } else {
+        post("%s", error_msg.c_str());
     }
     return factory;
 }
@@ -323,6 +331,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
         fSoundUI = new SoundUI(factory->getIncludePathnames());
+        /*
+        std::vector<std::string> sound_directories = factory->getIncludePathnames();
+        for (int i= 0; i < sound_directories.size(); i++) {
+            post("sound_directories %d %s", i, sound_directories[i].c_str());
+        }
+        */
         return factory;
     } else {
         // Update all instances
@@ -381,6 +395,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
             dsp->metadata(&meta);
             post("Compilation from bitcode succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
+        } else {
+            post("Compilation from bitcode failed...");
         }
     }
 
@@ -392,7 +408,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
             dsp->metadata(&meta);
             post("Compilation from source code succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
-        } 
+        } else {
+            post("Compilation from source code failed...");
+        }
     }
 
     // Otherwise creates default DSP keeping the same input/output number
@@ -502,7 +520,7 @@ void faustgen_factory::default_compile_options()
 
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
-    // Read machine serial number 
+    // Read machine serial number
     const char* serial_number;  
     t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
     if (err != MAX_ERR_NONE || strcmp(serial_number, getSerialNumber().c_str()) != 0) {
@@ -871,8 +889,10 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     
     // Add DSP file enclosing folder pathname in the '-I' list
     char full_path[MAX_FILENAME_CHARS];
-    if (path_topathname(path, filename, full_path) == 0) {
+    if ((err = path_topathname(path, filename, full_path)) == 0) {
         add_library_path(getFolderFromFilename(full_path));
+    } else {
+        post("path_topathname err = %d", err);
     }
     
     // Update all instances
@@ -1151,7 +1171,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         bool res = false;
         string name = string((s)->s_name);
         
-        // Check if no argument is there, consider it is a toggle message for a button
+        // If no argument is there, consider it as a toggle message for a button
         if (ac == 0 && fDSPUI->isValue(name)) {
           
             float off = 0.0f;
@@ -1219,7 +1239,6 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                 if (!res) {
                     res = fDSPUI->setValue(name, value);
                 }
-                
                 if (!res) {
                     post("Unknown parameter : %s", (s)->s_name);
                 }
@@ -1229,11 +1248,10 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
             // Standard parameter name
             float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
             res = fDSPUI->setValue(name, value);
+            if (!res) {
+                post("Unknown parameter : %s", (s)->s_name);
+            }
         }  
-        
-        if (!res) {
-            post("Unknown parameter : %s", (s)->s_name);
-        }
         
     unlock:
         fDSPfactory->unlock();

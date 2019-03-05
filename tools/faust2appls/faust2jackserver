@@ -25,7 +25,7 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+CXXFLAGS='-std=c++11 -Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
@@ -100,7 +100,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit

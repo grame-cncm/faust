@@ -44,7 +44,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
     // "input" and "inputs" used as a name convention
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
-        Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+        Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
 
         for (int index = 0; index < fContainer->inputs(); index++) {
             // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP struct
@@ -576,8 +576,8 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
 
         // allocate permanent storage for delayed samples
         pushClearMethod(generateInitArray(vname, ctype, delay));
-        pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt32)));
-        pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genBasicTyped(Typed::kInt32)));
+        pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genInt32Typed()));
+        pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genInt32Typed()));
 
         // init permanent memory
         pushClearMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genInt32NumInst(0)));
@@ -610,7 +610,7 @@ StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vnam
 
     // Generates init table loop
     DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genInt32NumInst(size));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 

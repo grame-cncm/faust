@@ -9,7 +9,6 @@ system=$(uname -s)
 # normalizes MINGW versions
 system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 
-
 ## exclusion list for faust errors
 XLIST1="faust2md"
 

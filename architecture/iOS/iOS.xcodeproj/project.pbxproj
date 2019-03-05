@@ -158,7 +158,6 @@
 		4BEF91B11B96FFC000F2D974 /* FITabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6560454014FE924400AE84A9 /* FITabView.mm */; };
 		4BEF91B21B96FFC000F2D974 /* FIHint.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65961D4F1546DFD70004BC59 /* FIHint.mm */; };
 		4BEF91B31B96FFC000F2D974 /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
-		4BEF91B51B96FFC000F2D974 /* JackViewPortsViewBackgroundView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */; };
 		4BEF91B71B96FFC000F2D974 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E85C9A157806C2009F2D7A /* QuartzCore.framework */; };
 		4BEF91B81B96FFC000F2D974 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F87430156FFB0C008AE175 /* CoreMotion.framework */; };
 		4BEF91B91B96FFC000F2D974 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */; };
@@ -219,7 +218,6 @@
 		651BB43F171D91260065CBC9 /* Icon-Jack.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43C171D91260065CBC9 /* Icon-Jack.png */; };
 		651BB440171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
-		6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6534E20E17301716009A4FD2 /* JackViewPortsView.mm */; };
 		654EE64D17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
 		654EE64E17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
 		654EE64F17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
@@ -263,14 +261,11 @@
 		6566748A14ED30F000172A10 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
 		6566748B14ED30F000172A10 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
 		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
-		656EE12F176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */; };
-		656EE130176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */; };
 		65961D501546DFD70004BC59 /* FIHint.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65961D4F1546DFD70004BC59 /* FIHint.mm */; };
 		6596C3B6172926BB000AD403 /* Icon_Apple.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596C3B4172926BB000AD403 /* Icon_Apple.png */; };
 		6596C3B7172926BB000AD403 /* Icon_Apple.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596C3B4172926BB000AD403 /* Icon_Apple.png */; };
 		6596C3B8172926BB000AD403 /* Icon_Apple@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596C3B5172926BB000AD403 /* Icon_Apple@2x.png */; };
 		6596C3B9172926BB000AD403 /* Icon_Apple@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596C3B5172926BB000AD403 /* Icon_Apple@2x.png */; };
-		65B9D5DB170EB9D5009DE0DC /* JackView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65B9D5DA170EB9D5009DE0DC /* JackView.mm */; };
 		65C1C07414F543E9006464DF /* FIBargraph.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65C1C07314F543E9006464DF /* FIBargraph.mm */; };
 		65D1BD1415668A8A00ADCA32 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */; };
 		65E3121217722C10000E2AFA /* Icon-Delete.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E3120E17722C10000E2AFA /* Icon-Delete.png */; };
@@ -395,8 +390,6 @@
 		4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		651BB43C171D91260065CBC9 /* Icon-Jack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack.png"; sourceTree = "<group>"; };
 		651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack@2x.png"; sourceTree = "<group>"; };
-		6534E20D17301716009A4FD2 /* JackViewPortsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JackViewPortsView.h; sourceTree = "<group>"; };
-		6534E20E17301716009A4FD2 /* JackViewPortsView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JackViewPortsView.mm; sourceTree = "<group>"; };
 		654EE64117832FB400175F2F /* jackview-audio-off.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off.png"; sourceTree = "<group>"; };
 		654EE64217832FB400175F2F /* jackview-audio-off@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off@2x.png"; sourceTree = "<group>"; };
 		654EE64317832FB400175F2F /* jackview-audio-on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-on.png"; sourceTree = "<group>"; };
@@ -423,14 +416,10 @@
 		6566748714ED30F000172A10 /* FIResponder.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIResponder.mm; sourceTree = "<group>"; };
 		6566748814ED30F000172A10 /* FISlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISlider.h; sourceTree = "<group>"; };
 		6566748914ED30F000172A10 /* FISlider.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISlider.mm; sourceTree = "<group>"; };
-		656EE12D176B6D8300463CA8 /* JackViewPortsViewBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JackViewPortsViewBackgroundView.h; sourceTree = "<group>"; };
-		656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JackViewPortsViewBackgroundView.mm; sourceTree = "<group>"; };
 		65961D4E1546DFD60004BC59 /* FIHint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIHint.h; sourceTree = "<group>"; };
 		65961D4F1546DFD70004BC59 /* FIHint.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIHint.mm; sourceTree = "<group>"; };
 		6596C3B4172926BB000AD403 /* Icon_Apple.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon_Apple.png; sourceTree = "<group>"; };
 		6596C3B5172926BB000AD403 /* Icon_Apple@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon_Apple@2x.png"; sourceTree = "<group>"; };
-		65B9D5D9170EB9D5009DE0DC /* JackView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JackView.h; path = iOS/JackView.h; sourceTree = SOURCE_ROOT; };
-		65B9D5DA170EB9D5009DE0DC /* JackView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = JackView.mm; path = iOS/JackView.mm; sourceTree = SOURCE_ROOT; };
 		65C1C07214F543E9006464DF /* FIBargraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIBargraph.h; sourceTree = "<group>"; };
 		65C1C07314F543E9006464DF /* FIBargraph.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBargraph.mm; sourceTree = "<group>"; };
 		65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -736,19 +725,6 @@
 			path = osc;
 			sourceTree = "<group>";
 		};
-		6534E2101730171B009A4FD2 /* JackView */ = {
-			isa = PBXGroup;
-			children = (
-				65B9D5D9170EB9D5009DE0DC /* JackView.h */,
-				65B9D5DA170EB9D5009DE0DC /* JackView.mm */,
-				6534E20D17301716009A4FD2 /* JackViewPortsView.h */,
-				6534E20E17301716009A4FD2 /* JackViewPortsView.mm */,
-				656EE12D176B6D8300463CA8 /* JackViewPortsViewBackgroundView.h */,
-				656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */,
-			);
-			name = JackView;
-			sourceTree = "<group>";
-		};
 		655DAAEB14F69CA80013FAF5 /* Faust Responders */ = {
 			isa = PBXGroup;
 			children = (
@@ -829,7 +805,6 @@
 				4B4953541A9F1D5A005377A7 /* MainStoryboard_iPad.storyboard */,
 				4B4953561A9F1D5A005377A7 /* MainStoryboard_iPhone.storyboard */,
 				4B04364816E9E9AD00C0C02A /* pix */,
-				6534E2101730171B009A4FD2 /* JackView */,
 				65E5EDA114DB037D00136CFC /* FIAppDelegate.h */,
 				65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */,
 				65FD744D1549993A00E7CB0B /* FIScrollView.h */,
@@ -1223,13 +1198,10 @@
 				4B06EC9916E77D6A004D2F59 /* FIHint.mm in Sources */,
 				4B06EC9A16E77D6A004D2F59 /* FIScrollView.mm in Sources */,
 				4B3504DF1C10A57D009F7680 /* OSCListener.cpp in Sources */,
-				65B9D5DB170EB9D5009DE0DC /* JackView.mm in Sources */,
-				6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */,
 				4B3505511C10A57D009F7680 /* OscReceivedElements.cpp in Sources */,
 				4B3504EB1C10A57D009F7680 /* OSCStream.cpp in Sources */,
 				4B3504FD1C10A57D009F7680 /* winthreads_impl.cpp in Sources */,
 				4B3505571C10A57D009F7680 /* OscTypes.cpp in Sources */,
-				656EE130176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm in Sources */,
 				4B35054B1C10A57D009F7680 /* OscPrintReceivedElements.cpp in Sources */,
 				4B3504E51C10A57D009F7680 /* OSCSetup.cpp in Sources */,
 				4B3504C11C10A57D009F7680 /* FaustNode.cpp in Sources */,
@@ -1276,7 +1248,6 @@
 				4B3505521C10A57D009F7680 /* OscReceivedElements.cpp in Sources */,
 				4BEF91B31B96FFC000F2D974 /* FIScrollView.mm in Sources */,
 				4B3504AA1C10A57D009F7680 /* OSCFError.cpp in Sources */,
-				4BEF91B51B96FFC000F2D974 /* JackViewPortsViewBackgroundView.mm in Sources */,
 				4B3504B01C10A57D009F7680 /* OSCRegexp.cpp in Sources */,
 				4B3505581C10A57D009F7680 /* OscTypes.cpp in Sources */,
 				4B3504C21C10A57D009F7680 /* FaustNode.cpp in Sources */,
@@ -1320,7 +1291,6 @@
 				4B3505501C10A57D009F7680 /* OscReceivedElements.cpp in Sources */,
 				65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */,
 				4B3504A81C10A57D009F7680 /* OSCFError.cpp in Sources */,
-				656EE12F176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm in Sources */,
 				4B3504AE1C10A57D009F7680 /* OSCRegexp.cpp in Sources */,
 				4B3505561C10A57D009F7680 /* OscTypes.cpp in Sources */,
 				4B3504C01C10A57D009F7680 /* FaustNode.cpp in Sources */,
@@ -1592,7 +1562,7 @@
 					"$(PROJECT_DIR)/osclib",
 					"$(PROJECT_DIR)/osclib/oscpack",
 				);
-				OTHER_LDFLAGS = "/usr/local/lib/ios-libsndfile.a";
+				OTHER_LDFLAGS = "ios-libsndfile.a";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1627,7 +1597,7 @@
 					"$(PROJECT_DIR)/osclib",
 					"$(PROJECT_DIR)/osclib/oscpack",
 				);
-				OTHER_LDFLAGS = "/usr/local/lib/ios-libsndfile.a";
+				OTHER_LDFLAGS = "ios-libsndfile.a";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";

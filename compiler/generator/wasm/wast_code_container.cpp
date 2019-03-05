@@ -149,7 +149,7 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid),
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
@@ -273,6 +273,12 @@ void WASTCodeContainer::produceClass()
     fOutAux << ")";
 
     gGlobal->gWASTVisitor->Tab(n + 1);
+    
+    // TO REMOVE when 'soundfile' is implemented
+    {
+        // Generate UI: only to trigger exception when using 'soundfile' primitive
+        generateUserInterface(gGlobal->gWASTVisitor);
+    }
 
     // init
     generateInit("dsp", false, false)->accept(gGlobal->gWASTVisitor);
@@ -323,9 +329,6 @@ void WASTCodeContainer::produceClass()
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
 
-    stringstream size;
-    size << gGlobal->gWASTVisitor->getStructSize();
-
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
 
@@ -340,13 +343,13 @@ void WASTCodeContainer::produceClass()
 
     // "name", "filename" found in medata
     JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, size.str(),
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(gGlobal->gWASTVisitor->getStructSize()),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
 
     string json = json_visitor2.JSON(true);
-
+ 
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();
     string begin   = tmp_aux.substr(0, begin_memory);
@@ -390,9 +393,9 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return \"";
+    fHelper << "return '";
     fHelper << json;
-    fHelper << "\";";
+    fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";
@@ -413,7 +416,7 @@ DeclareFunInst* WASInst::generateIntMin()
                                                                             InstBuilder::genLoadFunArgsVar(v1),
                                                                             InstBuilder::genLoadFunArgsVar(v2))));
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("min_i", fun_type, block);
 }
 
@@ -432,7 +435,7 @@ DeclareFunInst* WASInst::generateIntMax()
                                                                             InstBuilder::genLoadFunArgsVar(v2),
                                                                             InstBuilder::genLoadFunArgsVar(v1))));
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
 }
 

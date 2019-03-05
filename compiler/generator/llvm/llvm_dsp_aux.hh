@@ -48,21 +48,21 @@
 #define LLVM_MAX_OPT_LEVEL 5
 
 #if defined(LLVM_35)
-#define STREAM_ERROR string
-#define MEMORY_BUFFER MemoryBuffer*
+#define STREAM_ERROR std::string
+#define MEMORY_BUFFER llvm::MemoryBuffer*
 #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
+#define MEMORY_BUFFER_CREATE(stringref) (llvm::MemoryBuffer::getMemBuffer(stringref))
 #define ModulePTR Module*
 #define MovePTR(ptr) ptr
 #define PASS_MANAGER legacy::PassManager
 #define FUNCTION_PASS_MANAGER FunctionPassManager
 #else
 #define STREAM_ERROR std::error_code
-#define MEMORY_BUFFER MemoryBufferRef
+#define MEMORY_BUFFER llvm::MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
+#define MEMORY_BUFFER_CREATE(stringref) (llvm::MemoryBufferRef(stringref, ""))
 #define ModulePTR std::unique_ptr<Module>
 #define MovePTR(ptr) std::move(ptr)
 #define PASS_MANAGER legacy::PassManager
@@ -186,7 +186,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     getJSONFun            fGetJSON;
     setDefaultSoundFun    fSetDefaultSound;
 
-    void* loadOptimize(const std::string& function);
+    uint64_t loadOptimize(const std::string& function);
 
     void init(const std::string& dsp_name, const std::string& type_name);
 
@@ -214,20 +214,25 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     virtual bool initJIT(std::string& error_msg);
     bool         initJITAux(std::string& error_msg);
 
+    static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target, std::string& error_msg);
+    
     // Bitcode
     virtual std::string writeDSPFactoryToBitcode() { return ""; }
 
-    virtual void writeDSPFactoryToBitcodeFile(const std::string& bit_code_path) {}
+    virtual bool writeDSPFactoryToBitcodeFile(const std::string& bit_code_path) { return false; }
 
     // IR
     virtual std::string writeDSPFactoryToIR() { return ""; }
 
-    virtual void writeDSPFactoryToIRFile(const std::string& ir_code_path) {}
+    virtual bool writeDSPFactoryToIRFile(const std::string& ir_code_path) { return false; }
 
     // Machine
     virtual std::string writeDSPFactoryToMachine(const std::string& target);
 
-    virtual void writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target);
+    virtual bool writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target);
+    
+    // Object
+    virtual bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target) { return false; }
 
     std::string getTarget();
     void        setTarget(const std::string& target) { fTarget = target; }
@@ -295,23 +300,28 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
 
-    void writeDSPFactoryToBitcodeFile(const std::string& bit_code_path)
+    bool writeDSPFactoryToBitcodeFile(const std::string& bit_code_path)
     {
-        fFactory->writeDSPFactoryToBitcodeFile(bit_code_path);
+        return fFactory->writeDSPFactoryToBitcodeFile(bit_code_path);
     }
 
     std::string writeDSPFactoryToIR() { return fFactory->writeDSPFactoryToIR(); }
 
-    void writeDSPFactoryToIRFile(const std::string& ir_code_path) { fFactory->writeDSPFactoryToIRFile(ir_code_path); }
+    bool writeDSPFactoryToIRFile(const std::string& ir_code_path) { return fFactory->writeDSPFactoryToIRFile(ir_code_path); }
 
     std::string writeDSPFactoryToMachine(const std::string& target)
     {
         return fFactory->writeDSPFactoryToMachine(target);
     }
 
-    void writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target)
+    bool writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target)
     {
-        fFactory->writeDSPFactoryToMachineFile(machine_code_path, target);
+        return fFactory->writeDSPFactoryToMachineFile(machine_code_path, target);
+    }
+    
+    bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target)
+    {
+        return fFactory->writeDSPFactoryToObjectcodeFile(object_code_path, target);
     }
 
     llvm_dsp_factory_aux* getFactory() { return fFactory; }
@@ -341,7 +351,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
-EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
+EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
                                          const std::string& target);
 
 #ifdef __cplusplus
@@ -384,7 +394,9 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* ta
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg);
 
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+EXPORT bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+    
+EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path, const char* target);
 
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
 

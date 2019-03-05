@@ -149,11 +149,11 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     }
 };
 
-// Used in asm.js and WebAssembly backends
+// Used in WebAssembly backends
 
 /*
  For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation
- (using in ASMJavaScript and wast/wasm backends)
+ (used in wast/wasm backends)
 */
 
 struct DspRenamer : public BasicCloneVisitor {
@@ -387,7 +387,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
 
     BlockInst* getCode(BlockInst* src)
     {
-        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
+        BlockInst* dst = static_cast<BlockInst*>(src->clone(this));
         // Variable store moved in front of block
         for (list<StatementInst*>::reverse_iterator it = fVarTableStore.rbegin(); it != fVarTableStore.rend(); ++it) {
             dst->pushFrontInst(*it);
@@ -504,7 +504,7 @@ struct FunctionInliner {
                 }
             }
 
-            BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+            BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
         };
 
         // Count variable load occurences in a block
@@ -572,7 +572,7 @@ struct FunctionCallInliner : public BasicCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 struct VariableSizeCounter : public DispatchVisitor {
@@ -599,6 +599,7 @@ struct VariableSizeCounter : public DispatchVisitor {
 
 // Remove unnecessary cast
 struct CastRemover : public BasicTypingCloneVisitor {
+    
     virtual ValueInst* visit(::CastInst* inst)
     {
         inst->fInst->accept(&fTypingVisitor);
@@ -623,7 +624,7 @@ struct CastRemover : public BasicTypingCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 /*
@@ -674,7 +675,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
         }
     }
     
-    BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 /*
@@ -703,7 +704,7 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
         }
     }
     
-    BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 #endif

@@ -53,10 +53,6 @@
 #pragma warning(disable : 4996)
 #endif
 
-#ifdef ASMJS_BUILD
-#include "asmjs_instructions.hh"
-#endif
-
 #ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
@@ -75,10 +71,6 @@
 
 #ifdef JAVA_BUILD
 #include "java_code_container.hh"
-#endif
-
-#ifdef JS_BUILD
-#include "js_code_container.hh"
 #endif
 
 #ifdef RUST_BUILD
@@ -393,10 +385,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang          = "";
 
-#ifdef ASMJS_BUILD
-    gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
-#endif
-
 #ifdef WASM_BUILD
     gWASMVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend
@@ -560,12 +548,12 @@ void global::init()
     sf_type_fields.push_back(
         InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fLength", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
+        "fLength", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fSampleRate", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
+        "fSampleRate", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fOffset", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genBasicTyped(Typed::kInt32)));
+        "fOffset", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 }
@@ -625,9 +613,6 @@ global::~global()
 #endif
 #ifdef JAVA_BUILD
     JAVAInstVisitor::cleanup();
-#endif
-#ifdef JS_BUILD
-    JAVAScriptInstVisitor::cleanup();
 #endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();

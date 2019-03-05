@@ -129,7 +129,7 @@ class FtzPrim : public xtended {
                             return InstBuilder::genSelect2Inst(
                                 InstBuilder::genAnd(
                                     InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
-                                                                InstBuilder::genBasicTyped(Typed::kInt32)),
+                                                                InstBuilder::genInt32Typed()),
                                     InstBuilder::genInt32NumInst(0x7F800000)),
                                 InstBuilder::genLoadStackVar(vname), InstBuilder::genTypedZero(itfloat()));
                         case 2:
@@ -181,6 +181,7 @@ class FtzPrim : public xtended {
         faustassert(types.size() == arity());
         return args[0];
     }
+    
 };
 
 int FtzPrim::freshnum = 0;

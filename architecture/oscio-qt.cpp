@@ -37,7 +37,7 @@
 #include <iostream>
 
 #include "faust/gui/FUI.h"
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/misc.h"
 #include "faust/audio/osc-dsp.h"

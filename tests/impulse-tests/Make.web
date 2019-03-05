@@ -1,5 +1,5 @@
 #
-# Makefile for generating ir using asmjs, wasm, wast...
+# Makefile for generating ir using wasm, wast...
 #
 
 system := $(shell uname -s)
@@ -13,11 +13,9 @@ else
 endif
 MAKE ?= make
 
-outdir ?= asmjs
 wasmdir ?= wasm
 wastdir ?= wast
-lang ?= ajs
-arch ?= ../../architecture/webaudio/asm-standalone-node-wrapper-double.js
+lang ?= wasm
 wasmarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
 wastarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
 FAUSTOPTIONS ?= 
@@ -30,7 +28,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 SRCDIR := tools
 
 all:
-	$(MAKE) -f Make.web asmjs
+	$(MAKE) -f Make.web
 
 test:
 	@echo $(call listfiles,$(outdir))
@@ -38,25 +36,20 @@ test:
 help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
-	@echo " 'asmjs' (default): check the double output using the ajs backend"
 	@echo " 'wasm'           : check the double output using the wasm backend"
 	@echo " 'wast'           : check the double output using the wast backend"
 	@echo
 	@echo "Options:"
-	@echo " 'outdir' 	   : define the output directory (default to 'asmjs')"
+	@echo " 'outdir' 	   : define the output directory (default to 'wasm')"
 	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
-
 
 #########################################################################
 # web backends
-asmjs:  ir/$(outdir) $(call listfiles,$(outdir))
 wasm:  ir/$(wasmdir) $(call listfiles,$(wasmdir))
 wast:  ir/$(wastdir) $(call listfiles,$(wastdir))
 
 #########################################################################
 # output directories
-ir/$(outdir):
-	mkdir -p ir/$(outdir)
 ir/$(wasmdir):
 	mkdir -p ir/$(wasmdir)
 ir/$(wastdir):
@@ -66,14 +59,6 @@ ir/$(wastdir):
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
-
-#########################################################################
-# rules for asm.js
-ir/$(outdir)/%.ir: ir/$(outdir)/%.js reference/%.ir
-	node $< > $@ || (rm -f $@; false)
-	$(COMPARE)  $@ reference/$(notdir $@)
-ir/$(outdir)/%.js : dsp/%.dsp
-	$(FAUST) -double -lang $(lang) $(FAUSTOPTIONS) -cn $(basename $(notdir $@)) -a $(arch)  $<  -o $@
 
 #########################################################################
 # rules for wasm

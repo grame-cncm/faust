@@ -37,7 +37,7 @@
 
 #include "../../utilities.h"
 #include "faust/dsp/remote-dsp.h"
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/gui/httpdUI.h"
 //#include "faust/audio/coreaudio-dsp.h"
 #include "faust/audio/jack-dsp.h"

@@ -228,7 +228,7 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 
 faust.getLibFaustVersion = function ()
 {
-    return faust_module.Pointer_stringify(faust.getCLibFaustVersion());
+    return faust_module.UTF8ToString(faust.getCLibFaustVersion());
 }
 
 faust.ab2str = function(buf)
@@ -290,7 +290,7 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         
         console.log("Faust compilation duration : " + (time2 - time1));
 
-        faust.error_msg = faust_module.Pointer_stringify(error_msg_ptr);
+        faust.error_msg = faust_module.UTF8ToString(error_msg_ptr);
         
         /*
         // New API test
@@ -374,7 +374,7 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
             }
 
             var helpers_code_ptr = faust.getWasmCHelpers(module_code_ptr);
-            var helpers_code = faust_module.Pointer_stringify(helpers_code_ptr);
+            var helpers_code = faust_module.UTF8ToString(helpers_code_ptr);
 
             // Free strings
             faust_module._free(code_ptr);
@@ -397,7 +397,7 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
 
     } catch (e) {
         // libfaust is compiled without C++ exception activated, so a JS exception is throwed and catched here
-        faust.error_msg = faust_module.Pointer_stringify(faust.getErrorAfterException());
+        faust.error_msg = faust_module.UTF8ToString(faust.getErrorAfterException());
         if (faust.error_msg === "") {
             // Report the Emscripten error
             faust.error_msg = e;
@@ -541,9 +541,9 @@ faust.expandDSP = function (code, argv)
     try {
         
         var expand_dsp_ptr = faust.expandCDSPFromString(name_ptr, code_ptr, argv.length, argv_ptr, sha_key_ptr, error_msg_ptr);
-        var expand_dsp = faust_module.Pointer_stringify(expand_dsp_ptr);
-        var sha_key = faust_module.Pointer_stringify(sha_key_ptr);
-        faust.error_msg = faust_module.Pointer_stringify(error_msg_ptr);
+        var expand_dsp = faust_module.UTF8ToString(expand_dsp_ptr);
+        var sha_key = faust_module.UTF8ToString(sha_key_ptr);
+        faust.error_msg = faust_module.UTF8ToString(error_msg_ptr);
 
         // Free strings
         faust_module._free(code_ptr);
@@ -566,7 +566,7 @@ faust.expandDSP = function (code, argv)
         
     } catch (e) {
         // libfaust is compiled without C++ exception activated, so a JS exception is throwed and catched here
-        faust.error_msg = faust_module.Pointer_stringify(faust.getErrorAfterException());
+        faust.error_msg = faust_module.UTF8ToString(faust.getErrorAfterException());
         if (faust.error_msg === "") {
             // Report the Emscripten error
             faust.error_msg = e;

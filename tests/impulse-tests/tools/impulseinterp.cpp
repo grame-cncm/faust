@@ -4,6 +4,7 @@
 #endif
 
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/gui/MapUI.h"
 #include "controlTools.h"
 
 int main(int argc, char* argv[])
@@ -14,7 +15,7 @@ int main(int argc, char* argv[])
     int linenum = 0;
     int nbsamples = 60000;
     
-    if (endsWith(argv[1], ".dsp")) {
+    if (MapUI::endsWith(argv[1], ".dsp")) {
         
         {
             int argc1 = argc - 2;

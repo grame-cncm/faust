@@ -51,7 +51,6 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["min"] = true;
 
         // Float version
-        gFunctionSymbolTable["absf"]       = true;
         gFunctionSymbolTable["fabsf"]      = true;
         gFunctionSymbolTable["acosf"]      = true;
         gFunctionSymbolTable["asinf"]      = true;
@@ -73,7 +72,6 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["tanf"]       = true;
 
         // Double version
-        gFunctionSymbolTable["abs"]       = true;
         gFunctionSymbolTable["fabs"]      = true;
         gFunctionSymbolTable["acos"]      = true;
         gFunctionSymbolTable["asin"]      = true;
@@ -183,7 +181,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "ui_interface->addSoundFile(ui_interface->uiInterface, " << quote(inst->fLabel) << ", "
+        *fOut << "ui_interface->addSoundfile(ui_interface->uiInterface, " << quote(inst->fLabel) << ", "
               << quote(inst->fURL) << ", &dsp->" << inst->fSFZone << ")";
         EndLine();
     }
@@ -321,7 +319,7 @@ class CInstVisitor : public TextInstVisitor {
             // To generate C99 compatible loops...
             c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
             c99_declare_inst =
-                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt32));
+                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
             // C99 loop variable declared outside the loop
             c99_declare_inst->accept(this);
         }

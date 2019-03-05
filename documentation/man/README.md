@@ -1,10 +1,9 @@
-% man(1) Version 2.12 (7 October 2018) | Faust man page
+% man(1) Version 2.15.10 (03-March-2019) | Faust man page
 
 NAME
 ====
 
-Faust  -  DSP  to  C/C++,  Rust,  LLVM  IR,  JAVA,  JavaScript, asm.js,
-WebAssembly (wast/wasm), Interpreter compiler
+Faust  -  DSP  to  C/C++,  Rust,  LLVM  IR,  JAVA, WebAssembly (wast/wasm), Interpreter compiler
 
 SYNOPSIS
 ========
@@ -57,7 +56,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp.
+                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, interp.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -69,9 +68,15 @@ Code generation options:
 
   **-lcc**        **--local-causality-check**     check causality also at local level.
 
+  **-light**      **--light-mode**                do not generate the entire DSP API.
+
+  **-clang**      **--clang**                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization.
+
   **-flist**      **--file-list**                 use file list used to eval process.
 
   **-exp10**      **--generate-exp10**            function call instead of pow(10) function.
+
+  **-os**         **--one-sample**                generate one sample computation.
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
@@ -107,7 +112,7 @@ Code generation options:
 
   **-omp**       **--openmp**                     generate OpenMP pragmas, activates --vectorize option.
 
-  **-pl**        **--par-loop**                   generate parallel loops in --openMP mode.
+  **-pl**        **--par-loop**                   generate parallel loops in --openmp mode.
 
   **-sch**       **--scheduler**                  generate tasks and use a Work Stealing scheduler, activates --vectorize option.
 
@@ -172,13 +177,13 @@ Information options:
 
   **-v**          **--version**                   print version information and embedded backends list.
 
-  **-libdir**     **--libdir**                    print directory containing the faust libraries.
+  **-libdir**     **--libdir**                    print directory containing the Faust libraries.
 
-  **-includedir** **--includedir**                print directory containing the faust headers.
+  **-includedir** **--includedir**                print directory containing the Faust headers.
 
-  **-archdir**    **--archdir**                   print directory containing the faust architectures.
+  **-archdir**    **--archdir**                   print directory containing the Faust architectures.
 
-  **-dspdir**     **--dspdir**                    print directory containing the faust dsp libraries.
+  **-dspdir**     **--dspdir**                    print directory containing the Faust dsp libraries.
 
   **-pathslist**  **--pathslist**                 print the architectures and dsp library paths.
 
@@ -191,7 +196,7 @@ faust **-a** jack-gtk.cpp -o myfx.cpp myfx.dsp
 SEE ALSO
 ========
 
-Grame Faust site at: **<http://faust.grame.fr>**
+Grame Faust site at: **<https://faust.grame.fr>**
 
 BUGS
 ====

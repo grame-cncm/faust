@@ -212,11 +212,6 @@ EndOfCode
         cp  $FAUSTLIB/webaudio/testWAP.html test$name-tmp1.html
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
-    else
-        # compose the HTML test page
-        cp  $FAUSTLIB/webaudio/testAWN.html test$name-tmp1.html
-        sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
-        sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi
 
     # collect binary file name
@@ -224,7 +219,7 @@ EndOfCode
     	if [ $WAP = "true" ]; then
         	BINARIES="$BINARIES$name.js, $name-processor.js, main.json, test$name.html;"
         else
-        	BINARIES="$BINARIES$name.js, $name-processor.js, test$name.html;"
+        	BINARIES="$BINARIES$name.js, $name-processor.js;"
         fi
         rm -f $name.wasm $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
     else

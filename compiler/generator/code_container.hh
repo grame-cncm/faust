@@ -162,11 +162,13 @@ class CodeContainer : public virtual Garbageable {
         gGlobal->printCompilationOptions(dst);
         dst << "\n------------------------------------------------------------ */" << endl;
     }
-
+    
+    void printMacros(ostream& fout, int n);
+  
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
-            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
+            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
         }
         pushFrontInitMethod(
             InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));

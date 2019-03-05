@@ -2,7 +2,7 @@
 #define LV2QTGUI_H
 
 #include <QObject>
-#include <faust/gui/faustqt.h>
+#include <faust/gui/QTUI.h>
 
 class LV2PluginUI;
 #ifdef OSCCTRL

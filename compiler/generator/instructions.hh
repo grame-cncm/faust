@@ -114,8 +114,7 @@ struct IndexedAddress;
 
 inline bool isRealType(Typed::VarType type)
 {
-    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kFloatish || type == Typed::kDouble ||
-            type == Typed::kDoublish);
+    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble);
 }
 
 inline bool isRealPtrType(Typed::VarType type)
@@ -125,12 +124,12 @@ inline bool isRealPtrType(Typed::VarType type)
 
 inline bool isIntType(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
+    return (type == Typed::kInt32 || type == Typed::kInt64);
 }
 
 inline bool isIntType32(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt32ish);
+    return (type == Typed::kInt32);
 }
 
 inline bool isIntType64(Typed::VarType type)
@@ -237,6 +236,8 @@ struct InstVisitor : public virtual Garbageable {
     // Block
     virtual void visit(BlockInst* inst) {}
 };
+
+// Clone a FIR expression
 
 struct CloneVisitor : public virtual Garbageable {
     CloneVisitor() {}
@@ -758,7 +759,9 @@ struct DeclareVarInst : public StatementInst {
 
     DeclareVarInst(Address* address, Typed* typed, ValueInst* value);
 
-    virtual ~DeclareVarInst();
+    virtual ~DeclareVarInst()
+    {
+    }
 
     void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
     Address::AccessType getAccess() { return fAddress->getAccess(); }
@@ -1165,7 +1168,9 @@ struct DeclareFunInst : public StatementInst {
 
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
-    virtual ~DeclareFunInst();
+    virtual ~DeclareFunInst()
+    {
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1177,7 +1182,9 @@ struct DeclareStructTypeInst : public StatementInst {
 
     DeclareStructTypeInst(StructTyped* type) : fType(type) {}
 
-    virtual ~DeclareStructTypeInst() {}
+    virtual ~DeclareStructTypeInst()
+    {
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1446,7 +1453,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
     }
-    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
+    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr); }
     virtual Typed* visit(StructTyped* typed)
     {
         vector<NamedTyped*>                 cloned;
@@ -1898,7 +1905,6 @@ struct InstBuilder {
     }
 
     static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
-
     static ValueInst* genCastFloatInst(ValueInst* inst);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
     static ValueInst* genCastInt32Inst(ValueInst* inst);
@@ -1907,7 +1913,7 @@ struct InstBuilder {
     static RetInst*  genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
     static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
 
-    // Conditionnal
+    // Conditional
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
     {
         return new Select2Inst(cond_inst, then_inst, else_inst);
@@ -1961,6 +1967,11 @@ struct InstBuilder {
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
+    
+    static BasicTyped* genInt32Typed() { return genBasicTyped(Typed::kInt32); }
+    static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
+    static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
+    static BasicTyped* genFloatMacroTyped() { return genBasicTyped(Typed::kFloatMacro); }
 
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
@@ -1971,7 +1982,7 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
+    static ArrayTyped* genArrayTyped(Typed* type, int size, bool is_ptr = false)
     {
         return new ArrayTyped(type, size, is_ptr);
     }
@@ -1991,7 +2002,6 @@ struct InstBuilder {
     }
 
     // Helper build methods
-
     static DeclareVarInst* genDecArrayVar(const string& vname, Address::AccessType var_access, Typed* type, int size)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
@@ -2461,7 +2471,7 @@ Statement   := DeclareVar (Address, Type, Value)
             | Return (Value)
             | BlockInst (Statement*)
             | If (Value, BlockInst, BlockInst)
-            | Switch (Value, <int, BlockInst>*)
+            | Switch (Value, <int>, BlockInst>*)
 
 Value       := LoadVar (Address)
             | Float | Int | Double | Bool
@@ -2530,6 +2540,6 @@ manipulent les indices de la boucle ?? (pas besoin, ils n'apparaissent pas dans 
 l'indice de la boucle est utilisé dans le corps de la boucle, il faut le faire correspondre au nouvel indice de boucle,
 renommage nécessaire ?)
 
- - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop
+ - utiliser le *même* nom d'index dans ForLoopInst et dans le code interne de la loop
 
 */

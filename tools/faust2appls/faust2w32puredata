@@ -28,7 +28,7 @@ fi
 #-------------------------------------------------------------------
 # Compiler settings
 
-CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
+CXXFLAGS="-std=c++11 -O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
 LIB="-I${PDW32INCLUDEDIR} -shared ${PDW32BINDIR}/pd.dll"
 EXT="~.dll"
 

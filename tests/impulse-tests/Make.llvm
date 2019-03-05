@@ -25,7 +25,6 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 
 SRCDIR := tools
 
-
 #########################################################################
 llvm:  impulsellvm ir/$(outdir) $(call listfiles,$(outdir))
 
@@ -47,7 +46,6 @@ help:
 ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
-
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
@@ -55,7 +53,6 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp $(LIB)
 	$(MAKE) impulsellvm
-
 
 #########################################################################
 # precision issues
@@ -74,7 +71,7 @@ ir/llvm/inpl/midi_tester.ir:
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	cd $(dir $<); ../impulsellvm $(notdir $<) -I . -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
-	$(COMPARE)  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
 
 
 

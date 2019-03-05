@@ -43,7 +43,7 @@ void VectorCodeContainer::moveStack2Struct()
 void VectorCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
     
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("input$0", T(i));
@@ -58,7 +58,7 @@ void VectorCodeContainer::generateLocalInputs(BlockInst* loop_code, const string
 void VectorCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
     
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("output$0", T(i));
@@ -80,7 +80,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 
     // Declare the "index" variable outside the loop
     DeclareVarInst* index_dec =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     block_res->pushBackInst(index_dec);
     block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
 
@@ -91,7 +91,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     generateLocalOutputs(loop_code, index);
 
     // Generate : int count = 32;
-    DeclareVarInst* count_dec1 = InstBuilder::genDecLoopVar(count, InstBuilder::genBasicTyped(Typed::kInt32),
+    DeclareVarInst* count_dec1 = InstBuilder::genDecLoopVar(count, InstBuilder::genInt32Typed(),
                                                              InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     loop_code->pushBackInst(count_dec1);
     
@@ -130,7 +130,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 
     // Generate : int count = fullcount-index;
     DeclareVarInst* count_dec2 = InstBuilder::genDecLoopVar(
-        count, InstBuilder::genBasicTyped(Typed::kInt32),
+        count, InstBuilder::genInt32Typed(),
         InstBuilder::genSub(InstBuilder::genLoadStackVar(counter), index_dec->load()));
 
     then_block->pushBackInst(count_dec2);
@@ -158,7 +158,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_dec =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     
     // Generate local input/output access
     generateLocalInputs(loop_code, index);
@@ -171,7 +171,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min_i", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecLoopVar(count, InstBuilder::genBasicTyped(Typed::kInt32), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecLoopVar(count, InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
     
     // Debug code
@@ -217,7 +217,7 @@ void VectorCodeContainer::processFIR(void)
     }
 
     string          fullcount     = "fullcount";
-    DeclareVarInst* fullcount_dec = InstBuilder::genDecStackVar(fullcount, InstBuilder::genBasicTyped(Typed::kInt32),
+    DeclareVarInst* fullcount_dec = InstBuilder::genDecStackVar(fullcount, InstBuilder::genInt32Typed(),
                                                                 InstBuilder::genLoadFunArgsVar(fFullCount));
     pushComputeBlockMethod(fullcount_dec);
   

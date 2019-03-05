@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#       filename2ident "foo-3.dsp" -> "foo_3_dsp"                   #
+#       Transform filenames by replacing '-', '.' and ' ' with '_'  #
+#       Useful when the filename is used as a PL identifier         #
+#                                                                   #
+#####################################################################
+
+echo $1 | tr ' .\-' '___'
+

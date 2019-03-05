@@ -35,7 +35,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/PresetUI.h"
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/audio/audio.h"
 #include "faust/misc.h"
 

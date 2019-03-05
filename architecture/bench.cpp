@@ -68,7 +68,7 @@ unsigned int    ITER    = 10;       // number of iterations per measure
 unsigned int    VSIZE   = 4096;     // size of a vector in samples
 unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
 
-bool setRealtimePriority ()
+bool setRealtimePriority()
 {
     struct passwd *         pw;
     int                     err;

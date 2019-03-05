@@ -66,58 +66,6 @@
 #include "sourcereader.hh"
 #include "timing.hh"
 
-static void enumBackends(ostream& out)
-{
-    const char* dspto = "   DSP to ";
-#ifdef C_BUILD
-    out << dspto << "C" << endl;
-#endif
-
-#ifdef CPP_BUILD
-    out << dspto << "C++" << endl;
-#endif
-
-#ifdef FIR_BUILD
-    out << dspto << "FIR" << endl;
-#endif
-
-#ifdef INTERP_BUILD
-    out << dspto << "Interpreter" << endl;
-#endif
-
-#ifdef JAVA_BUILD
-    out << dspto << "Java" << endl;
-#endif
-
-#ifdef JS_BUILD
-    out << dspto << "JavaScript" << endl;
-#endif
-
-#ifdef LLVM_BUILD
-    out << dspto << "LLVM IR" << endl;
-#endif
-
-#ifdef OCPP_BUILD
-    out << dspto << "old C++" << endl;
-#endif
-
-#ifdef RUST_BUILD
-    out << dspto << "Rust" << endl;
-#endif
-
-#ifdef ASMJS_BUILD
-    out << dspto << "asm.js" << endl;
-#endif
-
-#ifdef WASM_BUILD
-    out << dspto << "WebAssembly (wast/wasm)" << endl;
-#endif
-}
-
-#ifdef ASMJS_BUILD
-#include "asmjs_code_container.hh"
-#endif
-
 #ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
@@ -137,10 +85,6 @@ static void enumBackends(ostream& out)
 
 #ifdef JAVA_BUILD
 #include "java_code_container.hh"
-#endif
-
-#ifdef JS_BUILD
-#include "js_code_container.hh"
 #endif
 
 #ifdef LLVM_BUILD
@@ -187,6 +131,46 @@ typedef void* (*compile_fun)(void* arg);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
 
+static void enumBackends(ostream& out)
+{
+    const char* dspto = "   DSP to ";
+#ifdef C_BUILD
+    out << dspto << "C" << endl;
+#endif
+    
+#ifdef CPP_BUILD
+    out << dspto << "C++" << endl;
+#endif
+    
+#ifdef FIR_BUILD
+    out << dspto << "FIR" << endl;
+#endif
+    
+#ifdef INTERP_BUILD
+    out << dspto << "Interpreter" << endl;
+#endif
+    
+#ifdef JAVA_BUILD
+    out << dspto << "Java" << endl;
+#endif
+    
+#ifdef LLVM_BUILD
+    out << dspto << "LLVM IR" << endl;
+#endif
+    
+#ifdef OCPP_BUILD
+    out << dspto << "old C++" << endl;
+#endif
+    
+#ifdef RUST_BUILD
+    out << dspto << "Rust" << endl;
+#endif
+    
+#ifdef WASM_BUILD
+    out << dspto << "WebAssembly (wast/wasm)" << endl;
+#endif
+}
+
 #ifdef _WIN32
 static void callFun(compile_fun fun)
 {
@@ -195,8 +179,7 @@ static void callFun(compile_fun fun)
 #else
 static void callFun(compile_fun fun)
 {
-    if (gGlobal->gOutputLang == "ajs" || startWith(gGlobal->gOutputLang, "wast") ||
-        startWith(gGlobal->gOutputLang, "wasm")) {
+    if (startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm")) {
         // No thread support in asm.js and wast/wasm
         fun(NULL);
     } else {
@@ -650,8 +633,14 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
     
-    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c") {
-        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp' or 'c' backends\n");
+    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp"
+        && gGlobal->gOutputLang != "c"
+        && gGlobal->gOutputLang != "fir") {
+        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c' or 'fir' backends\n");
+    }
+    
+    if (gGlobal->gOneSample && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
     }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
@@ -771,7 +760,7 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, "
+         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
             "llvm, cllvm, fir, wast/wasm, interp."
          << endl;
     cout << tab
@@ -1391,25 +1380,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
 
-        } else if (gGlobal->gOutputLang == "js") {
-#ifdef JS_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
-#else
-            throw faustexception("ERROR : -lang js not supported since JS backend is not built\n");
-#endif
-
-        } else if (gGlobal->gOutputLang == "ajs") {
-#ifdef ASMJS_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
-            gGlobal->gWaveformInDSP        = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
-#else
-            throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
-#endif
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
@@ -1497,7 +1467,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #endif
         } else {
             stringstream error;
-            error << "ERROR : cannot find compiler for "
+            error << "ERROR : cannot find backend for "
                   << "\"" << gGlobal->gOutputLang << "\"" << endl;
             throw faustexception(error.str());
         }

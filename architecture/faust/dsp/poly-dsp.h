@@ -51,13 +51,6 @@
 
 // endsWith(<str>,<end>) : returns true if <str> ends with <end>
 
-static bool endsWith(std::string const& str, std::string const& end)
-{
-    size_t l1 = str.length();
-    size_t l2 = end.length();
-    return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
-}
-
 static double midiToFreq(double note)
 {
     return 440.0 * std::pow(2.0, (note-69.0)/12.0);
@@ -76,9 +69,9 @@ class GroupUI : public GUI, public PathBuilder
 
         void insertMap(std::string label, FAUSTFLOAT* zone)
         {
-            if (!endsWith(label, "/gate")
-                && !endsWith(label, "/freq")
-                && !endsWith(label, "/gain")) {
+            if (!MapUI::endsWith(label, "/gate")
+                && !MapUI::endsWith(label, "/freq")
+                && !MapUI::endsWith(label, "/gain")) {
 
                 // Groups all controller except 'freq', 'gate', and 'gain'
                 if (fLabelZoneMap.find(label) != fLabelZoneMap.end()) {

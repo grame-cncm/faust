@@ -56,7 +56,6 @@ class CStringTypeManager : public StringTypeManager {
         fPtrPosfix = ptr_postfix;
 
         fTypeDirectTable[Typed::kInt32]     = "int";
-        fTypeDirectTable[Typed::kInt32ish]  = "intish";
         fTypeDirectTable[Typed::kInt32_ptr] = "int" + fPtrPosfix;
         fTypeDirectTable[Typed::kInt32_vec] = "vector<int>";
 
@@ -65,7 +64,6 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt64_vec] = "vector<long long>";
 
         fTypeDirectTable[Typed::kFloat]         = "float";
-        fTypeDirectTable[Typed::kFloatish]      = "floatish";
         fTypeDirectTable[Typed::kFloat_ptr]     = "float" + fPtrPosfix;
         fTypeDirectTable[Typed::kFloat_ptr_ptr] = "float" + fPtrPosfix + fPtrPosfix;
         fTypeDirectTable[Typed::kFloat_vec]     = "vector<float>";
@@ -74,7 +72,6 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = "FAUSTFLOAT" + fPtrPosfix + fPtrPosfix;
 
         fTypeDirectTable[Typed::kDouble]         = "double";
-        fTypeDirectTable[Typed::kDoublish]       = "doublish";
         fTypeDirectTable[Typed::kDouble_ptr]     = "double" + fPtrPosfix;
         fTypeDirectTable[Typed::kDouble_ptr_ptr] = "double" + fPtrPosfix + fPtrPosfix;
         ;
@@ -150,7 +147,6 @@ class RustStringTypeManager : public StringTypeManager {
         fPtrPosfix = ptr_postfix;
 
         fTypeDirectTable[Typed::kInt32]     = "i32";
-        fTypeDirectTable[Typed::kInt32ish]  = "intish";
         fTypeDirectTable[Typed::kInt32_ptr] = "i32" + fPtrPosfix;
         fTypeDirectTable[Typed::kInt32_vec] = "vector<i32>";
 
@@ -159,12 +155,10 @@ class RustStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt64_vec] = "vector<i64>";
 
         fTypeDirectTable[Typed::kFloat]     = "f32";
-        fTypeDirectTable[Typed::kFloatish]  = "floatish";
         fTypeDirectTable[Typed::kFloat_ptr] = "f32" + fPtrPosfix;
         fTypeDirectTable[Typed::kFloat_vec] = "vector<f32>";
 
         fTypeDirectTable[Typed::kDouble]     = "f64";
-        fTypeDirectTable[Typed::kDoublish]   = "doublish";
         fTypeDirectTable[Typed::kDouble_ptr] = "f64" + fPtrPosfix;
         fTypeDirectTable[Typed::kDouble_vec] = "vector<f64>";
 

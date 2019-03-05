@@ -31,8 +31,6 @@ all:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp 	FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=c 	lang=c   ext=c 		FAUSTOPTIONS=" -a ./min.c"
-	$(MAKE) -f Make.lang outdir=js 	lang=js  ext=js 	FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=ajs lang=ajs ext=ajs 	FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=wasm lang=wast/wasm ext=wasm FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=java lang=java ext=java FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""

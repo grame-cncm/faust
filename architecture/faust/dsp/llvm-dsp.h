@@ -28,6 +28,7 @@
 #define DEPRECATED(fun) fun __attribute__ ((deprecated));
 #endif
 
+#include <string>
 #include <vector>
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
@@ -99,35 +100,39 @@ class llvm_dsp_factory : public dsp_factory {
          *  or 'name_app' (if createDSPFactoryFromString is used)
         */
         std::string getName();
-        
+    
         /* Return factory LLVM target (like 'i386-apple-macosx10.6.0:opteron')*/
         std::string getTarget();
         
         /* Return factory SHA key */
         std::string getSHAKey();
-  
+        
         /* Return factory expanded DSP code */
         std::string getDSPCode();
-    
-        /* Create a new DSP instance, to be deleted with C++ 'delete' */
-        llvm_dsp* createDSPInstance();
-    
-        /* Set a custom memory manager to be used when creating instances */
-        void setMemoryManager(dsp_memory_manager* manager);
-    
-        /* Return the currently set custom memory manager */
-        dsp_memory_manager* getMemoryManager();
-    
+        
+        /* Return factory compile options */
+        std::string getCompileOptions();
+        
         /* Get the Faust DSP factory list of library dependancies */
         std::vector<std::string> getLibraryList();
-    
+        
         /* Get the list of all used includes */
         std::vector<std::string> getIncludePathnames();
+        
+        /* Create a new DSP instance, to be deleted with C++ 'delete' */
+        llvm_dsp* createDSPInstance();
+        
+        /* Set a custom memory manager to be used when creating instances */
+        void setMemoryManager(dsp_memory_manager* manager);
+        
+        /* Return the currently set custom memory manager */
+        dsp_memory_manager* getMemoryManager();
+
 };
 
 /**
  * Get the target (triple + CPU) of the machine.
- * 
+ *
  * @return the target as a string.
  */
 std::string getDSPMachineTarget();
@@ -293,8 +298,9 @@ llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path
  * @param factory - the DSP factory
  * @param bit_code_path - the LLVM bitcode file pathname.
  *
+ * @return true on success, false on failure.
  */
-void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
+bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
@@ -349,8 +355,9 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
  * @param factory - the DSP factory
  * @param ir_code_path - the LLVM bitcode file pathname.
  *
+ * @return true on success, false on failure.
  */
-void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
+bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
 /**
  * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
@@ -359,10 +366,10 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code - the machine code string
- * @param error_msg - the error string to be filled
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
@@ -387,10 +394,10 @@ std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::strin
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code_path - the machine code file pathname
- * @param error_msg - the error string to be filled
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
@@ -405,8 +412,21 @@ llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
  *
+ * @return true on success, false on failure.
  */
-void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
+bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
+
+/**
+ * Write a Faust DSP factory into a object code file.
+ *
+ * @param factory - the DSP factory
+ * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+ *                 using an empty string takes the current machine settings,
+ *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ *
+ * @return true on success, false on failure.
+ */
+bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const std::string& object_code_path, const std::string& target);
 
 /**
  * Call global declarations with the given meta object.

@@ -2431,7 +2431,7 @@ const char *VSTWrapper::getHostName()
 
 #include <iostream>
 #include <QApplication>
-#include <faust/gui/faustqt.h>
+#include <faust/gui/QTUI.h>
 #ifdef OSCCTRL
 #include <faust/gui/OSCUI.h>
 #endif
@@ -2718,7 +2718,7 @@ public:
 /**
  * @brief VSTQtGUI::open
  * - method to open the plug-in GUI
- * - the GUI is generated through faustqt.h (QTGUI() class)
+ * - the GUI is generated through QTUI.h (QTGUI() class)
  * - communication between GUI elements and the corresponding VST parameters
  *   is realized using Qt's signal-slot mechanism
  * @param ptr

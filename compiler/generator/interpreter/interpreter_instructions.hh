@@ -224,9 +224,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
+        // Not supported for now
+        throw faustexception("ERROR : AddSoundfileInst not supported for interp\n");
+        
         MemoryDesc tmp = fFieldTable[inst->fSFZone];
         fUserInterfaceBlock->push(
-            new FIRUserInterfaceInstruction<T>(FBCInstruction::kAddSoundFile, tmp.fOffset, inst->fLabel, inst->fURL));
+            new FIRUserInterfaceInstruction<T>(FBCInstruction::kAddSoundfile, tmp.fOffset, inst->fLabel, inst->fURL));
     }
 
     virtual void visit(LabelInst* inst) {}

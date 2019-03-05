@@ -326,9 +326,10 @@ class uiTimedItem : public uiItem
     protected:
         
         bool fDelete;
-        using uiItem::modifyZone;
         
     public:
+    
+        using uiItem::modifyZone;
         
         uiTimedItem(GUI* ui, FAUSTFLOAT* zone):uiItem(ui, zone)
         {

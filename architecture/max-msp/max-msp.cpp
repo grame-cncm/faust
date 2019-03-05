@@ -511,7 +511,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
     bool res = false;
     string name = string((s)->s_name);
     
-    // Check if no argument is there, consider it is a toggle message for a button
+    // If no argument is there, consider it as a toggle message for a button
     if (ac == 0 && obj->m_dspUI->isValue(name)) {
         
         float off = 0.0f;
@@ -579,20 +579,20 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
             if (!res) {
                 res = obj->m_dspUI->setValue(name, value);
             }
-            
             if (!res) {
                 post("Unknown parameter : %s", (s)->s_name);
             }
         }
+        
     } else {
         // Standard parameter name
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = obj->m_dspUI->setValue(name, value); 
+        res = obj->m_dspUI->setValue(name, value);
+        if (!res) {
+            post("Unknown parameter : %s", (s)->s_name);
+        }
     }
     
-    if (!res) {
-        post("Unknown parameter : %s", (s)->s_name);
-    }
 }
 
 /*--------------------------------------------------------------------------*/

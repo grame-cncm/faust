@@ -4,10 +4,10 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2009-2018
+Copyright GRAME (c) 2012-2019
 
 ----------------------------------------------------
-Version 1.34 - 12/19/2018
+Version 1.36 - 03/05/2019
 
   - add ‘soundfile’ primitive support
   - add OSC support
@@ -17,7 +17,7 @@ Version 1.34 - 12/19/2018
 Version 1.12 - 01/05/2017
 
   - updated libraries. 
-  - correct memory deallocation in faustgen destructor.
+  - correct memory deallocation in faustgen~ destructor.
 
 ----------------------------------------------------
 Version 1.11 - 12/06/2016
@@ -37,7 +37,7 @@ Version 1.09 - 06/06/2016
 ----------------------------------------------------
 Version 1.08 - 05/01/2016
 
-  - polyphonic support using a new « polyphony N » message. 
+  - polyphonic support using a new "polyphony N" message. 
 
 ----------------------------------------------------
 Version 1.07 - 01/24/2016

@@ -34,7 +34,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/gui/faustgtk.h"
+#include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
 
 using namespace std;

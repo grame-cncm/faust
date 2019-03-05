@@ -46,6 +46,15 @@
 #include "dsp_vec0_256.h"
 #include "dsp_vec0_512.h"
 
+#include "dsp_vec0_fun_4.h"
+#include "dsp_vec0_fun_8.h"
+#include "dsp_vec0_fun_16.h"
+#include "dsp_vec0_fun_32.h"
+#include "dsp_vec0_fun_64.h"
+#include "dsp_vec0_fun_128.h"
+#include "dsp_vec0_fun_256.h"
+#include "dsp_vec0_fun_512.h"
+
 #include "dsp_vec1_4.h"
 #include "dsp_vec1_8.h"
 #include "dsp_vec1_16.h"
@@ -124,6 +133,15 @@ extern "C" int bench_all(const char* name, int run, bool trace)
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 128");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 256");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 512");
+    
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 4");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 8");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 16");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 64");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 128");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 256");
+    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 512");
     
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4 -g");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8 -g");

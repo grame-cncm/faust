@@ -80,8 +80,7 @@ faust.ui = function (json, patcher) {
 
         } else if (item.type === "hbargraph" || item.type === "vbargraph") {
         
-            faust.numwidgets++;
-        
+            faust.numwidgets++;     
             faust.theComments[faust.numwidgets] = patcher.newdefault(hBase, 20 + widgHeight * faust.numwidgets, "comment");
             faust.theComments[faust.numwidgets].message("set", "bargraph" + faust.numwidgets);
         
@@ -109,8 +108,7 @@ faust.ui = function (json, patcher) {
         
         } else if (item.type === "vslider" || item.type === "hslider" ) {
         
-            faust.numwidgets++;
-        
+            faust.numwidgets++; 
             faust.theComments[faust.numwidgets] = patcher.newdefault(hBase, 20 + widgHeight * faust.numwidgets, "comment");
             faust.theComments[faust.numwidgets].message("set", item.label);
 
@@ -164,15 +162,14 @@ faust.ui = function (json, patcher) {
         } else if (item.type === "nentry") {
 			
             faust.numwidgets++;
-
             faust.theComments[faust.numwidgets] = patcher.newdefault(hBase, 20 + widgHeight * faust.numwidgets, "comment");
             faust.theComments[faust.numwidgets].message("set", item.label);
 
             if (parseFloat(item.step) == 1.0)  {
-                post("integer : nentry \n");
+                //post("integer : nentry \n");
                 faust.thenumberBoxes[faust.numwidgets] = patcher.newobject("number", hBase + 258, 20 + widgHeight * faust.numwidgets, 80, 13);
             } else {
-                post("float : nentry \n");
+                //post("float : nentry \n");
                 faust.thenumberBoxes[faust.numwidgets] = patcher.newobject("flonum", hBase + 258, 20 + widgHeight * faust.numwidgets, 80, 13);
             }
 

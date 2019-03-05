@@ -39,7 +39,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/audio/portaudio-dsp.h"
-#include "faust/gui/faustgtk.h"
+#include "faust/gui/GTKUI.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"

@@ -162,8 +162,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     string index = "fIndex";
 
     // Needed in the struct
-    pushDeclare(InstBuilder::genDecVolatileStructVar(index, InstBuilder::genBasicTyped(Typed::kInt32)));
-    pushDeclare(InstBuilder::genDecStructVar(fullcount, InstBuilder::genBasicTyped(Typed::kInt32)));
+    pushDeclare(InstBuilder::genDecVolatileStructVar(index, InstBuilder::genInt32Typed()));
+    pushDeclare(InstBuilder::genDecStructVar(fullcount, InstBuilder::genInt32Typed()));
     pushDeclare(InstBuilder::genDecStructVar("fScheduler", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
 
     // Scheduler prototypes declaration
@@ -233,7 +233,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
 void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index_string)
 {
     // Generates line like: FAUSTFLOAT* fInput0 = &fInput0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
     
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("input$0", T(index));
@@ -248,7 +248,7 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& i
 void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index_string)
 {
     // Generates line like: FAUSTFLOAT* fOutput0 = &fOutput0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
     
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("output$0", T(index));
@@ -265,10 +265,10 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     string index = "fIndex";
 
     BlockInst* loop_code = fComputeThreadBlockInstructions;
-    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt32),
+    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
                                                         InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
 
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32));
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genInt32Typed());
   
     ValueInst*    switch_cond  = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
@@ -324,7 +324,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min_i", min_fun_args);
 
-    DeclareVarInst* count_store = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32), init3);
+    DeclareVarInst* count_store = InstBuilder::genDecStackVar("vsize", InstBuilder::genInt32Typed(), init3);
 
     // Generate input/output access
     generateLocalInputs(switch_block_code, index);

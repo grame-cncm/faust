@@ -56,6 +56,7 @@ class dsp_optimizer {
         int fRun;
         int fCount;
         bool fTrace;
+        bool fNeedExp10;
     
         std::string fFilename;
         std::string fInput;
@@ -308,12 +309,24 @@ class dsp_optimizer {
             fArgv = argv;
             fCount = -1;
             fTrace = trace;
+            fNeedExp10 = false;
             
             init();
             
             if (fTrace) std::cout << "Estimate timing parameters" << std::endl;
-            double res;
-            return computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res);
+            double res1 = 0.;
+            if (!computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res1)) {
+                std::cerr << "computeOne error..." << std::endl;
+                return false;
+            }
+            if (fTrace) std::cout << "Testing -exp10 need" << std::endl;
+            double res2 = 0.;
+            if (!computeOne(addArgvItems(fOptionsTable[1], fArgc, fArgv), 1, res2)) {
+                std::cerr << "computeOne error..." << std::endl;
+                return false;
+            }
+            fNeedExp10 = (res2 > (res1 * 1.05)); // If more than 5% faster
+            return true;
         }
     
     public:
@@ -389,6 +402,13 @@ class dsp_optimizer {
                 best2.push_back("-mcd");
                 best2.push_back(num.str());
                 options_table.push_back(best2);
+            }
+            
+            if (fNeedExp10) {
+                if (fTrace) std::cout << "Use -exp10" << std::endl;
+                std::vector <std::string> t0_exp10;
+                t0_exp10.push_back("-exp10");
+                options_table.push_back(t0_exp10);
             }
             
             return findOptimizedParametersAux(options_table);

@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.14.4)
+set (VERSION 2.15.10)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -289,7 +289,7 @@ install (
 
 ####################################
 # install faust2xxx tools
-file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
+file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
 install (
     FILES     ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
@@ -341,7 +341,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU iOS juce max-msp nodejs osclib sam smartKeyboard unity webaudio)
+set (ARCHSRC android api AU iOS juce max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
@@ -358,13 +358,22 @@ install (
 
 ####################################
 # install ios lib
-if (APPLE)
+#if (APPLE)
 	install (
 		FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 	)
-endif()
+#endif()
 
+####################################
+# install VS redistributables
+if (WIN32)
+set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
+install (
+    FILES  "${VS}/msvcp140.dll" "${VS}/vcruntime140.dll" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+endif()
 
 
 

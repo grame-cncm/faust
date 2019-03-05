@@ -118,6 +118,8 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
+// DSP API generation
+
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
@@ -128,7 +130,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -145,7 +147,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -162,7 +164,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -179,7 +181,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -212,7 +214,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid),
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
@@ -321,15 +323,18 @@ void WASMCodeContainer::produceClass()
     generateComputeFunctions(gGlobal->gWASMVisitor);
 
     gGlobal->gWASMVisitor->finishSection(functions_start);
+    
+    // TO REMOVE when 'soundfile' is implemented
+    {
+        // Generate UI: only to trigger exception when using 'soundfile' primitive
+        generateUserInterface(gGlobal->gWASMVisitor);
+    }
 
     // JSON generation
 
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
-
-    stringstream size;
-    size << gGlobal->gWASMVisitor->getStructSize();
 
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
@@ -345,13 +350,13 @@ void WASMCodeContainer::produceClass()
 
     // "name", "filename" found in metadata
     JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, size.str(),
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(gGlobal->gWASMVisitor->getStructSize()),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
 
     string json = json_visitor2.JSON(true);
-
+  
     // Memory size can now be written
     if (fInternalMemory) {
         // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
@@ -361,7 +366,7 @@ void WASMCodeContainer::produceClass()
     }
 
     // Data segment contains the JSON string starting at offset 0,
-    gGlobal->gWASMVisitor->generateJSON(removeChar(json, '\\'));
+    gGlobal->gWASMVisitor->generateJSON(json);
 
     // Finally produce output stream
     fBinaryOut.writeTo(*fOut);
@@ -381,10 +386,9 @@ void WASMCodeContainer::produceClass()
     tab(n, fHelper);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return \"";
+    fHelper << "return '";
     fHelper << json;
-    fHelper << "\";";
-    // fHelper << "return `\""; fHelper << json; fHelper << "`\";";
+    fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";
@@ -455,7 +459,7 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 

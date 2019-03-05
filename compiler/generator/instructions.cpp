@@ -64,7 +64,6 @@ Typed::VarType ctType(Type t)
 }
 
 string Typed::gTypeString[] = {"kInt32",
-                               "kInt32ish",
                                "kInt32_ptr",
                                "kInt32_vec",
                                "kInt32_vec_ptr",
@@ -77,7 +76,6 @@ string Typed::gTypeString[] = {"kInt32",
                                "kBool_vec",
                                "kBool_vec_ptr",
                                "kFloat",
-                               "kFloatish",
                                "kFloat_ptr",
                                "kFloat_ptr_ptr",
                                "kFloat_vec",
@@ -86,7 +84,6 @@ string Typed::gTypeString[] = {"kInt32",
                                "kFloatMacro_ptr",
                                "kFloatMacro_ptr_ptr",
                                "kDouble",
-                               "kDoublish",
                                "kDouble_ptr",
                                "kDouble_ptr_ptr",
                                "kDouble_vec",
@@ -133,10 +130,6 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     }
 }
 
-DeclareVarInst::~DeclareVarInst()
-{
-}
-
 // Function types (return type) are kept in the global name <===> type table
 DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
     : fName(name), fType(type), fCode(code)
@@ -162,10 +155,6 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
             throw faustexception(str.str());
         }
     }
-}
-
-DeclareFunInst::~DeclareFunInst()
-{
 }
 
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
@@ -223,12 +212,12 @@ ValueInst* InstBuilder::genCastFloatInst(ValueInst* inst)
 
 ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kFloatMacro));
+    return InstBuilder::genCastInst(inst, InstBuilder::genFloatMacroTyped());
 }
 
 ValueInst* InstBuilder::genCastInt32Inst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kInt32));
+    return InstBuilder::genCastInst(inst, InstBuilder::genInt32Typed());
 }
 
 // BasicTyped are not cloned, but actually point on the same underlying type
@@ -272,7 +261,7 @@ struct LoadVarInst* DeclareVarInst::load()
 DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code)
 {
     list<NamedTyped*> args;
-    FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid));
+    FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped());
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
@@ -426,10 +415,10 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
         if (isSimpleType(type)) {
             if (type->nature() == kInt32) {
                 printf("FaustVectorType intType \n");
-                dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kInt32));
+                dec_type = genDeclareTypeInst(InstBuilder::genInt32Typed());
             } else if (type->nature() == kReal) {
                 printf("FaustVectorType floatType \n");
-                dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kFloat));
+                dec_type = genDeclareTypeInst(InstBuilder::genFloatTyped());
             } else {
                 faustassert(false);
             }
@@ -452,10 +441,10 @@ static Typed* sharedTypeToFirType(Tree t)
 
     if (isTypeInt(t)) {
         printf("sharedTypeToFirType isTypeInt\n");
-        return InstBuilder::genBasicTyped(Typed::kInt32);
+        return InstBuilder::genInt32Typed();
     } else if (isTypeFloat(t)) {
         printf("sharedTypeToFirType isTypeFloat\n");
-        return InstBuilder::genBasicTyped(Typed::kFloat);
+        return InstBuilder::genFloatTyped();
     } else if (isTypeArray(t, &size, subtree)) {
         printf("sharedTypeToFirType isTypeArray size %d\n", size);
         return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);

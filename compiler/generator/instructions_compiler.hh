@@ -195,7 +195,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
                                          Address::AccessType& var_access);
 
-    // Gestion de la description arborescente de l'IU
+    // UI hierachy description
     void addUIWidget(Tree path, Tree widget);
     Tree prepareUserInterfaceTree(Tree t);
     void generateUserInterfaceTree(Tree t, bool root = false);

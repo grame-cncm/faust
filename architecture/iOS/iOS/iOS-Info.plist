@@ -40,7 +40,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Faust generated code possibly needs to access the microphone</string>
+	<string>The microphone is used to interact with the generated sound in real-time</string>
 	<key>UIMainStoryboardFile</key>
 	<string>MainStoryboard_iPhone</string>
 	<key>UIMainStoryboardFile~ipad</key>

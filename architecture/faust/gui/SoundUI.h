@@ -40,15 +40,18 @@
 
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
-JuceReader reader;
+JuceReader gReader;
+#elif defined(MEMORY_READER)
+#include "faust/gui/MemoryReader.h"
+MemoryReader gReader;
 #else
 #include "faust/gui/LibsndfileReader.h"
-LibsndfileReader reader;
+LibsndfileReader gReader;
 #endif
 
 // To be used by dsp code if no SoundUI is used
 std::vector<std::string> path_name_list;
-Soundfile* defaultsound = reader.createSoundfile(path_name_list, MAX_CHAN);
+Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
 
 class SoundUI : public GenericUI
 {
@@ -57,16 +60,21 @@ class SoundUI : public GenericUI
     
         std::vector<std::string> fSoundfileDir;             // The soundfile directories
         std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles
+        SoundfileReader* fSoundReader;
     
      public:
-            
-        SoundUI(const std::string& sound_directory = "")
+    
+        SoundUI(const std::string& sound_directory = "", SoundfileReader* reader = nullptr)
         {
             fSoundfileDir.push_back(sound_directory);
+            fSoundReader = (reader) ? reader : &gReader;
         }
     
-        SoundUI(const std::vector<std::string>& sound_directories):fSoundfileDir(sound_directories)
-        {}
+        SoundUI(const std::vector<std::string>& sound_directories, SoundfileReader* reader = nullptr)
+        :fSoundfileDir(sound_directories)
+        {
+            fSoundReader = (reader) ? reader : &gReader;
+        }
     
         virtual ~SoundUI()
         {   
@@ -90,9 +98,9 @@ class SoundUI : public GenericUI
             // Parse the possible list
             if (fSoundfileMap.find(saved_url) == fSoundfileMap.end()) {
                 // Check all files and get their complete path
-                std::vector<std::string> path_name_list = reader.checkFiles(fSoundfileDir, file_name_list);
+                std::vector<std::string> path_name_list = fSoundReader->checkFiles(fSoundfileDir, file_name_list);
                 // Read them and create the Soundfile
-                Soundfile* sound_file = reader.createSoundfile(path_name_list, MAX_CHAN);
+                Soundfile* sound_file = fSoundReader->createSoundfile(path_name_list, MAX_CHAN);
                 if (sound_file) {
                     fSoundfileMap[saved_url] = sound_file;
                 } else {

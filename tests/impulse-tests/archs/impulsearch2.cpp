@@ -33,28 +33,15 @@ class Cdsp : public dsp {
         {
             deletemydsp(fDSP);
         }
-        virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
+    
+        virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
         
         virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
         
-        virtual void buildUserInterface(UI* interface)
+        virtual void buildUserInterface(UI* ui_interface)
         {
             UIGlue glue;
-            glue.uiInterface = interface;
-            glue.openTabBox = openTabBoxGlueDouble;
-            glue.openHorizontalBox = openHorizontalBoxGlueDouble;
-            glue.openVerticalBox = openVerticalBoxGlueDouble;
-            glue.closeBox = closeBoxGlueDouble;
-            glue.addButton = addButtonGlueDouble;
-            glue.addCheckButton = addCheckButtonGlueDouble;
-            glue.addVerticalSlider = addVerticalSliderGlueDouble;
-            glue.addHorizontalSlider = addHorizontalSliderGlueDouble;
-            glue.addNumEntry = addNumEntryGlueDouble;
-            glue.addHorizontalBargraph = addHorizontalBargraphGlueDouble;
-            glue.addVerticalBargraph = addVerticalBargraphGlueDouble;
-            glue.addSoundFile = addSoundFileGlueDouble;
-            glue.declare = declareGlueDouble;
-            
+            buildUIGlue(&glue, ui_interface, true);
             buildUserInterfacemydsp(fDSP, &glue);
         }
         
@@ -108,6 +95,11 @@ class Cdsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             computemydsp(fDSP, count, input, output);
+        }
+    
+        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            compute(count, inputs, outputs);
         }
     
 };

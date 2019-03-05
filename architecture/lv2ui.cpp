@@ -993,7 +993,7 @@ MTSTunings *LV2PluginUI::mts = 0;
 // Copyright (c) 2015-2016 by Roman Svidler
 // Copyright (c) 2015-2016 by Albert Gräf
 
-// This is based on the generic Qt code provided by faustqt.h in the Faust
+// This is based on the generic Qt code provided by QTUI.h in the Faust
 // distribution. Here we only add the necessary machinery to interface between
 // the GUI and the LV2 host.
 
@@ -1005,7 +1005,7 @@ MTSTunings *LV2PluginUI::mts = 0;
 
 #include <iostream>
 #include <QApplication>
-#include <faust/gui/faustqt.h>
+#include <faust/gui/QTUI.h>
 #ifdef OSCCTRL
 #include <faust/gui/OSCUI.h>
 #endif

@@ -12,7 +12,7 @@
     {
       "namespace": "faust",
       "action": "Documentation",
-      "command": "xdg-open http://faust.grame.fr/libraries.html#{selection}",
+      "command": "xdg-open https://faust.grame.fr/doc/libraries/index.html#{selection}",
       "arguments": [],
       "cwd": null,
       "inputDialogs": [],

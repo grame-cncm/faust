@@ -142,13 +142,17 @@ if [ "$system" = "Darwin" ]; then
 
     #(faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
 
+    (faust2smartkeyb -android good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
+
+    (faust2smartkeyb -android -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -midi -nvoices 8 failed")
+
+    (faust2smartkeyb -android -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -effect effect.dsp -nvoices 8 failed")
+
     (faust2smartkeyb -ios good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios succeeded !")||(echo "ERROR: faust2smartkeyb -ios failed")
 
     (faust2smartkeyb -ios -osc good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc failed")
 
-    (faust2smartkeyb -ios -osc -midi good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -midi succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -midi failed")
-
-    (faust2smartkeyb -ios -osc -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -midi -nvoices 8 failed")
+    (faust2smartkeyb -ios -osc -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -nvoices 8 failed")
 
     (faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 failed")
 

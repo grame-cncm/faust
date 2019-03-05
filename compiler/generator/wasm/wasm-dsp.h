@@ -100,6 +100,15 @@ class wasm_dsp_factory : public dsp_factory {
 
     /* Return factory expanded DSP code */
     std::string getDSPCode();
+    
+    /* Return factory compile options */
+    std::string getCompileOptions();
+    
+    /* Get the Faust DSP factory list of library dependancies */
+    std::vector<std::string> getLibraryList();
+    
+    /* Get the list of all used includes */
+    std::vector<std::string> getIncludePathnames();
 
     /* Create a new DSP instance, to be deleted with C++ 'delete' */
     wasm_dsp* createDSPInstance();
@@ -109,12 +118,7 @@ class wasm_dsp_factory : public dsp_factory {
 
     /* Return the currently set custom memory manager */
     dsp_memory_manager* getMemoryManager();
-
-    /* Get the Faust DSP factory list of library dependancies */
-    std::vector<std::string> getLibraryList();
-
-    /* Get the list of all used includes */
-    std::vector<std::string> getIncludePathnames();
+    
 };
 
 /**

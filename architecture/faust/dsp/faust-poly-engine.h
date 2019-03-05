@@ -61,6 +61,13 @@ class FaustPolyEngine {
         midi_handler fMidiHandler;
         MidiUI fMidiUI;
     
+        bool checkPolyphony(dsp* mono_dsp)
+        {
+            if (fJSONUI.find("keyboard") != std::string::npos) return true;
+            if (fJSONUI.find("poly") != std::string::npos) return true;
+            return MidiMeta::checkPolyphony(mono_dsp);
+        }
+    
         void init(dsp* mono_dsp, audio* driver, midi_handler* midi)
         {
             bool midi_sync = false;
@@ -79,9 +86,7 @@ class FaustPolyEngine {
             mono_dsp->metadata(&jsonui1M);
             fJSONMeta = jsonui1M.JSON();
             
-            if (fJSONUI.find("keyboard") != std::string::npos
-                || fJSONUI.find("poly") != std::string::npos
-                || nvoices > 0) {
+            if (checkPolyphony(mono_dsp) && (nvoices > 0)) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
                 fMidiHandler.addMidiIn(fPolyDSP);
@@ -97,6 +102,7 @@ class FaustPolyEngine {
                 JSONUI jsonui2(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
                 fFinalDSP->buildUserInterface(&jsonui2);
                 fJSONUI = jsonui2.JSON();
+                
                 JSONUI jsonui2M(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
                 fFinalDSP->metadata(&jsonui2M);
                 fJSONMeta = jsonui2M.JSON();

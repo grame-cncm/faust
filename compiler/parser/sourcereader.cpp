@@ -269,12 +269,14 @@ Tree SourceReader::parseFile(const char* fname)
             var dsp_code = "";
             try {
                 var xmlhttp = new XMLHttpRequest();
-                xmlhttp.open("GET", Module.Pointer_stringify($0), false);
+                xmlhttp.open("GET", Module.UTF8ToString($0), false);
                 xmlhttp.send();
                 if (xmlhttp.status == 200) {
                     dsp_code = xmlhttp.responseText;
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.log(e);
+            }
             return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
         }, yyfilename);
 

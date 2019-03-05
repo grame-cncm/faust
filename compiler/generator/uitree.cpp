@@ -44,22 +44,23 @@ static void error(const char* s, Tree t)
     //------------------------------------------------------------------------------
 
 #if 0
+
 // version normale, qui marche, mais qui ne range pas en ordre alphabetique
-static bool findKey (Tree pl, Tree key, Tree& val)
+static bool findKey(Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 				return false;
 	if (left(hd(pl)) == key) 	{ val = right(hd(pl)); return true; }
 	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val); 
 }
 
-static Tree updateKey (Tree pl, Tree key, Tree val)
+static Tree updateKey(Tree pl, Tree key, Tree val)
 {
 	if (isNil(pl)) 				return cons ( cons(key,val), gGlobal->nil );
 	if (left(hd(pl)) == key) 	return cons ( cons(key,val), tl(pl) );
 	/*  left(hd(pl)) != key	*/	return cons ( hd(pl), updateKey( tl(pl), key, val ));
 }
 
-static Tree removeKey (Tree pl, Tree key)
+static Tree removeKey(Tree pl, Tree key)
 {
 	if (isNil(pl)) 				return gGlobal->nil;
 	if (left(hd(pl)) == key) 	return tl(pl);
@@ -123,7 +124,7 @@ static Tree addKey(Tree pl, Tree key, Tree val)
 }
 
 #if 0
-static Tree removeKey (Tree pl, Tree key)
+static Tree removeKey(Tree pl, Tree key)
 {
 	if (isNil(pl)) 					return gGlobal->nil;
 	if (left(hd(pl)) == key) 		return tl(pl);

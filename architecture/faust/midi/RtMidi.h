@@ -1,48 +1,48 @@
 /*
- File: CAHostTimeBase.h 
- Abstract: Part of CoreAudio Utility Classes  
- Version: 1.0.3 
-  
- Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple 
- Inc. ("Apple") in consideration of your agreement to the following 
- terms, and your use, installation, modification or redistribution of 
- this Apple software constitutes acceptance of these terms.  If you do 
- not agree with these terms, please do not use, install, modify or 
- redistribute this Apple software. 
-  
- In consideration of your agreement to abide by the following terms, and 
- subject to these terms, Apple grants you a personal, non-exclusive 
- license, under Apple's copyrights in this original Apple software (the 
- "Apple Software"), to use, reproduce, modify and redistribute the Apple 
- Software, with or without modifications, in source and/or binary forms; 
- provided that if you redistribute the Apple Software in its entirety and 
- without modifications, you must retain this notice and the following 
- text and disclaimers in all such redistributions of the Apple Software. 
- Neither the name, trademarks, service marks or logos of Apple Inc. may 
- be used to endorse or promote products derived from the Apple Software 
- without specific prior written permission from Apple.  Except as 
- expressly stated in this notice, no other rights or licenses, express or 
- implied, are granted by Apple herein, including but not limited to any 
- patent rights that may be infringed by your derivative works or by other 
- works in which the Apple Software may be incorporated. 
-  
- The Apple Software is provided by Apple on an "AS IS" basis.  APPLE 
- MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION 
- THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS 
- FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND 
- OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS. 
-  
- IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL 
- OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
- SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, 
- MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED 
- AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE), 
- STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE 
- POSSIBILITY OF SUCH DAMAGE. 
-  
- Copyright (C) 2013 Apple Inc. All Rights Reserved. 
-*/
+ File: CAHostTimeBase.h
+ Abstract: Part of CoreAudio Utility Classes
+ Version: 1.0.3
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2013 Apple Inc. All Rights Reserved.
+ */
 
 #if !defined(__CAHostTimeBase_h__)
 #define __CAHostTimeBase_h__
@@ -54,17 +54,17 @@
 //=============================================================================
 
 #if !defined(__COREAUDIO_USE_FLAT_INCLUDES__)
-	#include <CoreAudio/CoreAudioTypes.h>
+#include <CoreAudio/CoreAudioTypes.h>
 #else
-	#include <CoreAudioTypes.h>
+#include <CoreAudioTypes.h>
 #endif
 
 #if TARGET_OS_MAC
-	#include <mach/mach_time.h>
+#include <mach/mach_time.h>
 #elif TARGET_OS_WIN32
-	#include <windows.h>
+#include <windows.h>
 #else
-	#error	Unsupported operating system
+#error	Unsupported operating system
 #endif
 
 //=============================================================================
@@ -75,147 +75,147 @@
 
 class CAHostTimeBase
 {
-
+    
 public:
-	static UInt64	ConvertToNanos(UInt64 inHostTime);
-	static UInt64	ConvertFromNanos(UInt64 inNanos);
-
-	static UInt64	GetTheCurrentTime();
+    static UInt64	ConvertToNanos(UInt64 inHostTime);
+    static UInt64	ConvertFromNanos(UInt64 inNanos);
+    
+    static UInt64	GetTheCurrentTime();
 #if TARGET_OS_MAC
-	static UInt64	GetCurrentTime() { return GetTheCurrentTime(); }
+    static UInt64	GetCurrentTime() { return GetTheCurrentTime(); }
 #endif
-	static UInt64	GetCurrentTimeInNanos();
-
-	static Float64	GetFrequency() { if(!sIsInited) { Initialize(); } return sFrequency; }
-	static Float64	GetInverseFrequency() { if(!sIsInited) { Initialize(); } return sInverseFrequency; }
-	static UInt32	GetMinimumDelta() { if(!sIsInited) { Initialize(); } return sMinDelta; }
-
-	static UInt64	AbsoluteHostDeltaToNanos(UInt64 inStartTime, UInt64 inEndTime);
-	static SInt64	HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndTime);
+    static UInt64	GetCurrentTimeInNanos();
+    
+    static Float64	GetFrequency() { if(!sIsInited) { Initialize(); } return sFrequency; }
+    static Float64	GetInverseFrequency() { if(!sIsInited) { Initialize(); } return sInverseFrequency; }
+    static UInt32	GetMinimumDelta() { if(!sIsInited) { Initialize(); } return sMinDelta; }
+    
+    static UInt64	AbsoluteHostDeltaToNanos(UInt64 inStartTime, UInt64 inEndTime);
+    static SInt64	HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndTime);
     
     static void     Initialize();
-
+    
 private:
-	
-	static bool sIsInited;
-	
-	static Float64 sFrequency;
-	static Float64 sInverseFrequency;
-	static UInt32 sMinDelta;
-	static UInt32 sToNanosNumerator;
-	static UInt32 sToNanosDenominator;
-	static UInt32 sFromNanosNumerator;
-	static UInt32 sFromNanosDenominator;
-	static bool sUseMicroseconds;
+    
+    static bool sIsInited;
+    
+    static Float64 sFrequency;
+    static Float64 sInverseFrequency;
+    static UInt32 sMinDelta;
+    static UInt32 sToNanosNumerator;
+    static UInt32 sToNanosDenominator;
+    static UInt32 sFromNanosNumerator;
+    static UInt32 sFromNanosDenominator;
+    static bool sUseMicroseconds;
 #if Track_Host_TimeBase
-	static UInt64	sLastTime;
+    static UInt64	sLastTime;
 #endif
 };
 
 inline UInt64 CAHostTimeBase::GetTheCurrentTime()
 {
-	UInt64 theTime = 0;
-
-	#if TARGET_OS_MAC
-		theTime = mach_absolute_time();
-          
-	#elif TARGET_OS_WIN32
-		LARGE_INTEGER theValue;
-		QueryPerformanceCounter(&theValue);
-		theTime = *((UInt64*)&theValue);
-	#endif
-	
-	#if	Track_Host_TimeBase
-		if(sLastTime != 0)
-		{
-			if(theTime <= sLastTime)
-			{
-				DebugMessageN2("CAHostTimeBase::GetTheCurrentTime: the current time is earlier than the last time, now: %qd, then: %qd", theTime, sLastTime);
-			}
-			sLastTime = theTime;
-		}
-		else
-		{
-			sLastTime = theTime;
-		}
-	#endif
-
-	return theTime;
+    UInt64 theTime = 0;
+    
+#if TARGET_OS_MAC
+    theTime = mach_absolute_time();
+    
+#elif TARGET_OS_WIN32
+    LARGE_INTEGER theValue;
+    QueryPerformanceCounter(&theValue);
+    theTime = *((UInt64*)&theValue);
+#endif
+    
+#if	Track_Host_TimeBase
+    if(sLastTime != 0)
+    {
+        if(theTime <= sLastTime)
+        {
+            DebugMessageN2("CAHostTimeBase::GetTheCurrentTime: the current time is earlier than the last time, now: %qd, then: %qd", theTime, sLastTime);
+        }
+        sLastTime = theTime;
+    }
+    else
+    {
+        sLastTime = theTime;
+    }
+#endif
+    
+    return theTime;
 }
 
 inline UInt64 CAHostTimeBase::ConvertToNanos(UInt64 inHostTime)
 {
-	if(!sIsInited)
-	{
-		Initialize();
-	}
-	
-	Float64 theNumerator = static_cast<Float64>(sToNanosNumerator);
-	Float64 theDenominator = static_cast<Float64>(sToNanosDenominator);
-	Float64 theHostTime = static_cast<Float64>(inHostTime);
-
-	Float64 thePartialAnswer = theHostTime / theDenominator;
-	Float64 theFloatAnswer = thePartialAnswer * theNumerator;
-	UInt64 theAnswer = static_cast<UInt64>(theFloatAnswer);
-
-	return theAnswer;
+    if(!sIsInited)
+    {
+        Initialize();
+    }
+    
+    Float64 theNumerator = static_cast<Float64>(sToNanosNumerator);
+    Float64 theDenominator = static_cast<Float64>(sToNanosDenominator);
+    Float64 theHostTime = static_cast<Float64>(inHostTime);
+    
+    Float64 thePartialAnswer = theHostTime / theDenominator;
+    Float64 theFloatAnswer = thePartialAnswer * theNumerator;
+    UInt64 theAnswer = static_cast<UInt64>(theFloatAnswer);
+    
+    return theAnswer;
 }
 
 inline UInt64 CAHostTimeBase::ConvertFromNanos(UInt64 inNanos)
 {
-	if(!sIsInited)
-	{
-		Initialize();
-	}
-
-	Float64 theNumerator = static_cast<Float64>(sToNanosNumerator);
-	Float64 theDenominator = static_cast<Float64>(sToNanosDenominator);
-	Float64 theNanos = static_cast<Float64>(inNanos);
-
-	Float64 thePartialAnswer = theNanos / theNumerator;
-	Float64 theFloatAnswer = thePartialAnswer * theDenominator;
-	UInt64 theAnswer = static_cast<UInt64>(theFloatAnswer);
-
-	return theAnswer;
+    if(!sIsInited)
+    {
+        Initialize();
+    }
+    
+    Float64 theNumerator = static_cast<Float64>(sToNanosNumerator);
+    Float64 theDenominator = static_cast<Float64>(sToNanosDenominator);
+    Float64 theNanos = static_cast<Float64>(inNanos);
+    
+    Float64 thePartialAnswer = theNanos / theNumerator;
+    Float64 theFloatAnswer = thePartialAnswer * theDenominator;
+    UInt64 theAnswer = static_cast<UInt64>(theFloatAnswer);
+    
+    return theAnswer;
 }
 
 inline UInt64 CAHostTimeBase::GetCurrentTimeInNanos()
 {
-	return ConvertToNanos(GetTheCurrentTime());
+    return ConvertToNanos(GetTheCurrentTime());
 }
 
 inline UInt64 CAHostTimeBase::AbsoluteHostDeltaToNanos(UInt64 inStartTime, UInt64 inEndTime)
 {
-	UInt64 theAnswer;
-	
-	if(inStartTime <= inEndTime)
-	{
-		theAnswer = inEndTime - inStartTime;
-	}
-	else
-	{
-		theAnswer = inStartTime - inEndTime;
-	}
-	
-	return ConvertToNanos(theAnswer);
+    UInt64 theAnswer;
+    
+    if(inStartTime <= inEndTime)
+    {
+        theAnswer = inEndTime - inStartTime;
+    }
+    else
+    {
+        theAnswer = inStartTime - inEndTime;
+    }
+    
+    return ConvertToNanos(theAnswer);
 }
 
 inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndTime)
 {
-	SInt64 theAnswer;
-	SInt64 theSign = 1;
-	
-	if(inStartTime <= inEndTime)
-	{
-		theAnswer = inEndTime - inStartTime;
-	}
-	else
-	{
-		theAnswer = inStartTime - inEndTime;
-		theSign = -1;
-	}
-	
-	return theSign * ConvertToNanos(theAnswer);
+    SInt64 theAnswer;
+    SInt64 theSign = 1;
+    
+    if(inStartTime <= inEndTime)
+    {
+        theAnswer = inEndTime - inStartTime;
+    }
+    else
+    {
+        theAnswer = inStartTime - inEndTime;
+        theSign = -1;
+    }
+    
+    return theSign * ConvertToNanos(theAnswer);
 }
 
 #endif // __APPLE__
@@ -232,7 +232,7 @@ inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndT
     RtMidi WWW site: http://music.mcgill.ca/~gary/rtmidi/
 
     RtMidi: realtime MIDI i/o C++ classes
-    Copyright (c) 2003-2014 Gary P. Scavone
+    Copyright (c) 2003-2017 Gary P. Scavone
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation files
@@ -267,7 +267,7 @@ inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndT
 #ifndef RTMIDI_H
 #define RTMIDI_H
 
-#define RTMIDI_VERSION "2.1.0"
+#define RTMIDI_VERSION "3.0.0"
 
 #include <exception>
 #include <iostream>
@@ -286,6 +286,7 @@ inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndT
 #if _WIN32
 #define __WINDOWS_MM__ 1
 #endif
+
 
 /************************************************************************/
 /*! \class RtMidiError
@@ -346,7 +347,7 @@ class RtMidiError : public std::exception
     Note that class behaviour is undefined after a critical error (not
     a warning) is reported.
  */
-typedef void (*RtMidiErrorCallback)( RtMidiError::Type type, const std::string &errorText );
+typedef void (*RtMidiErrorCallback)( RtMidiError::Type type, const std::string &errorText, void *userData );
 
 class MidiApi;
 
@@ -376,10 +377,10 @@ class RtMidi
   static void getCompiledApi( std::vector<RtMidi::Api> &apis ) throw();
 
   //! Pure virtual openPort() function.
-  virtual void openPort( unsigned int portNumber = 0, const std::string portName = std::string( "RtMidi" ) ) = 0;
+  virtual void openPort( unsigned int portNumber = 0, const std::string &portName = std::string( "RtMidi" ) ) = 0;
 
   //! Pure virtual openVirtualPort() function.
-  virtual void openVirtualPort( const std::string portName = std::string( "RtMidi" ) ) = 0;
+  virtual void openVirtualPort( const std::string &portName = std::string( "RtMidi" ) ) = 0;
 
   //! Pure virtual getPortCount() function.
   virtual unsigned int getPortCount() = 0;
@@ -391,6 +392,10 @@ class RtMidi
   virtual void closePort( void ) = 0;
 
   //! Returns true if a port is open and false if not.
+  /*!
+      Note that this only applies to connections made with the openPort()
+      function, not to virtual ports.
+  */
   virtual bool isPortOpen( void ) const = 0;
 
   //! Set an error callback function to be invoked when an error has occured.
@@ -398,7 +403,7 @@ class RtMidi
     The callback function will be called whenever an error has occured. It is best
     to set the error callback function before opening a port.
   */
-  virtual void setErrorCallback( RtMidiErrorCallback errorCallback = NULL ) = 0;
+  virtual void setErrorCallback( RtMidiErrorCallback errorCallback = NULL, void *userData = 0 ) = 0;
 
  protected:
 
@@ -422,7 +427,7 @@ class RtMidi
     possible to open a virtual input port to which other MIDI software
     clients can connect.
 
-    by Gary P. Scavone, 2003-2014.
+    by Gary P. Scavone, 2003-2017.
 */
 /**********************************************************************/
 
@@ -466,7 +471,7 @@ class RtMidiIn : public RtMidi
     \param queueSizeLimit An optional size of the MIDI input queue can be specified.
   */
   RtMidiIn( RtMidi::Api api=UNSPECIFIED,
-            const std::string clientName = std::string( "RtMidi Input Client"),
+            const std::string& clientName = "RtMidi Input Client",
             unsigned int queueSizeLimit = 100 );
 
   //! If a MIDI connection is still open, it will be closed by the destructor.
@@ -481,7 +486,7 @@ class RtMidiIn : public RtMidi
                       Otherwise, the default or first port found is opened.
     \param portName An optional name for the application port that is used to connect to portId can be specified.
   */
-  void openPort( unsigned int portNumber = 0, const std::string portName = std::string( "RtMidi Input" ) );
+  void openPort( unsigned int portNumber = 0, const std::string &portName = std::string( "RtMidi Input" ) );
 
   //! Create a virtual input port, with optional name, to allow software connections (OS X, JACK and ALSA only).
   /*!
@@ -493,7 +498,7 @@ class RtMidiIn : public RtMidi
     \param portName An optional name for the application port that is
                     used to connect to portId can be specified.
   */
-  void openVirtualPort( const std::string portName = std::string( "RtMidi Input" ) );
+  void openVirtualPort( const std::string &portName = std::string( "RtMidi Input" ) );
 
   //! Set a callback function to be invoked for incoming MIDI messages.
   /*!
@@ -519,6 +524,10 @@ class RtMidiIn : public RtMidi
   void closePort( void );
 
   //! Returns true if a port is open and false if not.
+  /*!
+      Note that this only applies to connections made with the openPort()
+      function, not to virtual ports.
+  */
   virtual bool isPortOpen() const;
 
   //! Return the number of available MIDI input ports.
@@ -530,7 +539,8 @@ class RtMidiIn : public RtMidi
   //! Return a string identifier for the specified MIDI input port number.
   /*!
     \return The name of the port with the given Id is returned.
-    \retval An empty string is returned if an invalid port specifier is provided.
+    \retval An empty string is returned if an invalid port specifier
+            is provided. User code should assume a UTF-8 encoding.
   */
   std::string getPortName( unsigned int portNumber = 0 );
 
@@ -559,10 +569,10 @@ class RtMidiIn : public RtMidi
     The callback function will be called whenever an error has occured. It is best
     to set the error callback function before opening a port.
   */
-  virtual void setErrorCallback( RtMidiErrorCallback errorCallback = NULL );
+  virtual void setErrorCallback( RtMidiErrorCallback errorCallback = NULL, void *userData = 0 );
 
  protected:
-  void openMidiApi( RtMidi::Api api, const std::string clientName, unsigned int queueSizeLimit );
+  void openMidiApi( RtMidi::Api api, const std::string &clientName, unsigned int queueSizeLimit );
 
 };
 
@@ -578,7 +588,7 @@ class RtMidiIn : public RtMidi
     OS-X, Linux ALSA and JACK MIDI APIs, it is also possible to open a
     virtual port to which other MIDI software clients can connect.
 
-    by Gary P. Scavone, 2003-2014.
+    by Gary P. Scavone, 2003-2017.
 */
 /**********************************************************************/
 
@@ -595,7 +605,7 @@ class RtMidiOut : public RtMidi
     JACK (OS-X).
   */
   RtMidiOut( RtMidi::Api api=UNSPECIFIED,
-             const std::string clientName = std::string( "RtMidi Output Client") );
+             const std::string& clientName = "RtMidi Output Client" );
 
   //! The destructor closes any open MIDI connections.
   ~RtMidiOut( void ) throw();
@@ -610,12 +620,16 @@ class RtMidiOut : public RtMidi
       exception is thrown if an error occurs while attempting to make
       the port connection.
   */
-  void openPort( unsigned int portNumber = 0, const std::string portName = std::string( "RtMidi Output" ) );
+  void openPort( unsigned int portNumber = 0, const std::string &portName = std::string( "RtMidi Output" ) );
 
   //! Close an open MIDI connection (if one exists).
   void closePort( void );
 
   //! Returns true if a port is open and false if not.
+  /*!
+      Note that this only applies to connections made with the openPort()
+      function, not to virtual ports.
+  */
   virtual bool isPortOpen() const;
 
   //! Create a virtual output port, with optional name, to allow software connections (OS X, JACK and ALSA only).
@@ -627,14 +641,16 @@ class RtMidiOut : public RtMidi
       An exception is thrown if an error occurs while attempting to
       create the virtual port.
   */
-  void openVirtualPort( const std::string portName = std::string( "RtMidi Output" ) );
+  void openVirtualPort( const std::string &portName = std::string( "RtMidi Output" ) );
 
   //! Return the number of available MIDI output ports.
   unsigned int getPortCount( void );
 
   //! Return a string identifier for the specified MIDI port type and number.
   /*!
-      An empty string is returned if an invalid port specifier is provided.
+    \return The name of the port with the given Id is returned.
+    \retval An empty string is returned if an invalid port specifier
+            is provided. User code should assume a UTF-8 encoding.
   */
   std::string getPortName( unsigned int portNumber = 0 );
 
@@ -643,17 +659,27 @@ class RtMidiOut : public RtMidi
       An exception is thrown if an error occurs during output or an
       output connection was not previously established.
   */
-  void sendMessage( std::vector<unsigned char> *message );
+  void sendMessage( const std::vector<unsigned char> *message );
+
+  //! Immediately send a single message out an open MIDI output port.
+  /*!
+      An exception is thrown if an error occurs during output or an
+      output connection was not previously established.
+
+      \param message A pointer to the MIDI message as raw bytes
+      \param size    Length of the MIDI message in bytes
+  */
+  void sendMessage( const unsigned char *message, size_t size );
 
   //! Set an error callback function to be invoked when an error has occured.
   /*!
     The callback function will be called whenever an error has occured. It is best
     to set the error callback function before opening a port.
   */
-  virtual void setErrorCallback( RtMidiErrorCallback errorCallback = NULL );
+  virtual void setErrorCallback( RtMidiErrorCallback errorCallback = NULL, void *userData = 0 );
 
  protected:
-  void openMidiApi( RtMidi::Api api, const std::string clientName );
+  void openMidiApi( RtMidi::Api api, const std::string &clientName );
 };
 
 
@@ -677,15 +703,15 @@ class MidiApi
   MidiApi();
   virtual ~MidiApi();
   virtual RtMidi::Api getCurrentApi( void ) = 0;
-  virtual void openPort( unsigned int portNumber, const std::string portName ) = 0;
-  virtual void openVirtualPort( const std::string portName ) = 0;
+  virtual void openPort( unsigned int portNumber, const std::string &portName ) = 0;
+  virtual void openVirtualPort( const std::string &portName ) = 0;
   virtual void closePort( void ) = 0;
 
   virtual unsigned int getPortCount( void ) = 0;
   virtual std::string getPortName( unsigned int portNumber ) = 0;
 
   inline bool isPortOpen() const { return connected_; }
-  void setErrorCallback( RtMidiErrorCallback errorCallback );
+  void setErrorCallback( RtMidiErrorCallback errorCallback, void *userData );
 
   //! A basic error reporting function for RtMidi classes.
   void error( RtMidiError::Type type, std::string errorString );
@@ -697,6 +723,8 @@ protected:
   bool connected_;
   std::string errorString_;
   RtMidiErrorCallback errorCallback_;
+  bool firstErrorOccurred_;
+  void *errorCallbackUserData_;
 };
 
 class MidiInApi : public MidiApi
@@ -714,6 +742,8 @@ class MidiInApi : public MidiApi
   // messages.  Each message represents one and only one MIDI message.
   struct MidiMessage { 
     std::vector<unsigned char> bytes; 
+
+    //! Time in seconds elapsed since the previous message
     double timeStamp;
 
     // Default constructor.
@@ -724,13 +754,16 @@ class MidiInApi : public MidiApi
   struct MidiQueue {
     unsigned int front;
     unsigned int back;
-    unsigned int size;
     unsigned int ringSize;
     MidiMessage *ring;
 
     // Default constructor.
   MidiQueue()
-  :front(0), back(0), size(0), ringSize(0) {}
+  :front(0), back(0), ringSize(0), ring(0) {}
+    bool push(const MidiMessage&);
+    bool pop(std::vector<unsigned char>*, double*);
+    unsigned int size(unsigned int *back=0,
+		      unsigned int *front=0);
   };
 
   // The RtMidiInData structure is used to pass private class data to
@@ -764,7 +797,7 @@ class MidiOutApi : public MidiApi
 
   MidiOutApi( void );
   virtual ~MidiOutApi( void );
-  virtual void sendMessage( std::vector<unsigned char> *message ) = 0;
+  virtual void sendMessage( const unsigned char *message, size_t size ) = 0;
 };
 
 // **************************************************************** //
@@ -774,8 +807,8 @@ class MidiOutApi : public MidiApi
 // **************************************************************** //
 
 inline RtMidi::Api RtMidiIn :: getCurrentApi( void ) throw() { return rtapi_->getCurrentApi(); }
-inline void RtMidiIn :: openPort( unsigned int portNumber, const std::string portName ) { rtapi_->openPort( portNumber, portName ); }
-inline void RtMidiIn :: openVirtualPort( const std::string portName ) { rtapi_->openVirtualPort( portName ); }
+inline void RtMidiIn :: openPort( unsigned int portNumber, const std::string &portName ) { rtapi_->openPort( portNumber, portName ); }
+inline void RtMidiIn :: openVirtualPort( const std::string &portName ) { rtapi_->openVirtualPort( portName ); }
 inline void RtMidiIn :: closePort( void ) { rtapi_->closePort(); }
 inline bool RtMidiIn :: isPortOpen() const { return rtapi_->isPortOpen(); }
 inline void RtMidiIn :: setCallback( RtMidiCallback callback, void *userData ) { ((MidiInApi *)rtapi_)->setCallback( callback, userData ); }
@@ -784,17 +817,18 @@ inline unsigned int RtMidiIn :: getPortCount( void ) { return rtapi_->getPortCou
 inline std::string RtMidiIn :: getPortName( unsigned int portNumber ) { return rtapi_->getPortName( portNumber ); }
 inline void RtMidiIn :: ignoreTypes( bool midiSysex, bool midiTime, bool midiSense ) { ((MidiInApi *)rtapi_)->ignoreTypes( midiSysex, midiTime, midiSense ); }
 inline double RtMidiIn :: getMessage( std::vector<unsigned char> *message ) { return ((MidiInApi *)rtapi_)->getMessage( message ); }
-inline void RtMidiIn :: setErrorCallback( RtMidiErrorCallback errorCallback ) { rtapi_->setErrorCallback(errorCallback); }
+inline void RtMidiIn :: setErrorCallback( RtMidiErrorCallback errorCallback, void *userData ) { rtapi_->setErrorCallback(errorCallback, userData); }
 
 inline RtMidi::Api RtMidiOut :: getCurrentApi( void ) throw() { return rtapi_->getCurrentApi(); }
-inline void RtMidiOut :: openPort( unsigned int portNumber, const std::string portName ) { rtapi_->openPort( portNumber, portName ); }
-inline void RtMidiOut :: openVirtualPort( const std::string portName ) { rtapi_->openVirtualPort( portName ); }
+inline void RtMidiOut :: openPort( unsigned int portNumber, const std::string &portName ) { rtapi_->openPort( portNumber, portName ); }
+inline void RtMidiOut :: openVirtualPort( const std::string &portName ) { rtapi_->openVirtualPort( portName ); }
 inline void RtMidiOut :: closePort( void ) { rtapi_->closePort(); }
 inline bool RtMidiOut :: isPortOpen() const { return rtapi_->isPortOpen(); }
 inline unsigned int RtMidiOut :: getPortCount( void ) { return rtapi_->getPortCount(); }
 inline std::string RtMidiOut :: getPortName( unsigned int portNumber ) { return rtapi_->getPortName( portNumber ); }
-inline void RtMidiOut :: sendMessage( std::vector<unsigned char> *message ) { ((MidiOutApi *)rtapi_)->sendMessage( message ); }
-inline void RtMidiOut :: setErrorCallback( RtMidiErrorCallback errorCallback ) { rtapi_->setErrorCallback(errorCallback); }
+inline void RtMidiOut :: sendMessage( const std::vector<unsigned char> *message ) { ((MidiOutApi *)rtapi_)->sendMessage( &message->at(0), message->size() ); }
+inline void RtMidiOut :: sendMessage( const unsigned char *message, size_t size ) { ((MidiOutApi *)rtapi_)->sendMessage( message, size ); }
+inline void RtMidiOut :: setErrorCallback( RtMidiErrorCallback errorCallback, void *userData ) { rtapi_->setErrorCallback(errorCallback, userData); }
 
 // **************************************************************** //
 //
@@ -811,11 +845,11 @@ inline void RtMidiOut :: setErrorCallback( RtMidiErrorCallback errorCallback ) {
 class MidiInCore: public MidiInApi
 {
  public:
-  MidiInCore( const std::string clientName, unsigned int queueSizeLimit );
+  MidiInCore( const std::string &clientName, unsigned int queueSizeLimit );
   ~MidiInCore( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::MACOSX_CORE; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
@@ -827,15 +861,15 @@ class MidiInCore: public MidiInApi
 class MidiOutCore: public MidiOutApi
 {
  public:
-  MidiOutCore( const std::string clientName );
+  MidiOutCore( const std::string &clientName );
   ~MidiOutCore( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::MACOSX_CORE; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
-  void sendMessage( std::vector<unsigned char> *message );
+  void sendMessage( const unsigned char *message, size_t size );
 
  protected:
   void initialize( const std::string& clientName );
@@ -848,11 +882,11 @@ class MidiOutCore: public MidiOutApi
 class MidiInJack: public MidiInApi
 {
  public:
-  MidiInJack( const std::string clientName, unsigned int queueSizeLimit );
+  MidiInJack( const std::string &clientName, unsigned int queueSizeLimit );
   ~MidiInJack( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::UNIX_JACK; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
@@ -867,15 +901,15 @@ class MidiInJack: public MidiInApi
 class MidiOutJack: public MidiOutApi
 {
  public:
-  MidiOutJack( const std::string clientName );
+  MidiOutJack( const std::string &clientName );
   ~MidiOutJack( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::UNIX_JACK; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
-  void sendMessage( std::vector<unsigned char> *message );
+  void sendMessage( const unsigned char *message, size_t size );
 
  protected:
   std::string clientName;
@@ -891,11 +925,11 @@ class MidiOutJack: public MidiOutApi
 class MidiInAlsa: public MidiInApi
 {
  public:
-  MidiInAlsa( const std::string clientName, unsigned int queueSizeLimit );
+  MidiInAlsa( const std::string &clientName, unsigned int queueSizeLimit );
   ~MidiInAlsa( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::LINUX_ALSA; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
@@ -907,15 +941,15 @@ class MidiInAlsa: public MidiInApi
 class MidiOutAlsa: public MidiOutApi
 {
  public:
-  MidiOutAlsa( const std::string clientName );
+  MidiOutAlsa( const std::string &clientName );
   ~MidiOutAlsa( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::LINUX_ALSA; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
-  void sendMessage( std::vector<unsigned char> *message );
+  void sendMessage( const unsigned char *message, size_t size );
 
  protected:
   void initialize( const std::string& clientName );
@@ -928,11 +962,11 @@ class MidiOutAlsa: public MidiOutApi
 class MidiInWinMM: public MidiInApi
 {
  public:
-  MidiInWinMM( const std::string clientName, unsigned int queueSizeLimit );
+  MidiInWinMM( const std::string &clientName, unsigned int queueSizeLimit );
   ~MidiInWinMM( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::WINDOWS_MM; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
@@ -944,15 +978,15 @@ class MidiInWinMM: public MidiInApi
 class MidiOutWinMM: public MidiOutApi
 {
  public:
-  MidiOutWinMM( const std::string clientName );
+  MidiOutWinMM( const std::string &clientName );
   ~MidiOutWinMM( void );
   RtMidi::Api getCurrentApi( void ) { return RtMidi::WINDOWS_MM; };
-  void openPort( unsigned int portNumber, const std::string portName );
-  void openVirtualPort( const std::string portName );
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
   void closePort( void );
   unsigned int getPortCount( void );
   std::string getPortName( unsigned int portNumber );
-  void sendMessage( std::vector<unsigned char> *message );
+  void sendMessage( const unsigned char *message, size_t size );
 
  protected:
   void initialize( const std::string& clientName );
@@ -965,13 +999,13 @@ class MidiOutWinMM: public MidiOutApi
 class MidiInDummy: public MidiInApi
 {
  public:
- MidiInDummy( const std::string /*clientName*/, unsigned int queueSizeLimit ) : MidiInApi( queueSizeLimit ) { errorString_ = "MidiInDummy: This class provides no functionality."; error( RtMidiError::WARNING, errorString_ ); }
+ MidiInDummy( const std::string &/*clientName*/, unsigned int queueSizeLimit ) : MidiInApi( queueSizeLimit ) { errorString_ = "MidiInDummy: This class provides no functionality."; error( RtMidiError::WARNING, errorString_ ); }
   RtMidi::Api getCurrentApi( void ) { return RtMidi::RTMIDI_DUMMY; }
-  void openPort( unsigned int /*portNumber*/, const std::string /*portName*/ ) {}
-  void openVirtualPort( const std::string /*portName*/ ) {}
+  void openPort( unsigned int /*portNumber*/, const std::string &/*portName*/ ) {}
+  void openVirtualPort( const std::string &/*portName*/ ) {}
   void closePort( void ) {}
   unsigned int getPortCount( void ) { return 0; }
-  std::string getPortName( unsigned int portNumber ) { return ""; }
+  std::string getPortName( unsigned int /*portNumber*/ ) { return ""; }
 
  protected:
   void initialize( const std::string& /*clientName*/ ) {}
@@ -980,14 +1014,14 @@ class MidiInDummy: public MidiInApi
 class MidiOutDummy: public MidiOutApi
 {
  public:
-  MidiOutDummy( const std::string /*clientName*/ ) { errorString_ = "MidiOutDummy: This class provides no functionality."; error( RtMidiError::WARNING, errorString_ ); }
+  MidiOutDummy( const std::string &/*clientName*/ ) { errorString_ = "MidiOutDummy: This class provides no functionality."; error( RtMidiError::WARNING, errorString_ ); }
   RtMidi::Api getCurrentApi( void ) { return RtMidi::RTMIDI_DUMMY; }
-  void openPort( unsigned int /*portNumber*/, const std::string /*portName*/ ) {}
-  void openVirtualPort( const std::string /*portName*/ ) {}
+  void openPort( unsigned int /*portNumber*/, const std::string &/*portName*/ ) {}
+  void openVirtualPort( const std::string &/*portName*/ ) {}
   void closePort( void ) {}
   unsigned int getPortCount( void ) { return 0; }
   std::string getPortName( unsigned int /*portNumber*/ ) { return ""; }
-  void sendMessage( std::vector<unsigned char> * /*message*/ ) {}
+  void sendMessage( const unsigned char * /*message*/, size_t /*size*/ ) {}
 
  protected:
   void initialize( const std::string& /*clientName*/ ) {}

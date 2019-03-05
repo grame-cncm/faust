@@ -730,7 +730,7 @@ class FBCCPPCompiler {
                     out << it->fStep << ");";
                     break;
                     
-                case FBCInstruction::kAddSoundFile:
+                case FBCInstruction::kAddSoundfile:
                     tab(n+1, out); out << "// TODO";
                     break;
                     

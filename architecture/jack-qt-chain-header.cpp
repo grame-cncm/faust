@@ -42,7 +42,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/misc.h"
-#include "faust/gui/faustqt.h"
+#include "faust/gui/QTUI.h"
 #include "faust/gui/FUI.h"
 
 #ifdef OSCCTRL

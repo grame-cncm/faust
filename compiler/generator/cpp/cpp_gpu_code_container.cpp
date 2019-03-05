@@ -122,7 +122,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
+    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
     pushFrontInitMethod(
         InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
@@ -931,22 +931,7 @@ void CPPOpenCLCodeContainer::produceClass()
     *fOut << "};" << endl;
 
     // Generate user interface macros if needed
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "#ifdef FAUST_UIMACROS";
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_INPUTS " << fNumInputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_ACTIVES " << fNumActives;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_PASSIVES " << fNumPassives;
-        printlines(n + 1, fUIMacro, *fOut);
-        tab(n, *fOut);
-        *fOut << "#endif";
-        tab(n, *fOut);
-    }
+    printMacros(*fOut, n);
 }
 
 void CPPOpenCLCodeContainer::generateCompute(int n)
@@ -1071,13 +1056,13 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt32), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
     list<ValueInst*> args;
     args.push_back(InstBuilder::genInt32NumInst(0));
-    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt32),
+    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
                                                         InstBuilder::genFunCallInst("get_global_id", args)));
 
     // Generate DAG
@@ -1105,7 +1090,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_init =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     ValueInst*    loop_end       = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
 
@@ -1262,7 +1247,7 @@ void CPPCUDACodeContainer::produceClass()
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
+    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
     pushFrontInitMethod(
         InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
@@ -2007,7 +1992,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt32), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
@@ -2016,7 +2001,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     /*
     loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum",
-        InstBuilder::genBasicTyped(Typed::kInt32), Address::kStack,
+        InstBuilder::genInt32Typed(), Address::kStack,
         InstBuilder::genFunCallInst("get_global_id", args)));
     */
 
@@ -2047,7 +2032,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
 
     ValueInst* loop_end = InstBuilder::genLessThan(
         loop_decl->load(), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));

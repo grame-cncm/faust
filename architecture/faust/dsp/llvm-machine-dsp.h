@@ -33,7 +33,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup llvmcpp C++ interface for compiling Faust code.
+ \addtogroup llvmcpp C++ interface for reading LLVM machine code.
  @{
  */
  
@@ -99,29 +99,39 @@ class llvm_dsp_factory : public dsp_factory {
          *  or 'name_app' (if createDSPFactoryFromString is used)
         */
         std::string getName();
-        
+    
         /* Return factory LLVM target */
         std::string getTarget();
         
         /* Return factory SHA key */
         std::string getSHAKey();
-  
+        
         /* Return factory expanded DSP code */
         std::string getDSPCode();
-    
+        
+        /* Return factory compile options */
+        std::string getCompileOptions();
+        
+        /* Get the Faust DSP factory list of library dependancies */
+        std::vector<std::string> getLibraryList();
+        
+        /* Get the list of all used includes */
+        std::vector<std::string> getIncludePathnames();
+        
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
         llvm_dsp* createDSPInstance();
-    
+        
         /* Set a custom memory manager to be used when creating instances */
         void setMemoryManager(dsp_memory_manager* manager);
-    
+        
         /* Return the currently set custom memory manager */
         dsp_memory_manager* getMemoryManager();
+    
 };
 
 /**
  * Get the target (triple + CPU) of the machine.
- * 
+ *
  * @return the target as a string.
  */
 std::string getDSPMachineTarget();
@@ -163,30 +173,36 @@ void deleteAllDSPFactories();
 std::vector<std::string> getAllDSPFactories();
 
 /**
- * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return 
- * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+ * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
+ * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
- * 
+ *
  * @param machine_code - the machine code string
- * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+ *                 using an empty string takes the current machine settings,
+ *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target);
+llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target, std::string& error_msg);
 
 /**
- * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return 
- * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+ * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return
+ * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
- * 
+ *
  * @param machine_code_path - the machine code file pathname
- * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+ *                 using an empty string takes the current machine settings,
+ *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
+llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target, std::string& error_msg);
 
 /*!
  @}

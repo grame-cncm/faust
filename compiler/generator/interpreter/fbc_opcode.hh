@@ -342,7 +342,7 @@ struct FBCInstruction {
         kAddHorizontalSlider,
         kAddVerticalSlider,
         kAddNumEntry,
-        kAddSoundFile,
+        kAddSoundfile,
         kAddHorizontalBargraph,
         kAddVerticalBargraph,
         kDeclare,
@@ -468,7 +468,7 @@ static std::string gFBCInstructionTable[] = {
 
     // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton", "kAddChecButton",
-    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundFile", "kAddHorizontalBargraph",
+    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile", "kAddHorizontalBargraph",
     "kAddVerticalBargraph", "kDeclare",
 
     "kNop"

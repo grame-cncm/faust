@@ -97,7 +97,7 @@ void CCodeContainer::produceInternal()
         tab(n, *fOut);
         tab(n, *fOut);
         *fOut << "static " << fKlassName << "* new" << fKlassName << "() {"
-              << " return (" << fKlassName << "*)malloc(sizeof(" << fKlassName << ")); }";
+              << " return (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << ")); }";
 
         tab(n, *fOut);
         *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { free(dsp); }";
@@ -221,7 +221,7 @@ void CCodeContainer::produceClass()
 
         *fOut << fKlassName << "* new" << fKlassName << "() { ";
         tab(n + 1, *fOut);
-        *fOut << fKlassName << "* dsp = (" << fKlassName << "*)malloc(sizeof(" << fKlassName << "));";
+        *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n + 1, *fOut);
             *fOut << "allocate" << fKlassName << "(dsp);";
@@ -372,22 +372,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
 
     // Generate user interface macros if needed
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "#ifdef FAUST_UIMACROS";
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_INPUTS " << fNumInputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_ACTIVES " << fNumActives;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_PASSIVES " << fNumPassives;
-        printlines(n + 1, fUIMacro, *fOut);
-        tab(n, *fOut);
-        *fOut << "#endif";
-        tab(n, *fOut);
-    }
+    printMacros(*fOut, n);
 
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;
@@ -468,8 +453,11 @@ void CScalarCodeContainer::generateCompute(int n)
         loop->accept(&fCodeProducer);
     }
 
+    /* 
+    // TODO : atomic switch
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);
+    */
 
     tab(n, *fOut);
     *fOut << "}" << endl;
@@ -492,7 +480,7 @@ void CVectorCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     generateComputeFunctions(&fCodeProducer);
 
-    // Compute declaration
+    // Generates declaration
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
           << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());

@@ -760,9 +760,6 @@
 	'oscwq':
 		'prefix': 'oscwq'
 		'body': 'os.oscwq'
-	'oscw':
-		'prefix': 'oscw'
-		'body': 'os.oscw'
 	'lf_sawpos':
 		'prefix': 'lf_sawpos'
 		'body': 'os.lf_sawpos'

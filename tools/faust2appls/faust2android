@@ -14,9 +14,6 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
-# FAUSTGRADLE environement variable. By default we use ./gradlew 
-FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
-
 # exit if a command fails
 set -e
 
@@ -80,6 +77,7 @@ fi
 
 APPNAME=$(basename "$FILE")
 APPNAME="${APPNAME%.dsp}"
+APPNAME=`filename2ident "$APPNAME"`
 BUILDDIR="faustandro.$APPNAME"
 APPFOLDER="$BUILDDIR/app/src/main"
 JNIFOLDER="$APPFOLDER/cpp"
@@ -152,7 +150,7 @@ faust $OPTIONS -i -json -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp"
 
 # Add soundfile support if needed
 if [ $SOUNDFILE -eq 1 ]; then
-	cat $APPNAME.dsp.json | awk '
+	cat $FILE.json | awk '
 									BEGIN { FS=":"; SOFI=0; }
 											/"soundfile"/ { SOFI=1; }
 											/"url"/ {
@@ -193,11 +191,27 @@ else
 	rm $BUILDDIR/app/CMakeLists_sndfile.txt 
 	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
 fi
-rm $APPNAME.dsp.json
+rm $FILE.json
 
 # Run Gradle
 cd $BUILDDIR
-chmod a+x ./gradlew
+
+# Try to use installed gradle instead of local ./gradlew in order
+# to avoid potential problems when compiling in a shared folder
+# where execution rights may not be granted (i.e. on a google VM)
+# In order to install gradle-4.6: 
+#	wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
+#   unzip -d /opt/gradle gradle-4.6-bin.zip
+
+if [ -f /opt/gradle/gradle-4.6/bin/gradle ]; then
+	FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.6/bin/gradle}
+else 
+	FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+	chmod a+x ./gradlew
+fi
+
+echo "USED GRADLE=$FAUSTGRADLE" > $LOG
+
 $FAUSTGRADLE assembleRelease > $LOG
 cd ..
 
