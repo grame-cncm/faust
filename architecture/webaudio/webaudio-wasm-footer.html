@@ -125,15 +125,19 @@ const initDSP = bufferSizeIn => {
 
 // To activate audio on iOS
 window.addEventListener("touchstart", () => {
+    if (audioCtx.state !== "suspended") return;
     const buffer = audioCtx.createBuffer(1, 1, 22050);
     const source = audioCtx.createBufferSource(); // create empty buffer
     source.buffer = buffer;
     source.connect(audioCtx.destination); // connect to output (your speakers)
     source.start(); // play the file
-    audioCtx.resume();
+    audioCtx.resume().then(() => console.log("Audio resumed"));
 }, false);
 // On desktop
-window.addEventListener("mousedown", () => audioCtx.resume());
+window.addEventListener("mousedown", () => {
+    if (audioCtx.state !== "suspended") return;
+    audioCtx.resume().then(() => console.log("Audio resumed"))
+});
 // Start monophonic instrument
 if (typeof Module !== "undefined") {
     console.log("Compiled with EMCC");
