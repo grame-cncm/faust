@@ -25,30 +25,31 @@ class FaustWasm2ScriptProcessor {
      */
     constructor(dspName, dspProps) {
         this.name = dspName;
-        this.json_object = dspProps;
+        this.dspProps = dspProps;
         this._log = [];
         this.node;
     }
     /**
-    * Constructor of Monophonic Faust DSP
-    *
-    * @param dsp_instance - the wasm instance
-    * @param {AudioContext | webkitAudioContext} context - the Web Audio context
-    * @param {number} buffer_size - the buffer_size in frames
-    *
-    * @returns {ScriptProcessorNode} a valid WebAudio ScriptProcessorNode object or null
-    */
-    getNode(dsp_instance, context, buffer_size) {
+     * Constructor of Monophonic Faust DSP
+     *
+     * @param mixer_instance - the wasm mixer instance
+     * @param {WebAssembly.Instance} dspInstance - the wasm instance
+     * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
+     * @param {number} bufferSize - the buffer_size in frames
+     *
+     * @returns {ScriptProcessorNode} a valid WebAudio ScriptProcessorNode object or null
+     */
+    getNode(dspInstance, audioCtx, bufferSize) {
         let sp;
-        const inputs = parseInt(this.json_object.inputs);
-        const outputs = parseInt(this.json_object.outputs);
+        const inputs = parseInt(this.dspProps.inputs);
+        const outputs = parseInt(this.dspProps.outputs);
         try {
-            sp = context.createScriptProcessor(buffer_size, inputs, outputs);
+            sp = audioCtx.createScriptProcessor(bufferSize, inputs, outputs);
         } catch (e) {
             this.error("Error in createScriptProcessor: " + e);
             return null;
         }
-        sp.json_object = this.json_object;
+        sp.json_object = this.dspProps;
     
         sp.output_handler = null;
         sp.ins = null;
@@ -71,8 +72,8 @@ class FaustWasm2ScriptProcessor {
         sp.ptr_size = 4;
         sp.sample_size = 4;
     
-        sp.factory = dsp_instance.exports;
-        sp.HEAP = dsp_instance.exports.memory.buffer;
+        sp.factory = dspInstance.exports;
+        sp.HEAP = dspInstance.exports.memory.buffer;
         sp.HEAP32 = new Int32Array(sp.HEAP);
         sp.HEAPF32 = new Float32Array(sp.HEAP);
     
@@ -95,7 +96,7 @@ class FaustWasm2ScriptProcessor {
         // Start of HEAP index
     
         // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-        sp.audio_heap_ptr = parseInt(this.json_object.size);
+        sp.audio_heap_ptr = parseInt(this.dspProps.size);
     
         // Setup pointers offset
         sp.audio_heap_ptr_inputs = sp.audio_heap_ptr;
@@ -103,7 +104,7 @@ class FaustWasm2ScriptProcessor {
     
         // Setup buffer offset
         sp.audio_heap_inputs = sp.audio_heap_ptr_outputs + (sp.numOut * sp.ptr_size);
-        sp.audio_heap_outputs = sp.audio_heap_inputs + (sp.numIn * buffer_size * sp.sample_size);
+        sp.audio_heap_outputs = sp.audio_heap_inputs + (sp.numIn * bufferSize * sp.sample_size);
     
         // Start of DSP memory : DSP is placed first with index 0
         sp.dsp = 0;
@@ -124,8 +125,8 @@ class FaustWasm2ScriptProcessor {
                 dspInput.set(input);
             }
             // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
-            if (sp.compute_handler) sp.compute_handler(buffer_size);
-            sp.factory.compute(sp.dsp, buffer_size, sp.ins, sp.outs); // Compute
+            if (sp.compute_handler) sp.compute_handler(bufferSize);
+            sp.factory.compute(sp.dsp, bufferSize, sp.ins, sp.outs); // Compute
             sp.update_outputs(); // Update bargraph
             for (let i = 0; i < sp.numOut; i++) { // Write outputs
                 const output = e.outputBuffer.getChannelData(i);
@@ -169,57 +170,57 @@ class FaustWasm2ScriptProcessor {
             }
         }
         sp.initAux = () => { // Setup web audio context
-            this.log("buffer_size " + buffer_size);
+            this.log("buffer_size " + bufferSize);
             sp.onaudioprocess = sp.compute;
             if (sp.numIn > 0) {
                 sp.ins = sp.audio_heap_ptr_inputs;
                 for (let i = 0; i < sp.numIn; i++) {
-                    sp.HEAP32[(sp.ins >> 2) + i] = sp.audio_heap_inputs + ((buffer_size * sp.sample_size) * i);
+                    sp.HEAP32[(sp.ins >> 2) + i] = sp.audio_heap_inputs + ((bufferSize * sp.sample_size) * i);
                 }
                 // Prepare Ins buffer tables
                 const dspInChans = sp.HEAP32.subarray(sp.ins >> 2, (sp.ins + sp.numIn * sp.ptr_size) >> 2);
                 for (let i = 0; i < sp.numIn; i++) {
-                    sp.dspInChannnels[i] = sp.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sp.sample_size) >> 2);
+                    sp.dspInChannnels[i] = sp.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + bufferSize * sp.sample_size) >> 2);
                 }
             }
             if (sp.numOut > 0) {
                 sp.outs = sp.audio_heap_ptr_outputs;
                 for (let i = 0; i < sp.numOut; i++) {
-                    sp.HEAP32[(sp.outs >> 2) + i] = sp.audio_heap_outputs + ((buffer_size * sp.sample_size) * i);
+                    sp.HEAP32[(sp.outs >> 2) + i] = sp.audio_heap_outputs + ((bufferSize * sp.sample_size) * i);
                 }
                 // Prepare Out buffer tables
                 const dspOutChans = sp.HEAP32.subarray(sp.outs >> 2, (sp.outs + sp.numOut * sp.ptr_size) >> 2);
                 for (let i = 0; i < sp.numOut; i++) {
-                    sp.dspOutChannnels[i] = sp.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sp.sample_size) >> 2);
+                    sp.dspOutChannnels[i] = sp.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + bufferSize * sp.sample_size) >> 2);
                 }
             }
             // Parse JSON UI part
             sp.parse_ui(sp.json_object.ui);
             // Init DSP
-            sp.factory.init(sp.dsp, context.sampleRate);
+            sp.factory.init(sp.dsp, audioCtx.sampleRate);
         }
-        sp.getSampleRate = () => context.sampleRate; // Return current sample rate
+        sp.getSampleRate = () => audioCtx.sampleRate; // Return current sample rate
         sp.getNumInputs = () => sp.numIn; // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut; // Return instance number of audio outputs.
         /**
-        * Global init, doing the following initialization:
-        * - static tables initialization
-        * - call 'instanceInit': constants and instance state initialisation
-        *
-        * @param {number} sample_rate - the sampling rate in Hertz
-        */
+         * Global init, doing the following initialization:
+         * - static tables initialization
+         * - call 'instanceInit': constants and instance state initialisation
+         *
+         * @param {number} sample_rate - the sampling rate in Hertz
+         */
         sp.init = sample_rate => sp.factory.init(sp.dsp, sample_rate);
         /**
-        * Init instance state.
-        *
-        * @param {number} sample_rate - the sampling rate in Hertz
-        */
+         * Init instance state.
+         *
+         * @param {number} sample_rate - the sampling rate in Hertz
+         */
         sp.instanceInit = sample_rate => sp.factory.instanceInit(sp.dsp, sample_rate);
         /**
-        * Init instance constant state.
-        *
-        * @param {number} sample_rate - the sampling rate in Hertz
-        */
+         * Init instance constant state.
+         *
+         * @param {number} sample_rate - the sampling rate in Hertz
+         */
         sp.instanceConstants = sample_rate => sp.factory.instanceConstants(sp.dsp, sample_rate);
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = () => sp.factory.instanceResetUserInterface(sp.dsp);
@@ -231,8 +232,8 @@ class FaustWasm2ScriptProcessor {
          * @param {{ declare: (string, any) => any }} handler - the Meta handler as a 'declare' function of type (key, value)
          */
         sp.metadata = handler => {
-            if (this.json_object.meta) {
-                this.json_object.meta.forEach(meta => handler.declare(Object.keys(meta)[0], Object.values(meta)[0]));
+            if (this.dspProps.meta) {
+                this.dspProps.meta.forEach(meta => handler.declare(Object.keys(meta)[0], Object.values(meta)[0]));
             }
         }
         /**
@@ -307,14 +308,14 @@ class FaustWasm2ScriptProcessor {
         return sp;
     }
     /**
-    * Create a ScriptProcessorNode Web Audio object
-    * by loading and compiling the Faust wasm file
-    *
-    * @param {AudioContext | webkitAudioContext} context - the Web Audio context
-    * @param {number} buffer_size - the buffer_size in frames
-    * @returns {Promise<ScriptProcessorNode>} a Promise for valid WebAudio ScriptProcessorNode object or null
-    */
-    async createDSP(context, buffer_size) {
+     * Create a ScriptProcessorNode Web Audio object
+     * by loading and compiling the Faust wasm file
+     *
+     * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
+     * @param {number} bufferSize - the buffer_size in frames
+     * @returns {Promise<ScriptProcessorNode>} a Promise for valid WebAudio ScriptProcessorNode object or null
+     */
+    async createDSP(audioCtx, bufferSize) {
         const importObject = {
             env: {
                 memoryBase: 0,
@@ -364,10 +365,9 @@ class FaustWasm2ScriptProcessor {
             }
         };
         try {
-            const dsp_file = await fetch(this.name + ".wasm");
-            const dsp_bytes = await dsp_file.arrayBuffer();
-            const dsp_module = await WebAssembly.instantiate(dsp_bytes, importObject);
-            this.node = this.getNode(dsp_module.instance, context, buffer_size);
+            const dspFile = await fetch(this.name + ".wasm");
+            const dspModule = await WebAssembly.instantiateStreaming(dspFile, importObject);
+            this.node = this.getNode(dspModule.instance, audioCtx, bufferSize);
             return this.node;
         } catch (error) {
             this.error(error);
