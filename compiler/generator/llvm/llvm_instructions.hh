@@ -1268,10 +1268,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                    inst->fAddress->getAccess() & Address::kStaticStruct) {
             if (!fModule->getGlobalVariable(name, true)) {
                 GlobalVariable* global_var = new GlobalVariable(
-                    *fModule, convertFIRType(fModule, inst->fType), false,
-                    ((inst->fAddress->getAccess() & Address::kExternal) ? GlobalValue::ExternalLinkage
-                                                                        : GlobalValue::InternalLinkage),
-                    0, name);
+                    *fModule, convertFIRType(fModule, inst->fType), false, GlobalValue::InternalLinkage, 0, name);
 
                 // Declaration with a value
                 if (inst->fValue) {

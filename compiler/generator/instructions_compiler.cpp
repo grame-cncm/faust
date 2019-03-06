@@ -1927,7 +1927,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
 
         // extract metadata from group label str resulting in a simplifiedLabel
         // and metadata declarations for fictive zone at address 0
-        string                    simplifiedLabel;
+        string simplifiedLabel;
         map<string, set<string> > metadata;
         extractMetadata(str, simplifiedLabel, metadata);
 
@@ -2092,8 +2092,6 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
     map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
-
-    // string pathlabel = pathname+unquote(label);
     string pathlabel = pathname + label;
 
     if (isSigButton(sig, path)) {
