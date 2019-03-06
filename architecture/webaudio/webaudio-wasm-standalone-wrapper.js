@@ -16,29 +16,38 @@
 
 'use strict';
 
+/**
+ * @class FaustWasm2ScriptProcessor
+ * @property {string} name - name of current DSP
+ * @property {{ [key: string]: any }} dspProps - dsp properties
+ * @property {any[]} _log - event log
+ * @property {string[]} node - ScriptProcessorNode
+ * @property {boolean} debug - debug mode
+ */
 class FaustWasm2ScriptProcessor {
     static Heap2Str = buf => buf.reduce((acc, el) => acc += String.fromCharCode(el), "");
     /**
      * Creates an instance of FaustWasm2ScriptProcessor.
      * @param {string} dspName - dsp name
      * @param {{ [key: string]: any }} dspProps - dsp properties parsed by json
+     * @param {{ debug: boolean, [key: string]: any }} options - compile options
      */
-    constructor(dspName, dspProps) {
+    constructor(dspName, dspProps, options) {
         this.name = dspName;
         this.dspProps = dspProps;
         this._log = [];
         this.node;
+        this.debug = false || (typeof options === "object" && options.debug);
     }
     /**
-     * Constructor of Monophonic Faust DSP
-     *
-     * @param mixer_instance - the wasm mixer instance
-     * @param {WebAssembly.Instance} dspInstance - the wasm instance
-     * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
-     * @param {number} bufferSize - the buffer_size in frames
-     *
-     * @returns {ScriptProcessorNode} a valid WebAudio ScriptProcessorNode object or null
-     */
+    * Constructor of Monophonic Faust DSP
+    *
+    * @param {WebAssembly.Instance} dspInstance - the wasm instance
+    * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
+    * @param {number} bufferSize - the buffer_size in frames
+    *
+    * @returns {ScriptProcessorNode} a valid WebAudio ScriptProcessorNode object or null
+    */
     getNode(dspInstance, audioCtx, bufferSize) {
         let sp;
         const inputs = parseInt(this.dspProps.inputs);
@@ -100,11 +109,11 @@ class FaustWasm2ScriptProcessor {
     
         // Setup pointers offset
         sp.audio_heap_ptr_inputs = sp.audio_heap_ptr;
-        sp.audio_heap_ptr_outputs = sp.audio_heap_ptr_inputs + (sp.numIn * sp.ptr_size);
+        sp.audio_heap_ptr_outputs = sp.audio_heap_ptr_inputs + sp.numIn * sp.ptr_size;
     
         // Setup buffer offset
-        sp.audio_heap_inputs = sp.audio_heap_ptr_outputs + (sp.numOut * sp.ptr_size);
-        sp.audio_heap_outputs = sp.audio_heap_inputs + (sp.numIn * bufferSize * sp.sample_size);
+        sp.audio_heap_inputs = sp.audio_heap_ptr_outputs + sp.numOut * sp.ptr_size;
+        sp.audio_heap_outputs = sp.audio_heap_inputs + sp.numIn * bufferSize * sp.sample_size;
     
         // Start of DSP memory : DSP is placed first with index 0
         sp.dsp = 0;
@@ -175,7 +184,7 @@ class FaustWasm2ScriptProcessor {
             if (sp.numIn > 0) {
                 sp.ins = sp.audio_heap_ptr_inputs;
                 for (let i = 0; i < sp.numIn; i++) {
-                    sp.HEAP32[(sp.ins >> 2) + i] = sp.audio_heap_inputs + ((bufferSize * sp.sample_size) * i);
+                    sp.HEAP32[(sp.ins >> 2) + i] = sp.audio_heap_inputs + bufferSize * sp.sample_size * i;
                 }
                 // Prepare Ins buffer tables
                 const dspInChans = sp.HEAP32.subarray(sp.ins >> 2, (sp.ins + sp.numIn * sp.ptr_size) >> 2);
@@ -186,7 +195,7 @@ class FaustWasm2ScriptProcessor {
             if (sp.numOut > 0) {
                 sp.outs = sp.audio_heap_ptr_outputs;
                 for (let i = 0; i < sp.numOut; i++) {
-                    sp.HEAP32[(sp.outs >> 2) + i] = sp.audio_heap_outputs + ((bufferSize * sp.sample_size) * i);
+                    sp.HEAP32[(sp.outs >> 2) + i] = sp.audio_heap_outputs + bufferSize * sp.sample_size * i;
                 }
                 // Prepare Out buffer tables
                 const dspOutChans = sp.HEAP32.subarray(sp.outs >> 2, (sp.outs + sp.numOut * sp.ptr_size) >> 2);
@@ -203,25 +212,25 @@ class FaustWasm2ScriptProcessor {
         sp.getNumInputs = () => sp.numIn; // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut; // Return instance number of audio outputs.
         /**
-         * Global init, doing the following initialization:
-         * - static tables initialization
-         * - call 'instanceInit': constants and instance state initialisation
-         *
-         * @param {number} sample_rate - the sampling rate in Hertz
-         */
-        sp.init = sample_rate => sp.factory.init(sp.dsp, sample_rate);
+        * Global init, doing the following initialization:
+        * - static tables initialization
+        * - call 'instanceInit': constants and instance state initialisation
+        *
+        * @param {number} sampleRate - the sampling rate in Hertz
+        */
+        sp.init = sampleRate => sp.factory.init(sp.dsp, sampleRate);
         /**
-         * Init instance state.
-         *
-         * @param {number} sample_rate - the sampling rate in Hertz
-         */
-        sp.instanceInit = sample_rate => sp.factory.instanceInit(sp.dsp, sample_rate);
+        * Init instance state.
+        *
+        * @param {number} sampleRate - the sampling rate in Hertz
+        */
+        sp.instanceInit = sampleRate => sp.factory.instanceInit(sp.dsp, sampleRate);
         /**
-         * Init instance constant state.
-         *
-         * @param {number} sample_rate - the sampling rate in Hertz
-         */
-        sp.instanceConstants = sample_rate => sp.factory.instanceConstants(sp.dsp, sample_rate);
+        * Init instance constant state.
+        *
+        * @param {number} sampleRate - the sampling rate in Hertz
+        */
+        sp.instanceConstants = sampleRate => sp.factory.instanceConstants(sp.dsp, sampleRate);
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = () => sp.factory.instanceResetUserInterface(sp.dsp);
         /* Init instance state (delay lines...).*/
@@ -308,13 +317,13 @@ class FaustWasm2ScriptProcessor {
         return sp;
     }
     /**
-     * Create a ScriptProcessorNode Web Audio object
-     * by loading and compiling the Faust wasm file
-     *
-     * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
-     * @param {number} bufferSize - the buffer_size in frames
-     * @returns {Promise<ScriptProcessorNode>} a Promise for valid WebAudio ScriptProcessorNode object or null
-     */
+    * Create a ScriptProcessorNode Web Audio object
+    * by loading and compiling the Faust wasm file
+    *
+    * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
+    * @param {number} bufferSize - the bufferSize in frames
+    * @returns {Promise<ScriptProcessorNode>} a Promise for valid WebAudio ScriptProcessorNode object or null
+    */
     async createDSP(audioCtx, bufferSize) {
         const importObject = {
             env: {
@@ -369,13 +378,14 @@ class FaustWasm2ScriptProcessor {
             const dspModule = await WebAssembly.instantiateStreaming(dspFile, importObject);
             this.node = this.getNode(dspModule.instance, audioCtx, bufferSize);
             return this.node;
-        } catch (error) {
-            this.error(error);
+        } catch (e) {
+            this.error(e);
             this.error("Faust" + this.name + "cannot be loaded or compiled");
         }
     }
     log(str) {
         this._log.push(str);
+        if (this.debug) console.log(str);
     }
     error(str) {
         this._log.push(str);

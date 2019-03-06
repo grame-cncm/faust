@@ -87,7 +87,7 @@ const saveDSPState = () => {
 const loadDSPState = () => {
     dspNode.getParams().forEach(param => {
         const value = getStorageItemValue('DSP', param);
-        if (value !== undefined) {
+        if (typeof value === "number") {
             dspNode.setParamValue(param, parseFloat(value)); // Restore DSP state
             dspOutputHandler(param, parseFloat(value)); // Restore GUI state
         }
