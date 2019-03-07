@@ -311,7 +311,7 @@ class FaustWasm2ScriptProcessor {
          *
          * @return {string} DSP JSON description
          */
-        sp.getJSON = () => json;
+        sp.getJSON = () => JSON.stringify(json_object);
         // Init resulting DSP
         sp.initAux();
         return sp;
@@ -394,12 +394,12 @@ class FaustWasm2ScriptProcessor {
 }
 
 const dspName = "mydsp";
-// eslint-disable-next-line no-undef
-const json = getJSONmydsp();
 
 // Keep JSON parsed object
 let json_object;
 try {
+    // eslint-disable-next-line no-undef
+    const json = getJSONmydsp();
     json_object = JSON.parse(json);
 } catch (e) {
     console.error("Error in JSON.parse: " + e);

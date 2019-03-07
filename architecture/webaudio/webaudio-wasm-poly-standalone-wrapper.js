@@ -683,14 +683,12 @@ class FaustWasm2ScriptProcessorPoly {
 }
 
 const dspName = "mydsp";
-// eslint-disable-next-line no-undef
-const json = getJSONmydsp();
-// eslint-disable-next-line no-undef
-const jsonEffect = typeof getJSONeffect === "undefined" ? null : getJSONeffect();
 
 // Keep JSON parsed object
 let json_object;
 try {
+    // eslint-disable-next-line no-undef
+    const json = getJSONmydsp();
     json_object = JSON.parse(json);
 } catch (e) {
     console.error("Error in JSON.parse: " + e);
@@ -699,6 +697,8 @@ try {
 // Keep JSON parsed object
 let effect_json_object;
 try {
+    // eslint-disable-next-line no-undef
+    const jsonEffect = typeof getJSONeffect === "undefined" ? null : getJSONeffect();
     effect_json_object = JSON.parse(jsonEffect);
 } catch (e) {
     console.error("Error in JSON.parse: " + e);
