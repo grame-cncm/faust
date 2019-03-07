@@ -98,12 +98,12 @@
     }
     
     const initDSP = bufferSizeIn => {
-        if (typeof WebAssembly === "undefined") alert("WebAssembly is not supported in this browser !");
-        if (!window[dspName + "Poly"]) console.error(dspName + " instance not found.");
+        if (typeof WebAssembly === "undefined") return alert("WebAssembly is not supported in this browser !");
+        if (!window[dspName + "Poly"]) return console.error(dspName + " instance not found.");
         const bufferSize = bufferSizeIn || 1024;
         window[dspName + "Poly"].createDSP(audioCtx, bufferSize, 16)
         .then(dsp => {
-            if (!dsp) console.error("Error in DSP creation.");
+            if (!dsp) return console.error("Error in DSP creation.");
             if (dspNode) { // destroy current
                 dspNode.disconnect(audioCtx.destination);
                 if (audioInput) audioInput.disconnect(dspNode);
