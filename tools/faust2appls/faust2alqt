@@ -12,7 +12,7 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
-ARCHFILE="alsa-qt.cpp"
+ARCHFILE=$FAUSTARCH/alsa-qt.cpp
 ARCHLIB="-lasound"
 
 #-------------------------------------------------------------------------------

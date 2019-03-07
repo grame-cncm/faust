@@ -10,7 +10,7 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS="$MYGCCFLAGS -std=c++11"
+CXXFLAGS=$MYGCCFLAGS
 CXX=g++
 
 # change if you want to get the log of what's happening
@@ -117,7 +117,7 @@ echoHelp ()
 
 createAPI ()
 {
-    cp -r $FAUSTLIB/api/DspFaust.h $APIFOLDER
+    cp -r $FAUSTARCH/api/DspFaust.h $APIFOLDER
     faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
         faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
@@ -267,12 +267,12 @@ if [ $ANDROID_DRIVER -eq 1 ]; then
     JAVAFOLDER="$APIFOLDER/java"
     mkdir $CPPFOLDER
     mkdir $JAVAFOLDER
-    cp -r $FAUSTLIB/api/android/jni/*.java $JAVAFOLDER
+    cp -r $FAUSTARCH/api/android/jni/*.java $JAVAFOLDER
     if [ -n "$PACKAGENAME" ]; then
         PACKAGENAME="$PACKAGENAME.DspFaust"
         sed -i "s/com.DspFaust/$PACKAGENAME/g" $JAVAFOLDER/*.java
     fi
-    cp -r $FAUSTLIB/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
+    cp -r $FAUSTARCH/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
     createAPI
     mv $APIFOLDER/DspFaust.h $CPPFOLDER
     mv $APIFOLDER/DspFaust.cpp $CPPFOLDER
@@ -349,14 +349,14 @@ fi
 
 if [ $NODOC -eq 0 ]; then
 
-    APIHEADERFILE="$FAUSTLIB/api/DspFaust.h"
+    APIHEADERFILE="$FAUSTARCH/api/DspFaust.h"
 
     if [ $ANDROID_DRIVER -eq 1 ]; then
-        DOCHEADERFILE="$FAUSTLIB/api/doc/Android.md"
+        DOCHEADERFILE="$FAUSTARCH/api/doc/Android.md"
     elif [ $IOS_DRIVER -eq 1 ]; then
-        DOCHEADERFILE="$FAUSTLIB/api/doc/iOS.md"
+        DOCHEADERFILE="$FAUSTARCH/api/doc/iOS.md"
     else
-        DOCHEADERFILE="$FAUSTLIB/api/doc/Generic.md"
+        DOCHEADERFILE="$FAUSTARCH/api/doc/Generic.md"
     fi
 
 	PPFILE=pPrinter.cpp

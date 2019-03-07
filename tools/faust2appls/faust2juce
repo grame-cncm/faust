@@ -12,7 +12,6 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
-PATH=$PATH:/usr/local/bin
 DEBUG=false
 
 #-------------------------------------------------------------------
@@ -115,11 +114,11 @@ for p in $FILES; do
     rm -rf "$SRCDIR/$dspName"
  
     if [ $STANDALONE = "0" ]; then
-        cp -r "$FAUSTLIB/juce/plugin" "$SRCDIR/$dspName/"
+        cp -r $FAUSTARCH/juce/plugin "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
         sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$SRCDIR/$dspName/plugin.jucer" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     else
-        cp -r "$FAUSTLIB/juce/standalone" "$SRCDIR/$dspName/"
+        cp -r $FAUSTARCH/juce/standalone "$SRCDIR/$dspName/"
         # setting project name to match the dsp
         sed -e "s/ProjectTitle/$dspName/g" "$SRCDIR/$dspName/standalone.jucer" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     fi
@@ -157,9 +156,9 @@ for p in $FILES; do
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -i -a $FAUSTLIB/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+        faust -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
     else
-        faust -i -a $FAUSTLIB/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+        faust -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
     fi
 
     if [ $POLY = "POLY2" ]; then

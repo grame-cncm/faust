@@ -10,6 +10,8 @@
 . faustpath
 . faustoptflags
 
+ARCHFILE=$FAUSTARCH/dssi.cpp
+
 CXXFLAGS=$MYGCCFLAGS
 OSCDEFS=""
 
@@ -57,8 +59,6 @@ for p in $@; do
 	fi
 done
 
-
-
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
@@ -67,10 +67,6 @@ if [[ $(uname) == Darwin ]]; then
 else
 	SPEC="-shared"
 fi
-
-
-
-
 	
 #-------------------------------------------------------------------
 # compile the *.dsp files as dssi plugins
@@ -80,7 +76,7 @@ for f in $FILES; do
 	dst="${f%.dsp}.so"
 	
 	# compile faust to c++
-	faust -i -a dssi.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

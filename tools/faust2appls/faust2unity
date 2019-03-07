@@ -112,7 +112,7 @@ for p in $FILES; do
     mkdir "$FIN"
 
     # adds README to final dir while setting dspname
-    sed "s/<dspname>/$NAME/g" $FAUSTLIB/unity/README.md > $FIN/README.md
+    sed "s/<dspname>/$NAME/g" $FAUSTARCH/unity/README.md > $FIN/README.md
 
     # finds number of parameters, required for the c# scripts
     faust -uim $f -o $NAME.cpp
@@ -131,8 +131,8 @@ for p in $FILES; do
     JSON=$(<$f.json)
 
     # generates c# files
-    sed -e "s/MODEL/$NAME/g;s/PLUGNAME/lib$FNAME/g;s/PLUGINNAME/$FNAME/g;s/RELEVANTJSONFILE/$JSON/g;1d" $FAUSTLIB/unity/$FAUST_UTILITY > $FIN/FaustUtilities_$NAME.cs
-    sed -e "s/MODEL/$NAME/g;s/VARIABLES/$var/g;1d" $FAUSTLIB/unity/FaustPlugin_template.cs > $FIN/$FNAME.cs
+    sed -e "s/MODEL/$NAME/g;s/PLUGNAME/lib$FNAME/g;s/PLUGINNAME/$FNAME/g;s/RELEVANTJSONFILE/$JSON/g;1d" $FAUSTARCH/unity/$FAUST_UTILITY > $FIN/FaustUtilities_$NAME.cs
+    sed -e "s/MODEL/$NAME/g;s/VARIABLES/$var/g;1d" $FAUSTARCH/unity/FaustPlugin_template.cs > $FIN/$FNAME.cs
 
     rm -rf $NAME.json
     rm -rf $f.json
@@ -211,7 +211,7 @@ for p in $FILES; do
 
     elif [ "$SRC" = "1" ]; then
         # add .dsp and .cpp files to sources folder
-        faust -i -a $FAUSTLIB/unity/unityplugin.cpp $f -o $NAME.cpp
+        faust -i -a $FAUSTARCH/unity/unityplugin.cpp $f -o $NAME.cpp
         mv "$NAME.cpp" "$FNAME/$NAME.cpp"
         cp "$f" "$FNAME/$f"
         SNAME=$FNAME\_sources

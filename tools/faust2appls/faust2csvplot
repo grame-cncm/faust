@@ -3,12 +3,14 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to plotters					#
-#               (c) Grame, 2009                                     #
+#               (c) Grame, 2019                                     #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
+
+ARCHFILE=$FAUSTARCH/csvplot.cpp
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -65,7 +67,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-    faust -i -a csvplot.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

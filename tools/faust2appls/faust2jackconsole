@@ -13,9 +13,10 @@
 CXX=g++
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/jack-console.cpp
+
 OSCDEFS=""
 NVOICES=-1
-ARCHFILE="jack-console.cpp"
 
 # Check Darwin specifics
 #
@@ -113,5 +114,3 @@ for f in $FILES; do
 done
 
 echo $BINARIES
-
-

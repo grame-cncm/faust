@@ -93,7 +93,7 @@ if [ ! -d "$BUILDDIR" ]; then
   	echo "Creating new Android project $BUILDDIR"  > $LOG
   	
   	mkdir -p "$BUILDDIR"
-	cp -r $FAUSTLIB/android/*  "$BUILDDIR"
+	cp -r $FAUSTARCH/android/*  "$BUILDDIR"
 	install -d $JNIFOLDER
 	# Copy include files *.h if any (ignore any error here)
 	(cp *.h $JNIFOLDER 2> $LOG) || true
@@ -140,10 +140,10 @@ else
 fi
 
 # Copying the Faust API files in the project
-cp $FAUSTLIB/api/DspFaust.h $JNIFOLDER
-cp $FAUSTLIB/api/android/jni/java_interface_wrap.cpp $JNIFOLDER
+cp $FAUSTARCH/api/DspFaust.h $JNIFOLDER
+cp $FAUSTARCH/api/android/jni/java_interface_wrap.cpp $JNIFOLDER
 mkdir $APPFOLDER/java/com/DspFaust
-cp $FAUSTLIB/api/android/jni/*.java $APPFOLDER/java/com/DspFaust
+cp $FAUSTARCH/api/android/jni/*.java $APPFOLDER/java/com/DspFaust
 
 # Compile the Faust code for the NDK
 faust $OPTIONS -i -json -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit

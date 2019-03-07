@@ -8,10 +8,10 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
 
-ARCHFILE="jack-qt.cpp"
+ARCHFILE=$FAUSTARCH/jack-qt.cpp
 ARCHLIB="-L/usr/local/lib -ljackserver"
-PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4

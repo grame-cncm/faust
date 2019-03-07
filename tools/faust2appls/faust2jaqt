@@ -12,12 +12,12 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/jack-qt.cpp
+
 #-------------------------------------------------------------------
 # Set Faust include path
 
-ARCHFILE="jack-qt.cpp"
 ARCHLIB="-L/usr/local/lib -ljack"
-PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
