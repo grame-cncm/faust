@@ -380,7 +380,7 @@ class FaustWasm2ScriptProcessor {
             return this.node;
         } catch (e) {
             this.error(e);
-            this.error("Faust" + this.name + "cannot be loaded or compiled");
+            this.error("Faust " + this.name + " cannot be loaded or compiled");
         }
     }
     log(str) {

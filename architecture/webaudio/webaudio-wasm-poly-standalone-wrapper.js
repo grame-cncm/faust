@@ -659,13 +659,13 @@ class FaustWasm2ScriptProcessorPoly {
                     return this.node;
                 } catch (e) {
                     this.log(e);
-                    this.log("Faust" + this.name + "_effect cannot be loaded or compiled");
+                    this.log("Faust " + this.name + "_effect cannot be loaded or compiled");
                     this.node = this.getNode(mixModule.instance, dspModule.instance, null, memory, audioCtx, bufferSize, polyphony);
                     return this.node;
                 }
             } catch (e) {
                 this.error(e);
-                this.error("Faust" + this.name + "cannot be loaded or compiled");
+                this.error("Faust " + this.name + " cannot be loaded or compiled");
             }
         } catch (e) {
             this.error(e);
