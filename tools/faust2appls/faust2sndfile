@@ -11,7 +11,8 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
-ARCHFILE="sndfile.cpp"
+
+ARCHFILE=$FAUSTARCH/sndfile.cpp
 
 #-------------------------------------------------------------------
 # Set Faust include path

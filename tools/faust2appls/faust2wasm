@@ -134,7 +134,7 @@ for f in $FILES; do
     
     # compile the Faust DSP to C++ or wasm code
     if [ $EMCC = "true" ] ; then
-        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+        faust -a $FAUSTARCH/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
 
@@ -171,7 +171,7 @@ EndOfCode
         fi
     
         # compile the C++ code to wasm
-        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
+        emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTARCH/webaudio/$JS_WRAPPER -o $name-temp.js \
             -s EXPORTED_FUNCTIONS=$EXPORTED || exit
        
         # compose the wasm code
@@ -188,10 +188,10 @@ EndOfCode
 
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name-processor.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
         else
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
         fi
     fi
 
@@ -209,7 +209,7 @@ EndOfCode
     	echo "}" >> main.json
     	
         # compose the HTML test page
-        cp  $FAUSTLIB/webaudio/testWAP.html test$name-tmp1.html
+        cp  $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi
@@ -238,7 +238,7 @@ for f in $FILES; do
     
     # compile the Faust DSP to C++ or wasm code
     if [ $EMCC = "true" ] ; then
-        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+        faust -a $FAUSTARCH/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
 
@@ -277,7 +277,7 @@ EndOfCode
         fi
 
         # compose the wasm code
-        sed -e "s/DSP/"$name"/g" $FAUSTLIB/webaudio/$JS_WRAPPER > $name-wrapper.js
+        sed -e "s/DSP/"$name"/g" $FAUSTARCH/webaudio/$JS_WRAPPER > $name-wrapper.js
         
         COMB_SRC+=$name.cpp
         COMB_SRC+=" "
@@ -299,7 +299,7 @@ EndOfCode
             rm $name"_effect".js
         fi
 
-        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
+        sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
         cat $name.js >> comb.js
         rm $name.js
     fi

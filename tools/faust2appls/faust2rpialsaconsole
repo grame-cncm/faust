@@ -10,11 +10,12 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
+
+ARCHFILE=$FAUSTARCH/alsa-console.cpp
 
 # base directory for tools
-
 BASE_DIR="/opt/rpicrosstool"
-ARCHFILE=alsa-console.cpp
 OSCDEFS=""
 
 #-------------------------------------------------------------------

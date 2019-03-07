@@ -11,7 +11,7 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
-ARCHFILE="alsa-gtk.cpp"
+ARCHFILE=$FAUSTARCH/alsa-gtk.cpp
 OSCDEFS=""
 
 #-------------------------------------------------------------------

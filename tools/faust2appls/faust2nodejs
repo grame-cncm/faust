@@ -116,11 +116,11 @@ cd $NODE_FOLDER
 faust2api $DRIVER -nodoc -nozip $MIDI $SOUNDFILE $OSC $NVOICES $EFFECT $OPTIONS "../"$FILE &> $LOG || exit 1
 
 # Copying template files
-cp "$FAUSTLIB/nodejs/binding.gyp" .
-cp "$FAUSTLIB/nodejs/DspFaustNode.cpp" .
-cp "$FAUSTLIB/nodejs/DspFaustNode.h" .
-cp "$FAUSTLIB/nodejs/faust.cpp" .
-cp "$FAUSTLIB/nodejs/README.md" .
+cp "$FAUSTARCH/nodejs/binding.gyp" .
+cp "$FAUSTARCH/nodejs/DspFaustNode.cpp" .
+cp "$FAUSTARCH/nodejs/DspFaustNode.h" .
+cp "$FAUSTARCH/nodejs/faust.cpp" .
+cp "$FAUSTARCH/nodejs/README.md" .
 
 # Customizing configuration file
 # TODO: for now only ported compilation flags for alsa and JACK: missing

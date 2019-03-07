@@ -10,7 +10,9 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS="$MYGCCFLAGS -std=c++11"
+ARCHFILE=$FAUSTARCH/dummy-mem.cpp
+
+CXXFLAGS=$MYGCCFLAGS
 
 OSCDEFS=""
 NVOICES=-1
@@ -65,7 +67,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a dummy-mem.cpp -mem $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE -mem $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

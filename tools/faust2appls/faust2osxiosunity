@@ -26,6 +26,7 @@
 #
 
 . faustpath
+. faustoptflags
 
 NVOICES=-1
 
@@ -170,7 +171,7 @@ for p in $FILES; do
         fi
 
         # compiles faust to c++
-        faust -i -a $FAUSTLIB/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $TMP/$NAME.cpp || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity -ios"; exit 1)
+        faust -i -a $FAUSTARCH/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $TMP/$NAME.cpp || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity -ios"; exit 1)
 
         $CXX $CXXFLAGS -DAPPLE -fembed-bitcode -DPLUGINNAME="libFaustPlugin_$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $TMP/$NAME.cpp -o $TMP/$NAME.o || (echo "$FNAME : C++ to iOS library compilation failed in faust2osxiosunity -ios"; exit 1)
         libtool $TMP/$NAME.o -o $TMP/libFaustPlugin_$NAME.a
@@ -200,7 +201,7 @@ for p in $FILES; do
         fi
 
         # compile Faust DSP to c++
-        faust -i -a $FAUSTLIB/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
+        faust -i -a $FAUSTARCH/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
         
         if [ $NVOICES == -1 ]; then
         	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
