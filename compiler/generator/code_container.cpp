@@ -63,7 +63,6 @@ CodeContainer::CodeContainer()
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst()),
       fSubContainerType(kInt),
-      fFullCount("count"),
       fGeneratedSR(false)
 {
     fCurLoop = new CodeLoop(0, "i");

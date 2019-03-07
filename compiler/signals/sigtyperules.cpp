@@ -233,7 +233,7 @@ static void CheckPartInterval(Tree s, Type t)
 
 /**
  * Infere the type of a term according to its surrounding type environment
- * @param sig the signal to aanlyze
+ * @param sig the signal to analyse
  * @param env the type environment
  * @return the type of sig according to environment env
  */
@@ -608,7 +608,7 @@ static Type initialRecType(Tree t)
 }
 
 /**
- * Infere the type of e recursive block by trying solutions of
+ * Infere the type of a recursive block by trying solutions of
  * increasing generality
  */
 static Type infereRecType(Tree sig, Tree body, Tree env)
@@ -662,7 +662,7 @@ static Type infereFConstType(Tree type)
 static Type infereFVarType(Tree type)
 {
     // une variable externe ne peut pas se calculer au plus tot qu'a
-    // l'execution. Elle est varie par blocs comme les éléments d'interface utilisateur.
+    // l'execution. Elle varie par blocs comme les éléments d'interface utilisateur.
     return makeSimpleType(tree2int(type), kBlock, kExec, kVect, kNum, interval());
 }
 
@@ -726,7 +726,6 @@ static Type infereXType(Tree sig, Tree env)
  * @param s2 interval of the right operand
  * @return the resulting interval
  */
-
 static interval arithmetic(int opcode, const interval& x, const interval& y)
 {
     switch (opcode) {

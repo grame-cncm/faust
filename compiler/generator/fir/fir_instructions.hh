@@ -44,30 +44,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     bool              fFinishLine;
     map<string, bool> gFunctionSymbolTable;
 
-    void generateAccess(Address* address)
-    {
-        if (address->getAccess() & Address::kGlobal) {
-            *fOut << "global, ";
-        }
-        if (address->getAccess() & Address::kStaticStruct) {
-            *fOut << "static, ";
-        }
-        if (address->getAccess() & Address::kVolatile) {
-            *fOut << "volatile, ";
-        }
-        if (address->getAccess() & Address::kStruct) {
-            *fOut << "struct, ";
-        } else if (address->getAccess() & Address::kStack) {
-            *fOut << "stack, ";
-        } else if (address->getAccess() & Address::kLink) {
-            *fOut << "link, ";
-        } else if (address->getAccess() & Address::kLoop) {
-            *fOut << "loop, ";
-        } else if (address->getAccess() & Address::kFunArgs) {
-            *fOut << "kFunArgs, ";
-        }
-    }
-
    public:
     FIRInstVisitor(std::ostream* out, int tab = 0)
         : CStringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true)
@@ -300,7 +276,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(DeclareVarInst* inst)
     {
         *fOut << "DeclareVarInst(";
-        generateAccess(inst->fAddress);
         *fOut << generateType(inst->fType, inst->fAddress->getName());
         if (inst->fValue) {
             *fOut << ", ";
@@ -381,7 +356,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(NamedAddress* named) { *fOut << named->fName; }
+    virtual void visit(NamedAddress* named) { *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")"; }
 
     virtual void visit(IndexedAddress* indexed)
     {
@@ -400,7 +375,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(LoadVarInst* inst)
     {
         *fOut << "LoadVarInst(";
-        generateAccess(inst->fAddress);
         inst->fAddress->accept(this);
         *fOut << ")";
     }
@@ -408,7 +382,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(LoadVarAddressInst* inst)
     {
         *fOut << "LoadVarAddressInst(";
-        generateAccess(inst->fAddress);
         inst->fAddress->accept(this);
         *fOut << ")";
     }
@@ -416,7 +389,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(StoreVarInst* inst)
     {
         *fOut << "StoreVarInst(";
-        generateAccess(inst->fAddress);
         inst->fAddress->accept(this);
         *fOut << ", ";
         inst->fValue->accept(this);
