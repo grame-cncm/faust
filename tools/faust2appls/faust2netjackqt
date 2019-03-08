@@ -10,7 +10,7 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYCXXFLAGS
+CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE=$FAUSTARCH/netjack-qt.cpp
 

@@ -13,7 +13,7 @@
 CXXFLAGS=$MYGCCFLAGS
 
 OSCDEFS=""
-ARCHFILE=$FAUSTARCH/ladspa.cpp$FAUSTARCH/
+ARCHFILE=$FAUSTARCH/ladspa.cpp
 
 #-------------------------------------------------------------------
 # Check darwin specifics
