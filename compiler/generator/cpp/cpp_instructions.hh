@@ -148,6 +148,33 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "std::sin";
         gPolyMathLibTable["sqrt"]      = "std::sqrt";
         gPolyMathLibTable["tan"]       = "std::tan";
+        
+        
+        // Polymath mapping quad version
+        gPolyMathLibTable["max_l"] = "std::max<quad>";
+        gPolyMathLibTable["min_l"] = "std::min<quad>";
+        
+        gPolyMathLibTable["fabsl"]      = "std::fabs";
+        gPolyMathLibTable["acosl"]      = "std::acos";
+        gPolyMathLibTable["asinl"]      = "std::asin";
+        gPolyMathLibTable["atanl"]      = "std::atan";
+        gPolyMathLibTable["atan2l"]     = "std::atan2";
+        gPolyMathLibTable["ceill"]      = "std::ceil";
+        gPolyMathLibTable["cosl"]       = "std::cos";
+        gPolyMathLibTable["expl"]       = "std::exp";
+        gPolyMathLibTable["exp2l"]      = "std::exp2";
+        gPolyMathLibTable["exp10l"]     = "exp10";
+        gPolyMathLibTable["floorl"]     = "std::floor";
+        gPolyMathLibTable["fmodl"]      = "std::fmod";
+        gPolyMathLibTable["logl"]       = "std::log";
+        gPolyMathLibTable["log2l"]      = "std::log2";
+        gPolyMathLibTable["log10l"]     = "std::log10";
+        gPolyMathLibTable["powl"]       = "std::pow";
+        gPolyMathLibTable["remainderl"] = "std::remainder";
+        gPolyMathLibTable["roundl"]     = "std::round";
+        gPolyMathLibTable["sinl"]       = "std::sin";
+        gPolyMathLibTable["sqrtl"]      = "std::sqrt";
+        gPolyMathLibTable["tanl"]       = "std::tan";
     }
 
     virtual ~CPPInstVisitor() {}

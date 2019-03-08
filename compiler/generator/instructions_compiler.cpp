@@ -865,11 +865,15 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kBlock:
             if (gGlobal->gOneSample) {
                 if (t->nature() == kInt) {
-                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum++), exp));
-                    return InstBuilder::genLoadArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
+                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
+                    ValueInst* res = InstBuilder::genLoadArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
+                    fContainer->fInt32ControlNum++;
+                    return res;
                 } else {
-                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum++), exp));
-                    return InstBuilder::genLoadArrayStackVar("fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
+                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
+                    ValueInst* res = InstBuilder::genLoadArrayStackVar("fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
+                    fContainer->fRealControlNum++;
+                    return res;
                 }
             } else {
                 getTypedNames(t, "Slow", ctype, vname);
