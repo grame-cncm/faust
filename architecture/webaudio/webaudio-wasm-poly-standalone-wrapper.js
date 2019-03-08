@@ -26,7 +26,9 @@
  * @property {boolean} debug - debug mode
  */
 class FaustWasm2ScriptProcessorPoly {
-    static Heap2Str = buf => buf.reduce((acc, el) => acc += String.fromCharCode(el), "");
+    static Heap2Str(buf) {
+        return buf.reduce((acc, el) => acc += String.fromCharCode(el), "");
+    }
     /**
      * Creates an instance of FaustWasm2ScriptProcessorPoly.
      * @param {string} dspName - dsp name
