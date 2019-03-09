@@ -202,9 +202,12 @@ void VectorCodeContainer::processFIR(void)
     VariableSizeCounter counter(Address::kStack);
     generateComputeBlock(&counter);
     
-    // Possibly remove LoadVarAddress
+    /*
+     Possibly remove LoadVarAddress. The remover has to be shared between
+     fComputeBlockInstructions and fDAGBlock, so a *unique* one is defined.
+    */
+    VarAddressRemover remover;
     if (gGlobal->gRemoveVarAddress) {
-        VarAddressRemover remover;
         fComputeBlockInstructions = remover.getCode(fComputeBlockInstructions);
     }
 
@@ -226,7 +229,6 @@ void VectorCodeContainer::processFIR(void)
     
     // Possibly remove LoadVarAddress
     if (gGlobal->gRemoveVarAddress) {
-        VarAddressRemover remover;
         fDAGBlock = remover.getCode(fDAGBlock);
     }
  
