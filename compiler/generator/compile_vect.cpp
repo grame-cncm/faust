@@ -258,7 +258,11 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             }
         } else {
             // not delayed
-            if (sharing > 1 && !verySimple(sig)) {
+            Tree x, y;
+            if (sharing > 1 && isSigFixDelay(sig, x, y) && verySimple(y)) {
+                // cerr << "SPECIAL CASE NO CACHE NEEDED : " << ppsig(sig) << endl;
+                return exp;
+            } else if (sharing > 1 && !verySimple(sig)) {
                 // shared and not simple : we need a vector
                 // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
