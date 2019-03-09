@@ -98,6 +98,11 @@ dsp/vec/%.cpp : dsp/%.dsp
 dsp/sched/control.cpp : dsp/control.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
+	
+# Specific rule to test 'soundfile' primitive that does not work yet in s-ch mode
+dsp/sched/sound.cpp : dsp/sound.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -double -i -a $(arch) $<  -o $@
 
 dsp/sched/%.cpp : dsp/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
@@ -105,8 +110,10 @@ dsp/sched/%.cpp : dsp/%.dsp
 
 dsp/% : dsp/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@
+	
 dsp/vec/% : dsp/vec/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@
+	
 dsp/sched/% : dsp/sched/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@
 

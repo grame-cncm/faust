@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.15.8)
+set (VERSION 2.15.10)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -358,13 +358,22 @@ install (
 
 ####################################
 # install ios lib
-if (APPLE)
+#if (APPLE)
 	install (
 		FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 	)
-endif()
+#endif()
 
+####################################
+# install VS redistributables
+if (WIN32)
+set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
+install (
+    FILES  "${VS}/msvcp140.dll" "${VS}/vcruntime140.dll" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+endif()
 
 
 

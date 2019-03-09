@@ -30,9 +30,6 @@ dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp
 	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0 sndfile` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
 
-dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN -I $(INC) $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o dynamic-jack-gtk-plugin
-
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 interp-tracer.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` -lz -lncurses -lpthread -o interp-tracer
 
@@ -56,7 +53,6 @@ install:
 	([ -e dynamic-machine-jack-gtk ]) && cp dynamic-machine-jack-gtk $(prefix)/bin || echo dynamic-machine-jack-gtk not found
 	([ -e poly-dynamic-jack-gtk ]) && cp poly-dynamic-jack-gtk $(prefix)/bin || echo poly-dynamic-jack-gtk not found
 	([ -e interp-tracer ]) && cp interp-tracer $(prefix)/bin || echo interp-tracer not found
-	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  $(prefix)/bin || echo dynamic-jack-gtk-plugin not found
 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
@@ -64,12 +60,12 @@ install:
 
 clean:
 
-	([ -e dynamic-jack-gtk-plugin ]) && rm dynamic-jack-gtk-plugin || echo dynamic-jack-gtk-plugin not found
 	([ -e dynamic-jack-gtk ]) && rm dynamic-jack-gtk || echo dynamic-jack-gtk not found
 	([ -e dynamic-faust ]) && rm dynamic-faust || echo dynamic-faust not found
 	([ -e dynamic-machine-jack-gtk ]) && rm dynamic-machine-jack-gtk || echo dynamic-machine-jack-gtk not found
 	([ -e poly-dynamic-jack-gtk ]) && rm poly-dynamic-jack-gtk || echo poly-dynamic-jack-gtk not found
 	([ -e interp-tracer ]) && rm interp-tracer || echo interp-tracer not found
+	([ -e dynamic-jack-gtk-plugin ]) && rm dynamic-jack-gtk-plugi || echo dynamic-jack-gtk-plugi not found
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found

@@ -12,9 +12,8 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
-ARCHFILE="ra-qt.cpp"
+ARCHFILE=$FAUSTARCH/ra-qt.cpp
 ARCHLIB="-L/usr/local/lib -lrtaudio"
-PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4

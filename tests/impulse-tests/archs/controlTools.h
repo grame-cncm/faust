@@ -5,6 +5,9 @@
 #include <math.h>
 #include <list>
 
+#define MEMORY_READER
+#include "faust/gui/SoundUI.h"
+
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
@@ -22,6 +25,42 @@ using namespace std;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+
+//----------------------------------------------------------------------------
+// Test MemoryReader
+//----------------------------------------------------------------------------
+
+struct TestMemoryReader : public MemoryReader {
+    
+    virtual bool checkFile(const std::string& path_name)
+    {
+        return true;
+    }
+    
+    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
+    {
+        channels = SOUND_CHAN;
+        length = SOUND_LENGTH;
+    }
+    
+    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    {
+        soundfile->fLength[part] = SOUND_LENGTH;
+        soundfile->fSampleRate[part] = SOUND_SR;
+        soundfile->fOffset[part] = offset;
+        
+        // Audio frames have to be written for each chan
+        for (int sample = 0; sample < SOUND_LENGTH; sample++) {
+            for (int chan = 0; chan < SOUND_CHAN; chan++) {
+                soundfile->fBuffers[chan][offset + sample] = std::sin(part + (2 * M_PI * float(sample)/SOUND_LENGTH));
+            }
+        }
+
+        // Update offset
+        offset += SOUND_LENGTH;
+    }
+    
+};
 
 //----------------------------------------------------------------------------
 // DSP control UI
@@ -111,6 +150,13 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
 {
     mydsp_poly* DSP = new mydsp_poly(dsp, num_voices, true, false);
     
+    // Soundfile
+    TestMemoryReader memory_reader;
+    SoundUI sound_ui("", &memory_reader);
+    DSP->setGroup(false);
+    DSP->buildUserInterface(&sound_ui);
+    DSP->setGroup(true);
+   
     // Get control and then 'initRandom'
     CheckControlUI controlui;
     DSP->buildUserInterface(&controlui);
@@ -194,6 +240,11 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     FUI finterface;
     DSP->buildUserInterface(&finterface);
     
+    // Soundfile
+    TestMemoryReader memory_reader;
+    SoundUI sound_ui("", &memory_reader);
+    DSP->buildUserInterface(&sound_ui);
+    
     // Get control and then 'initRandom'
     CheckControlUI controlui;
     DSP->buildUserInterface(&controlui);
@@ -264,7 +315,6 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
                 DSP->compute(n2, ichan->buffers(n1), ochan->buffers(n1));
             } else {
                 //std::cerr << "nFrames = " << nFrames << std::endl;
-                
                 DSP->compute(nFrames, ichan->buffers(), ochan->buffers());
             }
            

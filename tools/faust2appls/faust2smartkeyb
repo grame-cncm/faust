@@ -12,9 +12,6 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
-# FAUSTGRADLE environement variable. By default we use ./gradlew 
-FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
-
 # exit if a command fails
 set -e
 
@@ -155,10 +152,10 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 	# copying new template app if no reuse
 	if [ ! -d "$BUILDDIR" ]; then
 		mkdir -p "$BUILDDIR"
-		cp -r $FAUSTLIB/smartKeyboard/LICENCE.md "$BUILDDIR"
+		cp -r $FAUSTARCH/smartKeyboard/LICENCE.md "$BUILDDIR"
 		if [ $ANDROID -eq 1 ]; then
 			echo "Creating a new Android project in $BUILDDIR" > $LOG
-			cp -r $FAUSTLIB/smartKeyboard/android/* "$BUILDDIR"
+			cp -r $FAUSTARCH/smartKeyboard/android/* "$BUILDDIR"
 
 			# change 'faust' with real *APPNAME
 
@@ -186,7 +183,7 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 			mv $APPFOLDER/java/com/ccrma/faust $APPFOLDER/java/com/ccrma/$APPNAME
 		elif [ $IOS -eq 1 ]; then
 			echo "Creating a new iOS project in $BUILDDIR" > $LOG
-			cp -r $FAUSTLIB/smartKeyboard/iOS/* "$BUILDDIR"
+			cp -r $FAUSTARCH/smartKeyboard/iOS/* "$BUILDDIR"
 			if [ $PLATFORM = "Darwin" ]; then
 				sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
 				sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
@@ -195,7 +192,7 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 				sed -i 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
 			fi
             # Put OSC in project in all cases, even if not compiled
-            # cp -r $FAUSTLIB/osclib "$BUILDDIR"/Faust
+            # cp -r $FAUSTARCH/osclib "$BUILDDIR"/Faust
         fi
 	fi
 fi
@@ -241,7 +238,22 @@ if [ $SOURCE -eq 0 ]; then
 	if [ $ANDROID -eq 1 ]; then
 		echo "Starting Android compilation" > $LOG
 		cd $BUILDDIR
-		chmod a+x ./gradlew
+
+		# Try to use installed gradle instead of local ./gradlew in order
+		# to avoid potential problems when compiling in a shared folder
+		# where execution rights may not be granted (i.e. on a google VM)
+		# In order to install gradle-4.6: 
+		#		wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
+		#   unzip -d /opt/gradle gradle-4.6-bin.zip
+
+		if [ -f /opt/gradle/gradle-4.6/bin/gradle ]; then
+			FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.6/bin/gradle}
+		else 
+			FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+			chmod a+x ./gradlew
+		fi
+		echo "USED GRADLE=$FAUSTGRADLE" > $LOG
+
 		$FAUSTGRADLE assembleRelease > $LOG
 		cd ..
 		cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk > $LOG

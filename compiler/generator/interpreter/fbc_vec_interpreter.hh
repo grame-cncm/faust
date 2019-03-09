@@ -103,8 +103,8 @@ class FBCVecInterpreter : public FBCExecutor<T> {
                                       it->fMax, it->fStep);
                     break;
 
-                case FBCInstruction::kAddSoundFile:
-                    glue->addSoundFile(it->fLabel.c_str(), it->fKey.c_str(), &fSoundHeap[it->fOffset]);
+                case FBCInstruction::kAddSoundfile:
+                    glue->addSoundfile(it->fLabel.c_str(), it->fKey.c_str(), &fSoundHeap[it->fOffset]);
                     break;
 
                 case FBCInstruction::kAddHorizontalBargraph:

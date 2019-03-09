@@ -24,6 +24,9 @@
 
 #include "code_container.hh"
 
+// The name of the struct variable used to share the 'count' parameter between 'compute' and 'computeThread'
+#define fFFullCount "fCount"
+
 class WSSCodeContainer : public virtual CodeContainer {
    private:
     string fObjName;
@@ -50,7 +53,6 @@ class WSSCodeContainer : public virtual CodeContainer {
         : fObjName(objName), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
     {
         initialize(numInputs, numOutputs);
-        fFullCount = "count";
     }
 };
 

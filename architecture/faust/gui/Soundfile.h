@@ -25,6 +25,7 @@
 #define __Soundfile__
 
 #include <iostream>
+#include <string.h>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -92,7 +93,7 @@ class SoundfileReader {
     
    protected:
     
-    void emptyFile(Soundfile* soundfile, int part, int& offset, int max_chan)
+    void emptyFile(Soundfile* soundfile, int part, int& offset)
     {
         soundfile->fLength[part] = BUFFER_SIZE;
         soundfile->fSampleRate[part] = SAMPLE_RATE;
@@ -200,7 +201,7 @@ class SoundfileReader {
                 cur_chan = std::max<int>(cur_chan, chan);
                 total_length += length;
             }
-            
+           
             // Complete with empty parts
             total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
             
@@ -213,7 +214,7 @@ class SoundfileReader {
             // Read all files
             for (int i = 0; i < path_name_list.size(); i++) {
                 if (path_name_list[i] == "__empty_sound__") {
-                    emptyFile(soundfile, i, offset, max_chan);
+                    emptyFile(soundfile, i, offset);
                 } else {
                     readFile(soundfile, path_name_list[i], i, offset, max_chan);
                 }
@@ -221,7 +222,7 @@ class SoundfileReader {
             
             // Complete with empty parts
             for (int i = path_name_list.size(); i < MAX_SOUNDFILE_PARTS; i++) {
-                emptyFile(soundfile, i, offset, max_chan);
+                emptyFile(soundfile, i, offset);
             }
             
             // Share the same buffers for all other channels so that we have max_chan channels available

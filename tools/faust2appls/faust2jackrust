@@ -10,7 +10,7 @@
 . faustpath
 . faustoptflags
 
-ARCHFILE="minimal-jack.rs"
+ARCHFILE=$FAUSTARCH/minimal-jack.rs
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
@@ -32,7 +32,6 @@ do
 shift
 
 done
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

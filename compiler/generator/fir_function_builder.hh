@@ -223,7 +223,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         }
 
         // Create function type
-        BasicTyped* result   = InstBuilder::genBasicTyped(Typed::kVoid);
+        BasicTyped* result   = InstBuilder::genVoidTyped();
         FunTyped*   fun_type = InstBuilder::genFunTyped(fArgsTypeList, result, FunTyped::kVirtual);
 
         // Creates function definition

@@ -8,8 +8,10 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
 
-ARCHFILE="jack-ros.cpp"
+ARCHFILE=$FAUSTARCH/jack-ros.cpp
+
 path=$(pwd)
 CURRENT_DIR=$(pwd)
 

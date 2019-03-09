@@ -13,6 +13,8 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/csound.cpp
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -72,7 +74,7 @@ done
 #
 for SRC in $FILES; do
 	opname=`basename ${SRC%.dsp}`
-    faust  -i -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"  || exit
+    faust -i -uim -double -a $ARCHFILE $OPTIONS "$SRC" -o "$SRC.cpp"  || exit
     ${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS  $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}""$EXT" || exit
     rm "$SRC.cpp"
     BINARIES="$BINARIES${SRC%.dsp}""$EXT;"

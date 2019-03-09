@@ -16,7 +16,6 @@ CXXFLAGS=$MYGCCFLAGS
 # Set Faust include path
 
 ARCHLIB="-L/usr/local/lib -ljack"
-PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -98,7 +97,7 @@ TMP="$TDR/chain"
 mkdir "$TMP"
 
 #-------------------------------------------------------------------
-cat $FAUSTLIB/jack-qt-chain-header.cpp > "$TMP/combined.cpp"
+cat $FAUSTARCH/jack-qt-chain-header.cpp > "$TMP/combined.cpp"
 echo "void addAllDSP() {" >> "$TMP/combined_dsp.cpp"
 
 #-------------------------------------------------------------------
@@ -126,7 +125,7 @@ done
 #-------------------------------------------------------------------
 echo "}" >> "$TMP/combined_dsp.cpp"
 cat "$TMP/combined_dsp.cpp" >> "$TMP/combined.cpp"
-cat $FAUSTLIB/jack-qt-chain-footer.cpp >> "$TMP/combined.cpp"
+cat $FAUSTARCH/jack-qt-chain-footer.cpp >> "$TMP/combined.cpp"
 rm "$TMP/combined_dsp.cpp"
 
 # compile c++ to binary

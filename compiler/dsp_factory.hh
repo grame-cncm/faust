@@ -150,7 +150,7 @@ class dsp_factory_imp : public dsp_factory_base {
     virtual std::string getBinaryCode() { return ""; }
 };
 
-/* To be used by textual backends. */
+/* To be used by textual backends */
 class text_dsp_factory_aux : public dsp_factory_imp {
    protected:
     std::string fCode;

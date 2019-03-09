@@ -1,5 +1,5 @@
 /*
- faust2wasm: GRAME 2017-2018
+ faust2wasm: GRAME 2017-2019
 */
  
 'use strict';

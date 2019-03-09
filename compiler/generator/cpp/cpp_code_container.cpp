@@ -127,6 +127,7 @@ void CPPCodeContainer::produceInit(int tabs)
     }
 
     tab(tabs, *fOut);
+    tab(tabs, *fOut);
     *fOut << "virtual void instanceInit(int samplingFreq) {";
     tab(tabs + 1, *fOut);
     *fOut << "instanceConstants(samplingFreq);";
@@ -214,6 +215,7 @@ void CPPCodeContainer::produceInternal()
     generateFillFun("fill" + fKlassName, true, false)->accept(&fCodeProducer);
     */
 
+    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "};" << endl;
 
@@ -312,7 +314,7 @@ void CPPCodeContainer::produceClass()
 
     if (gGlobal->gMemoryManager) {
         tab(n + 1, *fOut);
-        *fOut << "static dsp_memory_manager* fManager;" << endl;
+        *fOut << "static dsp_memory_manager* fManager;";
     }
 
     // Print metadata declaration
@@ -456,6 +458,7 @@ void CPPCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
+    tab(n + 1, *fOut);
     generateGetSampleRate("dsp", true, true)->accept(&fCodeProducer);
 
     // User interface
@@ -486,38 +489,17 @@ void CPPCodeContainer::produceClass()
     // Compute
     generateCompute(n);
     tab(n, *fOut);
-
-    // Possibly generate separated functions
-    fCodeProducer.Tab(n + 1);
-    tab(n + 1, *fOut);
-    generateComputeFunctions(&fCodeProducer);
-
     tab(n, *fOut);
     *fOut << "};" << endl;
 
-    // To improve (generalization for all backend...)
+    // To improve (generalization for all backends...)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
         *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
     }
 
     // Generate user interface macros if needed
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "#ifdef FAUST_UIMACROS";
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_INPUTS " << fNumInputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_ACTIVES " << fNumActives;
-        tab(n + 1, *fOut);
-        *fOut << "#define FAUST_PASSIVES " << fNumPassives;
-        printlines(n + 1, fUIMacro, *fOut);
-        tab(n, *fOut);
-        *fOut << "#endif";
-        tab(n, *fOut);
-    }
+    printMacros(*fOut, n);
 }
 
 // Scalar
@@ -560,8 +542,11 @@ void CPPScalarCodeContainer::generateCompute(int n)
         loop->accept(&fCodeProducer);
     }
 
+    /*
+    // TODO : atomic switch
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);
+    */
 
     tab(n + 1, *fOut);
     *fOut << "}";
@@ -580,8 +565,12 @@ CPPVectorCodeContainer::~CPPVectorCodeContainer()
 
 void CPPVectorCodeContainer::generateCompute(int n)
 {
-    // Generates declaration
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
+    generateComputeFunctions(&fCodeProducer);
+  
+    // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
@@ -610,8 +599,12 @@ CPPOpenMPCodeContainer::~CPPOpenMPCodeContainer()
 
 void CPPOpenMPCodeContainer::generateCompute(int n)
 {
-    // Generates declaration
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
+    generateComputeFunctions(&fCodeProducer);
+
+    // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
@@ -645,6 +638,7 @@ void CPPWorkStealingCodeContainer::produceClass()
     // Inherited method
     CPPCodeContainer::produceClass();
 
+    tab(n, *fOut);
     *fOut << "extern \"C\" void computeThreadExternal(void* dsp, int num_thread) {";
     tab(n + 1, *fOut);
     *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
@@ -654,8 +648,12 @@ void CPPWorkStealingCodeContainer::produceClass()
 
 void CPPWorkStealingCodeContainer::generateCompute(int n)
 {
-    // Generates "compute" declaration
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
+    generateComputeFunctions(&fCodeProducer);
+   
+    // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
@@ -680,3 +678,4 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     *fOut << "}";
 }
+

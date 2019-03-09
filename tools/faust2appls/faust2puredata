@@ -12,6 +12,8 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/puredata.cpp
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -98,7 +100,7 @@ for p in $FILES; do
     # compile faust to c++ and xml
     faust -xml "$SRCDIR/$f" -o /dev/null || exit
     mv "$SRCDIR/$f.xml" $TMP/
-    faust -i -a puredata.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (

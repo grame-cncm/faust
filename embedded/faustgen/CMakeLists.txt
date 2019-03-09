@@ -100,6 +100,9 @@ endif()
 ####################################
 set (PACKDIR ${ROOT}/package)
 set (DST faustgen-${VERSION})
+if (WIN32)
+set (DST ${DST}-win64)
+endif()
 set (FG ${DST}/faustgen)
 install ( TARGETS faustgen
 	RUNTIME DESTINATION ${PACKDIR}/${FG}/externals/msp
@@ -138,6 +141,16 @@ install (
     FILES     ${MISC} DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
+
+####################################
+# install VS redistributables
+if (WIN32)
+set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
+install (
+    FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}/${DST}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+endif()
 
 
 ####################################

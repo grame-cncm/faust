@@ -36,20 +36,20 @@ STRIP="${MINGWPREFIX}strip"
 # Compilation flags
 LIBS="$MAXSDK/max-includes/MaxAPI.lib  $MAXSDK/msp-includes/MaxAudio.lib"
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
-CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION"
+CXXFLAGS="-std=c++11 -DWIN_VERSION -DWIN_EXT_VERSION"
 
 #-------------------------------------------------------------------
 # Set Faust include path
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
-    FAUSTLIB=$FAUST_LIB_PATH
+    FAUSTARCH=$FAUST_LIB_PATH
 elif [ -f /usr/local/share/faust/music.lib ]
 then
-    FAUSTLIB=/usr/local/share/faust
+    FAUSTARCH=/usr/local/share/faust
 elif [ -f /usr/share/faust/music.lib ]
 then
-    FAUSTLIB=/usr/share/faust
+    FAUSTARCH=/usr/share/faust
 else
     echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
@@ -98,7 +98,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+	faust -i -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (

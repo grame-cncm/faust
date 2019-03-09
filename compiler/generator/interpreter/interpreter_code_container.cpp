@@ -39,7 +39,7 @@ Interpreter backend description:
  - DSP struct and stack variables are actually allocated in the Int32 and Real heaps
  - multiple unneeded cast are eliminated in CastInst
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
- - sub-containers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and
+ - subcontainers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and
 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code
  - soundfile: Soundfile* pointers are put in special Sound heap
@@ -146,7 +146,7 @@ template <class T>
 dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 {
     // "count" variable added to be set up later by 'compute'
-    pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt32)));
+    pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genInt32Typed()));
 
     // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines
     // 'defaultsound')
@@ -273,7 +273,7 @@ template <class T>
 FBCBlockInstruction<T>* InterpreterScalarCodeContainer<T>::generateCompute()
 {
     // Generate one single scalar loop
-    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(this->fFullCount);
+    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(fFullCount);
     
     loop->accept(gGlobal->gInterpreterVisitor);
     return getCurrentBlock<T>();

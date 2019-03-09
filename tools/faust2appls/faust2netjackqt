@@ -10,13 +10,13 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYCXXFLAGS
+CXXFLAGS=$MYGCCFLAGS
+
+ARCHFILE=$FAUSTARCH/netjack-qt.cpp
 
 NVOICES=-1
 POLY="POLY"
 EFFECT=""
-
-ARCHFILE="netjack-qt.cpp"
 
 #-------------------------------------------------------------------
 # Check Darwin specifics

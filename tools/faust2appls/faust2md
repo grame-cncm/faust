@@ -5,9 +5,9 @@
 #
 # Ultra simple automatic documentation system for Faust.
 # Creates a markdown file by extracting the comments from
-# a faust file. The option -t n can be used to change the
+# a Faust file. The option -t n can be used to change the
 # default (4) tab setting. The option -c can be used to
-# include the faust code itself into the generated doc.
+# include the Faust code itself into the generated doc.
 # And the option -f can be used to include a YAML front
 # matter with the name of the file and the date.
 #
@@ -28,7 +28,7 @@
 #	//  markdown text....
 #	//  markdown text....
 #	//------------------------------------------
-# everything else is considered faust code.
+# everything else is considered Faust code.
 # The translation is the following:
 #   ## foo(x,y)
 #	markdown text....

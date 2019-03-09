@@ -1,5 +1,5 @@
 /*
- faust2wasm: GRAME 2017-2018
+ faust2wasm: GRAME 2017-2019
 */
 
 'use strict';
@@ -422,4 +422,12 @@ class mydspPoly {
             }
         });
     };
+}
+
+// WAP factory or npm package module
+if (typeof module === "undefined") {
+    window.mydspPoly = mydspPoly;
+    window.FaustmydspPoly = mydspPoly;
+} else {
+    module.exports = { mydspPoly };
 }

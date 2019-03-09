@@ -320,7 +320,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     pushGlobalDeclare(InstBuilder::genFunction1("printPtr", Typed::kVoid, "val", Typed::kVoid_ptr));
 #endif
 
-    Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type = InstBuilder::genFloatMacroTyped();
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
@@ -918,7 +918,7 @@ ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const string& name)
 {
     string varname = gGlobal->getFreshID(name);
-    Typed* type    = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type    = InstBuilder::genFloatMacroTyped();
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushResetUIInstructions(
@@ -943,7 +943,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
                                                    const string& name)
 {
     string varname = gGlobal->getFreshID(name);
-    Typed* type    = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type    = InstBuilder::genFloatMacroTyped();
 
     pushDeclare(InstBuilder::genDecStructVar(varname, type));
     pushResetUIInstructions(
@@ -972,7 +972,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
                                                      const string& name)
 {
     string varname = gGlobal->getFreshID(name);
-    pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kFloatMacro)));
+    pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genFloatMacroTyped()));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     ::Type t = getCertifiedSigType(sig);
@@ -1041,7 +1041,7 @@ ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS, true);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS, true);
 
     string SFcache        = load->fAddress->getName() + "ca";
     string SFcache_length = gGlobal->getFreshID(SFcache + "_le");
@@ -1059,7 +1059,7 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, 
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS, true);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS, true);
 
     string SFcache        = load->fAddress->getName() + "ca";
     string SFcache_length = gGlobal->getFreshID(SFcache + "_ra");
@@ -1079,8 +1079,8 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
     faustassert(load);
 
     Typed* type1 = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr);
-    Typed* type2 = InstBuilder::genBasicTyped(Typed::kFloatMacro);
-    Typed* type3 = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS, true);
+    Typed* type2 = InstBuilder::genFloatMacroTyped();
+    Typed* type3 = InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS, true);
 
     string SFcache             = load->fAddress->getName() + "ca";
     string SFcache_buffer      = gGlobal->getFreshID(SFcache + "_bu");
@@ -1506,7 +1506,7 @@ void InstructionsCompiler::ensureIotaCode()
     if (!fLoadedIota) {
         fLoadedIota = true;
 
-        pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genBasicTyped(Typed::kInt32)));
+        pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genInt32Typed()));
         pushClearMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genInt32NumInst(0)));
 
         FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) + 1;
@@ -1702,7 +1702,7 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 
     // Generates init table loop
     DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     ValueInst*    loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genInt32NumInst(delay));
     StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
@@ -1717,7 +1717,7 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
     string index = gGlobal->getFreshID("j");
 
     // Generates init table loop
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32),
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(),
                                                            InstBuilder::genInt32NumInst(delay));
     ValueInst*      loop_end  = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genInt32NumInst(0));
     StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genInt32NumInst(1)));
@@ -1742,7 +1742,7 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
 
     // Generates init table loop
     DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     ValueInst*    loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genInt32NumInst(size));
     StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
@@ -1793,7 +1793,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
                 string   iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
                 FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genInt32NumInst(N - 1);
                 pushComputeDSPMethod(
-                    InstBuilder::genDecStackVar(iota_name, InstBuilder::genBasicTyped(Typed::kInt32), value2));
+                    InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), value2));
                 fIOTATable[N] = iota_name;
             }
             pushComputeDSPMethod(
@@ -1872,7 +1872,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     }
 
     string idx = subst("$0_idx", vname);
-    pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt32)));
+    pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genInt32Typed()));
     pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genInt32NumInst(0)));
 }
 
@@ -1927,7 +1927,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
 
         // extract metadata from group label str resulting in a simplifiedLabel
         // and metadata declarations for fictive zone at address 0
-        string                    simplifiedLabel;
+        string simplifiedLabel;
         map<string, set<string> > metadata;
         extractMetadata(str, simplifiedLabel, metadata);
 
@@ -2092,8 +2092,6 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
     map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
-
-    // string pathlabel = pathname+unquote(label);
     string pathlabel = pathname + label;
 
     if (isSigButton(sig, path)) {

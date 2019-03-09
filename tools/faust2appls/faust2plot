@@ -10,6 +10,8 @@
 . faustpath
 . faustoptflags
 
+ARCHFILE=$FAUSTARCH/matlabplot.cpp
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -64,7 +66,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-    faust -i -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

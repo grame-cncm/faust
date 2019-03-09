@@ -1,4 +1,4 @@
-version := 2.15.8
+version := 2.15.10
 
 system	?= $(shell uname -s)
 
@@ -191,12 +191,7 @@ uninstall :
 
 # install benchmark tools
 devinstall:
-	rm -rf $(prefix)/share/faust/iOS-bench
-	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/
-	cp tools/benchmark/faustbench $(prefix)/bin/
-	cp tools/benchmark/faustbench.cpp $(prefix)/share/faust/
-	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
-	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
+	$(MAKE) -C tools/benchmark install
 
 # make a faust distribution tarball
 dist = faust-$(version)

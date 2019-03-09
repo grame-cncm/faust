@@ -144,9 +144,9 @@ class FBCLLVMCompiler {
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v1, v2, ""));
     }
   
-    void pushUnaryCall(std::string name, LLVMTypeRef type, bool rename)
+    void pushUnaryCall(const std::string& name_aux, LLVMTypeRef type, bool rename)
     {
-        if (rename) name = getMathName(name);
+        std::string name = (rename) ? getMathName(name_aux) : name_aux;
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
@@ -164,7 +164,7 @@ class FBCLLVMCompiler {
 
     void pushBinaryCall(const std::string& name_aux, LLVMTypeRef type)
     {
-        std::string name = getMathName(name);
+        std::string name = getMathName(name_aux);
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
@@ -775,7 +775,7 @@ class FBCLLVMCompiler {
         // Add return
         LLVMBuildRetVoid(fBuilder);
 
-        LLVMDumpModule(fModule);
+        //LLVMDumpModule(fModule);
 
         // For host target support
         LLVMLinkInMCJIT();
@@ -813,7 +813,7 @@ class FBCLLVMCompiler {
         LLVMPassManagerBuilderDispose(pass_buider);
         */
         
-        LLVMDumpModule(fModule);
+        //LLVMDumpModule(fModule);
         
         // Get 'execute' entry point
         fCompiledFun = (compiledFun)LLVMGetFunctionAddress(fJIT, "execute");

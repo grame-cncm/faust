@@ -1,5 +1,5 @@
 #
-# Makefile for generating ir using llvm  
+# Makefile for generating ir using interp  
 #
 
 system := $(shell uname -s)
@@ -34,7 +34,7 @@ test:
 help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
-	@echo " 'interp' (default): check the double output using the llvm backend"
+	@echo " 'interp' (default): check the double output using the interp backend"
 	@echo
 	@echo "Options:"
 	@echo " 'outdir' 	   : define the output directory (default to 'llvm')"
@@ -64,11 +64,11 @@ impulseinterp: $(SRCDIR)/impulseinterp.cpp $(LIB)
 
 # Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
 ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
-	@echo "Cannot be tested with the Interpreter backend"
+	@echo "Cannot be tested with the Interp backend"
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	cd $(dir $<); ../impulseinterp $(notdir $<) -I . -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
-	$(COMPARE)  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
 
 
 

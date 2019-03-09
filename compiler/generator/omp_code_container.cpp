@@ -45,7 +45,7 @@ struct StackVarAnalyser : public DispatchVisitor {
 void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
     
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("input$0", T(i));
@@ -60,7 +60,7 @@ void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string
 void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
-    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
     
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("output$0", T(i));
@@ -115,7 +115,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genInt32Typed(), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
@@ -158,7 +158,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
     ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
@@ -174,8 +174,8 @@ void OpenMPCodeContainer::processFIR()
     // Default FIR to FIR transformations
     CodeContainer::processFIR();
 
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    // Sort arrays to be at the begining (break code genaration when 'soundfile' is used)
+    //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Prepare global loop
     fGlobalLoopBlock = generateDAGLoopOMP(fFullCount);

@@ -42,6 +42,9 @@
 # pragma warning (disable: 4250)
 #endif
 
+// The name of 'count' parameter
+#define fFullCount "count"
+
 class TextInstVisitor;
 
 class CodeContainer : public virtual Garbageable {
@@ -54,6 +57,9 @@ class CodeContainer : public virtual Garbageable {
 
     int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
     int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    
+    int fSubContainerType;
+    bool fGeneratedSR;
     
     string fKlassName;
 
@@ -88,7 +94,7 @@ class CodeContainer : public virtual Garbageable {
     BlockInst* fComputeBlockInstructions;      // Before DSP loop
     BlockInst* fPostComputeBlockInstructions;  // After DSP loop
 
-    // Additionnal functions
+    // Additional functions generated in -fun mode
     BlockInst* fComputeFunctions;
 
     // User interface
@@ -104,11 +110,6 @@ class CodeContainer : public virtual Garbageable {
 
     list<string> fUICode;
     list<string> fUIMacro;
-
-    int    fSubContainerType;
-    string fFullCount;
-
-    bool fGeneratedSR;
 
     void merge(set<string>& dst, set<string>& src)
     {
@@ -162,11 +163,13 @@ class CodeContainer : public virtual Garbageable {
         gGlobal->printCompilationOptions(dst);
         dst << "\n------------------------------------------------------------ */" << endl;
     }
-
+    
+    void printMacros(ostream& fout, int n);
+  
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
-            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
+            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
         }
         pushFrontInitMethod(
             InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));

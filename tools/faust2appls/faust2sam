@@ -44,8 +44,8 @@ echoHelp ()
 
 createAPI ()
 {
-    cp -r $FAUSTLIB/sam/fast_pow2.h $APIFOLDER
-    cp -r $FAUSTLIB/sam/samFaustDSP.h $APIFOLDER
+    cp -r $FAUSTARCH/sam/fast_pow2.h $APIFOLDER
+    cp -r $FAUSTARCH/sam/samFaustDSP.h $APIFOLDER
     faust -i -a sam/samFaustDSP.cpp $OPTIONS "$FILE" -o "$APIFOLDER/samFaustDSP.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
         faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp" || exit 1

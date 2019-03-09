@@ -11,7 +11,7 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
 
- Additional code: GRAME 2014-2017
+ Additional code: GRAME 2014-2019
 */
 
 'use strict';

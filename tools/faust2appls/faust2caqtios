@@ -9,6 +9,7 @@
 
 . faustpath
 #. faustoptflags
+
 CXXFLAGS="-O3 -ffast-math -ftree-vectorize -DIOS"
 
 ARCHFILE="ca-qt.cpp"

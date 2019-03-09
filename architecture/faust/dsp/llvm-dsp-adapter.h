@@ -23,6 +23,7 @@
 #define LLVM_DSP_ADAPTER_H
 
 #include "faust/gui/CGlue.h"
+#include "faust/gui/SoundUI.h"
 #include "faust/gui/JSONUIDecoder.h"
 
 /*
@@ -35,7 +36,8 @@ extern "C"
 #endif
     
     // LLVM module API
-    struct comp_llvm_dsp;
+   
+    typedef char comp_llvm_dsp;
     
     comp_llvm_dsp* newmydsp();
     void deletemydsp(comp_llvm_dsp* dsp);
@@ -57,6 +59,8 @@ extern "C"
     
     void metadatamydsp(MetaGlue* meta);
     
+    void setDefaultSoundmydsp(Soundfile* sf);
+    
     char* getJSONmydsp();
     
     void computemydsp(comp_llvm_dsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
@@ -76,8 +80,9 @@ class mydsp : public dsp {
         
         mydsp()
         {
-            fDSP = newmydsp();
             fDecoder = new JSONUIDecoder(getJSONmydsp());
+            fDSP = newmydsp();
+            setDefaultSoundmydsp(defaultsound);
         }
         
         virtual ~mydsp()

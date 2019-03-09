@@ -60,7 +60,7 @@ typedef void (* addVerticalBargraphFun) (void* ui_interface, const char* label, 
 
 // -- soundfiles
     
-typedef void (* addSoundFileFun) (void* ui_interface, const char* label, const char* url, struct Soundfile** sf_zone);
+typedef void (* addSoundfileFun) (void* ui_interface, const char* label, const char* url, struct Soundfile** sf_zone);
 
 typedef void (* declareFun) (void* ui_interface, FAUSTFLOAT* zone, const char* key, const char* value);
 
@@ -79,7 +79,7 @@ typedef struct {
     addNumEntryFun addNumEntry;
     addHorizontalBargraphFun addHorizontalBargraph;
     addVerticalBargraphFun addVerticalBargraph;
-    addSoundFileFun addSoundFile;
+    addSoundfileFun addSoundfile;
     declareFun declare;
 
 } UIGlue;

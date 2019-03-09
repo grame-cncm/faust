@@ -237,6 +237,8 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(BlockInst* inst) {}
 };
 
+// Clone a FIR expression
+
 struct CloneVisitor : public virtual Garbageable {
     CloneVisitor() {}
     virtual ~CloneVisitor() {}
@@ -506,7 +508,7 @@ struct NumValueInst {
 struct Address : public Printable {
     enum AccessType {
         kStruct       = 0x1,
-        kStaticStruct = 0x2,
+        kStaticStruct = 0x2,    // Static shared variable between all DSPs
         kFunArgs      = 0x4,
         kStack        = 0x8,
         kGlobal       = 0x10,
@@ -514,8 +516,7 @@ struct Address : public Printable {
         kLoop         = 0x40,
         kVolatile     = 0x80,
         kReference    = 0x100,  // Access by reference
-        kMutable      = 0x200,  // Mutable access
-        kExternal     = 0x400
+        kMutable      = 0x200   // Mutable access
     };
 
     Address() {}
@@ -528,29 +529,7 @@ struct Address : public Printable {
 
     static void dump(AccessType access)
     {
-        if (access & kStruct) {
-            *fOut << "kStruct";
-        } else if (access & kStaticStruct) {
-            *fOut << "kStaticStruct";
-        } else if (access & kFunArgs) {
-            *fOut << "kFunArgs";
-        } else if (access & kStack) {
-            *fOut << "kStack";
-        } else if (access & kGlobal) {
-            *fOut << "kGlobal";
-        } else if (access & kLink) {
-            *fOut << "kLink";
-        } else if (access & kLoop) {
-            *fOut << "kLoop";
-        } else if (access & kVolatile) {
-            *fOut << "kVolatile";
-        } else if (access & kReference) {
-            *fOut << "kReference";
-        } else if (access & kMutable) {
-            *fOut << "kMutable";
-        } else if (access & kExternal) {
-            *fOut << "kExternal";
-        }
+        *fOut << dumpString(access);
     }
 
     static string dumpString(AccessType access)
@@ -575,8 +554,6 @@ struct Address : public Printable {
             return "kReference";
         } else if (access & kMutable) {
             return "kMutable";
-        } else if (access & kExternal) {
-            return "kExternal";
         } else {
             return "";
         }
@@ -1451,7 +1428,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
     }
-    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
+    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr); }
     virtual Typed* visit(StructTyped* typed)
     {
         vector<NamedTyped*>                 cloned;
@@ -1903,7 +1880,6 @@ struct InstBuilder {
     }
 
     static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
-
     static ValueInst* genCastFloatInst(ValueInst* inst);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
     static ValueInst* genCastInt32Inst(ValueInst* inst);
@@ -1912,7 +1888,7 @@ struct InstBuilder {
     static RetInst*  genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
     static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
 
-    // Conditionnal
+    // Conditional
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
     {
         return new Select2Inst(cond_inst, then_inst, else_inst);
@@ -1966,6 +1942,11 @@ struct InstBuilder {
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
+    
+    static BasicTyped* genInt32Typed() { return genBasicTyped(Typed::kInt32); }
+    static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
+    static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
+    static BasicTyped* genFloatMacroTyped() { return genBasicTyped(Typed::kFloatMacro); }
 
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
@@ -1976,7 +1957,7 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
+    static ArrayTyped* genArrayTyped(Typed* type, int size, bool is_ptr = false)
     {
         return new ArrayTyped(type, size, is_ptr);
     }
@@ -1996,7 +1977,6 @@ struct InstBuilder {
     }
 
     // Helper build methods
-
     static DeclareVarInst* genDecArrayVar(const string& vname, Address::AccessType var_access, Typed* type, int size)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
@@ -2122,7 +2102,7 @@ struct InstBuilder {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
     }
 
-    // static struct variable
+    // Static struct variable
     static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
@@ -2268,12 +2248,6 @@ struct InstBuilder {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
     }
 
-    static DeclareVarInst* genDecExtGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
-    {
-        return genDeclareVarInst(genNamedAddress(vname, Address::AccessType(Address::kGlobal | Address::kExternal)),
-                                 type, exp);
-    }
-
     static LoadVarInst* genLoadGlobalVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kGlobal));
@@ -2284,11 +2258,14 @@ struct InstBuilder {
         return genStoreVarInst(genNamedAddress(vname, Address::kGlobal), exp);
     }
 
+    // Binop operations
     static BinopInst* genAdd(ValueInst* a1, ValueInst* a2) { return genBinopInst(kAdd, a1, a2); }
 
-    static BinopInst* genAdd(ValueInst* a1, int value) { return genBinopInst(kAdd, a1, genInt32NumInst(value)); }
+    static BinopInst* genAdd(ValueInst* a1, int a2) { return genBinopInst(kAdd, a1, genInt32NumInst(a2)); }
 
     static BinopInst* genSub(ValueInst* a1, ValueInst* a2) { return genBinopInst(kSub, a1, a2); }
+    
+    static BinopInst* genSub(ValueInst* a1, int a2) { return genBinopInst(kSub, a1, genInt32NumInst(a2)); }
 
     static BinopInst* genMul(ValueInst* a1, ValueInst* a2) { return genBinopInst(kMul, a1, a2); }
 
@@ -2314,6 +2291,7 @@ struct InstBuilder {
 
     static BinopInst* genXOr(ValueInst* a1, ValueInst* a2) { return genBinopInst(kXOR, a1, a2); }
 
+    // Functions
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction0(const string& name, Typed::VarType res, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction1(const string& name, Typed::VarType res, const string& arg1,
@@ -2466,7 +2444,7 @@ Statement   := DeclareVar (Address, Type, Value)
             | Return (Value)
             | BlockInst (Statement*)
             | If (Value, BlockInst, BlockInst)
-            | Switch (Value, <int, BlockInst>*)
+            | Switch (Value, <int>, BlockInst>*)
 
 Value       := LoadVar (Address)
             | Float | Int | Double | Bool
@@ -2535,6 +2513,6 @@ manipulent les indices de la boucle ?? (pas besoin, ils n'apparaissent pas dans 
 l'indice de la boucle est utilisé dans le corps de la boucle, il faut le faire correspondre au nouvel indice de boucle,
 renommage nécessaire ?)
 
- - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop
+ - utiliser le *même* nom d'index dans ForLoopInst et dans le code interne de la loop
 
 */

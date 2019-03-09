@@ -8,10 +8,10 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
 
-ARCHFILE="jack-qt.cpp"
+ARCHFILE=$FAUSTARCH/jack-qt.cpp
 ARCHLIB="-L/usr/local/lib -ljackserver"
-PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -25,7 +25,7 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+CXXFLAGS='-std=c++11 -Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS

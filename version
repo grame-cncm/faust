@@ -77,7 +77,16 @@ echo " updating $FAUSTDLLRC"
 rcUpdate $FAUSTRC $WINVERS "$WINVERS2" > TMP$$
 mv -f TMP$$ $FAUSTDLLRC
 
+MAN=$ROOT/documentation/man/man-header.txt
+echo " updating $MAN"
+sed "s/% man(1) Version [ 	]*[0-9].*/% man(1) Version $VERSION (`LC_ALL=C date +%d-%B-%Y`) | Faust man page/" $MAN > TMP$$
+mv -f TMP$$ $MAN
 
-echo "### You need to recompile faust for the change to take effect."
+COPYING=$ROOT/COPYING.txt
+echo " updating $COPYING"
+sed "s/FAUST compiler, Version[ 	]*[0-9].*/FAUST compiler, Version $VERSION/" $COPYING > TMP$$
+mv -f TMP$$ $COPYING
+
+echo "### You need to recompile Faust for the change to take effect."
 
 exit 0
