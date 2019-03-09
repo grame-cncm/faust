@@ -48,6 +48,7 @@ struct FBCBlockInstruction;
 
 template <class T>
 struct FBCBasicInstruction : public FBCInstruction {
+    std::string fName;
     Opcode fOpcode;
     int    fIntValue;
     T      fRealValue;
@@ -59,51 +60,74 @@ struct FBCBasicInstruction : public FBCInstruction {
 
     FBCBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2, FBCBlockInstruction<T>* branch1,
                         FBCBlockInstruction<T>* branch2)
-        : fOpcode(opcode),
-          fIntValue(val_int),
-          fRealValue(val_real),
-          fOffset1(off1),
-          fOffset2(off2),
-          fBranch1(branch1),
-          fBranch2(branch2)
+        : fName(""),
+        fOpcode(opcode),
+        fIntValue(val_int),
+        fRealValue(val_real),
+        fOffset1(off1),
+        fOffset2(off2),
+        fBranch1(branch1),
+        fBranch2(branch2)
     {
     }
 
     FBCBasicInstruction(Opcode opcode, int val_int, T val_real)
-        : fOpcode(opcode),
-          fIntValue(val_int),
-          fRealValue(val_real),
-          fOffset1(-1),
-          fOffset2(-1),
-          fBranch1(nullptr),
-          fBranch2(nullptr)
+        : fName(""),
+        fOpcode(opcode),
+        fIntValue(val_int),
+        fRealValue(val_real),
+        fOffset1(-1),
+        fOffset2(-1),
+        fBranch1(nullptr),
+        fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2)
-        : fOpcode(opcode),
-          fIntValue(val_int),
-          fRealValue(val_real),
-          fOffset1(off1),
-          fOffset2(off2),
-          fBranch1(nullptr),
-          fBranch2(nullptr)
+        : fName(""),
+        fOpcode(opcode),
+        fIntValue(val_int),
+        fRealValue(val_real),
+        fOffset1(off1),
+        fOffset2(off2),
+        fBranch1(nullptr),
+        fBranch2(nullptr)
+    {
+    }
+    
+    FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, T val_real, int off1, int off2)
+        : fName(name),
+        fOpcode(opcode),
+        fIntValue(val_int),
+        fRealValue(val_real),
+        fOffset1(off1),
+        fOffset2(off2),
+        fBranch1(nullptr),
+        fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction(Opcode opcode)
-        : fOpcode(opcode), fIntValue(0), fRealValue(0), fOffset1(-1), fOffset2(-1), fBranch1(nullptr), fBranch2(nullptr)
+        : fName(""),
+        fOpcode(opcode),
+        fIntValue(0),
+        fRealValue(0),
+        fOffset1(-1),
+        fOffset2(-1),
+        fBranch1(nullptr),
+        fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction()
-        : fOpcode(FBCInstruction::kNop),
-          fIntValue(0),
-          fRealValue(0),
-          fOffset1(-1),
-          fOffset2(-1),
-          fBranch1(nullptr),
-          fBranch2(nullptr)
+        : fName(""),
+        fOpcode(FBCInstruction::kNop),
+        fIntValue(0),
+        fRealValue(0),
+        fOffset1(-1),
+        fOffset2(-1),
+        fBranch1(nullptr),
+        fBranch2(nullptr)
     {
     }
 
