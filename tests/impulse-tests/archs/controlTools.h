@@ -9,6 +9,7 @@
 #include "faust/gui/SoundUI.h"
 
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/one-sample-dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/channels.h"
@@ -108,7 +109,10 @@ struct CheckControlUI : public GenericUI {
     }
 };
 
-// Standard memory manager
+//----------------------------------------------------------------------------
+// Test memory manager
+//----------------------------------------------------------------------------
+
 struct malloc_memory_manager : public dsp_memory_manager {
     
     virtual void* allocate(size_t size)
