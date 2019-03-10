@@ -237,16 +237,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        //dump2FIR(inst);
-
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
         if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
             return;
         }
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        
-        //std::cout << "InterpreterInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
         faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
        
         if (array_typed && array_typed->fSize > 1) {
@@ -285,9 +281,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     {
         // Compile address
         inst->fAddress->accept(this);
-        
-        //std::cout << "LoadVarInst: getName() " << inst->fAddress->getName() << std::endl;
- 
+     
         if (!startWith(inst->fAddress->getName(), "input")) {
             faustassert(fFieldTable.find(inst->fAddress->getName()) != fFieldTable.end());
         }
@@ -340,15 +334,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual void visitStore(Address* address, ValueInst* value, Typed* type = nullptr)
     {
-        //std::cout << "visitStore: getName() " << address->getName() << std::endl;
-        
         if (!startWith(address->getName(), "output")) {
             faustassert(fFieldTable.find(address->getName()) != fFieldTable.end());
         }
-       
-        //dump2FIR(value);
-        //if (type) dump2FIR(type);
-
+   
         // Waveform array store...
         ArrayTyped* array_typed;
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {

@@ -277,6 +277,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "DeclareVarInst(";
         *fOut << generateType(inst->fType, inst->fAddress->getName());
+        *fOut << ", " << Address::dumpString(inst->fAddress->getAccess());
         if (inst->fValue) {
             *fOut << ", ";
             inst->fValue->accept(this);

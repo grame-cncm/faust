@@ -267,6 +267,10 @@ void CPPCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
+    
+    if (gGlobal->gOneSample) {
+        fSuperKlassName = "one_sample_dsp";
+    }
 
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";

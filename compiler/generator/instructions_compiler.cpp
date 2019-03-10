@@ -1032,10 +1032,16 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
                                   InstBuilder::genTypedZero(Typed::kSound_ptr)),
             block, InstBuilder::genBlockInst()));
     }
-
-    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
-                                                       InstBuilder::genLoadStructVar(varname)));
-    pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStackVar(SFcache)));
+    
+    if (gGlobal->gOneSample) {
+        pushDeclare(InstBuilder::genDecStructVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache, InstBuilder::genLoadStructVar(varname)));
+        pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(SFcache)));
+    } else {
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
+                                                           InstBuilder::genLoadStructVar(varname)));
+        pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStackVar(SFcache)));
+    }
 
     return InstBuilder::genLoadStructVar(varname);
 }
@@ -1053,9 +1059,15 @@ ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf
     // Struct access using an index that will be converted as a field name
     ValueInst* v1 = InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
                                                      InstBuilder::genInt32NumInst(1));
-    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_length, type, v1));
-
-    return InstBuilder::genLoadArrayStackVar(SFcache_length, x);
+    
+    if (gGlobal->gOneSample) {
+        pushDeclare(InstBuilder::genDecStructVar(SFcache_length, type));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_length, v1));
+        return InstBuilder::genLoadArrayStructVar(SFcache_length, x);
+    } else {
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_length, type, v1));
+        return InstBuilder::genLoadArrayStackVar(SFcache_length, x);
+    }
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, ValueInst* x)
@@ -1066,14 +1078,20 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, 
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS, true);
 
     string SFcache        = load->fAddress->getName() + "ca";
-    string SFcache_length = gGlobal->getFreshID(SFcache + "_ra");
+    string SFcache_rate = gGlobal->getFreshID(SFcache + "_ra");
 
     // Struct access using an index that will be converted as a field name
     ValueInst* v1 = InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
                                                      InstBuilder::genInt32NumInst(2));
-    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_length, type, v1));
-
-    return InstBuilder::genLoadArrayStackVar(SFcache_length, x);
+    
+    if (gGlobal->gOneSample) {
+        pushDeclare(InstBuilder::genDecStructVar(SFcache_rate, type));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_rate, v1));
+        return InstBuilder::genLoadArrayStructVar(SFcache_rate, x);
+    } else {
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_rate, type, v1));
+        return InstBuilder::genLoadArrayStackVar(SFcache_rate, x);
+    }
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
@@ -1094,19 +1112,37 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
     // Struct access using an index that will be converted as a field name
     ValueInst* v1 = InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
                                                      InstBuilder::genInt32NumInst(3));
-    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_offset, type3, v1));
+    
+    if (gGlobal->gOneSample) {
+        pushDeclare(InstBuilder::genDecStructVar(SFcache_offset, type3));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_offset, v1));
 
-    // Struct access using an index that will be converted as a field name
-    LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(0));
+        // Struct access using an index that will be converted as a field name
+        LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStruct, InstBuilder::genInt32NumInst(0));
 
-    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, load1));
-    pushComputeBlockMethod(
-        InstBuilder::genDecStackVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0),
-                                    InstBuilder::genLoadStructPtrVar(SFcache_buffer, Address::kStack, x)));
+        pushDeclare(InstBuilder::genDecStructVar(SFcache_buffer, type1));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_buffer, load1));
+        
+        pushDeclare(InstBuilder::genDecStructVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0)));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_buffer_chan, InstBuilder::genLoadStructPtrVar(SFcache_buffer, Address::kStruct, x)));
 
-    return InstBuilder::genLoadStructPtrVar(
-        SFcache_buffer_chan, Address::kStack,
-        InstBuilder::genAdd(InstBuilder::genLoadArrayStackVar(SFcache_offset, y), z));
+        return InstBuilder::genLoadStructPtrVar(
+            SFcache_buffer_chan, Address::kStruct,
+            InstBuilder::genAdd(InstBuilder::genLoadArrayStructVar(SFcache_offset, y), z));
+    } else {
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_offset, type3, v1));
+        
+        // Struct access using an index that will be converted as a field name
+        LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(0));
+        
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, load1));
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0),
+                                                           InstBuilder::genLoadStructPtrVar(SFcache_buffer, Address::kStack, x)));
+        
+        return InstBuilder::genLoadStructPtrVar(
+                SFcache_buffer_chan, Address::kStack,
+                InstBuilder::genAdd(InstBuilder::genLoadArrayStackVar(SFcache_offset, y), z));
+    }
 }
 
 /*****************************************************************************
