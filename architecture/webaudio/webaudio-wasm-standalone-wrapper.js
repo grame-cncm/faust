@@ -25,8 +25,13 @@
  * @property {boolean} debug - debug mode
  */
 class FaustWasm2ScriptProcessor {
-    static Heap2Str(buf) {
-        return buf.reduce((acc, el) => acc += String.fromCharCode(el), "");
+    static heap2Str(buf) {
+        let str = "";
+        let i = 0;
+        while (buf[i] !== 0) {
+            str += String.fromCharCode(buf[i++]);
+        }
+        return str;
     }
     /**
      * Creates an instance of FaustWasm2ScriptProcessor.
