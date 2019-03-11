@@ -1919,6 +1919,15 @@ struct InstBuilder {
         faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
         return new ForLoopInst(init, end, increment, code, is_recursive);
     }
+    
+    // TODO: add access to the loop variable, generate ascending/descending loops...
+    static ForLoopInst* genForLoopInst(const string& index, int init, int size, int step = 1)
+    {
+        DeclareVarInst* dec = genDecLoopVar(index, genInt32Typed(), genInt32NumInst(init));
+        ValueInst* end = genLessThan(dec->load(), genInt32NumInst(size));
+        StoreVarInst* inc = dec->store(genAdd(dec->load(), step));
+        return genForLoopInst(dec, end, inc);
+    }
 
     static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound,
                                                    ValueInst* lowerBound = new Int32NumInst(0), bool reverse = false,

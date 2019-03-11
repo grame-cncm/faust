@@ -66,14 +66,12 @@ createInfoPList() {
     ) > "$2"
 }
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]

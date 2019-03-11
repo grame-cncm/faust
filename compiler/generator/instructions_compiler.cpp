@@ -44,7 +44,7 @@
 
 using namespace std;
 
-std::ostream* Printable::fOut = &cout;
+ostream* Printable::fOut = &cout;
 
 static inline BasicTyped* genBasicFIRTyped(int sig_type)
 {
@@ -665,7 +665,8 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar(subst("inputs[$0]", T(idx)), getCurrentLoopIndex()));
     } else if (gGlobal->gOneSample) {
-        res = InstBuilder::genCastFloatInst(InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx)));
+        res = InstBuilder::genCastFloatInst(
+            InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx)));
    } else {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
@@ -698,7 +699,7 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
 
     if (j.haszero()) {
         // potential division by zero
-        // std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << std::endl;
+        // cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << endl;
     }
 
     // Logical operations work on kInt32, so cast both operands here
