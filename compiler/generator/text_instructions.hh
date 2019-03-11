@@ -86,13 +86,19 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(RetInst* inst)
     {
+        visitAux(inst, true);
+    }
+    
+    void visitAux(RetInst* inst, bool gen_empty)
+    {
         if (inst->fResult) {
             *fOut << "return ";
             inst->fResult->accept(this);
-        } else {
+            EndLine();
+        } else if (gen_empty) {
             *fOut << "return";
+            EndLine();
         }
-        EndLine();
     }
 
     virtual void visit(DropInst* inst)
@@ -339,8 +345,14 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
         list<StatementInst*>::const_iterator it;
+        RetInst* ret_inst = nullptr;
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            (*it)->accept(this);
+            // Special case for "return" as last instruction
+            if ((*it == *inst->fCode.rbegin()) && (ret_inst = dynamic_cast<RetInst*>(*it))) {
+               visitAux(ret_inst, false);
+            } else {
+                (*it)->accept(this);
+            }
         }
         if (inst->fIndent) {
             fTab--;

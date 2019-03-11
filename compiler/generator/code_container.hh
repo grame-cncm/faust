@@ -29,7 +29,6 @@
 #include "description.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
-#include "fir_function_builder.hh"
 #include "floats.hh"
 #include "garbageable.hh"
 #include "instructions.hh"
