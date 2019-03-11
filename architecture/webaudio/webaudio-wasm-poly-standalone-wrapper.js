@@ -650,10 +650,12 @@ class FaustWasm2ScriptProcessorPoly {
         };
         try {
             const mixFile = await fetch("mixer32.wasm");
-            const mixModule = await WebAssembly.instantiateStreaming(mixFile, mixObject);
+            const mixBuffer = await mixFile.arrayBuffer();
+            const mixModule = await WebAssembly.instantiate(mixBuffer, mixObject);
             try {
                 const dspFile = await fetch(this.name + ".wasm");
-                const dspModule = await WebAssembly.instantiateStreaming(dspFile, importObject);
+                const dspBuffer = await dspFile.arrayBuffer();
+                const dspModule = await WebAssembly.instantiate(dspBuffer, importObject);
                 try {
                     const effectFile = await fetch(this.name + "_effect.wasm");
                     const effectModule = await WebAssembly.instantiateStreaming(effectFile, importObject);

@@ -377,7 +377,8 @@ class FaustWasm2ScriptProcessor {
         };
         try {
             const dspFile = await fetch(this.name + ".wasm");
-            const dspModule = await WebAssembly.instantiateStreaming(dspFile, importObject);
+            const dspBuffer = await dspFile.arrayBuffer();
+            const dspModule = await WebAssembly.instantiate(dspBuffer, importObject);
             this.node = this.getNode(dspModule.instance, audioCtx, bufferSize);
             return this.node;
         } catch (e) {
