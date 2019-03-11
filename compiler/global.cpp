@@ -569,6 +569,7 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << gOutputLang << ", ";
 #endif
     }
+    if (gInPlace) dst << "-inpl ";
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")

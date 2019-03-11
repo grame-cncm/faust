@@ -1,7 +1,10 @@
 #!/bin/bash -e
 
+. faustpath
+. faustoptflags
+
 #FAUST DATA:
-[ -z "$ARCHFILE" ] && ARCHFILE="bela.cpp"
+[ -z "$ARCHFILE" ] && ARCHFILE=$FAUSTARCH/bela.cpp
 #BELA DATA:
 [ -z "$BBB_ADDRESS" ] && BBB_ADDRESS="root@192.168.7.2"
 [ -z "$BBB_BELA_HOME" ] && BBB_BELA_HOME="/root/Bela"

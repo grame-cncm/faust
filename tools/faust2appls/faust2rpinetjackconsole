@@ -10,11 +10,12 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
+
+ARCHFILE=$FAUSTARCH/netjack-console.cpp
 
 # base directory for tools
-
 BASE_DIR="/opt/rpicrosstool"
-ARCHFILE=netjack-console.cpp
 OSCDEFS=""
 
 #-------------------------------------------------------------------

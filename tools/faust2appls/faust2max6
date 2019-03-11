@@ -84,7 +84,7 @@ do
         echo "faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
-        echo "Use '-native' to compile for the native CPU"
+        echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
@@ -121,8 +121,8 @@ do
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-soundfile-static" ]; then
         SOUNDFILE="1"
-        SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTLIB/max-msp/sndfile"
-        SFDIR=$FAUSTLIB/max-msp/sndfile
+        SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTARCH/max-msp/sndfile"
+        SFDIR=$FAUSTARCH/max-msp/sndfile
         SOUNDFILELIBS="$SFDIR/libFLAC.a $SFDIR/libogg.a $SFDIR/libsndfile.a $SFDIR/libvorbis.a $SFDIR/libvorbisenc.a"
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
@@ -190,10 +190,10 @@ for p in $FILES; do
 
     # compile faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -double -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        faust -i -double -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -double -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
 
     # compile c++ to binary
@@ -257,15 +257,15 @@ for p in $FILES; do
     # create Max patch
     if [ "$NOPATCH" = "0" ]; then
         if [ "$POLY" = "POLY1" ]; then
-            cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+            cat $FAUSTARCH/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
         else
-            cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+            cat $FAUSTARCH/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
         fi
         sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
         sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
 
         # copy JavaScript UI file
-        cp $FAUSTLIB/max-msp/ui.js .
+        cp $FAUSTARCH/max-msp/ui.js .
         
         rm ${f%.dsp}-temp1.maxpat
         rm ${f%.dsp}-temp2.maxpat

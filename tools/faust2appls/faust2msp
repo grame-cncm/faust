@@ -73,7 +73,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2msp [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-native' to compile for the native CPU"
+        echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
@@ -156,10 +156,10 @@ for p in $FILES; do
 
     # compile faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -json -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -json -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -json -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        faust -i -json -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
 
     # compile c++ to binary

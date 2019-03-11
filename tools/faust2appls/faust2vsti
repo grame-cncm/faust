@@ -7,11 +7,14 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+. faustoptflags
+
 # VST specific sdk files
 #------------------------
 VSTSDK="/usr/local/include/vstsdk2.4"
 EXT=".vst"
-ARCHFILE="vst.cpp"
+ARCHFILE=$FAUSTARCH/vst.cpp
 
 INCLUDES="-I$VSTSDK/ -I$VSTSDK/public.sdk/source/vst2.x/"
 

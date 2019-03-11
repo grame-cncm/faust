@@ -5,11 +5,11 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/netjack-console.cpp
+
 NVOICES=-1
 POLY="POLY"
 EFFECT=""
-
-ARCHFILE="netjack-console.cpp"
 
 #-------------------------------------------------------------------
 # Check Darwin specifics

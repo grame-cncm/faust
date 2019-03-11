@@ -73,7 +73,7 @@ void VectorCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
 BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
     string index = "vindex";
-    string count = "vsize";
+    string size = "vsize";
 
     // Define result block
     BlockInst* block_res = InstBuilder::genBlockInst();
@@ -91,9 +91,9 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     generateLocalOutputs(loop_code, index);
 
     // Generate : int count = 32;
-    DeclareVarInst* count_dec1 = InstBuilder::genDecLoopVar(count, InstBuilder::genInt32Typed(),
+    DeclareVarInst* size_dec = InstBuilder::genDecLoopVar(size, InstBuilder::genInt32Typed(),
                                                              InstBuilder::genInt32NumInst(gGlobal->gVecSize));
-    loop_code->pushBackInst(count_dec1);
+    loop_code->pushBackInst(size_dec);
     
     // Debug code
     /*
@@ -103,13 +103,13 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     */
 
     // Generates the loop DAG
-    generateDAGLoop(loop_code, count_dec1);
+    generateDAGLoop(loop_code, size_dec);
 
     // Generates the DAG enclosing loop
     StoreVarInst* loop_init = index_dec->store(InstBuilder::genInt32NumInst(0));
 
     ValueInst* loop_end = InstBuilder::genLessEqual(index_dec->load(),
-        InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genInt32NumInst(gGlobal->gVecSize)));
+        InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), gGlobal->gVecSize));
     StoreVarInst* loop_increment = index_dec->store(InstBuilder::genAdd(index_dec->load(), gGlobal->gVecSize));
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code, true);
 
@@ -129,11 +129,11 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     generateLocalOutputs(then_block, index);
 
     // Generate : int count = fullcount-index;
-    DeclareVarInst* count_dec2 = InstBuilder::genDecLoopVar(
-        count, InstBuilder::genInt32Typed(),
+    DeclareVarInst* size_dec1 = InstBuilder::genDecLoopVar(
+        size, InstBuilder::genInt32Typed(),
         InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), index_dec->load()));
 
-    then_block->pushBackInst(count_dec2);
+    then_block->pushBackInst(size_dec1);
     
     // Debug code
     /*
@@ -143,7 +143,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     */
 
     // Generates the loop DAG
-    generateDAGLoop(then_block, count_dec2);
+    generateDAGLoop(then_block, size_dec1);
 
     block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
     return block_res;
@@ -152,7 +152,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
 {
     string index = "vindex";
-    string count = "vsize";
+    string size = "vsize";
 
     BlockInst* loop_code = InstBuilder::genBlockInst();
     
@@ -171,8 +171,8 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min_i", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecLoopVar(count, InstBuilder::genInt32Typed(), init3);
-    loop_code->pushBackInst(count_dec);
+    DeclareVarInst* size_dec = InstBuilder::genDecLoopVar(size, InstBuilder::genInt32Typed(), init3);
+    loop_code->pushBackInst(size_dec);
     
     // Debug code
     /*
@@ -182,7 +182,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     */
 
     // Generates the loop DAG
-    generateDAGLoop(loop_code, count_dec);
+    generateDAGLoop(loop_code, size_dec);
 
     ValueInst*    loop_end       = InstBuilder::genLessThan(loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), gGlobal->gVecSize));
@@ -202,7 +202,10 @@ void VectorCodeContainer::processFIR(void)
     VariableSizeCounter counter(Address::kStack);
     generateComputeBlock(&counter);
     
-    // Possibly remove LoadVarAddress
+    /*
+     Possibly remove LoadVarAddress. The remover has to be shared between
+     fComputeBlockInstructions and fDAGBlock, so a *unique* one is defined.
+    */
     VarAddressRemover remover;
     if (gGlobal->gRemoveVarAddress) {
         fComputeBlockInstructions = remover.getCode(fComputeBlockInstructions);
@@ -224,6 +227,7 @@ void VectorCodeContainer::processFIR(void)
         faustassert(false);
     }
     
+    // Possibly remove LoadVarAddress
     if (gGlobal->gRemoveVarAddress) {
         fDAGBlock = remover.getCode(fDAGBlock);
     }

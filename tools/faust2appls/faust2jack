@@ -11,12 +11,13 @@
 . faustoptflags
 
 CXX=g++
-CXXFLAGS="$MYGCCFLAGS -std=c++11 -I/opt/local/include"
+CXXFLAGS="$MYGCCFLAGS -I/opt/local/include"
+
+ARCHFILE=$FAUSTARCH/jack-gtk.cpp
 
 OSCDEFS=""
 POLY="POLY"
 NVOICES=-1
-ARCHFILE="jack-gtk.cpp"
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""

@@ -47,7 +47,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
 
         for (int index = 0; index < fContainer->inputs(); index++) {
-            // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP struct
+            // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP
+            // struct
             if (gGlobal->gSchedulerSwitch) {
                 string name1 = subst("fInput$0_ptr", T(index));
                 pushDeclare(InstBuilder::genDecStructVar(name1, type));
@@ -55,13 +56,15 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
                     name1, InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
             } else {
                 string name1 = subst("input$0_ptr", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(name1, type, InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
+                pushComputeBlockMethod(InstBuilder::genDecStackVar(
+                    name1, type, InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
             }
         }
 
         // "output" and "outputs" used as a name convention
         for (int index = 0; index < fContainer->outputs(); index++) {
-            // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP struct
+            // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP
+            // struct
             if (gGlobal->gSchedulerSwitch) {
                 string name1 = subst("fOutput$0_ptr", T(index));
                 pushDeclare(InstBuilder::genDecStructVar(name1, type));
@@ -69,7 +72,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
                     name1, InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
             } else {
                 string name1 = subst("output$0_ptr", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(name1, type, InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
+                pushComputeBlockMethod(InstBuilder::genDecStackVar(
+                    name1, type, InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
             }
         }
     }
@@ -326,7 +330,11 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             }
         } else {
             // not delayed
-            if (sharing > 1 && !verySimple(sig)) {
+            Tree x, y;
+            if (sharing > 1 && isSigFixDelay(sig, x, y) && verySimple(y)) {
+                // cerr << "SPECIAL CASE NO CACHE NEEDED : " << ppsig(sig) << endl;
+                return exp;
+            } else if (sharing > 1 && !verySimple(sig)) {
                 // shared and not simple : we need a vector
                 // cerr << "Zec : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
@@ -398,7 +406,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {
     if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {  // HACK
         // "input" use as a name convention
-        string    name = subst("input$0", T(idx));
+        string     name = subst("input$0", T(idx));
         ValueInst* res =
             InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"));
         // Cast to internal float
