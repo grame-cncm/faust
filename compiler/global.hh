@@ -138,8 +138,9 @@ struct global {
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;         // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
-    bool gClang;             // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
+                      // for JavaScript)
+    bool gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -164,7 +165,7 @@ struct global {
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
-    vector<string>      gMathForeignFunctions;  // List of math foreign functions
+    map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
 
     dsp_factory_base* gDSPFactory;
 
@@ -212,8 +213,9 @@ struct global {
     bool gMemoryManager;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
-    bool gCausality;            ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
-                                ///< (negative delay)
+    
+    bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
+                      ///< (negative delay)
 
     Tree BOXTYPEPROP;
     Tree NUMERICPROPERTY;
@@ -544,17 +546,13 @@ struct global {
     bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
-    
+
     bool isMathForeignFunction(const string& name)
     {
-        for (size_t i = 0; i < gMathForeignFunctions.size(); i++) {
-            if (gMathForeignFunctions[i] == name) return true;
-        }
-        return false;
+        return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
-    
 };
 
 // Unique shared global pointer
