@@ -443,7 +443,10 @@ class FaustWasm2ScriptProcessorPoly {
             const voice = sp.getPlayingVoice(pitch);
             if (voice !== sp.kNoVoice) {
                 this.log("keyOff voice" + voice);
-                sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel, 0.0); // No use of velocity for now...
+                // No use of velocity for now...
+                for (let i = 0; i < sp.fGateLabel.length; i++) {
+                    sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 0.0);
+                }
                 sp.dsp_voices_state[voice] = sp.kReleaseVoice; // Release voice
             } else {
                 this.log("Playing voice not found...");
@@ -454,7 +457,9 @@ class FaustWasm2ScriptProcessorPoly {
          */
         sp.allNotesOff = () => {
             for (var i = 0; i < polyphony; i++) {
-                sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
+                for (let j = 0; j < sp.fGateLabel.length; j++) {
+                    sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel[j], 0.0);
+                }
                 sp.dsp_voices_state[i] = sp.kReleaseVoice;
             }
         }
