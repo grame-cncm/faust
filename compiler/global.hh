@@ -545,9 +545,12 @@ struct global {
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
     
-    bool isMathForeignFunction(const string name)
+    bool isMathForeignFunction(const string& name)
     {
-        return std::find(std::begin(gMathForeignFunctions), std::end(gMathForeignFunctions), name) != std::end(gMathForeignFunctions);
+        for (size_t i = 0; i < gMathForeignFunctions.size(); i++) {
+            if (gMathForeignFunctions[i] == name) return true;
+        }
+        return false;
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
