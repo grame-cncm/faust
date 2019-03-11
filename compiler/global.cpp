@@ -556,6 +556,19 @@ void global::init()
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
+    
+    // Foreign math functions supported by the Interp backend
+    gMathForeignFunctions.push_back("coshf");
+    gMathForeignFunctions.push_back("cosh");
+    gMathForeignFunctions.push_back("coshl");
+    
+    gMathForeignFunctions.push_back("sinhf");
+    gMathForeignFunctions.push_back("sinh");
+    gMathForeignFunctions.push_back("sinhl");
+    
+    gMathForeignFunctions.push_back("tanhf");
+    gMathForeignFunctions.push_back("tanh");
+    gMathForeignFunctions.push_back("tanhl");
 }
 
 void global::printCompilationOptions(ostream& dst, bool backend)

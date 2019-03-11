@@ -163,7 +163,8 @@ struct global {
     bool   gOneSample;             // Generate one sample computation
     string gFastMathLib;           // The fastmath code mapping file
 
-    map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
+    map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
+    vector<string>      gMathForeignFunctions;  // List of math foreign functions
 
     dsp_factory_base* gDSPFactory;
 
@@ -543,6 +544,11 @@ struct global {
     bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
+    
+    bool isMathForeignFunction(const string name)
+    {
+        return std::find(std::begin(gMathForeignFunctions), std::end(gMathForeignFunctions), name) != std::end(gMathForeignFunctions);
+    }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
     

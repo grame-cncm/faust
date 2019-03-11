@@ -740,7 +740,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     fContainer->addLibrary(fflibfile(ff));
     string funname = ffname(ff);
 
-    if (!gGlobal->gAllowForeignFunction) {
+    if (!gGlobal->gAllowForeignFunction && !gGlobal->isMathForeignFunction(funname)) {
         stringstream error;
         error << "ERROR : calling foreign function '" << funname << "'"
               << " is not allowed in this compilation mode!" << endl;
