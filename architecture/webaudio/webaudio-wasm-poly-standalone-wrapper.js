@@ -251,7 +251,7 @@ class FaustWasm2ScriptProcessorPoly {
                     sp.dsp_voices_state[i] = sp.kFreeVoice;
                 }
             }
-            if (sp.effect) sp.effect.compute(sp.effect_start, bufferSize, sp.outs, sp.outs); // Apply effect
+            if (sp.effect) sp.effect.compute(sp.effect_start, bufferSize, sp.ins, sp.outs); // Apply effect
             sp.update_outputs(); // Update bargraph
             for (let i = 0; i < sp.numOut; i++) { // Write outputs
                 const output = e.outputBuffer.getChannelData(i);
