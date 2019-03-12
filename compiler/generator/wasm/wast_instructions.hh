@@ -126,13 +126,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-
-    virtual void visit(RetInst* inst)
+  
+    virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
             *fOut << "(return ";
             inst->fResult->accept(this);
             *fOut << ")";
+        } else if (gen_empty) {
+            *fOut << "(return)";
         }
     }
 
