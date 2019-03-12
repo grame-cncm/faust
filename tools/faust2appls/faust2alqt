@@ -12,7 +12,7 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
-ARCHFILE="alsa-qt.cpp"
+ARCHFILE=$FAUSTARCH/alsa-qt.cpp
 ARCHLIB="-lasound"
 
 #-------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ for p in $FILES; do
     (
 	    cd "$TMP"
        	$QMAKE -project "QT += widgets printsupport network" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"  
-	    $QMAKE $SPEC
+	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
 

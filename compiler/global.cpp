@@ -90,7 +90,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
+global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
@@ -436,7 +436,7 @@ void global::init()
     // Essential predefined types
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
-    
+
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
 
@@ -556,6 +556,19 @@ void global::init()
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
+
+    // Foreign math functions supported by the Interp backend
+    gMathForeignFunctions["coshf"] = true;
+    gMathForeignFunctions["cosh"]  = true;
+    gMathForeignFunctions["coshl"] = true;
+
+    gMathForeignFunctions["sinhf"] = true;
+    gMathForeignFunctions["sinh"]  = true;
+    gMathForeignFunctions["sinhl"] = true;
+
+    gMathForeignFunctions["tanhf"] = true;
+    gMathForeignFunctions["tanh"]  = true;
+    gMathForeignFunctions["tanhl"] = true;
 }
 
 void global::printCompilationOptions(ostream& dst, bool backend)
@@ -569,6 +582,7 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << gOutputLang << ", ";
 #endif
     }
+    if (gInPlace) dst << "-inpl ";
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")

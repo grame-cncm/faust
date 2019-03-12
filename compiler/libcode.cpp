@@ -416,7 +416,6 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
             gGlobal->gSchedulerSwitch = true;
-            gGlobal->gLibraryList.push_back("scheduler.ll");
             i += 1;
 
         } else if (isCmd(argv[i], "-ocl", "--openCL")) {

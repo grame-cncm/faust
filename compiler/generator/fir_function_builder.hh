@@ -211,9 +211,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
         BlockInst*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
-        // BlockInst* function_code = InstBuilder::genBlockInst();
-
-        // Add a Ret (void) instruction
+    
+        // Add a Ret (void) instruction (needed in LLVM backend)
         function_code->pushBackInst(InstBuilder::genRetInst());
 
         // Add "dsp" arg in function prototype and in parameter list

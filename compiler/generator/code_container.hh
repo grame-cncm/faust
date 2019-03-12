@@ -29,7 +29,6 @@
 #include "description.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
-#include "fir_function_builder.hh"
 #include "floats.hh"
 #include "garbageable.hh"
 #include "instructions.hh"
@@ -41,6 +40,9 @@
 #ifdef WIN32
 # pragma warning (disable: 4250)
 #endif
+
+// The name of 'count' parameter
+#define fFullCount "count"
 
 class TextInstVisitor;
 
@@ -54,6 +56,9 @@ class CodeContainer : public virtual Garbageable {
 
     int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
     int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    
+    int fSubContainerType;
+    bool fGeneratedSR;
     
     string fKlassName;
 
@@ -88,7 +93,7 @@ class CodeContainer : public virtual Garbageable {
     BlockInst* fComputeBlockInstructions;      // Before DSP loop
     BlockInst* fPostComputeBlockInstructions;  // After DSP loop
 
-    // Additionnal functions
+    // Additional functions generated in -fun mode
     BlockInst* fComputeFunctions;
 
     // User interface
@@ -104,11 +109,6 @@ class CodeContainer : public virtual Garbageable {
 
     list<string> fUICode;
     list<string> fUIMacro;
-
-    int    fSubContainerType;
-    string fFullCount;
-
-    bool fGeneratedSR;
 
     void merge(set<string>& dst, set<string>& src)
     {

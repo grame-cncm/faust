@@ -649,6 +649,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     
    protected:
     bool fInitialized;
+    bool fTraceOutput;
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     FBCExecutor<T>*                        fFBCExecutor;
     
@@ -671,6 +672,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         cpp_generator.generateCode(std::cout);
 #endif
 */
+        fTraceOutput = getenv("FAUST_INTERP_OUTPUT") != NULL;
     }
 
     virtual ~interpreter_dsp_aux()
@@ -823,6 +825,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
             
             //fFBCVecExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+            
+            if (fTraceOutput) {
+                for (int chan = 0; chan < fFactory->fNumOutputs; chan++) {
+                    for (int frame = 0; frame < count; frame++) {
+                        std::cout << "Chan: " << chan << " sample: " << outputs_aux[chan][frame] << std::endl;
+                    }
+                }
+            }
         }
     }
 
@@ -1026,7 +1036,6 @@ protected:
         #else
             this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock, true);
         #endif
-           
         }
     }
     

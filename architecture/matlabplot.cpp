@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
     // prepare input channels (if any) with an impulse
     int nins = DSP.getNumInputs();
-    channels inchan (kFrames, nins);
+    channels inchan(kFrames, nins);
     inchan.impulse(); // after each compute we will zero them
 
     // prepare output channels

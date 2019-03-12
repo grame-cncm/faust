@@ -110,16 +110,18 @@ int main(int argc, char* argv[])
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     
     int trace_mode = lopt(argv, "-trace", 0);
+    bool is_output = isopt(argv, "-output");
     bool is_control = isopt(argv, "-control");
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 5) {
         cout << "interp-tracer -trace <1-5> -control [additional Faust options (-ftz xx)] foo.dsp" << endl;
         cout << "-control to activate min/max control check\n";
+        cout << "-output to display output samples\n";
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
         cout << "-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO\n";
-        cout << "-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN\n";
-        cout << "-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN\n";
+        cout << "-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, fails at first FP_INFINITE, FP_NAN or LOAD error\n";
+        cout << "-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, continue after FP_INFINITE, FP_NAN or LOAD error\n";
         exit(EXIT_FAILURE);
     }
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
@@ -129,7 +131,9 @@ int main(int argc, char* argv[])
     
     cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
-        if (string(argv[i]) == "-trace" || string(argv[i]) == "-control") {
+        if (string(argv[i]) == "-trace"
+            || string(argv[i]) == "-control"
+            || string(argv[i]) == "-output") {
             i++;
             continue;
         }
@@ -144,6 +148,11 @@ int main(int argc, char* argv[])
     if (trace_mode > 0) {
         char mode[8]; sprintf(mode, "%d", trace_mode);
         setenv("FAUST_INTERP_TRACE", mode, 1);
+    }
+    
+    if (is_output > 0) {
+        char mode[8]; sprintf(mode, "%d", is_output);
+        setenv("FAUST_INTERP_OUTPUT", mode, 1);
     }
     
     string error_msg;
@@ -163,7 +172,7 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     
-    dummyaudio audio(44100, 4, INT_MAX);
+    dummyaudio audio(44100, 16, INT_MAX);
     if (!audio.init(filename, DSP)) {
         return 0;
     }

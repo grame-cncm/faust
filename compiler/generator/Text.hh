@@ -73,12 +73,12 @@ string replaceCharList(string str, const vector<char>& ch1, char ch2);
 
 inline bool checkMin(const string& str)
 {
-    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_"));
+    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") || (str == "min_l"));
 }
 
 inline bool checkMax(const string& str)
 {
-    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_"));
+    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") || (str == "max_l"));
 }
 
 inline bool checkMinMax(const string& str)

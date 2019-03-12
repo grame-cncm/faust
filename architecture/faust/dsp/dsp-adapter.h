@@ -157,7 +157,7 @@ class dsp_sample_adapter : public decorator_dsp {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptInputBuffers(count, inputs);
-            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses SAMPLE_TYPE
+            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses TYPE_INT
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
             adaptOutputsBuffers(count, outputs);
         }
@@ -165,7 +165,7 @@ class dsp_sample_adapter : public decorator_dsp {
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptInputBuffers(count, inputs);
-            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses SAMPLE_TYPE
+            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses TYPE_INT
             fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
             adaptOutputsBuffers(count, outputs);
        }

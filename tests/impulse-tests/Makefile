@@ -33,6 +33,7 @@ SRCDIR := tools
 
 all:
 	$(MAKE) cpp
+	$(MAKE) cpp1
 	$(MAKE) c
 	$(MAKE) mute
 	$(MAKE) wasm
@@ -48,6 +49,7 @@ help:
 	@echo " 'all' (default): call all the targets below"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
+	@echo " 'cpp1'   : check float and double outputs with the cpp backend in scalar one-sample mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'mute'   : check double output with mute"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
@@ -77,9 +79,10 @@ travis:
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/double/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
+	#$(MAKE) -f Make.gcc outdir=cpp/double/sch   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch"
 
 #########################################################################
-# c and c++ backends
+# c++ and c backends
 cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -lv 0"
@@ -96,6 +99,9 @@ cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/float/vec        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -vec"
 	$(MAKE) -f Make.gcc outdir=cpp/float/sched      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -sch"
 	$(MAKE) -f Make.gcc outdir=cpp/float/omp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -omp"
+
+cpp1:
+	$(MAKE) -f Make.gcc outdir=cpp1/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -os"
 
 c:
 	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"

@@ -1268,10 +1268,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                    inst->fAddress->getAccess() & Address::kStaticStruct) {
             if (!fModule->getGlobalVariable(name, true)) {
                 GlobalVariable* global_var = new GlobalVariable(
-                    *fModule, convertFIRType(fModule, inst->fType), false,
-                    ((inst->fAddress->getAccess() & Address::kExternal) ? GlobalValue::ExternalLinkage
-                                                                        : GlobalValue::InternalLinkage),
-                    0, name);
+                    *fModule, convertFIRType(fModule, inst->fType), false, GlobalValue::InternalLinkage, 0, name);
 
                 // Declaration with a value
                 if (inst->fValue) {
@@ -1437,6 +1434,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Direct access Declare/Store ==> Load
         } else if (named_address->fAccess & Address::kLink || named_address->fAccess & Address::kStack ||
                    named_address->fAccess & Address::kLoop) {
+            faustassert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
             return fDSPStackVars[named_address->fName];
         } else if ((named_address->fAccess & Address::kGlobal) || (named_address->fAccess & Address::kStaticStruct)) {
             return fModule->getGlobalVariable(named_address->fName, true);
@@ -1596,6 +1594,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             genVectorStore(getDSPArg(named_address->fName), fCurValue, named_address->fAccess & Address::kVolatile);
             // Direct access Declare/Store ==> Load
         } else if (named_address->fAccess & Address::kLink) {
+            faustassert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
             fDSPStackVars[named_address->fName] = fCurValue;
         } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
             faustassert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());

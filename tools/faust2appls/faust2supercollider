@@ -17,8 +17,7 @@
 . faustpath
 . faustoptflags
 
-PATH=$PATH:/usr/local/bin
-ARCHFILE="supercollider.cpp"
+ARCHFILE=$FAUSTARCH/supercollider.cpp
 
 #-------------------------------------------------------------------
 # Need SuperCollider 'plugin_interface' include path to compile UGens:

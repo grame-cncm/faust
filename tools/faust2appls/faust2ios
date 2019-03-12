@@ -8,8 +8,10 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
 
-ARCHFILE="ios-coreaudio.cpp"
+ARCHFILE=$FAUSTARCH/ios-coreaudio.cpp
+
 NOAGC="0"
 POLY="POLY"
 OSCCTRL="0"
@@ -85,11 +87,11 @@ done
 addOptions ()
 {
     # OSC source always copied in the project
-    cp -r $FAUSTLIB/osclib "$T"
+    cp -r $FAUSTARCH/osclib "$T"
     # FaustNode.h still has a dependency with public Faust headers, create a self-contained version
     echo "process = !;" >> "$T"/tmp.dsp
     echo "" >> "$T"/tmp.cpp
-    faust -i -inj "$T"/tmp.cpp -a $FAUSTLIB/osclib/faust/faust/osc/FaustNode.h "$T"/tmp.dsp -o "$T"/osclib/faust/faust/osc/FaustNode.h
+    faust -i -inj "$T"/tmp.cpp -a $FAUSTARCH/osclib/faust/faust/osc/FaustNode.h "$T"/tmp.dsp -o "$T"/osclib/faust/faust/osc/FaustNode.h
     rm "$T"/tmp.dsp "$T"/tmp.cpp
   
     if [ "$OSCCTRL" = "1" ]; then
@@ -133,7 +135,7 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
 
 	T=$(mktemp -d faust.XXX)
-	cp -r $FAUSTLIB/iOS/* $T
+	cp -r $FAUSTARCH/iOS/* $T
 	
 	if [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"

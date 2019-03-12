@@ -46,13 +46,11 @@ CXX="${MINGWPREFIX}g++"
 DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32"
 STRIP="${MINGWPREFIX}strip"
 
-
 #-----------------------------------------------------------------------------
 # Compilation flags
 LIBS="$MAXSDK/max-includes/MaxAPI.lib  $MAXSDK/msp-includes/MaxAudio.lib"
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
 CXXFLAGS="-std=c++11 -DWIN_VERSION -DWIN_EXT_VERSION"
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -60,7 +58,6 @@ CXXFLAGS="-std=c++11 -DWIN_VERSION -DWIN_EXT_VERSION"
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -98,7 +95,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+	faust -i -double -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
@@ -126,15 +123,15 @@ for p in $FILES; do
     # create Max patch
     if [ "$NOPATCH" = "0" ]; then
         if [ "$POLY" = "POLY1" ]; then
-            cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+            cat $FAUSTARCH/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
         else
-            cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+            cat $FAUSTARCH/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
         fi
         sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
         sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
 
         # copy JavaScript UI file
-        cp $FAUSTLIB/max-msp/ui.js .
+        cp $FAUSTARCH/max-msp/ui.js .
         rm ${f%.dsp}-temp1.maxpat
         rm ${f%.dsp}-temp2.maxpat
 

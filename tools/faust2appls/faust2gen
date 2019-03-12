@@ -57,9 +57,9 @@ for p in $FILES; do
 
     # create Max patch
     if [ $POLY = "POLY1" ]; then
-        cat $FAUSTLIB/max-msp/faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+        cat $FAUSTARCH/max-msp/faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
     else
-        cat $FAUSTLIB/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+        cat $FAUSTARCH/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
     fi
     sed -e "s/DSP_NAME/"${f%.dsp}"/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
@@ -68,7 +68,7 @@ for p in $FILES; do
     BINARIES="$BINARIES${f%.dsp}.maxpat;"
 
     # copy JavaScript UI file
-    cp $FAUSTLIB/max-msp/ui.js .
+    cp $FAUSTARCH/max-msp/ui.js .
 
     rm ${f%.dsp}-temp1.maxpat
     rm ${f%.dsp}-temp2.maxpat

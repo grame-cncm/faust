@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.15.10
+VERSION := 2.15.11
 
 #===============================================================
 # current generator and backends
@@ -140,6 +140,8 @@ help:
 	@echo
 	@echo "Packaging targets:"
 	@echo " 'package'    : build a faust package for the current platform"
+	@echo " 'release'    : build a faust release (MacOS only)"
+	@echo "                includes faust, faustgen and dist packages"
 
 	
 faust: $(PROJ) 
@@ -158,25 +160,25 @@ httpdynamic: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
 
 jsscripts: 
-	make -C ../architecture/httpdlib/src/hexa
+	$(MAKE) -C ../architecture/httpdlib/src/hexa
 
 #===============================================================
 # packaging
 #===============================================================
 PACK := package/Faust-$(VERSION)
 package:
-	make $(NATIVEPACK)
+	$(MAKE) $(NATIVEPACK)
 
 winpack:
 	cd $(FAUSTDIR) && cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
-	make
+	$(MAKE)
 	cd $(FAUSTDIR) && cpack -G NSIS64
 	mv  $(FAUSTDIR)/Faust-*.exe .
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
-	make cmake BACKENDs=all.cmake TARGETS=all.cmake
-	make install PREFIX=../$(PACK)/Faust-$(VERSION)
+	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake
+	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
 	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
@@ -190,6 +192,27 @@ package/README.html: ../README.md
 	echo "</xmp>" >> package/README.html
 	echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> package/README.html
 	echo "</html>" >> package/README.html
+
+
+#===============================================================
+# release
+#===============================================================
+release: FAUSTGEN=../embedded/faustgen
+release:
+	git pull --rebase
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake
+	$(MAKE) all
+	$(MAKE) package
+	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)
+	rm -rf Release-$(VERSION)/*
+	cp Faust-$(VERSION).dmg Release-$(VERSION) 
+	$(MAKE) install PREFIX=$(HOME)/Faust-$(VERSION)
+	$(MAKE) -C $(FAUSTGEN) clean
+	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust
+	$(MAKE) -C $(FAUSTGEN) package
+	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION) 
+	$(MAKE) -C .. dist
+	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
 	
 
 #===============================================================

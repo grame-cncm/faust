@@ -74,7 +74,7 @@ echo "Compiling with :" $OPTIONS
 
 if [ $POLY = "true" ]; then
     echo "The mixer32.wasm code is copied"
-    cp $FAUSTLIB/webaudio/mixer32.wasm .
+    cp $FAUSTARCH/webaudio/mixer32.wasm .
     if [ $EMCC = "true" ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER1=webaudio-asm-poly.cpp
@@ -122,7 +122,7 @@ for f in $FILES; do
     
     # compile the Faust DSP to C++ or wasm code
     if [ $EMCC = "true" ]; then
-        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+        faust $SVG -a $FAUSTARCH/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         if [ $POLY = "true" ]; then
             faust -lang wast-e $SVG $OPTIONS $f -o $name.wast || exit
@@ -145,7 +145,7 @@ for f in $FILES; do
         else        EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_init','_"$name"_poly_getSampleRate','_"$name"_poly_instanceInit','_"$name"_poly_instanceConstants','_"$name"_poly_instanceResetUserInterface','_"$name"_poly_instanceClear','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"
         fi
         # compile the C++ code to wasm
-        emcc -O3 --memory-init-file 0 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 $name.cpp --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
+        emcc -O3 --memory-init-file 0 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 $name.cpp --post-js $FAUSTARCH/webaudio/$JS_WRAPPER -o $name.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
  
         # remove intermediate C++ file
         rm $name.cpp
@@ -162,17 +162,17 @@ for f in $FILES; do
     echo "<!-- Origin Trial Token, feature = AudioWorklet, origin = https://faust.grame.fr, expires = 2018-01-27 --> <meta http-equiv=\"origin-trial\" data-feature=\"AudioWorklet\" data-expires=\"2018-01-27\" content=\"ArOoNTa+dX8OXYD95xliibaCxzUTBxilqcXLAxKOXxf/qU2n09ry4XqX4ShkkqKgfzwwuSE2I7GqxGqvVi9aewwAAABUeyJvcmlnaW4iOiJodHRwczovL2ZhdXN0LmdyYW1lLmZyOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MTcwMjQ1OTl9\">" >> $name-temp2.html
 
     echo "<style type=\"text/css\">" >> $name-temp2.html
-    cat $FAUSTLIB/js/stylesheet.js >> $name-temp2.html
+    cat $FAUSTARCH/js/stylesheet.js >> $name-temp2.html
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
-    cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
+    cat $FAUSTARCH/js/jsscripts.js >> $name-temp2.html
     if [ $EMCC != "true" ]; then
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name-processor.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
         else
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
         fi
         sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
     fi
@@ -180,9 +180,9 @@ for f in $FILES; do
     echo "</head>" >> $name-temp2.html
     echo "<body>" >> $name-temp2.html
     echo $LINKS >> $name-temp2.html
-    cat $FAUSTLIB/webaudio/$HTML_FOOTER >> $name-temp2.html
+    cat $FAUSTARCH/webaudio/$HTML_FOOTER >> $name-temp2.html
     if [ $EXPORT = "true" ] ; then
-        cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
+        cat $FAUSTARCH/webaudio/$EXPORT_FOOTER >> $name-temp2.html
     fi
     echo "</body>" >> $name-temp2.html
     echo "</html>" >> $name-temp2.html
