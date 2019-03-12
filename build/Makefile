@@ -205,14 +205,14 @@ release:
 	$(MAKE) package
 	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)
 	rm -rf Release-$(VERSION)/*
-	cp package/Faust-$(VERSION).dmg Release-$(VERSION) 
+	cp Faust-$(VERSION).dmg Release-$(VERSION) 
 	$(MAKE) install PREFIX=$(HOME)/Faust-$(VERSION)
 	$(MAKE) -C $(FAUSTGEN) clean
 	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust
 	$(MAKE) -C $(FAUSTGEN) package
 	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION) 
 	$(MAKE) -C .. dist
-	mv ../faust-$(VERSION).tgz Release-$(VERSION)
+	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
 	
 
 #===============================================================
