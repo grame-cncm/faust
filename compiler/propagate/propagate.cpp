@@ -234,6 +234,33 @@ static siglist wrapWithFTZ(const siglist& l1)
     return l2;
 }
 
+// Collect the leaf numbers of tree l into vector v.
+// return true if l a number or a parallel tree of numbers
+static bool isIntTree(Tree l, vector<int>& v)
+{
+    int    n;
+    double r;
+    Tree   x, y;
+
+    if (isBoxInt(l, &n)) {
+        v.push_back(n);
+        return true;
+
+    } else if (isBoxReal(l, &r)) {
+        v.push_back(int(r));
+        return true;
+
+    } else if (isBoxPar(l, x, y)) {
+        return isIntTree(x, v) && isIntTree(y, v);
+
+    } else {
+        stringstream error;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
+              << endl;
+        throw faustexception(error.str());
+    }
+}
+
 /**
  * Propagate a list of signals into a block diagram. Actual function.
  * @param slotenv environment associating slots and signals
@@ -254,7 +281,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
     prim4  p4;
     prim5  p5;
 
-    Tree t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
     tvec wf;
 
     xtended* xt = (xtended*)getUserData(box);
@@ -551,8 +578,39 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
     else if (isBoxEnvironment(box)) {
         faustassert(lsig.size() == 0);
         return siglist();
-    }
 
+    } else if (isBoxRoute(box, t1, t2, t3)) {
+        int         ins, outs;
+        vector<int> route;
+        siglist     outsigs;
+        // cerr << "TRACE propagate into a route " << boxpp(box) << endl;
+        if (isBoxInt(t1, &ins) && isBoxInt(t2, &outs) && isIntTree(t3, route)) {
+            // initialize output signals
+            for (int i = 0; i < outs; i++) outsigs.push_back(sigInt(0));
+
+            // route propagation
+            int m = route.size() - 1;
+            for (int i = 0; i < m; i += 2) {
+                int src = route[i];
+                int dst = route[i + 1];
+                if ((dst > 0) & (dst <= outs)) {
+                    // we have a destination
+                    Tree exp = outsigs[dst - 1];
+                    if ((src > 0) & (src <= ins)) {
+                        // we have a source
+                        outsigs[dst - 1] = sigAdd(exp, lsig[src - 1]);
+                    }
+                }
+            }
+            return outsigs;
+
+        } else {
+            stringstream error;
+            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box)
+                  << endl;
+            throw faustexception(error.str());
+        }
+    }
     stringstream error;
     error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
           << endl;

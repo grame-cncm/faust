@@ -25,6 +25,7 @@
 *****************************************************************************/
 
 #include <float.h>
+#include <vector>
 
 #include "global.hh"
 #include "ppsig.hh"
@@ -711,4 +712,29 @@ bool verySimple(Tree exp)
 Tree sigFTZ(Tree s)
 {
     return tree(gGlobal->gFtzPrim->symbol(), s);
+}
+
+/*****************************************************************************
+ *                          sigList2vectInt
+ *****************************************************************************/
+// convert a list of signals (representing numbers) into a vector of ints
+// the result is true if the conversion was possible
+
+bool sigList2vecInt(Tree ls, vector<int>& v)
+{
+    int    i;
+    double x;
+
+    while (!isNil(ls)) {
+        Tree s = hd(ls);
+        ls     = tl(ls);
+        if (isSigInt(s, &i)) {
+            v.push_back(i);
+        } else if (isSigReal(s, &x)) {
+            v.push_back(int(x));
+        } else {
+            return false;
+        }
+    }
+    return true;
 }

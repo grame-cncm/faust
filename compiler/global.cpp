@@ -257,6 +257,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
     BOXWAVEFORM      = symbol("BoxWaveform");
+    BOXROUTE         = symbol("BoxRoute");
     BOXWIRE          = symbol("BoxWire");
     BOXSLOT          = symbol("BoxSlot");
     BOXSYMBOLIC      = symbol("BoxSymbolic");

@@ -263,6 +263,7 @@ struct global {
     Sym BOXIDENT;
     Sym BOXCUT;
     Sym BOXWAVEFORM;
+    Sym BOXROUTE;
     Sym BOXWIRE;
     Sym BOXSLOT;
     Sym BOXSYMBOLIC;

@@ -186,6 +186,7 @@ Tree unquote(char* str)
 %token LIBRARY
 %token ENVIRONMENT
 %token WAVEFORM
+%token ROUTE
 %token ENABLE
 %token CONTROL
 
@@ -548,6 +549,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ stmtlist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
                 | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
+				| ROUTE LPAR argument PAR argument PAR expression RPAR   	{ $$ = boxRoute($3, $5, $7); }
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }
 				| vslider						{ $$ = $1; }
