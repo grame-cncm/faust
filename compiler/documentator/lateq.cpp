@@ -77,16 +77,16 @@ void Lateq::println(ostream& docout)
     /* 1. Make titles of sub-sets of formulas. */
     string suchthat = gGlobal->gDocMathStringMap["suchthat"];
 
-    string sInputs =
-        makeItemTitle(fInputSigsFormulas.size(), "inputsigtitle") + makeSignamesList(fInputSigsFormulas, "");
-    string sOutputs =
-        makeItemTitle(fOutputSigsFormulas.size(), "outputsigtitle") + makeSignamesList(fOutputSigsFormulas, suchthat);
-    string sConstants =
-        makeItemTitle(fConstSigsFormulas.size(), "constsigtitle") + makeSignamesList(fConstSigsFormulas, suchthat);
+    string sInputs = makeItemTitle(fInputSigsFormulas.size(), "inputsigtitle") +
+                     makeSignamesList(fInputSigsFormulas, "");
+    string sOutputs = makeItemTitle(fOutputSigsFormulas.size(), "outputsigtitle") +
+                      makeSignamesList(fOutputSigsFormulas, suchthat);
+    string sConstants = makeItemTitle(fConstSigsFormulas.size(), "constsigtitle") +
+                        makeSignamesList(fConstSigsFormulas, suchthat);
 
     vector<list<string> > UISignamesVector = makeUISignamesVector(fUISigsFormulas);
-    string                sUIElements =
-        makeItemTitle(fUISigsFormulas.size(), "uisigtitle") + makeSignamesList(UISignamesVector, suchthat);
+    string                sUIElements      = makeItemTitle(fUISigsFormulas.size(), "uisigtitle") +
+                         makeSignamesList(UISignamesVector, suchthat);
 
     unsigned int internalSigsCount =
         (unsigned int)(fParamSigsFormulas.size() + fStoreSigsFormulas.size() + fRecurSigsFormulas.size() +
