@@ -27,7 +27,7 @@ DEBUG=false
 OSCDEFS=""
 OSCLIB=""
 POLY="POLY"
-DEPLOY=""
+DEPLOY="yes"
 EFFECT=""
 PRESETDIR="auto"
 NVOICES=-1
@@ -42,7 +42,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-nodeploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-httpd' to activate HTTP control"
@@ -56,7 +56,7 @@ do
         echo "Use '-preset <directory>' to add a preset manager on top of GUI and save the preset files in a given directory"
         echo "Use '-preset auto' to add a preset manager on top of GUI and save the preset files in a system temporary directory"
         echo "Use '-debug' to print all the build steps"
-        echo "Use '-deploy' to create a self-contained application using 'macdeployqt'"
+        echo "Use '-nodeploy' to not create a self-contained application using 'macdeployqt'"
         exit
     fi
 
@@ -65,8 +65,8 @@ do
     elif [ $p = "-opt" ]; then
         shift
         OPT=$1
-    elif [ $p = "-deploy" ]; then
-        DEPLOY="yes"
+    elif [ $p = "-nodeploy" ]; then
+    	DEPLOY="no"
     elif [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-nvoices" ]; then
