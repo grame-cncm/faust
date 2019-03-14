@@ -589,8 +589,8 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
             for (int i = 0; i < outs; i++) outsigs.push_back(sigInt(0));
 
             // route propagation
-            int m = route.size() - 1;
-            for (int i = 0; i < m; i += 2) {
+            size_t m = route.size() - 1;
+            for (size_t i = 0; i < m; i += 2) {
                 int src = route[i];
                 int dst = route[i + 1];
                 if ((dst > 0) & (dst <= outs)) {

@@ -599,7 +599,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         getBoxType(v2, &i2, &o2);
         getBoxType(vr, &i3, &o3);
 
-        if (i1 == 0 & o1 == 1 & i2 == 0 & o2 == 1 & i3 == 0 & o3 > 1 & (o3 % 2) == 0) {
+        if ((i1 == 0) & (o1 == 1) & (i2 == 0) & (o2 == 1) & (i3 == 0) & (o3 > 1) & ((o3 % 2) == 0)) {
             // we are in good shape
             Tree ls1 = boxPropagateSig(gGlobal->nil, v1, makeSigInputList(0));
             Tree ls2 = boxPropagateSig(gGlobal->nil, v2, makeSigInputList(0));
