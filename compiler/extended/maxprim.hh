@@ -157,7 +157,7 @@ class MaxPrim : public xtended {
                 casted_args.push_back((*it2));
                 return container->pushFunction("max_i", result_type, arg_types, casted_args);
             } else {
-                // both are booleans, theoratically no need to cast, but we still do it to be sure 'true' is actually
+                // both are booleans, theoretically no need to cast, but we still do it to be sure 'true' is actually
                 // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);  // both are booleans, cast both
@@ -206,7 +206,7 @@ class MaxPrim : public xtended {
                 faustassert(b0 == kBool);  // first is boolean, cast to int
                 return subst("max((int)$0, $1)", args[0], args[1], icast());
             } else {
-                // both are booleans, theoratically no need to cast, but we still do it to be sure 'true' is actually
+                // both are booleans, theoretically no need to cast, but we still do it to be sure 'true' is actually
                 // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);
