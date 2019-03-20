@@ -345,7 +345,7 @@ public:
 			
 class dsp {
  protected:
-	int fSamplingFreq;
+	int fSampleRate;
  public:
 	dsp() {}
 	virtual ~dsp() {}
@@ -353,7 +353,7 @@ class dsp {
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
+	virtual void init(int sampleRate)                               = 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
  	virtual void conclude() 										{}
 };

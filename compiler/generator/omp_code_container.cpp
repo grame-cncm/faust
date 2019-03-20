@@ -85,7 +85,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     if (analyser.fFirstPrivateTable.size() == 0) {
         result_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp parallel"));
     } else {
-        std::ostringstream firstprivate;
+        stringstream firstprivate;
         firstprivate << "\t"
                      << "firstprivate(";
         list<string>::const_iterator it1;

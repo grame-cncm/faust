@@ -169,7 +169,7 @@ EndOfCode
     (
 	    cd "$TMP"
 	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS"
-	    $QMAKE $SPEC
+	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
 

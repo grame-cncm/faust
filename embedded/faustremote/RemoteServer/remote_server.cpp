@@ -333,6 +333,7 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
                 "",
                 tmp_dsp->getNumInputs(),
                 tmp_dsp->getNumOutputs(),
+                -1,
                 factory->getSHAKey(),
                 base64_encode(code.c_str(), int(code.size())),
                 "", "",

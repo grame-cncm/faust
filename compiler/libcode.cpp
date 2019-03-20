@@ -742,8 +742,7 @@ static void printHelp()
 
     cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
          << endl;
-    cout << tab << "-time     --compilation-time            display compilation phases timing information." << endl;
-
+  
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
     cout << tab << "-e        --export-dsp                  export expanded DSP (all included libraries)." << endl;
@@ -868,6 +867,7 @@ static void printHelp()
 
     cout << endl << "Debug options:" << line;
     cout << tab << "-d          --details                   print compilation details." << endl;
+    cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
@@ -1256,10 +1256,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputLang == "llvm") {
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-        gGlobal->gAllowForeignFunction =
-            true;  // libc functions will be found by the LLVM linker, but not user defined ones...
-        gGlobal->gFAUSTFLOATToInternal =
-            true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+         // libc functions will be found by the LLVM linker, but not user defined ones...
+        gGlobal->gAllowForeignFunction = true;
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;
+        
+        gGlobal->gUseDefaultSound = false;
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);

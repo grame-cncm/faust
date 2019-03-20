@@ -77,9 +77,9 @@ class dsp {
   virtual int getSampleRate() = 0;
   
   // Init methods
-  virtual void init(int samplingRate) = 0;
-  virtual void instanceInit(int samplingRate) = 0;
-  virtual void instanceConstants(int samplingRate) = 0;
+  virtual void init(int sample_rate) = 0;
+  virtual void instanceInit(int sample_rate) = 0;
+  virtual void instanceConstants(int sample_rate) = 0;
   virtual void instanceResetUserInterface() = 0;
   virtual void instanceClear() = 0;
   

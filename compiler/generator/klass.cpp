@@ -816,7 +816,7 @@ void Klass::println(int n, ostream& fout)
     printlines(n + 1, fDeclCode, fout);
 
     tab(n + 1, fout);
-    fout << "int fSamplingFreq;\n";
+    fout << "int fSampleRate;\n";
 
     tab(n, fout);
     fout << "  public:";
@@ -847,7 +847,7 @@ void Klass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "static void classInit(int samplingFreq) {";
+    fout << "static void classInit(int sample_rate) {";
     printlines(n + 2, fStaticInitCode, fout);
     tab(n + 1, fout);
     fout << "}";
@@ -861,9 +861,9 @@ void Klass::println(int n, ostream& fout)
     }
 
     tab(n + 1, fout);
-    fout << "virtual void instanceConstants(int samplingFreq) {";
+    fout << "virtual void instanceConstants(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "fSamplingFreq = samplingFreq;";
+    fout << "fSampleRate = sample_rate;";
     printlines(n + 2, fInitCode, fout);
     tab(n + 1, fout);
     fout << "}";
@@ -882,22 +882,22 @@ void Klass::println(int n, ostream& fout)
 
     if (gGlobal->gMemoryManager) {
         tab(n + 1, fout);
-        fout << "virtual void init(int samplingFreq) {}";
+        fout << "virtual void init(int sample_rate) {}";
     } else {
         tab(n + 1, fout);
-        fout << "virtual void init(int samplingFreq) {";
+        fout << "virtual void init(int sample_rate) {";
         tab(n + 2, fout);
-        fout << "classInit(samplingFreq);";
+        fout << "classInit(sample_rate);";
         tab(n + 2, fout);
-        fout << "instanceInit(samplingFreq);";
+        fout << "instanceInit(sample_rate);";
         tab(n + 1, fout);
         fout << "}";
     }
 
     tab(n + 1, fout);
-    fout << "virtual void instanceInit(int samplingFreq) {";
+    fout << "virtual void instanceInit(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "instanceConstants(samplingFreq);";
+    fout << "instanceConstants(sample_rate);";
     tab(n + 2, fout);
     fout << "instanceResetUserInterface();";
     tab(n + 2, fout);
@@ -915,7 +915,7 @@ void Klass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "virtual int getSampleRate() {";
     tab(n + 2, fout);
-    fout << "return fSamplingFreq;";
+    fout << "return fSampleRate;";
     tab(n + 1, fout);
     fout << "}";
 
@@ -1383,7 +1383,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
     tab(n, fout);
     fout << "  private:";
     tab(n + 1, fout);
-    fout << "int fSamplingFreq;";
+    fout << "int fSampleRate;";
 
     for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
 
@@ -1400,9 +1400,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "void init(int samplingFreq) {";
+    fout << "void init(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "fSamplingFreq = samplingFreq;";
+    fout << "fSampleRate = sample_rate;";
     printlines(n + 2, fInitCode, fout);
     printlines(n + 2, fClearCode, fout);
     tab(n + 1, fout);
@@ -1435,7 +1435,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     tab(n, fout);
     fout << "  private:";
     tab(n + 1, fout);
-    fout << "int fSamplingFreq;";
+    fout << "int fSampleRate;";
 
     for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
 
@@ -1452,9 +1452,9 @@ void SigFloatGenKlass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "void init(int samplingFreq) {";
+    fout << "void init(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "fSamplingFreq = samplingFreq;";
+    fout << "fSampleRate = sample_rate;";
     printlines(n + 2, fInitCode, fout);
     printlines(n + 2, fClearCode, fout);
     tab(n + 1, fout);

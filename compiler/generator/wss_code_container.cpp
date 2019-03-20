@@ -150,7 +150,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
         fun_args2.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
     }
     fun_args2.push_back(InstBuilder::genInt32NumInst(0));
-    loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread", fun_args2));
+    loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread" + fKlassName, fun_args2));
 
     loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("syncAll", fun_args1));
 }
@@ -502,6 +502,46 @@ void WSSCodeContainer::processFIR(void)
     global_block.pushBackInst(fDAGBlock);
     global_block.accept(&verifier);
     */
+}
+
+
+DeclareFunInst* WSSCodeContainer::generateComputeThread(const string& name, const string& obj, bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("num_thread", Typed::kInt32));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(fThreadLoopBlock);
+    
+    // Explicit return
+    block->pushBackInst(InstBuilder::genRetInst());
+    
+    // Creates function
+    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+}
+
+DeclareFunInst* WSSCodeContainer::generateComputeThreadExternal(const string& name, const string& obj)
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped(obj, Typed::kVoid_ptr));
+    args.push_back(InstBuilder::genNamedTyped("num_thread", Typed::kInt32));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    {
+        list<ValueInst*> args;
+        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj), InstBuilder::genBasicTyped(Typed::kObj_ptr)));
+        args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread" + fKlassName, args));
+    }
+    
+    // Explicit return
+    block->pushBackInst(InstBuilder::genRetInst());
+    
+    // Creates function
+    return InstBuilder::genVoidFunction(name, args, block, false);
 }
 
 BlockInst* WSSCodeContainer::flattenFIR(void)

@@ -199,6 +199,7 @@ void VectorCodeContainer::processFIR(void)
     CodeContainer::processFIR();
     
     // If stack variables take to much room, move them in struct
+    //dump2FIR(fComputeBlockInstructions);
     VariableSizeCounter counter(Address::kStack);
     generateComputeBlock(&counter);
     

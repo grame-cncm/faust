@@ -91,7 +91,7 @@ int computeBoxComplexity(Tree box)
     prim4  p4;
     prim5  p5;
 
-    Tree t1, t2, ff, label, cur, min, max, step, type, name, file, chan;
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, chan;
 
     xtended* xt = (xtended*)getUserData(box);
 
@@ -180,6 +180,9 @@ int computeBoxComplexity(Tree box)
         return 0;
     else if (isBoxMetadata(box, t1, t2))
         return BC(t1);
+
+    else if (isBoxRoute(box, t1, t2, t3))
+        return 0;
 
     // a completer
     else {

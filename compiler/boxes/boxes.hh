@@ -82,6 +82,15 @@ Tree boxWaveform(const tvec& br);
 bool isBoxWaveform(Tree t);
 
 /*****************************************************************************
+                                    route
+    route (n, m,...(si,di),...)
+    a n-imputs, m-outputs routing object
+*****************************************************************************/
+
+Tree boxRoute(Tree n, Tree m, Tree r);
+bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r);
+
+/*****************************************************************************
                                 Wire and Cut
 *****************************************************************************/
 

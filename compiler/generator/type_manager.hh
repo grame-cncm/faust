@@ -34,10 +34,11 @@ struct StringTypeManager {
     std::map<Typed::VarType, std::string> fTypeDirectTable;
     std::string                           fPtrPosfix;
 
-    StringTypeManager(const std::string& float_macro_name, const std::string& float_macro_name_ptr)
+    StringTypeManager(const std::string& float_macro_name, const std::string& posfix)
     {
-        fTypeDirectTable[Typed::kFloatMacro]     = float_macro_name;
-        fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name_ptr;
+        fTypeDirectTable[Typed::kFloatMacro] = float_macro_name;
+        fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name + posfix;
+        fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = float_macro_name + posfix + posfix;
     }
 
     virtual ~StringTypeManager() {}
@@ -51,7 +52,7 @@ struct StringTypeManager {
 class CStringTypeManager : public StringTypeManager {
    public:
     CStringTypeManager(const std::string& float_macro_name, const std::string& ptr_postfix)
-        : StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+        : StringTypeManager(float_macro_name, ptr_postfix)
     {
         fPtrPosfix = ptr_postfix;
 
@@ -68,17 +69,14 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kFloat_ptr_ptr] = "float" + fPtrPosfix + fPtrPosfix;
         fTypeDirectTable[Typed::kFloat_vec]     = "vector<float>";
 
-        fTypeDirectTable[Typed::kFloatMacro_ptr]     = "FAUSTFLOAT" + fPtrPosfix;
-        fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = "FAUSTFLOAT" + fPtrPosfix + fPtrPosfix;
-
         fTypeDirectTable[Typed::kDouble]         = "double";
         fTypeDirectTable[Typed::kDouble_ptr]     = "double" + fPtrPosfix;
         fTypeDirectTable[Typed::kDouble_ptr_ptr] = "double" + fPtrPosfix + fPtrPosfix;
-        ;
-        fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
+        fTypeDirectTable[Typed::kDouble_vec]     = "vector<double>";
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrPosfix;
+        fTypeDirectTable[Typed::kQuad_vec] = "vector<quad>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrPosfix;
@@ -90,6 +88,7 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kSound]     = "Soundfile";
         fTypeDirectTable[Typed::kSound_ptr] = "Soundfile" + fPtrPosfix;
 
+        // DSP has to be empty here
         fTypeDirectTable[Typed::kObj]     = "";
         fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
 

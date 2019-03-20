@@ -126,7 +126,7 @@ void RustCodeContainer::produceInternal()
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
 
     tab(n + 1, *fOut);
-    *fOut << "pub fn instanceInit" << fKlassName << "(&mut self, samplingFreq: i32) {";
+    *fOut << "pub fn instanceInit" << fKlassName << "(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -260,7 +260,7 @@ void RustCodeContainer::produceClass()
     // Get sample rate method
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
-    generateGetSampleRate("&mut self", false, false)->accept(&fCodeProducer);
+    generateGetSampleRate("getSampleRate" + fKlassName, "&mut self", false, false)->accept(&fCodeProducer);
 
     produceInfoFunctions(n + 1, "", "&mut self", false, false, &fCodeProducer);
 
@@ -274,7 +274,7 @@ void RustCodeContainer::produceClass()
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&codeproducer2);
 
     tab(n + 1, *fOut);
-    *fOut << "pub fn classInit(samplingFreq: i32) {";
+    *fOut << "pub fn classInit(sample_rate: i32) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -313,7 +313,7 @@ void RustCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "pub fn instanceConstants(&mut self, samplingFreq: i32) {";
+    *fOut << "pub fn instanceConstants(&mut self, sample_rate: i32) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -326,9 +326,9 @@ void RustCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "pub fn instanceInit(&mut self, samplingFreq: i32) {";
+    *fOut << "pub fn instanceInit(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
-    *fOut << "self.instanceConstants(samplingFreq);";
+    *fOut << "self.instanceConstants(sample_rate);";
     tab(n + 2, *fOut);
     *fOut << "self.instanceResetUserInterface();";
     tab(n + 2, *fOut);
@@ -338,11 +338,11 @@ void RustCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "pub fn init(&mut self, samplingFreq: i32) {";
+    *fOut << "pub fn init(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
-    *fOut << fKlassName << "::classInit(samplingFreq);";
+    *fOut << fKlassName << "::classInit(sample_rate);";
     tab(n + 2, *fOut);
-    *fOut << "self.instanceInit(samplingFreq);";
+    *fOut << "self.instanceInit(sample_rate);";
     tab(n + 1, *fOut);
     *fOut << "}";
 

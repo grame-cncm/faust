@@ -90,6 +90,7 @@ string Typed::gTypeString[] = {"kInt32",
                                "kDouble_vec_ptr",
                                "kQuad",
                                "kQuad_ptr",
+                               "kQuad_ptr_ptr",
                                "kQuad_vec",
                                "kQuad_vec_ptr",
                                "kVoid",
@@ -171,6 +172,7 @@ BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 
 int BasicTyped::getSize()
 {
+    faustassert(gGlobal->gTypeSizeMap.find(fType) != gGlobal->gTypeSizeMap.end());
     return gGlobal->gTypeSizeMap[fType];
 }
 
@@ -183,6 +185,7 @@ int ArrayTyped::getSize()
 {
     if (fSize == 0) {
         // Array of zero size are treated as pointer in the corresponding type
+        faustassert(gGlobal->gTypeSizeMap.find(getType()) != gGlobal->gTypeSizeMap.end());
         return gGlobal->gTypeSizeMap[getType()];
     } else {
         return fType->getSize() * fSize;
@@ -262,6 +265,12 @@ DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code
 {
     list<NamedTyped*> args;
     FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped());
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
+}
+
+DeclareFunInst* InstBuilder::genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code, bool isvirtual)
+{
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 

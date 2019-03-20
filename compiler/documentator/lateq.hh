@@ -93,7 +93,7 @@ class Lateq : public virtual Garbageable {
     list<string>             fOutputSigsFormulas;
     multimap<string, string> fUISigsFormulas;
 
-    string                makeItemTitle(const unsigned int formulasListSize, const string& titleName);
+    string                makeItemTitle(size_t formulasListSize, const string& titleName);
     string                makeSignamesList(const list<string>& formulasList, const string& ending);
     string                makeSignamesList(const vector<list<string> >& formulasListsVector,
                                            const string&                ending);  ///< For all "internal" signals.

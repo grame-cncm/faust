@@ -49,7 +49,7 @@ class sound_base_player : public dsp {
         SF_INFO fInfo;
         SNDFILE* fFile;
         std::string fFileName;
-        int fSamplingRate;
+        int fSampleRate;
         
         // File current frame while playing
         FAUSTFLOAT fCurFrames;
@@ -82,7 +82,7 @@ class sound_base_player : public dsp {
         sound_base_player(const std::string& filename)
         {
             fFileName = filename;
-            fSamplingRate = -1;
+            fSampleRate = -1;
             
             if (sizeof(FAUSTFLOAT) == 4) {
                 fReaderFun = reinterpret_cast<sample_read>(sf_readf_float);
@@ -113,26 +113,26 @@ class sound_base_player : public dsp {
             ui_interface->closeBox();
         }
         
-        virtual int getSampleRate() { return fSamplingRate; }
+        virtual int getSampleRate() { return fSampleRate; }
         
-        static void classInit(int samplingRate) {}
+        static void classInit(int sample_rate) {}
         
-        virtual void init(int samplingRate)
+        virtual void init(int sample_rate)
         {
-            classInit(samplingRate);
-            instanceInit(samplingRate);
+            classInit(sample_rate);
+            instanceInit(sample_rate);
         }
         
-        virtual void instanceInit(int samplingRate)
+        virtual void instanceInit(int sample_rate)
         {
-            instanceConstants(samplingRate);
+            instanceConstants(sample_rate);
             instanceResetUserInterface();
             instanceClear();
         }
         
-        virtual void instanceConstants(int samplingRate)
+        virtual void instanceConstants(int sample_rate)
         {
-            fSamplingRate = samplingRate;
+            fSampleRate = sample_rate;
         }
         
         virtual void instanceResetUserInterface()

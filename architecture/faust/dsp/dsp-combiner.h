@@ -87,22 +87,22 @@ class dsp_binary_combiner : public dsp {
             return fDSP1->getSampleRate();
         }
         
-        virtual void init(int samplingRate)
+        virtual void init(int sample_rate)
         {
-            fDSP1->init(samplingRate);
-            fDSP2->init(samplingRate);
+            fDSP1->init(sample_rate);
+            fDSP2->init(sample_rate);
         }
         
-        virtual void instanceInit(int samplingRate)
+        virtual void instanceInit(int sample_rate)
         {
-            fDSP1->instanceInit(samplingRate);
-            fDSP2->instanceInit(samplingRate);
+            fDSP1->instanceInit(sample_rate);
+            fDSP2->instanceInit(sample_rate);
         }
         
-        virtual void instanceConstants(int samplingRate)
+        virtual void instanceConstants(int sample_rate)
         {
-            fDSP1->instanceConstants(samplingRate);
-            fDSP2->instanceConstants(samplingRate);
+            fDSP1->instanceConstants(sample_rate);
+            fDSP2->instanceConstants(sample_rate);
         }
         
         virtual void instanceResetUserInterface()

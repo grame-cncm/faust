@@ -565,11 +565,11 @@ int remote_dsp_aux::getNumOutputs()
 
 // Useless fonction in our case but required for a DSP interface
 //Interesting to implement one day ! 
-void remote_dsp_aux::init(int /*samplingRate*/) {}
+void remote_dsp_aux::init(int /*sample_rate*/) {}
 
-void remote_dsp_aux::instanceConstants(int /*samplingRate*/) {}
+void remote_dsp_aux::instanceConstants(int /*sample_rate*/) {}
 
-void remote_dsp_aux::instanceInit(int /*samplingRate*/) {}
+void remote_dsp_aux::instanceInit(int /*sample_rate*/) {}
 
 void remote_dsp_aux::instanceResetUserInterface() {}
 
@@ -1116,19 +1116,19 @@ EXPORT int remote_dsp::getNumOutputs()
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
 }
 
-EXPORT void remote_dsp::init(int samplingRate)
+EXPORT void remote_dsp::init(int sample_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->init(samplingRate);
+    reinterpret_cast<remote_dsp_aux*>(this)->init(sample_rate);
 }
 
-EXPORT void remote_dsp::instanceInit(int samplingRate)
+EXPORT void remote_dsp::instanceInit(int sample_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(samplingRate);
+    reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(sample_rate);
 }
 
-EXPORT void remote_dsp::instanceConstants(int samplingRate)
+EXPORT void remote_dsp::instanceConstants(int sample_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->instanceConstants(samplingRate);
+    reinterpret_cast<remote_dsp_aux*>(this)->instanceConstants(sample_rate);
 }
 
 EXPORT void remote_dsp::instanceResetUserInterface()

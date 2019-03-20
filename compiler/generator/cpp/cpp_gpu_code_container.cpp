@@ -78,7 +78,7 @@ void CPPOpenCLCodeContainer::produceInternal()
     // Inits
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -122,9 +122,9 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
+    pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
     pushFrontInitMethod(
-        InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+        InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -179,7 +179,7 @@ void CPPOpenCLCodeContainer::produceClass()
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
         *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global "
-                    "int samplingFreq) {";
+                    "int sample_rate) {";
         tab1(n + 1, *fGPUOut);
         fKernelCodeProducer->Tab(n + 1);
         fInitInstructions->accept(fKernelCodeProducer);
@@ -369,7 +369,7 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 4, *fOut);
     *fOut << "int val = strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10);";
     tab(n + 4, *fOut);
-    *fOut << "int gpu_load = 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * "
+    *fOut << "int gpu_load = 100 * executionTime(dsp_execution) * double(dsp->fSampleRate) / (double(dsp->fCount) * "
              "1000);";
     tab(n + 4, *fOut);
     *fOut << "if (gpu_load > val) {";
@@ -851,7 +851,7 @@ void CPPOpenCLCodeContainer::produceClass()
     // Inits
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int samplingFreq) {";
+    *fOut << "static void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -860,10 +860,10 @@ void CPPOpenCLCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceInit(int samplingFreq) {";
+    *fOut << "virtual void instanceInit(int sample_rate) {";
     if (fInitInstructions->fCode.size() > 0) {
         tab(n + 2, *fOut);
-        *fOut << "fSamplingFreq = samplingFreq;";
+        *fOut << "fSampleRate = sample_rate;";
 
         tab(n + 2, *fOut);
         *fOut << "int err = 0;";
@@ -872,7 +872,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n + 2, *fOut);
         *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fDeviceControl);";
         tab(n + 2, *fOut);
-        *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &samplingFreq);";
+        *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &sample_rate);";
         tab(n + 2, *fOut);
         *fOut << "if (err != CL_SUCCESS) {";
         tab(n + 3, *fOut);
@@ -1146,7 +1146,7 @@ void CPPCUDACodeContainer::produceInternal()
     // Inits
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -1187,13 +1187,13 @@ void CPPCUDACodeContainer::produceInternal()
 void CPPCUDACodeContainer::generateInstanceInitKernelGlue(int n)
 {
     tab(n, *fGPUOut);
-    *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
+    *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
     tab(n + 1, *fGPUOut);
     *fGPUOut << "dim3 block(1);";
     tab(n + 1, *fGPUOut);
     *fGPUOut << "dim3 grid(1);";
     tab(n + 1, *fGPUOut);
-    *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, samplingFreq);";
+    *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, sample_rate);";
     tab(n, *fGPUOut);
     *fGPUOut << "}";
 }
@@ -1247,9 +1247,9 @@ void CPPCUDACodeContainer::produceClass()
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
+    pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
     pushFrontInitMethod(
-        InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+        InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1302,7 +1302,7 @@ void CPPCUDACodeContainer::produceClass()
 
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
-        *fGPUOut << "__global__ void instanceInitKernel(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
+        *fGPUOut << "__global__ void instanceInitKernel(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
         tab(n + 1, *fGPUOut);
         fKernelCodeProducer->Tab(n + 1);
         fInitInstructions->accept(fKernelCodeProducer);
@@ -1340,7 +1340,7 @@ void CPPCUDACodeContainer::produceClass()
 
     // CUDA kernel prototypes
     tab(n, *fOut);
-    *fOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int samplingFreq);";
+    *fOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate);";
 
     tab(n, *fOut);
     *fOut << "void computeKernelGlue(int count, ";
@@ -1475,7 +1475,7 @@ void CPPCUDACodeContainer::produceClass()
     /*
     tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
         tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) *
-    double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;"; tab(n+3, *fOut); *fOut << "}" << endl;
+    double(dsp->fSampleRate) / (double(dsp->fCount) * 1000) << \"%\" << endl;"; tab(n+3, *fOut); *fOut << "}" << endl;
     */
 
     tab(n + 2, *fOut);
@@ -1799,7 +1799,7 @@ void CPPCUDACodeContainer::produceClass()
 
     // Inits
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int samplingFreq) {";
+    *fOut << "static void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -1808,12 +1808,12 @@ void CPPCUDACodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceInit(int samplingFreq) {";
+    *fOut << "virtual void instanceInit(int sample_rate) {";
     if (fInitInstructions->fCode.size() > 0) {
         tab(n + 2, *fOut);
-        *fOut << "fSamplingFreq = samplingFreq;";
+        *fOut << "fSampleRate = sample_rate;";
         tab(n + 2, *fOut);
-        *fOut << "instanceInitKernelGlue(fDeviceDSP, fDeviceControl, samplingFreq);";
+        *fOut << "instanceInitKernelGlue(fDeviceDSP, fDeviceControl, sample_rate);";
 
         // Wait for instanceInit end
         tab(n + 2, *fOut);
@@ -2051,13 +2051,13 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 void CPPCUDAVectorCodeContainer::generateInstanceInitKernelGlue(int n)
 {
     tab(n, *fGPUOut);
-    *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
+    *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int sample_rate) {";
     tab(n + 1, *fGPUOut);
     *fGPUOut << "dim3 block(16);";
     tab(n + 1, *fGPUOut);
     *fGPUOut << "dim3 grid(16);";
     tab(n + 1, *fGPUOut);
-    *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, samplingFreq);";
+    *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, sample_rate);";
     tab(n, *fGPUOut);
     *fGPUOut << "}";
 }

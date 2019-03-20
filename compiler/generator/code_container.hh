@@ -29,7 +29,6 @@
 #include "description.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
-#include "fir_function_builder.hh"
 #include "floats.hh"
 #include "garbageable.hh"
 #include "instructions.hh"
@@ -169,10 +168,10 @@ class CodeContainer : public virtual Garbageable {
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
-            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
+            pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
         }
         pushFrontInitMethod(
-            InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+            InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
@@ -235,6 +234,9 @@ class CodeContainer : public virtual Garbageable {
     // Should be implemented in subclasses
     virtual void generateLocalInputs(BlockInst* loop_code, const string& index) { faustassert(false); }
     virtual void generateLocalOutputs(BlockInst* loop_code, const string& index) { faustassert(false); }
+    
+    virtual DeclareFunInst* generateAllocate(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    virtual DeclareFunInst* generateDestroy(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
     DeclareFunInst* generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
@@ -250,33 +252,28 @@ class CodeContainer : public virtual Garbageable {
         faustassert(false);
         return nullptr;
     }
-    virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual)
-    {
-        faustassert(false);
-        return nullptr;
-    }
-    virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod,
-                                                      bool isvirtual)
-    {
-        faustassert(false);
-        return nullptr;
-    }
+    virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
+   
+    virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
+  
     virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                                bool isvirtual)
     {
         faustassert(false);
         return nullptr;
     }
+    
+    virtual DeclareFunInst* generateComputeFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    
+    virtual BlockInst* generateComputeAux() { faustassert(false); return nullptr; }
+  
+    virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic);
+    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-    virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
-    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                    bool isvirtual, bool addreturn = false);
-    virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
-                                            bool addreturn = false);
-
-    DeclareFunInst* generateInit(const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceInit(const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateGetSampleRate(const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateGetSampleRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
     void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
                               TextInstVisitor* producer);
@@ -286,8 +283,14 @@ class CodeContainer : public virtual Garbageable {
     void generateJSONFile();
     void generateMetaData(JSONUI* json);
     void generateJSON(JSONInstVisitor* visitor);
+    
+    DeclareFunInst* generateCalloc();
+    DeclareFunInst* generateFree();
+    
+    DeclareFunInst* generateNewDsp(const string& name, int size);
+    DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
 
-    /* can be overridden by subclasses to reorder the FIR before the actual code generation */
+    /* Can be overridden by subclasses to transform the FIR before the actual code generation */
     virtual void processFIR(void);
 
     virtual BlockInst* flattenFIR(void);

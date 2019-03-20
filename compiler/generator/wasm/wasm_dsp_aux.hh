@@ -280,11 +280,11 @@ class EXPORT wasm_dsp : public dsp {
 
     virtual int getSampleRate();
 
-    virtual void init(int samplingRate);
+    virtual void init(int sample_rate);
 
-    virtual void instanceInit(int samplingRate);
+    virtual void instanceInit(int sample_rate);
 
-    virtual void instanceConstants(int samplingRate);
+    virtual void instanceConstants(int sample_rate);
 
     virtual void instanceResetUserInterface();
 
