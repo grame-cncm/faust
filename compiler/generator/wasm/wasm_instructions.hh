@@ -404,7 +404,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+            args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
             FunTyped* fun_type =
                 InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["init"]              = fun_type;
@@ -469,17 +469,17 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 fFieldTable[name] =
-                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                    MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += (array_typed->fSize * audioSampleSize());
+                fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += audioSampleSize();
+                fStructOffset += gGlobal->audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
                 faustassert(inst->fValue == nullptr);
@@ -828,17 +828,17 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 fFieldTable[name] =
-                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                    MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += (array_typed->fSize * audioSampleSize());
+                fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += audioSampleSize();
+                fStructOffset += gGlobal->audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
                 faustassert(inst->fValue == nullptr);

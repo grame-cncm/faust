@@ -98,20 +98,22 @@ typedef struct {
  *  Interface for the DSP object
  ***************************************/
 
-struct dsp_imp;
+typedef char dsp_imp;
     
-typedef struct dsp_imp* (* newDspFun) ();
-typedef void (* deleteDspFun) (struct dsp_imp* dsp);
-typedef int (* getNumInputsFun) (struct dsp_imp* dsp);
-typedef int (* getNumOutputsFun) (struct dsp_imp* dsp);
-typedef void (* buildUserInterfaceFun) (struct dsp_imp* dsp, UIGlue* ui);
-typedef void (* initFun) (struct dsp_imp* dsp, int freq);
-typedef void (* clearFun) (struct dsp_imp* dsp);
-typedef int (* getSampleRateFun) (struct dsp_imp* dsp);
-typedef void (* computeFun) (struct dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef dsp_imp* (* newDspFun) ();
+typedef void (* deleteDspFun) (dsp_imp* dsp);
+typedef void (* allocateDspFun) (dsp_imp* dsp);
+typedef void (* destroyDspFun) (dsp_imp* dsp);
+typedef int (* getNumInputsFun) (dsp_imp* dsp);
+typedef int (* getNumOutputsFun) (dsp_imp* dsp);
+typedef void (* buildUserInterfaceFun) (dsp_imp* dsp, UIGlue* ui);
+typedef void (* initFun) (dsp_imp* dsp, int sample_rate);
+typedef void (* clearFun) (dsp_imp* dsp);
+typedef int (* getSampleRateFun) (dsp_imp* dsp);
+typedef void (* computeFun) (dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
+typedef void (* classInitFun) (int sample_rate);
 typedef const char* (* getJSONFun) ();
-typedef void (* setDefaultSoundFun) (struct Soundfile* sf);
     
 /***************************************
  * DSP memory manager functions

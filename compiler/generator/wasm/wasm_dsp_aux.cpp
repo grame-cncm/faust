@@ -434,19 +434,19 @@ int wasm_dsp::getSampleRate()
     return EM_ASM_INT({ return FaustModule.faust.wasm_instance[$0].exports.getSampleRate($1); }, fIndex, fDSP);
 }
 
-void wasm_dsp::init(int samplingRate)
+void wasm_dsp::init(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1); }, fIndex, fDSP, samplingRate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1); }, fIndex, fDSP, sample_rate);
 }
 
-void wasm_dsp::instanceInit(int samplingRate)
+void wasm_dsp::instanceInit(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fIndex, fDSP, samplingRate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
-void wasm_dsp::instanceConstants(int samplingRate)
+void wasm_dsp::instanceConstants(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fIndex, fDSP, samplingRate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceResetUserInterface()
@@ -587,15 +587,15 @@ int wasm_dsp::getSampleRate()
     return -1;
 }
 
-void wasm_dsp::init(int samplingRate)
+void wasm_dsp::init(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceInit(int samplingRate)
+void wasm_dsp::instanceInit(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceConstants(int samplingRate)
+void wasm_dsp::instanceConstants(int sample_rate)
 {
 }
 

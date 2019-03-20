@@ -554,6 +554,9 @@ struct global {
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
+    
+    int audioSampleSize();
+    
 };
 
 // Unique shared global pointer

@@ -1256,10 +1256,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputLang == "llvm") {
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-        gGlobal->gAllowForeignFunction =
-            true;  // libc functions will be found by the LLVM linker, but not user defined ones...
-        gGlobal->gFAUSTFLOATToInternal =
-            true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+         // libc functions will be found by the LLVM linker, but not user defined ones...
+        gGlobal->gAllowForeignFunction = true;
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;
+        
+        gGlobal->gUseDefaultSound = false;
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);

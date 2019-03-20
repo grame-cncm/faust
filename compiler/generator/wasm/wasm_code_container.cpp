@@ -124,7 +124,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
@@ -158,7 +158,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
@@ -194,14 +194,13 @@ WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInpu
 }
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
-DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                           bool isvirtual, bool addreturn)
+DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* init_block = InstBuilder::genBlockInst();
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
@@ -209,10 +208,9 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
-    if (addreturn) {
-        init_block->pushBackInst(InstBuilder::genRetInst());
-    }
-
+    
+    init_block->pushBackInst(InstBuilder::genRetInst());
+  
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
@@ -290,10 +288,10 @@ void WASMCodeContainer::produceClass()
     gGlobal->gWASMVisitor->generateGetParamValue();
 
     // 6) getSampleRate
-    generateGetSampleRate("dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 7) init
-    generateInit("dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInit("init", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 8) instanceClear
     generateInstanceClear("instanceClear", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
@@ -302,7 +300,7 @@ void WASMCodeContainer::produceClass()
     generateInstanceConstants("instanceConstants", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 10) instanceInit
-    generateInstanceInit("dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInstanceInit("instanceInit", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 11) instanceResetUserInterface
     generateInstanceResetUserInterface("instanceResetUserInterface", "dsp", false, false)
@@ -330,12 +328,11 @@ void WASMCodeContainer::produceClass()
         generateUserInterface(gGlobal->gWASMVisitor);
     }
 
-    // JSON generation
-
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
 
+    // JSON generation
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
 
@@ -349,7 +346,7 @@ void WASMCodeContainer::produceClass()
     }
 
     // "name", "filename" found in metadata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
                                   gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(gGlobal->gWASMVisitor->getStructSize()),
                                   path_index_table);
     generateUserInterface(&json_visitor2);

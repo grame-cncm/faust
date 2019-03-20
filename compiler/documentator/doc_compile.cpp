@@ -350,7 +350,7 @@ string DocCompiler::generateFConst(Tree sig, const string& file, const string& e
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
     }
 
-    if (exp == "fSamplingFreq") {
+    if (exp == "fSampleRate" || exp == "fSamplingFreq") {
         // gGlobal->gDocNoticeFlagMap["fsamp"] = true;
         return "f_S";
     }

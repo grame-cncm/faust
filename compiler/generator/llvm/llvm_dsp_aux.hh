@@ -30,6 +30,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
+#include "faust/gui/JSONUIDecoder.h"
 
 #include "TMutex.h"
 #include "dsp_aux.hh"
@@ -82,7 +83,6 @@ class Module;
 }  // namespace llvm
 
 class llvm_dsp_factory;
-struct JSONUIDecoder;
 
 // Public C++ interface
 
@@ -107,20 +107,22 @@ class EXPORT llvm_dsp : public dsp {
 
     virtual int getSampleRate();
 
-    virtual void init(int samplingRate);
+    virtual void init(int sample_rate);
 
-    virtual void instanceInit(int samplingRate);
+    virtual void instanceInit(int sample_rate);
 
-    virtual void instanceConstants(int samplingRate);
+    virtual void instanceConstants(int sample_rate);
 
     virtual void instanceResetUserInterface();
 
     virtual void instanceClear();
-
+    
+    virtual void classInit(int sample_rate);
+ 
     virtual llvm_dsp* clone();
 
     virtual void metadata(Meta* m);
-
+   
     virtual void metadata(MetaGlue* glue);
 
     virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
@@ -163,29 +165,21 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 #endif
     llvm::Module*      fModule;
     llvm::LLVMContext* fContext;
-    JSONUIDecoder*     fDecoder;
+    JSONUITemplatedDecoder* fDecoder;
 
     int         fOptLevel;
     std::string fTarget;
     std::string fClassName;
     std::string fTypeName;
 
-    newDspFun             fNew;
-    deleteDspFun          fDelete;
-    getNumInputsFun       fGetNumInputs;
-    getNumOutputsFun      fGetNumOutputs;
-    buildUserInterfaceFun fBuildUserInterface;
-    initFun               fInit;
-    initFun               fInstanceInit;
-    initFun               fInstanceConstants;
-    clearFun              fInstanceResetUI;
-    clearFun              fInstanceClear;
-    getSampleRateFun      fGetSampleRate;
-    computeFun            fCompute;
-    metadataFun           fMetadata;
-    getJSONFun            fGetJSON;
-    setDefaultSoundFun    fSetDefaultSound;
-
+    allocateDspFun fAllocate;
+    destroyDspFun  fDestroy;
+    initFun        fInstanceConstants;
+    clearFun       fInstanceClear;
+    classInitFun   fClassInit;
+    computeFun     fCompute;
+    getJSONFun     fGetJSON;
+ 
     uint64_t loadOptimize(const std::string& function);
 
     void init(const std::string& dsp_name, const std::string& type_name);
@@ -408,11 +402,11 @@ EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate);
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
 EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
 

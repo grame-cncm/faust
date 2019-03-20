@@ -603,16 +603,19 @@ ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
  FOREIGN CONSTANTS
  *****************************************************************************/
 
-ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const string& file, const string& name)
+ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const string& file, const string& name_aux)
 {
     Typed::VarType ctype;
     string         vname;
     Occurences*    o = fOccMarkup.retrieve(sig);
 
     fContainer->addIncludeFile(file);
+    
+    // Special case for 02/25/19 renaming
+    string name = (name_aux == "fSamplingFreq") ? "fSampleRate" : name_aux;
 
     // Keep SR generation state
-    if (name == "fSamplingFreq") {
+    if (name == "fSampleRate") {
         fContainer->setGeneratedSR();
     }
 
@@ -620,12 +623,12 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         generateDelayVec(
-            sig, (name == "fSamplingFreq") ? InstBuilder::genLoadStructVar(name) : InstBuilder::genLoadGlobalVar(name),
+            sig, (name == "fSampleRate") ? InstBuilder::genLoadStructVar(name) : InstBuilder::genLoadGlobalVar(name),
             ctype, vname, o->getMaxDelay());
     }
 
     int sig_type = getCertifiedSigType(sig)->nature();
-    if (name == "fSamplingFreq") {
+    if (name == "fSampleRate") {
         pushDeclare(InstBuilder::genDecStructVar(name, genBasicFIRTyped(sig_type)));
         return InstBuilder::genLoadStructVar(name);
     } else {
@@ -1209,7 +1212,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     // Init content generator
     list<ValueInst*> args1;
     args1.push_back(generator);
-    args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+    args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     // Fill the table
@@ -1290,13 +1293,13 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     // Init content generator
     list<ValueInst*> args1;
     args1.push_back(cexp);
-    args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+    args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushStaticInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     if (gGlobal->gMemoryManager) {
         list<ValueInst*> alloc_args;
         alloc_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
-        alloc_args.push_back(InstBuilder::genInt32NumInst(size * Typed::getSizeOf(ctype)));
+        alloc_args.push_back(InstBuilder::genInt32NumInst(size * gGlobal->gTypeSizeMap[ctype]));
         pushStaticInitMethod(InstBuilder::genStoreStaticStructVar(
             vname, InstBuilder::genCastInst(InstBuilder::genFunCallInst("allocate", alloc_args, true),
                                             InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), 0))));

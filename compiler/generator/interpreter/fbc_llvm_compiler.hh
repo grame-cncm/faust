@@ -29,6 +29,7 @@
 #include <llvm-c/Core.h>
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>
+#include <llvm-c/Initialization.h>
 #include <llvm-c/Transforms/PassManagerBuilder.h>
 #include <llvm-c/Transforms/Vectorize.h>
 
@@ -731,7 +732,23 @@ class FBCLLVMCompiler {
     {
         fLLVMStackIndex = 0;
         fAddrStackIndex = 0;
-
+        
+        LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+        
+        /*
+        LLVMInitializeTransformUtils(LLVMGetGlobalPassRegistry());
+        LLVMInitializeScalarOpts(LLVMGetGlobalPassRegistry());
+        LLVMInitializeObjCARCOpts(LLVMGetGlobalPassRegistry());
+        LLVMInitializeVectorization(LLVMGetGlobalPassRegistry());
+        LLVMInitializeInstCombine(LLVMGetGlobalPassRegistry());
+        LLVMInitializeIPO(LLVMGetGlobalPassRegistry());
+        LLVMInitializeInstrumentation(LLVMGetGlobalPassRegistry());
+        LLVMInitializeAnalysis(LLVMGetGlobalPassRegistry());
+        LLVMInitializeIPA(LLVMGetGlobalPassRegistry());
+        LLVMInitializeCodeGen(LLVMGetGlobalPassRegistry());
+        LLVMInitializeTarget(LLVMGetGlobalPassRegistry());
+        */
+    
         fBuilder = LLVMCreateBuilder();
         fModule = LLVMModuleCreateWithName(FAUSTVERSION);
         char* triple = LLVMGetDefaultTargetTriple();
@@ -826,6 +843,7 @@ class FBCLLVMCompiler {
         LLVMDisposeBuilder(fBuilder);
         // fModule is deallocated by fJIT
         LLVMDisposeExecutionEngine(fJIT);
+        LLVMShutdown();
     }
 
     void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)

@@ -56,7 +56,7 @@ inline void dump2FIR(Typed* type, std::ostream* out = &cerr)
 {
     *out << "========== dump2FIR " << type << " type begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(out);
-    fir_visitor.generateType(type);
+    *out << fir_visitor.generateType(type);
     *out << "\n========== dump2FIR type end ==========" << std::endl;
 }
 

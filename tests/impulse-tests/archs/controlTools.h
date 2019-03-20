@@ -47,7 +47,7 @@ struct TestMemoryReader : public MemoryReader {
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         soundfile->fLength[part] = SOUND_LENGTH;
-        soundfile->fSampleRate[part] = SOUND_SR;
+        soundfile->fSR[part] = SOUND_SR;
         soundfile->fOffset[part] = offset;
         
         // Audio frames have to be written for each chan
@@ -160,7 +160,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     DSP->setGroup(false);
     DSP->buildUserInterface(&sound_ui);
     DSP->setGroup(true);
-   
+  
     // Get control and then 'initRandom'
     CheckControlUI controlui;
     DSP->buildUserInterface(&controlui);
@@ -171,7 +171,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     
     // Check getSampleRate
     if (DSP->getSampleRate() != 44100) {
-        cerr << "ERROR in getSampleRate" << std::endl;
+        cerr << "ERROR in getSampleRate : " << DSP->getSampleRate() << std::endl;
     }
     
     // Check default after 'init'
@@ -259,7 +259,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // Check getSampleRate
     if (DSP->getSampleRate() != 44100) {
-        cerr << "ERROR in getSampleRate" << std::endl;
+        cerr << "ERROR in getSampleRate : " << DSP->getSampleRate() << std::endl;
     }
     
     // Check default after 'init'

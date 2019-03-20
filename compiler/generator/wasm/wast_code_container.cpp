@@ -124,14 +124,13 @@ WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInpu
 }
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
-DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                           bool isvirtual, bool addreturn)
+DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
     BlockInst* init_block = InstBuilder::genBlockInst();
 
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
@@ -144,10 +143,8 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
 
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
 
-    if (addreturn) {
-        init_block->pushBackInst(InstBuilder::genRetInst());
-    }
-
+    init_block->pushBackInst(InstBuilder::genRetInst());
+ 
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
@@ -229,7 +226,7 @@ void WASTCodeContainer::produceClass()
 
     // Inits
     tab(n + 1, fOutAux);
-    fOutAux << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
+    fOutAux << "(func $classInit (param $dsp i32) (param $sample_rate i32)";
     tab(n + 2, fOutAux);
     gGlobal->gWASTVisitor->Tab(n + 2);
     {
@@ -240,7 +237,7 @@ void WASTCodeContainer::produceClass()
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
-    fOutAux << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
+    fOutAux << "(func $instanceConstants (param $dsp i32) (param $sample_rate i32)";
     tab(n + 2, fOutAux);
     gGlobal->gWASTVisitor->Tab(n + 2);
     {
@@ -281,13 +278,13 @@ void WASTCodeContainer::produceClass()
     }
 
     // init
-    generateInit("dsp", false, false)->accept(gGlobal->gWASTVisitor);
+    generateInit("init", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
 
     // instanceInit
-    generateInstanceInit("dsp", false, false)->accept(gGlobal->gWASTVisitor);
+    generateInstanceInit("instanceInit", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
 
     // getSampleRate
-    generateGetSampleRate("dsp", false, false)->accept(gGlobal->gWASTVisitor);
+    generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
 
     // setParamValue
     tab(n + 1, fOutAux);
@@ -323,12 +320,11 @@ void WASTCodeContainer::produceClass()
     fOutAux << ")";
     tab(n, fOutAux);
 
-    // JSON generation
-
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
 
+    // JSON generation
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
 
@@ -342,7 +338,7 @@ void WASTCodeContainer::produceClass()
     }
 
     // "name", "filename" found in medata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
                                   gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(gGlobal->gWASTVisitor->getStructSize()),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
