@@ -1252,60 +1252,19 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
     }
-
+    
     LLVMValue generateFunPolymorphicMinMaxAux(Value* arg1, Value* arg2, int comp)
     {
+        faustassert(arg1->getType() == arg2->getType());
         llvm::CmpInst::Predicate op = (llvm::CmpInst::Predicate)gBinOpTable[comp]->fLLVMFloatInst;
-         
-        if (arg1->getType() == getFloatTy() && arg2->getType() == getFloatTy()) {
+        
+        if (arg1->getType() == getFloatTy() || arg1->getType() == getDoubleTy()) {
             Value* comp_value = fBuilder->CreateFCmp(op, arg1, arg2);
             return fBuilder->CreateSelect(comp_value, arg1, arg2);
-
-        } else if (arg1->getType() == getFloatTy() && arg2->getType() == getDoubleTy()) {
-            // Generates cast arg1 to double
-            Value* cast_value = fBuilder->CreateFPExt(arg1, getDoubleTy());
-            Value* comp_value = fBuilder->CreateFCmp(op, cast_value, arg2);
-            return fBuilder->CreateSelect(comp_value, arg1, arg2);
-
-        } else if (arg1->getType() == getFloatTy() && arg2->getType() == getInt32Ty()) {
-            // Generates cast arg2 to float
-            Value* cast_value = fBuilder->CreateSIToFP(arg2, getFloatTy());
-            Value* comp_value = fBuilder->CreateFCmp(op, arg1, cast_value);
-            return fBuilder->CreateSelect(comp_value, arg1, cast_value);
-
-        } else if (arg1->getType() == getDoubleTy() && arg2->getType() == getFloatTy()) {
-            // Generates cast arg2 to double
-            Value* cast_value = fBuilder->CreateFPExt(arg2, getDoubleTy());
-            Value* comp_value = fBuilder->CreateFCmp(op, arg1, cast_value);
-            return fBuilder->CreateSelect(comp_value, arg1, cast_value);
-
-        } else if (arg1->getType() == getDoubleTy() && arg2->getType() == getDoubleTy()) {
-            Value* comp_value = fBuilder->CreateFCmp(op, arg1, arg2);
-            return fBuilder->CreateSelect(comp_value, arg1, arg2);
-
-        } else if (arg1->getType() == getDoubleTy() && arg2->getType() == getInt32Ty()) {
-            // Generates cast arg2 to double
-            Value* cast_value = fBuilder->CreateSIToFP(arg2, getDoubleTy());
-            Value* comp_value = fBuilder->CreateFCmp(op, arg1, cast_value);
-            return fBuilder->CreateSelect(comp_value, arg1, cast_value);
-
-        } else if (arg1->getType() == getInt32Ty() && arg2->getType() == getFloatTy()) {
-            // Generates cast arg1 to float
-            Value* cast_value = fBuilder->CreateSIToFP(arg1, getFloatTy());
-            Value* comp_value = fBuilder->CreateFCmp(op, cast_value, arg2);
-            return fBuilder->CreateSelect(comp_value, cast_value, arg2);
-
-        } else if (arg1->getType() == getInt32Ty() && arg2->getType() == getDoubleTy()) {
-            // Generates cast arg1 to double
-            Value* cast_value = fBuilder->CreateSIToFP(arg1, getDoubleTy());
-            Value* comp_value = fBuilder->CreateFCmp(op, cast_value, arg2);
-            return fBuilder->CreateSelect(comp_value, cast_value, arg2);
-
-        } else if (arg1->getType() == getInt32Ty() && arg2->getType() == getInt32Ty()) {
+        } else if (arg1->getType() == getInt32Ty()) {
             llvm::CmpInst::Predicate op_int = (llvm::CmpInst::Predicate)gBinOpTable[comp]->fLLVMIntInst;
             Value* comp_value = fBuilder->CreateICmp(op_int, arg1, arg2);
             return fBuilder->CreateSelect(comp_value, arg1, arg2);
-
         } else {
             // Should not happen
             cerr << "generateFunPolymorphicMinMaxAux" << endl;
@@ -1313,6 +1272,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
     }
+    
 };
 
 #endif
