@@ -32,6 +32,7 @@
 #include <sstream>
 
 #include "compatibility.hh"
+#include "Text.hh"
 #include "faust/gui/CGlue.h"
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
@@ -212,16 +213,11 @@ void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 {
     fJIT                = nullptr;
-    fNew                = nullptr;
-    fDelete             = nullptr;
-    fGetNumInputs       = nullptr;
-    fGetNumOutputs      = nullptr;
-    fBuildUserInterface = nullptr;
-    fInit               = nullptr;
-    fInstanceInit       = nullptr;
+    fAllocate           = nullptr;
+    fDestroy            = nullptr;
     fInstanceConstants  = nullptr;
-    fInstanceResetUI    = nullptr;
     fInstanceClear      = nullptr;
+    fClassInit          = nullptr;
     fCompute            = nullptr;
     fClassName          = "mydsp";
     fName               = dsp_name;
@@ -282,26 +278,21 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
     fJIT->DisableLazyCompilation(true);
 
     try {
-        fNew                = (newDspFun)loadOptimize("new" + fClassName);
-        fDelete             = (deleteDspFun)loadOptimize("delete" + fClassName);
-        fGetNumInputs       = (getNumInputsFun)loadOptimize("getNumInputs" + fClassName);
-        fGetNumOutputs      = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
-        fInit               = (initFun)loadOptimize("init" + fClassName);
-        fInstanceInit       = (initFun)loadOptimize("instanceInit" + fClassName);
+        fAllocate           = (allocateDspFun)loadOptimize("allocate" + fClassName);
+        fDestroy            = (destroyDspFun)loadOptimize("destroy" + fClassName);
         fInstanceConstants  = (initFun)loadOptimize("instanceConstants" + fClassName);
-        fInstanceResetUI    = (clearFun)loadOptimize("instanceResetUserInterface" + fClassName);
         fInstanceClear      = (clearFun)loadOptimize("instanceClear" + fClassName);
-        fGetSampleRate      = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
+        fClassInit          = (classInitFun)loadOptimize("classInit" + fClassName);
         fCompute            = (computeFun)loadOptimize("compute" + fClassName);
-        fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetJSON            = (getJSONFun)loadOptimize("getJSON" + fClassName);
-        fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
         
-        fDecoder = new JSONUIDecoder(fGetJSON());
-    
-        // Set the default sound
-        fSetDefaultSound(dynamic_defaultsound);
+        string json = removeChar(fGetJSON(), '\\');
+        JSONUIDecoder decoder(json);
+        if (decoder.hasCompileOption("-double")) {
+            fDecoder = new JSONUIDoubleDecoder(json);
+        } else {
+            fDecoder = new JSONUIFloatDecoder(json);
+        }
         
         endTiming("initJIT");
         return true;
@@ -333,101 +324,112 @@ int llvm_dsp_factory_aux::getOptlevel()
 
 void llvm_dsp_factory_aux::metadata(Meta* m)
 {
-    MetaGlue glue;
-    buildMetaGlue(&glue, m);
-    fMetadata(&glue);
+    fDecoder->metadata(m);
 }
 
 void llvm_dsp_factory_aux::metadata(MetaGlue* glue)
 {
-    return fMetadata(glue);
+    fDecoder->metadata(glue);
 }
 
-llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
+llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory_aux)
 {
-    llvm_dsp_factory* tmp = static_cast<llvm_dsp_factory*>(factory);
-    faustassert(tmp);
+    llvm_dsp_factory* factory = static_cast<llvm_dsp_factory*>(factory_aux);
+    faustassert(factory);
 
-    if (tmp->getFactory()->getMemoryManager()) {
-        dsp_imp* dsp = static_cast<dsp_imp*>(tmp->getFactory()->allocate(fDecoder->fDSPSize));
-        return (dsp) ? new (tmp->getFactory()->allocate(sizeof(llvm_dsp))) llvm_dsp(tmp, dsp) : nullptr;
+    if (factory->getFactory()->getMemoryManager()) {
+        dsp_imp* dsp = static_cast<dsp_imp*>(factory->getFactory()->allocate(fDecoder->getDSPSize()));
+        return (dsp) ? new (factory->getFactory()->allocate(sizeof(llvm_dsp))) llvm_dsp(factory, dsp) : nullptr;
     } else {
         // LLVM module memory code
-        dsp_imp* dsp = fNew();
-        return (dsp) ? new llvm_dsp(tmp, dsp) : nullptr;
+        dsp_imp* dsp = static_cast<dsp_imp*>(calloc(1, fDecoder->getDSPSize()));
+        return (dsp) ? new llvm_dsp(factory, dsp) : nullptr;
     }
 }
 
 string llvm_dsp_factory_aux::getCompileOptions()
 {
-    return fDecoder->fCompileOptions;
+    return fDecoder->getCompileOptions();
 }
 vector<string> llvm_dsp_factory_aux::getLibraryList()
 {
-    return fDecoder->fLibraryList;
+    return fDecoder->getLibraryList();
 }
 vector<string> llvm_dsp_factory_aux::getIncludePathnames()
 {
-    return fDecoder->fIncludePathnames;
+    return fDecoder->getIncludePathnames();
 }
 
 // Instance
 
 llvm_dsp::llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp) : fFactory(factory), fDSP(dsp)
 {
+    // Used in -sch mode
+    fFactory->getFactory()->fAllocate(fDSP);
 }
 
 llvm_dsp::~llvm_dsp()
 {
     llvm_dsp_factory_aux::gLLVMFactoryTable.removeDSP(fFactory, this);
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    
+    // Used in -sch mode
+    fFactory->getFactory()->fDestroy(fDSP);
 
     if (fFactory->getMemoryManager()) {
         fFactory->getMemoryManager()->destroy(fDSP);
     } else {
         // LLVM module memory code
-        fFactory->getFactory()->fDelete(fDSP);
+        free(fDSP);
     }
 }
 
 void llvm_dsp::metadata(Meta* m)
 {
-    return fFactory->getFactory()->metadata(m);
+    fFactory->getFactory()->metadata(m);
 }
 
 void llvm_dsp::metadata(MetaGlue* glue)
 {
-    return fFactory->getFactory()->metadata(glue);
+    fFactory->getFactory()->metadata(glue);
 }
 
 int llvm_dsp::getNumInputs()
 {
-    return fFactory->getFactory()->fGetNumInputs(fDSP);
+    return fFactory->getFactory()->fDecoder->getNumInputs();
 }
 
 int llvm_dsp::getNumOutputs()
 {
-    return fFactory->getFactory()->fGetNumOutputs(fDSP);
+    return fFactory->getFactory()->fDecoder->getNumOutputs();
 }
 
-void llvm_dsp::init(int samplingRate)
+void llvm_dsp::init(int sample_rate)
 {
-    fFactory->getFactory()->fInit(fDSP, samplingRate);
+    classInit(sample_rate);
+    instanceInit(sample_rate);
 }
 
-void llvm_dsp::instanceInit(int samplingRate)
+void llvm_dsp::classInit(int sample_rate)
 {
-    fFactory->getFactory()->fInstanceInit(fDSP, samplingRate);
+     fFactory->getFactory()->fClassInit(sample_rate);
 }
 
-void llvm_dsp::instanceConstants(int samplingRate)
+void llvm_dsp::instanceInit(int sample_rate)
 {
-    fFactory->getFactory()->fInstanceConstants(fDSP, samplingRate);
+    instanceConstants(sample_rate);
+    instanceResetUserInterface();
+    instanceClear();
+}
+
+void llvm_dsp::instanceConstants(int sample_rate)
+{
+    fFactory->getFactory()->fInstanceConstants(fDSP, sample_rate);
 }
 
 void llvm_dsp::instanceResetUserInterface()
 {
-    fFactory->getFactory()->fInstanceResetUI(fDSP);
+    fFactory->getFactory()->fDecoder->resetUserInterface(fDSP, dynamic_defaultsound);
 }
 
 void llvm_dsp::instanceClear()
@@ -442,24 +444,21 @@ llvm_dsp* llvm_dsp::clone()
 
 int llvm_dsp::getSampleRate()
 {
-    return fFactory->getFactory()->fGetSampleRate(fDSP);
+     return fFactory->getFactory()->fDecoder->getSampleRate(fDSP);
 }
 
 void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
-    UIGlue glue;
-    buildUIGlue(&glue, ui_interface, (fFactory->getFactory()->fDecoder->hasCompileOption("-double")));
-    fFactory->getFactory()->fBuildUserInterface(fDSP, &glue);
+    fFactory->getFactory()->fDecoder->buildUserInterface(ui_interface, fDSP);
 }
 
 void llvm_dsp::buildUserInterface(UIGlue* glue)
 {
-    fFactory->getFactory()->fBuildUserInterface(fDSP, glue);
+    fFactory->getFactory()->fDecoder->buildUserInterface(glue, fDSP);
 }
 
 void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    AVOIDDENORMALS;
     fFactory->getFactory()->fCompute(fDSP, count, input, output);
 }
 
@@ -665,7 +664,7 @@ EXPORT void llvm_dsp::operator delete(void* ptr)
     }
 }
 
-    // Public C interface : lock management is done by called C++ API
+// Public C interface : lock management is done by called C++ API
 
 #ifdef __cplusplus
 extern "C" {
@@ -853,24 +852,24 @@ EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
     return (dsp) ? dsp->getNumOutputs() : -1;
 }
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate)
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int sample_rate)
 {
     if (dsp) {
-        dsp->init(samplingRate);
+        dsp->init(sample_rate);
     }
 }
 
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate)
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate)
 {
     if (dsp) {
-        dsp->instanceInit(samplingRate);
+        dsp->instanceInit(sample_rate);
     }
 }
 
-EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate)
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate)
 {
     if (dsp) {
-        dsp->instanceConstants(samplingRate);
+        dsp->instanceConstants(sample_rate);
     }
 }
 

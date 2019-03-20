@@ -30,7 +30,7 @@ using namespace std;
 /**
  * Creates a new merge schema. Cables are enlarged to dWire.
  * The horizontal gap between the two subschema is such that
- * the connections are not too slopy.
+ * the connections are not too sloppy.
  */
 schema* makeMergeSchema(schema* s1, schema* s2)
 {

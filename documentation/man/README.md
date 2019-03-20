@@ -1,4 +1,4 @@
-% man(1) Version 2.15.10 (08-March-2019) | Faust man page
+% man(1) Version 2.16.0 (20-March-2019) | Faust man page
 
 NAME
 ====
@@ -32,8 +32,6 @@ Input options:
   **-L** \<file> **--library** \<file>              link with the LLVM module \<file>.
 
   **-t** \<sec>  **--timeout** \<sec>               abort compilation after \<sec> seconds (default 120).
-
-  **-time**     **--compilation-time**            display compilation phases timing information.
 
 
 Output options:
@@ -162,6 +160,8 @@ Debug options:
 ---------------------------------------
 
   **-d**          **--details**                   print compilation details.
+
+  **-time**       **--compilation-time**          display compilation phases timing information.
 
   **-tg**         **--task-graph**                print the internal task graph in dot format.
 

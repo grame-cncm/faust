@@ -34,8 +34,8 @@ using namespace std;
 /*
 Interpreter backend description:
 
- - a single global visitor for main and sub-containers
- - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
+ - a single global visitor for main and subcontainers
+ - 'fSampleRate' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
  - DSP struct and stack variables are actually allocated in the Int32 and Real heaps
  - multiple unneeded cast are eliminated in CastInst
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
@@ -216,7 +216,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
             return new interpreter_dsp_factory_aux<T, 1>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
-                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -225,7 +225,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
             return new interpreter_dsp_factory_aux<T, 2>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
-                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -234,7 +234,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
             return new interpreter_dsp_factory_aux<T, 3>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
-                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -243,7 +243,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
             return new interpreter_dsp_factory_aux<T, 4>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
-                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -252,7 +252,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
             return new interpreter_dsp_factory_aux<T, 5>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
-                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -262,7 +262,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
             return new interpreter_dsp_factory_aux<T, 0>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
-                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);

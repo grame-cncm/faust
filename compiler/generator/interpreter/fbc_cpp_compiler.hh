@@ -862,7 +862,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         
             tab(tabs+1, out);
             tab(tabs+1, out);
-            out << "virtual void classInit(int samplingRate)";
+            out << "virtual void classInit(int sample_rate)";
             {
                 FBCCPPCompiler<T> compiler;
                 compiler.CompileBlock(this->fFactory->fStaticInitBlock, tabs+1, out);
@@ -874,24 +874,24 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         
             tab(tabs+1, out);
             tab(tabs+1, out);
-            out << "virtual void init(int samplingFreq)";
+            out << "virtual void init(int sample_rate)";
             tab(tabs+1, out);
             out << "{";
                 tab(tabs+2, out);
-                out << "classInit(samplingFreq);";
+                out << "classInit(sample_rate);";
                 tab(tabs+2, out);
-                out << "instanceInit(samplingFreq);";
+                out << "instanceInit(sample_rate);";
                 tab(tabs+2, out);
             tab(tabs+1, out);
             out << "}";
         
             tab(tabs+1, out);
             tab(tabs+1, out);
-            out << "virtual void instanceInit(int samplingFreq)";
+            out << "virtual void instanceInit(int sample_rate)";
             tab(tabs+1, out);
             out << "{";
                 tab(tabs+2, out);
-                out << "instanceConstants(samplingFreq);";
+                out << "instanceConstants(sample_rate);";
                 tab(tabs+2, out);
                 out << "instanceResetUserInterface();";
                 tab(tabs+2, out);
@@ -902,11 +902,11 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         
             tab(tabs+1, out);
             tab(tabs+1, out);
-            out << "virtual void instanceConstants(int samplingRate)";
+            out << "virtual void instanceConstants(int sample_rate)";
             {
                 FBCCPPCompiler<T> compiler;
                 compiler.AddBlock();
-                compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fSROffset) + "] = samplingRate;");
+                compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fSROffset) + "] = sample_rate;");
                 compiler.CompileBlock(this->fFactory->fInitBlock, tabs+1, out);
             }
         

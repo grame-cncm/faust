@@ -215,19 +215,19 @@ int EXPORT interpreter_dsp::getNumOutputs()
     return fDSP->getNumOutputs();
 }
 
-EXPORT void interpreter_dsp::init(int samplingRate)
+EXPORT void interpreter_dsp::init(int sample_rate)
 {
-    fDSP->init(samplingRate);
+    fDSP->init(sample_rate);
 }
 
-EXPORT void interpreter_dsp::instanceInit(int samplingRate)
+EXPORT void interpreter_dsp::instanceInit(int sample_rate)
 {
-    fDSP->instanceInit(samplingRate);
+    fDSP->instanceInit(sample_rate);
 }
 
-EXPORT void interpreter_dsp::instanceConstants(int samplingRate)
+EXPORT void interpreter_dsp::instanceConstants(int sample_rate)
 {
-    fDSP->instanceConstants(samplingRate);
+    fDSP->instanceConstants(sample_rate);
 }
 
 EXPORT void interpreter_dsp::instanceResetUserInterface()

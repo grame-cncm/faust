@@ -6,7 +6,6 @@
 // otherwise we have to hand-edit c++.
 #include "math.h" 
 
-
 #ifdef __GNUC__
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
@@ -65,7 +64,6 @@ public:
 	void stop()	{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 };
-
 
 ////// Implementation of UI
 
@@ -218,8 +216,6 @@ class ActionScriptUI : public UI {
 *******************************************************************************
 *******************************************************************************/
 
-
-
 //----------------------------------------------------------------
 //  abstract definition of a signal processor
 //----------------------------------------------------------------
@@ -234,20 +230,15 @@ class dsp {
 	virtual int getNumInputs() 						= 0;
 	virtual int getNumOutputs() 					= 0;
 	virtual void buildUserInterface(UI* interface) 	= 0;
-	virtual void init(int samplingRate) 			= 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
+	virtual void init(int sample_rate)              = 0;
+    virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-		
 
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
-		
 
 <<includeclass>>
-
-
-
 
 /// Alchemy DSP
 class Faust {
@@ -270,7 +261,6 @@ public: // we're all friends here
 	mydsp *dsp_;
 	ActionScriptUI *ui_;
 };
-
 
 Faust *faust = NULL;
 
@@ -384,7 +374,6 @@ static AS3_Val api_tick(void *thisPtr, AS3_Val args) {
 
   return AS3_Int(0);
 }
-
 
 //Alchemy entry point
 // Here we are responsible for contructing an API object to pass back to Flash.

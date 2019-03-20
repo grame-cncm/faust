@@ -27,6 +27,7 @@
 #include "omp_code_container.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
+#include "struct_manager.hh"
 
 #include <llvm/Support/FileSystem.h>
 
@@ -48,63 +49,24 @@ using namespace llvm;
 class LLVMCodeContainer : public virtual CodeContainer {
    protected:
     using CodeContainer::generateInstanceInitFun;
-
-    // UI structure creation
-    llvm::PointerType* fStructDSP;
+    using CodeContainer::generateFillFun;
 
     IRBuilder<>* fBuilder;
-    // To be used for "alloca", which have to be added in the first "entry" block of the function.
-    IRBuilder<>* fAllocaBuilder;
-
+  
     LLVMInstVisitor* fCodeProducer;
+    
+    StructInstVisitor fStructVisitor;
 
     Module*      fModule;
     LLVMContext* fContext;
 
-    void generateComputeBegin(const string& counter);
-    void generateComputeEnd();
-    void generateComputeDouble();
-
-    void generateFillBegin(const string& counter);
-    void generateFillEnd();
-
-    void generateGetSampleRate(int field_index);
-
-    void generateInfoFunctions(const string& classname, bool isvirtual);
-
-    void generateClassInitBegin();
-    void generateClassInitEnd();
-
-    void generateInitFun();
-    void generateInstanceInitFun();
-
-    void generateInstanceInitBegin(const string& funname, bool internal = false);
-    void generateInstanceInitEnd(const string& funname);
-
-    void generateInstanceResetUserInterfaceBegin(bool internal = false);
-    void generateInstanceResetUserInterfaceEnd();
-
-    void generateInstanceClearBegin(bool internal = false);
-    void generateInstanceClearEnd();
-
-    void generateAllocateBegin();
-    void generateAllocateEnd();
-
-    void generateDestroyBegin();
-    void generateDestroyEnd();
-
-    void generateMetadata(llvm::PointerType* meta_type_ptr);
-
-    void generateBuildUserInterfaceBegin();
-    void generateBuildUserInterfaceEnd();
-
-    void generateGetJSON(int dsp_size);
-
-    LLVMContext& getContext();
+    void generateGetJSON();
 
     // To be used for mathematical function mapping (-fm and exp10 on OSX)
     void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
     void generateFunMaps();
+    
+    llvm::PointerType* generateDspStruct();
     
     // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer classes
     virtual void generateCompute() = 0;
@@ -115,7 +77,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     virtual ~LLVMCodeContainer();
 
     virtual dsp_factory_base* produceFactory();
-    void         produceInternal();
+    void produceInternal();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
@@ -124,28 +86,31 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
 class LLVMScalarCodeContainer : public LLVMCodeContainer {
    protected:
+    void generateCompute();
+    BlockInst* generateComputeAux();
+    
    public:
     LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
     LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context,
                             int sub_container_type);
     virtual ~LLVMScalarCodeContainer();
-
-    void generateCompute();
 };
 
 class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeContainer {
    protected:
+    void generateCompute();
+    BlockInst* generateComputeAux();
    public:
     LLVMVectorCodeContainer(const string& name, int numInputs, int numOutputs);
     virtual ~LLVMVectorCodeContainer();
-
-    void generateCompute();
 };
 
 class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeContainer {
    protected:
     void generateOMPDeclarations();
     void generateOMPCompute();
+    void generateCompute();
+    BlockInst* generateComputeAux();
 
     void      generateGOMP_parallel_start();
     void      generateGOMP_parallel_end();
@@ -160,21 +125,17 @@ class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeConta
    public:
     LLVMOpenMPCodeContainer(const string& name, int numInputs, int numOutputs);
     virtual ~LLVMOpenMPCodeContainer();
-
-    void generateCompute();
 };
 
 class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeContainer {
    protected:
-    void generateComputeThreadBegin();
-    void generateComputeThreadEnd();
-    void generateComputeThreadExternal();
-
+    void generateCompute();
+    BlockInst* generateComputeAux();
+    
    public:
     LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs);
     virtual ~LLVMWorkStealingCodeContainer();
 
-    void generateCompute();
 };
 
 #endif

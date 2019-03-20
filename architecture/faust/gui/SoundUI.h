@@ -49,7 +49,7 @@ MemoryReader gReader;
 LibsndfileReader gReader;
 #endif
 
-// To be used by dsp code if no SoundUI is used
+// To be used by DSP code if no SoundUI is used
 std::vector<std::string> path_name_list;
 Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
 

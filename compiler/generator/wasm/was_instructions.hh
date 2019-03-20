@@ -33,7 +33,7 @@ using namespace std;
 
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 
-#define audioPtrSize audioSampleSize()
+#define audioPtrSize gGlobal->audioSampleSize()
 
 #define wasmBlockSize int(pow(2, 16))
 
@@ -60,7 +60,7 @@ inline int pow2limit(int x)
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
     return std::max(
-        (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize())))) /
+        (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) /
          wasmBlockSize),
         1);
 
@@ -181,11 +181,6 @@ struct WASInst {
     int getStructSize() { return fStructOffset; }
 
     map<string, MemoryDesc>& getFieldTable() { return fFieldTable; }
-
-    int getFieldOffset(const string& name)
-    {
-        return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
-    }
 
     // Check if address is constant, so that to be used as an 'offset' in load/store
     int getConstantOffset(Address* address)

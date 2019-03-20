@@ -91,6 +91,27 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+        
+        // Quad version
+        gFunctionSymbolTable["fabsl"]      = true;
+        gFunctionSymbolTable["acosl"]      = true;
+        gFunctionSymbolTable["asinl"]      = true;
+        gFunctionSymbolTable["atanl"]      = true;
+        gFunctionSymbolTable["atan2l"]     = true;
+        gFunctionSymbolTable["ceill"]      = true;
+        gFunctionSymbolTable["cosl"]       = true;
+        gFunctionSymbolTable["expl"]       = true;
+        gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["floorl"]     = true;
+        gFunctionSymbolTable["fmodl"]      = true;
+        gFunctionSymbolTable["logl"]       = true;
+        gFunctionSymbolTable["log10l"]     = true;
+        gFunctionSymbolTable["powl"]       = true;
+        gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["roundl"]     = true;
+        gFunctionSymbolTable["sinl"]       = true;
+        gFunctionSymbolTable["sqrtl"]      = true;
+        gFunctionSymbolTable["tanl"]       = true;
 
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "std::abs";
@@ -148,7 +169,6 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "std::sin";
         gPolyMathLibTable["sqrt"]      = "std::sqrt";
         gPolyMathLibTable["tan"]       = "std::tan";
-        
         
         // Polymath mapping quad version
         gPolyMathLibTable["max_l"] = "std::max<quad>";

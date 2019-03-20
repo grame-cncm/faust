@@ -114,23 +114,22 @@ void CPPCodeContainer::produceInit(int tabs)
 {
     if (gGlobal->gMemoryManager) {
         tab(tabs, *fOut);
-        *fOut << "virtual void init(int samplingFreq) {}";
+        *fOut << "virtual void init(int sample_rate) {}";
     } else {
         tab(tabs, *fOut);
-        *fOut << "virtual void init(int samplingFreq) {";
+        *fOut << "virtual void init(int sample_rate) {";
         tab(tabs + 1, *fOut);
-        *fOut << "classInit(samplingFreq);";
+        *fOut << "classInit(sample_rate);";
         tab(tabs + 1, *fOut);
-        *fOut << "instanceInit(samplingFreq);";
+        *fOut << "instanceInit(sample_rate);";
         tab(tabs, *fOut);
         *fOut << "}";
     }
 
     tab(tabs, *fOut);
-    tab(tabs, *fOut);
-    *fOut << "virtual void instanceInit(int samplingFreq) {";
+    *fOut << "virtual void instanceInit(int sample_rate) {";
     tab(tabs + 1, *fOut);
-    *fOut << "instanceConstants(samplingFreq);";
+    *fOut << "instanceConstants(sample_rate);";
     tab(tabs + 1, *fOut);
     *fOut << "instanceResetUserInterface();";
     tab(tabs + 1, *fOut);
@@ -182,7 +181,7 @@ void CPPCodeContainer::produceInternal()
 
     // Inits
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -354,7 +353,7 @@ void CPPCodeContainer::produceClass()
     */
 
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int samplingFreq) {";
+    *fOut << "static void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -380,13 +379,15 @@ void CPPCodeContainer::produceClass()
 
         list<CodeContainer*>::const_iterator it;
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
-    false); InlineVoidFunctionCall inliner1(inst_init_fun); res1 = inliner1.getCode(res1); DeclareFunInst* fill_fun =
-    (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); InlineVoidFunctionCall inliner2(fill_fun); res1
-    = inliner2.getCode(res1);
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false); 
+            InlineVoidFunctionCall inliner1(inst_init_fun); 
+            res1 = inliner1.getCode(res1); 
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); 
+            InlineVoidFunctionCall inliner2(fill_fun); 
+            res1 = inliner2.getCode(res1);
         }
 
-        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "static void classInit(int sample_rate) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             res1->accept(&fCodeProducer);
@@ -397,7 +398,7 @@ void CPPCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceConstants(int samplingFreq) {";
+    *fOut << "virtual void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -433,13 +434,17 @@ void CPPCodeContainer::produceClass()
 
         list<CodeContainer*>::const_iterator it;
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
-    false); InlineVoidFunctionCall inliner1(inst_init_fun); res1 = inliner1.getCode(res1); res2 =
-    inliner1.getCode(res2); DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true,
-    false); InlineVoidFunctionCall inliner2(fill_fun); res1 = inliner2.getCode(res1); res2 = inliner2.getCode(res2);
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false); 
+            InlineVoidFunctionCall inliner1(inst_init_fun); 
+            res1 = inliner1.getCode(res1); 
+            res2 = inliner1.getCode(res2); 
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); 
+            InlineVoidFunctionCall inliner2(fill_fun); 
+            res1 = inliner2.getCode(res1); 
+            res2 = inliner2.getCode(res2);
         }
 
-        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int sample_rate) {";
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         res1->accept(&fCodeProducer);
@@ -463,7 +468,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
-    generateGetSampleRate("dsp", true, true)->accept(&fCodeProducer);
+    generateGetSampleRate("getSampleRate", "dsp", true, true)->accept(&fCodeProducer);
 
     // User interface
     tab(n + 1, *fOut);
@@ -645,7 +650,7 @@ void CPPWorkStealingCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "extern \"C\" void computeThreadExternal(void* dsp, int num_thread) {";
     tab(n + 1, *fOut);
-    *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
+    *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread" << fKlassName << "(num_thread);";
     tab(n, *fOut);
     *fOut << "}" << endl;
 }
@@ -671,7 +676,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
 
     // Generates "computeThread" code
     tab(n + 1, *fOut);
-    *fOut << "void computeThread(int num_thread) {";
+    *fOut << "void computeThread" << fKlassName << "(int num_thread) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 

@@ -30,7 +30,7 @@ using namespace std;
 /**
  * Creates a new split schema. Cables are enlarged to dWire.
  * The horizontal gap between the two subschema is such that
- * the connections are not too slopy.
+ * the connections are not too sloppy.
  */
 schema* makeSplitSchema(schema* s1, schema* s2)
 {
@@ -38,7 +38,7 @@ schema* makeSplitSchema(schema* s1, schema* s2)
     schema* a = makeEnlargedSchema(s1, dWire);
     schema* b = makeEnlargedSchema(s2, dWire);
 
-    // horizontal gap to avaoid too slopy connections
+    // horizontal gap to avoid too sloppy connections
     double hgap = (a->height() + b->height()) / 4;
 
     return new splitSchema(a, b, hgap);

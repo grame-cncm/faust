@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.15.10)
+set (VERSION 2.16.0)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -336,7 +336,7 @@ file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
 						${ARCHDIR}/*.java ${ARCHDIR}/*.h
 						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
 install (
-    FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
+    FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} ${ROOT}/tools/faust2appls/Info.plist DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 

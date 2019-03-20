@@ -434,7 +434,6 @@ class UITemplate
             declareGlueDouble(fCPPInterface, zone, key, val);
         }
 
-    
 };
 
 /*******************************************************************************

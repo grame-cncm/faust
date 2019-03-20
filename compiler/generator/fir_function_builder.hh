@@ -155,7 +155,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                 break;
 
             case Address::kLink:
-                // TO CHECK
+                faustassert(false);
                 break;
 
             default:
@@ -166,10 +166,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         DispatchVisitor::visit(inst);
+        Address::AccessType access = inst->fAddress->getAccess();
 
-        if (inst->fAddress->getAccess() == Address::kStack || inst->fAddress->getAccess() == Address::kLoop) {
+        if (access == Address::kStack || access == Address::kLoop) {
             // Keep local variables in the loop
-            fLocalVarTable[inst->fAddress->getName()] = inst->fAddress->getAccess();
+            fLocalVarTable[inst->fAddress->getName()] = access;
         }
     }
 
@@ -211,9 +212,8 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
         BlockInst*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
-        // BlockInst* function_code = InstBuilder::genBlockInst();
-
-        // Add a Ret (void) instruction
+    
+        // Add a Ret (void) instruction (needed in LLVM backend)
         function_code->pushBackInst(InstBuilder::genRetInst());
 
         // Add "dsp" arg in function prototype and in parameter list
@@ -232,278 +232,6 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Creates function call
         fFunctionCall = InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
     }
-};
-
-// To be used to clone the annotated code
-struct LoadStoreCloneVisitor : public BasicCloneVisitor {
-    map<string, ValueInst*>& fLinkTable;
-
-    LoadStoreCloneVisitor(map<string, ValueInst*>& linktable) : fLinkTable(linktable) {}
-
-    // Rewrite Declare as a no-op (DropInst)
-    StatementInst* visit(DeclareVarInst* inst)
-    {
-        if (inst->fAddress->getAccess() == Address::kLink) {
-            return InstBuilder::genDropInst();
-        } else {
-            return BasicCloneVisitor::visit(inst);
-        }
-    }
-
-    // Rewrite Load as an access to kept ValueInst
-    ValueInst* visit(LoadVarInst* inst)
-    {
-        if (inst->fAddress->getAccess() == Address::kLink) {
-            string name = inst->fAddress->getName();
-            faustassert(fLinkTable.find(name) != fLinkTable.end());
-            return fLinkTable[name]->clone(this);
-        } else {
-            return BasicCloneVisitor::visit(inst);
-        }
-    }
-
-    // Rewrite Store as a no-op (DropInst)
-    StatementInst* visit(StoreVarInst* inst)
-    {
-        if (inst->fAddress->getAccess() == Address::kLink) {
-            return InstBuilder::genDropInst();
-        } else {
-            return BasicCloneVisitor::visit(inst);
-        }
-    }
-};
-
-// Remove linked Declare/Load/Store with a given name family
-struct StackVariableRemover : public DispatchVisitor {
-    ForLoopInst* fResultLoop;
-
-    // Table used to "link" direct Store and Load
-    map<string, ValueInst*> fLinkTable;
-
-    // Store operation makes the "link" stuff
-    struct VariableMarker : public DispatchVisitor {
-        map<string, ValueInst*>& fLinkTable;
-        string                   fName;
-
-        VariableMarker(map<string, ValueInst*>& linktable, const string& name) : fLinkTable(linktable), fName(name) {}
-
-        virtual void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            string name = inst->fAddress->getName();
-
-            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
-                fLinkTable[name] = inst->fValue;
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        virtual void visit(StoreVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            string name = inst->fAddress->getName();
-
-            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
-                fLinkTable[name] = inst->fValue;
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        virtual void visit(LoadVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getAccess() == Address::kStack &&
-                inst->fAddress->getName().find(fName) != string::npos) {
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-    };
-
-    // Warning : side effect on loop argument, provide a cloned version if needed
-    StackVariableRemover(ForLoopInst* loop, const string& name)
-    {
-        // Identify Declare/Store/Load with name instructions and mark them as "links"
-        VariableMarker marker(fLinkTable, name);
-        loop->accept(&marker);
-
-        // Clone the code of each loop, "linked" Declare/Store/Load are transformed : DeclareInst -> DropInst, StoreInst
-        // -> DropInst, LoadInst -> direct access to stored value
-        LoadStoreCloneVisitor remover(fLinkTable);
-        fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
-    }
-};
-
-// Remove linked Declare/Load/Store with a given name of name family
-struct LLVMStackVariableRemover : public DispatchVisitor {
-    ForLoopInst* fResultLoop;
-
-    // Store operation makes the "link" stuff
-    struct VariableMarker : public DispatchVisitor {
-        string fName;
-
-        VariableMarker(const string& name) : fName(name) {}
-
-        virtual void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getAccess() == Address::kStack &&
-                inst->fAddress->getName().find(fName) != string::npos) {
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        virtual void visit(StoreVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getAccess() == Address::kStack &&
-                inst->fAddress->getName().find(fName) != string::npos) {
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        virtual void visit(LoadVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-
-            if (inst->fAddress->getAccess() == Address::kStack &&
-                inst->fAddress->getName().find(fName) != string::npos) {
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-    };
-
-    // Warning : side effect on loop argument, provide a cloned version if needed
-    LLVMStackVariableRemover(ForLoopInst* loop, const string& name)
-    {
-        // Identify Declare/Store/Load with name instructions and mark them as "links"
-        VariableMarker marker(name);
-        loop->accept(&marker);
-
-        BasicCloneVisitor remover;
-        fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
-    }
-
-    LLVMStackVariableRemover() {}
-
-    void Mark(ForLoopInst* loop, const string& name)
-    {
-        VariableMarker marker(name);
-        loop->accept(&marker);
-    }
-
-    void Finish(ForLoopInst* loop)
-    {
-        BasicCloneVisitor remover;
-        fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
-    }
-};
-
-/*
- Sequence of "compatible" loops (that is : number of outputs of first is same as number of inputs of second)
- Here we assume that loops are "connected" by "outputX  ==> inputX" like naming connection
-
- 1) links between outputs and inputs arrays are detected and inserted in the global fLinkTable (name, ValueInst)
-
- 2) loop code is cloned:
-
-    - each StoreInst is dropped (that is cloned as a DropInst instruction)
-    - each LoadInst is replaced by the corresponding ValueInst kept in the fLinkTable for the given name
-
- 3) then code of the second loop is included into the first one.
-
-*/
-
-struct SeqLoopBuilder : public DispatchVisitor {
-    ForLoopInst* fResultLoop;
-
-    // Table used to "link" direct Store and Load
-    map<string, ValueInst*> fLinkTable;
-
-    // Store operation makes the "link" stuff
-    struct FirstLoopVisitor : public DispatchVisitor {
-        map<string, ValueInst*>& fLinkTable;
-
-        FirstLoopVisitor(map<string, ValueInst*>& linktable) : fLinkTable(linktable) {}
-
-        virtual void visit(StoreVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            string name = inst->fAddress->getName();
-
-            if (name.find("output") != string::npos) {
-                string link_name      = "link" + name.substr(strlen("output"), 0xFFFF);
-                fLinkTable[link_name] = inst->fValue;
-                inst->fAddress->setAccess(Address::kLink);
-                inst->fAddress->setName(link_name);
-            }
-        }
-    };
-
-    // Load operation sees the "link" stuff
-    struct SecondLoopVisitor : public DispatchVisitor {
-        map<string, ValueInst*>& fLinkTable;
-
-        SecondLoopVisitor(map<string, ValueInst*>& linktable) : fLinkTable(linktable) {}
-
-        virtual void visit(LoadVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            string name = inst->fAddress->getName();
-
-            if (name.find("input") != string::npos) {
-                string link_name = "link" + name.substr(strlen("input"), 0xFFFF);
-                inst->fAddress->setAccess(Address::kLink);
-                inst->fAddress->setName(link_name);
-            }
-        }
-    };
-
-    // Warning : side effect on loop1 and loop2 arguments, provide a cloned version if needed
-    SeqLoopBuilder(ForLoopInst* loop1, ForLoopInst* loop2)
-    {
-        // Identify Store "output" like instructions and mark them as "link" Store
-        FirstLoopVisitor first_loop(fLinkTable);
-        loop1->accept(&first_loop);
-
-        // Identify Load "input" like instructions and mark them as "link" Load
-        SecondLoopVisitor second_loop(fLinkTable);
-        loop2->accept(&second_loop);
-
-        // Clone the code of each loop, "linked" Store/Load are transformed : StoreInst -> DropInst, LoadInst -> direct
-        // access to stored value
-        LoadStoreCloneVisitor remover(fLinkTable);
-        fResultLoop        = static_cast<ForLoopInst*>(loop1->clone(&remover));
-        ForLoopInst* loop3 = static_cast<ForLoopInst*>(loop2->clone(&remover));
-
-        faustassert(fResultLoop);
-        faustassert(loop3);
-
-        // Insert code of second loop into first one
-        // TODO
-        faustassert(false);
-        /*
-        list<StatementInst*>::const_iterator it;
-        for (it = loop3->fCode.begin(); it != loop3->fCode.end(); it++) {
-            fResultLoop->fCode.push_back(*it);
-        }
-        */
-    }
-
-    virtual ~SeqLoopBuilder() {}
-};
-
-// Parallel of loops
-
-struct ParLoopBuilder : public DispatchVisitor {
-    StatementInst* fFunction_def1;
-    StatementInst* fFunction_def2;
-
-    ParLoopBuilder(ForLoopInst* loop1, ForLoopInst* loop2) {}
-
-    virtual ~ParLoopBuilder() {}
 };
 
 /*

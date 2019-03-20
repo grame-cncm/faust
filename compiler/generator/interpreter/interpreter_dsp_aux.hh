@@ -630,9 +630,9 @@ struct interpreter_dsp_base : public dsp {
     // Replaced by this one
     virtual void buildUserInterface(UITemplate* glue) = 0;
 
-    virtual void instanceInit(int samplingRate) {}
+    virtual void instanceInit(int sample_rate) {}
 
-    virtual void instanceConstants(int samplingRate) {}
+    virtual void instanceConstants(int sample_rate) {}
 
     virtual void instanceResetUserInterface() {}
 
@@ -717,16 +717,16 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual int getOutputRate(int channel) { return -1; }
 
-    virtual void classInit(int samplingRate)
+    virtual void classInit(int sample_rate)
     {
         // Execute static init instructions
         fFBCExecutor->ExecuteBlock(fFactory->fStaticInitBlock);
     }
 
-    virtual void instanceConstants(int samplingRate)
+    virtual void instanceConstants(int sample_rate)
     {
-        // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-        fFBCExecutor->setIntValue(fFactory->fSROffset, samplingRate);
+        // Store sample_rate in 'fSampleRate' variable at correct offset in fIntHeap
+        fFBCExecutor->setIntValue(fFactory->fSROffset, sample_rate);
 
         // Execute state init instructions
         fFBCExecutor->ExecuteBlock(fFactory->fInitBlock);
@@ -744,18 +744,18 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         fFBCExecutor->ExecuteBlock(fFactory->fClearBlock);
     }
 
-    virtual void instanceInit(int samplingRate)
+    virtual void instanceInit(int sample_rate)
     {
-        instanceConstants(samplingRate);
+        instanceConstants(sample_rate);
         instanceResetUserInterface();
         instanceClear();
     }
 
-    virtual void init(int samplingRate)
+    virtual void init(int sample_rate)
     {
         fInitialized = true;
-        classInit(samplingRate);
-        instanceInit(samplingRate);
+        classInit(sample_rate);
+        instanceInit(sample_rate);
         /*
     #ifdef MACHINE
         FBCCPPGenerator<T> cpp_generator(this->fFactory);
@@ -909,30 +909,30 @@ protected:
         delete this->fComputeDSPBlock;
     }
     
-    virtual void instanceConstants(int samplingRate)
+    virtual void instanceConstants(int sample_rate)
     {
-        // Store samplingRate in specialization fIntMap
-        fIntMap[this->fFactory->fSROffset] = samplingRate;
+        // Store sample_rate in specialization fIntMap
+        fIntMap[this->fFactory->fSROffset] = sample_rate;
         
-        // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-        this->fFBCExecutor->setIntValue(this->fFactory->fSROffset, samplingRate);
+        // Store sample_rate in 'fSampleate' variable at correct offset in fIntHeap
+        this->fFBCExecutor->setIntValue(this->fFactory->fSROffset, sample_rate);
         
         // Execute state init instructions
         this->fFBCExecutor->ExecuteBlock(this->fFactory->fInitBlock);
     }
     
-    virtual void init(int samplingRate)
+    virtual void init(int sample_rate)
     {
         this->fInitialized = true;
 
-        // Store samplingRate in specialization fIntMap
-        fIntMap[this->fFactory->fSROffset] = samplingRate;
+        // Store sample_rate in specialization fIntMap
+        fIntMap[this->fFactory->fSROffset] = sample_rate;
 
-        // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-        this->fFBCExecutor->setIntValue(this->fFactory->fSROffset, samplingRate);
+        // Store sample_rate in 'fSampleRate' variable at correct offset in fIntHeap
+        this->fFBCExecutor->setIntValue(this->fFactory->fSROffset, sample_rate);
 
-        this->classInit(samplingRate);
-        this->instanceInit(samplingRate);
+        this->classInit(sample_rate);
+        this->instanceInit(sample_rate);
 
         // Propagate constant values stored in the code into the heap
         this->fStaticInitBlock
@@ -1092,10 +1092,10 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
         */
     }
 
-    virtual void init(int samplingRate)
+    virtual void init(int sample_rate)
     {
-        this->classInit(samplingRate / fDownSamplingFactor);
-        this->instanceInit(samplingRate / fDownSamplingFactor);
+        this->classInit(sample_rate / fDownSamplingFactor);
+        this->instanceInit(sample_rate / fDownSamplingFactor);
     }
 
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
@@ -1197,11 +1197,11 @@ class EXPORT interpreter_dsp : public dsp {
 
     int getSampleRate();
 
-    void init(int samplingRate);
+    void init(int sample_rate);
 
-    void instanceInit(int samplingRate);
+    void instanceInit(int sample_rate);
 
-    void instanceConstants(int samplingRate);
+    void instanceConstants(int sample_rate);
 
     void instanceResetUserInterface();
 

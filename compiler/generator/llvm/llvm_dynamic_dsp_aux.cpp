@@ -23,11 +23,9 @@
 # pragma warning (disable: 4141 4244 4291 4146 4267 4275 4624 4800)
 #endif
 
-#include <stdio.h>
 #include <string.h>
 #include <fstream>
 #include <iostream>
-#include <list>
 #include <sstream>
 
 #include "Text.hh"
@@ -37,16 +35,10 @@
 #include "llvm_dynamic_dsp_aux.hh"
 #include "rn_base64.h"
 
-#include <llvm-c/Core.h>
-#include <llvm/ADT/Triple.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
-#include <llvm/ExecutionEngine/ObjectCache.h>
-#include <llvm/IR/DataLayout.h>
 #include <llvm/IR/IRPrintingPasses.h>
-#include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/LegacyPassNameParser.h>
-#include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
@@ -59,13 +51,10 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/Threading.h>
-#include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
-#include <system_error>
-#include "llvm/ExecutionEngine/ObjectCache.h"
+#include <llvm/ExecutionEngine/ObjectCache.h>
 
 #ifndef LLVM_35
 #include <llvm/Analysis/TargetLibraryInfo.h>
@@ -93,7 +82,7 @@ using namespace std;
         string             res;                  \
         raw_string_ostream out_str(res);         \
         out_str << *val;                         \
-        cout << out_str.str() << endl; \
+        cout << out_str.str() << endl;           \
     }
 
 static void splitTarget(const string& target, string& triple, string& cpu)
@@ -241,9 +230,9 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
 
     if (OptLevel > 1) {
         unsigned Threshold = 225;
-        if (SizeLevel == 1) {  // -Os
+        if (SizeLevel == 1) {           // -Os
             Threshold = 75;
-        } else if (SizeLevel == 2) {  // -Oz
+        } else if (SizeLevel == 2) {    // -Oz
             Threshold = 25;
         }
         if (OptLevel > 2) {
@@ -471,7 +460,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                     int opt_level)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-
     string expanded_dsp_content, sha_key;
 
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
@@ -657,7 +645,6 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, string& error_msg, int opt_level)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     
     if (error_code ec = buffer.getError()) {
@@ -679,7 +666,6 @@ EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg, int opt_level)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
-    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -735,7 +721,6 @@ EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg, int opt_level)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
     
     if (error_code ec = buffer.getError()) {
@@ -825,7 +810,7 @@ extern "C" {
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
                                                    const char* target, char* error_msg, int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -835,9 +820,8 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                      const char* argv[], const char* target, char* error_msg,
                                                      int opt_level)
 {
-    string            error_msg_aux;
-    llvm_dsp_factory* factory =
-        createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }

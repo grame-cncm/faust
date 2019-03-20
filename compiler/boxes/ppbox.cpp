@@ -144,7 +144,7 @@ ostream &boxpp::print(ostream &fout) const
     prim5  p5;
 
     Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
-        ldef, slot, ident, rules, chan;
+        ldef, slot, ident, rules, chan, ins, outs, lroutes;
 
     const char *str;
 
@@ -344,6 +344,10 @@ ostream &boxpp::print(ostream &fout) const
 
     else if (isBoxPatternMatcher(box)) {
         fout << "PM[" << box << "]";
+    }
+
+    else if (isBoxRoute(box, ins, outs, lroutes)) {
+        fout << "route(" << boxpp(ins) << "," << boxpp(outs) << "," << boxpp(lroutes) << ")";
     }
 
     else if (isBoxError(box)) {

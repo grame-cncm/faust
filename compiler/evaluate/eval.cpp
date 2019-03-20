@@ -314,7 +314,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     // Tree 	def;
     Tree fun;
     Tree arg;
-    Tree var, num, chan, body, ldef;
+    Tree var, num, chan, body, ldef, ins, outs, routes;
     Tree label;
     Tree cur, lo, hi, step;
     Tree e1, e2, exp2, notused, visited2, lenv2;
@@ -586,6 +586,45 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxPatternMatcher(exp)) {
         return exp;
 
+    } else if (isBoxRoute(exp, ins, outs, routes)) {
+        // evaluate the route description
+        Tree v1 = a2sb(eval(ins, visited, localValEnv));
+        Tree v2 = a2sb(eval(outs, visited, localValEnv));
+        Tree vr = a2sb(eval(routes, visited, localValEnv));
+
+        // check that we have constant numerical descriptions
+        int i1, o1, i2, o2, i3, o3;
+
+        getBoxType(v1, &i1, &o1);
+        getBoxType(v2, &i2, &o2);
+        getBoxType(vr, &i3, &o3);
+
+        if ((i1 == 0) & (o1 == 1) & (i2 == 0) & (o2 == 1) & (i3 == 0) & (o3 > 1) & ((o3 % 2) == 0)) {
+            // we are in good shape
+            Tree ls1 = boxPropagateSig(gGlobal->nil, v1, makeSigInputList(0));
+            Tree ls2 = boxPropagateSig(gGlobal->nil, v2, makeSigInputList(0));
+            Tree lsr = boxPropagateSig(gGlobal->nil, vr, makeSigInputList(0));
+
+            // all these lists should be list of constant numerical signals
+            // that we need to convert back to box expressions
+            vector<int> w1, w2, wr;
+            if (sigList2vecInt(ls1, w1) && sigList2vecInt(ls2, w2) && sigList2vecInt(lsr, wr)) {
+                // convert wr into a parallel boxes of ints b
+                Tree b = boxInt(wr[o3 - 1]);
+                for (int j = o3 - 2; j >= 0; j--) b = boxPar(boxInt(wr[j]), b);
+
+                return boxRoute(boxInt(w1[0]), boxInt(w2[0]), b);
+            } else {
+                stringstream error;
+                error << "ERROR : eval not a valid route expression (1) : " << boxpp(exp) << endl;
+                throw faustexception(error.str());
+            }
+        } else {
+            stringstream error;
+            error << "ERROR : eval not a valid route expression (2) : " << boxpp(exp) << endl;
+            throw faustexception(error.str());
+        }
+
     } else {
         stringstream error;
         error << "ERROR : eval doesn't intercept : " << *exp << endl;
@@ -742,6 +781,38 @@ static int eval2int(Tree exp, Tree visited, Tree localValEnv)
     }
 }
 
+/**
+ * Eval a block diagram to a list of int.
+ *
+ * Eval a block diagram that represent a list/tree of integer constants. This function first eval
+ * a block diagram to its normal form, then check it represent a numerical value (a
+ * block diagram of type : 0->n) then do a symbolic propagation and try to convert the
+ * resulting signal to a list of int.
+ * @param exp the expression to evaluate
+ * @param globalDefEnv the global environment
+ * @param visited list of visited definition to detect recursive definitions
+ * @param localValEnv the local environment
+ * @return a block diagram in normal form
+ */
+/*
+static Tree eval2listint(Tree exp, Tree visited, Tree localValEnv, vector<int>& v)
+{
+    Tree diagram = a2sb(eval(exp, visited, localValEnv));  // pour getBoxType()
+    int  numInputs, numOutputs;
+    getBoxType(diagram, &numInputs, &numOutputs);
+
+    if (numInputs == 0) {
+        Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
+        // cerr << "simplify 739" << endl;
+        Tree val = simplify(hd(lsignals));
+        return tree2int(val);
+
+    } else {
+        evalerror(yyfilename, yylineno, "not a constant expression of type : (0->n)", exp);
+        return 1;
+    }
+}
+*/
 static bool isDigitChar(char c)
 {
     return (c >= '0') & (c <= '9');

@@ -29,6 +29,7 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 QTDEFS=""
 OSCLIB=""
 POLY="POLY"
+DEPLOY="yes"
 EFFECT=""
 NVOICES=-1
 
@@ -37,7 +38,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2paqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2paqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] [-nodeploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
@@ -45,6 +46,7 @@ do
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-osc' to activate OSC control"
+        echo "Use '-nodeploy' to not create a self-contained application using 'macdeployqt'"
         exit
     fi
     
@@ -67,6 +69,8 @@ do
     elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+	elif [ $p = "-nodeploy" ]; then
+		DEPLOY="no"
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
 	elif [ ${p:0:1} = "-" ]; then
@@ -131,10 +135,17 @@ EndOfCode
     # compile c++ to binary
     (
 	    cd "$TMP"
-        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
-	    $QMAKE $SPEC
+        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
+	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
+    
+    # on Mac add the QT libraries to the bundle
+    if [[ $(uname) == Darwin ]]; then
+        if [ "$DEPLOY" = "yes" ]; then
+            macdeployqt "$TMP/${f%.dsp}$EXT" || exit
+        fi
+    fi
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"

@@ -138,8 +138,9 @@ struct global {
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;         // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
-    bool gClang;             // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
+                      // for JavaScript)
+    bool gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -163,7 +164,8 @@ struct global {
     bool   gOneSample;             // Generate one sample computation
     string gFastMathLib;           // The fastmath code mapping file
 
-    map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
+    map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
+    map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
 
     dsp_factory_base* gDSPFactory;
 
@@ -211,8 +213,9 @@ struct global {
     bool gMemoryManager;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
-    bool gCausality;            ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
-                                ///< (negative delay)
+    
+    bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
+                      ///< (negative delay)
 
     Tree BOXTYPEPROP;
     Tree NUMERICPROPERTY;
@@ -260,6 +263,7 @@ struct global {
     Sym BOXIDENT;
     Sym BOXCUT;
     Sym BOXWAVEFORM;
+    Sym BOXROUTE;
     Sym BOXWIRE;
     Sym BOXSLOT;
     Sym BOXSYMBOLIC;
@@ -544,7 +548,14 @@ struct global {
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
 
+    bool isMathForeignFunction(const string& name)
+    {
+        return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
+    }
+
     void printCompilationOptions(ostream& dst, bool backend = true);
+    
+    int audioSampleSize();
     
 };
 

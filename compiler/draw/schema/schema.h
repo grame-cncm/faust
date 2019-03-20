@@ -173,5 +173,6 @@ schema* makeRecSchema(schema* s1, schema* s2);
 schema* makeTopSchema(schema* s1, double margin, const string& text, const string& link);
 schema* makeDecorateSchema(schema* s1, double margin, const string& text);
 schema* makeConnectorSchema();
+schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const vector<int>& routes);
 
 #endif

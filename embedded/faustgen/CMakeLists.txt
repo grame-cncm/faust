@@ -33,6 +33,9 @@ string ( STRIP ${FINC} FAUSTINC )
 execute_process (COMMAND ${FAUST} --libdir OUTPUT_VARIABLE FLIB)
 string ( STRIP ${FLIB} FAUSTLIB )
 
+message (STATUS "Using Faust libraries from ${FAUSTLIB}")
+
+
 #######################################
 # libsndfile
 if (WIN32)

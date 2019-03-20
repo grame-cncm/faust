@@ -485,7 +485,7 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigSoundfileLength(sig, sf, x)) {
         return generateCacheCode(sig, subst("$0cache->fLength[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileRate(sig, sf, x)) {
-        return generateCacheCode(sig, subst("$0cache->fSampleRate[$1]", CS(sf), CS(x)));
+        return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         return generateCacheCode(sig,
                                  subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z)));
@@ -527,9 +527,12 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
  FOREIGN CONSTANTS
  *****************************************************************************/
 
-string ScalarCompiler::generateFConst(Tree sig, const string& file, const string& exp)
+string ScalarCompiler::generateFConst(Tree sig, const string& file, const string& exp_aux)
 {
-    string          ctype, vname;
+    // Special case for 02/25/19 renaming
+    string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
+
+    string ctype, vname;
     old_Occurences* o = fOccMarkup->retrieve(sig);
 
     addIncludeFile(file);
@@ -963,7 +966,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(size)));
 
     // initialisation du generateur de contenu
-    fClass->addInitCode(subst("$0.init(samplingFreq);", generator));
+    fClass->addInitCode(subst("$0.init(sample_rate);", generator));
     // remplissage de la table
     fClass->addInitCode(subst("$0.fill($1,$2);", generator, T(size), vname));
 
@@ -1024,7 +1027,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     }
 
     // initialisation du generateur de contenu
-    fClass->addStaticInitCode(subst("$0.init(samplingFreq);", cexp));
+    fClass->addStaticInitCode(subst("$0.init(sample_rate);", cexp));
     // remplissage de la table
     fClass->addStaticInitCode(subst("$0.fill($1,$2);", cexp, T(size), vname));
 
