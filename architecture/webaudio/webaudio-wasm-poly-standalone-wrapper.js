@@ -668,7 +668,8 @@ class FaustWasm2ScriptProcessorPoly {
                 const dspModule = await WebAssembly.instantiate(dspBuffer, importObject);
                 try {
                     const effectFile = await fetch(this.name + "_effect.wasm");
-                    const effectModule = await WebAssembly.instantiateStreaming(effectFile, importObject);
+                    const effectBuffer = await effectFile.arrayBuffer();
+                    const effectModule = await WebAssembly.instantiate(effectBuffer, importObject);
                     this.node = this.getNode(mixModule.instance, dspModule.instance, effectModule.instance, memory, audioCtx, bufferSize, polyphony);
                     return this.node;
                 } catch (e) {
