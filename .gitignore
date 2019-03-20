@@ -26,9 +26,12 @@ windows/*.user
 compiler/faust
 ### VSCode cache
 .*.VC.db
+.vscode/
 ### Xcode Patch ###
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
 tests/impulse-tests/ir
+### ESLint
+.eslintrc.json
