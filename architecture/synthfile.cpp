@@ -47,29 +47,11 @@
 #include <time.h>
 #include <vector>
 
-// g++ -O3 -lm -lsynthfile  myfx.cpp
+#include "faust/dsp/dsp.h"
+#include "faust/GUI/ControlUI.h"
+#include "faust/GUI/meta.h"
 
 using namespace std;
-
-struct Meta : map<const char*, const char*>
-{
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
-};
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-
-/******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
-
-<<includeIntrinsic>>
 
 /******************************************************************************
 *******************************************************************************
@@ -79,59 +61,18 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 *******************************************************************************
 *******************************************************************************/
 
-class UI
-{
-	bool	fStopped;
-public:
-		
-	UI() : fStopped(false) {}
-	virtual ~UI() {}
-	
-	// -- active widgets
-	
-	virtual void addButton(const char* label, float* zone) = 0;
-	virtual void addToggleButton(const char* label, float* zone) = 0;
-	virtual void addCheckButton(const char* label, float* zone) = 0;
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	
-	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-	
-	// -- frames and labels
-	
-	virtual void openFrameBox(const char* label) = 0;
-	virtual void openTabBox(const char* label) = 0;
-	virtual void openHorizontalBox(const char* label) = 0;
-	virtual void openVerticalBox(const char* label) = 0;
-	virtual void closeBox() = 0;
-	
-	virtual void show() = 0;
-	virtual void run() = 0;
-	
-	void stop()		{ fStopped = true; }
-	bool stopped() 	{ return fStopped; }
-
-    virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
 struct param {
 	float* fZone; float fMin; float fMax;
 	param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
 };
 
-class CMDUI : public UI
+class CMDUI : public ControlUI
 {
-	int					fArgc;
-	char**				fArgv;
-	char*				fOutFile;
-	long				fNumframes;
-	stack<string>		fPrefix;
+	int             fArgc;
+	char**          fArgv;
+    std::string     fOutFile;
+	long            fNumframes;
+	stack<string>	fPrefix;
 	map<string, param>	fKeyParam;
 	
 	void openAnyBox(const char* label)
@@ -148,11 +89,11 @@ class CMDUI : public UI
 
 	string simplify(const string& src)
 	{
-		int		i=0;
-		int		level=0;
-		string	dst;
+		int i = 0;
+		int level = 0;
+		string dst;
 		
-		while (src[i] ) {
+		while (src[i]) {
 		
 			switch (level) {
 			
@@ -181,8 +122,7 @@ class CMDUI : public UI
 							if (isalnum(src[i])) {
 								dst+= tolower(src[i]); 
 							}
-							
-					}
+                    }
 					break;
 					
 				default :	
@@ -204,8 +144,7 @@ class CMDUI : public UI
 						default :
 							break;
 					}
-						
-			}
+            }
 			i++;
 		}
 		return dst;
@@ -213,17 +152,18 @@ class CMDUI : public UI
 	
 public:
 		
-	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv), fNumframes(44100), fOutFile("out.wav")
-			{ fPrefix.push("-"); }
+    CMDUI(int argc, char *argv[]):ControlUI(), fArgc(argc), fArgv(argv), fNumframes(44100), fOutFile("out.wav")
+    {
+        fPrefix.push("-");
+    }
+    
 	virtual ~CMDUI() {}
-	
 		
 	void addOption(const char* label, float* zone, float init, float min, float max)
 	{
 		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
 		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
 	}
-
 	
 	virtual void addButton(const char* label, float* zone)
 	{
@@ -256,11 +196,6 @@ public:
 	}
 		
 	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{}
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 	
 	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
 	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
@@ -295,16 +230,15 @@ public:
 		
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
-				if (	(strcmp(fArgv[i], "-help") == 0) 
+				if ((strcmp(fArgv[i], "-help") == 0)
 					 || (strcmp(fArgv[i], "-h") == 0)
-					 || (strcmp(fArgv[i], "--help") == 0) ) 	{
+					 || (strcmp(fArgv[i], "--help") == 0)) 	{
 					printhelp();
 				}
 
 				if (strcmp(fArgv[i], "-o") == 0) {
 					fOutFile = fArgv[i+1];
-				}
-				else {
+				} else {
 					p = fKeyParam.find(fArgv[i]); 
 					if (p == fKeyParam.end()) {
 						cout << fArgv[0] << ": unrecognized option " << fArgv[i] << "\n";
@@ -313,16 +247,15 @@ public:
 					*(p->second.fZone) = float(strtod(fArgv[i+1], NULL));
 				}
 				i++;				
-			}
-			else  {
+			} else {
 				fNumframes = strtol(fArgv[i], NULL, 10);
 				if (fNumframes <= 0 ) printhelp();
 			}
 		}
 	}
 
-	char*	output_file() 	{ return fOutFile; }
-	long	num_frames() 	{ return fNumframes; }
+	const char* output_file() { return fOutFile.c_str(); }
+	long num_frames() { return fNumframes; }
 		
 	void process_init()
 	{
@@ -339,25 +272,16 @@ public:
 	}		
 };
 
-//----------------------------------------------------------------
-//  d�inition du processeur de signal
-//----------------------------------------------------------------
-			
-class dsp {
- protected:
-	int fSampleRate;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-	
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int sampleRate)                               = 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
- 	virtual void conclude() 										{}
-};
-		
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
+
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
@@ -368,72 +292,76 @@ class dsp {
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp	DSP;
+mydsp DSP;
 		
 class Interleaver
 {
-	int		fNumFrames; 
-	int		fNumInputs; 
-	int		fNumOutputs;
-	
-	float*	fInputs[256];
-	float*	fOutput;
+    
+    private:
+        
+        int fNumFrames;
+        int fNumInputs;
+        int fNumOutputs;
+        
+        float*	fInputs[256];
+        float*	fOutput;
+        
+    public:
+              
+        Interleaver(int numFrames, int numInputs, int numOutputs)
+        {
+            fNumFrames 	= numFrames;
+            fNumInputs 	= max(numInputs, numOutputs);
+            fNumOutputs = numOutputs;
+            
+            // allocate separate input channels
+            for (int i = 0; i < fNumInputs; i++) {
+                fInputs[i] = (float*)calloc(fNumFrames, sizeof(float));
+            }
+            
+            // allocate interleaved output channel
+            fOutput = (float*)calloc(fNumFrames*fNumOutputs, sizeof(float));
+            
+        }
+        
+        ~Interleaver()
+        {
+            // free separate input channels
+            for (int i = 0; i < fNumInputs; i++) {
+                free(fInputs[i]);
+            }
+            
+            // free interleaved output channel
+            free(fOutput);
+        }
+        
+        float**	inputs() { return fInputs; }
+        float* 	output() { return fOutput; }
+        
+        void interleave()
+        { 	
+            for (int s = 0; s < fNumFrames; s++) {
+                for (int c = 0; c < fNumOutputs; c++) {
+                    fOutput[c + s*fNumOutputs] = fInputs[c][s];
+                }
+            }
+        }
 
-  public:
-		  
-	Interleaver(int numFrames, int numInputs, int numOutputs) 
-	{
-		fNumFrames 	= numFrames;
-		fNumInputs 	= max(numInputs, numOutputs);
-		fNumOutputs = numOutputs;
-		
-		// allocate separate input channels
-		for (int i = 0; i < fNumInputs; i++) {
-			fInputs[i] = (float*) calloc (fNumFrames, sizeof(float));
-		}
-		
-		// allocate interleaved output channel
-		fOutput = (float*) calloc(fNumFrames*fNumOutputs, sizeof(float));
-		
-	}
-	
-	~Interleaver()
-	{
-		// free separate input channels
-		for (int i = 0; i < fNumInputs; i++) {
-			free(fInputs[i]);
-		}		
-		
-		// free interleaved output channel
-		free(fOutput);
-	}
-	
-	float**	inputs()		{ return fInputs; }
-	float* 	output()		{ return fOutput; }
-	
-	void 	interleave()
-	{ 	
-		for (int s = 0; s < fNumFrames; s++) {
-			for (int c = 0; c < fNumOutputs; c++) {
-				fOutput[c + s*fNumOutputs] = fInputs[c][s];
-			}
-		}
-	}
 };
 
 #define kFrames			512
 #define kSampleRate		44100
 
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
 	CMDUI* interface = new CMDUI(argc, argv);
 	DSP.buildUserInterface(interface);
 	interface->process_command();
 		
 	// open output file
-	SNDFILE*		out_sf;
-	SF_INFO			out_info = { interface->num_frames(), kSampleRate, DSP.getNumOutputs(), 
-								 SF_FORMAT_WAV|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE, 0, 0};
+	SNDFILE* out_sf;
+	SF_INFO	out_info = { interface->num_frames(), kSampleRate, DSP.getNumOutputs(),
+                        SF_FORMAT_WAV|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE, 0, 0};
 	out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
 	if (out_sf == NULL) { 
 		cerr << "Error: "; 
@@ -442,7 +370,7 @@ int main(int argc, char *argv[] )
 	}
 	
 	// create interleaver
-	Interleaver ilv (kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
+	Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
 	
 	// init signal processor
 	DSP.init(kSampleRate);
@@ -453,12 +381,12 @@ int main(int argc, char *argv[] )
 	int nbf;
 	do {
 		 if (frames > kFrames) {
-		 	nbf 	= kFrames;
+		 	nbf = kFrames;
 		 	frames -= kFrames;
 		 }
 		 else {
-		 	nbf 	= frames;
-		 	frames 	= 0;
+		 	nbf = frames;
+		 	frames = 0;
 		 }
 		DSP.compute(nbf, 0, ilv.inputs());
 		ilv.interleave();
