@@ -30,7 +30,6 @@
 #include "compatibility.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "export.hh"
 #include "libfaust.h"
 
 #ifdef WIN32
