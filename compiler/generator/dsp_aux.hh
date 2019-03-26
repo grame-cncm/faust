@@ -34,6 +34,7 @@
 #endif
 
 #include "exception.hh"
+#include "export.hh"
 #include "faust/dsp/dsp.h"
 
 /*!
@@ -353,5 +354,24 @@ struct Soundfile {
 } POST_PACKED_STRUCTURE;
 
 extern Soundfile* dynamic_defaultsound;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
+                                      char* error_msg);
+
+EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+                                        char* sha_key, char* error_msg);
+
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+                                        char* error_msg);
+    
+#ifdef __cplusplus
+}
+#endif
 
 #endif

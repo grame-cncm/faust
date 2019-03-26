@@ -179,20 +179,18 @@ static void callFun(compile_fun fun)
 #else
 static void callFun(compile_fun fun)
 {
-    if (startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm")) {
-        // No thread support in asm.js and wast/wasm
-        fun(NULL);
-    } else {
-        pthread_t      thread;
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-#ifndef EMCC
-        pthread_attr_setstacksize(&attr, 524288 * 128);
+#ifdef EMCC
+    // No thread support in JS
+    fun(NULL);
+#else
+    pthread_t thread;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 524288 * 128);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    pthread_create(&thread, &attr, fun, NULL);
+    pthread_join(thread, NULL);
 #endif
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-        pthread_create(&thread, &attr, fun, NULL);
-        pthread_join(thread, NULL);
-    }
 }
 #endif
 
