@@ -127,11 +127,11 @@ void CCodeContainer::produceInternal()
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
         *fOut << "static void fill" << fKlassName << "(" << fKlassName
-              << subst("* dsp, int $0, int* output) {", counter);
+              << subst("* dsp, int $0, int* " + fTableName + ") {", counter);
     } else {
         tab(n, *fOut);
         *fOut << "static void fill" << fKlassName << "(" << fKlassName
-              << subst("* dsp, int $0, $1* output) {", counter, ifloat());
+              << subst("* dsp, int $0, $1* " + fTableName + ") {", counter, ifloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);

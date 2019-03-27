@@ -63,7 +63,9 @@ CodeContainer::CodeContainer()
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst()),
       fSubContainerType(kInt),
-      fGeneratedSR(false)
+      fGeneratedSR(false),
+      fInt32ControlNum(0),
+      fRealControlNum(0)
 {
     fCurLoop = new CodeLoop(0, "i");
 }
@@ -736,15 +738,15 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
     }
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     if (fSubContainerType == kInt) {
-        args.push_back(InstBuilder::genNamedTyped("output", Typed::kInt32_ptr));
+        args.push_back(InstBuilder::genNamedTyped(fTableName, Typed::kInt32_ptr));
     } else {
-        args.push_back(InstBuilder::genNamedTyped("output", itfloatptr()));
+        args.push_back(InstBuilder::genNamedTyped(fTableName, itfloatptr()));
     }
 
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(fComputeBlockInstructions);
     block->pushBackInst(fCurLoop->generateScalarLoop("count"));
-
+    
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
  

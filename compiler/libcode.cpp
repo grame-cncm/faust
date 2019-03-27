@@ -107,6 +107,10 @@
 #include "wast_code_container.hh"
 #endif
 
+#ifdef SOUL_BUILD
+#include "soul_code_container.hh"
+#endif
+
 using namespace std;
 
 extern const char* mathsuffix[4];
@@ -168,6 +172,10 @@ static void enumBackends(ostream& out)
     
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
+#endif
+    
+#ifdef SOUL_BUILD
+    out << dspto << "SOUL" << endl;
 #endif
 }
 
@@ -632,8 +640,9 @@ static bool processCmdline(int argc, const char* argv[])
     
     if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp"
         && gGlobal->gOutputLang != "c"
+        && gGlobal->gOutputLang != "soul"
         && gGlobal->gOutputLang != "fir") {
-        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c' or 'fir' backends\n");
+        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
     
     if (gGlobal->gOneSample && gGlobal->gVectorSwitch) {
@@ -757,7 +766,7 @@ static void printHelp()
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
          << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
-            "llvm, cllvm, fir, wast/wasm, interp."
+            "llvm, cllvm, fir, wast/wasm, soul, interp."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
@@ -1232,9 +1241,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
 #ifdef LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
-        gGlobal->gFAUSTFLOATToInternal =
-            true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;
 #ifdef CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
@@ -1254,7 +1262,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputLang == "llvm") {
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-         // libc functions will be found by the LLVM linker, but not user defined ones...
+        // libc functions will be found by the LLVM linker, but not user defined ones...
         gGlobal->gAllowForeignFunction = true;
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
@@ -1363,8 +1371,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "rust") {
 #ifdef RUST_BUILD
-            gGlobal->gFAUSTFLOATToInternal =
-                true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
@@ -1378,7 +1386,19 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
-
+        } else if (gGlobal->gOutputLang == "soul") {
+#ifdef SOUL_BUILD
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
+            
+            // "one sample control" model by default;
+            gGlobal->gOneSampleControl = true;
+            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            
+            container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+#else
+            throw faustexception("ERROR : -lang rust not supported since SOUL backend is not built\n");
+#endif
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions

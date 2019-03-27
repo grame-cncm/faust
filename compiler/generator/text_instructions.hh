@@ -269,9 +269,9 @@ class TextInstVisitor : public InstVisitor {
     {
         *fOut << "(";
         inst->fCond->accept(this);
-        *fOut << "?";
+        *fOut << " ? ";
         inst->fThen->accept(this);
-        *fOut << ":";
+        *fOut << " : ";
         inst->fElse->accept(this);
         *fOut << ")";
     }
@@ -392,6 +392,9 @@ class TextInstVisitor : public InstVisitor {
         *fOut << "}";
         tab(fTab, *fOut);
     }
+    
+    StringTypeManager* getTypeManager() { return fTypeManager; }
+    
 };
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like

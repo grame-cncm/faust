@@ -682,7 +682,7 @@ static Type infereWaveformType(Tree wfsig, Tree env)
     double lo, hi;
 
     if (n == 0) {
-        throw faustexception("ERROR, empty waveform");
+        throw faustexception("ERROR empty waveform\n");
     }
 
     lo = hi = tree2float(wfsig->branch(0));

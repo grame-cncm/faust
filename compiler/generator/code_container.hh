@@ -42,7 +42,9 @@
 #endif
 
 // The name of 'count' parameter
-#define fFullCount "count"
+#define fFullCount string("count")
+
+#define fTableName string("table")
 
 class TextInstVisitor;
 
@@ -109,7 +111,7 @@ class CodeContainer : public virtual Garbageable {
 
     list<string> fUICode;
     list<string> fUIMacro;
-
+   
     void merge(set<string>& dst, set<string>& src)
     {
         set<string>::iterator i;
@@ -193,7 +195,7 @@ class CodeContainer : public virtual Garbageable {
     // Returns the name of the class
     string getFullClassName()
     {
-        return (fParentContainer != 0) ? fParentContainer->getFullClassName() + "::" + getClassName() : getClassName();
+        return (fParentContainer != 0) ? (fParentContainer->getFullClassName() + "::" + getClassName()) : getClassName();
     }
 
     void setGeneratedSR() { fGeneratedSR = true; }
@@ -528,8 +530,9 @@ class CodeContainer : public virtual Garbageable {
 
     size_t getSubContainers() { return fSubContainers.size(); }
 
-    const string& getClassName() { return fKlassName; }
-    string        getFaustPowerName() { return fKlassName + "_faustpower"; }
+    const string getTableName() { return fTableName; }
+    const string getClassName() { return fKlassName; }
+    const string getFaustPowerName() { return fKlassName + "_faustpower"; }
 
     // UI construction
     void addUIMacro(const string& str) { fUIMacro.push_back(str); }

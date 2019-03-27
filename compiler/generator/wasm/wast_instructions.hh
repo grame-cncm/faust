@@ -419,6 +419,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
+    
+    virtual void visit(BoolNumInst* inst) { faustassert(false); }
 
     virtual void visit(Int32NumInst* inst)
     {

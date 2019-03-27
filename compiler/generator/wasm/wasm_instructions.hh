@@ -1105,6 +1105,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         *fOut << int8_t(BinaryConsts::F64Const) << inst->fNum;
     }
+    
+    virtual void visit(BoolNumInst* inst) { faustassert(false); }
 
     virtual void visit(Int32NumInst* inst)
     {

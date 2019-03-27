@@ -163,6 +163,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
+    gOneSampleControl     = false;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version
@@ -393,6 +394,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
 #ifdef INTERP_BUILD
     gInterpreterVisitor = 0;  // Will be (possibly) allocated in Interp backend
+#endif
+    
+#ifdef SOUL_BUILD
+    gTableSizeVisitor = 0;    // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;

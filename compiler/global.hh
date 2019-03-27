@@ -56,6 +56,7 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
 struct Typed;
@@ -162,6 +163,7 @@ struct global {
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation
+    bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
@@ -485,6 +487,10 @@ struct global {
 #ifdef INTERP_BUILD
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
+#endif
+    
+#ifdef SOUL_BUILD
+    TableSizeVisitor* gTableSizeVisitor;
 #endif
 
     bool gHelpSwitch;
