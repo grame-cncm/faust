@@ -640,7 +640,7 @@ static bool processCmdline(int argc, const char* argv[])
     
     if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp"
         && gGlobal->gOutputLang != "c"
-        && gGlobal->gOutputLang != "soul"
+        && startWith(gGlobal->gOutputLang, "soul")
         && gGlobal->gOutputLang != "fir") {
         throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
@@ -1386,7 +1386,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
-        } else if (gGlobal->gOutputLang == "soul") {
+        } else if (startWith(gGlobal->gOutputLang, "soul")) {
 #ifdef SOUL_BUILD
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;

@@ -44,22 +44,34 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        //fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
-        fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceChar(inst->fLabel, ' ', '_') << ";";
+        if (gGlobal->gOutputLang == "soul-poly") {
+            vector<char> rep = { ' ', '(', ')', '/', '\\' };
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_') << ";";
+        } else {
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
+        }
         tab(fTab , fOut);
     }
     
     virtual void visit(AddSliderInst* inst)
     {
-        //fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
-        fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceChar(inst->fLabel, ' ', '_') << ";";
+        if (gGlobal->gOutputLang == "soul-poly") {
+            vector<char> rep = { ' ', '(', ')', '/', '\\' };
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_') << ";";
+        } else {
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
+        }
         tab(fTab , fOut);
     }
     
     virtual void visit(AddBargraphInst* inst)
     {
-        //fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
-        fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceChar(inst->fLabel, ' ', '_') << ";";
+        if (gGlobal->gOutputLang == "soul-poly") {
+            vector<char> rep = { ' ', '(', ')', '/', '\\' };
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_') << ";";
+        } else {
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
+        }
         tab(fTab , fOut);
     }
 
@@ -144,8 +156,12 @@ class SOULInstVisitor : public TextInstVisitor {
     {
         *fOut << "// " << inst->fLabel;
         EndLine(' ');
-        //*fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
-        *fOut << "event event_" << replaceChar(inst->fLabel, ' ', '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+        if (gGlobal->gOutputLang == "soul-poly") {
+            vector<char> rep = { ' ', '(', ')', '/', '\\' };
+            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+        } else {
+            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+        }
         EndLine(' ');
     }
 
@@ -157,8 +173,12 @@ class SOULInstVisitor : public TextInstVisitor {
               << ", max = " << checkReal(inst->fMax)
               << ", step = " << checkReal(inst->fStep) << "]";
         EndLine(' ');
-        //*fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
-        *fOut << "event event_" << replaceChar(inst->fLabel, ' ', '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+        if (gGlobal->gOutputLang == "soul-poly") {
+            vector<char> rep = { ' ', '(', ')', '/', '\\' };
+            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+        } else {
+            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+        }
         EndLine(' ');
     }
 

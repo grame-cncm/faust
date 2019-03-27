@@ -92,17 +92,21 @@ for p in $FILES; do
             adaptor(F,G) = adapt(outputs(F),inputs(G));
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
             faust -lang soul -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
         else
-            faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
             faust -lang soul -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
         fi
         cat "$TMP/effect.soul" > "$TMP/${f%.dsp}.soul"
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}_tmp2.soul"
         cat "$TMP/${f%.dsp}_tmp2.soul" >> "$TMP/${f%.dsp}.soul"
     else
-        faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+    	if [ $NVOICES != -1 ]; then
+        	faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        else
+        	faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        fi
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
     fi
     

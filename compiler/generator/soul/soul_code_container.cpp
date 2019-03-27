@@ -56,7 +56,8 @@ CodeContainer* SOULCodeContainer::createContainer(const string& name, int numInp
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for SOUL\n");
     } else if (gGlobal->gVectorSwitch) {
-        container = new SOULVectorCodeContainer(name, numInputs, numOutputs, dst);
+        throw faustexception("ERROR : Vector mode not supported for SOUL\n");
+        //container = new SOULVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new SOULScalarCodeContainer(name, numInputs, numOutputs, kInt, dst);
     }

@@ -1,6 +1,6 @@
 # faust2soul
 
-**faust2soul** tool compiles a Faust DSP program to SOUL code as a monophonic DSP or possibly a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)):
+**faust2soul** tool compiles a Faust DSP program to SOUL source code as a monophonic DSP or possibly a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)):
 
 `faust2soul [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-play] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
@@ -14,10 +14,10 @@ Here are the available options:
 
 So for instance:
 
-- `./faust2soul noise.dsp` to produce a noise.soul file
-- `./faust2soul -play osc.dsp` to produce an osc.soul file and play it
-- `./faust2soul -midi -nvoices 16  -play clarinetMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument as a clarinetMIDI.soul file and play it
-- `./faust2soul -midi -nvoices 16  -effect freeverb.dsp -play violinMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument with a global effect as a violinMIDI.soul file and play it
+- `faust2soul noise.dsp` to produce a noise.soul file
+- `faust2soul -play osc.dsp` to produce an osc.soul file and play it
+- `faust2soul -midi -nvoices 16 -play clarinetMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument as a clarinetMIDI.soul file and play it
+- `faust2soul -midi -nvoices 16 -effect freeverb.dsp -play violinMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument with a global effect as a violinMIDI.soul file and play it
 
 
 
