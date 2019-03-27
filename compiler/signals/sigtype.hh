@@ -128,8 +128,8 @@ class AudioType : public virtual Garbageable {
     // virtual AudioType* promoteInterval(const interval& i) = 0;		///< promote the interval of a type
 
     virtual ostream& print(ostream& dst) const = 0;  ///< print nicely a type
-    virtual bool     isMaximal()
-        const = 0;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    virtual bool isMaximal() const = 0;
 
    protected:
     void setInterval(const interval& r) { fInterval = r; }

@@ -327,12 +327,21 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         // HACK for Rust backend
         if (gGlobal->gOutputLang != "rust") {
             // "input" and "inputs" used as a name convention
-            if (!gGlobal->gOneSample) {
+            if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
-                    pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                        name, InstBuilder::genArrayTyped(type, 0),
-                        InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
+                    pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
+                    if (gGlobal->gInPlace) {
+                        CS(sigInput(index));
+                    }
+                }
+            } else if (gGlobal->gOneSample) {
+                // Nothing...
+            } else {
+                for (int index = 0; index < fContainer->inputs(); index++) {
+                    string name = subst("input$0", T(index));
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                                                                           InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
                     if (gGlobal->gInPlace) {
                         CS(sigInput(index));
                     }
@@ -342,13 +351,20 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
         // HACK for Rust backend
         if (gGlobal->gOutputLang != "rust") {
-            if (!gGlobal->gOneSample) {
+            if (gGlobal->gOneSampleControl) {
                 // "output" and "outputs" used as a name convention
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
-                    pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                        name, InstBuilder::genArrayTyped(type, 0),
-                        InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
+                    pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
+                }
+            } else if (gGlobal->gOneSample) {
+                // Nothing...
+            } else {
+                // "output" and "outputs" used as a name convention
+                for (int index = 0; index < fContainer->outputs(); index++) {
+                    string name = subst("output$0", T(index));
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                                                                           InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
                 }
             }
         }
@@ -365,6 +381,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         if (gGlobal->gOutputLang == "rust") {
             name = subst("outputs[$0]", T(index));
             pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+        } else if (gGlobal->gOneSampleControl) {
+            name = subst("output$0", T(index));
+            pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res));
         } else if (gGlobal->gOneSample) {
             name = "outputs";
             pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, InstBuilder::genInt32NumInst(index), res));
@@ -403,7 +422,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 void InstructionsCompiler::compileSingleSignal(Tree sig)
 {
     sig         = prepare2(sig);  // Optimize and annotate expression
-    string name = "output";
+    string name = fContainer->getTableName();
 
     pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, getCurrentLoopIndex(), CS(sig)));
 
@@ -667,10 +686,12 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     if (gGlobal->gOutputLang == "rust") {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar(subst("inputs[$0]", T(idx)), getCurrentLoopIndex()));
+    } else if (gGlobal->gOneSampleControl) {
+        res = InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(subst("input$0", T(idx))));
     } else if (gGlobal->gOneSample) {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx)));
-   } else {
+    } else {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
     }
@@ -787,6 +808,7 @@ void InstructionsCompiler::getTypedNames(::Type t, const string& prefix, Typed::
         vname = subst("f$0", gGlobal->getFreshID(prefix));
     }
 }
+
 ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     ValueInst* code;
@@ -867,7 +889,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             return InstBuilder::genLoadStructVar(vname);
 
         case kBlock:
-            if (gGlobal->gOneSample) {
+            if (gGlobal->gOneSample || gGlobal->gOneSampleControl) {
                 if (t->nature() == kInt) {
                     pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
                     ValueInst* res = InstBuilder::genLoadArrayStackVar("icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
@@ -1159,12 +1181,18 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
 
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
+    int size;
+    if (!isSigInt(tsize, &size)) {
+        stringstream error;
+        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
+        throw faustexception(error.str());
+    }
+
     ValueInst*     generator = CS(content);
     Typed::VarType ctype;
     Tree           g;
     string         vname;
-    int            size;
-
+ 
     // already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
     pair<string, string> kvnames;
@@ -1191,12 +1219,6 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
             args3.push_back(generator);
             pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
         }
-    }
-
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
     }
 
     // Define table name and type
@@ -1229,12 +1251,18 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
+    int size;
+    if (!isSigInt(tsize, &size)) {
+        stringstream error;
+        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
+        throw faustexception(error.str());
+    }
+
     Tree           g;
     ValueInst*     cexp;
     Typed::VarType ctype;
     string         vname;
-    int            size;
-
+ 
     ensure(isSigGen(content, g));
 
     if (!getCompiledExpression(content, cexp)) {
@@ -1266,12 +1294,6 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
                 pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
             }
         }
-    }
-
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
     }
 
     // Define table name and type

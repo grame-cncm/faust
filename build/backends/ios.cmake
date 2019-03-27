@@ -6,6 +6,7 @@
 #    STATIC    embed the backend in the faust static library
 #    DYNAMIC   embed the backend in the faust dynamic library
 #    WASM      embed the backend in the faust wasm library
+#    SOUL      embed the backend in the Faust wasm library
 
 set ( IOS            ON        CACHE BOOL    "Compiles for iOS"     FORCE )
 

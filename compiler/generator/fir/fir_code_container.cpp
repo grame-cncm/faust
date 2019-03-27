@@ -30,7 +30,7 @@ using namespace std;
 dsp_factory_base* FIRCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", ((dynamic_cast<stringstream*>(fOut)) ? dynamic_cast<stringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* FIRCodeContainer::createScalarContainer(const string& name, int sub_container_type)

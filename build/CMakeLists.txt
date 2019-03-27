@@ -60,6 +60,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/generator/fir
 	${SRCDIR}/generator/interpreter
 	${SRCDIR}/generator/rust
+	${SRCDIR}/generator/soul
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
@@ -341,7 +342,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU iOS juce max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
+set (ARCHSRC android api AU iOS juce soul max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()

@@ -929,14 +929,19 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
+    int size;
+    if (!isSigInt(tsize, &size)) {
+        stringstream error;
+        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
+        throw faustexception(error.str());
+    }
+    
     string generator(CS(content));
     Tree   g;
     string cexp;
     string ctype, vname;
-    int    size;
-
+ 
     // already compiled but check if we need to add declarations
-
     faustassert(isSigGen(content, g));
     pair<string, string> kvnames;
     if (!fInstanceInitProperty.get(g, kvnames)) {
@@ -946,11 +951,6 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         fClass->addInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
     }
 
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
@@ -976,12 +976,17 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 
 string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
-    // string generator(CS(content));
+    int size;
+    if (!isSigInt(tsize, &size)) {
+        stringstream error;
+        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
+        throw faustexception(error.str());
+    }
+    
     Tree   g;
     string cexp;
     string ctype, vname;
-    int    size;
-
+  
     faustassert(isSigGen(content, g));
 
     if (!getCompiledExpression(content, cexp)) {
@@ -995,12 +1000,6 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
             faustassert(b);
             fClass->addStaticInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
         }
-    }
-
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
     }
 
     // definition du nom et du type de la table
@@ -1053,7 +1052,7 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 {
     // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
-    // et donc le code était dupliqué(dans tester.dsp par exemple)
+    // et donc le code était dupliqué (dans tester.dsp par exemple)
     // return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
 
     // cerr << "generateRDTable " << *sig << endl;
