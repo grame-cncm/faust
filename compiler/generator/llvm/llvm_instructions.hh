@@ -1005,7 +1005,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
 
         // Get loop counter local variable
-        string loop_counter_name = inst->getLoopVarName();
+        string loop_counter_name = inst->getName();
         faustassert(fStackVars.find(loop_counter_name) != fStackVars.end());
         
          // Start the PHI node with an entry for start
