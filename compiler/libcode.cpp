@@ -1430,10 +1430,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    stringstream error;
-                    error << "ERROR : cannot generate helper JS file, outpath is incorrect : "
-                          << "\"" << outpath << "\"" << endl;
-                    throw faustexception(error.str());
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
                 }
             } else {
                 helpers = &cout;
@@ -1473,10 +1470,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    stringstream error;
-                    error << "ERROR : cannot generate helper JS file, outpath is incorrect : "
-                          << "\"" << outpath << "\"" << endl;
-                    throw faustexception(error.str());
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
                 }
             } else {
                 helpers = &cout;
