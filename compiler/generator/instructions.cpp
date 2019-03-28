@@ -117,16 +117,23 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     : fAddress(address), fType(type), fValue(value)
 {
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
-        // cout << "DeclareVarInst " << fAddress->getName() << " " << Typed::gTypeString[type->getType()] << endl;
         gGlobal->gVarTypeTable[fAddress->getName()] = type;
     } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
-        // If array type, check the internal type
-        ArrayTyped* type1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
-        ArrayTyped* type2 = dynamic_cast<ArrayTyped*>(type);
-        if (type1 && type2) {
-            faustassert(type1->fType == type2->fType);
+        
+        // If named type, check their name and internal type
+        NamedTyped* name_t1 = dynamic_cast<NamedTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
+        NamedTyped* name_t2 = dynamic_cast<NamedTyped*>(type);
+        if (name_t1 && name_t2) {
+            faustassert (name_t1->fName == name_t2->fName && name_t1->fType == name_t2->fType);
         } else {
-            faustassert(false);
+            // If array type, check their size and internal type
+            ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
+            ArrayTyped* arry_t2 = dynamic_cast<ArrayTyped*>(type);
+            if (array_t1 && arry_t2) {
+                faustassert(array_t1->fSize == arry_t2->fSize && array_t1->fType == arry_t2->fType);
+            } else {
+                faustassert(false);
+            }
         }
     }
 }
