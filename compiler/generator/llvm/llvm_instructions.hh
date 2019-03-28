@@ -51,16 +51,15 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
 
-#define LLVMValue llvm::Value*
-#define GET_ITERATOR(it) &(*(it))
-#define LLVM_TYPE llvm::Type*
-#define VECTOR_OF_TYPES vector<LLVM_TYPE>
-#define MAP_OF_TYPES map<Typed::VarType, LLVM_TYPE>
-#define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
-#define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
-#define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
-#define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
-#define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
+#define LLVMValue              llvm::Value*
+#define LLVMType               llvm::Type*
+#define GetIterator(it)        &(*(it))
+#define LLVMVecTypes           vector<LLVMType>
+#define MapOfTtypes            map<Typed::VarType, LLVMType>
+#define MakeIdx(beg, end)      llvm::ArrayRef<LLVMValue>(beg, end)
+#define MakeArgs(args)         llvm::ArrayRef<lLLVMValue>(args)
+#define CreateCall(fun, args)  fBuilder->CreateCall(fun, makeArrayRef(args))
+#define CreatePhi(type, name)  fBuilder->CreatePHI(type, 0, name);
 
 #define dumpLLVM(val)                            \
     {                                            \
@@ -75,7 +74,7 @@ using namespace llvm;
 // Helper class
 
 struct LLVMTypeHelper {
-    MAP_OF_TYPES fTypeMap;
+    MapOfTtypes fTypeMap;
     Module* fModule;
   
     LLVMTypeHelper(Module* module):fModule(module)
@@ -121,7 +120,7 @@ struct LLVMTypeHelper {
         
         // External structured type definition
         for (auto& it : gGlobal->gExternalStructTypes) {
-            LLVM_TYPE new_type = convertFIRType((it.second)->fType);
+            LLVMType new_type = convertFIRType((it.second)->fType);
             fTypeMap[it.first] = new_type;
             faustassert(Typed::getPtrFromType(it.first));
             fTypeMap[Typed::getPtrFromType(it.first)] = getTyPtr(new_type);
@@ -155,28 +154,28 @@ struct LLVMTypeHelper {
         return ConstantFP::get(fModule->getContext(), APFloat(num));
     }
 
-    LLVM_TYPE getFloatTy()  { return llvm::Type::getFloatTy(fModule->getContext()); }
-    LLVM_TYPE getDoubleTy() { return llvm::Type::getDoubleTy(fModule->getContext()); }
-    LLVM_TYPE getInt32Ty()  { return llvm::Type::getInt32Ty(fModule->getContext()); }
-    LLVM_TYPE getInt64Ty()  { return llvm::Type::getInt64Ty(fModule->getContext()); }
-    LLVM_TYPE getInt1Ty()   { return llvm::Type::getInt1Ty(fModule->getContext()); }
-    LLVM_TYPE getInt8Ty()   { return llvm::Type::getInt8Ty(fModule->getContext()); }
-    LLVM_TYPE getInt8TyPtr() { return PointerType::get(getInt8Ty(), 0); }
-    LLVM_TYPE getTyPtr(LLVM_TYPE type) { return PointerType::get(type, 0); }
+    LLVMType getFloatTy()   { return llvm::Type::getFloatTy(fModule->getContext()); }
+    LLVMType getDoubleTy()  { return llvm::Type::getDoubleTy(fModule->getContext()); }
+    LLVMType getInt32Ty()   { return llvm::Type::getInt32Ty(fModule->getContext()); }
+    LLVMType getInt64Ty()   { return llvm::Type::getInt64Ty(fModule->getContext()); }
+    LLVMType getInt1Ty()    { return llvm::Type::getInt1Ty(fModule->getContext()); }
+    LLVMType getInt8Ty()    { return llvm::Type::getInt8Ty(fModule->getContext()); }
+    LLVMType getInt8TyPtr() { return PointerType::get(getInt8Ty(), 0); }
+    LLVMType getTyPtr(LLVMType type) { return PointerType::get(type, 0); }
     
-    LLVMValue genArray(LLVM_TYPE type, vector<Constant*>& num_array)
+    LLVMValue genArray(LLVMType type, const vector<Constant*>& num_array)
     {
         ArrayType* array_type = ArrayType::get(type, num_array.size());
         return ConstantArray::get(array_type, num_array);
     }
     
-    GlobalVariable* genGlovalVar(LLVM_TYPE type, bool is_constant, const string& name)
+    GlobalVariable* genGlovalVar(LLVMType type, bool is_const, const string& name)
     {
-        return new GlobalVariable(*fModule, type, is_constant, GlobalValue::InternalLinkage, 0, name);
+        return new GlobalVariable(*fModule, type, is_const, GlobalValue::InternalLinkage, 0, name);
     }
  
     // Convert FIR types to LLVM types
-    LLVM_TYPE convertFIRType(Typed* type)
+    LLVMType convertFIRType(Typed* type)
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
@@ -187,7 +186,7 @@ struct LLVMTypeHelper {
         if (basic_typed) {
             return fTypeMap[basic_typed->fType];
         } else if (named_typed) {
-            LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
+            LLVMType type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
             // Subcontainer type (RWTable...)
             return (type) ? getTyPtr(type) : convertFIRType(named_typed->fType);
         } else if (array_typed) {
@@ -198,7 +197,7 @@ struct LLVMTypeHelper {
         } else if (vector_typed) {
             return VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize);
         } else if (struct_typed) {
-            VECTOR_OF_TYPES llvm_types;
+            LLVMVecTypes llvm_types;
             for (auto& it : struct_typed->fFields) {
                 llvm_types.push_back(convertFIRType(it));
             }
@@ -209,14 +208,14 @@ struct LLVMTypeHelper {
         }
     }
 
-    llvm::StructType* createStructType(const string& name, VECTOR_OF_TYPES types)
+    llvm::StructType* createStructType(const string& name, const LLVMVecTypes& types)
     {
         // We want to have a unique creation for struct types: check if the given type has already been created
         StructType* struct_type = fModule->getTypeByName(name);
         if (!struct_type) {
             struct_type = StructType::create(fModule->getContext(), name);
             // Create "packed" struct type to match the size of C++ "packed" defined ones
-            struct_type->setBody(MAKE_VECTOR_OF_TYPES(types), true);
+            struct_type->setBody(makeArrayRef(types), true);
         }
         return struct_type;
     }
@@ -239,7 +238,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     static list<string> gMathLibTable;
     
-    LLVM_TYPE getCurType() { return fCurValue->getType(); }
+    LLVMType getCurType() { return fCurValue->getType(); }
     
     void printVarTable()
     {
@@ -264,10 +263,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Value* idx[2];
         idx[0] = genInt32(0);
         idx[1] = genInt32(field_index);
-        return fBuilder->CreateInBoundsGEP(getFunArg("dsp"), MAKE_IXD(idx, idx + 2));
+        return fBuilder->CreateInBoundsGEP(getFunArg("dsp"), MakeIdx(idx, idx + 2));
     }
     
-    GlobalVariable* addStringConstant(string arg, LLVM_TYPE& type_def)
+    GlobalVariable* addStringConstant(string arg, LLVMType& type_def)
     {
         string str = replaceChar(unquote(arg), '@', '_');
         type_def   = ArrayType::get(getInt8Ty(), str.size() + 1);
@@ -290,7 +289,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = genInt64(0);
-            return fBuilder->CreateInBoundsGEP(variable, MAKE_IXD(idx, idx + 2));
+            return fBuilder->CreateInBoundsGEP(variable, MakeIdx(idx, idx + 2));
         } else {
             return fBuilder->CreateLoad(variable, isvolatile);
         }
@@ -302,7 +301,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Function* function = fBuilder->GetInsertBlock()->getParent();
         
         for (Function::arg_iterator it = function->arg_begin(); it != function->arg_end(); ++it) {
-            Value* arg = GET_ITERATOR(it);
+            Value* arg = GetIterator(it);
             if (arg->getName() == name) return arg;
         }
         
@@ -389,7 +388,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     Value* genStringConstant(const string& label)
     {
         // Get LLVM constant string
-        LLVM_TYPE type_def = nullptr;
+        LLVMType type_def = nullptr;
         GlobalVariable* llvm_name = addStringConstant(label, type_def);
     #if defined(LLVM_35)
         return fBuilder->CreateConstGEP2_32(llvm_name, 0, 0);
@@ -414,7 +413,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // If we have an explicit alloca builder, use it
             if (fAllocaBuilder->GetInsertBlock()) {
                 // Always at the begining since the block is already branched to next one...
-                fAllocaBuilder->SetInsertPoint(GET_ITERATOR(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
+                fAllocaBuilder->SetInsertPoint(GetIterator(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
                 fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(inst->fType));
             } else {
                 fCurValue = fBuilder->CreateAlloca(convertFIRType(inst->fType));
@@ -432,7 +431,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         } else if (access & Address::kGlobal || access & Address::kStaticStruct) {
             if (!fModule->getGlobalVariable(name, true)) {
-                GlobalVariable* gv = genGlovalVar(convertFIRType(inst->fType), false, name);
+                GlobalVariable* gv = genGlovalVar(convertFIRType(inst->fType), (access & Address::kConst), name);
                 // Declaration with a value
                 if (inst->fValue) {
                     // Result is in fCurValue;
@@ -464,17 +463,17 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Return type
             faustassert(fTypeMap.find(inst->fType->fResult->getType()) != fTypeMap.end());
-            LLVM_TYPE return_type = fTypeMap[inst->fType->fResult->getType()];
+            LLVMType return_type = fTypeMap[inst->fType->fResult->getType()];
 
             // Prepare vector of LLVM types for args
-            VECTOR_OF_TYPES fun_args_type;
+            LLVMVecTypes fun_args_type;
             for (auto& it : inst->fType->fArgsTypes) {
                 faustassert(fTypeMap.find(it->getType()) != fTypeMap.end());
                 fun_args_type.push_back(fTypeMap[it->getType()]);
             }
 
             // Creates function
-            FunctionType* fun_type = FunctionType::get(return_type, MAKE_VECTOR_OF_TYPES(fun_args_type), false);
+            FunctionType* fun_type = FunctionType::get(return_type, makeArrayRef(fun_args_type), false);
             function = Function::Create(fun_type,
                                         (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic)
                                         ? GlobalValue::InternalLinkage
@@ -490,7 +489,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Set name for function arguments
             Function::arg_iterator args = function->arg_begin();
             for (auto& it : inst->fType->fArgsTypes) {
-                Value* arg = GET_ITERATOR(args++);
+                Value* arg = GetIterator(args++);
                 arg->setName(it->fName);
             }
 
@@ -576,7 +575,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fCurValue;
-            return fBuilder->CreateInBoundsGEP(load_ptr, MAKE_IXD(idx, idx + 2));
+            return fBuilder->CreateInBoundsGEP(load_ptr, MakeIdx(idx, idx + 2));
         } else {
             return fBuilder->CreateInBoundsGEP(load_ptr, fCurValue);
         }
@@ -895,7 +894,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
 
         // Result is function call
-        fCurValue = CREATE_CALL(function, fun_args);
+        fCurValue = CreateCall(function, fun_args);
     }
 
     virtual void visit(Select2Inst* inst)
@@ -1009,7 +1008,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         faustassert(fStackVars.find(loop_counter_name) != fStackVars.end());
         
          // Start the PHI node with an entry for start
-        PHINode* phi_node = CREATE_PHI(getInt32Ty(), loop_counter_name);
+        PHINode* phi_node = CreatePhi(getInt32Ty(), loop_counter_name);
         phi_node->addIncoming(genInt32(0), init_block);
 
         // End condition section

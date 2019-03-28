@@ -525,6 +525,8 @@ struct NumValueInst {
 //  Addresses
 // ============
 
+
+
 struct Address : public Printable {
     enum AccessType {
         kStruct       = 0x1,
@@ -535,8 +537,9 @@ struct Address : public Printable {
         kLink         = 0x20,
         kLoop         = 0x40,
         kVolatile     = 0x80,
-        kReference    = 0x100,  // Access by reference
-        kMutable      = 0x200   // Mutable access
+        kReference    = 0x100,  // Access by reference (for Rust backend)
+        kMutable      = 0x200,  // Mutable access (for Rust backend)
+        kConst        = 0x400   // Const access
     };
 
     Address() {}
@@ -551,32 +554,24 @@ struct Address : public Printable {
     {
         *fOut << dumpString(access);
     }
-
+    
+    #define HasAccess(arg) res += (res != "") ? (string("|") + string(arg)) : string(arg);
+    
     static string dumpString(AccessType access)
     {
-        if (access & kStruct) {
-            return "kStruct";
-        } else if (access & kStaticStruct) {
-            return "kStaticStruct";
-        } else if (access & kFunArgs) {
-            return "kFunArgs";
-        } else if (access & kStack) {
-            return "kStack";
-        } else if (access & kGlobal) {
-            return "kGlobal";
-        } else if (access & kLink) {
-            return "kLink";
-        } else if (access & kLoop) {
-            return "kLoop";
-        } else if (access & kVolatile) {
-            return "kVolatile";
-        } else if (access & kReference) {
-            return "kReference";
-        } else if (access & kMutable) {
-            return "kMutable";
-        } else {
-            return "";
-        }
+        string res;
+        if (access & kStruct)       HasAccess("kStruct");
+        if (access & kStaticStruct) HasAccess("kStaticStruct");
+        if (access & kFunArgs)      HasAccess("kFunArgs");
+        if (access & kStack)        HasAccess("kStack");
+        if (access & kGlobal)       HasAccess("kGlobal");
+        if (access & kLink)         HasAccess("kLink");
+        if (access & kLoop)         HasAccess("kLoop");
+        if (access & kVolatile)     HasAccess("kVolatile");
+        if (access & kReference)    HasAccess("kReference");
+        if (access & kMutable)      HasAccess("kMutable");
+        if (access & kConst)        HasAccess("kConst");
+        return res;
     }
 
     virtual Address* clone(CloneVisitor* cloner) = 0;
@@ -2144,6 +2139,11 @@ struct InstBuilder {
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
     }
+    
+    static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType) (Address::kStaticStruct | Address::kConst)), type, exp);
+    }
 
     static LoadVarInst* genLoadStaticStructVar(const string& vname)
     {
@@ -2283,6 +2283,11 @@ struct InstBuilder {
     static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
+    }
+    
+    static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kGlobal | Address::kConst)), type, exp);
     }
 
     static LoadVarInst* genLoadGlobalVar(const string& vname)

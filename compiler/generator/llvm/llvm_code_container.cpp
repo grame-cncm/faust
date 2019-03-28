@@ -159,15 +159,15 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
     DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
     //dump2FIR(dec_type);
 
-    LLVM_TYPE dsp_type = type_helper.convertFIRType(dec_type->fType);
+    LLVMType dsp_type = type_helper.convertFIRType(dec_type->fType);
     return PointerType::get(dsp_type, 0);
 }
 
 void LLVMCodeContainer::generateGetJSON()
 {
     PointerType*    string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-    VECTOR_OF_TYPES getJSON_args;
-    FunctionType*   getJSON_type = FunctionType::get(string_ptr, MAKE_VECTOR_OF_TYPES(getJSON_args), false);
+    LLVMVecTypes    getJSON_args;
+    FunctionType*   getJSON_type = FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
     Function*       getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
 
     // Prepare compilation options
