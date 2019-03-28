@@ -47,9 +47,36 @@ struct TableSizeVisitor : public DispatchVisitor {
             it++;
             LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
             faustassert(table);
-            fSizeTable[inst->fName] = size->fNum;
+            fSizeTable[inst->fName + "_" + to_string(size->fNum)] = size->fNum;
         }
     }
+    
+};
+
+// Look for the "fillXXX" function call and rename it
+struct TableSizeCloneVisitor : public BasicCloneVisitor  {
+    
+    virtual ValueInst* visit(FunCallInst* inst)
+    {
+        if (startWith(inst->fName, "fill")) {
+            list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+            it++;
+            Int32NumInst* size = dynamic_cast<Int32NumInst*>(*it);
+            faustassert(size);
+            it++;
+            LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
+            faustassert(table);
+            list<ValueInst*> cloned_args;
+            for (auto& it : inst->fArgs) {
+                cloned_args.push_back(it->clone(this));
+            }
+            return new FunCallInst(inst->fName + "_" + to_string(size->fNum), cloned_args, inst->fMethod);
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
     
 };
 

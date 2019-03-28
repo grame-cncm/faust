@@ -238,7 +238,14 @@ void SOULCodeContainer::produceClass()
     *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    generateStaticInit(&fCodeProducer);
+    // Rename the 'fillXXX' function with the proper table size
+    {
+        TableSizeCloneVisitor fill_funcall;
+        BlockInst* block1 = fill_funcall.getCode(fStaticInitInstructions);
+        block1->accept(&fCodeProducer);
+        BlockInst* block2 = fill_funcall.getCode(fPostStaticInitInstructions);
+        block2->accept(&fCodeProducer);
+    }
     tab(n + 1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -249,7 +256,14 @@ void SOULCodeContainer::produceClass()
     *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    generateInit(&fCodeProducer);
+    // Rename the 'fillXXX' function with the proper table size
+    {
+        TableSizeCloneVisitor fill_funcall;
+        BlockInst* block1 = fill_funcall.getCode(fInitInstructions);
+        block1->accept(&fCodeProducer);
+        BlockInst* block2 = fill_funcall.getCode(fPostInitInstructions);
+        block2->accept(&fCodeProducer);
+    }
     tab(n + 1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
