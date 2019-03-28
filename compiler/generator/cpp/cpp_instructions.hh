@@ -291,10 +291,14 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
+        if (inst->fAddress->getAccess() & Address::kConst) {
+            *fOut << "const ";
+        }
+        
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
         }
-
+        
         if (inst->fAddress->getAccess() & Address::kVolatile) {
             *fOut << "volatile ";
         }

@@ -1934,7 +1934,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         // waveform are allocated in the DSP and not as global data
         pushStaticInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
     } else {
-        pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
+        pushGlobalDeclare(InstBuilder::genDecConstStaticStructVar(vname, type, num_array));
     }
 
     string idx = subst("$0_idx", vname);

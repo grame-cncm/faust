@@ -206,6 +206,9 @@ class SOULInstVisitor : public TextInstVisitor {
         } else if (startWith(name, "output")) {
             *fOut << "output stream " << fTypeManager->fTypeDirectTable[itfloat()] << " " << name;
         } else {
+            if (inst->fAddress->getAccess() & Address::kConst) {
+                *fOut << "const ";
+            }
             *fOut << fTypeManager->generateType(inst->fType, name);
             if (inst->fValue) {
                 *fOut << " = ";
