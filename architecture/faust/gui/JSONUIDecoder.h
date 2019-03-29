@@ -60,7 +60,7 @@ struct JSONUIDecoderAux {
     std::string fVersion;
     std::string fCompileOptions;
     
-    std::map<std::string, std::string> fMetadatas;
+    std::map<std::string, std::string> fMetadata;
     std::vector<itemInfo*> fUiItems;     
     
     std::vector<std::string> fLibraryList;
@@ -85,75 +85,27 @@ struct JSONUIDecoderAux {
     {
         fJSON = json;
         const char* p = fJSON.c_str();
-        std::map<std::string, std::vector<std::string> > meta_datas;
-        parseJson(p, fMetadatas, meta_datas, fUiItems);
+        std::map<std::string, std::string > meta_data0;
+        std::map<std::string, std::vector<std::string> > meta_data2;
+        parseJson(p, meta_data0, fMetadata, meta_data2, fUiItems);
         
-        // fMetadatas will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
-        if (fMetadatas.find("name") != fMetadatas.end()) {
-            fName = fMetadatas["name"];
-            fMetadatas.erase("name");
-        } else {
-            fName = "";
-        }
+        // meta_data0 will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
+        fName = (meta_data0.find("name") != meta_data0.end()) ? meta_data0["name"] : "";
+        fFileName = (meta_data0.find("filename") != meta_data0.end()) ? meta_data0["filename"] : "";
+        fVersion = (meta_data0.find("version") != meta_data0.end()) ? meta_data0["version"] : "";
+        fCompileOptions = (meta_data0.find("compile_options") != meta_data0.end()) ? meta_data0["compile_options"] : "";
         
-        if (fMetadatas.find("filename") != fMetadatas.end()) {
-            fFileName = fMetadatas["filename"];
-            fMetadatas.erase("filename");
-        } else {
-            fName = "";
+        if (meta_data2.find("library_list") != meta_data2.end()) {
+            fLibraryList = meta_data2["library_list"];
         }
-     
-        if (fMetadatas.find("version") != fMetadatas.end()) {
-            fVersion = fMetadatas["version"];
-            fMetadatas.erase("version");
-        } else {
-            fVersion = "";
+        if (meta_data2.find("include_pathnames") != meta_data2.end()) {
+            fIncludePathnames = meta_data2["include_pathnames"];
         }
         
-        if (fMetadatas.find("compile_options") != fMetadatas.end()) {
-            fCompileOptions = fMetadatas["compile_options"];
-            fMetadatas.erase("compile_options");
-        } else {
-            fCompileOptions = "";
-        }
-        
-        if (meta_datas.find("library_list") != meta_datas.end()) {
-            fLibraryList = meta_datas["library_list"];
-            meta_datas.erase("library_list");
-        }
-        
-        if (meta_datas.find("include_pathnames") != meta_datas.end()) {
-            fIncludePathnames = meta_datas["include_pathnames"];
-            meta_datas.erase("include_pathnames");
-        }
-  
-        if (fMetadatas.find("size") != fMetadatas.end()) {
-            fDSPSize = std::atoi(fMetadatas["size"].c_str());
-            fMetadatas.erase("size");
-        } else {
-            fDSPSize = -1;
-        }
-         
-        if (fMetadatas.find("inputs") != fMetadatas.end()) {
-            fNumInputs = std::atoi(fMetadatas["inputs"].c_str());
-            fMetadatas.erase("inputs");
-        } else {
-            fNumInputs = -1;
-        }
-        
-        if (fMetadatas.find("outputs") != fMetadatas.end()) {
-            fNumOutputs = std::atoi(fMetadatas["outputs"].c_str());
-            fMetadatas.erase("outputs");
-        } else {
-            fNumOutputs = -1;
-        }
-        
-        if (fMetadatas.find("sr_index") != fMetadatas.end()) {
-            fSRIndex = std::atoi(fMetadatas["sr_index"].c_str());
-            fMetadatas.erase("sr_index");
-        } else {
-            fSRIndex = -1;
-        }
+        fDSPSize = (meta_data0.find("size") != meta_data0.end()) ? std::stoi(meta_data0["size"]) : -1;
+        fNumInputs = (meta_data0.find("inputs") != meta_data0.end()) ? std::stoi(meta_data0["inputs"]) : -1;
+        fNumOutputs = (meta_data0.find("outputs") != meta_data0.end()) ? std::stoi(meta_data0["outputs"]) : -1;
+        fSRIndex = (meta_data0.find("sr_index") != meta_data0.end()) ? std::stoi(meta_data0["sr_index"]) : -1;
        
         fInputItems = 0;
         fOutputItems = 0;
@@ -214,7 +166,7 @@ struct JSONUIDecoderAux {
     void metadata(Meta* m)
     {
         std::map<std::string, std::string>::iterator it;
-        for (it = fMetadatas.begin(); it != fMetadatas.end(); it++) {
+        for (it = fMetadata.begin(); it != fMetadata.end(); it++) {
             m->declare((*it).first.c_str(), (*it).second.c_str());
         }
     }
@@ -222,7 +174,7 @@ struct JSONUIDecoderAux {
     void metadata(MetaGlue* m)
     {
         std::map<std::string, std::string>::iterator it;
-        for (it = fMetadatas.begin(); it != fMetadatas.end(); it++) {
+        for (it = fMetadata.begin(); it != fMetadata.end(); it++) {
             m->declare(m->metaInterface, (*it).first.c_str(), (*it).second.c_str());
         }
     }
@@ -498,6 +450,7 @@ struct JSONUITemplatedDecoder
     virtual void metadata(Meta* m) = 0;
     virtual void metadata(MetaGlue* glue) = 0;
     virtual int getDSPSize() = 0;
+    virtual std::string getLibVersion() = 0;
     virtual std::string getCompileOptions() = 0;
     virtual std::vector<std::string> getLibraryList() = 0;
     virtual std::vector<std::string> getIncludePathnames() = 0;
@@ -519,6 +472,7 @@ struct JSONUIFloatDecoder : public JSONUIDecoderAux<float>, public JSONUITemplat
     void metadata(Meta* m) { JSONUIDecoderAux<float>::metadata(m); }
     void metadata(MetaGlue* glue) { JSONUIDecoderAux<float>::metadata(glue); }
     int getDSPSize() { return fDSPSize; }
+    std::string getLibVersion() { return fVersion; }
     std::string getCompileOptions() { return fCompileOptions; }
     std::vector<std::string> getLibraryList() { return fLibraryList; }
     std::vector<std::string> getIncludePathnames() { return fIncludePathnames; }
@@ -527,15 +481,15 @@ struct JSONUIFloatDecoder : public JSONUIDecoderAux<float>, public JSONUITemplat
     int getSampleRate(char* memory_block)  { return JSONUIDecoderAux<float>::getSampleRate(memory_block); }
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
-        return JSONUIDecoderAux<float>::resetUserInterface(memory_block, defaultsound);
+        JSONUIDecoderAux<float>::resetUserInterface(memory_block, defaultsound);
     }
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {
-        return JSONUIDecoderAux<float>::buildUserInterface(ui_interface, memory_block);
+        JSONUIDecoderAux<float>::buildUserInterface(ui_interface, memory_block);
     }
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)
     {
-        return JSONUIDecoderAux<float>::buildUserInterface(ui_interface, memory_block);
+        JSONUIDecoderAux<float>::buildUserInterface(ui_interface, memory_block);
     }
     bool hasCompileOption(const std::string& option) { return JSONUIDecoderAux<float>::hasCompileOption(option); }
     
@@ -549,6 +503,7 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderAux<double>, public JSONUITempl
     void metadata(Meta* m) { JSONUIDecoderAux<double>::metadata(m); }
     void metadata(MetaGlue* glue) { JSONUIDecoderAux<double>::metadata(glue); }
     int getDSPSize() { return fDSPSize; }
+    std::string getLibVersion() { return fVersion; }
     std::string getCompileOptions() { return fCompileOptions; }
     std::vector<std::string> getLibraryList() { return fLibraryList; }
     std::vector<std::string> getIncludePathnames() { return fIncludePathnames; }
@@ -557,15 +512,15 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderAux<double>, public JSONUITempl
     int getSampleRate(char* memory_block) { return JSONUIDecoderAux<double>::getSampleRate(memory_block); }
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
-        return JSONUIDecoderAux<double>::resetUserInterface(memory_block, defaultsound);
+        JSONUIDecoderAux<double>::resetUserInterface(memory_block, defaultsound);
     }
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {
-        return JSONUIDecoderAux<double>::buildUserInterface(ui_interface, memory_block);
+        JSONUIDecoderAux<double>::buildUserInterface(ui_interface, memory_block);
     }
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)
     {
-        return JSONUIDecoderAux<double>::buildUserInterface(ui_interface, memory_block);
+        JSONUIDecoderAux<double>::buildUserInterface(ui_interface, memory_block);
     }
     bool hasCompileOption(const std::string& option) { return JSONUIDecoderAux<double>::hasCompileOption(option); }
     
