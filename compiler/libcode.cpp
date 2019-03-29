@@ -1654,16 +1654,28 @@ static void generateOutputFiles()
             faustassert(D);
             ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
 
-            if (gGlobal->gMetaDataSet.count(tree("name")) > 0)
-                D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("author")) > 0)
-                D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)
-                D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("license")) > 0)
-                D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("version")) > 0)
-                D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
+            const MetaDataSet&          mds = gGlobal->gMetaDataSet;
+            MetaDataSet::const_iterator it1;
+            set<Tree>::const_iterator   it2;
+
+            for (it1 = mds.begin(); it1 != mds.end(); ++it1) {
+                const std::string key = tree2str(it1->first);
+                for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
+                    const std::string value = tree2str(*it2);
+                    if (key == "name")
+                        D->name(value);
+                    else if (key == "author")
+                        D->author(value);
+                    else if (key == "copyright")
+                        D->copyright(value);
+                    else if (key == "license")
+                        D->license(value);
+                    else if (key == "version")
+                        D->version(value);
+                    else
+                        D->declare(key, value);
+                }
+            }
 
             D->className(gGlobal->gClassName);
             D->inputs(container->inputs());
