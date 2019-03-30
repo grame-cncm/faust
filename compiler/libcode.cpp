@@ -193,10 +193,10 @@ static void callFun(compile_fun fun)
 #else
     pthread_t thread;
     pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 524288 * 128);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-    pthread_create(&thread, &attr, fun, NULL);
+    faustassert(pthread_attr_init(&attr) == 0);
+    faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
+    faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
+    faustassert(pthread_create(&thread, &attr, fun, NULL) == 0);
     pthread_join(thread, NULL);
 #endif
 }

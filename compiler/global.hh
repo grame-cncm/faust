@@ -429,6 +429,7 @@ struct global {
     Sym SYMLIFTN;
 
     loopDetector gLoopDetector;
+    stackOverflowDetector gStackOverflowDetector;
 
     string gDrawPath;
 
@@ -568,8 +569,8 @@ struct global {
 // Unique shared global pointer
 extern global* gGlobal;
 
-#define FAUST_LIB_PATH "FAUST_LIB_PATH"
-#define MAX_STACK_SIZE 50000
-#define MAX_SOUNDFILE_PARTS 256
+#define FAUST_LIB_PATH          "FAUST_LIB_PATH"
+#define MAX_MACHINE_STACK_SIZE  65526
+#define MAX_SOUNDFILE_PARTS     256
 
 #endif

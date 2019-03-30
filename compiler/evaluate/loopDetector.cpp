@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#include <cmath>
+
 #include "loopDetector.hh"
 #include "exception.hh"
 #include "ppbox.hh"
@@ -48,4 +50,17 @@ bool loopDetector::detect(Tree t)
         }
     }
     return false;
+}
+
+void stackOverflowDetector::detect(void* cur_address)
+{
+    if (fFirstCall) {
+        fFirstCall = false;
+        fFirstStackAddress = cur_address;
+    } else {
+        long current_stack_size = long(fFirstStackAddress) - long(cur_address);
+        if (std::abs(current_stack_size - fMaxStackSize) < STACK_FRAME) {
+            throw faustexception("ERROR : stack overflow in eval\n");
+        }
+    }
 }
