@@ -550,7 +550,7 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            error_msg = "ERROR : readDSPFactoryFromBitcode failed : " + error_msg;
+            error_msg = "ERROR : " + error_msg;
             delete factory_aux;
             return nullptr;
         }
@@ -570,7 +570,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const std:
     // This generally occurs if we've forgotten to initialise the
     // TargetRegistry or we have a bogus target triple.
     if (!Target) {
-        errs() << "ERROR : writeDSPFactoryToObjectcodeFile failed : " << Error;
+        errs() << "ERROR : " << Error;
         return false;
     }
     
@@ -648,7 +648,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     
     if (error_code ec = buffer.getError()) {
-        error_msg = "ERROR : readDSPFactoryFromBitcodeFile failed : " + ec.message() + "\n";
+        error_msg = "ERROR : " + ec.message() + "\n";
         return nullptr;
     } else {
         return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
@@ -684,7 +684,10 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         // parseIR takes ownership of the given buffer, so don't delete it
         Module* module = parseIR(buffer, err, *context).release();
 #endif
-        if (!module) return nullptr;
+        if (!module)  {
+            error_msg = "ERROR : " + string(err.getMessage().data()) + "\n";
+            return nullptr;
+        }
 
         setlocale(LC_ALL, tmp_local);
         string error_msg;
@@ -698,7 +701,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            error_msg = "ERROR : readDSPFactoryFromBitcode failed : " + error_msg;
+            error_msg = "ERROR : " + error_msg;
             delete factory_aux;
             return nullptr;
         }
@@ -724,7 +727,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
     
     if (error_code ec = buffer.getError()) {
-        error_msg = "ERROR : readDSPFactoryFromIRFile failed : " + ec.message() + "\n";
+        error_msg = "ERROR : " + ec.message() + "\n";
         return nullptr;
     } else {
         return readDSPFactoryFromIRAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
