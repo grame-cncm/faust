@@ -104,7 +104,7 @@ ofstream* gFaustbenchLog = nullptr;
 
 static double bench(dsp* dsp, const string& name, int run, bool trace)
 {
-    measure_dsp mes(dsp, 512, 5., trace);  // Buffer_size and duration in sec of  measure
+    measure_dsp mes(dsp, 512, 5., trace);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
         if (trace) cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;

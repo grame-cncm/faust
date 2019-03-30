@@ -10,13 +10,16 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-all: dynamic-faust faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath
+all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
 
 faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm-interp
+
+faustbench-interp: faustbench-interp.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 faustbench-interp.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-interp
 
 dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 dynamic-faust.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -o dynamic-faust
@@ -55,6 +58,7 @@ install:
 	([ -e interp-tracer ]) && cp interp-tracer $(prefix)/bin || echo interp-tracer not found
 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
+	([ -e faustbench-interp ]) && cp faustbench-interp $(prefix)/bin || echo faustbench-interp not found
 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
 
@@ -68,5 +72,6 @@ clean:
 	([ -e dynamic-jack-gtk-plugin ]) && rm dynamic-jack-gtk-plugi || echo dynamic-jack-gtk-plugi not found
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
+	([ -e faustbench-interp ]) && rm faustbench-interp || echo faustbench-interp not found
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
 
