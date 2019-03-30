@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
                 optimal_options = bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
             }
         } catch (...) {
-            cerr << "libfaust error...";
+            cerr << "libfaust error...\n";
             exit(EXIT_FAILURE);
         }
         

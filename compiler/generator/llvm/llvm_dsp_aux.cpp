@@ -582,7 +582,7 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            error_msg = "ERROR : readDSPFactoryFromMachine failed : " + error_msg  + "\n";
+            error_msg = "ERROR : " + error_msg  + "\n";
             delete factory_aux;
             return nullptr;
         }
@@ -609,10 +609,15 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
     TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
-        error_msg = "ERROR : readDSPFactoryFromMachineFile failed : " + ec.message() + "\n";
+        error_msg = "ERROR : " + ec.message() + "\n";
         return nullptr;
     } else {
-        return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
+        try {
+            return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
+        } catch (faustexception& e) {
+            error_msg = e.Message().data();
+            return nullptr;
+        }
     }
 #else
 #warning "machine code is not supported..."

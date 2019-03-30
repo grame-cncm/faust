@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
             }
         }
     } catch (...) {
-        cerr << "libfaust error...";
+        cerr << "libfaust error...\n";
         exit(EXIT_FAILURE);
     }
     
