@@ -75,12 +75,7 @@ class mydsp : public dsp {
         mydsp()
         {
             std::string json = removeChar(getJSONmydsp(), '\\');
-            JSONUIDecoder decoder(json);
-            if (decoder.hasCompileOption("-double")) {
-                fDecoder = new JSONUIDoubleDecoder(json);
-            } else {
-                fDecoder = new JSONUIFloatDecoder(json);
-            }
+            fDecoder = createJSONUIDecoder(json);
             fDSP = static_cast<comp_llvm_dsp*>(calloc(1, fDecoder->getDSPSize()));
             allocatemydsp(fDSP);
         }

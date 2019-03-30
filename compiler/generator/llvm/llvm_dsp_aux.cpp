@@ -287,13 +287,7 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fGetJSON            = (getJSONFun)loadOptimize("getJSON" + fClassName);
         
         string json = removeChar(fGetJSON(), '\\');
-        JSONUIDecoder decoder(json);
-        if (decoder.hasCompileOption("-double")) {
-            fDecoder = new JSONUIDoubleDecoder(json);
-        } else {
-            fDecoder = new JSONUIFloatDecoder(json);
-        }
-        
+        fDecoder = createJSONUIDecoder(json);
         endTiming("initJIT");
         return true;
     } catch (faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...

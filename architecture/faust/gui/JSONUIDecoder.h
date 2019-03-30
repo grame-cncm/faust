@@ -89,7 +89,7 @@ struct JSONUIDecoderAux {
         std::map<std::string, std::vector<std::string> > meta_data2;
         parseJson(p, meta_data0, fMetadata, meta_data2, fUiItems);
         
-        // meta_data0 will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
+        // meta_data0 contains <name : val>, <inputs : val>, <ouputs : val> pairs etc...
         fName = (meta_data0.find("name") != meta_data0.end()) ? meta_data0["name"] : "";
         fFileName = (meta_data0.find("filename") != meta_data0.end()) ? meta_data0["filename"] : "";
         fVersion = (meta_data0.find("version") != meta_data0.end()) ? meta_data0["version"] : "";
@@ -431,14 +431,6 @@ struct JSONUIDecoderAux {
     
 };
 
-// FAUSTFLOAT decoder
-
-struct JSONUIDecoder : public JSONUIDecoderAux<FAUSTFLOAT>
-{
-    JSONUIDecoder(const std::string& json):JSONUIDecoderAux<FAUSTFLOAT>(json)
-    {}
-};
-
 // Templated decoder
 
 struct JSONUITemplatedDecoder
@@ -461,7 +453,6 @@ struct JSONUITemplatedDecoder
     virtual void buildUserInterface(UI* ui_interface, char* memory_block) = 0;
     virtual void buildUserInterface(UIGlue* ui_interface, char* memory_block) = 0;
     virtual bool hasCompileOption(const std::string& option) = 0;
- 
 };
 
 struct JSONUIFloatDecoder : public JSONUIDecoderAux<float>, public JSONUITemplatedDecoder
@@ -492,7 +483,6 @@ struct JSONUIFloatDecoder : public JSONUIDecoderAux<float>, public JSONUITemplat
         JSONUIDecoderAux<float>::buildUserInterface(ui_interface, memory_block);
     }
     bool hasCompileOption(const std::string& option) { return JSONUIDecoderAux<float>::hasCompileOption(option); }
-    
 };
 
 struct JSONUIDoubleDecoder : public JSONUIDecoderAux<double>, public JSONUITemplatedDecoder
@@ -523,7 +513,24 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderAux<double>, public JSONUITempl
         JSONUIDecoderAux<double>::buildUserInterface(ui_interface, memory_block);
     }
     bool hasCompileOption(const std::string& option) { return JSONUIDecoderAux<double>::hasCompileOption(option); }
-    
 };
+
+// FAUSTFLOAT decoder
+
+struct JSONUIDecoder : public JSONUIDecoderAux<FAUSTFLOAT>
+{
+    JSONUIDecoder(const std::string& json):JSONUIDecoderAux<FAUSTFLOAT>(json)
+    {}
+};
+
+static JSONUITemplatedDecoder* createJSONUIDecoder(const std::string& json)
+{
+    JSONUIDecoder decoder(json);
+    if (decoder.hasCompileOption("-double")) {
+        return new JSONUIDoubleDecoder(json);
+    } else {
+        return new JSONUIFloatDecoder(json);
+    }
+}
 
 #endif
