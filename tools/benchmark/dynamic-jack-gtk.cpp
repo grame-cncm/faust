@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
     //DSP = new mydsp();
     
     /*
-    measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of  measure
+    measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < 2; i++) {
         mes->measure();
         cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
