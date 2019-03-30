@@ -90,7 +90,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
+global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
@@ -384,7 +384,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = sizeof(nullptr);
 
-    gMachineMaxStackSize = MAX_STACK_SIZE;
+    gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
     gOutputLang          = "";
 
 #ifdef WASM_BUILD
