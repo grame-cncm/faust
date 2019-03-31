@@ -110,7 +110,7 @@ template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for 
 {
 	string str;						// check for alias message first
     if ((msg->size() >= 1) && msg->param(0, str) && (str == kAliasMsg))
-		return fRoot->aliasMsg (msg, fMapping.fMinOut, fMapping.fMaxOut);
+		return fRoot->aliasMsg(msg, fMapping.fMinOut, fMapping.fMaxOut);
 
     if (msg->size() == 1) {			// check the message parameters count
                                     // messages with a param count other than 1 are rejected

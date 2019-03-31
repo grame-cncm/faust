@@ -46,7 +46,15 @@ class proxy_dsp : public dsp {
         
     public:
     
+        proxy_dsp():fDecoder(nullptr), fSampleRate(-1)
+        {}
+    
         proxy_dsp(const std::string& json)
+        {
+            init(json);
+        }
+    
+        void init(const std::string& json)
         {
             fDecoder = new JSONUIDecoder(json);
             fSampleRate = -1;
