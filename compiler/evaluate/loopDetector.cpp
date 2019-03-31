@@ -52,8 +52,10 @@ bool loopDetector::detect(Tree t)
     return false;
 }
 
-void stackOverflowDetector::detect(void* cur_address)
+void stackOverflowDetector::detect()
 {
+    int stack = 0;
+    void* cur_address = &stack;
     if (fFirstCall) {
         fFirstCall = false;
         fFirstStackAddress = cur_address;

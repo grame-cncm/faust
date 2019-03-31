@@ -70,7 +70,7 @@ class stackOverflowDetector {
         fFirstStackAddress(nullptr)
     {}
     
-    void detect(void* address);
+    void detect();
 };
 
 #endif
