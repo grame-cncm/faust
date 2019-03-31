@@ -266,8 +266,7 @@ static Tree eval(Tree exp, Tree visited, Tree localValEnv)
 
     if (!getEvalProperty(exp, localValEnv, result)) {
         gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
-        int stack = 0;
-        gGlobal->gStackOverflowDetector.detect(&stack);
+        gGlobal->gStackOverflowDetector.detect();
         // cerr << "ENTER eval("<< *exp << ") with env " << *localValEnv << endl;
         result = realeval(exp, visited, localValEnv);
         setEvalProperty(exp, localValEnv, result);
