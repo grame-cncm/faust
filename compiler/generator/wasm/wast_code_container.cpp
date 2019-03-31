@@ -107,6 +107,9 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
         throw faustexception("ERROR : Scheduler mode not supported for WebAssembly\n");
     } else if (gGlobal->gVectorSwitch) {
         //throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
+        if (gGlobal->gVectorLoopVariant == 0) {
+            throw faustexception("ERROR : Vector mode with -lv 0 not supported for WebAssembly\n");
+        }
         container = new WASTVectorCodeContainer(name, numInputs, numOutputs, dst, internal_memory);
     } else {
         container = new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);

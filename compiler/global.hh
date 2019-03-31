@@ -570,7 +570,7 @@ struct global {
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH          "FAUST_LIB_PATH"
-#define MAX_MACHINE_STACK_SIZE  65526
+#define MAX_MACHINE_STACK_SIZE  65536
 #define MAX_SOUNDFILE_PARTS     256
 
 #endif
