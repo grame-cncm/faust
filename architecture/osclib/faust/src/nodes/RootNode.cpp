@@ -50,6 +50,7 @@ namespace oscfaust
 
 static const char* kHelloMsg		= "hello";
 static const char* kDestMsg         = "desthost";
+static const char* kJSONMsg         = "json";
 static const char* kUdpOutPortMsg	= "outport";
 static const char* kUdpErrPortMsg	= "errport";
 static const char* kBundleMsg       = "bundle";
@@ -109,6 +110,8 @@ void RootNode::get(unsigned long ipdest, const std::string& what) const		///< ha
 		oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	else if (what == kDestMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
+    else if (what == kJSONMsg)
+        oscout << OSCStart(getOSCAddress().c_str()) << kJSONMsg << OSCEnd();
 	else if (what == kUdpOutPortMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	else if (what == kUdpErrPortMsg)
@@ -129,6 +132,7 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 	oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
+    oscout << OSCStart(getOSCAddress().c_str()) << kJSONMsg << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
 
@@ -138,7 +142,7 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 		for (size_t n = 0; n < targets.size(); n++) {
 			// send a alias message for each target
 			const aliastarget& t = targets[n];
-//			oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
+            // oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
 			oscout << OSCStart(targets[n].fTarget.c_str()) << "alias" << i->first.c_str() << t.fMinIn << t.fMaxIn << OSCEnd();
 		}
 		i++;
@@ -299,11 +303,18 @@ bool RootNode::aliasMsg(const Message* msg, float omin, float omax)
 bool RootNode::accept(const Message* msg)
 {
  	string val;
+    
 	// checks for the 'hello' message first
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg)) {
 		hello(msg->src());
 		return true;
 	}
+    
+    // checks for the 'json' message
+    if ((msg->size() >= 1) && (msg->param(0, val)) && (val == kJSONMsg)) {
+        oscout << OSCStart(getOSCAddress().c_str()) << kJSONMsg << fJSON->JSON(true) << OSCEnd();
+        return true;
+    }
 
 	if (MessageDriven::accept(msg)) {
 		return true;
@@ -320,7 +331,6 @@ bool RootNode::accept(const Message* msg)
 		} else if ((val == kBundleMsg) && (msg->param(1, num))) {
 			OSCControler::gBundle = num;
 			oscout.setBundle(num);
-			
 		} else if ((val == kXmitMsg) && (msg->param(1, num))) {
 			OSCControler::gXmit = num;
         } else if (val == kXmitFilter) {
