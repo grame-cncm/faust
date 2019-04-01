@@ -215,6 +215,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     gGlobal->printCompilationOptions(compile_options);
 
     switch (mode) {
+            
         case 1:
             return new interpreter_dsp_factory_aux<T, 1>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
@@ -253,6 +254,24 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 5:
             return new interpreter_dsp_factory_aux<T, 5>(
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+            
+        case 6:
+            return new interpreter_dsp_factory_aux<T, 6>(
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+            
+        case 7:
+            return new interpreter_dsp_factory_aux<T, 7>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSampleRate"),

@@ -53,7 +53,7 @@ Additional Faust compiler options can be given. Note that the Interpreter backen
 
 The **interp-tracer** tool runs and instruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN or INTEGER_OVERFLOW values are produced. The -control mode allows to check control parameters, by explicitly setting their *min* and *max* values (for now).
 
-`interp-tracer [-trace <1-5>] [-control] [-output] [additional Faust options (-ftz xx)] foo.dsp`
+`interp-tracer [-trace <1-7>] [-control] [-output] [additional Faust options (-ftz xx)] foo.dsp`
 
 Here are the available options:
 
@@ -64,6 +64,8 @@ Here are the available options:
  - `-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO`
  - `-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, fails at first FP_INFINITE, FP_NAN or LOAD error`
  - `-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, continue after FP_INFINITE, FP_NAN or LOAD error`
+ - `-trace 6 to only check LOAD errors and continue`
+ - `-trace 7 to only check LOAD errors and fail`
 
 ## faustbench
 

@@ -68,6 +68,51 @@ class FBCInterpreter : public FBCExecutor<T> {
     T** fOutputs;
 
     std::map<int, long long> fRealStats;
+    
+    /*
+     Keeps the latest TRACE_STACK_SIZE executed instructions, to be displayed when an error occurs.
+     */
+    struct InterpreterTrace {
+#define TRACE_STACK_SIZE 16
+        
+        std::vector<std::string> fExecTrace;
+        int                      fWriteIndex;
+        
+        InterpreterTrace()
+        {
+            for (int i = 0; i < TRACE_STACK_SIZE; i++) {
+                fExecTrace.push_back("");
+            }
+            fWriteIndex = 0;
+        }
+        
+        void push(const std::string& message)
+        {
+            fExecTrace[fWriteIndex] = message;
+            fWriteIndex             = (fWriteIndex + 1) % TRACE_STACK_SIZE;
+        }
+        
+        void write(std::ostream* out)
+        {
+            for (int i = fWriteIndex - 1; i >= 0; i--) {
+                *out << fExecTrace[i];
+            }
+            for (int i = int(fExecTrace.size()) - 1; i >= fWriteIndex; i--) {
+                *out << fExecTrace[i];
+            }
+        }
+    };
+    
+    InterpreterTrace fTraceContext;
+    
+    inline void traceInstruction(InstructionIT it)
+    {
+        if (TRACE >= 4) {
+            std::stringstream message;
+            (*it)->write(&message);
+            fTraceContext.push(message.str());
+        }
+    }
   
     void printStats()
     {
@@ -91,9 +136,12 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline void warningOverflow(InstructionIT it)
     {
+        if (TRACE >= 6) return;
+        
         if (TRACE >= 3) {
             fRealStats[INTEGER_OVERFLOW]++;
         }
+        
         if (TRACE >= 5) {
             std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
             traceInstruction(it);
@@ -104,9 +152,12 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline void checkDivZero(InstructionIT it, T val)
     {
+        if (TRACE >= 6) return;
+        
         if ((TRACE >= 3) && (val == T(0))) {
             fRealStats[DIV_BY_ZERO]++;
         }
+        
         if ((TRACE >= 4) && (val == T(0))) {
             std::cout << "-------- Interpreter 'div by zero' trace start --------" << std::endl;
             traceInstruction(it);
@@ -117,17 +168,19 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline T checkRealAux(InstructionIT it, T val)
     {
+        if (TRACE >= 6) return val;
+        
+        if (TRACE >= 1) {
+            if (std::fpclassify(val) == FP_SUBNORMAL) {
+                fRealStats[FP_SUBNORMAL]++;
+            }
+        }
+        
         if (TRACE >= 2) {
             if (std::isnan(val)) {
                 fRealStats[FP_NAN]++;
             } else if (std::isinf(val)) {
                 fRealStats[FP_INFINITE]++;
-            }
-        }
-
-        if (TRACE >= 1) {
-            if (std::fpclassify(val) == FP_SUBNORMAL) {
-                fRealStats[FP_SUBNORMAL]++;
             }
         }
 
@@ -155,53 +208,10 @@ class FBCInterpreter : public FBCExecutor<T> {
         return val;
     }
 
-    /*
-      Keeps the latest TRACE_STACK_SIZE executed instructions, to be displayed when an error occurs.
-    */
-    struct InterpreterTrace {
-#define TRACE_STACK_SIZE 16
-
-        std::vector<std::string> fExecTrace;
-        int                      fWriteIndex;
-
-        InterpreterTrace()
-        {
-            for (int i = 0; i < TRACE_STACK_SIZE; i++) {
-                fExecTrace.push_back("");
-            }
-            fWriteIndex = 0;
-        }
-
-        void push(const std::string& message)
-        {
-            fExecTrace[fWriteIndex] = message;
-            fWriteIndex             = (fWriteIndex + 1) % TRACE_STACK_SIZE;
-        }
-
-        void write(std::ostream* out)
-        {
-            for (int i = fWriteIndex - 1; i >= 0; i--) {
-                *out << fExecTrace[i];
-            }
-            for (int i = int(fExecTrace.size()) - 1; i >= fWriteIndex; i--) {
-                *out << fExecTrace[i];
-            }
-        }
-    };
-
-    InterpreterTrace fTraceContext;
-
-    inline void traceInstruction(InstructionIT it)
-    {
-        if (TRACE >= 4) {
-            std::stringstream message;
-            (*it)->write(&message);
-            fTraceContext.push(message.str());
-        }
-    }
-
     inline int assertAudioBuffer(InstructionIT it, int index)
     {
+        if (TRACE >= 6) return index;
+        
         if (TRACE >= 4 && ((index < 0) || (index >= fIntHeap[fFactory->fCountOffset]))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             std::cout << "assertAudioBuffer : count " << fIntHeap[fFactory->fCountOffset] << " index " << index
@@ -217,11 +227,14 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline int assertIntHeap(InstructionIT it, int index, int size = -1)
     {
+        if (TRACE >= 6) return index;
+        
         if (TRACE >= 4 && ((index < 0)
                            || (index >= fFactory->fIntHeapSize)
                            || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertIntHeap : fIntHeapSize " << fFactory->fIntHeapSize << " index " << index
+            std::cout << "assertIntHeap : fIntHeapSize "
+                      << fFactory->fIntHeapSize << " index " << index
                       << " size " << size << " value " << fIntHeap[index]
                       << " name " << (*it)->fName << std::endl;
             fTraceContext.write(&std::cout);
@@ -233,45 +246,13 @@ class FBCInterpreter : public FBCExecutor<T> {
         return index;
     }
     
-    inline int assertLoadIntHeap(InstructionIT it, int index, int size = -1)
-    {
-        if (TRACE >= 4 && ((index < 0)
-                           || (index >= fFactory->fIntHeapSize)
-                           || (size > 0 && (index >= ((*it)->fOffset1 + size)))
-                           || (fIntHeap[index] == 123456789))) {
-            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertLoadIntHeap : fIntHeapSize " << fFactory->fIntHeapSize << " index " << index
-                      << " size " << size << " value " << fIntHeap[index]
-                      << " name " << (*it)->fName << std::endl;
-            fTraceContext.write(&std::cout);
-            std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4) {
-                throw faustexception("");
-            }
-        }
-        return index;
-    }
-
-    inline int assertSoundHeap(InstructionIT it, int index, int size = -1)
-    {
-        if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fSoundHeapSize) || (size > 0 && index >= size))) {
-            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertSoundHeap : fSoundHeapSize " << fFactory->fSoundHeapSize << " index " << index
-                      << " size " << size << std::endl;
-            fTraceContext.write(&std::cout);
-            std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4) {
-                throw faustexception("");
-            }
-        }
-        return index;
-    }
-
     inline int assertRealHeap(InstructionIT it, int index, int size = -1)
     {
+        if (TRACE >= 6) return index;
+        
         if (TRACE >= 4 && ((index < 0)
-                            || (index >= fFactory->fRealHeapSize)
-                            || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
+                           || (index >= fFactory->fRealHeapSize)
+                           || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             std::cout << "assertRealHeap : fRealHeapSize "
                       << fFactory->fRealHeapSize << " index " << index
@@ -285,20 +266,60 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
         return index;
     }
-            
+    
+    inline int assertSoundHeap(InstructionIT it, int index, int size = -1)
+    {
+        if (TRACE >= 6) return index;
+        
+        if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fSoundHeapSize) || (size > 0 && index >= size))) {
+            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
+            std::cout << "assertSoundHeap : fSoundHeapSize " << fFactory->fSoundHeapSize << " index " << index
+                      << " size " << size << std::endl;
+            fTraceContext.write(&std::cout);
+            std::cout << "-------- Interpreter crash trace end --------\n\n";
+            if (TRACE == 4) {
+                throw faustexception("");
+            }
+        }
+        return index;
+    }
+    
+    inline int assertLoadIntHeap(InstructionIT it, int index, int size = -1)
+    {
+        if ((TRACE >= 6 || TRACE >= 4)
+                && ((index < 0)
+                    || (index >= fFactory->fIntHeapSize)
+                    || (size > 0 && (index >= ((*it)->fOffset1 + size)))
+                    || (fIntHeap[index] == 123456789))) {
+            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
+            std::cout << "assertLoadIntHeap : fIntHeapSize " << fFactory->fIntHeapSize << " index " << index
+                      << " size " << size << " value " << fIntHeap[index]
+                      << " name " << (*it)->fName << std::endl;
+            fTraceContext.write(&std::cout);
+            std::cout << "-------- Interpreter crash trace end --------\n\n";
+            if (TRACE == 4 || TRACE == 7) {
+                exit(1);
+                throw faustexception("");
+            }
+        }
+        return index;
+    }
+   
     inline int assertLoadRealHeap(InstructionIT it, int index, int size = -1)
     {
-        if (TRACE >= 4 && ((index < 0)
-                           || (index >= fFactory->fRealHeapSize)
-                           || (size > 0 && (index >= ((*it)->fOffset1 + size)))
-                           || (fRealHeap[index] == T(0.123456789)))) {
+        if ((TRACE >= 6 || TRACE >= 4)
+                && ((index < 0)
+                    || (index >= fFactory->fRealHeapSize)
+                    || (size > 0 && (index >= ((*it)->fOffset1 + size)))
+                    || (fRealHeap[index] == T(0.123456789)))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             std::cout << "assertLoadRealHeap : fRealHeapSize "
                       << fFactory->fRealHeapSize << " index " << index
                       << " size " << size << " value " << fRealHeap[index]
                       << " name " << (*it)->fName << std::endl;
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4) {
+            if (TRACE == 4 || TRACE == 7) {
+                exit(1);
                 throw faustexception("");
             }
         }

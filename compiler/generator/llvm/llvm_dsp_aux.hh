@@ -80,7 +80,7 @@ namespace llvm {
 class LLVMContext;
 class ExecutionEngine;
 class Module;
-}  // namespace llvm
+}
 
 class llvm_dsp_factory;
 

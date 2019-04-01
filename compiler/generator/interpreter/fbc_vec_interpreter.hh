@@ -2319,6 +2319,14 @@ class FBCVecInterpreter : public FBCExecutor<T> {
         FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
     {}
     
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 6>* factory):
+        FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    {}
+    
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 7>* factory):
+        FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    {}
+    
     virtual ~FBCVecInterpreter()
     {
         if (fFactory->getMemoryManager()) {
