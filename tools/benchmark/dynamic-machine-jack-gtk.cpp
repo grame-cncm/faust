@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(finterface);
    
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
 
     // After audio.init that calls 'init'

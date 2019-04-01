@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+        cout << "dynamic-jack-gtk [-llvm|interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
     if (dsp_poly) dsp_poly->setGroup(true);
     
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
   
     // After audio.init that calls 'init'
