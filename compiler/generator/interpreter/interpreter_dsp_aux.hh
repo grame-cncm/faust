@@ -1142,46 +1142,68 @@ class EXPORT interpreter_dsp : public dsp {
     interpreter_dsp_base*    fDSP;
 
    public:
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 0>* dsp) : fFactory(factory), fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 0>* dsp)
+        : fFactory(factory), fDSP(dsp)
     {
     }
     interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 0>* dsp)
         : fFactory(factory), fDSP(dsp)
     {
     }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 1>* dsp) : fFactory(factory), fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 1>* dsp)
+        : fFactory(factory), fDSP(dsp)
     {
     }
     interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 1>* dsp)
         : fFactory(factory), fDSP(dsp)
     {
     }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 2>* dsp) : fFactory(factory), fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 2>* dsp)
+        : fFactory(factory), fDSP(dsp)
     {
     }
     interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 2>* dsp)
         : fFactory(factory), fDSP(dsp)
     {
     }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 3>* dsp) : fFactory(factory), fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 3>* dsp)
+        : fFactory(factory), fDSP(dsp)
     {
     }
     interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 3>* dsp)
         : fFactory(factory), fDSP(dsp)
     {
     }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 4>* dsp) : fFactory(factory), fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 4>* dsp)
+        : fFactory(factory), fDSP(dsp)
     {
     }
     interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 4>* dsp)
         : fFactory(factory), fDSP(dsp)
     {
     }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 5>* dsp) : fFactory(factory), fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 5>* dsp)
+        : fFactory(factory), fDSP(dsp)
     {
     }
     interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 5>* dsp)
         : fFactory(factory), fDSP(dsp)
+    {
+    }
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 6>* dsp)
+    : fFactory(factory), fDSP(dsp)
+    {
+    }
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 6>* dsp)
+    : fFactory(factory), fDSP(dsp)
+    {
+    }
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 7>* dsp)
+    : fFactory(factory), fDSP(dsp)
+    {
+    }
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 7>* dsp)
+    : fFactory(factory), fDSP(dsp)
     {
     }
 

@@ -331,9 +331,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Possibly link with additional LLVM modules
     if (!linkAllModules(fContext, fModule, error)) {
-        stringstream llvm_error;
-        llvm_error << "ERROR : " << error << endl;
-        throw faustexception(llvm_error.str());
+        throw faustexception("ERROR : " + error);
     }
 
     return new llvm_dynamic_dsp_factory_aux("", fModule, fContext, "", -1);
