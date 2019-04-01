@@ -650,13 +650,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
    protected:
     bool fInitialized;
     bool fTraceOutput;
+    int fCycle;
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     FBCExecutor<T>*                        fFBCExecutor;
     
    public:
     interpreter_dsp_aux()
-    :fInitialized(false), fFactory(nullptr), fFBCExecutor(nullptr)
+    :fInitialized(false), fTraceOutput(false), fCycle(0), fFactory(nullptr), fFBCExecutor(nullptr)
     {}
+    
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
         fFactory = factory;
@@ -666,6 +668,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     #endif
         fFBCExecutor = factory->createFBCExecutor();
         fInitialized = false;
+        fCycle = 0;
 /*
 #ifdef MACHINE
         FBCCPPGenerator<T> cpp_generator(this->fFactory);
@@ -803,6 +806,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else {
             
+            fCycle++;
+            
             // std::cout << "compute " << count << std::endl;
             T** inputs  = reinterpret_cast<T**>(inputs_aux);
             T** outputs = reinterpret_cast<T**>(outputs_aux);
@@ -821,9 +826,16 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             // Executes the 'control' block
             fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
 
-            // Executes the 'DSP' block
-            fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
-            
+            try {
+                // Executes the 'DSP' block
+                fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+            } catch (faustexception& e) {
+                std::cout << e.Message();
+                fFBCExecutor->dumpMemory(fFactory->getName(), "DumpMem-" + fFactory->getName() + std::to_string(fCycle) + ".txt");
+                // If needed we exit
+                if (e.Message() == "Interpreter exit\n") exit(1);
+            }
+        
             //fFBCVecExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
             
             if (fTraceOutput) {

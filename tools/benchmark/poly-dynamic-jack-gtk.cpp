@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     DSP->setGroup(true);
    
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
 
     // After audio.init that calls 'init'

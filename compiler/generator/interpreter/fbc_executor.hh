@@ -39,6 +39,8 @@ struct FBCExecutor {
     
     virtual ~FBCExecutor() {}
     
+    virtual void dumpMemory(const std::string name, const std::string& filename) {}
+    
 };
 
 #endif

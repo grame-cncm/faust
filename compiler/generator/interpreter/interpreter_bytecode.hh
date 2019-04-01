@@ -145,21 +145,23 @@ struct FBCBasicInstruction : public FBCInstruction {
         return (branches > 0) ? branches : 1;
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
             *out << "o " << fOpcode << " k "
                  << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2 << std::endl;
         } else {
             *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
-                 << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2 << std::endl;
+                 << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2;
+            if (this->fName != "") { *out << " name " << this->fName; }
+            *out << std::endl;
         }
         // If select/if/loop : write branches
-        if (getBranch1()) {
-            fBranch1->write(out, binary, small);
+        if (recurse && getBranch1()) {
+            fBranch1->write(out, binary, small, recurse);
         }
-        if (fBranch2) {
-            fBranch2->write(out, binary, small);
+        if (recurse && fBranch2) {
+            fBranch2->write(out, binary, small, recurse);
         }
     }
 
@@ -193,14 +195,16 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
                  << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
             *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
-                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size() << std::endl;
+                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
+            if (this->fName != "") { *out << " name " << this->fName; }
+            *out << std::endl;
         }
         for (unsigned int i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
@@ -231,14 +235,16 @@ struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
         return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
                  << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
             *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
-                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size() << std::endl;
+                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
+            if (this->fName != "") { *out << " name " << this->fName; }
+            *out << std::endl;
         }
         for (unsigned int i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
@@ -313,7 +319,7 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
 
     virtual ~FIRUserInterfaceInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
             *out << "o " << fOpcode << " k "
@@ -335,7 +341,7 @@ struct FIRMetaInstruction : public FBCInstruction {
 
     virtual ~FIRMetaInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
             *out << "m"
@@ -368,11 +374,11 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
 
     void push(FIRUserInterfaceInstruction<T>* inst) { if (inst) fInstructions.push_back(inst); }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         for (auto& it : fInstructions) {
-            it->write(out, binary, small);
+            it->write(out, binary, small, recurse);
         }
     }
     
@@ -466,11 +472,11 @@ struct FIRMetaBlockInstruction : public FBCInstruction {
 
     void push(FIRMetaInstruction* inst) { if (inst) fInstructions.push_back(inst); }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         for (auto& it : fInstructions) {
-            it->write(out, binary, small);
+            it->write(out, binary, small, recurse);
         }
     }
 };
@@ -504,11 +510,11 @@ struct FBCBlockInstruction : public FBCInstruction {
         }
     }
     
-    virtual void write(std::ostream* out, bool binary = false, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         for (auto& it : fInstructions) {
-            it->write(out, binary, small);
+            it->write(out, binary, small, recurse);
         }
     }
 
