@@ -66,7 +66,7 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
     } else if (isZero(t2)) {
         return t1;
 
-    } else if (t1 <= t2) {
+    } else if (t1->serial() <= t2->serial()) {
         return sigAdd(t1, t2);
 
     } else {

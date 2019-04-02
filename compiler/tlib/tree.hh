@@ -108,6 +108,7 @@ typedef vector<Tree>    tvec;
 class CTree : public virtual Garbageable {
    private:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
+    static size_t    gSerialCounter;              ///< the serial number counter
     static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
 
    public:
@@ -121,6 +122,7 @@ class CTree : public virtual Garbageable {
     void*        fType;        ///< the type of a tree
     plist        fProperties;  ///< the properties list attached to the tree
     size_t       fHashKey;     ///< the hashtable key
+    size_t       fSerial;      ///< the increasing serial number
     int          fAperture;    ///< how "open" is a tree (synthezised field)
     unsigned int fVisitTime;   ///< keep track of visits
     tvec         fBranch;      ///< the subtrees
@@ -144,6 +146,7 @@ class CTree : public virtual Garbageable {
     Tree        branch(int i) const { return fBranch[i]; }     ///< return the ith branch (subtree) of a tree
     const tvec& branches() const { return fBranch; }           ///< return all branches (subtrees) of a tree
     size_t      hashkey() const { return fHashKey; }           ///< return the hashkey of the tree
+    size_t      serial() const { return fSerial; }             ///< return the serial of the tree
     int         aperture() const { return fAperture; }  ///< return how "open" is a tree in terms of free variables
     void        setAperture(int a) { fAperture = a; }   ///< modify the aperture of a tree
 
@@ -160,7 +163,10 @@ class CTree : public virtual Garbageable {
     // Keep track of visited trees (WARNING : non reentrant)
     static void startNewVisit() { ++gVisitTime; }
     bool        isAlreadyVisited() { return fVisitTime == gVisitTime; }
-    void        setVisited() { /*faustassert(fVisitTime!=gVisitTime);*/ fVisitTime = gVisitTime; }
+    void        setVisited()
+    { /*faustassert(fVisitTime!=gVisitTime);*/
+        fVisitTime = gVisitTime;
+    }
 
     // Property list of a tree
     void setProperty(Tree key, Tree value) { fProperties[key] = value; }
