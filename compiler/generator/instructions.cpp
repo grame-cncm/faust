@@ -100,7 +100,7 @@ string Typed::gTypeString[] = {"kInt32",
                                "kObj_ptr",
                                "kSound",
                                "kSound_ptr",
-                               "kUint_ptr"
+                               "kUint_ptr",
                                "kNoType"};
 
 void BasicTyped::cleanup()
