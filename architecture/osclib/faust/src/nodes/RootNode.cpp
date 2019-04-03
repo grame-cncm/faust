@@ -334,7 +334,7 @@ bool RootNode::accept(const Message* msg)
 		} else if ((val == kXmitMsg) && (msg->param(1, num))) {
 			OSCControler::gXmit = num;
         } else if (val == kXmitFilter) {
-            for (int i = 1 ; i < msg->size(); i++) {
+            for (int i = 1; i < msg->size(); i++) {
                 msg->param(i, str);
                 OSCControler::addFilteredPath(str);
             }

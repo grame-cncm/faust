@@ -119,3 +119,21 @@ Here is the available options:
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
 - `-jsmem to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
 
+## faust-osc-controller
+
+The **faust-osc-controller** tool allows to control an OSC aware Faust running program (that is a DSP program possibly compiled with *faust2xx* and the *-osc* option). It will ask the program for its JSON description to build a "proxy" User Interface to control the distant program. Communications can be bi-directionnal, so that the proxy controler can display output control values coming from the distant program (like bargraphs for instance). 
+
+`faust-osc-controller root [-port <port>] [-outport <port>]` 
+
+Set root to the OSC program name (like '/freeverb'). Then use the available options:
+
+- `-port <port> to set the OSC input port`
+- `-outport <port>' to set the OSC output port`
+
+Note that the OSC *input port* of the **faust-osc-controller** tool has to be the *output port* of the controlled program. And the OSC *output port* of the **faust-osc-controller** tool has to be the *input port* of the controlled program. The controler and controlled programs both have to send messages using the -xmit (1|2) parameter, depending if you use real paths or alisases.
+
+Example:
+
+- launch the remote program with `clarinetMIDI -port 5000 -outport 5001 -xmit 1`. Look at the OSC 'root' name that may be a bit different. 
+- then start the controller tool like with: `faust-osc-controller /clarinet -port 5001 -outport 5000 -xmit 1`
+
