@@ -342,11 +342,35 @@ class SOULInstVisitor : public TextInstVisitor {
             *fOut << "int (";
         }
         *fOut << "(";
+        
+        // Hack to make it work again with 'soul' version 0.0.6
+        if (isLogicalOpcode(inst->fOpcode)) {
+            *fOut << "int (";
+        }
+        
         inst->fInst1->accept(this);
+        
+        // Hack to make it work again with 'soul' version 0.0.6
+        if (isLogicalOpcode(inst->fOpcode)) {
+            *fOut << ")";
+        }
+     
         *fOut << " ";
         *fOut << gBinOpTable[inst->fOpcode]->fName;
         *fOut << " ";
+        
+        // Hack to make it work again with 'soul' version 0.0.6
+        if (isLogicalOpcode(inst->fOpcode)) {
+            *fOut << "int (";
+        }
+        
         inst->fInst2->accept(this);
+        
+        // Hack to make it work again with 'soul' version 0.0.6
+        if (isLogicalOpcode(inst->fOpcode)) {
+            *fOut << ")";
+        }
+        
         *fOut << ")";
         if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
             *fOut << ")";
