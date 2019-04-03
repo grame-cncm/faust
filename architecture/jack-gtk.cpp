@@ -43,6 +43,7 @@
 #include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 #include "faust/gui/GTKUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL

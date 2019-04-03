@@ -102,10 +102,10 @@ struct JSONUIDecoderAux {
             fIncludePathnames = meta_data2["include_pathnames"];
         }
         
-        fDSPSize = (meta_data0.find("size") != meta_data0.end()) ? std::stoi(meta_data0["size"]) : -1;
-        fNumInputs = (meta_data0.find("inputs") != meta_data0.end()) ? std::stoi(meta_data0["inputs"]) : -1;
-        fNumOutputs = (meta_data0.find("outputs") != meta_data0.end()) ? std::stoi(meta_data0["outputs"]) : -1;
-        fSRIndex = (meta_data0.find("sr_index") != meta_data0.end()) ? std::stoi(meta_data0["sr_index"]) : -1;
+        fDSPSize = (meta_data0.find("size") != meta_data0.end()) ? std::atoi(meta_data0["size"].c_str()) : -1;
+        fNumInputs = (meta_data0.find("inputs") != meta_data0.end()) ? std::atoi(meta_data0["inputs"].c_str()) : -1;
+        fNumOutputs = (meta_data0.find("outputs") != meta_data0.end()) ? std::atoi(meta_data0["outputs"].c_str()) : -1;
+        fSRIndex = (meta_data0.find("sr_index") != meta_data0.end()) ? std::atoi(meta_data0["sr_index"].c_str()) : -1;
        
         fInputItems = 0;
         fOutputItems = 0;
