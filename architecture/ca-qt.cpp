@@ -1,25 +1,25 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -76,12 +76,12 @@ static void osc_compute_callback(void* arg)
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 <<includeIntrinsic>>
 
 <<includeclass>>
@@ -103,12 +103,12 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
-*******************************************************************************
-
-                                Sensors section
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ Sensors section
+ 
+ *******************************************************************************
+ *******************************************************************************/
 #ifdef IOS
 #include <QAccelerometer>
 #include <QGyroscope>
@@ -120,19 +120,19 @@ ztimedmap GUI::gTimedZoneMap;
 class Sensor
 {
     private:
-
+        
         QSensor* fSensor;
         int fType;
         QSensorReading* fReader;
         QSensor* create(int type) const;
-
+        
     public:
         enum { kSensorStart = 1, kAccelerometer = 1, kGyroscope, kSensorMax };
-
+        
         Sensor(int type) : fSensor(0), fType(type), fReader(0)
         { fSensor = create (type); fSensor->connectToBackend(); }
         virtual ~Sensor() { if (available()) activate (false); delete fSensor; }
-
+        
         int isAccel() const { return fType == kAccelerometer; }
         int isGyro () const { return fType == kGyroscope; }
         bool available() const { return fSensor->isConnectedToBackend(); }
@@ -157,21 +157,21 @@ QSensor* Sensor::create(int type) const
 class Sensors : public QObject
 {
     private:
-
+        
         APIUI* fUI;
         Sensor fAccel, fGyro;
         int fTimerID;
-
+        
     public:
-
+        
         typedef std::map<int, Sensor*> TSensors;
         Sensors(APIUI* ui)
-            : fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
+        : fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
         virtual ~Sensors() { killTimer(fTimerID); }
         void start();
-
-        protected:
-
+        
+    protected:
+        
         void timerEvent(QTimerEvent*);
 };
 
@@ -193,7 +193,7 @@ void Sensors::timerEvent(QTimerEvent*)
 }
 
 //------------------------------------------------------------------------
-void Sensors::start() 
+void Sensors::start()
 {
     bool activate = false;
     if (fAccel.available()) { fAccel.activate(true); activate = true; }
@@ -203,12 +203,12 @@ void Sensors::start()
 #endif
 
 /******************************************************************************
-*******************************************************************************
-
-                                MAIN PLAY THREAD
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ MAIN PLAY THREAD
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 #ifdef IOS
 #define lopt(a,b,val)	val
@@ -228,14 +228,14 @@ int main(int argc, char *argv[])
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-      
+    
 #ifdef IOS
     APIUI apiui;
     Sensors sensors(&apiui);
 #endif
-
-	snprintf(name, 256, "%s", basename(argv[0]));
-	snprintf(rcfilename, 256, "%s/.%src", home, name);
+    
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
     
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
-
+    
 #if MIDICTRL
     if (midi_sync) {
         DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
 #else
     DSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
-
+    
 #else
     nvoices = lopt(argv, "--nvoices", nvoices);
     control = lopt(argv, "--control", control);
@@ -273,34 +273,34 @@ int main(int argc, char *argv[])
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
         
-    #if MIDICTRL
+#if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(dsp_poly);
         } else {
             DSP = dsp_poly;
         }
-    #else
+#else
         DSP = dsp_poly;
-    #endif
+#endif
         
     } else {
-    #if MIDICTRL
+#if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(new mydsp());
         } else {
             DSP = new mydsp();
         }
-    #else
+#else
         // We possibly have a file...
         /*
-        try {
+         try {
             DSP = new dsp_sequencer(new sound_player(stringify_expanded(SOUND_FILE)), new mydsp());
-        } catch (...) {
+         } catch (...) {
             DSP = new mydsp();
-        }
-        */
+         }
+         */
         DSP = new mydsp();
-    #endif
+#endif
     }
     
 #endif
@@ -309,10 +309,10 @@ int main(int argc, char *argv[])
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
- 
-	QApplication myApp(argc, argv);
     
-    FUI finterface;    
+    QApplication myApp(argc, argv);
+    
+    FUI finterface;
     QTGUI* interface = new QTGUI();
     
 #ifdef PRESETUI
@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif
-
+    
 #ifdef MIDICTRL
     rt_midi midi_handler(name, is_virtual);
     midi_handler.addMidiIn(dsp_poly);
@@ -343,21 +343,20 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
-
+    
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
- #endif
-
-	coreaudio audio(srate, fpb);
-	audio.init(name, DSP);
-	finterface.recallState(rcfilename);
-	audio.start();
-#ifdef IOS
-	sensors.start();
 #endif
-	
+    
+    coreaudio audio(srate, fpb);
+    audio.init(name, DSP);
+    audio.start();
+#ifdef IOS
+    sensors.start();
+#endif
+    
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
@@ -367,24 +366,27 @@ int main(int argc, char *argv[])
     
     std::cout << "ins " << audio.getNumInputs() << std::endl;
     std::cout << "outs " << audio.getNumOutputs() << std::endl;
-
+    
 #ifdef HTTPCTRL
-	httpdinterface.run();
+    httpdinterface.run();
 #ifdef QRCODECTRL
     interface->displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
-
+    
 #ifdef OSCCTRL
-	oscinterface.run();
+    oscinterface.run();
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
         std::cerr << "MidiUI run error\n";
     }
 #endif
-	interface->run();
-
+    
+    // After the allocation of controllers
+    finterface.recallState(rcfilename);
+    interface->run();
+    
     myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     
@@ -392,11 +394,9 @@ int main(int argc, char *argv[])
     midiinterface.stop();
 #endif
     interface->stop();
-
+    
     audio.stop();
     finterface.saveState(rcfilename);
     
     return 0;
 }
-
-

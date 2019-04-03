@@ -10,7 +10,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath osc-controller
+all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath faust-osc-controller
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
@@ -33,8 +33,8 @@ dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp
 	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0 sndfile` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
 
-osc-controller: osc-controller.cpp 
-	$(CXX) -std=c++11 -O3 osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` -dead_strip -lOSCFaust -llo -o osc-controller
+faust-osc-controller: faust-osc-controller.cpp 
+	$(CXX) -std=c++11 -O3 faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` -dead_strip -lOSCFaust -llo -o faust-osc-controller
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 interp-tracer.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` -lz -lncurses -lpthread -o interp-tracer
@@ -64,6 +64,7 @@ install:
 	([ -e faustbench-interp ]) && cp faustbench-interp $(prefix)/bin || echo faustbench-interp not found
 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
+	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
 
 clean:
 
@@ -77,4 +78,7 @@ clean:
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
 	([ -e faustbench-interp ]) && rm faustbench-interp || echo faustbench-interp not found
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
+	([ -e fastmath.wasm ]) && rm fastmath.wasm || echo fastmath.wasm not found
+	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
+
 

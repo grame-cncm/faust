@@ -1,35 +1,35 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
+ 
+	IMPORTANT NOTE : this file contains two clearly delimited sections :
+	the ARCHITECTURE section (in two parts) and the USER section. Each section
+	is governed by its own copyright and license. Please check individually
 	each section for license and copyright information.
-*************************************************************************/
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 Thomas Charbonnel and GRAME
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-    as published by the Free Software Foundation; either version 3 of 
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work 
-    that contains this FAUST architecture section and distribute  
-    that work under terms of your choice, so long as this FAUST 
-    architecture section is not modified. 
-
+ FAUST Architecture File
+ Copyright (C) 2003-2011 Thomas Charbonnel and GRAME
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -77,12 +77,12 @@ static void osc_compute_callback(void* arg)
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
 
@@ -98,7 +98,7 @@ static void osc_compute_callback(void* arg)
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-					
+
 dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-
+    
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
-  
+    
     GTKUI interface(name, &argc, &argv);
     FUI finterface;
 #if SOUNDFILE
@@ -195,17 +195,17 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 #ifdef HTTPCTRL
-	httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-	DSP->buildUserInterface(&httpdinterface);
- 	std::cout << "HTTPD is on" << std::endl;
+    httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(&httpdinterface);
+    std::cout << "HTTPD is on" << std::endl;
 #endif
-
+    
 #ifdef OCVCTRL
-	OCVUI ocvinterface;
-	DSP->buildUserInterface(&ocvinterface);
+    OCVUI ocvinterface;
+    DSP->buildUserInterface(&ocvinterface);
     std::cout << "OCVCTRL defined" << std::endl;
 #endif
-
+    
 #ifdef MIDICTRL
     jackaudio_midi audio;
     audio.init(name, DSP);
@@ -239,34 +239,35 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
-
-    finterface.recallState(rcfilename);
+    
     audio.start();
-	
+    
 #ifdef HTTPCTRL
-	httpdinterface.run();
+    httpdinterface.run();
 #endif
-
+    
 #ifdef OCVCTRL
-	ocvinterface.run();
+    ocvinterface.run();
 #endif
     
 #ifdef OSCCTRL
     oscinterface.run();
 #endif
-
-	/* call run all GUI instances */
-	GUI::runAllGuis();
-	
-	audio.stop();
-	finterface.saveState(rcfilename);
+    
+    // After the allocation of controllers
+    finterface.recallState(rcfilename);
+    /* call run all GUI instances */
+    GUI::runAllGuis();
+    
+    audio.stop();
+    finterface.saveState(rcfilename);
     
 #ifdef MIDICTRL
     midiinterface->stop();
 #endif
-
-  	return 0;
+    
+    return 0;
 }
-		
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
