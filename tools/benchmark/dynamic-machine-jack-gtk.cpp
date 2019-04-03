@@ -159,9 +159,6 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    // After audio.init that calls 'init'
-    finterface->recallState(rcfilename);
-    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -181,6 +178,8 @@ int main(int argc, char* argv[])
         audio.addMidiIn(dsp_poly);
     }
     
+   // State (after UI construction)
+    finterface->recallState(rcfilename);
     audio.start();
 
     if (is_httpd) {
