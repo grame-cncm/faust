@@ -59,6 +59,7 @@ struct FBCBasicInstruction : public FBCInstruction {
     FBCBlockInstruction<T>* fBranch2;
 
     FBCBasicInstruction(Opcode opcode,
+                        const std::string& name,
                         int val_int, T val_real,
                         int off1, int off2,
                         FBCBlockInstruction<T>* branch1,
@@ -171,7 +172,7 @@ struct FBCBasicInstruction : public FBCInstruction {
 
     virtual FBCBasicInstruction<T>* copy()
     {
-        return new FBCBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
+        return new FBCBasicInstruction<T>(fOpcode, fName, fIntValue, fRealValue, fOffset1, fOffset2,
                                           ((getBranch1()) ? getBranch1()->copy() : nullptr), ((getBranch2()) ? getBranch2()->copy() : nullptr));
     }
    

@@ -580,6 +580,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             return new FIRBlockStoreIntInstruction<T>(FBCInstruction::Opcode(opcode), offset1, offset2, block_values);
 
         } else {
+            std::string name;
             *inst >> dummy;  // Read "int" token
             *inst >> val_int;
 
@@ -591,9 +592,12 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
             *inst >> dummy;  // Read "offset2" token
             *inst >> offset2;
-
-            FBCBlockInstruction<T>* branch1 = 0;
-            FBCBlockInstruction<T>* branch2 = 0;
+            
+            *inst >> dummy;  // Read "name" token (if present)
+            *inst >> name;
+         
+            FBCBlockInstruction<T>* branch1 = nullptr;
+            FBCBlockInstruction<T>* branch2 = nullptr;
 
             // Possibly read sub-blocks
             if (FBCInstruction::isChoice(FBCInstruction::Opcode(opcode))) {
@@ -604,7 +608,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                 branch2 = readCodeBlock(in);  // consume 'in'
             }
 
-            return new FBCBasicInstruction<T>(FBCInstruction::Opcode(opcode), val_int, val_real, offset1, offset2,
+            return new FBCBasicInstruction<T>(FBCInstruction::Opcode(opcode), name, val_int, val_real, offset1, offset2,
                                               branch1, branch2);
         }
     }
