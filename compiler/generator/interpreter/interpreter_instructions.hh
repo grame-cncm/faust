@@ -581,7 +581,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         // Compile 'select'
         previous->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
-                                                  0, 0, 0, 0, then_block, else_block));
+                                                  "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
         fCurrentBlock = previous;
@@ -611,7 +611,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'if'
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
         fCurrentBlock = previous;
@@ -647,13 +647,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fEnd->accept(this);
 
         // Add branch that moves back on loop block itself
-        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, 0, 0, 0, 0, loop_body_block, 0));
+        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, loop_body_block, 0));
 
         // Finally add 'return'
         fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Add the loop block in previous
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_body_block));
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, "", ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_body_block));
       
         // Restore current block
         fCurrentBlock = previous;

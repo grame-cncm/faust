@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
-
 #include "OSCIO.h"
 
 /******************************************************************************
@@ -90,7 +89,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
         void compute(int nframes) 
         {
             fDsp->compute(nframes, fInBuffers, fOutBuffers);
-            for (int i= 0; i < numOutputs(); i++) {
+            for (int i = 0; i < numOutputs(); i++) {
                 send(nframes, fOutBuffers [i], i);
             }
         }
@@ -103,7 +102,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
                 return;
             }
 
-            for (int i=0; i < nvalues; i++) {
+            for (int i = 0; i < nvalues; i++) {
                 int c = i % inChans;
                 int frame = i / inChans;
                 fInBuffers[c][frame] = val[i];

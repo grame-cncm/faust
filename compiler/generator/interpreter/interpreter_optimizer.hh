@@ -1181,18 +1181,18 @@ struct FBCInstructionOptimizer {
                 cur += 2;
             } else if (inst1->fOpcode == FBCInstruction::kLoop) {
                 new_block->push(new FBCBasicInstruction<T>(
-                    inst1->fOpcode, inst1->fIntValue, inst1->fRealValue, inst1->fOffset1, inst1->fOffset2,
+                    inst1->fOpcode, inst1->fName, inst1->fIntValue, inst1->fRealValue, inst1->fOffset1, inst1->fOffset2,
                     inst1->fBranch1->copy(),  // No optimization for loop variable declaration
                     optimize_aux(inst1->fBranch2, optimizer)));
                 cur++;
             } else if (FBCInstruction::isChoice(inst1->fOpcode)) {
                 new_block->push(new FBCBasicInstruction<T>(
-                    inst1->fOpcode, inst1->fIntValue, inst1->fRealValue, inst1->fOffset1, inst1->fOffset2,
+                    inst1->fOpcode, inst1->fName, inst1->fIntValue, inst1->fRealValue, inst1->fOffset1, inst1->fOffset2,
                     optimize_aux(inst1->fBranch1, optimizer), optimize_aux(inst1->fBranch2, optimizer)));
                 cur++;
             } else if (inst1->fOpcode == FBCInstruction::kCondBranch) {
                 // Special case for loops : branch to new_block
-                new_block->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, 0, 0, 0, 0, new_block, 0));
+                new_block->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, new_block, 0));
                 cur++;
             } else {
                 new_block->push(optimizer.rewrite(cur, next));
