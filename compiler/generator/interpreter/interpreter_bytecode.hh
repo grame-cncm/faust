@@ -54,11 +54,14 @@ struct FBCBasicInstruction : public FBCInstruction {
     T      fRealValue;
     int    fOffset1;
     int    fOffset2;
-
+   
     FBCBlockInstruction<T>* fBranch1;
     FBCBlockInstruction<T>* fBranch2;
 
-    FBCBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2, FBCBlockInstruction<T>* branch1,
+    FBCBasicInstruction(Opcode opcode,
+                        int val_int, T val_real,
+                        int off1, int off2,
+                        FBCBlockInstruction<T>* branch1,
                         FBCBlockInstruction<T>* branch2)
         : fName(""),
         fOpcode(opcode),
@@ -132,19 +135,20 @@ struct FBCBasicInstruction : public FBCInstruction {
     }
 
     FBCBlockInstruction<T>* getBranch1() { return (fOpcode == kCondBranch) ? nullptr : fBranch1; }
+    FBCBlockInstruction<T>* getBranch2() { return fBranch2; }
 
     virtual ~FBCBasicInstruction()
     {
         delete getBranch1();
-        delete fBranch2;
+        delete getBranch2();
     }
-
+ 
     int size()
     {
-        int branches = std::max(((getBranch1()) ? fBranch1->size() : 0), ((fBranch2) ? fBranch2->size() : 0));
+        int branches = std::max(((getBranch1()) ? getBranch1()->size() : 0), ((getBranch2()) ? getBranch2()->size() : 0));
         return (branches > 0) ? branches : 1;
     }
-
+  
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
@@ -158,17 +162,17 @@ struct FBCBasicInstruction : public FBCInstruction {
         }
         // If select/if/loop : write branches
         if (recurse && getBranch1()) {
-            fBranch1->write(out, binary, small, recurse);
+            getBranch1()->write(out, binary, small, recurse);
         }
-        if (recurse && fBranch2) {
-            fBranch2->write(out, binary, small, recurse);
+        if (recurse && getBranch2()) {
+            getBranch2()->write(out, binary, small, recurse);
         }
     }
 
     virtual FBCBasicInstruction<T>* copy()
     {
         return new FBCBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
-                                          ((getBranch1()) ? fBranch1->copy() : nullptr), ((fBranch2) ? fBranch2->copy() : nullptr));
+                                          ((getBranch1()) ? getBranch1()->copy() : nullptr), ((getBranch2()) ? getBranch2()->copy() : nullptr));
     }
    
 };

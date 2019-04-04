@@ -831,9 +831,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
             } catch (faustexception& e) {
                 std::cout << e.Message();
-                fFBCExecutor->dumpMemory(fFactory->getName(), "DumpMem-" + fFactory->getName() + std::to_string(fCycle) + ".txt");
+                fFBCExecutor->dumpMemory(fFactory->fComputeDSPBlock, fFactory->getName(), "DumpMem-" + fFactory->getName() + std::to_string(fCycle) + ".txt");
+                std::ofstream code_out("DumpCode-"  + fFactory->getName() + ".txt");
+                fFactory->write(&code_out, false);
                 // If needed we exit
                 if (e.Message() == "Interpreter exit\n") exit(1);
+            }
+            
+            if ((TRACE == 7) && (fCycle < 4)) {
+                fFBCExecutor->dumpMemory(fFactory->fComputeDSPBlock, fFactory->getName(), "DumpMem-" + fFactory->getName() + std::to_string(fCycle) + ".txt");
             }
         
             //fFBCVecExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
