@@ -57,9 +57,17 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_') << ";";
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
+            << replaceCharList(inst->fLabel, rep, '_')
+            <<  " [[ min: " << checkReal(inst->fMin)
+            <<  ", max: " << checkReal(inst->fMax)
+            <<  ", default: " << checkReal(inst->fInit) << " ]];";
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
+            << inst->fZone
+            <<  " [[ min: " << checkReal(inst->fMin)
+            <<  ", max: " << checkReal(inst->fMax)
+            <<  ", default: " << checkReal(inst->fInit) << " ]];";
         }
         tab(fTab , fOut);
     }
@@ -68,9 +76,15 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_') << ";";
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
+            << replaceCharList(inst->fLabel, rep, '_')
+            <<  " [[ min: " << checkReal(inst->fMin)
+            <<  ", max: " << checkReal(inst->fMax) << " ]];";
         } else {
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
+            << inst->fZone
+            <<  " [[ min: " << checkReal(inst->fMin)
+            <<  ", max: " << checkReal(inst->fMax) << " ]];";
         }
         tab(fTab , fOut);
     }
