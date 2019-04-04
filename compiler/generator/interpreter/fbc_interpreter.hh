@@ -300,9 +300,14 @@ class FBCInterpreter : public FBCExecutor<T> {
                     || (size > 0 && (index >= ((*it)->fOffset1 + size)))
                     || (fIntHeap[index] == DUMMY_INT))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertLoadIntHeap : fIntHeapSize "
-                      << fFactory->fIntHeapSize << " index " << index
-                      << " size " << size << " value " << fIntHeap[index]
+            if (size > 0) {
+                std::cout << "assertLoadIntHeap array: fIntHeapSize ";
+                std::cout << fFactory->fIntHeapSize << " index " << (index - (*it)->fOffset1);
+            } else {
+                std::cout << "assertLoadIntHeap scalar: fIntHeapSize ";
+                std::cout << fFactory->fIntHeapSize << " index " << index;
+            }
+            std::cout << " size " << size << " value " << fIntHeap[index]
                       << " name " << (*it)->fName << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
@@ -321,9 +326,14 @@ class FBCInterpreter : public FBCExecutor<T> {
                     || (size > 0 && (index >= ((*it)->fOffset1 + size)))
                     || (fRealHeap[index] == T(DUMMY_REAL)))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertLoadRealHeap : fRealHeapSize "
-                      << fFactory->fRealHeapSize << " index " << index
-                      << " size " << size << " value " << fRealHeap[index]
+            if (size > 0) {
+                std::cout << "assertLoadRealHeap array: fIntHeapSize ";
+                std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
+            } else {
+                std::cout << "assertLoadRealHeap scalar: fIntHeapSize ";
+                std::cout << fFactory->fRealHeapSize << " index " << index;
+            }
+            std::cout << " size " << size << " value " << fRealHeap[index]
                       << " name " << (*it)->fName << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
@@ -334,13 +344,13 @@ class FBCInterpreter : public FBCExecutor<T> {
         return index;
     }
 
-    inline T check_real(InstructionIT it, T val) { return (TRACE > 0) ? checkRealAux(it, val) : val; }
+    inline T checkReal(InstructionIT it, T val) { return (TRACE > 0) ? checkRealAux(it, val) : val; }
 
 #define pushInt(val) (int_stack[int_stack_index++] = val)
 #define popInt() (int_stack[--int_stack_index])
 
-#define pushReal(it, val) (real_stack[real_stack_index++] = check_real(it, val))
-#define popReal(it) check_real(it, real_stack[--real_stack_index])
+#define pushReal(it, val) (real_stack[real_stack_index++] = checkReal(it, val))
+#define popReal(it) checkReal(it, real_stack[--real_stack_index])
 
 #define pushSound(val) (sound_stack[sound_stack_index++] = val)
 #define popSound() (sound_stack[--sound_stack_index])
@@ -594,7 +604,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         // Memory operations
         do_kLoadReal : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1)]);
             } else {
                 pushReal(it, fRealHeap[(*it)->fOffset1]);
@@ -603,7 +613,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kLoadInt : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1)]);
             } else {
                 pushInt(fIntHeap[(*it)->fOffset1]);
@@ -612,7 +622,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kLoadSound : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushSound(fSoundHeap[assertSoundHeap(it, (*it)->fOffset1)]);
             } else {
                 pushSound(fSoundHeap[(*it)->fOffset1]);
@@ -622,7 +632,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         do_kLoadSoundField : {
             /*
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushSound(fSoundHeap[assertSoundHeap(it, (*it)->fOffset1)]);
             } else {
                 pushSound(fSoundHeap[(*it)->fOffset1]);
@@ -632,7 +642,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kStoreReal : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 fRealHeap[assertRealHeap(it, (*it)->fOffset1)] = popReal(it);
             } else {
                 fRealHeap[(*it)->fOffset1] = popReal(it);
@@ -641,7 +651,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kStoreInt : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 fIntHeap[assertIntHeap(it, (*it)->fOffset1)] = popInt();
             } else {
                 fIntHeap[(*it)->fOffset1] = popInt();
@@ -651,7 +661,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         do_kStoreSound : {
             /*
-            if (TRACE) {
+            if (TRACE > 0) {
                 fSoundHeap[assertSoundHeap(it, (*it)->fOffset1)] = popSound();
             } else {
                 fSoundHeap[(*it)->fOffset1] = popSound();
@@ -662,7 +672,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         // Directly store a value
         do_kStoreRealValue : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 fRealHeap[assertRealHeap(it, (*it)->fOffset1)] = (*it)->fRealValue;
             } else {
                 fRealHeap[(*it)->fOffset1] = (*it)->fRealValue;
@@ -671,7 +681,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kStoreIntValue : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 fIntHeap[assertIntHeap(it, (*it)->fOffset1)] = (*it)->fIntValue;
             } else {
                 fIntHeap[(*it)->fOffset1] = (*it)->fIntValue;
@@ -680,7 +690,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kLoadIndexedReal : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1 + popInt(), (*it)->fOffset2)]);
             } else {
                 pushReal(it, fRealHeap[(*it)->fOffset1 + popInt()]);
@@ -690,7 +700,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         do_kLoadIndexedInt : {
             int offset = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
             } else {
                 pushInt(fIntHeap[(*it)->fOffset1 + offset]);
@@ -699,7 +709,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kStoreIndexedReal : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 fRealHeap[assertRealHeap(it, (*it)->fOffset1 + popInt(), (*it)->fOffset2)] = popReal(it);
             } else {
                 fRealHeap[(*it)->fOffset1 + popInt()] = popReal(it);
@@ -709,7 +719,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         do_kStoreIndexedInt : {
             int offset = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 fIntHeap[assertIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popInt();
             } else {
                 fIntHeap[(*it)->fOffset1 + offset] = popInt();
@@ -787,7 +797,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         // Input/output access
         do_kLoadInput : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 pushReal(it, fInputs[(*it)->fOffset1][assertAudioBuffer(it, popInt())]);
             } else {
                 /*
@@ -801,7 +811,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         }
 
         do_kStoreOutput : {
-            if (TRACE) {
+            if (TRACE > 0) {
                 fOutputs[(*it)->fOffset1][assertAudioBuffer(it, popInt())] = popReal(it);
             } else {
                 /*
@@ -864,7 +874,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kAddInt : {
             int v1 = popInt();
             int v2 = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 int res;
                 if (__builtin_sadd_overflow(v1, v2, &res)) {
                     warningOverflow(it);
@@ -886,7 +896,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kSubInt : {
             int v1 = popInt();
             int v2 = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 int res;
                 if (__builtin_ssub_overflow(v1, v2, &res)) {
                     warningOverflow(it);
@@ -908,7 +918,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kMultInt : {
             int v1 = popInt();
             int v2 = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 int res;
                 if (__builtin_smul_overflow(v1, v2, &res)) {
                     warningOverflow(it);
@@ -923,7 +933,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kDivReal : {
             T v1 = popReal(it);
             T v2 = popReal(it);
-            if (TRACE) {
+            if (TRACE > 0) {
                 checkDivZero(it, v2);
             }
             pushReal(it, v1 / v2);
@@ -933,7 +943,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kDivInt : {
             int v1 = popInt();
             int v2 = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 checkDivZero(it, v2);
             }
             pushInt(v1 / v2);
@@ -943,7 +953,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kRemReal : {
             T v1 = popReal(it);
             T v2 = popReal(it);
-            if (TRACE) {
+            if (TRACE > 0) {
                 checkDivZero(it, v2);
             }
             pushReal(it, std::remainder(v1, v2));
@@ -953,7 +963,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         do_kRemInt : {
             int v1 = popInt();
             int v2 = popInt();
-            if (TRACE) {
+            if (TRACE > 0) {
                 checkDivZero(it, v2);
             }
             pushInt(v1 % v2);
@@ -2401,19 +2411,21 @@ class FBCInterpreter : public FBCExecutor<T> {
             delete[] fInputs;
             delete[] fOutputs;
         }
-        if (TRACE) {
+        if (TRACE > 0) {
             printStats();
         }
     }
     
-    void dumpMemory(const std::string name, const std::string& filename)
+    void dumpMemory(FBCBlockInstruction<T>* block, const std::string& name, const std::string& filename)
     {
         std::ofstream out(filename);
         out << "DSP name: " << name << std::endl;
+        
         out << "REAL memory: " << fFactory->fRealHeapSize << "\n";
         for (int i = 0; i < fFactory->fRealHeapSize; i++) {
             out << "mem: " << i << " " << fRealHeap[i] << std::endl;
         }
+        
         out << "INT memory: " << fFactory->fIntHeapSize << "\n";
         for (int i = 0; i < fFactory->fIntHeapSize; i++) {
             out << "mem: " << i << " " << fIntHeap[i] << std::endl;
