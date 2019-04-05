@@ -22,81 +22,70 @@
 #ifndef _SOUL_INSTRUCTIONS_H
 #define _SOUL_INSTRUCTIONS_H
 
-#include <string>
 #include <sstream>
+#include <string>
 
-#include "text_instructions.hh"
 #include "Text.hh"
+#include "text_instructions.hh"
 
 using namespace std;
 
 struct SOULInstUIVisitor : public DispatchVisitor {
-    
-    std::stringstream fOut;
+    std::stringstream     fOut;
     SOULStringTypeManager fTypeManager;
-    int fTab;
-    
+    int                   fTab;
+
     using DispatchVisitor::visit;
-    
-    SOULInstUIVisitor(int tab):fTypeManager(FLOATMACRO, "*"),fTab(tab)
-    {
-    }
-    
+
+    SOULInstUIVisitor(int tab) : fTypeManager(FLOATMACRO, "*"), fTab(tab) {}
+
     virtual void visit(AddButtonInst* inst)
     {
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_') << ";";
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
+                 << replaceCharList(inst->fLabel, rep, '_') << ";";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
         }
-        tab(fTab , fOut);
+        tab(fTab, fOut);
     }
-    
+
     virtual void visit(AddSliderInst* inst)
     {
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-            << replaceCharList(inst->fLabel, rep, '_')
-            <<  " [[ min: " << checkReal(inst->fMin)
-            <<  ", max: " << checkReal(inst->fMax)
-            <<  ", default: " << checkReal(inst->fInit) << " ]];";
+                 << replaceCharList(inst->fLabel, rep, '_') << " [[ min: " << checkReal(inst->fMin)
+                 << ", max: " << checkReal(inst->fMax) << ", default: " << checkReal(inst->fInit) << " ]];";
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
-            << inst->fZone
-            <<  " [[ min: " << checkReal(inst->fMin)
-            <<  ", max: " << checkReal(inst->fMax)
-            <<  ", default: " << checkReal(inst->fInit) << " ]];";
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
+                 << " [[ min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
+                 << ", default: " << checkReal(inst->fInit) << " ]];";
         }
-        tab(fTab , fOut);
+        tab(fTab, fOut);
     }
-    
+
     virtual void visit(AddBargraphInst* inst)
     {
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-            << replaceCharList(inst->fLabel, rep, '_')
-            <<  " [[ min: " << checkReal(inst->fMin)
-            <<  ", max: " << checkReal(inst->fMax) << " ]];";
+                 << replaceCharList(inst->fLabel, rep, '_') << " [[ min: " << checkReal(inst->fMin)
+                 << ", max: " << checkReal(inst->fMax) << " ]];";
         } else {
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
-            << inst->fZone
-            <<  " [[ min: " << checkReal(inst->fMin)
-            <<  ", max: " << checkReal(inst->fMax) << " ]];";
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
+                 << " [[ min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax) << " ]];";
         }
-        tab(fTab , fOut);
+        tab(fTab, fOut);
     }
-
 };
 
 class SOULInstVisitor : public TextInstVisitor {
-    
    private:
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
-    
+
     // Whether to consider an 'int' as a 'boolean' later on in code generation
     bool fIntAsBool;
 
@@ -108,11 +97,11 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["abs"]   = "abs";
         gPolyMathLibTable["max_i"] = "max";
         gPolyMathLibTable["min_i"] = "min";
-        
+
         // Polymath mapping float version
         gPolyMathLibTable["max_f"] = "max";
         gPolyMathLibTable["min_f"] = "min";
-        
+
         gPolyMathLibTable["fabsf"]      = "abs";
         gPolyMathLibTable["acosf"]      = "acos";
         gPolyMathLibTable["asinf"]      = "asin";
@@ -134,7 +123,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
-        
+
         // Additional math functions are included in SOUL
         gPolyMathLibTable["acoshf"] = "acosh";
         gPolyMathLibTable["asinhf"] = "asinh";
@@ -142,11 +131,11 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["coshf"]  = "cosh";
         gPolyMathLibTable["sinhf"]  = "sinh";
         gPolyMathLibTable["tanhf"]  = "tanh";
-        
+
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
         gPolyMathLibTable["min_"] = "min";
-        
+
         gPolyMathLibTable["fabs"]      = "abs";
         gPolyMathLibTable["acos"]      = "acos";
         gPolyMathLibTable["asin"]      = "asin";
@@ -168,7 +157,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
-        
+
         // Additional math functions are included in SOUL
         gPolyMathLibTable["acosh"] = "acosh";
         gPolyMathLibTable["asinh"] = "asinh";
@@ -176,7 +165,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cosh"]  = "cosh";
         gPolyMathLibTable["sinh"]  = "sinh";
         gPolyMathLibTable["tanh"]  = "tanh";
-        
+
         fIntAsBool = false;
     }
 
@@ -187,36 +176,39 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << "// " << inst->fLabel;
         EndLine(' ');
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
-            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
+                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
+                  << " = val; fUpdated = true; }";
         } else {
-            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << inst->fZone << " = val; fUpdated = true; }";
         }
         EndLine(' ');
     }
 
     virtual void visit(AddSliderInst* inst)
     {
-        *fOut << "// " << inst->fLabel
-              << " [default = " << checkReal(inst->fInit)
-              << ", min = " << checkReal(inst->fMin)
-              << ", max = " << checkReal(inst->fMax)
+        *fOut << "// " << inst->fLabel << " [default = " << checkReal(inst->fInit)
+              << ", min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
               << ", step = " << checkReal(inst->fStep) << "]";
         EndLine(' ');
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = { ' ', '(', ')', '/', '\\', '.' };
-            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
+                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
+                  << " = val; fUpdated = true; }";
         } else {
-            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone << " = val; fUpdated = true; }";
+            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << inst->fZone << " = val; fUpdated = true; }";
         }
         EndLine(' ');
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
-        *fOut << "// " << inst->fLabel
-              << " [min = " << checkReal(inst->fMin)
-              << ", max = " << checkReal(inst->fMax) << "]";
+        *fOut << "// " << inst->fLabel << " [min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
+              << "]";
         EndLine(' ');
     }
 
@@ -229,7 +221,7 @@ class SOULInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         string name = inst->fAddress->getName();
-        
+
         // special case for input/output considered as 'streams'
         if (startWith(name, "input")) {
             *fOut << "input stream " << fTypeManager->fTypeDirectTable[itfloat()] << " " << name;
@@ -248,10 +240,8 @@ class SOULInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareFunInst* inst)
-    {
-    }
-    
+    virtual void visit(DeclareFunInst* inst) {}
+
     /*
      Indexed adresses can actually be values in an array or fields in a struct type
      */
@@ -274,7 +264,7 @@ class SOULInstVisitor : public TextInstVisitor {
             }
         }
     }
-  
+
     virtual void visit(StoreVarInst* inst)
     {
         // special case for 'output' considered as a 'stream'
@@ -283,8 +273,9 @@ class SOULInstVisitor : public TextInstVisitor {
             *fOut << " << ";
             inst->fValue->accept(this);
             EndLine();
-        // special case for 'bargraph' considered as an 'output event'
-        } else if (startWith(inst->fAddress->getName(), "fHbargraph") || startWith(inst->fAddress->getName(), "fVbargraph")) {
+            // special case for 'bargraph' considered as an 'output event'
+        } else if (startWith(inst->fAddress->getName(), "fHbargraph") ||
+                   startWith(inst->fAddress->getName(), "fVbargraph")) {
             // value is stored in the bargraph variable
             {
                 inst->fAddress->accept(this);
@@ -307,7 +298,7 @@ class SOULInstVisitor : public TextInstVisitor {
             EndLine();
         }
     }
-    
+
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '(';
@@ -317,7 +308,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
         *fOut << ')';
     }
-    
+
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '(';
@@ -346,61 +337,58 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(BitcastInst* inst)
-    {
-        faustassert(false);
-    }
-    
+    virtual void visit(BitcastInst* inst) { faustassert(false); }
+
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(bool (";
-        
+
         fIntAsBool = true;
         inst->fCond->accept(this);
         fIntAsBool = false;
         *fOut << ") ? ";
-        
+
         inst->fThen->accept(this);
         *fOut << " : ";
         inst->fElse->accept(this);
         *fOut << ")";
     }
-    
+
     virtual void visit(BinopInst* inst)
     {
         if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
             *fOut << "int (";
         }
         *fOut << "(";
-        
+
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << "int (";
         }
-        
+
         inst->fInst1->accept(this);
-        
+
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << ")";
         }
-     
+
         *fOut << " ";
         *fOut << gBinOpTable[inst->fOpcode]->fName;
         *fOut << " ";
-        
+
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << "int (";
         }
-        
+
         inst->fInst2->accept(this);
-        
+
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << ")";
         }
-        
+
         *fOut << ")";
         if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
             *fOut << ")";
@@ -415,34 +403,34 @@ class SOULInstVisitor : public TextInstVisitor {
         } else {
             name = inst->fName;
         }
-    
+
         *fOut << gGlobal->getMathFunction(name) << ((inst->fArgs.size() > 0) ? " (" : "(");
-        
+
         // Compile parameters
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
         *fOut << ")";
     }
-    
+
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-        
+
         *fOut << "for (";
-        
+
         fFinishLine = false;
         inst->fInit->accept(this);
         *fOut << "; ";
-        
+
         fIntAsBool = true;
         inst->fEnd->accept(this);
         fIntAsBool = false;
         *fOut << "; ";
-        
+
         inst->fIncrement->accept(this);
         fFinishLine = true;
         *fOut << ") {";
-        
+
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
@@ -453,18 +441,13 @@ class SOULInstVisitor : public TextInstVisitor {
     }
 
     StringTypeManager* getTypeManager() { return fTypeManager; }
-
 };
 
 // For subcontainers: variable access is specific
 class SOULSubContainerInstVisitor : public SOULInstVisitor {
+   public:
+    SOULSubContainerInstVisitor(std::ostream* out, int tab = 0) : SOULInstVisitor(out, tab) {}
 
-  public:
-    
-    SOULSubContainerInstVisitor(std::ostream* out, int tab = 0) : SOULInstVisitor(out, tab)
-    {
-    }
-    
     virtual void visit(NamedAddress* named)
     {
         if (named->getAccess() & Address::kStruct) {
@@ -472,7 +455,6 @@ class SOULSubContainerInstVisitor : public SOULInstVisitor {
         }
         *fOut << named->fName;
     }
-
 };
 
 #endif

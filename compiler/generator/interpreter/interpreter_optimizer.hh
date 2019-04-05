@@ -22,9 +22,9 @@
 #ifndef _FIR_INTERPRETER_OPTIMIZER_H
 #define _FIR_INTERPRETER_OPTIMIZER_H
 
+#include <cmath>
 #include <iostream>
 #include <map>
-#include <cmath>
 #include <string>
 
 #include "exception.hh"
@@ -56,8 +56,7 @@ struct FBCInstructionOptimizer;
 // Copy (= identity) optimizer (used to test...)
 template <class T>
 struct FBCInstructionCopyOptimizer : public FBCInstructionOptimizer<T> {
-    FBCInstructionCopyOptimizer()
-    {}
+    FBCInstructionCopyOptimizer() {}
 
     virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
@@ -69,8 +68,7 @@ struct FBCInstructionCopyOptimizer : public FBCInstructionOptimizer<T> {
 // Cast optimizer
 template <class T>
 struct FBCInstructionCastOptimizer : public FBCInstructionOptimizer<T> {
-    FBCInstructionCastOptimizer()
-    {}
+    FBCInstructionCastOptimizer() {}
 
     virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
@@ -93,8 +91,7 @@ struct FBCInstructionCastOptimizer : public FBCInstructionOptimizer<T> {
 // Rewrite indexed Load/Store as simple Load/Store
 template <class T>
 struct FBCInstructionLoadStoreOptimizer : public FBCInstructionOptimizer<T> {
-    FBCInstructionLoadStoreOptimizer()
-    {}
+    FBCInstructionLoadStoreOptimizer() {}
 
     virtual ~FBCInstructionLoadStoreOptimizer() {}
 
@@ -127,8 +124,7 @@ struct FBCInstructionLoadStoreOptimizer : public FBCInstructionOptimizer<T> {
 // Rewrite heap Load/Store as Move or direct Value store
 template <class T>
 struct FBCInstructionMoveOptimizer : public FBCInstructionOptimizer<T> {
-    FBCInstructionMoveOptimizer()
-    {}
+    FBCInstructionMoveOptimizer() {}
 
     virtual ~FBCInstructionMoveOptimizer() {}
 
@@ -174,8 +170,7 @@ struct FBCInstructionMoveOptimizer : public FBCInstructionOptimizer<T> {
 
 template <class T>
 struct FBCInstructionBlockMoveOptimizer : public FBCInstructionOptimizer<T> {
-    FBCInstructionBlockMoveOptimizer()
-    {}
+    FBCInstructionBlockMoveOptimizer() {}
 
     virtual ~FBCInstructionBlockMoveOptimizer() {}
 
@@ -226,8 +221,7 @@ struct FBCInstructionBlockMoveOptimizer : public FBCInstructionOptimizer<T> {
 
 template <class T>
 struct FBCInstructionPairMoveOptimizer : public FBCInstructionOptimizer<T> {
-    FBCInstructionPairMoveOptimizer()
-    {}
+    FBCInstructionPairMoveOptimizer() {}
 
     virtual ~FBCInstructionPairMoveOptimizer() {}
 
@@ -558,7 +552,7 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
 
             // kLoadReal unary  ==> Heap version
         } else if (inst1->fOpcode == FBCInstruction::kLoadReal && FBCInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
-             end = cur + 2;
+            end = cur + 2;
             faustassert(gFIRExtendedMath2Heap.find(inst2->fOpcode) != gFIRExtendedMath2Heap.end());
             return new FBCBasicInstruction<T>(gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
 
@@ -581,7 +575,8 @@ struct FBCInstructionConstantValueMap2Heap : public FBCInstructionOptimizer<T> {
 
     FBCInstructionConstantValueMap2Heap(std::map<int, int>& int_map, std::map<int, T>& real_map)
         : fIntMap(int_map), fRealMap(real_map)
-    {}
+    {
+    }
 
     virtual ~FBCInstructionConstantValueMap2Heap() {}
 
@@ -610,7 +605,8 @@ struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<T> {
 
     FBCInstructionConstantValueHeap2Map(std::map<int, int>& int_map, std::map<int, T>& real_map)
         : fIntMap(int_map), fRealMap(real_map)
-    {}
+    {
+    }
 
     virtual ~FBCInstructionConstantValueHeap2Map() {}
 
@@ -623,12 +619,12 @@ struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<T> {
             end = cur + 2;
             // Add a new entry in real_map
             fRealMap[inst2->fOffset1] = inst1->fRealValue;
-            return nullptr; // Will not be added in the block...
+            return nullptr;  // Will not be added in the block...
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kStoreInt) {
             end = cur + 2;
             // Add a new entry in int_map
             fIntMap[inst2->fOffset1] = inst1->fIntValue;
-            return nullptr; // Will not be added in the block...
+            return nullptr;  // Will not be added in the block...
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -639,8 +635,7 @@ struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<T> {
 // Cast specializer
 template <class T>
 struct FBCInstructionCastSpecializer : public FBCInstructionOptimizer<T> {
-    FBCInstructionCastSpecializer()
-    {}
+    FBCInstructionCastSpecializer() {}
 
     virtual ~FBCInstructionCastSpecializer() {}
 
@@ -665,8 +660,7 @@ struct FBCInstructionCastSpecializer : public FBCInstructionOptimizer<T> {
 // Math specializer
 template <class T>
 struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
-    FBCInstructionMathSpecializer()
-    {}
+    FBCInstructionMathSpecializer() {}
 
     virtual ~FBCInstructionMathSpecializer() {}
 
@@ -738,9 +732,9 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
                            : nullptr;
 
             case FBCInstruction::kMultReal: {
-                if (inst1->fRealValue == T(1)) {        // neutral
+                if (inst1->fRealValue == T(1)) {  // neutral
                     return new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0);
-                } else if (inst1->fRealValue == T(0)) { // absorbant
+                } else if (inst1->fRealValue == T(0)) {  // absorbant
                     return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, T(0));
                 } else {
                     return nullptr;
@@ -769,9 +763,9 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
                            : nullptr;
 
             case FBCInstruction::kMultReal:
-                if (inst2->fRealValue == T(1)) {        // neutral
+                if (inst2->fRealValue == T(1)) {  // neutral
                     return new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0);
-                } else if (inst2->fRealValue == T(0)) { // absorbant
+                } else if (inst2->fRealValue == T(0)) {  // absorbant
                     return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, T(0));
                 } else {
                     return nullptr;
@@ -858,9 +852,9 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
                            : nullptr;
 
             case FBCInstruction::kMultInt:
-                if (inst1->fIntValue == 1) {        // neutral
+                if (inst1->fIntValue == 1) {  // neutral
                     new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
-                } else if (inst1->fIntValue == 0) { // absorbant
+                } else if (inst1->fIntValue == 0) {  // absorbant
                     new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, 0, 0);
                 } else {
                     return nullptr;
@@ -872,18 +866,18 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
                            : nullptr;
 
             case FBCInstruction::kANDInt:
-                if (inst1->fIntValue == 1) {        // neutral
+                if (inst1->fIntValue == 1) {  // neutral
                     new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
-                } else if (inst1->fIntValue == 0) { // absorbant
+                } else if (inst1->fIntValue == 0) {  // absorbant
                     new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, 0, 0);
                 } else {
                     return nullptr;
                 }
 
             case FBCInstruction::kORInt:
-                if (inst1->fIntValue == 1) {        // absorbant
+                if (inst1->fIntValue == 1) {  // absorbant
                     new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, 1, 0);
-                } else if (inst1->fIntValue == 0) { // neutral
+                } else if (inst1->fIntValue == 0) {  // neutral
                     new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else {
                     return nullptr;
@@ -1133,20 +1127,20 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
 template <class T>
 struct FBCInstructionOptimizer {
     virtual ~FBCInstructionOptimizer() {}
-    
+
     static void displayMaps(std::map<int, int>& int_map, std::map<int, T>& real_map)
     {
         std::cout << "displayMaps : int_map" << std::endl;
         for (auto& it1 : int_map) {
             std::cout << "int_map offset " << it1.first << " value " << it1.second << std::endl;
         }
-        
+
         std::cout << "displayMaps : real_map" << std::endl;
         for (auto& it2 : real_map) {
             std::cout << "real_map offset " << it2.first << " value " << it2.second << std::endl;
         }
     }
- 
+
     // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
     // Update 'end' so that caller can move at the correct next location
     virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end) { return nullptr; }
@@ -1247,7 +1241,7 @@ struct FBCInstructionOptimizer {
         // Global specialization
         int cur_block_size = cur_block->size();
         int new_block_size = cur_block->size();
-        //displayMaps(int_map, real_map);
+        // displayMaps(int_map, real_map);
 
         do {
             cur_block_size = new_block_size;
@@ -1268,7 +1262,7 @@ struct FBCInstructionOptimizer {
 
         } while (new_block_size < cur_block_size);
 
-        //displayMaps(int_map, real_map);
+        // displayMaps(int_map, real_map);
         return cur_block;
     }
 

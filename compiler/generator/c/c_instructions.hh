@@ -91,7 +91,7 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
-        
+
         // Quad version
         gFunctionSymbolTable["fabsl"]      = true;
         gFunctionSymbolTable["acosl"]      = true;
@@ -327,10 +327,10 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-      
+
         DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
         StoreVarInst*   c99_init_inst    = NULL;
-        
+
         if (c99_declare_inst) {
             InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
             *fOut << "{";
@@ -338,13 +338,12 @@ class CInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
 
             // To generate C99 compatible loops...
-            c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-            c99_declare_inst =
-                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
+            c99_init_inst    = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+            c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
             // C99 loop variable declared outside the loop
             c99_declare_inst->accept(this);
         }
-        
+
         if (gGlobal->gClang && !inst->fIsRecursive) {
             *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
             tab(fTab, *fOut);

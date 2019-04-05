@@ -30,7 +30,7 @@
 #include <vector>
 
 #ifdef WIN32
-# pragma warning (disable: 4800)
+#pragma warning(disable : 4800)
 #endif
 
 #include "exception.hh"
@@ -315,18 +315,18 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     LLVM_FAUSTFLOAT** fBuffers;
-    int               fLength[MAX_SOUNDFILE_PARTS];        // length of each part
-    int               fSR[MAX_SOUNDFILE_PARTS];   // sample rate of each part
-    int               fOffset[MAX_SOUNDFILE_PARTS];        // offset of each part in the global buffer
-    int               fChannels;                           // max number of channels of all concatenated files
+    int               fLength[MAX_SOUNDFILE_PARTS];  // length of each part
+    int               fSR[MAX_SOUNDFILE_PARTS];      // sample rate of each part
+    int               fOffset[MAX_SOUNDFILE_PARTS];  // offset of each part in the global buffer
+    int               fChannels;                     // max number of channels of all concatenated files
 
     Soundfile(int max_chan)
     {
         fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
 
         for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
-            fLength[part]  = BUFFER_SIZE;
-            fSR[part] = SAMPLE_RATE;
+            fLength[part] = BUFFER_SIZE;
+            fSR[part]     = SAMPLE_RATE;
             fOffset[part] = 0;
         }
 
@@ -358,7 +358,7 @@ extern Soundfile* dynamic_defaultsound;
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                       char* error_msg);
 
@@ -369,7 +369,7 @@ EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char
 
 EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                         char* error_msg);
-    
+
 #ifdef __cplusplus
 }
 #endif

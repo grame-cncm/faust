@@ -532,7 +532,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
     // Special case for 02/25/19 renaming
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
 
-    string ctype, vname;
+    string          ctype, vname;
     old_Occurences* o = fOccMarkup->retrieve(sig);
 
     addIncludeFile(file);
@@ -935,12 +935,12 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
         throw faustexception(error.str());
     }
-    
+
     string generator(CS(content));
     Tree   g;
     string cexp;
     string ctype, vname;
- 
+
     // already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
     pair<string, string> kvnames;
@@ -982,11 +982,11 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
         throw faustexception(error.str());
     }
-    
+
     Tree   g;
     string cexp;
     string ctype, vname;
-  
+
     faustassert(isSigGen(content, g));
 
     if (!getCompiledExpression(content, cexp)) {

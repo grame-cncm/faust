@@ -23,8 +23,8 @@
 #define _SOUL_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "soul_instructions.hh"
 #include "omp_code_container.hh"
+#include "soul_instructions.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
@@ -32,11 +32,10 @@
 #pragma warning(disable : 4250)
 #endif
 
-// Look for the "fillXXX" function call and keep the size of the third 'table' argument 
+// Look for the "fillXXX" function call and keep the size of the third 'table' argument
 struct TableSizeVisitor : public DispatchVisitor {
-    
     map<string, int> fSizeTable;
-    
+
     virtual void visit(FunCallInst* inst)
     {
         if (startWith(inst->fName, "fill")) {
@@ -50,12 +49,10 @@ struct TableSizeVisitor : public DispatchVisitor {
             fSizeTable[inst->fName + "_" + to_string(size->fNum)] = size->fNum;
         }
     }
-    
 };
 
 // Look for the "fillXXX" function call and rename it
-struct TableSizeCloneVisitor : public BasicCloneVisitor  {
-    
+struct TableSizeCloneVisitor : public BasicCloneVisitor {
     virtual ValueInst* visit(FunCallInst* inst)
     {
         if (startWith(inst->fName, "fill")) {
@@ -75,30 +72,25 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor  {
             return BasicCloneVisitor::visit(inst);
         }
     }
-    
+
     BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
-    
 };
 
 class SOULCodeContainer : public virtual CodeContainer {
    protected:
     SOULInstVisitor fCodeProducer;
-    std::ostream* fOut;
-    
+    std::ostream*   fOut;
+
     void produceInit(int tabs);
-    
-    virtual void printHeader()
-    {
-        CodeContainer::printHeader(*fOut);
-    }
- 
+
+    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
+
    protected:
-    SOULCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out)
-        : fCodeProducer(out), fOut(out)
+    SOULCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out) : fCodeProducer(out), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
-        
+
         if (!gGlobal->gTableSizeVisitor) {
             gGlobal->gTableSizeVisitor = new TableSizeVisitor();
         }
@@ -117,26 +109,24 @@ class SOULCodeContainer : public virtual CodeContainer {
 
 class SOULScalarCodeContainer : public SOULCodeContainer {
    private:
-  
    public:
     SOULScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst)
         : SOULCodeContainer(name, numInputs, numOutputs, dst)
     {
         fSubContainerType = sub_container_type;
     }
-    
+
     void generateCompute(int tab);
 };
 
 class SOULVectorCodeContainer : public VectorCodeContainer, public SOULCodeContainer {
    private:
- 
    public:
     SOULVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
         : VectorCodeContainer(numInputs, numOutputs), SOULCodeContainer(name, numInputs, numOutputs, dst)
     {
     }
-    
+
     void generateCompute(int tab);
 };
 

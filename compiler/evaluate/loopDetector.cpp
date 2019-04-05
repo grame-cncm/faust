@@ -21,8 +21,8 @@
 
 #include <cmath>
 
-#include "loopDetector.hh"
 #include "exception.hh"
+#include "loopDetector.hh"
 #include "ppbox.hh"
 
 bool loopDetector::detect(Tree t)
@@ -54,10 +54,10 @@ bool loopDetector::detect(Tree t)
 
 void stackOverflowDetector::detect()
 {
-    int stack = 0;
+    int   stack       = 0;
     void* cur_address = &stack;
     if (fFirstCall) {
-        fFirstCall = false;
+        fFirstCall         = false;
         fFirstStackAddress = cur_address;
     } else {
         long current_stack_size = long(fFirstStackAddress) - long(cur_address);

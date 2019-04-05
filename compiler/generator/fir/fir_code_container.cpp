@@ -190,7 +190,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
     // Compute memory footprint
     if (fTopLevel) {
         int total_heap_size = 0;
-        
+
         for (auto& it : fSubContainers) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             it->generateDeclarations(&heap_counter);

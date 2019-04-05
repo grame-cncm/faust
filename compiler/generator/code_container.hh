@@ -38,7 +38,7 @@
 #include "tlib.hh"
 
 #ifdef WIN32
-# pragma warning (disable: 4250)
+#pragma warning(disable : 4250)
 #endif
 
 // The name of 'count' parameter
@@ -58,10 +58,10 @@ class CodeContainer : public virtual Garbageable {
 
     int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
     int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
-    
-    int fSubContainerType;
+
+    int  fSubContainerType;
     bool fGeneratedSR;
-    
+
     string fKlassName;
 
     vector<int> fInputRates;
@@ -111,7 +111,7 @@ class CodeContainer : public virtual Garbageable {
 
     list<string> fUICode;
     list<string> fUIMacro;
-   
+
     void merge(set<string>& dst, set<string>& src)
     {
         set<string>::iterator i;
@@ -164,9 +164,9 @@ class CodeContainer : public virtual Garbageable {
         gGlobal->printCompilationOptions(dst);
         dst << "\n------------------------------------------------------------ */" << endl;
     }
-    
+
     void printMacros(ostream& fout, int n);
-  
+
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
@@ -195,7 +195,8 @@ class CodeContainer : public virtual Garbageable {
     // Returns the name of the class
     string getFullClassName()
     {
-        return (fParentContainer != 0) ? (fParentContainer->getFullClassName() + "::" + getClassName()) : getClassName();
+        return (fParentContainer != 0) ? (fParentContainer->getFullClassName() + "::" + getClassName())
+                                       : getClassName();
     }
 
     void setGeneratedSR() { fGeneratedSR = true; }
@@ -236,7 +237,7 @@ class CodeContainer : public virtual Garbageable {
     // Should be implemented in subclasses
     virtual void generateLocalInputs(BlockInst* loop_code, const string& index) { faustassert(false); }
     virtual void generateLocalOutputs(BlockInst* loop_code, const string& index) { faustassert(false); }
-    
+
     virtual DeclareFunInst* generateAllocate(const string& name, const string& obj, bool ismethod, bool isvirtual);
     virtual DeclareFunInst* generateDestroy(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
@@ -255,22 +256,28 @@ class CodeContainer : public virtual Garbageable {
         return nullptr;
     }
     virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
-   
-    virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
-  
+
+    virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod,
+                                                      bool isvirtual);
+
     virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                                bool isvirtual)
     {
         faustassert(false);
         return nullptr;
     }
-    
+
     virtual DeclareFunInst* generateComputeFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    
-    virtual BlockInst* generateComputeAux() { faustassert(false); return nullptr; }
-  
+
+    virtual BlockInst* generateComputeAux()
+    {
+        faustassert(false);
+        return nullptr;
+    }
+
     virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic);
-    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
+                                                    bool isvirtual);
     virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
     DeclareFunInst* generateInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
@@ -285,10 +292,10 @@ class CodeContainer : public virtual Garbageable {
     void generateJSONFile();
     void generateMetaData(JSONUI* json);
     void generateJSON(JSONInstVisitor* visitor);
-    
+
     DeclareFunInst* generateCalloc();
     DeclareFunInst* generateFree();
-    
+
     DeclareFunInst* generateNewDsp(const string& name, int size);
     DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
 
@@ -557,10 +564,9 @@ class CodeContainer : public virtual Garbageable {
         faustassert(false);
         return 0;
     }
-    
-    int fInt32ControlNum;   // number of 'int32' intermediate control values
-    int fRealControlNum;    // number of 'real' intermediate control values
 
+    int fInt32ControlNum;  // number of 'int32' intermediate control values
+    int fRealControlNum;   // number of 'real' intermediate control values
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)

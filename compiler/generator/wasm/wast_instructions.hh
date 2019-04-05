@@ -94,18 +94,17 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        Address::AccessType access = inst->fAddress->getAccess();
-        bool is_struct = (access & Address::kStruct) || (access & Address::kStaticStruct);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string name = inst->fAddress->getName();
-        
-        //std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
+        Address::AccessType access      = inst->fAddress->getAccess();
+        bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string              name        = inst->fAddress->getName();
+
+        // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fFieldTable.find(name) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] =
-                    MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
@@ -126,7 +125,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-  
+
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
@@ -220,12 +219,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType      type   = fTypingVisitor.fCurType;
         Address::AccessType access = inst->fAddress->getAccess();
 
-        if (access & Address::kStruct
-            || access & Address::kStaticStruct
-            || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct ||
+            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -253,7 +251,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
         string name = inst->fAddress->getName();
-        
+
         if (fTeeMap.find(name) == fTeeMap.end()) {
             *fOut << "(tee_local $" << name << " ";
             inst->fValue->accept(this);
@@ -267,12 +265,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         inst->fValue->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType      type   = fTypingVisitor.fCurType;
         Address::AccessType access = inst->fAddress->getAccess();
 
-        if (access & Address::kStruct
-            || access & Address::kStaticStruct
-            || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct ||
+            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type) || isRealPtrType(type)) {
@@ -419,7 +416,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
-    
+
     virtual void visit(BoolNumInst* inst) { faustassert(false); }
 
     virtual void visit(Int32NumInst* inst)
@@ -681,7 +678,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         *fOut << ")";
         tab(fTab, *fOut);
     }
-    
+
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now

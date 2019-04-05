@@ -38,7 +38,7 @@ using namespace std;
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
-void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
+void extractMetadata(const string& fulllabel, string& label, map<string, set<string>>& metadata)
 {
     enum { kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue };
     int    state = kLabel;
@@ -155,8 +155,8 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
 
 string extractName(Tree fulllabel)
 {
-    string                    name;
-    map<string, set<string> > metadata;
+    string                   name;
+    map<string, set<string>> metadata;
 
     extractMetadata(tree2str(fulllabel), name, metadata);
     return name;
@@ -167,9 +167,9 @@ string extractName(Tree fulllabel)
  */
 static string xmlize(const string& fullsrc)
 {
-    map<string, set<string> > metadata;
-    string                    dst;
-    string                    src;
+    map<string, set<string>> metadata;
+    string                   dst;
+    string                   src;
 
     extractMetadata(fullsrc, src, metadata);
 
@@ -195,19 +195,19 @@ static string xmlize(const string& fullsrc)
     return dst;
 }
 
-static list<string> xmlOfMetadata(const map<string, set<string> >& metadata, int level)
+static list<string> xmlOfMetadata(const map<string, set<string>>& metadata, int level)
 {
-    list<string>              lines;
-    string                    line;
+    list<string> lines;
+    string       line;
 
     line.reserve(128);
 
     map<string, set<string>>::const_iterator it1;
-    set<string>::const_iterator it2;
+    set<string>::const_iterator              it2;
     for (it1 = metadata.begin(); it1 != metadata.end(); ++it1) {
         const string& key = it1->first;
         for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
-            const string &value = *it2;
+            const string& value = *it2;
             line.assign(level, '\t');
             line += "<meta key=\"";
             line += xmlize(key);
@@ -441,7 +441,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 
 void Description::addActiveMetadata(Tree label)
 {
-    map<string, set<string> >    metadata;
+    map<string, set<string>>     metadata;
     string                       shortLabel;
     list<string>                 lines;
     list<string>::const_iterator it;
@@ -449,13 +449,12 @@ void Description::addActiveMetadata(Tree label)
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
-    for (it = lines.begin(); it != lines.end(); ++it)
-        fActiveLines.push_back(*it);
+    for (it = lines.begin(); it != lines.end(); ++it) fActiveLines.push_back(*it);
 }
 
 void Description::addPassiveMetadata(Tree label)
 {
-    map<string, set<string> >    metadata;
+    map<string, set<string>>     metadata;
     string                       shortLabel;
     list<string>                 lines;
     list<string>::const_iterator it;
@@ -463,6 +462,5 @@ void Description::addPassiveMetadata(Tree label)
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
-    for (it = lines.begin(); it != lines.end(); ++it)
-        fPassiveLines.push_back(*it);
+    for (it = lines.begin(); it != lines.end(); ++it) fPassiveLines.push_back(*it);
 }

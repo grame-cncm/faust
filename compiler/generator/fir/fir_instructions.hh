@@ -78,10 +78,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            BasicTyped*        basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            ArrayTyped*        array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            NamedTyped*        named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
-            std::string num_size = std::to_string(array_typed->fSize);
+            BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
                 return (array_typed->fSize == 0)
@@ -138,10 +138,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            BasicTyped*        basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            ArrayTyped*        array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            NamedTyped*        named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
-            std::string num_size = std::to_string(array_typed->fSize);
+            BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
@@ -350,7 +350,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(NamedAddress* named) { *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")"; }
+    virtual void visit(NamedAddress* named)
+    {
+        *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")";
+    }
 
     virtual void visit(IndexedAddress* indexed)
     {
@@ -472,7 +475,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << fun_name;
 
         *fOut << "\"" << inst->fName << "\"";
-     
+
         size_t size = inst->fArgs.size(), i = 0;
         if (size > 0) *fOut << ", ";
         for (auto& it : inst->fArgs) {

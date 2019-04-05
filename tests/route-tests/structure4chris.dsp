@@ -1,7 +1,7 @@
 import("stdfaust.lib");
 
 
-process = button("play")*no.noise : structure(20,20,200);
+process = button("play")*no.noise : structure(4,4,200);
 
 //--------------------------------------------------------------------------------------------------
 // usage (osx):

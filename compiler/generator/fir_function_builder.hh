@@ -104,7 +104,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                         fAddedVarTable.end()) {  // First encounter
 
                         // Be sure variable is defined
-                        //cerr << "createParameter kStack " << name << endl;
+                        // cerr << "createParameter kStack " << name << endl;
                         faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                         // Local in the enclosing context, becomes a fun parameter
@@ -131,7 +131,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                     fAddedVarTable.end()) {  // First encounter
 
                     // Be sure variable is defined
-                    //cerr << "createParameter kFunArgs " << name << endl;
+                    // cerr << "createParameter kFunArgs " << name << endl;
                     faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                     // Parameter in the enclosing function, becomes a fun parameter
@@ -212,7 +212,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
         BlockInst*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
-    
+
         // Add a Ret (void) instruction (needed in LLVM backend)
         function_code->pushBackInst(InstBuilder::genRetInst());
 

@@ -104,6 +104,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
@@ -395,9 +396,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #ifdef INTERP_BUILD
     gInterpreterVisitor = 0;  // Will be (possibly) allocated in Interp backend
 #endif
-    
+
 #ifdef SOUL_BUILD
-    gTableSizeVisitor = 0;    // Will be (possibly) allocated in SOUL backend
+    gTableSizeVisitor = 0;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -513,7 +514,7 @@ void global::init()
     gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
     gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
     gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kInt32_vec]     = gMachineInt32Size * gVecSize;

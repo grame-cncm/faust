@@ -42,11 +42,11 @@ void   extractMetadata(const string& fulllabel, string& label, map<string, set<s
 string extractName(Tree fulllabel);
 
 class Description : public virtual Garbageable {
-    string fName;
-    string fAuthor;
-    string fCopyright;
-    string fLicense;
-    string fVersion;
+    string                    fName;
+    string                    fAuthor;
+    string                    fCopyright;
+    string                    fLicense;
+    string                    fVersion;
     map<string, set<string> > fMetadata;
 
     string       fClassName;

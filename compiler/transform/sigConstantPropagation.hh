@@ -26,7 +26,6 @@
 
 // Make explicit automatic promotion to float
 class SignalConstantPropagation : public SignalIdentity {
-    
    public:
     SignalConstantPropagation() {}
 

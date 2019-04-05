@@ -122,17 +122,17 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
 {
     try {
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        string sha_key = generateSHA1(bitcode);
-        
+        string                                            sha_key = generateSHA1(bitcode);
+
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
         } else {
             interpreter_dsp_factory* factory = nullptr;
-            stringstream reader(bitcode);
-            string type = read_real_type(&reader);
-      
+            stringstream             reader(bitcode);
+            string                   type = read_real_type(&reader);
+
             if (type == "float") {
                 factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, 0>::read(&reader));
             } else if (type == "double") {

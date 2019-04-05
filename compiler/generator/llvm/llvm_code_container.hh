@@ -25,9 +25,9 @@
 #include "code_container.hh"
 #include "llvm_instructions.hh"
 #include "omp_code_container.hh"
+#include "struct_manager.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
-#include "struct_manager.hh"
 
 #include <llvm/Support/FileSystem.h>
 
@@ -48,13 +48,13 @@ using namespace llvm;
 
 class LLVMCodeContainer : public virtual CodeContainer {
    protected:
-    using CodeContainer::generateInstanceInitFun;
     using CodeContainer::generateFillFun;
+    using CodeContainer::generateInstanceInitFun;
 
     IRBuilder<>* fBuilder;
-  
+
     LLVMInstVisitor* fCodeProducer;
-    
+
     StructInstVisitor fStructVisitor;
 
     Module*      fModule;
@@ -65,10 +65,11 @@ class LLVMCodeContainer : public virtual CodeContainer {
     // To be used for mathematical function mapping (-fm and exp10 on OSX)
     void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
     void generateFunMaps();
-    
+
     llvm::PointerType* generateDspStruct();
-    
-    // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer classes
+
+    // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer
+    // classes
     virtual void generateCompute() = 0;
 
    public:
@@ -77,7 +78,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     virtual ~LLVMCodeContainer();
 
     virtual dsp_factory_base* produceFactory();
-    void produceInternal();
+    void                      produceInternal();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
@@ -86,9 +87,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
 class LLVMScalarCodeContainer : public LLVMCodeContainer {
    protected:
-    void generateCompute();
+    void       generateCompute();
     BlockInst* generateComputeAux();
-    
+
    public:
     LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
     LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context,
@@ -98,8 +99,9 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
 
 class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeContainer {
    protected:
-    void generateCompute();
+    void       generateCompute();
     BlockInst* generateComputeAux();
+
    public:
     LLVMVectorCodeContainer(const string& name, int numInputs, int numOutputs);
     virtual ~LLVMVectorCodeContainer();
@@ -107,9 +109,9 @@ class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeConta
 
 class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeContainer {
    protected:
-    void generateOMPDeclarations();
-    void generateOMPCompute();
-    void generateCompute();
+    void       generateOMPDeclarations();
+    void       generateOMPCompute();
+    void       generateCompute();
     BlockInst* generateComputeAux();
 
     void      generateGOMP_parallel_start();
@@ -129,13 +131,12 @@ class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeConta
 
 class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeContainer {
    protected:
-    void generateCompute();
+    void       generateCompute();
     BlockInst* generateComputeAux();
-    
+
    public:
     LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs);
     virtual ~LLVMWorkStealingCodeContainer();
-
 };
 
 #endif

@@ -22,10 +22,10 @@
 #ifndef _FBC_CPP_COMPILER_H
 #define _FBC_CPP_COMPILER_H
 
-#include <map>
-#include <string>
 #include <iostream>
+#include <map>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include "fbc_interpreter.hh"
@@ -39,9 +39,9 @@ static void tab(int n, ostream& fout)
     while (n--) fout << '\t';
 }
 
-#define dispatchReturn()  \
-    {                     \
-        it = popAddr();   \
+#define dispatchReturn() \
+    {                    \
+        it = popAddr();  \
     }
 #define saveReturn()      \
     {                     \
@@ -50,83 +50,69 @@ static void tab(int n, ostream& fout)
 
 // C++ instructions block
 struct CPPBlock : public std::vector<std::string> {
-    
     std::string fNum;
-    
-    CPPBlock(int block_index):fNum(std::to_string(block_index))
-    {}
-    
+
+    CPPBlock(int block_index) : fNum(std::to_string(block_index)) {}
+
     void print(int n, std::ostream& out)
     {
         // header
-        tab(n, out); out << "{";
-        tab(n+1, out); out << "label" << fNum << ":";
-        
+        tab(n, out);
+        out << "{";
+        tab(n + 1, out);
+        out << "label" << fNum << ":";
+
         // block
         if (this->size() == 0) {
-            tab(n+1, out); out << ";";
+            tab(n + 1, out);
+            out << ";";
         } else {
             for (auto& it : *this) {
-                tab(n+1, out); out << it;
+                tab(n + 1, out);
+                out << it;
             }
         }
-        
+
         // footer
-        tab(n, out); out << "}";
+        tab(n, out);
+        out << "}";
     }
- 
 };
 
 // C++ blocks list
 struct CPPBlockList : public std::vector<CPPBlock> {
-
     int fCurrent;
-    
-    CPPBlockList():fCurrent(0)
-    {}
-    
+
+    CPPBlockList() : fCurrent(0) {}
+
     void print(int n, std::ostream& out)
     {
         for (auto& it : *this) {
             it.print(n, out);
         }
     }
-    
-    void addBlock()
-    {
-        push_back(CPPBlock(fCurrent++));
-    }
-    
-    void addInst(const string& code)
-    {
-        at(fCurrent-1).push_back(code);
-    }
-    
-    void addPreviousInst(const string& code)
-    {
-        at(fCurrent-2).push_back(code);
-    }
-  
-    std::string getIndex()
-    {
-        return at(fCurrent-1).fNum;
-    }
-    
+
+    void addBlock() { push_back(CPPBlock(fCurrent++)); }
+
+    void addInst(const string& code) { at(fCurrent - 1).push_back(code); }
+
+    void addPreviousInst(const string& code) { at(fCurrent - 2).push_back(code); }
+
+    std::string getIndex() { return at(fCurrent - 1).fNum; }
 };
 
 // FBC C++ compiler
 template <class T>
 class FBCCPPCompiler {
-    protected:
-    
+   protected:
     string        fCPPStack[512];
     InstructionIT fAddressStack[64];
- 
+
     int fCPPStackIndex;
     int fAddrStackIndex;
-    
+
     CPPBlockList fBlockList;
-    
+
     std::string genFloat(float num)
     {
         std::stringstream str;
@@ -139,8 +125,8 @@ class FBCCPPCompiler {
         str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
         return str.str();
     }
-    std::string genReal(double num)     { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
-    std::string genInt32(int num)       { return std::to_string(num); }
+    std::string genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
+    std::string genInt32(int num) { return std::to_string(num); }
     std::string genInt64(long long num) { return std::to_string(num); }
 
     void        pushValue(const std::string& val) { fCPPStack[fCPPStackIndex++] = val; }
@@ -150,32 +136,17 @@ class FBCCPPCompiler {
     InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
     bool          emptyReturn() { return (fAddrStackIndex == 0); }
 
-    void pushUnaryCall(const std::string& name)
-    {
-        pushValue(name + "(" + popValue() + ")");
-    }
-    void pushBinaryCall(const std::string& name)
-    {
-        pushValue(name + "(" + popValue() + ", " + popValue() + ")");
-    }
-    void pushBinopCall(const std::string& name)
-    {
-        pushValue("(" + popValue() + " " + name + " " + popValue() + ")");
-    }
- 
-    void pushLoadArray(const std::string& array, int index)
-    {
-        pushValue(array + "[" + std::to_string(index) + "]");
-    }
+    void pushUnaryCall(const std::string& name) { pushValue(name + "(" + popValue() + ")"); }
+    void pushBinaryCall(const std::string& name) { pushValue(name + "(" + popValue() + ", " + popValue() + ")"); }
+    void pushBinopCall(const std::string& name) { pushValue("(" + popValue() + " " + name + " " + popValue() + ")"); }
+
+    void pushLoadArray(const std::string& array, int index) { pushValue(array + "[" + std::to_string(index) + "]"); }
     void pushStoreArray(const std::string& array, int index)
     {
         fBlockList.addInst(array + "[" + std::to_string(index) + "] = " + popValue() + ";");
     }
-    void pushLoadArray(const std::string& array, const std::string& index)
-    {
-        pushValue(array + "[" + index + "]");
-    }
-    void pushStoreArray(const std::string& array,const std::string& index)
+    void pushLoadArray(const std::string& array, const std::string& index) { pushValue(array + "[" + index + "]"); }
+    void pushStoreArray(const std::string& array, const std::string& index)
     {
         fBlockList.addInst(array + "[" + index + "] = " + popValue() + ";");
     }
@@ -186,14 +157,15 @@ class FBCCPPCompiler {
     }
     void pushStoreOutput(int index)
     {
-        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() + "] = FAUSTFLOAT(" + popValue() + ");");
+        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() + "] = FAUSTFLOAT(" + popValue() +
+                           ");");
     }
 
     void CompileBlock(FBCBlockInstruction<T>* block)
     {
         InstructionIT it  = block->fInstructions.begin();
         bool          end = false;
-   
+
         while ((it != block->fInstructions.end()) && !end) {
             //(*it)->write(&std::cout);
 
@@ -326,7 +298,7 @@ class FBCCPPCompiler {
                     break;
 
                 case FBCInstruction::kSubReal:
-                    case FBCInstruction::kSubInt:
+                case FBCInstruction::kSubInt:
                     pushBinopCall("-");
                     it++;
                     break;
@@ -338,7 +310,7 @@ class FBCCPPCompiler {
                     break;
 
                 case FBCInstruction::kDivReal:
-                    case FBCInstruction::kDivInt:
+                case FBCInstruction::kDivInt:
                     pushBinopCall("/");
                     it++;
                     break;
@@ -525,7 +497,7 @@ class FBCCPPCompiler {
                     pushBinaryCall("std::max<int>");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kMaxf:
                     pushBinaryCall("std::max<" + getRealTy() + ">");
                     it++;
@@ -540,12 +512,12 @@ class FBCCPPCompiler {
                     pushBinaryCall("std::min<" + getRealTy() + ">");
                     it++;
                     break;
- 
+
                     // Control
                 case FBCInstruction::kReturn:
                     // Empty addr stack = end of computation
                     if (emptyReturn()) {
-                        //fCurrentBlock->endBlock();
+                        // fCurrentBlock->endBlock();
                         end = true;
                     } else {
                         dispatchReturn();
@@ -554,45 +526,44 @@ class FBCCPPCompiler {
 
                 case FBCInstruction::kIf: {
                     faustassert(false);
-                
+
                     /*
                     saveReturn();
-                    
+
                     // Prepare condition
                     std::string cond_value = popValue();
-                    
+
                     // New block for condition
                     fBlockList.addBlock();
-                    
+
                     fBlockList.addInst("if " + cond_value);
                     fBlockList.addInst("{");
-                    
+
                     // New block for then branch
                    //fBlockList.addBlock();
-                    
+
                     // Compile then branch (= branch1)
                     CompileBlock((*it)->fBranch1);
-                    
+
                     if ((*it)->fBranch2) {
                         fBlockList.addInst("} else {");
-                        
+
                         // New block for else branch
                         fBlockList.addBlock();
-                        
+
                         // Compile else branch (= branch2)
                         CompileBlock((*it)->fBranch2);
                     } else {
                         fBlockList.addInst("}");
                     }
                     */
-                    
+
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kSelectReal:
                 case FBCInstruction::kSelectInt: {
-                    
                     // Prepare condition
                     std::string cond_value = popValue();
 
@@ -612,37 +583,36 @@ class FBCCPPCompiler {
                 }
 
                 case FBCInstruction::kCondBranch: {
-                    
                     // Prepare condition
                     std::string cond = popValue();
-                    
+
                     // Get current block index
                     std::string id1 = fBlockList.getIndex();
 
                     // New block for loop
                     fBlockList.addBlock();
-                    
+
                     // Get current block index
                     std::string id2 = fBlockList.getIndex();
 
                     // Branch to current block
-                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 + "; } else { goto label" + id2 + "; }");
-               
+                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 + "; } else { goto label" + id2 +
+                                               "; }");
+
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kLoop: {
-
                     // New block for condition
                     fBlockList.addBlock();
-                    
+
                     // Compile init branch (= branch1)
                     CompileBlock((*it)->fBranch1);
 
                     // New block for loop
                     fBlockList.addBlock();
-                    
+
                     // Compile loop branch (= branch2)
                     CompileBlock((*it)->fBranch2);
 
@@ -654,54 +624,58 @@ class FBCCPPCompiler {
                     // Should not happen
                     //(*it)->write(&std::cout);
                     it++;
-                    //faustassert(false);
+                    // faustassert(false);
                     break;
             }
         }
     }
 
    public:
-    FBCCPPCompiler():fCPPStackIndex(0), fAddrStackIndex(0)
-    {}
-    
-    virtual ~FBCCPPCompiler()
-    {}
-    
+    FBCCPPCompiler() : fCPPStackIndex(0), fAddrStackIndex(0) {}
+
+    virtual ~FBCCPPCompiler() {}
+
     void CompileBlock(FIRUserInterfaceBlockInstruction<T>* block, int n, ostream& out)
     {
         tab(n, out);
         out << "{";
-        
+
         for (auto& it : block->fInstructions) {
-            //it->write(&std::cout);
-            
+            // it->write(&std::cout);
+
             switch (it->fOpcode) {
                 case FBCInstruction::kOpenVerticalBox:
-                    tab(n+1, out); out << "ui_interface->openVerticalBox(\"" << it->fLabel << "\");";
+                    tab(n + 1, out);
+                    out << "ui_interface->openVerticalBox(\"" << it->fLabel << "\");";
                     break;
-                    
+
                 case FBCInstruction::kOpenHorizontalBox:
-                    tab(n+1, out); out << "ui_interface->openHorizontalBox(\"" << it->fLabel << "\");";
+                    tab(n + 1, out);
+                    out << "ui_interface->openHorizontalBox(\"" << it->fLabel << "\");";
                     break;
-                    
+
                 case FBCInstruction::kOpenTabBox:
-                    tab(n+1, out); out << "ui_interface->openTabBox(\"" << it->fLabel << "\");";
+                    tab(n + 1, out);
+                    out << "ui_interface->openTabBox(\"" << it->fLabel << "\");";
                     break;
-                    
+
                 case FBCInstruction::kCloseBox:
-                    tab(n+1, out); out << "ui_interface->closeBox();";
+                    tab(n + 1, out);
+                    out << "ui_interface->closeBox();";
                     break;
-                    
+
                 case FBCInstruction::kAddButton:
-                    tab(n+1, out); out << "ui_interface->addButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
+                    tab(n + 1, out);
+                    out << "ui_interface->addButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
                     break;
-                    
+
                 case FBCInstruction::kAddCheckButton:
-                    tab(n+1, out); out << "ui_interface->addCheckButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
+                    tab(n + 1, out);
+                    out << "ui_interface->addCheckButton(\"" << it->fLabel << "\", &fRealHeap[" << it->fOffset << "]);";
                     break;
-                    
+
                 case FBCInstruction::kAddHorizontalSlider:
-                    tab(n+1, out);
+                    tab(n + 1, out);
                     out << "ui_interface->addHorizontalSlider(\"";
                     out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
                     out << it->fInit << ", ";
@@ -709,9 +683,9 @@ class FBCCPPCompiler {
                     out << it->fMax << ", ";
                     out << it->fStep << ");";
                     break;
-                    
+
                 case FBCInstruction::kAddVerticalSlider:
-                    tab(n+1, out);
+                    tab(n + 1, out);
                     out << "ui_interface->addVerticalSlider(\"";
                     out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
                     out << it->fInit << ", ";
@@ -719,9 +693,9 @@ class FBCCPPCompiler {
                     out << it->fMax << ", ";
                     out << it->fStep << ");";
                     break;
-                    
+
                 case FBCInstruction::kAddNumEntry:
-                    tab(n+1, out);
+                    tab(n + 1, out);
                     out << "ui_interface->addNumEntry(\"";
                     out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
                     out << it->fInit << ", ";
@@ -729,102 +703,93 @@ class FBCCPPCompiler {
                     out << it->fMax << ", ";
                     out << it->fStep << ");";
                     break;
-                    
+
                 case FBCInstruction::kAddSoundfile:
-                    tab(n+1, out); out << "// TODO";
+                    tab(n + 1, out);
+                    out << "// TODO";
                     break;
-                    
+
                 case FBCInstruction::kAddHorizontalBargraph:
-                    tab(n+1, out);
+                    tab(n + 1, out);
                     out << "ui_interface->addHorizontalBargraph(\"";
                     out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
                     out << it->fMin << ", ";
                     out << it->fMax << ");";
                     break;
-                    
+
                 case FBCInstruction::kAddVerticalBargraph:
-                    tab(n+1, out);
+                    tab(n + 1, out);
                     out << "ui_interface->addVerticalBargraph(\"";
                     out << it->fLabel << "\", &fRealHeap[" << it->fOffset << "], ";
                     out << it->fMin << ", ";
                     out << it->fMax << ");";
                     break;
-                    
+
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
-                    tab(n+1, out);
+                    tab(n + 1, out);
                     if (it->fOffset == -1) {
                         out << "ui_interface->declare(0, \"" << it->fKey << "\", \"" << it->fValue << "\");";
                     } else {
-                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \"" << it->fKey << "\", \"" << it->fValue << "\");";
+                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \"" << it->fKey << "\", \""
+                            << it->fValue << "\");";
                     }
                     break;
-                    
+
                 default:
                     break;
             }
         }
-        
+
         tab(n, out);
         out << "}";
     }
-    
+
     void CompileBlock(FIRMetaBlockInstruction* block, int n, ostream& out)
     {
         tab(n, out);
         out << "{";
         for (auto& it : block->fInstructions) {
-            tab(n+1, out);
+            tab(n + 1, out);
             out << "m->declare(\"" << it->fKey << "\", \"" << it->fValue << "\");";
         }
         tab(n, out);
         out << "}";
     }
-    
+
     void CompileBlock(FBCBlockInstruction<T>* block, int n, ostream& out, bool print = true)
     {
         // Compile function body
         fBlockList.addBlock();
         CompileBlock(block);
-        
+
         // Generate block list
         if (print) {
             tab(n, out);
             out << "{";
-            fBlockList.print(n+1, out);
+            fBlockList.print(n + 1, out);
             tab(n, out);
             out << "}";
         }
     }
-    
-    void AddBlock()
-    {
-        fBlockList.addBlock();
-    }
-    
-    void AddInst(const string& inst)
-    {
-        fBlockList.addInst(inst);
-    }
-    
+
+    void AddBlock() { fBlockList.addBlock(); }
+
+    void AddInst(const string& inst) { fBlockList.addInst(inst); }
+
     static std::string getRealTy() { return (sizeof(T) == sizeof(double)) ? "double" : "float"; }
-    
 };
 
 // FBC C++ code generator
 template <class T>
 class FBCCPPGenerator : public FBCInterpreter<T, 0> {
-  
-  public:
-    
-    FBCCPPGenerator(interpreter_dsp_factory_aux<T, 0>* factory)
-    : FBCInterpreter<T, 0>(factory)
-    {}
-    
-    virtual ~FBCCPPGenerator()
-    {}
-    
-    void generateCode(std::ostream& out, FBCBlockInstruction<T>* control_block = nullptr, FBCBlockInstruction<T>* dsp_block = nullptr)
+   public:
+    FBCCPPGenerator(interpreter_dsp_factory_aux<T, 0>* factory) : FBCInterpreter<T, 0>(factory) {}
+
+    virtual ~FBCCPPGenerator() {}
+
+    void generateCode(std::ostream& out, FBCBlockInstruction<T>* control_block = nullptr,
+                      FBCBlockInstruction<T>* dsp_block = nullptr)
     {
         int tabs = 0;
         tab(tabs, out);
@@ -832,144 +797,142 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         tab(tabs, out);
         tab(tabs, out);
         out << "class mydsp : public dsp {";
-            tab(tabs, out);
-            tab(tabs, out);
-            out << "  private:";
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "int fIntHeap[" << this->fFactory->fIntHeapSize << "];";
-            tab(tabs+1, out);
-            out << FBCCPPCompiler<T>::getRealTy() << " fRealHeap[" << this->fFactory->fRealHeapSize << "];";
-        
-            tab(tabs, out);
-            tab(tabs, out);
-            out << "  public:";
-            tab(tabs+1, out);
-        
-            tab(tabs+1, out);
-            out << "virtual int getNumInputs() { return " << this->fFactory->fNumInputs << "; }";
-            tab(tabs+1, out);
-            out << "virtual int getNumOutputs() { return " << this->fFactory->fNumOutputs << "; }";
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void buildUserInterface(UI* ui_interface)";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.CompileBlock(this->fFactory->fUserInterfaceBlock, tabs+1, out);
+        tab(tabs, out);
+        tab(tabs, out);
+        out << "  private:";
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "int fIntHeap[" << this->fFactory->fIntHeapSize << "];";
+        tab(tabs + 1, out);
+        out << FBCCPPCompiler<T>::getRealTy() << " fRealHeap[" << this->fFactory->fRealHeapSize << "];";
+
+        tab(tabs, out);
+        tab(tabs, out);
+        out << "  public:";
+        tab(tabs + 1, out);
+
+        tab(tabs + 1, out);
+        out << "virtual int getNumInputs() { return " << this->fFactory->fNumInputs << "; }";
+        tab(tabs + 1, out);
+        out << "virtual int getNumOutputs() { return " << this->fFactory->fNumOutputs << "; }";
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void buildUserInterface(UI* ui_interface)";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.CompileBlock(this->fFactory->fUserInterfaceBlock, tabs + 1, out);
+        }
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void classInit(int sample_rate)";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.CompileBlock(this->fFactory->fStaticInitBlock, tabs + 1, out);
+        }
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual int getSampleRate() { return fIntHeap[" << this->fFactory->fSROffset << "]; }";
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void init(int sample_rate)";
+        tab(tabs + 1, out);
+        out << "{";
+        tab(tabs + 2, out);
+        out << "classInit(sample_rate);";
+        tab(tabs + 2, out);
+        out << "instanceInit(sample_rate);";
+        tab(tabs + 2, out);
+        tab(tabs + 1, out);
+        out << "}";
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void instanceInit(int sample_rate)";
+        tab(tabs + 1, out);
+        out << "{";
+        tab(tabs + 2, out);
+        out << "instanceConstants(sample_rate);";
+        tab(tabs + 2, out);
+        out << "instanceResetUserInterface();";
+        tab(tabs + 2, out);
+        out << "instanceClear();";
+        tab(tabs + 2, out);
+        tab(tabs + 1, out);
+        out << "}";
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void instanceConstants(int sample_rate)";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.AddBlock();
+            compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fSROffset) + "] = sample_rate;");
+            compiler.CompileBlock(this->fFactory->fInitBlock, tabs + 1, out);
+        }
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void instanceResetUserInterface()";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.CompileBlock(this->fFactory->fResetUIBlock, tabs + 1, out);
+        }
+
+        tab(tabs + 1, out);
+        out << "virtual void instanceClear()";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.CompileBlock(this->fFactory->fClearBlock, tabs + 1, out);
+        }
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual mydsp* clone()";
+        tab(tabs + 1, out);
+        out << "{";
+        tab(tabs + 2, out);
+        out << "return new mydsp(); ";
+        tab(tabs + 1, out);
+        out << "}";
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void metadata(Meta* m)";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.CompileBlock(this->fFactory->fMetaBlock, tabs + 1, out);
+        }
+
+        tab(tabs + 1, out);
+        tab(tabs + 1, out);
+        out << "virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)";
+        {
+            FBCCPPCompiler<T> compiler;
+            compiler.AddBlock();
+            compiler.AddInst("if (count == 0) return; // Beware: compiled loop don't work with an index of 0");
+            compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fCountOffset) + "] = count;");
+            if (control_block) {
+                control_block->write(&std::cout);
+                compiler.CompileBlock(control_block, tabs + 1, out, false);
+            } else {
+                compiler.CompileBlock(this->fFactory->fComputeBlock, tabs + 1, out, false);
             }
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void classInit(int sample_rate)";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.CompileBlock(this->fFactory->fStaticInitBlock, tabs+1, out);
+            if (dsp_block) {
+                dsp_block->write(&std::cout);
+                compiler.CompileBlock(dsp_block, tabs + 2, out);
+            } else {
+                compiler.CompileBlock(this->fFactory->fComputeDSPBlock, tabs + 1, out);
             }
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual int getSampleRate() { return fIntHeap[" << this->fFactory->fSROffset << "]; }";
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void init(int sample_rate)";
-            tab(tabs+1, out);
-            out << "{";
-                tab(tabs+2, out);
-                out << "classInit(sample_rate);";
-                tab(tabs+2, out);
-                out << "instanceInit(sample_rate);";
-                tab(tabs+2, out);
-            tab(tabs+1, out);
-            out << "}";
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void instanceInit(int sample_rate)";
-            tab(tabs+1, out);
-            out << "{";
-                tab(tabs+2, out);
-                out << "instanceConstants(sample_rate);";
-                tab(tabs+2, out);
-                out << "instanceResetUserInterface();";
-                tab(tabs+2, out);
-                out << "instanceClear();";
-                tab(tabs+2, out);
-            tab(tabs+1, out);
-            out << "}";
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void instanceConstants(int sample_rate)";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.AddBlock();
-                compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fSROffset) + "] = sample_rate;");
-                compiler.CompileBlock(this->fFactory->fInitBlock, tabs+1, out);
-            }
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void instanceResetUserInterface()";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.CompileBlock(this->fFactory->fResetUIBlock, tabs+1, out);
-            }
-        
-            tab(tabs+1, out);
-            out << "virtual void instanceClear()";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.CompileBlock(this->fFactory->fClearBlock, tabs+1, out);
-            }
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual mydsp* clone()";
-            tab(tabs+1, out);
-            out << "{";
-                tab(tabs+2, out);
-                out << "return new mydsp(); ";
-            tab(tabs+1, out);
-            out << "}";
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void metadata(Meta* m)";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.CompileBlock(this->fFactory->fMetaBlock, tabs+1, out);
-            }
-        
-            tab(tabs+1, out);
-            tab(tabs+1, out);
-            out << "virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)";
-            {
-                FBCCPPCompiler<T> compiler;
-                compiler.AddBlock();
-                compiler.AddInst("if (count == 0) return; // Beware: compiled loop don't work with an index of 0");
-                compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fCountOffset) + "] = count;");
-                if (control_block) {
-                    control_block->write(&std::cout);
-                    compiler.CompileBlock(control_block, tabs+1, out, false);
-                } else {
-                    compiler.CompileBlock(this->fFactory->fComputeBlock, tabs+1, out, false);
-                }
-                if (dsp_block) {
-                    dsp_block->write(&std::cout);
-                    compiler.CompileBlock(dsp_block, tabs+2, out);
-                } else {
-                    compiler.CompileBlock(this->fFactory->fComputeDSPBlock, tabs+1, out);
-                }
-            }
+        }
         tab(tabs, out);
         out << "};";
         tab(tabs, out);
     }
-    
 };
 
 #endif
-

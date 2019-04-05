@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include "exception.hh"
+#include "global.hh"
 #include "routeSchema.h"
 
 using namespace std;
@@ -151,10 +152,12 @@ void routeSchema::draw(device& dev)
 {
     faustassert(placed());
 
-    drawRectangle(dev);
-    // drawText(dev);
-    drawOrientationMark(dev);
-    drawInputArrows(dev);
+    if (gGlobal->gDrawRouteFrame) {
+        drawRectangle(dev);
+        // drawText(dev);
+        drawOrientationMark(dev);
+        drawInputArrows(dev);
+    }
 }
 
 /**

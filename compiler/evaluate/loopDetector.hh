@@ -34,42 +34,34 @@
 #include "sourcereader.hh"
 
 class loopDetector : public virtual Garbageable {
-    
-  private:
+   private:
     const int    fBuffersize;
     const int    fCheckperiod;
     vector<Tree> fBuffer;
     int          fPhase;
 
-  public:
-    loopDetector(int buffersize, int checkperiod):
-        fBuffersize(buffersize),
-        fCheckperiod(checkperiod),
-        fBuffer(buffersize),
-        fPhase(0)
-    { }
-    
+   public:
+    loopDetector(int buffersize, int checkperiod)
+        : fBuffersize(buffersize), fCheckperiod(checkperiod), fBuffer(buffersize), fPhase(0)
+    {
+    }
+
     bool detect(Tree t);
 };
 
-#define MAX_STACK_SIZE  524288 * 128
-#define STACK_FRAME     65536 * 4
+#define MAX_STACK_SIZE 524288 * 128
+#define STACK_FRAME 65536 * 4
 
 class stackOverflowDetector {
-    
-  private:
+   private:
     long fMaxStackSize;
-    
-    bool fFirstCall;
+
+    bool  fFirstCall;
     void* fFirstStackAddress;
-    
- public:
-    stackOverflowDetector(long size):
-        fMaxStackSize(size),
-        fFirstCall(true),
-        fFirstStackAddress(nullptr)
-    {}
-    
+
+   public:
+    stackOverflowDetector(long size) : fMaxStackSize(size), fFirstCall(true), fFirstStackAddress(nullptr) {}
+
     void detect();
 };
 

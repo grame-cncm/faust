@@ -266,7 +266,7 @@ void CPPCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
-    
+
     if (gGlobal->gOneSample) {
         fSuperKlassName = "one_sample_dsp";
     }
@@ -379,12 +379,10 @@ void CPPCodeContainer::produceClass()
 
         list<CodeContainer*>::const_iterator it;
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false); 
-            InlineVoidFunctionCall inliner1(inst_init_fun); 
-            res1 = inliner1.getCode(res1); 
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); 
-            InlineVoidFunctionCall inliner2(fill_fun); 
-            res1 = inliner2.getCode(res1);
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
+    false); InlineVoidFunctionCall inliner1(inst_init_fun); res1 = inliner1.getCode(res1); DeclareFunInst* fill_fun =
+    (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); InlineVoidFunctionCall inliner2(fill_fun); res1
+    = inliner2.getCode(res1);
         }
 
         tab(n+1, *fOut); *fOut << "static void classInit(int sample_rate) {";
@@ -434,14 +432,10 @@ void CPPCodeContainer::produceClass()
 
         list<CodeContainer*>::const_iterator it;
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false); 
-            InlineVoidFunctionCall inliner1(inst_init_fun); 
-            res1 = inliner1.getCode(res1); 
-            res2 = inliner1.getCode(res2); 
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); 
-            InlineVoidFunctionCall inliner2(fill_fun); 
-            res1 = inliner2.getCode(res1); 
-            res2 = inliner2.getCode(res2);
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
+    false); InlineVoidFunctionCall inliner1(inst_init_fun); res1 = inliner1.getCode(res1); res2 =
+    inliner1.getCode(res2); DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true,
+    false); InlineVoidFunctionCall inliner2(fill_fun); res1 = inliner2.getCode(res1); res2 = inliner2.getCode(res2);
         }
 
         tab(n+1, *fOut); *fOut << "virtual void instanceInit(int sample_rate) {";
@@ -478,7 +472,7 @@ void CPPCodeContainer::produceClass()
     generateUserInterface(&fCodeProducer);
     tab(n + 1, *fOut);
     *fOut << "}";
-    
+
     if (gGlobal->gOneSample) {
         tab(n + 1, *fOut);
         *fOut << subst("virtual void control(int* icontrol, $0* fcontrol) {", xfloat());
@@ -488,7 +482,7 @@ void CPPCodeContainer::produceClass()
         generateComputeBlock(&fCodeProducer);
         tab(n + 1, *fOut);
         *fOut << "};" << endl;
-        
+
         tab(n + 1, *fOut);
         *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";
         tab(n + 1, *fOut);
@@ -578,7 +572,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
     generateComputeFunctions(&fCodeProducer);
-  
+
     // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -661,7 +655,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
     generateComputeFunctions(&fCodeProducer);
-   
+
     // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -687,4 +681,3 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     *fOut << "}";
 }
-
