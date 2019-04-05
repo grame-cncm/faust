@@ -569,7 +569,20 @@ void global::init()
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
-    // Foreign math functions supported by the Interp backend
+    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
+    
+    gMathForeignFunctions["acoshf"] = true;
+    gMathForeignFunctions["acosh"]  = true;
+    gMathForeignFunctions["acoshl"] = true;
+
+    gMathForeignFunctions["asinhf"] = true;
+    gMathForeignFunctions["asinh"]  = true;
+    gMathForeignFunctions["asinhl"] = true;
+
+    gMathForeignFunctions["atanhf"] = true;
+    gMathForeignFunctions["atanh"]  = true;
+    gMathForeignFunctions["atanhl"] = true;
+  
     gMathForeignFunctions["coshf"] = true;
     gMathForeignFunctions["cosh"]  = true;
     gMathForeignFunctions["coshl"] = true;
