@@ -742,8 +742,7 @@ static void printHelp()
 
     cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
          << endl;
-    cout << tab << "-time     --compilation-time            display compilation phases timing information." << endl;
-
+  
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
     cout << tab << "-e        --export-dsp                  export expanded DSP (all included libraries)." << endl;
@@ -868,6 +867,7 @@ static void printHelp()
 
     cout << endl << "Debug options:" << line;
     cout << tab << "-d          --details                   print compilation details." << endl;
+    cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;

@@ -89,7 +89,7 @@ class TextInstVisitor : public InstVisitor {
         visitAux(inst, true);
     }
     
-    void visitAux(RetInst* inst, bool gen_empty)
+    virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
             *fOut << "return ";
@@ -349,7 +349,7 @@ class TextInstVisitor : public InstVisitor {
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
             // Special case for "return" as last instruction
             if ((*it == *inst->fCode.rbegin()) && (ret_inst = dynamic_cast<RetInst*>(*it))) {
-               visitAux(ret_inst, false);
+                visitAux(ret_inst, false);
             } else {
                 (*it)->accept(this);
             }

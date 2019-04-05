@@ -197,9 +197,12 @@ package/README.html: ../README.md
 #===============================================================
 # release
 #===============================================================
+FAUSTLIVE ?=../../faustlive
 release: FAUSTGEN=../embedded/faustgen
+release: APATH=$(shell pwd)
 release:
 	git pull --rebase
+	@echo "################## Building faust package ###################"
 	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake
 	$(MAKE) all
 	$(MAKE) package
@@ -207,13 +210,17 @@ release:
 	rm -rf Release-$(VERSION)/*
 	cp Faust-$(VERSION).dmg Release-$(VERSION) 
 	$(MAKE) install PREFIX=$(HOME)/Faust-$(VERSION)
+	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
 	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust
 	$(MAKE) -C $(FAUSTGEN) package
 	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION) 
+	@echo "################## Building faust src distribution ###################"
 	$(MAKE) -C .. dist
 	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
-	
+	@echo "################## Building faustlive package ###################"
+	$(MAKE) -C $(FAUSTLIVE)/Build release FAUST=$(HOME)/Faust-$(VERSION)/bin/faust DEST=$(APATH)/Release-$(VERSION)
+
 
 #===============================================================
 # building universal binaries on macos

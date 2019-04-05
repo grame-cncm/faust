@@ -33,8 +33,6 @@ Input options:
 
   **-t** \<sec>  **--timeout** \<sec>               abort compilation after \<sec> seconds (default 120).
 
-  **-time**     **--compilation-time**            display compilation phases timing information.
-
 
 Output options:
 ---------------------------------------
@@ -162,6 +160,8 @@ Debug options:
 ---------------------------------------
 
   **-d**          **--details**                   print compilation details.
+
+  **-time**       **--compilation-time**          display compilation phases timing information.
 
   **-tg**         **--task-graph**                print the internal task graph in dot format.
 
