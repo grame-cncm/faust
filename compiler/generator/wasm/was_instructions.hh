@@ -178,12 +178,12 @@ struct WASInst {
         fMathLibTable["tan"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
         
         // Additional hyperbolic math functions
-        fMathLibTable["acosh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
-        fMathLibTable["asinh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kFloat, 1);
-        fMathLibTable["atanh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kFloat, 1);
-        fMathLibTable["cosh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kFloat, 1);
-        fMathLibTable["sinh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kFloat, 1);
-        fMathLibTable["tanh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, 1);
+        fMathLibTable["acosh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kDouble, 1);
+        fMathLibTable["asinh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kDouble, 1);
+        fMathLibTable["atanh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kDouble, 1);
+        fMathLibTable["cosh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kDouble, 1);
+        fMathLibTable["sinh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kDouble, 1);
+        fMathLibTable["tanh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kDouble, 1);
    
         fStructOffset     = 0;
         fSubContainerType = -1;

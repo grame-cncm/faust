@@ -83,7 +83,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["atan2f"]     = FBCInstruction::kAtan2f;
         gMathLibTable["ceilf"]      = FBCInstruction::kCeilf;
         gMathLibTable["cosf"]       = FBCInstruction::kCosf;
-        gMathLibTable["coshf"]      = FBCInstruction::kCoshf;
         gMathLibTable["expf"]       = FBCInstruction::kExpf;
         gMathLibTable["floorf"]     = FBCInstruction::kFloorf;
         gMathLibTable["fmodf"]      = FBCInstruction::kFmodf;
@@ -95,9 +94,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["remainderf"] = FBCInstruction::kRemReal;
         gMathLibTable["roundf"]     = FBCInstruction::kRoundf;
         gMathLibTable["sinf"]       = FBCInstruction::kSinf;
-        gMathLibTable["sinhf"]      = FBCInstruction::kSinhf;
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tanf"]       = FBCInstruction::kTanf;
+        
+        // Hyperbolic
+        gMathLibTable["acoshf"]     = FBCInstruction::kAcoshf;
+        gMathLibTable["asinhf"]     = FBCInstruction::kAsinhf;
+        gMathLibTable["atanhf"]     = FBCInstruction::kAtanhf;
+        gMathLibTable["coshf"]      = FBCInstruction::kCoshf;
+        gMathLibTable["sinhf"]      = FBCInstruction::kSinhf;
         gMathLibTable["tanhf"]      = FBCInstruction::kTanhf;
 
         // Double version
@@ -108,7 +113,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["atan2"]     = FBCInstruction::kAtan2f;
         gMathLibTable["ceil"]      = FBCInstruction::kCeilf;
         gMathLibTable["cos"]       = FBCInstruction::kCosf;
-        gMathLibTable["cosh"]      = FBCInstruction::kCoshf;
         gMathLibTable["exp"]       = FBCInstruction::kExpf;
         gMathLibTable["floor"]     = FBCInstruction::kFloorf;
         gMathLibTable["fmod"]      = FBCInstruction::kFmodf;
@@ -120,9 +124,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["remainder"] = FBCInstruction::kRemReal;
         gMathLibTable["round"]     = FBCInstruction::kRoundf;
         gMathLibTable["sin"]       = FBCInstruction::kSinf;
-        gMathLibTable["sinh"]      = FBCInstruction::kSinhf;
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tan"]       = FBCInstruction::kTanf;
+        
+        // Hyperbolic
+        gMathLibTable["acosh"]     = FBCInstruction::kAcoshf;
+        gMathLibTable["asinh"]     = FBCInstruction::kAsinhf;
+        gMathLibTable["atanh"]     = FBCInstruction::kAtanhf;
+        gMathLibTable["cosh"]      = FBCInstruction::kCoshf;
+        gMathLibTable["sinh"]      = FBCInstruction::kSinhf;
         gMathLibTable["tanh"]      = FBCInstruction::kTanhf;
 
         // Min/max directly handled in FunCallInst
