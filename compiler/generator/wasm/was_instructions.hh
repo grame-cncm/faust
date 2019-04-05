@@ -139,12 +139,20 @@ struct WASInst {
         fMathLibTable["min_f"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
         fMathLibTable["powf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
         fMathLibTable["remainderf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kFloat, 2);
-        fMathLibTable["rintf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
-        fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
-        fMathLibTable["sinf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
-        fMathLibTable["sqrtf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
-        fMathLibTable["tanf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
-
+        fMathLibTable["rintf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
+        fMathLibTable["roundf"]     = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
+        fMathLibTable["sinf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
+        fMathLibTable["sqrtf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
+        fMathLibTable["tanf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
+        
+        // Additional hyperbolic math functions
+        fMathLibTable["acoshf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
+        fMathLibTable["asinhf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kFloat, 1);
+        fMathLibTable["atanhf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kFloat, 1);
+        fMathLibTable["coshf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kFloat, 1);
+        fMathLibTable["sinhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kFloat, 1);
+        fMathLibTable["tanhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, 1);
+       
         // Double version
         fMathLibTable["fabs"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F64Abs, Typed::kDouble, 1);
         fMathLibTable["acos"]      = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", Typed::kDouble, 1);
@@ -168,7 +176,15 @@ struct WASInst {
         fMathLibTable["sin"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
         fMathLibTable["sqrt"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
         fMathLibTable["tan"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
-
+        
+        // Additional hyperbolic math functions
+        fMathLibTable["acosh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
+        fMathLibTable["asinh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kFloat, 1);
+        fMathLibTable["atanh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kFloat, 1);
+        fMathLibTable["cosh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kFloat, 1);
+        fMathLibTable["sinh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kFloat, 1);
+        fMathLibTable["tanh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, 1);
+   
         fStructOffset     = 0;
         fSubContainerType = -1;
         fFastMemory       = fast_memory;

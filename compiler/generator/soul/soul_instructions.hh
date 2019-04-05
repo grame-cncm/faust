@@ -123,8 +123,8 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
-
-        // Additional math functions are included in SOUL
+        
+        // Additional hyperbolic math functions are included in SOUL
         gPolyMathLibTable["acoshf"] = "acosh";
         gPolyMathLibTable["asinhf"] = "asinh";
         gPolyMathLibTable["atanhf"] = "atanh";
@@ -158,7 +158,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
 
-        // Additional math functions are included in SOUL
+        // Additional hyperbolic math functions are included in SOUL
         gPolyMathLibTable["acosh"] = "acosh";
         gPolyMathLibTable["asinh"] = "asinh";
         gPolyMathLibTable["atanh"] = "atanh";

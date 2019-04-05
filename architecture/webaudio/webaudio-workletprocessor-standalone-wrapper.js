@@ -419,7 +419,13 @@ mydspProcessor.importObject = {
         _sinf: Math.sin,
         _sqrtf: Math.sqrt,
         _tanf: Math.tan,
-           
+        _acoshf: Math.acosh,
+        _asinhf: Math.asinh,
+        _atanhf: Math.atanh,
+        _coshf: Math.cosh,
+        _sinhf: Math.sinh,
+        _tanhf: Math.tanh,  
+        
         // Double version
         _acos: Math.acos,
         _asin: Math.asin,
@@ -440,6 +446,12 @@ mydspProcessor.importObject = {
         _sin: Math.sin,
         _sqrt: Math.sqrt,
         _tan: Math.tan,
+        _acosh: Math.acosh,
+        _asinh: Math.asinh,
+        _atanh: Math.atanh,
+        _cosh: Math.cosh,
+        _sinh: Math.sinh,
+        _tanh: Math.tanh,
         
         table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
     }

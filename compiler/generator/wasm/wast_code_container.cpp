@@ -178,6 +178,7 @@ void WASTCodeContainer::produceClass()
 
     // All mathematical functions (got from math library as variables) have to be first
     generateGlobalDeclarations(gGlobal->gWASTVisitor);
+    generateExtGlobalDeclarations(gGlobal->gWASTVisitor);
 
     // Exported functions
     tab(n + 1, fOutAux);

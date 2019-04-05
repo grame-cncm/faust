@@ -492,6 +492,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
         // will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+            faustassert(fMathLibTable.find(inst->fName) != fMathLibTable.end());
             MathFunDesc desc = fMathLibTable[inst->fName];
 
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
