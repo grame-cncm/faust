@@ -310,7 +310,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         gMathLibTable.push_back("atan2f");
         gMathLibTable.push_back("ceilf");
         gMathLibTable.push_back("cosf");
-        gMathLibTable.push_back("coshf");
         gMathLibTable.push_back("expf");
         gMathLibTable.push_back("exp10f");
         gMathLibTable.push_back("floorf");
@@ -320,9 +319,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         gMathLibTable.push_back("powf");
         gMathLibTable.push_back("roundf");
         gMathLibTable.push_back("sinf");
-        gMathLibTable.push_back("sinhf");
         gMathLibTable.push_back("sqrtf");
         gMathLibTable.push_back("tanf");
+        
+        // Additional hyperbolic math functions
+        gMathLibTable.push_back("acoshf");
+        gMathLibTable.push_back("asinhf");
+        gMathLibTable.push_back("atanhf");
+        gMathLibTable.push_back("coshf");
+        gMathLibTable.push_back("sinhf");
         gMathLibTable.push_back("tanhf");
 
         // Double version
@@ -333,7 +338,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         gMathLibTable.push_back("atan2");
         gMathLibTable.push_back("ceil");
         gMathLibTable.push_back("cos");
-        gMathLibTable.push_back("cosh");
         gMathLibTable.push_back("exp");
         gMathLibTable.push_back("exp10");
         gMathLibTable.push_back("floor");
@@ -343,9 +347,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         gMathLibTable.push_back("pow");
         gMathLibTable.push_back("round");
         gMathLibTable.push_back("sin");
-        gMathLibTable.push_back("sinh");
         gMathLibTable.push_back("sqrt");
         gMathLibTable.push_back("tan");
+        
+        // Additional hyperbolic math functions
+        gMathLibTable.push_back("acosh");
+        gMathLibTable.push_back("asinh");
+        gMathLibTable.push_back("atanh");
+        gMathLibTable.push_back("cosh");
+        gMathLibTable.push_back("sinh");
         gMathLibTable.push_back("tanh");
     }
 
@@ -377,14 +387,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Address::AccessType access = inst->fAddress->getAccess();
 
         if (access & Address::kStack || access & Address::kLoop) {
-            // If we have an explicit alloca builder, use it
-            if (fAllocaBuilder->GetInsertBlock()) {
-                // Always at the begining since the block is already branched to next one...
-                fAllocaBuilder->SetInsertPoint(GetIterator(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
-                fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(inst->fType));
-            } else {
-                fCurValue = fBuilder->CreateAlloca(convertFIRType(inst->fType));
-            }
+            
+            // Always at the begining since the block is already branched to next one...
+            fAllocaBuilder->SetInsertPoint(GetIterator(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
+            fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(inst->fType));
 
             fCurValue->setName(name);
             fStackVars[name] = fCurValue;  // Keep stack variables
@@ -397,19 +403,19 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
         } else if (access & Address::kGlobal || access & Address::kStaticStruct) {
-            if (!fModule->getGlobalVariable(name, true)) {
-                GlobalVariable* gv = genGlovalVar(convertFIRType(inst->fType), (access & Address::kConst), name);
-                // Declaration with a value
-                if (inst->fValue) {
-                    // Result is in fCurValue;
-                    inst->fValue->accept(this);
-                    gv->setInitializer(static_cast<Constant*>(fCurValue));
-                } else {
-                    // Init with typed zero
-                    gv->setInitializer(Constant::getNullValue(convertFIRType(inst->fType)));
-                }
+            
+            GlobalVariable* global_value = genGlovalVar(convertFIRType(inst->fType), (access & Address::kConst), name);
+            
+            // Declaration with a value
+            if (inst->fValue) {
+                // Result is in fCurValue;
+                inst->fValue->accept(this);
+                global_value->setInitializer(static_cast<Constant*>(fCurValue));
+            } else {
+                // Init with typed zero
+                global_value->setInitializer(Constant::getNullValue(convertFIRType(inst->fType)));
             }
-
+    
         } else {
             faustassert(false);
         }
@@ -424,10 +430,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         // Define it
         if (!function) {
-            // Special cases for min/max
+            
+            // Min/max are internally generated
             if (checkMinMax(inst->fName)) {
-                fCurValue = nullptr;
-                return;
+                goto end;
             }
 
             // Return type
@@ -441,12 +447,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Creates function
             FunctionType* fun_type = FunctionType::get(return_type, makeArrayRef(fun_args_type), false);
-            function               = Function::Create(
-                fun_type,
-                (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic)
-                    ? GlobalValue::InternalLinkage
-                    : GlobalValue::ExternalLinkage,
-                inst->fName, fModule);
+            
+            function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal
+                                                   || inst->fType->fAttribute & FunTyped::kStatic)
+                                        ? GlobalValue::InternalLinkage
+                                        : GlobalValue::ExternalLinkage,
+                                        inst->fName, fModule);
 
             // In order for auto-vectorization to correctly work with vectorizable math functions
             if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
@@ -479,7 +485,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fAllocaBuilder->ClearInsertionPoint();
             }
         }
-
+        
+    end:
         // No result in fCurValue
         fCurValue = nullptr;
     }
@@ -840,7 +847,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     virtual void visit(FunCallInst* inst)
     {
-        // Special case
+        // Min/max are internally generated
         if (checkMinMax(inst->fName)) {
             generateFunPolymorphicMinMax(inst);
             return;
