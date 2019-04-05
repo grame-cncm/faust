@@ -60,7 +60,7 @@ void stackOverflowDetector::detect()
         fFirstCall         = false;
         fFirstStackAddress = cur_address;
     } else {
-        long current_stack_size = long(fFirstStackAddress) - long(cur_address);
+        long long current_stack_size = (long long)fFirstStackAddress - (long long)cur_address;
         if (std::abs(current_stack_size - fMaxStackSize) < STACK_FRAME) {
             throw faustexception("ERROR : stack overflow in eval\n");
         }

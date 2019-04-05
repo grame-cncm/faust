@@ -224,7 +224,7 @@ void routeSchema::collectTraits(collector& c)
         point p1  = fInputPoint[src];
         point p2  = fOutputPoint[dst];
         // cerr << "add traits: " << p1.x << 'x' << p1.y << " -> " << p2.x << "x" << p2.y << endl;
-        int dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+        double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
         c.addTrait(trait(point(p1.x + dx, p1.y), point(p2.x - dx, p2.y)));
     }
 }
