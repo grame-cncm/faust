@@ -135,6 +135,14 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
         
+        // Additional math functions are included in SOUL
+        gPolyMathLibTable["acoshf"] = "acosh";
+        gPolyMathLibTable["asinhf"] = "asinh";
+        gPolyMathLibTable["atanhf"] = "atanh";
+        gPolyMathLibTable["coshf"]  = "cosh";
+        gPolyMathLibTable["sinhf"]  = "sinh";
+        gPolyMathLibTable["tanhf"]  = "tanh";
+        
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
         gPolyMathLibTable["min_"] = "min";
@@ -160,6 +168,14 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
+        
+        // Additional math functions are included in SOUL
+        gPolyMathLibTable["acosh"] = "acosh";
+        gPolyMathLibTable["asinh"] = "asinh";
+        gPolyMathLibTable["atanh"] = "atanh";
+        gPolyMathLibTable["cosh"]  = "cosh";
+        gPolyMathLibTable["sinh"]  = "sinh";
+        gPolyMathLibTable["tanh"]  = "tanh";
         
         fIntAsBool = false;
     }
