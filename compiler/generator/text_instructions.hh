@@ -51,9 +51,8 @@ class TextInstVisitor : public InstVisitor {
     }
 
    public:
-    
     using InstVisitor::visit;
-    
+
     TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
     {
@@ -84,11 +83,8 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(DeclareVarInst* inst) { faustassert(false); }
 
-    virtual void visit(RetInst* inst)
-    {
-        visitAux(inst, true);
-    }
-    
+    virtual void visit(RetInst* inst) { visitAux(inst, true); }
+
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
@@ -209,8 +205,8 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
                                      size_t size)
     {
-		list<ValueInst*>::const_iterator it = beg;
-        size_t                            i  = 0;
+        list<ValueInst*>::const_iterator it = beg;
+        size_t                           i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
@@ -304,7 +300,7 @@ class TextInstVisitor : public InstVisitor {
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-       
+
         *fOut << "for (";
         fFinishLine = false;
         inst->fInit->accept(this);
@@ -345,7 +341,7 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
         list<StatementInst*>::const_iterator it;
-        RetInst* ret_inst = nullptr;
+        RetInst*                             ret_inst = nullptr;
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
             // Special case for "return" as last instruction
             if ((*it == *inst->fCode.rbegin()) && (ret_inst = dynamic_cast<RetInst*>(*it))) {
@@ -392,9 +388,8 @@ class TextInstVisitor : public InstVisitor {
         *fOut << "}";
         tab(fTab, *fOut);
     }
-    
+
     StringTypeManager* getTypeManager() { return fTypeManager; }
-    
 };
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like

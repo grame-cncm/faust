@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #ifdef WIN32
-# pragma warning (disable: 4251 4275 4800)
+#pragma warning(disable : 4251 4275 4800)
 #endif
 
 #include "wasm_dynamic_dsp_aux.hh"
@@ -28,7 +28,7 @@
 #include "compatibility.hh"
 
 #ifdef WIN32
-# define strdup _strdup
+#define strdup _strdup
 #endif
 
 #ifdef EMCC

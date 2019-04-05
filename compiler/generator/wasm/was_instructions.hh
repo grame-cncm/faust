@@ -42,7 +42,7 @@ using namespace std;
 
  - in internal memory mode, a memory segment is allocated, otherwise it is given by the external JS runtime
  - DSP fields start at offset 0, then followed by audio buffers
- - the JSON string is written at offset 0, to be copied and converted in a string 
+ - the JSON string is written at offset 0, to be copied and converted in a string
  by the runtime (JS or something else) before using the DSP itsef.
 
 */
@@ -106,13 +106,13 @@ struct WASInst {
     map<string, int>         fFunctionSymbolTable;
     map<string, MathFunDesc> fMathLibTable;  // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;    // Table : field_name, { offset, size, type }
-    
+
     // To generate tee_local the first time the variable access is compiled, then local.get will be used
-    map<string, bool>        fTeeMap;
+    map<string, bool> fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
-    bool fFastMemory;    // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
+    bool fFastMemory;  // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
 
     WASInst(bool fast_memory = false)
     {
@@ -192,14 +192,14 @@ struct WASInst {
             return 0;
         }
 
-        NamedAddress*     named = dynamic_cast<NamedAddress*>(address);
+        NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
 
         if (named && fFieldTable.find(named->getName()) != fFieldTable.end()) {
             MemoryDesc tmp = fFieldTable[named->getName()];
             return tmp.fOffset;
         } else if (indexed && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
-            MemoryDesc tmp = fFieldTable[indexed->getName()];
+            MemoryDesc    tmp = fFieldTable[indexed->getName()];
             Int32NumInst* num;
             if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
                 return tmp.fOffset + (num->fNum << offStrNum);
@@ -211,7 +211,6 @@ struct WASInst {
 
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
-
 };
 
 #endif

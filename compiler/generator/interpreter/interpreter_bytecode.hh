@@ -28,8 +28,8 @@
 #include <vector>
 
 #include "exception.hh"
-#include "fbc_opcode.hh"
 #include "faust/gui/PathBuilder.h"
+#include "fbc_opcode.hh"
 
 static inline std::string quote1(std::string str)
 {
@@ -49,89 +49,85 @@ struct FBCBlockInstruction;
 template <class T>
 struct FBCBasicInstruction : public FBCInstruction {
     std::string fName;
-    Opcode fOpcode;
-    int    fIntValue;
-    T      fRealValue;
-    int    fOffset1;
-    int    fOffset2;
-   
+    Opcode      fOpcode;
+    int         fIntValue;
+    T           fRealValue;
+    int         fOffset1;
+    int         fOffset2;
+
     FBCBlockInstruction<T>* fBranch1;
     FBCBlockInstruction<T>* fBranch2;
 
-    FBCBasicInstruction(Opcode opcode,
-                        const std::string& name,
-                        int val_int, T val_real,
-                        int off1, int off2,
-                        FBCBlockInstruction<T>* branch1,
-                        FBCBlockInstruction<T>* branch2)
+    FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, T val_real, int off1, int off2,
+                        FBCBlockInstruction<T>* branch1, FBCBlockInstruction<T>* branch2)
         : fName(""),
-        fOpcode(opcode),
-        fIntValue(val_int),
-        fRealValue(val_real),
-        fOffset1(off1),
-        fOffset2(off2),
-        fBranch1(branch1),
-        fBranch2(branch2)
+          fOpcode(opcode),
+          fIntValue(val_int),
+          fRealValue(val_real),
+          fOffset1(off1),
+          fOffset2(off2),
+          fBranch1(branch1),
+          fBranch2(branch2)
     {
     }
 
     FBCBasicInstruction(Opcode opcode, int val_int, T val_real)
         : fName(""),
-        fOpcode(opcode),
-        fIntValue(val_int),
-        fRealValue(val_real),
-        fOffset1(-1),
-        fOffset2(-1),
-        fBranch1(nullptr),
-        fBranch2(nullptr)
+          fOpcode(opcode),
+          fIntValue(val_int),
+          fRealValue(val_real),
+          fOffset1(-1),
+          fOffset2(-1),
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2)
         : fName(""),
-        fOpcode(opcode),
-        fIntValue(val_int),
-        fRealValue(val_real),
-        fOffset1(off1),
-        fOffset2(off2),
-        fBranch1(nullptr),
-        fBranch2(nullptr)
+          fOpcode(opcode),
+          fIntValue(val_int),
+          fRealValue(val_real),
+          fOffset1(off1),
+          fOffset2(off2),
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
-    
+
     FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, T val_real, int off1, int off2)
         : fName(name),
-        fOpcode(opcode),
-        fIntValue(val_int),
-        fRealValue(val_real),
-        fOffset1(off1),
-        fOffset2(off2),
-        fBranch1(nullptr),
-        fBranch2(nullptr)
+          fOpcode(opcode),
+          fIntValue(val_int),
+          fRealValue(val_real),
+          fOffset1(off1),
+          fOffset2(off2),
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction(Opcode opcode)
         : fName(""),
-        fOpcode(opcode),
-        fIntValue(0),
-        fRealValue(0),
-        fOffset1(-1),
-        fOffset2(-1),
-        fBranch1(nullptr),
-        fBranch2(nullptr)
+          fOpcode(opcode),
+          fIntValue(0),
+          fRealValue(0),
+          fOffset1(-1),
+          fOffset2(-1),
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
     FBCBasicInstruction()
         : fName(""),
-        fOpcode(FBCInstruction::kNop),
-        fIntValue(0),
-        fRealValue(0),
-        fOffset1(-1),
-        fOffset2(-1),
-        fBranch1(nullptr),
-        fBranch2(nullptr)
+          fOpcode(FBCInstruction::kNop),
+          fIntValue(0),
+          fRealValue(0),
+          fOffset1(-1),
+          fOffset2(-1),
+          fBranch1(nullptr),
+          fBranch2(nullptr)
     {
     }
 
@@ -143,13 +139,14 @@ struct FBCBasicInstruction : public FBCInstruction {
         delete getBranch1();
         delete getBranch2();
     }
- 
+
     int size()
     {
-        int branches = std::max(((getBranch1()) ? getBranch1()->size() : 0), ((getBranch2()) ? getBranch2()->size() : 0));
+        int branches =
+            std::max(((getBranch1()) ? getBranch1()->size() : 0), ((getBranch2()) ? getBranch2()->size() : 0));
         return (branches > 0) ? branches : 1;
     }
-  
+
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         if (small) {
@@ -158,7 +155,9 @@ struct FBCBasicInstruction : public FBCInstruction {
         } else {
             *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
                  << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2;
-            if (this->fName != "") { *out << " name " << this->fName; }
+            if (this->fName != "") {
+                *out << " name " << this->fName;
+            }
             *out << std::endl;
         }
         // If select/if/loop : write branches
@@ -173,9 +172,9 @@ struct FBCBasicInstruction : public FBCInstruction {
     virtual FBCBasicInstruction<T>* copy()
     {
         return new FBCBasicInstruction<T>(fOpcode, fName, fIntValue, fRealValue, fOffset1, fOffset2,
-                                          ((getBranch1()) ? getBranch1()->copy() : nullptr), ((getBranch2()) ? getBranch2()->copy() : nullptr));
+                                          ((getBranch1()) ? getBranch1()->copy() : nullptr),
+                                          ((getBranch2()) ? getBranch2()->copy() : nullptr));
     }
-   
 };
 
 template <class T>
@@ -208,7 +207,9 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
         } else {
             *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
                  << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
-            if (this->fName != "") { *out << " name " << this->fName; }
+            if (this->fName != "") {
+                *out << " name " << this->fName;
+            }
             *out << std::endl;
         }
         for (unsigned int i = 0; i < fNumTable.size(); i++) {
@@ -248,7 +249,9 @@ struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
         } else {
             *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
                  << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
-            if (this->fName != "") { *out << " name " << this->fName; }
+            if (this->fName != "") {
+                *out << " name " << this->fName;
+            }
             *out << std::endl;
         }
         for (unsigned int i = 0; i < fNumTable.size(); i++) {
@@ -365,11 +368,10 @@ struct FIRMetaInstruction : public FBCInstruction {
 template <class T>
 struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
-    std::map<std::string, int> fPathMap;
-    
-    FIRUserInterfaceBlockInstruction()
-    {}
-  
+    std::map<std::string, int>                   fPathMap;
+
+    FIRUserInterfaceBlockInstruction() {}
+
     virtual ~FIRUserInterfaceBlockInstruction()
     {
         for (auto& it : fInstructions) {
@@ -377,7 +379,10 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
         }
     }
 
-    void push(FIRUserInterfaceInstruction<T>* inst) { if (inst) fInstructions.push_back(inst); }
+    void push(FIRUserInterfaceInstruction<T>* inst)
+    {
+        if (inst) fInstructions.push_back(inst);
+    }
 
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
@@ -386,30 +391,30 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
             it->write(out, binary, small, recurse);
         }
     }
-    
+
     std::map<std::string, int>& getPathMap()
     {
         // Build the [path, offset] map
         PathBuilder path_builder;
-        
+
         for (auto& it : fInstructions) {
             switch (it->fOpcode) {
                 case FBCInstruction::kOpenVerticalBox:
                     path_builder.pushLabel(it->fLabel);
                     break;
-                    
+
                 case FBCInstruction::kOpenHorizontalBox:
                     path_builder.pushLabel(it->fLabel);
                     break;
-                    
+
                 case FBCInstruction::kOpenTabBox:
                     path_builder.pushLabel(it->fLabel);
                     break;
-                    
+
                 case FBCInstruction::kCloseBox:
                     path_builder.popLabel();
                     break;
-                    
+
                 case FBCInstruction::kAddButton:
                 case FBCInstruction::kAddCheckButton:
                 case FBCInstruction::kAddHorizontalSlider:
@@ -417,23 +422,21 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
                 case FBCInstruction::kAddNumEntry:
                     fPathMap[path_builder.buildPath(it->fLabel)] = it->fOffset;
                     break;
-                    
+
                 default:
                     break;
             }
         }
-        
+
         return fPathMap;
     }
-    
+
     void freezeDefaultValues(std::map<int, T>& real_map)
     {
         for (auto& it : fInstructions) {
-            if (it->fOpcode == FBCInstruction::kAddButton ||
-                it->fOpcode == FBCInstruction::kAddCheckButton ||
+            if (it->fOpcode == FBCInstruction::kAddButton || it->fOpcode == FBCInstruction::kAddCheckButton ||
                 it->fOpcode == FBCInstruction::kAddHorizontalSlider ||
-                it->fOpcode == FBCInstruction::kAddVerticalSlider ||
-                it->fOpcode == FBCInstruction::kAddNumEntry) {
+                it->fOpcode == FBCInstruction::kAddVerticalSlider || it->fOpcode == FBCInstruction::kAddNumEntry) {
                 real_map[it->fOffset] = it->fInit;
             }
         }
@@ -447,7 +450,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
             }
         }
     }
-    
+
     void unFreezeValue(std::map<int, T>& real_map, const std::string& path)
     {
         if (fPathMap.find(path) != fPathMap.end()) {
@@ -475,7 +478,10 @@ struct FIRMetaBlockInstruction : public FBCInstruction {
         }
     }
 
-    void push(FIRMetaInstruction* inst) { if (inst) fInstructions.push_back(inst); }
+    void push(FIRMetaInstruction* inst)
+    {
+        if (inst) fInstructions.push_back(inst);
+    }
 
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
@@ -496,15 +502,19 @@ struct FBCBlockInstruction : public FBCInstruction {
             delete it;
         }
     }
-    
+
     // Check block coherency
     void check()
     {
-        InstructionIT it = fInstructions.end(); it--;
+        InstructionIT it = fInstructions.end();
+        it--;
         faustassert((*it)->fOpcode == FBCInstruction::kReturn);
     }
 
-    void push(FBCBasicInstruction<T>* inst) { if (inst) fInstructions.push_back(inst); }
+    void push(FBCBasicInstruction<T>* inst)
+    {
+        if (inst) fInstructions.push_back(inst);
+    }
 
     void merge(FBCBlockInstruction<T>* block)
     {
@@ -514,7 +524,7 @@ struct FBCBlockInstruction : public FBCInstruction {
             }
         }
     }
-    
+
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
@@ -526,8 +536,8 @@ struct FBCBlockInstruction : public FBCInstruction {
     void stackMove(int& int_index, int& real_index)
     {
         std::cout << "FBCBlockInstruction::stackMove" << std::endl;
-        int           tmp_int_index  = 0;
-        int           tmp_real_index = 0;
+        int tmp_int_index  = 0;
+        int tmp_real_index = 0;
         for (auto& it : fInstructions) {
             it->stackMove(tmp_int_index, tmp_real_index);
             it->write(&std::cout);
@@ -543,7 +553,7 @@ struct FBCBlockInstruction : public FBCInstruction {
         FBCBlockInstruction<T>* block = new FBCBlockInstruction<T>();
         for (auto& it : fInstructions) {
             FBCBasicInstruction<T>* inst_copy = it->copy();
-            if (it->fOpcode == kCondBranch) {        // Special case for loops
+            if (it->fOpcode == kCondBranch) {  // Special case for loops
                 inst_copy->fBranch1 = block;
             }
             block->push(inst_copy);

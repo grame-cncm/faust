@@ -32,7 +32,7 @@
 #include <sstream>
 
 #ifdef WIN32
-# define strdup _strdup
+#define strdup _strdup
 #endif
 
 using namespace std;

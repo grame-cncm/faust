@@ -63,45 +63,16 @@ Typed::VarType ctType(Type t)
     return (t->nature() == kInt) ? Typed::kInt32 : Typed::kFloat;
 }
 
-string Typed::gTypeString[] = {"kInt32",
-                               "kInt32_ptr",
-                               "kInt32_vec",
-                               "kInt32_vec_ptr",
-                               "kInt64",
-                               "kInt64_ptr",
-                               "kInt64_vec",
-                               "kInt64_vec_ptr",
-                               "kBool",
-                               "kBool_ptr",
-                               "kBool_vec",
-                               "kBool_vec_ptr",
-                               "kFloat",
-                               "kFloat_ptr",
-                               "kFloat_ptr_ptr",
-                               "kFloat_vec",
-                               "kFloat_vec_ptr",
-                               "kFloatMacro",
-                               "kFloatMacro_ptr",
-                               "kFloatMacro_ptr_ptr",
-                               "kDouble",
-                               "kDouble_ptr",
-                               "kDouble_ptr_ptr",
-                               "kDouble_vec",
-                               "kDouble_vec_ptr",
-                               "kQuad",
-                               "kQuad_ptr",
-                               "kQuad_ptr_ptr",
-                               "kQuad_vec",
-                               "kQuad_vec_ptr",
-                               "kVoid",
-                               "kVoid_ptr",
-                               "kVoid_ptr_ptr",
-                               "kObj",
-                               "kObj_ptr",
-                               "kSound",
-                               "kSound_ptr",
-                               "kUint_ptr",
-                               "kNoType"};
+string Typed::gTypeString[] = {"kInt32",          "kInt32_ptr",    "kInt32_vec",      "kInt32_vec_ptr",
+                               "kInt64",          "kInt64_ptr",    "kInt64_vec",      "kInt64_vec_ptr",
+                               "kBool",           "kBool_ptr",     "kBool_vec",       "kBool_vec_ptr",
+                               "kFloat",          "kFloat_ptr",    "kFloat_ptr_ptr",  "kFloat_vec",
+                               "kFloat_vec_ptr",  "kFloatMacro",   "kFloatMacro_ptr", "kFloatMacro_ptr_ptr",
+                               "kDouble",         "kDouble_ptr",   "kDouble_ptr_ptr", "kDouble_vec",
+                               "kDouble_vec_ptr", "kQuad",         "kQuad_ptr",       "kQuad_ptr_ptr",
+                               "kQuad_vec",       "kQuad_vec_ptr", "kVoid",           "kVoid_ptr",
+                               "kVoid_ptr_ptr",   "kObj",          "kObj_ptr",        "kSound",
+                               "kSound_ptr",      "kUint_ptr",     "kNoType"};
 
 void BasicTyped::cleanup()
 {
@@ -119,16 +90,15 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[fAddress->getName()] = type;
     } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
-        
         // If named type, check their name and internal type
         NamedTyped* name_t1 = dynamic_cast<NamedTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
         NamedTyped* name_t2 = dynamic_cast<NamedTyped*>(type);
         if (name_t1 && name_t2) {
-            faustassert (name_t1->fName == name_t2->fName && name_t1->fType == name_t2->fType);
+            faustassert(name_t1->fName == name_t2->fName && name_t1->fType == name_t2->fType);
         } else {
             // If array type, check their size and internal type
             ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
-            ArrayTyped* arry_t2 = dynamic_cast<ArrayTyped*>(type);
+            ArrayTyped* arry_t2  = dynamic_cast<ArrayTyped*>(type);
             if (array_t1 && arry_t2) {
                 faustassert(array_t1->fSize == arry_t2->fSize && array_t1->fType == arry_t2->fType);
             } else {
@@ -275,9 +245,11 @@ DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code, bool isvirtual)
+DeclareFunInst* InstBuilder::genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code,
+                                             bool isvirtual)
 {
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
+                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 

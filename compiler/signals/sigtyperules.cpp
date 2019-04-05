@@ -63,7 +63,10 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
 //#define TRACE(x) x
-#define TRACE(x) { ; }
+#define TRACE(x) \
+    {            \
+        ;        \
+    }
 
 /**
  * The empty type environment (also property key for closed term type)

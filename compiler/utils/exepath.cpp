@@ -26,7 +26,7 @@
 #include <sstream>
 #include <string>
 
-#ifdef WIN32 
+#ifdef WIN32
 #include <windows.h>
 #else
 #include <libgen.h>

@@ -141,39 +141,39 @@ static void enumBackends(ostream& out)
 #ifdef C_BUILD
     out << dspto << "C" << endl;
 #endif
-    
+
 #ifdef CPP_BUILD
     out << dspto << "C++" << endl;
 #endif
-    
+
 #ifdef FIR_BUILD
     out << dspto << "FIR" << endl;
 #endif
-    
+
 #ifdef INTERP_BUILD
     out << dspto << "Interpreter" << endl;
 #endif
-    
+
 #ifdef JAVA_BUILD
     out << dspto << "Java" << endl;
 #endif
-    
+
 #ifdef LLVM_BUILD
     out << dspto << "LLVM IR" << endl;
 #endif
-    
+
 #ifdef OCPP_BUILD
     out << dspto << "old C++" << endl;
 #endif
-    
+
 #ifdef RUST_BUILD
     out << dspto << "Rust" << endl;
 #endif
-    
+
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
 #endif
-    
+
 #ifdef SOUL_BUILD
     out << dspto << "SOUL" << endl;
 #endif
@@ -191,7 +191,7 @@ static void callFun(compile_fun fun)
     // No thread support in JS
     fun(NULL);
 #else
-    pthread_t thread;
+    pthread_t      thread;
     pthread_attr_t attr;
     faustassert(pthread_attr_init(&attr) == 0);
     faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
@@ -338,6 +338,10 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gGlobal->gDrawSignals = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
+            gGlobal->gDrawRouteFrame = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
@@ -523,7 +527,7 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-exp10", "--generate-exp10")) {
             gGlobal->gHasExp10 = true;
             i += 1;
-            
+
         } else if (isCmd(argv[i], "-os", "--one-sample")) {
             gGlobal->gOneSample = true;
             i += 1;
@@ -546,7 +550,7 @@ static bool processCmdline(int argc, const char* argv[])
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
                 gGlobal->gImportDirList.push_back(argv[i + 1]);
             } else {
-                char temp[PATH_MAX + 1];
+                char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gGlobal->gImportDirList.push_back(path);
@@ -557,8 +561,8 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
                 gGlobal->gArchitectureDirList.push_back(argv[i + 1]);
-             } else {
-                char temp[PATH_MAX + 1];
+            } else {
+                char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gGlobal->gArchitectureDirList.push_back(path);
@@ -637,14 +641,12 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
-    
-    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp"
-        && gGlobal->gOutputLang != "c"
-        && startWith(gGlobal->gOutputLang, "soul")
-        && gGlobal->gOutputLang != "fir") {
+
+    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" &&
+        startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
         throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
-    
+
     if (gGlobal->gOneSample && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
     }
@@ -749,7 +751,7 @@ static void printHelp()
 
     cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
          << endl;
-  
+
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
     cout << tab << "-e        --export-dsp                  export expanded DSP (all included libraries)." << endl;
@@ -851,6 +853,7 @@ static void printHelp()
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
     cout << tab << "-sd        --simplify-diagrams          try to further simplify diagrams before drawing." << endl;
+    cout << tab << "-drf       --draw-route-frame           draw route frames instead of simple cables." << endl;
     cout << tab
          << "-f <n>     --fold <n>                   threshold during block-diagram generation (default 25 elements)."
          << endl;
@@ -917,9 +920,9 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-    /****************************************************************
-                                    MAIN
-    *****************************************************************/
+/****************************************************************
+                                MAIN
+*****************************************************************/
 
 #ifdef OCPP_BUILD
 
@@ -1098,7 +1101,7 @@ static void initDocumentNames()
         gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
         gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
     }
-    
+
     // Add gMasterDirectory in gImportDirList and gArchitectureDirList
     gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
     gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
@@ -1266,7 +1269,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gAllowForeignFunction = true;
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
-        
+
         gGlobal->gUseDefaultSound = false;
 
         if (gGlobal->gVectorSwitch) {
@@ -1371,7 +1374,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "rust") {
 #ifdef RUST_BUILD
-             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
@@ -1390,11 +1393,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef SOUL_BUILD
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
-            
+
             // "one sample control" model by default;
             gGlobal->gOneSampleControl = true;
             gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            
+
             container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang rust not supported since SOUL backend is not built\n");
@@ -1430,7 +1433,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
+                         << endl;
                 }
             } else {
                 helpers = &cout;
@@ -1470,7 +1474,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
+                         << endl;
                 }
             } else {
                 helpers = &cout;

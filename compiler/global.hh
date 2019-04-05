@@ -105,6 +105,7 @@ struct global {
     //-- command line arguments
     bool   gDetailsSwitch;
     bool   gDrawSignals;
+    bool   gDrawRouteFrame;
     bool   gShadowBlur;      // note: svg2pdf doesn't like the blur filter
     bool   gScaledSVG;       // to draw scaled SVG files
     bool   gStripDocSwitch;  // Strip <mdoc> content from doc listings.
@@ -215,7 +216,7 @@ struct global {
     bool gMemoryManager;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
-    
+
     bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
                       ///< (negative delay)
 
@@ -428,7 +429,7 @@ struct global {
     Sym SYMRECREF;
     Sym SYMLIFTN;
 
-    loopDetector gLoopDetector;
+    loopDetector          gLoopDetector;
     stackOverflowDetector gStackOverflowDetector;
 
     string gDrawPath;
@@ -489,7 +490,7 @@ struct global {
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
 #endif
-    
+
 #ifdef SOUL_BUILD
     TableSizeVisitor* gTableSizeVisitor;
 #endif
@@ -561,16 +562,15 @@ struct global {
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
-    
+
     int audioSampleSize();
-    
 };
 
 // Unique shared global pointer
 extern global* gGlobal;
 
-#define FAUST_LIB_PATH          "FAUST_LIB_PATH"
-#define MAX_MACHINE_STACK_SIZE  65536
-#define MAX_SOUNDFILE_PARTS     256
+#define FAUST_LIB_PATH "FAUST_LIB_PATH"
+#define MAX_MACHINE_STACK_SIZE 65536
+#define MAX_SOUNDFILE_PARTS 256
 
 #endif
