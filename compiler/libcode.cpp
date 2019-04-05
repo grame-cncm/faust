@@ -1391,6 +1391,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #endif
         } else if (startWith(gGlobal->gOutputLang, "soul")) {
 #ifdef SOUL_BUILD
+            gGlobal->gAllowForeignFunction = false;  // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
 
