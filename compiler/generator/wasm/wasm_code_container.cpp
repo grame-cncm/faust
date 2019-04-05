@@ -242,6 +242,7 @@ void WASMCodeContainer::produceClass()
     // Mathematical functions and global variables are handled in a separated visitor that creates functions types and
     // global variable offset
     generateGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
+    generateExtGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
 
     // Update struct offset to take account of global variables defined in 'generateGlobalDeclarations' in the separated
     // visitor

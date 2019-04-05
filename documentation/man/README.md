@@ -1,4 +1,4 @@
-% man(1) Version 2.17.4 (03-April-2019) | Faust man page
+% man(1) Version 2.17.5 (05-April-2019) | Faust man page
 
 NAME
 ====
@@ -136,6 +136,8 @@ Block diagram options:
   **-svg**       **--svg**                        print block-diagram to a svg file.
 
   **-sd**        **--simplify-diagrams**          try to further simplify diagrams before drawing.
+
+  **-drf**       **--draw-route-frame**           draw route frames instead of simple cables.
 
   **-f** \<n>     **--fold** \<n>                   threshold during block-diagram generation (default 25 elements).
 
