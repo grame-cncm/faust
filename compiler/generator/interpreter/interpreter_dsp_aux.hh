@@ -588,10 +588,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
             *inst >> dummy;  // Read "offset2" token
             *inst >> offset2;
-            
+
             *inst >> dummy;  // Read "name" token (if present)
             *inst >> name;
-         
+
             FBCBlockInstruction<T>* branch1 = nullptr;
             FBCBlockInstruction<T>* branch2 = nullptr;
 
