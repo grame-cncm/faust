@@ -58,7 +58,7 @@
 #define MapOfTtypes map<Typed::VarType, LLVMType>
 #define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
 #define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
-#define CreateCall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
+#define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
 
 #define dumpLLVM(val)                    \
@@ -859,7 +859,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
 
         // Result is function call
-        fCurValue = CreateCall(function, fun_args);
+        fCurValue = CreateFuncall(function, fun_args);
     }
 
     virtual void visit(Select2Inst* inst)
