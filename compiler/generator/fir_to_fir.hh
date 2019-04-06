@@ -440,19 +440,6 @@ struct FunctionInliner {
                 }
             }
 
-            /*
-            ValueInst* visit(LoadVarInst* inst)
-            {
-                if (inst->fAddress->getAccess() == Address::kLoop) {
-                    // Rename loop index
-                    return InstBuilder::genLoadVarInst(renameAddress(inst->fAddress, fInLoop));
-                } else {
-                    BasicCloneVisitor cloner;
-                    return (inst->fAddress->getName() == fNamed->fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
-                }
-            }
-            */
-
             ValueInst* visit(LoadVarInst* inst)
             {
                 if (inst->fAddress->getAccess() == Address::kLoop) {
@@ -597,7 +584,7 @@ struct VariableSizeCounter : public DispatchVisitor {
     }
 };
 
-// Remove unnecessary cast
+// Remove unneeded cast
 struct CastRemover : public BasicTypingCloneVisitor {
     virtual ValueInst* visit(::CastInst* inst)
     {

@@ -38,9 +38,9 @@ struct Printable : public virtual Garbageable {
     virtual ~Printable() {}
 };
 
-// ==========================
+// ========================
 //  Base classes for types
-// ==========================
+// ========================
 
 struct InstVisitor;
 struct CloneVisitor;

@@ -643,7 +643,7 @@ class FBCLLVMCompiler {
                         LLVMBuildICmp(fBuilder, LLVMIntEQ, popValue(), genInt32(1), "select_cond");
                     LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
 
-                    // Create blocks for the then and else cases.  Insert the 'then' block at the end of the function
+                    // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
                     LLVMBasicBlockRef then_block  = LLVMAppendBasicBlock(function, "then_block");
                     LLVMBasicBlockRef else_block  = LLVMAppendBasicBlock(function, "else_block");
                     LLVMBasicBlockRef merge_block = LLVMAppendBasicBlock(function, "merge_block");

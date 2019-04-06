@@ -212,7 +212,7 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
             }
             *out << std::endl;
         }
-        for (unsigned int i = 0; i < fNumTable.size(); i++) {
+        for (size_t i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
         }
         *out << std::endl;
@@ -254,7 +254,7 @@ struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
             }
             *out << std::endl;
         }
-        for (unsigned int i = 0; i < fNumTable.size(); i++) {
+        for (size_t i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
         }
         *out << std::endl;

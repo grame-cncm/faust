@@ -29,20 +29,6 @@
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
-#include <llvm/Support/FileSystem.h>
-
-#define sysfs_binary_flag sys::fs::F_None
-
-#if defined(LLVM_35)
-#define STREAM_ERROR string
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
-#else
-#define STREAM_ERROR std::error_code
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-#endif
-
 using namespace std;
 using namespace llvm;
 
@@ -51,10 +37,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
     using CodeContainer::generateFillFun;
     using CodeContainer::generateInstanceInitFun;
 
-    IRBuilder<>* fBuilder;
-
-    LLVMInstVisitor* fCodeProducer;
-
+    IRBuilder<>*      fBuilder;
+    LLVMInstVisitor*  fCodeProducer;
     StructInstVisitor fStructVisitor;
 
     Module*      fModule;

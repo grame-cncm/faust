@@ -211,7 +211,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     pushAllocateMethod(
         InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
 
-    for (unsigned int i = 0; i < ready_loop.size(); i++) {
+    for (size_t i = 0; i < ready_loop.size(); i++) {
         list<ValueInst*> fun_args;
         fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
         fun_args.push_back(InstBuilder::genInt32NumInst(ready_loop[i]));
