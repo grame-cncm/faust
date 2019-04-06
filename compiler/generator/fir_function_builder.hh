@@ -239,7 +239,6 @@ Constant propagation :
 
 1) changer des variables en constantes dans le code initial
 2) cloner le code avec ConstantPropagationCloneVisitor
-
 */
 
 struct ConstantPropagationBuilder : public BasicCloneVisitor {

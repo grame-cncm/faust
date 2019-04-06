@@ -43,25 +43,8 @@
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
-
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
-#else
-#include <llvm/Bitcode/ReaderWriter.h>
-#endif
-
-#if defined(LLVM_35)
-#include <llvm-c/Core.h>
-#include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/PassManager.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/Host.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Target/TargetLibraryInfo.h>
-#endif
 
 using namespace llvm;
 using namespace std;
@@ -123,10 +106,8 @@ uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
 
 bool llvm_dsp_factory_aux::crossCompile(const string& target)
 {
-#ifndef LLVM_35
     delete fObjectCache;
     fObjectCache = new FaustObjectCache();
-#endif
     setTarget(target);
     string error;
     return initJIT(error);
@@ -152,7 +133,6 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
 llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target)
     : dsp_factory_imp("MachineDSP", sha_key, "")
 {
-#ifndef LLVM_35
     startLLVMLibrary();
 
     init("MachineDSP", "");
@@ -166,9 +146,6 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     fContext = new LLVMContext();
     fModule  = new Module(string(LLVM_BACKEND_NAME) + ", v" + string(FAUSTVERSION), *fContext);
     fDecoder = nullptr;
-#else
-#warning "machine code is not supported..."
-#endif
 }
 
 llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module, LLVMContext* context,
@@ -185,16 +162,12 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
     fModule  = module;
     fContext = context;
     fDecoder = nullptr;
-#ifndef LLVM_35
     fObjectCache = nullptr;
-#endif
 }
 
 llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 {
-#ifndef LLVM_35
     delete fObjectCache;
-#endif
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
@@ -248,12 +221,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     LLVMLinkInMCJIT();
 
     // Restoring from machine code
-#if defined(LLVM_35)
-    EngineBuilder builder(fModule);
-#else
     EngineBuilder builder((unique_ptr<Module>(fModule)));
-#endif
-
     string buider_error;
     builder.setErrorStr(&buider_error);
     TargetMachine* tm = builder.selectTarget();
@@ -263,10 +231,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         return false;
     }
 
-#ifndef LLVM_35
     fJIT->setObjectCache(fObjectCache);
-#endif
-
     fJIT->finalizeObject();
     return initJITAux(error_msg);
 }
@@ -523,7 +488,6 @@ EXPORT void deleteAllDSPFactories()
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
 {
-#ifndef LLVM_35
     if (target == "" || target == getTarget()) {
         return fObjectCache->getMachineCode();
     } else {
@@ -536,10 +500,6 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
             return "";
         }
     }
-#else
-#warning "machine code is not supported..."
-    return "";
-#endif
 }
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachine(const string& target)
@@ -549,22 +509,17 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachine(const string& target)
 
 bool llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target)
 {
-#ifndef LLVM_35
     STREAM_ERROR   err;
     raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
     if (err) {
-        std::cerr << "ERROR : writeDSPFactoryToMachineFile could not open file : " << err.message();
+        cerr << "ERROR : writeDSPFactoryToMachineFile could not open file : " << err.message();
         return false;
     }
     out << writeDSPFactoryToMachineAux(target);
     out.flush();
     return true;
-#else
-#warning "machine code is not supported..."
-#endif
 }
 
-#ifndef LLVM_35
 llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target,
                                                                      string& error_msg)
 {
@@ -590,26 +545,19 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
         }
     }
 }
-#endif
 
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
-#ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(
         MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
-#else
-#warning "machine code is not supported..."
-    return nullptr;
-#endif
 }
 
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
                                                        string& error_msg)
 {
-#ifndef LLVM_35
     TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
@@ -623,10 +571,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
             return nullptr;
         }
     }
-#else
-#warning "machine code is not supported..."
-    return nullptr;
-#endif
 }
 
 EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
@@ -642,8 +586,8 @@ EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
     return (factory) ? factory->writeDSPFactoryToMachineFile(machine_code_path, target) : false;
 }
 
-EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const std::string& object_code_path,
-                                            const std::string& target)
+EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path,
+                                            const string& target)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     return (factory) ? factory->writeDSPFactoryToObjectcodeFile(object_code_path, target) : false;

@@ -31,6 +31,9 @@
 #include "llvm_dynamic_dsp_aux.hh"
 #include "llvm_instructions.hh"
 
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
+
 using namespace std;
 
 /*
@@ -61,19 +64,10 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
     fModule = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *fContext);
-#if defined(LLVM_35)
-    fModule->setDataLayout(
-        "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-"
-        "s0:64:64-f80:128:128-n8:16:32:64-S128");
-#endif
     fBuilder = new IRBuilder<>(*fContext);
 
     // Check pointer size
-#ifndef LLVM_35
     faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout().getPointerSize())));
-#else
-    faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout()->getPointerSize())));
-#endif
 
     // Set "-fast-math"
     FastMathFlags FMF;
@@ -82,12 +76,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
-#if defined(LLVM_35)
-    fBuilder->SetFastMathFlags(FMF);
-#else
     fBuilder->setFastMathFlags(FMF);
-#endif
-
     fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 }
 
@@ -107,11 +96,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
-#if defined(LLVM_35)
-    fBuilder->SetFastMathFlags(FMF);
-#else
     fBuilder->setFastMathFlags(FMF);
-#endif
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -157,8 +142,7 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
     generateDeclarations(&fStructVisitor);
 
     DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
-    // dump2FIR(dec_type);
-
+  
     LLVMType dsp_type = type_helper.convertFIRType(dec_type->fType);
     return PointerType::get(dsp_type, 0);
 }
@@ -178,7 +162,7 @@ void LLVMCodeContainer::generateGetJSON()
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
 
-    std::map<std::string, int> path_index_table;
+    map<string, int> path_index_table;
     for (auto& it : json_visitor1.fPathTable) {
         // Get field index
         path_index_table[it.second] = fStructVisitor.getFieldOffset(it.first);
@@ -232,13 +216,11 @@ void LLVMCodeContainer::generateFunMaps()
 void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body)
 {
     Typed::VarType type = itfloat();
-
     string fun1 = fun1_aux + isuffix();
     string fun2 = fun2_aux + isuffix();
 
     list<NamedTyped*> args1;
     list<ValueInst*>  args2;
-
     for (int i = 0; i < num_args; i++) {
         string var = gGlobal->getFreshID("val");
         args1.push_back(InstBuilder::genNamedTyped(var, type));
@@ -260,7 +242,6 @@ void LLVMCodeContainer::produceInternal()
 {
     // Generate DSP structure
     llvm::PointerType* dsp_ptr = generateDspStruct();
-
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
 
     /// Memory methods
@@ -277,7 +258,6 @@ void LLVMCodeContainer::produceInternal()
     generateGlobalDeclarations(fCodeProducer);
 
     generateInstanceInitFun("instanceInit" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-
     generateFillFun("fill" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 }
 
@@ -287,7 +267,6 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateSubContainers();
 
     llvm::PointerType* dsp_ptr = generateDspStruct();
-
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
 
     generateFunMaps();
@@ -297,13 +276,9 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateGlobalDeclarations(fCodeProducer);
 
     generateStaticInitFun("classInit" + fKlassName, false)->accept(fCodeProducer);
-
     generateInstanceClear("instanceClear" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-
     generateInstanceConstants("instanceConstants" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-
     generateAllocate("allocate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-
     generateDestroy("destroy" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 
     generateGetJSON();

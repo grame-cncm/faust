@@ -39,26 +39,10 @@
 #include "smartpointer.h"
 #include "timing.hh"
 
-#if defined(LLVM_35) || defined(LLVM_38)
-#define __STDC_LIMIT_MACROS
-#define __STDC_CONSTANT_MACROS
-#endif
-
 #include <llvm/ExecutionEngine/ObjectCache.h>
 
 #define LLVM_MAX_OPT_LEVEL 5
 
-#if defined(LLVM_35)
-#define STREAM_ERROR std::string
-#define MEMORY_BUFFER llvm::MemoryBuffer*
-#define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
-#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-#define MEMORY_BUFFER_CREATE(stringref) (llvm::MemoryBuffer::getMemBuffer(stringref))
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
-#define PASS_MANAGER legacy::PassManager
-#define FUNCTION_PASS_MANAGER FunctionPassManager
-#else
 #define STREAM_ERROR std::error_code
 #define MEMORY_BUFFER llvm::MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
@@ -68,8 +52,6 @@
 #define MovePTR(ptr) std::move(ptr)
 #define PASS_MANAGER legacy::PassManager
 #define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
-#endif
-
 #define sysfs_binary_flag sys::fs::F_None
 #define OwningPtr std::unique_ptr
 #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
@@ -128,7 +110,6 @@ class EXPORT llvm_dsp : public dsp {
     virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
-#ifndef LLVM_35
 class FaustObjectCache : public llvm::ObjectCache {
    private:
     std::string fMachineCode;
@@ -150,7 +131,6 @@ class FaustObjectCache : public llvm::ObjectCache {
 
     std::string getMachineCode() { return fMachineCode; }
 };
-#endif
 
 typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
 
@@ -158,11 +138,8 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     friend class llvm_dsp;
 
    protected:
-    llvm::ExecutionEngine* fJIT;
-
-#ifndef LLVM_35
-    FaustObjectCache* fObjectCache;
-#endif
+    llvm::ExecutionEngine*  fJIT;
+    FaustObjectCache*       fObjectCache;
     llvm::Module*           fModule;
     llvm::LLVMContext*      fContext;
     JSONUITemplatedDecoder* fDecoder;

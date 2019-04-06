@@ -519,9 +519,9 @@ struct VectorTyped : public Typed {
 struct NumValueInst {
 };
 
-// ============
+// ===========
 //  Addresses
-// ============
+// ===========
 
 struct Address : public Printable {
     enum AccessType {
@@ -1019,9 +1019,9 @@ struct BitcastInst : public ValueInst {
     virtual int size() { return fInst->size(); }
 };
 
-// ==============
+// =============
 // Control flow
-// ==============
+// =============
 
 struct BlockInst : public StatementInst {
     list<StatementInst*> fCode;
@@ -1236,9 +1236,9 @@ struct WhileLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-// =====================
+// ====================
 // Basic clone visitor
-// =====================
+// ====================
 
 class BasicCloneVisitor : public CloneVisitor {
    protected:
@@ -1445,9 +1445,9 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 };
 
-// ========================
+// =======================
 // Basic dispatch visitor
-// ========================
+// =======================
 
 struct DispatchVisitor : public InstVisitor {
     using InstVisitor::visit;
@@ -1672,9 +1672,9 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
     virtual void visit(Select2Inst* inst) { Dispatch2Visitor(inst); }
 };
 
-// ========================
+// ===================
 // Combining visitors
-// ========================
+// ===================
 
 class CombinerVisitor : public DispatchVisitor {
    protected:
@@ -1688,9 +1688,9 @@ class CombinerVisitor : public DispatchVisitor {
     virtual ~CombinerVisitor() {}
 };
 
-// =======================
+// ======================
 // Instruction generator
-// =======================
+// ======================
 
 struct InstBuilder {
     // User interface
