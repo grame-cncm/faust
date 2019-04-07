@@ -46,6 +46,8 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
 
+using namespace llvm;
+
 #define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(0, v1, v2);
 #define MakeConstGEP32(type_def, llvm_name) fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
@@ -68,8 +70,6 @@
         out_str << *val;                 \
         cout << out_str.str() << endl;   \
     }
-
-using namespace llvm;
 
 // Helper class
 
@@ -128,16 +128,25 @@ struct LLVMTypeHelper {
 
     virtual ~LLVMTypeHelper() {}
 
+    // Value generation
     LLVMValue genInt1(int num) { return ConstantInt::get(llvm::Type::getInt1Ty(fModule->getContext()), num); }
-
     LLVMValue genInt32(int num) { return ConstantInt::get(llvm::Type::getInt32Ty(fModule->getContext()), num); }
-
     LLVMValue genInt64(long long num) { return ConstantInt::get(llvm::Type::getInt64Ty(fModule->getContext()), num); }
-
     LLVMValue genFloat(float num) { return ConstantFP::get(fModule->getContext(), APFloat(num)); }
-
     LLVMValue genDouble(double num) { return ConstantFP::get(fModule->getContext(), APFloat(num)); }
+   
+    LLVMValue genArray(LLVMType type, const vector<Constant*>& num_array)
+    {
+        ArrayType* array_type = ArrayType::get(type, num_array.size());
+        return ConstantArray::get(array_type, num_array);
+    }
+    
+    GlobalVariable* genGlovalVar(LLVMType type, bool is_const, const string& name)
+    {
+        return new GlobalVariable(*fModule, type, is_const, GlobalValue::InternalLinkage, 0, name);
+    }
 
+    // Type generation
     LLVMType getFloatTy() { return llvm::Type::getFloatTy(fModule->getContext()); }
     LLVMType getDoubleTy() { return llvm::Type::getDoubleTy(fModule->getContext()); }
     LLVMType getInt32Ty() { return llvm::Type::getInt32Ty(fModule->getContext()); }
@@ -146,16 +155,17 @@ struct LLVMTypeHelper {
     LLVMType getInt8Ty() { return llvm::Type::getInt8Ty(fModule->getContext()); }
     LLVMType getInt8TyPtr() { return PointerType::get(getInt8Ty(), 0); }
     LLVMType getTyPtr(LLVMType type) { return PointerType::get(type, 0); }
-
-    LLVMValue genArray(LLVMType type, const vector<Constant*>& num_array)
+    
+    LLVMType getStructType(const string& name, const LLVMVecTypes& types)
     {
-        ArrayType* array_type = ArrayType::get(type, num_array.size());
-        return ConstantArray::get(array_type, num_array);
-    }
-
-    GlobalVariable* genGlovalVar(LLVMType type, bool is_const, const string& name)
-    {
-        return new GlobalVariable(*fModule, type, is_const, GlobalValue::InternalLinkage, 0, name);
+        // We want to have a unique creation for struct types, so check if the given type has already been created
+        StructType* struct_type = fModule->getTypeByName(name);
+        if (!struct_type) {
+            struct_type = StructType::create(fModule->getContext(), name);
+            // Create "packed" struct type to match the size of C++ "packed" defined ones
+            struct_type->setBody(makeArrayRef(types), true);
+        }
+        return struct_type;
     }
 
     // Convert FIR types to LLVM types
@@ -185,24 +195,14 @@ struct LLVMTypeHelper {
             for (auto& it : struct_typed->fFields) {
                 llvm_types.push_back(convertFIRType(it));
             }
-            return createStructType("struct.dsp" + struct_typed->fName, llvm_types);
+            return getStructType("struct.dsp" + struct_typed->fName, llvm_types);
         } else {
+            
             faustassert(false);
             return nullptr;
         }
     }
 
-    llvm::StructType* createStructType(const string& name, const LLVMVecTypes& types)
-    {
-        // We want to have a unique creation for struct types: check if the given type has already been created
-        StructType* struct_type = fModule->getTypeByName(name);
-        if (!struct_type) {
-            struct_type = StructType::create(fModule->getContext(), name);
-            // Create "packed" struct type to match the size of C++ "packed" defined ones
-            struct_type->setBody(makeArrayRef(types), true);
-        }
-        return struct_type;
-    }
 };
 
 // LLVM code generator
@@ -431,7 +431,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
             // Return type
-            LLVMType return_type = fTypeMap[inst->fType->fResult->getType()];
+            LLVMType return_type = fTypeMap[inst->getResType()];
 
             // Prepare vector of LLVM types for args
             LLVMVecTypes fun_args_type;
@@ -441,7 +441,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Creates function
             FunctionType* fun_type = FunctionType::get(return_type, makeArrayRef(fun_args_type), false);
-            
             function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal
                                                    || inst->fType->fAttribute & FunTyped::kStatic)
                                         ? GlobalValue::InternalLinkage
@@ -467,7 +466,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 BasicBlock* entry_block = genBlock("entry_block", function);
 
                 fBuilder->SetInsertPoint(entry_block);
-                // "Alloca" in first "entry_bock" are mandatory so that vectorization passes correctly work.
+                // "Alloca" in first "entry_bock" are mandatory so that vectorization passes correctly work
                 fAllocaBuilder->SetInsertPoint(entry_block);
 
                 // Compile code in this block
@@ -530,7 +529,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // We want to see array like [256 x float] as a float*
             load_ptr = loadArrayAsPointer(fModule->getGlobalVariable(name, true));
         } else {
-            // Default
             faustassert(false);
             return nullptr;
         }
@@ -559,9 +557,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
     }
     
-    //==============
+    //=============
     // LoadVarInst
-    //==============
+    //=============
     
     virtual void visit(LoadVarInst* inst)
     {
@@ -669,7 +667,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fInst2->accept(this);
         LLVMValue res2 = fCurValue;
 
-        fCurValue = generateBinopAux(inst->fOpcode, res1, res2);
+        fCurValue = generateBinop(inst->fOpcode, res1, res2);
     }
 
     //======
@@ -737,7 +735,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             case Typed::kQuad:
             default:
-                // No supposed to happen
                 faustassert(false);
                 break;
         }
@@ -748,25 +745,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Compile exp to bitcast, result in fCurValue
         inst->fInst->accept(this);
         fCurValue = fBuilder->CreateBitCast(fCurValue, fTypeMap[inst->fType->getType()]);
-    }
-
-    void generateFunPolymorphicMinMax(FunCallInst* inst)
-    {
-        // Compile all arguments
-        vector<LLVMValue> fun_args;
-        for (auto& it : inst->fArgs) {
-            // Each argument is compiled and result is in fCurValue
-            it->accept(this);
-            fun_args.push_back(fCurValue);
-        }
-
-        if (checkMin(inst->fName) && fun_args.size() == 2) {
-            fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], kLT);
-        } else if (checkMax(inst->fName) && fun_args.size() == 2) {
-            fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], kGT);
-        } else {
-            faustassert(false);
-        }
     }
 
     //=========
@@ -797,26 +775,28 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     virtual void visit(FunCallInst* inst)
     {
-        // Min/max are internally generated
-        if (checkMinMax(inst->fName)) {
-            generateFunPolymorphicMinMax(inst);
-            return;
-        }
-
-        // Compile arguments
-        Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
-        faustassert(function);
-
-        Function::arg_iterator arg = function->arg_begin();
-        vector<LLVMValue>      fun_args;
+        // Compile function arguments
+        vector<LLVMValue> fun_args;
         for (auto& it : inst->fArgs) {
             // Each argument is compiled and result is in fCurValue
             it->accept(this);
             fun_args.push_back(fCurValue);
         }
+        
+        // Min/max are internally generated
+        if (checkMin(inst->fName) && fun_args.size() == 2) {
+            fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kLT);
+        } else if (checkMax(inst->fName) && fun_args.size() == 2) {
+            fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kGT);
+        } else {
+            
+            // Get function in the module
+            Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
+            faustassert(function);
 
-        // Result is function call
-        fCurValue = CreateFuncall(function, fun_args);
+            // Result is function call
+            fCurValue = CreateFuncall(function, fun_args);
+        }
     }
 
     virtual void visit(Select2Inst* inst)
@@ -851,9 +831,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Function* function = fBuilder->GetInsertBlock()->getParent();
 
         // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
-        BasicBlock* then_block  = genBlock("then_code", function);
-        BasicBlock* else_block  = genBlock("else_code");
-        BasicBlock* merge_block = genBlock("if_end_code");
+        BasicBlock* then_block  = genBlock("then_block", function);
+        BasicBlock* else_block  = genBlock("else_block");
+        BasicBlock* merge_block = genBlock("if_end_block");
 
         fBuilder->CreateCondBr(cond_value, then_block, else_block);
 
@@ -1074,7 +1054,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fCond->accept(this);
 
         // Creates "default" block
-        BasicBlock* default_block = genBlock("default", function);
+        BasicBlock* default_block = genBlock("default_block", function);
 
         // Creates switch
         llvm::SwitchInst* switch_inst = fBuilder->CreateSwitch(fCurValue, default_block, inst->fCode.size());
@@ -1083,7 +1063,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
             if ((*it).first != -1) {  // All cases but "default"
                 // Creates "case" block
-                BasicBlock* case_block = genBlock("case", function);
+                BasicBlock* case_block = genBlock("case_block", function);
                 // Move insertion in case_block
                 fBuilder->SetInsertPoint(case_block);
                 // Compiles "case" block
@@ -1123,16 +1103,31 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     // Helper code
     //=============
 
-    LLVMValue generateBinOpReal(int op, LLVMValue arg1, LLVMValue arg2)
+    LLVMValue generateBinop(int opcode, LLVMValue arg1, LLVMValue arg2)
     {
-        if (isBoolOpcode(op)) {
+        // Arguments are casted if needed in InstructionsCompiler::generateBinOp
+        faustassert(arg1->getType() == arg2->getType());
+        
+        if (arg1->getType() == getFloatTy() || arg1->getType() == getDoubleTy()) {
+            return generateBinOpReal(opcode, arg1, arg2);
+        } else if (arg1->getType() == getInt32Ty() || arg1->getType() == getInt64Ty()) {
+            return generateBinOpInt(opcode, arg1, arg2);
+        } else {
+            faustassert(false);
+            return nullptr;
+        }
+    }
+
+    LLVMValue generateBinOpReal(int opcode, LLVMValue arg1, LLVMValue arg2)
+    {
+        if (isBoolOpcode(opcode)) {
             LLVMValue comp_value =
-                fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[op]->fLLVMFloatInst, arg1, arg2);
+                fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
             // Inst result for comparison
             return fBuilder->CreateSelect(comp_value, genInt32(1), genInt32(0));
         } else {
             LLVMValue value =
-                fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[op]->fLLVMFloatInst, arg1, arg2);
+                fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
             Instruction* inst = cast<Instruction>(value);
             inst->setMetadata(LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
             inst->setFastMathFlags(fBuilder->getFastMathFlags());
@@ -1151,25 +1146,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMIntInst, arg1, arg2);
         }
     }
-
-    LLVMValue generateBinopAux(int opcode, LLVMValue arg1, LLVMValue arg2)
-    {
-        // Arguments are casted if needed in InstructionsCompiler::generateBinOp
-        faustassert(arg1->getType() == arg2->getType());
-
-        if (arg1->getType() == getFloatTy() || arg1->getType() == getDoubleTy()) {
-            return generateBinOpReal(opcode, arg1, arg2);
-        } else if (arg1->getType() == getInt32Ty() || arg1->getType() == getInt64Ty()) {
-            return generateBinOpInt(opcode, arg1, arg2);
-        } else {
-            // Should not happen
-            cerr << "generateBinopAux" << endl;
-            faustassert(false);
-            return nullptr;
-        }
-    }
-
-    LLVMValue generateFunPolymorphicMinMaxAux(LLVMValue arg1, LLVMValue arg2, int comp)
+    
+    LLVMValue generateFunPolymorphicMinMax(LLVMValue arg1, LLVMValue arg2, int comp)
     {
         faustassert(arg1->getType() == arg2->getType());
 
@@ -1182,8 +1160,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMIntInst, arg1, arg2);
             return fBuilder->CreateSelect(comp_value, arg1, arg2);
         } else {
-            // Should not happen
-            cerr << "generateFunPolymorphicMinMaxAux" << endl;
             faustassert(false);
             return nullptr;
         }

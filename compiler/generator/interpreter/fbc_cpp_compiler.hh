@@ -621,10 +621,8 @@ class FBCCPPCompiler {
                 }
 
                 default:
-                    // Should not happen
-                    //(*it)->write(&std::cout);
-                    it++;
-                    // faustassert(false);
+                    (*it)->write(&std::cout);
+                    faustassert(false);
                     break;
             }
         }

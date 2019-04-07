@@ -49,6 +49,19 @@ Here are the available options:
 
 Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
 
+## dynamic-machine-jack-gtk
+
+The **dynamic-machine-jack-gtk** tool runs a previously compiled Faust program (as FBC, that is as 'Faust Byte Code') in the Interpreter backend, configurated to use the FBC => LLVM IR => executable code chain. 
+
+`dynamic-machine-jack-gtk [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc`
+
+Here are the available options:
+
+- `-nvoices N to start the DSP in polyphonic mode with N voices`
+- `-midi to activate MIDI control`
+- `-osc to activate OSC control`
+- `-httpd to activate HTTPD control`
+
 ## interp-tracer
 
 The **interp-tracer** tool runs and instruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN or INTEGER_OVERFLOW values are produced. The -control mode allows to check control parameters, by explicitly setting their *min* and *max* values (for now).
