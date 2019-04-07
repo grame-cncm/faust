@@ -1150,7 +1150,9 @@ struct DeclareFunInst : public StatementInst {
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
     virtual ~DeclareFunInst() {}
-
+    
+    Typed::VarType getResType() { return fType->fResult->getType(); }
+  
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }

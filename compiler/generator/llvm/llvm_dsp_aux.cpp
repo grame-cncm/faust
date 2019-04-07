@@ -492,9 +492,9 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
         return fObjectCache->getMachineCode();
     } else {
         string old_target = getTarget();
-        if (crossCompile(target)) {  // Recompilation is required
+        if (crossCompile(target)) {     // Recompilation is required
             string machine_code = fObjectCache->getMachineCode();
-            crossCompile(old_target);  // Restore old target
+            crossCompile(old_target);   // Restore old target
             return machine_code;
         } else {
             return "";

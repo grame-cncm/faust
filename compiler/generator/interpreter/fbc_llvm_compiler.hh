@@ -726,7 +726,6 @@ class FBCLLVMCompiler {
                 }
 
                 default:
-                    // Should not happen
                     (*it)->write(&std::cout);
                     faustassert(false);
                     break;
