@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (nvoices <= 0) {
         cout << "Cannot start polyphonic with 0 voice\n";

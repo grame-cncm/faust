@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {

@@ -88,7 +88,7 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
 {
     stringstream error;
 
-    if (symbol == NULL) {
+    if (!symbol) {
         error << "ERROR : inconsistent number of parameters in pattern-matching rule: "
         << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
         << " previous rule was: "
@@ -108,29 +108,28 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
 
 Tree checkRulelist(Tree lr)
 {
-	Tree lrules = lr;
-	if (isNil(lrules)) {
+    Tree lrules = lr;
+    if (isNil(lrules)) {
         stringstream error;
         error << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl;
         throw faustexception(error.str());
     }
-	// first pattern used as a reference
-	Tree lhs1 = hd(hd(lrules));
-	Tree rhs1 = tl(hd(lrules));
-	int npat = len(lhs1);
-	lrules = tl(lrules);
-	while (!isNil(lrules)) {
-		Tree lhs2 = hd(hd(lrules));
-		Tree rhs2 = tl(hd(lrules));
-		if (npat != len(lhs2)) {
-            throw faustexception(printPatternError(NULL, lhs1, rhs1, lhs2, rhs2));
-		}
-
-		lhs1 = lhs2;
-		rhs1 = rhs2;
-		lrules = tl(lrules);
-	}
-	return lr;
+    // first pattern used as a reference
+    Tree lhs1 = hd(hd(lrules));
+    Tree rhs1 = tl(hd(lrules));
+    int npat = len(lhs1);
+    lrules = tl(lrules);
+    while (!isNil(lrules)) {
+        Tree lhs2 = hd(hd(lrules));
+        Tree rhs2 = tl(hd(lrules));
+        if (npat != len(lhs2)) {
+            throw faustexception(printPatternError(nullptr, lhs1, rhs1, lhs2, rhs2));
+        }
+        lhs1 = lhs2;
+        rhs1 = rhs2;
+        lrules = tl(lrules);
+    }
+    return lr;
 }
 
 static string printRedefinitionError(Tree symbol, list<Tree>& variants)
@@ -183,7 +182,7 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
             throw faustexception(printRedefinitionError(symbol, variants));
         }
 
-		for (p=variants.begin(); p!=variants.end(); p++) {
+		for (p = variants.begin(); p != variants.end(); p++) {
 			Tree cur = *p;
 			if ((npat == 0) || (npat != len(hd(cur)))) {
                 throw faustexception(printPatternError(symbol, hd(prev), tl(prev), hd(cur), tl(cur)));
@@ -311,23 +310,32 @@ Tree SourceReader::parseFile(const char* fname)
 		}
 
     #ifdef EMCC
-        // Try to open with the complete URL
-        Tree res = 0;
-        for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
-            if (isURL(gGlobal->gImportDirList[i].c_str())) {
-                // Keep the created filename in the global state, so that the 'yyfilename'
-                // global variable always points to a valid string
-                gGlobal->gImportFilename = gGlobal->gImportDirList[i] + fname;
-                if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
+        string fullpath;
+        // Try to open local file
+        FILE* tmp_file = yyin = fopenSearch(yyfilename, fullpath); // Keep file to properly close it
+        if (yyin) {
+            Tree res = parseLocal(fullpath.c_str());
+            fclose(tmp_file);
+            return res;
+        } else {
+            // Try to open with the complete URL
+            Tree res = 0;
+            for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
+                if (isURL(gGlobal->gImportDirList[i].c_str())) {
+                    // Keep the created filename in the global state, so that the 'yyfilename'
+                    // global variable always points to a valid string
+                    gGlobal->gImportFilename = gGlobal->gImportDirList[i] + fname;
+                    if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
+                }
             }
+            stringstream error;
+            error << "ERROR : unable to open file " << yyfilename << endl;
+            throw faustexception(error.str());
         }
-        stringstream error;
-        error << "ERROR : unable to open file " << yyfilename << endl;
-        throw faustexception(error.str());
     #else
         string fullpath;
         FILE* tmp_file = yyin = fopenSearch(yyfilename, fullpath); // Keep file to properly close it
-        if (yyin == NULL) {
+        if (!yyin) {
             stringstream error;
             error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
@@ -344,11 +352,10 @@ Tree SourceReader::parseString(const char* fname)
     yyerr = 0;
     yylineno = 1;
     yyfilename = fname;
-
     yy_scan_string(gGlobal->gInputString);
 
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
-    gGlobal->gInputString = NULL;
+    gGlobal->gInputString = nullptr;
     return parseLocal(fname);
 }
 
@@ -393,7 +400,6 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 
     // for each definition def of ldef
 	for ( ;!isNil(ldef); ldef = tl(ldef)) {
-
 		Tree def = hd(ldef);
         Tree fname;
 		if (isNil(def)) {
@@ -424,9 +430,7 @@ Tree SourceReader::getList(const char* fname)
 	if (!cached(fname)) {
         // Previous metadata need to be cleared before parsing a file
         gGlobal->gFunMDSet.clear();
-
         Tree ldef = (gGlobal->gInputString) ? parseString(fname) : parseFile(fname);
-
         // Definitions with metadata have to be wrapped into a boxMetadata construction
         fFileCache[fname] = addFunctionMetadata(ldef, gGlobal->gFunMDSet);
 	}
@@ -483,7 +487,6 @@ Tree SourceReader::expandRec(Tree ldef, set<string>& visited, Tree lresult)
 				visited.insert(f);
 				lresult = expandRec(getList(f), visited, lresult);
 			}
-
 		} else {
 			lresult = cons(d, lresult);
 		}
