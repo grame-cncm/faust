@@ -46,11 +46,9 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     void addMeta()
     {
         if (fMetaAux.size() > 0) {
-            fOut << ", ";
             for (size_t i = 0; i < fMetaAux.size(); i++) {
                 if (!std::isdigit(fMetaAux[i].first[0])) {
-                    fOut << fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
-                    if (i < fMetaAux.size() - 1) fOut << ", ";
+                    fOut << ", " << fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
                 }
             }
         }
@@ -66,14 +64,19 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-            << replaceCharList(inst->fLabel, rep, '_')
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ label: " << quote(inst->fLabel)
-            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f ]];";
+            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
+            addMeta();
+            fOut << " ]];";
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " event" << inst->fZone
             << " [[ label: " << quote(inst->fLabel)
-            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f ]];";
+            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
+            addMeta();
+            fOut << " ]];";
         }
         tab(fTab, fOut);
     }
@@ -82,22 +85,23 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-            << replaceCharList(inst->fLabel, rep, '_')
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ label: " << quote(inst->fLabel)
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
-            << ", step: " <<  checkReal(inst->fStep);
+            << ", step: " << checkReal(inst->fStep);
             addMeta();
             fOut << " ]];";
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " event" << inst->fZone
             << " [[ label: " << quote(inst->fLabel)
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
-            << ", step: " <<  checkReal(inst->fStep);
+            << ", step: " << checkReal(inst->fStep);
             addMeta();
             fOut << " ]];";
         }
@@ -108,15 +112,16 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-            << quote(replaceCharList(inst->fLabel, rep, '_'))
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
             << " [[ label: " << inst->fLabel
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
             fOut << " ]];";
         } else {
-            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " event" << inst->fZone
             << " [[ label: " << quote(inst->fLabel)
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
