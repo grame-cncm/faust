@@ -182,7 +182,7 @@ void SOULCodeContainer::produceClass()
 
     // Processor generation
     tab(n, *fOut);
-    *fOut << "processor " << fKlassName << "()";
+    *fOut << "processor " << fKlassName;
     tab(n, *fOut);
     *fOut << "{";
 
