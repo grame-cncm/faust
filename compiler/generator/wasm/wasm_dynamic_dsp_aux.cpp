@@ -47,7 +47,7 @@ wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(cons
     for (size_t i = 0; i < argv.size(); i++) {
         argv1[argc1++] = argv[i].c_str();
     }
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
 
     wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc1, argv1,
                                                                wasm_dsp_factory::gErrorMessage, internal_memory);
@@ -93,7 +93,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
-        argv1[argc1] = 0;  // NULL terminated argv
+        argv1[argc1] = nullptr;  // NULL terminated argv
 
         dsp_factory_table<SDsp_factory>::factory_iterator it;
 
@@ -136,7 +136,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
     for (int i = 0; i < argc; i++) {
         argv1[argc1++] = argv[i];
     }
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
 
     dsp_factory_base* dsp_factory_aux =
         compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);

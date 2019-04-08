@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (out_filename == "") {
         cerr << "ERROR : no output file given...\n";
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
     } else  {
-        cerr << "ERROR : unrognized file extension " << out_filename << "\n";
+        cerr << "ERROR : unrecognized file extension " << out_filename << "\n";
         exit(EXIT_FAILURE);
     }
      

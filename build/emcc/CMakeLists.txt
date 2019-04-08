@@ -14,7 +14,7 @@ endif()
 set (WASM_EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_deleteAllWasmCDSPFactories', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException', '_generateCAuxFilesFromString']\"")
 set (WASM_EXTRA_EXPORTED "\"['cwrap', 'UTF8ToString', 'stringToUTF8', 'FS']\"")
 
-set (WASM_LINK_FLAGS "--bind -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=${WASM_EXPORTED} -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED}")
+set (WASM_LINK_FLAGS "--bind -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --embed-file ../../../wasm-libraries@libraries -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=${WASM_EXPORTED} -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED}")
 
 
 ####################################
@@ -27,7 +27,7 @@ set_target_properties (wasmlib PROPERTIES
 		LINK_FLAGS ${WASM_LINK_FLAGS})
 
 set_target_properties(wasmlib PROPERTIES  
-		COMPILE_FLAGS  -O3 
+		COMPILE_FLAGS -O3 
 		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
 		SUFFIX ".js" )
 
