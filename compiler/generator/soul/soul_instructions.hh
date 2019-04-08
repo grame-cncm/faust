@@ -24,6 +24,8 @@
 
 #include <sstream>
 #include <string>
+#include <vector>
+#include <utility>
 
 #include "Text.hh"
 #include "text_instructions.hh"
@@ -34,19 +36,43 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     std::stringstream     fOut;
     SOULStringTypeManager fTypeManager;
     int                   fTab;
+    std::vector<std::pair <std::string, std::string> > fMetaAux;
 
     using DispatchVisitor::visit;
 
     SOULInstUIVisitor(int tab) : fTypeManager(FLOATMACRO, "*"), fTab(tab) {}
-
+    
+    void addMeta()
+    {
+        if (fMetaAux.size() > 0) {
+            fOut << ", ";
+            for (size_t i = 0; i < fMetaAux.size(); i++) {
+                if (!std::isdigit(fMetaAux[i].first[0])) {
+                    fOut << fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
+                    if (i < fMetaAux.size() - 1) fOut << ", ";
+                }
+            }
+        }
+        fMetaAux.clear();
+    }
+   
+    virtual void visit(AddMetaDeclareInst* inst)
+    {
+        fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
+    }
+   
     virtual void visit(AddButtonInst* inst)
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << replaceCharList(inst->fLabel, rep, '_') << ";";
+            << replaceCharList(inst->fLabel, rep, '_')
+            << " [[ label: " << quote(inst->fLabel)
+            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f ]];";
         } else {
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone << ";";
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
+            << " [[ label: " << quote(inst->fLabel)
+            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f ]];";
         }
         tab(fTab, fOut);
     }
@@ -56,12 +82,23 @@ struct SOULInstUIVisitor : public DispatchVisitor {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << replaceCharList(inst->fLabel, rep, '_') << " [[ min: " << checkReal(inst->fMin)
-                 << ", max: " << checkReal(inst->fMax) << ", default: " << checkReal(inst->fInit) << " ]];";
+            << replaceCharList(inst->fLabel, rep, '_')
+            << " [[ label: " << quote(inst->fLabel)
+            << ", min: " << checkReal(inst->fMin)
+            << ", max: " << checkReal(inst->fMax)
+            << ", init: " << checkReal(inst->fInit)
+            << ", step: " <<  checkReal(inst->fStep);
+            addMeta();
+            fOut << " ]];";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
-                 << " [[ min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                 << ", default: " << checkReal(inst->fInit) << " ]];";
+            << " [[ label: " << quote(inst->fLabel)
+            << ", min: " << checkReal(inst->fMin)
+            << ", max: " << checkReal(inst->fMax)
+            << ", init: " << checkReal(inst->fInit)
+            << ", step: " <<  checkReal(inst->fStep);
+            addMeta();
+            fOut << " ]];";
         }
         tab(fTab, fOut);
     }
@@ -71,13 +108,31 @@ struct SOULInstUIVisitor : public DispatchVisitor {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << replaceCharList(inst->fLabel, rep, '_') << " [[ min: " << checkReal(inst->fMin)
-                 << ", max: " << checkReal(inst->fMax) << " ]];";
+            << quote(replaceCharList(inst->fLabel, rep, '_'))
+            << " [[ label: " << inst->fLabel
+            << ", min: " << checkReal(inst->fMin)
+            << ", max: " << checkReal(inst->fMax);
+            addMeta();
+            fOut << " ]];";
         } else {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
-                 << " [[ min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax) << " ]];";
+            << " [[ label: " << quote(inst->fLabel)
+            << ", min: " << checkReal(inst->fMin)
+            << ", max: " << checkReal(inst->fMax);
+            addMeta();
+            fOut << " ]];";
         }
         tab(fTab, fOut);
+    }
+    
+    virtual void visit(OpenboxInst* inst)
+    {
+        fMetaAux.clear();
+    }
+    
+    virtual void visit(CloseboxInst* inst)
+    {
+        fMetaAux.clear();
     }
 };
 
@@ -189,7 +244,7 @@ class SOULInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        *fOut << "// " << inst->fLabel << " [default = " << checkReal(inst->fInit)
+        *fOut << "// " << inst->fLabel << " [init = " << checkReal(inst->fInit)
               << ", min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
               << ", step = " << checkReal(inst->fStep) << "]";
         EndLine(' ');
