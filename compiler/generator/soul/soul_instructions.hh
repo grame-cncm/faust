@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <cctype>
 
 #include "Text.hh"
 #include "text_instructions.hh"
