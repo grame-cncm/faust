@@ -20,9 +20,28 @@
  ************************************************************************/
 
 #include "dsp_factory.hh"
+#include "faust/dsp/dsp.h"
 
 // Global API access lock
 TLockAble* dsp_factory_imp::gDSPFactoriesLock = nullptr;
+
+void* dsp_factory_imp::allocate(size_t size)
+{
+    if (fManager) {
+        return fManager->allocate(size);
+    } else {
+        faustassert(false);
+        return nullptr;
+    }
+}
+void dsp_factory_imp::destroy(void* ptr)
+{
+    if (fManager) {
+        fManager->destroy(ptr);
+    } else {
+        faustassert(false);
+    }
+}
 
 extern "C" EXPORT bool startMTDSPFactories()
 {

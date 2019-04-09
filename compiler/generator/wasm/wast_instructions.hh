@@ -22,6 +22,8 @@
 #ifndef _WAST_INSTRUCTIONS_H
 #define _WAST_INSTRUCTIONS_H
 
+#include <ostream>
+
 #include "was_instructions.hh"
 
 using namespace std;
