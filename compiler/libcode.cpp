@@ -1037,6 +1037,7 @@ static void initFaustFloat()
 
 static void initFaustDirectories(int argc, const char* argv[])
 {
+#if !defined(FAUST_SELF_CONTAINED_LIB)
     char s[1024];
     getFaustPathname(s, 1024);
 
@@ -1086,6 +1087,7 @@ static void initFaustDirectories(int argc, const char* argv[])
     //        cerr << "\t" << d << "\n";
     //    }
     //    cerr << endl;
+#endif
 }
 
 static void initDocumentNames()
