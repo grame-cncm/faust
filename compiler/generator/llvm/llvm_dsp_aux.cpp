@@ -330,8 +330,8 @@ llvm_dsp::llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp) : fFactory(factory),
 
 llvm_dsp::~llvm_dsp()
 {
-    llvm_dsp_factory_aux::gLLVMFactoryTable.removeDSP(fFactory, this);
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    llvm_dsp_factory_aux::gLLVMFactoryTable.removeDSP(fFactory, this);
 
     // Used in -sch mode
     fFactory->getFactory()->fDestroy(fDSP);
