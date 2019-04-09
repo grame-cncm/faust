@@ -601,10 +601,12 @@ void global::printCompilationOptions(ostream& dst, bool backend)
     if (backend) {
 #ifdef LLVM_BUILD
         if (gOutputLang == "llvm") {
-            dst << gOutputLang << " " << LLVM_VERSION << ", ";
+            dst << "-lang " << gOutputLang << " " << LLVM_VERSION << " ";
+        } else {
+            dst << "-lang " << gOutputLang << " ";
         }
 #else
-        dst << gOutputLang << ", ";
+        dst << "-lang " << gOutputLang << " ";
 #endif
     }
     if (gInPlace) dst << "-inpl ";

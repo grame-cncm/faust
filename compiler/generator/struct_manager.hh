@@ -73,6 +73,8 @@ struct StructInstVisitor : public DispatchVisitor {
         for (auto& field : fFieldTable) {
             if (field.first == name) return field.second.fOffset;
         }
+        std::cerr << "ERROR in getFieldOffset : " << name << std::endl;
+        faustassert(false);
         return -1;
     }
 
@@ -82,6 +84,8 @@ struct StructInstVisitor : public DispatchVisitor {
         for (auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIndex;
         }
+        std::cerr << "ERROR in getFieldIndex : " << name << std::endl;
+        faustassert(false);
         return -1;
     }
 
@@ -90,6 +94,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (auto& field : fFieldTable) {
             if (field.first == name) return field.second;
         }
+        std::cerr << "ERROR in getMemoryDesc : " << name << std::endl;
         faustassert(false);
         return fDefault;
     }
