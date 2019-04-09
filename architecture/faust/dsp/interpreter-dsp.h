@@ -209,6 +209,19 @@ void deleteAllInterpreterDSPFactories();
 std::vector<std::string> getAllInterpreterDSPFactories();
 
 /**
+ * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
+ *
+ * @return true if 'multi-thread' safe access is started.
+ */
+bool startMTDSPFactories();
+
+/**
+ * Stop multi-thread access mode.
+ *
+ */
+void stopMTDSPFactories();
+
+/**
  * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of the same DSP code (that is the same bitcode code string) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly

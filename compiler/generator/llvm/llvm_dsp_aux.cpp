@@ -89,9 +89,6 @@ int llvm_dsp_factory_aux::gInstance = 0;
 
 dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 
-// Global API access lock
-TLockAble* llvm_dsp_factory_aux::gDSPFactoriesLock = nullptr;
-
 uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
 {
     uint64_t fun = fJIT->getFunctionAddress(function);
@@ -330,7 +327,7 @@ llvm_dsp::llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp) : fFactory(factory),
 
 llvm_dsp::~llvm_dsp()
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     llvm_dsp_factory_aux::gLLVMFactoryTable.removeDSP(fFactory, this);
 
     // Used in -sch mode
@@ -424,40 +421,22 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 // Public C++ API
 
-EXPORT bool startMTDSPFactories()
-{
-    try {
-        if (!llvm_dsp_factory_aux::gDSPFactoriesLock) {
-            llvm_dsp_factory_aux::gDSPFactoriesLock = new TLockAble();
-        }
-        return true;
-    } catch (...) {
-        return false;
-    }
-}
-
-EXPORT void stopMTDSPFactories()
-{
-    delete llvm_dsp_factory_aux::gDSPFactoriesLock;
-    llvm_dsp_factory_aux::gDSPFactoriesLock = nullptr;
-}
-
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 EXPORT vector<string> getAllDSPFactories()
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
 }
 
 EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
 {
     if (factory) {
-        TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+        TLock lock(dsp_factory_imp::gDSPFactoriesLock);
         return llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory);
     } else {
         return false;
@@ -476,13 +455,13 @@ EXPORT string getDSPMachineTarget()
 
 EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return factory->getLibraryList();
 }
 
 EXPORT void deleteAllDSPFactories()
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
 }
 
@@ -523,7 +502,8 @@ bool llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
 llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target,
                                                                      string& error_msg)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -549,7 +529,7 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(
         MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
 }
@@ -558,7 +538,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
                                                        string& error_msg)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : " + ec.message() + "\n";
@@ -575,27 +556,28 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
 
 EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return factory->writeDSPFactoryToMachine(target);
 }
 
 EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
                                          const string& target)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return (factory) ? factory->writeDSPFactoryToMachineFile(machine_code_path, target) : false;
 }
 
 EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path,
                                             const string& target)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     return (factory) ? factory->writeDSPFactoryToObjectcodeFile(object_code_path, target) : false;
 }
 
 // Instance
 EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
 {
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     dsp* dsp = fFactory->createDSPInstance(this);
     llvm_dsp_factory_aux::gLLVMFactoryTable.addDSP(this, dsp);
     return static_cast<llvm_dsp*>(dsp);
@@ -636,16 +618,6 @@ EXPORT const char** getAllCDSPFactories()
     // Last element is NULL
     sha_key_list2[i] = nullptr;
     return sha_key_list2;
-}
-
-EXPORT bool startMTCDSPFactories()
-{
-    return startMTDSPFactories();
-}
-
-EXPORT void stopMTCDSPFactories()
-{
-    stopMTDSPFactories();
 }
 
 EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory)

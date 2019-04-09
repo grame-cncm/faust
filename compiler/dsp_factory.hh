@@ -28,9 +28,11 @@
 #include <vector>
 
 #include "exception.hh"
+#include "export.hh"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
+#include "TMutex.h"
 
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
@@ -92,6 +94,8 @@ class dsp_factory_imp : public dsp_factory_base {
     }
 
     virtual ~dsp_factory_imp() {}
+    
+    static TLockAble* gDSPFactoriesLock;
 
     std::string getName()
     {
@@ -177,5 +181,18 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 
 std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,
                       std::string& error_msg);
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+EXPORT bool startMTDSPFactories();
+
+EXPORT void stopMTDSPFactories();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
