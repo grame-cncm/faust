@@ -59,10 +59,7 @@ inline int pow2limit(int x)
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max(
-        (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) /
-         wasmBlockSize),
-        1);
+    return std::max<int>((pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
 
     // Bigger memory block for soundfile test
     /*
