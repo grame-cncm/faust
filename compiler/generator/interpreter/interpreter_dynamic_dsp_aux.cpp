@@ -45,6 +45,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app, const string& dsp_content,
                                                                       int argc, const char* argv[], string& error_msg)
 {
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     string expanded_dsp_content, sha_key;
 
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {

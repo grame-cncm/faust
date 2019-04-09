@@ -32,7 +32,6 @@
 #include "faust/gui/JSONUIDecoder.h"
 #include "faust/gui/meta.h"
 
-#include "TMutex.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
@@ -228,8 +227,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     static int gInstance;
 
-    static TLockAble* gDSPFactoriesLock;
-
     static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
 };
 
@@ -316,10 +313,6 @@ EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 EXPORT std::vector<std::string> getAllDSPFactories();
 
 EXPORT void deleteAllDSPFactories();
-
-EXPORT bool startMTDSPFactories();
-
-EXPORT void stopMTDSPFactories();
 
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target,

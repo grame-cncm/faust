@@ -34,7 +34,7 @@ extern "C"
     /* Opaque types */
 	
     /*!
-     \addtogroup llvm C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context. 
+     \addtogroup llvm C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
     @{
      */
     
@@ -218,13 +218,13 @@ extern "C"
      * 
      * @return true if 'multi-thread' safe access is started.
      */ 
-    bool startMTCDSPFactories();
+    bool startMTDSPFactories();
 
     /**
      * Stop multi-thread access mode.
      * 
      */ 
-    void stopMTCDSPFactories();
+    void stopMTDSPFactories();
   
     /**
      * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 

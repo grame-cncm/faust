@@ -79,6 +79,6 @@ clean:
 	([ -e faustbench-interp ]) && rm faustbench-interp || echo faustbench-interp not found
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && rm fastmath.wasm || echo fastmath.wasm not found
-	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
+	([ -e faust-osc-controller ]) && rm faust-osc-controller || echo faust-osc-controller not found
 
 

@@ -227,6 +227,7 @@ Same DSP code and same normalized compilation options will generate the same SHA
 EXPORT string expandDSPFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
                                   string& sha_key, string& error_msg)
 {
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     if (dsp_content == "") {
         error_msg = "Unable to read file";
         return "";
@@ -268,6 +269,7 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
                                        string& error_msg)
 {
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     if (dsp_content == "") {
         error_msg = "Unable to read file";
         return false;
@@ -296,10 +298,11 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+    
 EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                       char* error_msg)
 {
+    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
     string sha_key_aux;
     string error_msg_aux;
     string res = expandDSPFromFile(filename, argc, argv, sha_key_aux, error_msg_aux);
