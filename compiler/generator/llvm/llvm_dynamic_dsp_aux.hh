@@ -25,10 +25,9 @@
 #include "llvm_dsp_aux.hh"
 
 class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
-    
-  private:
+   private:
     bool writeDSPFactoryToObjectcodeFileAux(const std::string& object_code_path);
-    
+
    public:
     llvm_dynamic_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,
                                  const std::string& target, int opt_level = -1)
@@ -54,10 +53,9 @@ class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
     virtual std::string writeDSPFactoryToIR();
 
     virtual bool writeDSPFactoryToIRFile(const std::string& ir_code_path);
-    
+
     // Object code
     bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target);
-
 };
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
@@ -69,30 +67,32 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
                                                     std::string& error_msg, int opt_level = -1);
 
 // Bitcode <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, std::string& error_msg,
-                                                   int opt_level = 0);
+EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target,
+                                                   std::string& error_msg, int opt_level = 0);
 
 EXPORT std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 // Bitcode <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, std::string& error_msg,
-                                                       int opt_level = 0);
+EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target,
+                                                       std::string& error_msg, int opt_level = 0);
 
 EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
 
 // IR <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, std::string& error_msg, int opt_level = 0);
+EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target,
+                                              std::string& error_msg, int opt_level = 0);
 
 EXPORT std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 // IR <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, std::string& error_msg,
-                                                  int opt_level = 0);
+EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target,
+                                                  std::string& error_msg, int opt_level = 0);
 
 EXPORT bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
 // IR ==> object code
-EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const std::string& object_code_path, const std::string& target);
+EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const std::string& object_code_path,
+                                            const std::string& target);
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,11 +107,13 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                      const char* argv[], const char* target, char* error_msg,
                                                      int opt_level);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg, int opt_level);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
+                                                    int opt_level);
 
 EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg, int opt_level);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg,
+                                                        int opt_level);
 
 EXPORT bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
 
@@ -119,7 +121,8 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
 
 EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg, int opt_level);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg,
+                                                   int opt_level);
 
 EXPORT bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 

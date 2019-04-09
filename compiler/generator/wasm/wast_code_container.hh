@@ -23,9 +23,9 @@
 #define _WAST_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "vec_code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "vec_code_container.hh"
 #include "wast_instructions.hh"
 
 using namespace std;
@@ -45,9 +45,8 @@ class WASTCodeContainer : public virtual CodeContainer {
         block->accept(gGlobal->gWASTVisitor);
     }
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
-                                            bool addreturn);
-    
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+
     void generateComputeAux1(int n);
     void generateComputeAux2(BlockInst* compute_block, int n);
 

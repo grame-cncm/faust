@@ -160,7 +160,7 @@ static Tree normalizeLabel(Tree label, Tree path)
     if (isList(label)) {
         return cons(label, path);
     } else {
-        Sym  s=0;
+        Sym  s      = 0;
         bool is_sym = isSym(label->node(), &s);
         faustassert(is_sym);
         return concatPath(label2path(name(s)), path);

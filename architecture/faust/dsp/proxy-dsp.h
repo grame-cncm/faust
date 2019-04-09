@@ -41,15 +41,23 @@ class proxy_dsp : public dsp {
 
     private:
     
-        int fSamplingFreq;
+        int fSampleRate;
         JSONUIDecoder* fDecoder;
         
     public:
     
+        proxy_dsp():fDecoder(nullptr), fSampleRate(-1)
+        {}
+    
         proxy_dsp(const std::string& json)
         {
+            init(json);
+        }
+    
+        void init(const std::string& json)
+        {
             fDecoder = new JSONUIDecoder(json);
-            fSamplingFreq = -1;
+            fSampleRate = -1;
         }
           
         proxy_dsp(dsp* dsp)
@@ -57,7 +65,7 @@ class proxy_dsp : public dsp {
             JSONUI builder(dsp->getNumInputs(), dsp->getNumOutputs());
             dsp->metadata(&builder);
             dsp->buildUserInterface(&builder);
-            fSamplingFreq = dsp->getSampleRate();
+            fSampleRate = dsp->getSampleRate();
             fDecoder = new JSONUIDecoder(builder.JSON());
         }
       
@@ -72,21 +80,21 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate)
+        virtual void init(int sample_rate)
         {
-            instanceInit(samplingRate);
+            instanceInit(sample_rate);
         }
-        virtual void instanceInit(int samplingRate)
+        virtual void instanceInit(int sample_rate)
         {
-            instanceConstants(samplingRate);
+            instanceConstants(sample_rate);
             instanceResetUserInterface();
             instanceClear();
         }
-        virtual void instanceConstants(int samplingRate) { fSamplingFreq = samplingRate; }
+        virtual void instanceConstants(int sample_rate) { fSampleRate = sample_rate; }
         virtual void instanceResetUserInterface() { fDecoder->resetUserInterface(); }
         virtual void instanceClear() {}
     
-        virtual int getSampleRate() { return fSamplingFreq; }
+        virtual int getSampleRate() { return fSampleRate; }
     
         virtual proxy_dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
         virtual void metadata(Meta* m) { fDecoder->metadata(m); }

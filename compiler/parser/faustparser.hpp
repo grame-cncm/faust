@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.1.  */
+/* A Bison parser, made by GNU Bison 3.2.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -29,6 +29,9 @@
 
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
+
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
 
 #ifndef YY_YY_FAUSTPARSER_HPP_INCLUDED
 # define YY_YY_FAUSTPARSER_HPP_INCLUDED
@@ -135,41 +138,42 @@ extern int yydebug;
     LIBRARY = 345,
     ENVIRONMENT = 346,
     WAVEFORM = 347,
-    ENABLE = 348,
-    CONTROL = 349,
-    IPAR = 350,
-    ISEQ = 351,
-    ISUM = 352,
-    IPROD = 353,
-    INPUTS = 354,
-    OUTPUTS = 355,
-    STRING = 356,
-    FSTRING = 357,
-    IDENT = 358,
-    EXTRA = 359,
-    DECLARE = 360,
-    CASE = 361,
-    ARROW = 362,
-    BDOC = 363,
-    EDOC = 364,
-    BEQN = 365,
-    EEQN = 366,
-    BDGM = 367,
-    EDGM = 368,
-    BLST = 369,
-    ELST = 370,
-    BMETADATA = 371,
-    EMETADATA = 372,
-    DOCCHAR = 373,
-    NOTICE = 374,
-    LISTING = 375,
-    LSTTRUE = 376,
-    LSTFALSE = 377,
-    LSTDEPENDENCIES = 378,
-    LSTMDOCTAGS = 379,
-    LSTDISTRIBUTED = 380,
-    LSTEQ = 381,
-    LSTQ = 382
+    ROUTE = 348,
+    ENABLE = 349,
+    CONTROL = 350,
+    IPAR = 351,
+    ISEQ = 352,
+    ISUM = 353,
+    IPROD = 354,
+    INPUTS = 355,
+    OUTPUTS = 356,
+    STRING = 357,
+    FSTRING = 358,
+    IDENT = 359,
+    EXTRA = 360,
+    DECLARE = 361,
+    CASE = 362,
+    ARROW = 363,
+    BDOC = 364,
+    EDOC = 365,
+    BEQN = 366,
+    EEQN = 367,
+    BDGM = 368,
+    EDGM = 369,
+    BLST = 370,
+    ELST = 371,
+    BMETADATA = 372,
+    EMETADATA = 373,
+    DOCCHAR = 374,
+    NOTICE = 375,
+    LISTING = 376,
+    LSTTRUE = 377,
+    LSTFALSE = 378,
+    LSTDEPENDENCIES = 379,
+    LSTMDOCTAGS = 380,
+    LSTDISTRIBUTED = 381,
+    LSTEQ = 382,
+    LSTQ = 383
   };
 #endif
 
@@ -178,14 +182,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 73 "faustparser.y" /* yacc.c:1919  */
+#line 73 "faustparser.y" /* yacc.c:1906  */
 
 	CTree* 	exp;
 	char* str;
 	string* cppstr;
 	bool b;
 
-#line 189 "faustparser.hpp" /* yacc.c:1919  */
+#line 193 "faustparser.hpp" /* yacc.c:1906  */
 };
 
 typedef union YYSTYPE YYSTYPE;

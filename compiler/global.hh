@@ -56,6 +56,7 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
 struct Typed;
@@ -104,6 +105,7 @@ struct global {
     //-- command line arguments
     bool   gDetailsSwitch;
     bool   gDrawSignals;
+    bool   gDrawRouteFrame;
     bool   gShadowBlur;      // note: svg2pdf doesn't like the blur filter
     bool   gScaledSVG;       // to draw scaled SVG files
     bool   gStripDocSwitch;  // Strip <mdoc> content from doc listings.
@@ -162,6 +164,7 @@ struct global {
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation
+    bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
@@ -213,7 +216,7 @@ struct global {
     bool gMemoryManager;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
-    
+
     bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
                       ///< (negative delay)
 
@@ -263,6 +266,7 @@ struct global {
     Sym BOXIDENT;
     Sym BOXCUT;
     Sym BOXWAVEFORM;
+    Sym BOXROUTE;
     Sym BOXWIRE;
     Sym BOXSLOT;
     Sym BOXSYMBOLIC;
@@ -425,7 +429,8 @@ struct global {
     Sym SYMRECREF;
     Sym SYMLIFTN;
 
-    loopDetector gLoopDetector;
+    loopDetector          gLoopDetector;
+    stackOverflowDetector gStackOverflowDetector;
 
     string gDrawPath;
 
@@ -484,6 +489,10 @@ struct global {
 #ifdef INTERP_BUILD
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
+#endif
+
+#ifdef SOUL_BUILD
+    TableSizeVisitor* gTableSizeVisitor;
 #endif
 
     bool gHelpSwitch;
@@ -553,13 +562,15 @@ struct global {
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
+
+    int audioSampleSize();
 };
 
 // Unique shared global pointer
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
-#define MAX_STACK_SIZE 50000
+#define MAX_MACHINE_STACK_SIZE 65536
 #define MAX_SOUNDFILE_PARTS 256
 
 #endif

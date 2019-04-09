@@ -45,7 +45,6 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
 
     protected:
     
-        std::stringstream fJSON;
         std::stringstream fUI;
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
@@ -64,7 +63,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         char fCloseMetaPar;
         int fTab;
     
-        int fInputs, fOutputs;
+        int fInputs, fOutputs, fSRIndex;
          
         void tab(int n, std::ostream& fout)
         {
@@ -125,6 +124,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& filename,
                   int inputs,
                   int outputs,
+                  int sr_index,
                   const std::string& sha_key,
                   const std::string& dsp_code,
                   const std::string& version,
@@ -134,22 +134,22 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& size,
                   const std::map<std::string, int>& path_table)
         {
-            init(name, filename, inputs, outputs, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table);
+            init(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table);
         }
 
         JSONUIAux(const std::string& name, const std::string& filename, int inputs, int outputs)
         {
-            init(name, filename, inputs, outputs, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
+            init(name, filename, inputs, outputs, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
 
         JSONUIAux(int inputs, int outputs)
         {
-            init("", "", inputs, outputs, "", "","", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
+            init("", "", inputs, outputs, -1, "", "","", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
         
         JSONUIAux()
         {
-            init("", "", -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
+            init("", "", -1, -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
  
         virtual ~JSONUIAux() {}
@@ -157,11 +157,14 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         void setInputs(int inputs) { fInputs = inputs; }
         void setOutputs(int outputs) { fOutputs = outputs; }
     
+        void setSRIndex(int sr_index) { fSRIndex = sr_index; }
+    
         // Init may be called multiple times so fMeta and fUI are reinitialized
         void init(const std::string& name,
                   const std::string& filename,
                   int inputs,
                   int outputs,
+                  int sr_index,
                   const std::string& sha_key,
                   const std::string& dsp_code,
                   const std::string& version,
@@ -188,6 +191,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fFileName = filename;
             fInputs = inputs;
             fOutputs = outputs;
+            fSRIndex = sr_index;
             fExpandedCode = dsp_code;
             fSHAKey = sha_key;
             fDSPSize = size;
@@ -376,45 +380,47 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         std::string JSON(bool flat = false)
         {
             fTab = 0;
-            fJSON << "{";
+            std::stringstream JSON;
+            JSON << "{";
             fTab += 1;
-            tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
-            tab(fTab, fJSON); fJSON << "\"filename\": \"" << fFileName << "\",";
-            if (fVersion != "") { tab(fTab, fJSON); fJSON << "\"version\": \"" << fVersion << "\","; }
-            if (fCompileOptions != "") { tab(fTab, fJSON); fJSON << "\"compile_options\": \"" <<  fCompileOptions << "\","; }
+            tab(fTab, JSON); JSON << "\"name\": \"" << fName << "\",";
+            tab(fTab, JSON); JSON << "\"filename\": \"" << fFileName << "\",";
+            if (fVersion != "") { tab(fTab, JSON); JSON << "\"version\": \"" << fVersion << "\","; }
+            if (fCompileOptions != "") { tab(fTab, JSON); JSON << "\"compile_options\": \"" <<  fCompileOptions << "\","; }
             if (fLibraryList.size() > 0) {
-                tab(fTab, fJSON);
-                fJSON << "\"library_list\": [";
+                tab(fTab, JSON);
+                JSON << "\"library_list\": [";
                 for (size_t i = 0; i < fLibraryList.size(); i++) {
-                    fJSON << "\"" << fLibraryList[i] << "\"";
-                    if (i < (fLibraryList.size() - 1)) fJSON << ",";
+                    JSON << "\"" << fLibraryList[i] << "\"";
+                    if (i < (fLibraryList.size() - 1)) JSON << ",";
                 }
-                fJSON << "],";
+                JSON << "],";
             }
             if (fIncludePathnames.size() > 0) {
-                tab(fTab, fJSON);
-                fJSON << "\"include_pathnames\": [";
+                tab(fTab, JSON);
+                JSON << "\"include_pathnames\": [";
                 for (size_t i = 0; i < fIncludePathnames.size(); i++) {
-                    fJSON << "\"" << fIncludePathnames[i] << "\"";
-                    if (i < (fIncludePathnames.size() - 1)) fJSON << ",";
+                    JSON << "\"" << fIncludePathnames[i] << "\"";
+                    if (i < (fIncludePathnames.size() - 1)) JSON << ",";
                 }
-                fJSON << "],";
+                JSON << "],";
             }
-            if (fDSPSize != "") { tab(fTab, fJSON); fJSON << "\"size\": \"" << fDSPSize << "\","; }
-            if (fSHAKey != "") { tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\","; }
-            if (fExpandedCode != "") { tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; }
-            tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; 
-            tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\",";
+            if (fDSPSize != "") { tab(fTab, JSON); JSON << "\"size\": \"" << fDSPSize << "\","; }
+            if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << fSHAKey << "\","; }
+            if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << fExpandedCode << "\","; }
+            tab(fTab, JSON); JSON << "\"inputs\": \"" << fInputs << "\","; 
+            tab(fTab, JSON); JSON << "\"outputs\": \"" << fOutputs << "\",";
+            if (fSRIndex != -1) { tab(fTab, JSON); JSON << "\"sr_index\": \"" << fSRIndex << "\","; }
             tab(fTab, fMeta); fMeta << "],";
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
             if (fCloseMetaPar == ',') { // If "declare" has been called, fCloseMetaPar state is now ','
-                fJSON << fMeta.str() << fUI.str();
+                JSON << fMeta.str() << fUI.str();
             } else {
-                fJSON << fUI.str();
+                JSON << fUI.str();
             }
-            tab(fTab, fJSON); fJSON << "}";
-            return (flat) ? flatten(fJSON.str()) : fJSON.str();
+            tab(fTab, JSON); JSON << "}";
+            return (flat) ? flatten(JSON.str()) : JSON.str();
         }
     
 };
@@ -429,6 +435,7 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
                const std::string& filename,
                int inputs,
                int outputs,
+               int sr_index,
                const std::string& sha_key,
                const std::string& dsp_code,
                const std::string& version,
@@ -439,6 +446,7 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
                const std::map<std::string, int>& path_table):
         JSONUIAux<FAUSTFLOAT>(name, filename,
                               inputs, outputs,
+                              sr_index,
                               sha_key, dsp_code,
                               version, compile_options,
                               library_list, include_pathnames,

@@ -26,6 +26,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2sndfile <file.dsp>"
+        echo "With the compiled program 'file', you can add [-c samples] for the number of frames to append beyond the input file"
     fi
     
     if [ ${p:0:1} = "-" ]; then
@@ -40,11 +41,22 @@ shift
 
 done
 
+
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 
 for f in $FILES; do
+
+	LINPUTS=$(faust -uim "$f" | grep FAUST_INPUTS)
+	NINPUTS=${LINPUTS//[^0-9]/}
+	if [ $NINPUTS -gt 0 ]; then
+		echo "Will process an input file to produce an output file"
+		ARCHFILE=$FAUSTARCH/sndfile.cpp
+	else
+		echo "Will generate an output file"
+		ARCHFILE=$FAUSTARCH/synthfile.cpp
+	fi
 
     # compile Faust DSP then create the binary
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit

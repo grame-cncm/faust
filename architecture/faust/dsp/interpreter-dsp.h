@@ -65,11 +65,11 @@ class interpreter_dsp : public dsp {
         
         int getSampleRate();
         
-        void init(int samplingRate);
+        void init(int sample_rate);
         
-        void instanceInit(int samplingRate);
+        void instanceInit(int sample_rate);
     
-        void instanceConstants(int samplingRate);
+        void instanceConstants(int sample_rate);
     
         void instanceResetUserInterface();
         
@@ -207,6 +207,19 @@ void deleteAllInterpreterDSPFactories();
  * @return the Faust DSP factories.
  */                                 
 std::vector<std::string> getAllInterpreterDSPFactories();
+
+/**
+ * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
+ *
+ * @return true if 'multi-thread' safe access is started.
+ */
+bool startMTDSPFactories();
+
+/**
+ * Stop multi-thread access mode.
+ *
+ */
+void stopMTDSPFactories();
 
 /**
  * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all

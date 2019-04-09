@@ -150,8 +150,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             NamedAddress*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-            // Special treatment for "fSamplingFreq" variable
-            if (named && named->getName() == "fSamplingFreq") {
+            // Special treatment for "fSampleRate" variable
+            if (named && named->getName() == "fSampleRate") {
                 named->setAccess(Address::kStruct);
             }
 
@@ -177,8 +177,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             NamedAddress*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-            // Special treatment for "fSamplingFreq" variable
-            if (named && named->getName() == "fSamplingFreq") {
+            // Special treatment for "fSampleRate" variable
+            if (named && named->getName() == "fSampleRate") {
                 named->setAccess(Address::kStruct);
             }
 
@@ -204,8 +204,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             NamedAddress*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-            // Special treatment for "fSamplingFreq" variable
-            if (named && named->getName() == "fSamplingFreq") {
+            // Special treatment for "fSampleRate" variable
+            if (named && named->getName() == "fSampleRate") {
                 named->setAccess(Address::kStruct);
             }
 

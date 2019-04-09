@@ -22,6 +22,8 @@
 #ifndef _WAST_INSTRUCTIONS_H
 #define _WAST_INSTRUCTIONS_H
 
+#include <ostream>
+
 #include "was_instructions.hh"
 
 using namespace std;
@@ -49,7 +51,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         bool dot   = false;
         int  e_pos = -1;
-        for (unsigned int i = 0; i < str.size(); i++) {
+        for (size_t i = 0; i < str.size(); i++) {
             if (str[i] == '.') {
                 dot = true;
                 break;
@@ -94,29 +96,28 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct =
-            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string name = inst->fAddress->getName();
-        
-        //std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
+        Address::AccessType access      = inst->fAddress->getAccess();
+        bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string              name        = inst->fAddress->getName();
+
+        // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fFieldTable.find(name) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] =
-                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += (array_typed->fSize * audioSampleSize());
+                fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
                 *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
                 EndLine();
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += audioSampleSize();
+                fStructOffset += gGlobal->audioSampleSize();
             } else {
                 *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
                 // Local variable declaration has been previously separated as 'pure declaration' first,
@@ -126,7 +127,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-  
+
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
@@ -220,9 +221,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType      type   = fTypingVisitor.fCurType;
+        Address::AccessType access = inst->fAddress->getAccess();
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
+        if (access & Address::kStruct || access & Address::kStaticStruct ||
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
@@ -251,7 +253,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
         string name = inst->fAddress->getName();
-        
+
         if (fTeeMap.find(name) == fTeeMap.end()) {
             *fOut << "(tee_local $" << name << " ";
             inst->fValue->accept(this);
@@ -265,9 +267,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         inst->fValue->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType      type   = fTypingVisitor.fCurType;
+        Address::AccessType access = inst->fAddress->getAccess();
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
+        if (access & Address::kStruct || access & Address::kStaticStruct ||
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
@@ -415,6 +418,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
+
+    virtual void visit(BoolNumInst* inst) { faustassert(false); }
 
     virtual void visit(Int32NumInst* inst)
     {
@@ -675,7 +680,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         *fOut << ")";
         tab(fTab, *fOut);
     }
-    
+
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now

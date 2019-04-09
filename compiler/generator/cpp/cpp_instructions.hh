@@ -92,6 +92,27 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
 
+        // Quad version
+        gFunctionSymbolTable["fabsl"]      = true;
+        gFunctionSymbolTable["acosl"]      = true;
+        gFunctionSymbolTable["asinl"]      = true;
+        gFunctionSymbolTable["atanl"]      = true;
+        gFunctionSymbolTable["atan2l"]     = true;
+        gFunctionSymbolTable["ceill"]      = true;
+        gFunctionSymbolTable["cosl"]       = true;
+        gFunctionSymbolTable["expl"]       = true;
+        gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["floorl"]     = true;
+        gFunctionSymbolTable["fmodl"]      = true;
+        gFunctionSymbolTable["logl"]       = true;
+        gFunctionSymbolTable["log10l"]     = true;
+        gFunctionSymbolTable["powl"]       = true;
+        gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["roundl"]     = true;
+        gFunctionSymbolTable["sinl"]       = true;
+        gFunctionSymbolTable["sqrtl"]      = true;
+        gFunctionSymbolTable["tanl"]       = true;
+
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "std::abs";
         gPolyMathLibTable["max_i"] = "std::max<int>";
@@ -148,12 +169,11 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "std::sin";
         gPolyMathLibTable["sqrt"]      = "std::sqrt";
         gPolyMathLibTable["tan"]       = "std::tan";
-        
-        
+
         // Polymath mapping quad version
         gPolyMathLibTable["max_l"] = "std::max<quad>";
         gPolyMathLibTable["min_l"] = "std::min<quad>";
-        
+
         gPolyMathLibTable["fabsl"]      = "std::fabs";
         gPolyMathLibTable["acosl"]      = "std::acos";
         gPolyMathLibTable["asinl"]      = "std::asin";
@@ -271,6 +291,10 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
+        if (inst->fAddress->getAccess() & Address::kConst) {
+            *fOut << "const ";
+        }
+
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
         }
@@ -378,19 +402,19 @@ class CPPInstVisitor : public TextInstVisitor {
             generateFunCall(inst, name);
         }
     }
-    
+
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-        
+
         if (gGlobal->gClang && !inst->fIsRecursive) {
             *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
             tab(fTab, *fOut);
         }
         TextInstVisitor::visit(inst);
     }
-  
+
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 

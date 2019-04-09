@@ -28,6 +28,7 @@
 
 #include <llvm-c/Core.h>
 #include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Initialization.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Transforms/PassManagerBuilder.h>
 #include <llvm-c/Transforms/Vectorize.h>
@@ -35,9 +36,9 @@
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
 
-#define dispatchReturn()  \
-    {                     \
-        it = popAddr();   \
+#define dispatchReturn() \
+    {                    \
+        it = popAddr();  \
     }
 #define saveReturn()      \
     {                     \
@@ -81,99 +82,105 @@ class FBCLLVMCompiler {
 
     std::string getMathName(const std::string& name) { return (sizeof(T) == sizeof(float)) ? (name + "f") : name; }
 
-    void      pushValue(LLVMValueRef val) { fLLVMStack[fLLVMStackIndex++] = val; }
+    void         pushValue(LLVMValueRef val) { fLLVMStack[fLLVMStackIndex++] = val; }
     LLVMValueRef popValue() { return fLLVMStack[--fLLVMStackIndex]; }
 
     void          pushAddr(InstructionIT addr) { fAddressStack[fAddrStackIndex++] = addr; }
     InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
     bool          emptyReturn() { return (fAddrStackIndex == 0); }
-    
+
     void pushBinop(LLVMOpcode op)
     {
         LLVMValueRef v1 = popValue();
         LLVMValueRef v2 = popValue();
         pushValue(LLVMBuildBinOp(fBuilder, op, v1, v2, ""));
     }
-    
+
     void pushRealComp(LLVMRealPredicate op)
     {
-        LLVMValueRef v1 = popValue();
-        LLVMValueRef v2 = popValue();
+        LLVMValueRef v1         = popValue();
+        LLVMValueRef v2         = popValue();
         LLVMValueRef cond_value = LLVMBuildFCmp(fBuilder, op, v1, v2, "");
         pushValue(LLVMBuildSelect(fBuilder, cond_value, genInt32(1), genInt32(0), ""));
     }
-        
+
     void pushIntComp(LLVMIntPredicate op)
     {
-        LLVMValueRef v1 = popValue();
-        LLVMValueRef v2 = popValue();
+        LLVMValueRef v1         = popValue();
+        LLVMValueRef v2         = popValue();
         LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, op, v1, v2, "");
         pushValue(LLVMBuildSelect(fBuilder, cond_value, genInt32(1), genInt32(0), ""));
     }
-    
+
     // Min/max
     void pushIntMax()
     {
-        LLVMValueRef v1 = popValue();
-        LLVMValueRef v2 = popValue();
+        LLVMValueRef v1         = popValue();
+        LLVMValueRef v2         = popValue();
         LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntSLT, v1, v2, "");
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v2, v1, ""));
     }
-    
+
     void pushIntMin()
     {
-        LLVMValueRef v1 = popValue();
-        LLVMValueRef v2 = popValue();
+        LLVMValueRef v1         = popValue();
+        LLVMValueRef v2         = popValue();
         LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntSLT, v1, v2, "");
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v1, v2, ""));
     }
-    
+
     void pushRealMax()
     {
-        LLVMValueRef v1 = popValue();
-        LLVMValueRef v2 = popValue();
+        LLVMValueRef v1         = popValue();
+        LLVMValueRef v2         = popValue();
         LLVMValueRef cond_value = LLVMBuildFCmp(fBuilder, LLVMRealOLT, v1, v2, "");
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v2, v1, ""));
     }
-    
+
     void pushRealMin()
     {
-        LLVMValueRef v1 = popValue();
-        LLVMValueRef v2 = popValue();
+        LLVMValueRef v1         = popValue();
+        LLVMValueRef v2         = popValue();
         LLVMValueRef cond_value = LLVMBuildFCmp(fBuilder, LLVMRealOLT, v1, v2, "");
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v1, v2, ""));
     }
-  
+
     void pushUnaryCall(const std::string& name_aux, LLVMTypeRef type, bool rename)
     {
-        std::string name = (rename) ? getMathName(name_aux) : name_aux;
+        std::string  name     = (rename) ? getMathName(name_aux) : name_aux;
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
-            LLVMTypeRef param_types[] = { type };
-            LLVMTypeRef ret_type = LLVMFunctionType(type, param_types, 1, false);
-            function = LLVMAddFunction(fModule, name.c_str(), ret_type);
+            LLVMTypeRef param_types[] = {type};
+            LLVMTypeRef ret_type      = LLVMFunctionType(type, param_types, 1, false);
+            function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
         }
         // Create the function call
-        LLVMValueRef fun_args[] = { popValue() };
+        LLVMValueRef fun_args[] = {popValue()};
         pushValue(LLVMBuildCall(fBuilder, function, fun_args, 1, ""));
     }
 
-    void pushUnaryIntCall(const std::string& name, bool rename = true) { return pushUnaryCall(name, getInt32Ty(), rename); }
-    void pushUnaryRealCall(const std::string& name, bool rename = true) { return pushUnaryCall(name, getRealTy(), rename); }
+    void pushUnaryIntCall(const std::string& name, bool rename = true)
+    {
+        return pushUnaryCall(name, getInt32Ty(), rename);
+    }
+    void pushUnaryRealCall(const std::string& name, bool rename = true)
+    {
+        return pushUnaryCall(name, getRealTy(), rename);
+    }
 
     void pushBinaryCall(const std::string& name_aux, LLVMTypeRef type)
     {
-        std::string name = getMathName(name_aux);
+        std::string  name     = getMathName(name_aux);
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
-            LLVMTypeRef param_types[] = { type, type };
-            LLVMTypeRef ret_type = LLVMFunctionType(type, param_types, 2, false);
-            function = LLVMAddFunction(fModule, name.c_str(), ret_type);
+            LLVMTypeRef param_types[] = {type, type};
+            LLVMTypeRef ret_type      = LLVMFunctionType(type, param_types, 2, false);
+            function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
         }
         // Create the function call
-        LLVMValueRef fun_args[] = { popValue(), popValue() };
+        LLVMValueRef fun_args[] = {popValue(), popValue()};
         pushValue(LLVMBuildCall(fBuilder, function, fun_args, 2, ""));
     }
 
@@ -187,35 +194,35 @@ class FBCLLVMCompiler {
 
     void pushLoadArray(LLVMValueRef array, LLVMValueRef index)
     {
-        LLVMValueRef idx[] = { index };
+        LLVMValueRef idx[]    = {index};
         LLVMValueRef load_ptr = LLVMBuildInBoundsGEP(fBuilder, array, idx, 1, "");
         pushValue(LLVMBuildLoad(fBuilder, load_ptr, ""));
     }
 
     void pushStoreArray(LLVMValueRef array, LLVMValueRef index)
     {
-        LLVMValueRef idx[] = { index };
+        LLVMValueRef idx[]     = {index};
         LLVMValueRef store_ptr = LLVMBuildInBoundsGEP(fBuilder, array, idx, 1, "");
         LLVMBuildStore(fBuilder, popValue(), store_ptr);
     }
 
     void pushLoadInput(int index)
     {
-        LLVMValueRef idx1[] = { genInt32(index) };
+        LLVMValueRef idx1[]        = {genInt32(index)};
         LLVMValueRef input_ptr_ptr = LLVMBuildInBoundsGEP(fBuilder, fLLVMInputs, idx1, 1, "");
-        LLVMValueRef input_ptr = LLVMBuildLoad(fBuilder, input_ptr_ptr, "");
-        LLVMValueRef idx2[] = { popValue() };
-        LLVMValueRef input = LLVMBuildInBoundsGEP(fBuilder, input_ptr, idx2, 1, "");
+        LLVMValueRef input_ptr     = LLVMBuildLoad(fBuilder, input_ptr_ptr, "");
+        LLVMValueRef idx2[]        = {popValue()};
+        LLVMValueRef input         = LLVMBuildInBoundsGEP(fBuilder, input_ptr, idx2, 1, "");
         pushValue(LLVMBuildLoad(fBuilder, input, ""));
     }
 
     void pushStoreOutput(int index)
     {
-        LLVMValueRef idx1[] = { genInt32(index) };
+        LLVMValueRef idx1[]         = {genInt32(index)};
         LLVMValueRef output_ptr_ptr = LLVMBuildInBoundsGEP(fBuilder, fLLVMOutputs, idx1, 1, "");
-        LLVMValueRef output_ptr = LLVMBuildLoad(fBuilder, output_ptr_ptr, "");
-        LLVMValueRef idx2[] = { popValue() };
-        LLVMValueRef output = LLVMBuildInBoundsGEP(fBuilder, output_ptr, idx2, 1, "");
+        LLVMValueRef output_ptr     = LLVMBuildLoad(fBuilder, output_ptr_ptr, "");
+        LLVMValueRef idx2[]         = {popValue()};
+        LLVMValueRef output         = LLVMBuildInBoundsGEP(fBuilder, output_ptr, idx2, 1, "");
         LLVMBuildStore(fBuilder, popValue(), output);
     }
 
@@ -629,20 +636,20 @@ class FBCLLVMCompiler {
                     break;
 
                 case FBCInstruction::kIf: {
-                    
                     saveReturn();
-                    
+
                     // Prepare condition
-                    LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntEQ, popValue(), genInt32(1), "select_cond");
+                    LLVMValueRef cond_value =
+                        LLVMBuildICmp(fBuilder, LLVMIntEQ, popValue(), genInt32(1), "select_cond");
                     LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
 
-                    // Create blocks for the then and else cases.  Insert the 'then' block at the end of the function
-                    LLVMBasicBlockRef then_block = LLVMAppendBasicBlock(function, "then_block");
-                    LLVMBasicBlockRef else_block = LLVMAppendBasicBlock(function, "else_block");
+                    // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
+                    LLVMBasicBlockRef then_block  = LLVMAppendBasicBlock(function, "then_block");
+                    LLVMBasicBlockRef else_block  = LLVMAppendBasicBlock(function, "else_block");
                     LLVMBasicBlockRef merge_block = LLVMAppendBasicBlock(function, "merge_block");
-     
+
                     LLVMBuildCondBr(fBuilder, cond_value, then_block, else_block);
-            
+
                     // Compile then branch (= branch1)
                     CompileBlock((*it)->fBranch1, then_block);
                     LLVMBuildBr(fBuilder, merge_block);
@@ -650,10 +657,10 @@ class FBCLLVMCompiler {
                     // Compile else branch (= branch2)
                     CompileBlock((*it)->fBranch2, else_block);
                     LLVMBuildBr(fBuilder, merge_block);
-                    
+
                     // Insert in next_block
                     LLVMPositionBuilderAtEnd(fBuilder, merge_block);
-                    
+
                     it++;
                     break;
                 }
@@ -661,8 +668,9 @@ class FBCLLVMCompiler {
                 case FBCInstruction::kSelectReal:
                 case FBCInstruction::kSelectInt: {
                     // Prepare condition
-                    LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
-                
+                    LLVMValueRef cond_value =
+                        LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
+
                     // Compile then branch (= branch1)
                     CompileBlock((*it)->fBranch1, code_block);
 
@@ -682,8 +690,8 @@ class FBCLLVMCompiler {
                 case FBCInstruction::kCondBranch: {
                     // Prepare condition
                     LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "");
-                    
-                    LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
+
+                    LLVMValueRef      function   = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
                     LLVMBasicBlockRef next_block = LLVMAppendBasicBlock(function, "next_block");
 
                     // Branch to current block
@@ -697,8 +705,8 @@ class FBCLLVMCompiler {
                 }
 
                 case FBCInstruction::kLoop: {
-                    LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
-                    LLVMBasicBlockRef init_block = LLVMAppendBasicBlock(function, "init_block");
+                    LLVMValueRef      function        = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
+                    LLVMBasicBlockRef init_block      = LLVMAppendBasicBlock(function, "init_block");
                     LLVMBasicBlockRef loop_body_block = LLVMAppendBasicBlock(function, "loop_body_block");
 
                     // Link previous_block and init_block
@@ -718,7 +726,6 @@ class FBCLLVMCompiler {
                 }
 
                 default:
-                    // Should not happen
                     (*it)->write(&std::cout);
                     faustassert(false);
                     break;
@@ -732,41 +739,54 @@ class FBCLLVMCompiler {
         fLLVMStackIndex = 0;
         fAddrStackIndex = 0;
 
-        fBuilder = LLVMCreateBuilder();
-        fModule = LLVMModuleCreateWithName(FAUSTVERSION);
+        LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+
+        /*
+        LLVMInitializeTransformUtils(LLVMGetGlobalPassRegistry());
+        LLVMInitializeScalarOpts(LLVMGetGlobalPassRegistry());
+        LLVMInitializeObjCARCOpts(LLVMGetGlobalPassRegistry());
+        LLVMInitializeVectorization(LLVMGetGlobalPassRegistry());
+        LLVMInitializeInstCombine(LLVMGetGlobalPassRegistry());
+        LLVMInitializeIPO(LLVMGetGlobalPassRegistry());
+        LLVMInitializeInstrumentation(LLVMGetGlobalPassRegistry());
+        LLVMInitializeAnalysis(LLVMGetGlobalPassRegistry());
+        LLVMInitializeIPA(LLVMGetGlobalPassRegistry());
+        LLVMInitializeCodeGen(LLVMGetGlobalPassRegistry());
+        LLVMInitializeTarget(LLVMGetGlobalPassRegistry());
+        */
+
+        fBuilder     = LLVMCreateBuilder();
+        fModule      = LLVMModuleCreateWithName(FAUSTVERSION);
         char* triple = LLVMGetDefaultTargetTriple();
         LLVMSetTarget(fModule, triple);
-       
+
         // Compile compute function
-        LLVMTypeRef param_types[] = {
-            LLVMPointerType(getInt32Ty(), 0),
-            LLVMPointerType(getRealTy(), 0),
-            LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0),
-            LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0)
-        };
-    
-        LLVMTypeRef execute_type = LLVMFunctionType(LLVMVoidType(), param_types, 4, false);
-        LLVMValueRef execute = LLVMAddFunction(fModule, "execute", execute_type);
-     
+        LLVMTypeRef param_types[] = {LLVMPointerType(getInt32Ty(), 0), LLVMPointerType(getRealTy(), 0),
+                                     LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0),
+                                     LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0)};
+
+        LLVMTypeRef  execute_type = LLVMFunctionType(LLVMVoidType(), param_types, 4, false);
+        LLVMValueRef execute      = LLVMAddFunction(fModule, "execute", execute_type);
+
         LLVMBasicBlockRef code_block = LLVMAppendBasicBlock(execute, "entry_block");
-        
-        fLLVMIntHeap = LLVMGetParam(execute, 0);
+
+        fLLVMIntHeap  = LLVMGetParam(execute, 0);
         fLLVMRealHeap = LLVMGetParam(execute, 1);
-        fLLVMInputs = LLVMGetParam(execute, 2);
-        fLLVMOutputs = LLVMGetParam(execute, 3);
-  
-    #if defined(LLVM_50) || defined(LLVM_60)
+        fLLVMInputs   = LLVMGetParam(execute, 2);
+        fLLVMOutputs  = LLVMGetParam(execute, 3);
+
+#if defined(LLVM_50) || defined(LLVM_60)
         LLVMSetValueName(fLLVMIntHeap, "int_heap");
         LLVMSetValueName(fLLVMRealHeap, "real_heap");
         LLVMSetValueName(fLLVMInputs, "inputs");
         LLVMSetValueName(fLLVMOutputs, "outputs");
-    #else
+#else
         LLVMSetValueName2(fLLVMIntHeap, "int_heap", 8);
         LLVMSetValueName2(fLLVMRealHeap, "real_heap", 9);
         LLVMSetValueName2(fLLVMInputs, "inputs", 6);
         LLVMSetValueName2(fLLVMOutputs, "outputs", 7);
-    #endif
-  
+#endif
+
         // fbc_block->write(&std::cout);
 
         // Compile compute body
@@ -775,49 +795,49 @@ class FBCLLVMCompiler {
         // Add return
         LLVMBuildRetVoid(fBuilder);
 
-        //LLVMDumpModule(fModule);
+        // LLVMDumpModule(fModule);
 
         // For host target support
         LLVMLinkInMCJIT();
         LLVMInitializeNativeTarget();
         LLVMInitializeNativeAsmPrinter();
         LLVMInitializeNativeAsmParser();
-        
+
         char* error;
         LLVMCreateJITCompilerForModule(&fJIT, fModule, LLVMCodeGenLevelAggressive, &error);
-        
+
         /*
         // Setup optimizations
         LLVMPassManagerBuilderRef pass_buider = LLVMPassManagerBuilderCreate();
         LLVMPassManagerBuilderSetOptLevel(pass_buider, 3);
         LLVMPassManagerBuilderSetSizeLevel(pass_buider, 0);
-        
+
         LLVMPassManagerRef function_passes = LLVMCreateFunctionPassManagerForModule(fModule);
-        
+
         LLVMPassManagerBuilderPopulateFunctionPassManager(pass_buider, function_passes);
-        
+
         LLVMAddSLPVectorizePass(function_passes);
         LLVMAddSLPVectorizePass(function_passes);
-        
+
         LLVMPassManagerRef module_passes = LLVMCreatePassManager();
         LLVMPassManagerBuilderPopulateModulePassManager(pass_buider, module_passes);
-        
+
         LLVMInitializeFunctionPassManager(function_passes);
         LLVMRunFunctionPassManager(function_passes, execute);
         LLVMFinalizeFunctionPassManager(function_passes);
-        
+
         LLVMRunPassManager(module_passes, fModule);
-        
+
         LLVMDisposePassManager(function_passes);
         LLVMDisposePassManager(module_passes);
         LLVMPassManagerBuilderDispose(pass_buider);
         */
-        
-        //LLVMDumpModule(fModule);
-        
+
+        // LLVMDumpModule(fModule);
+
         // Get 'execute' entry point
         fCompiledFun = (compiledFun)LLVMGetFunctionAddress(fJIT, "execute");
-        
+
         LLVMDisposeMessage(triple);
     }
 
@@ -826,6 +846,7 @@ class FBCLLVMCompiler {
         LLVMDisposeBuilder(fBuilder);
         // fModule is deallocated by fJIT
         LLVMDisposeExecutionEngine(fJIT);
+        LLVMShutdown();
     }
 
     void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
@@ -841,25 +862,23 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
     typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>           CompiledBlocksType;
     typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>::iterator CompiledBlocksTypeIT;
 
-    FBCCompiler(interpreter_dsp_factory_aux<T, 0>* factory, CompiledBlocksType* map)
-        : FBCInterpreter<T, 0>(factory)
+    FBCCompiler(interpreter_dsp_factory_aux<T, 0>* factory, CompiledBlocksType* map) : FBCInterpreter<T, 0>(factory)
     {
         fCompiledBlocks = map;
-     
+
         // FBC blocks compilation
         // CompileBlock(factory->fComputeBlock);
         CompileBlock(factory->fComputeDSPBlock);
     }
-    
-    virtual ~FBCCompiler()
-    {}
+
+    virtual ~FBCCompiler() {}
 
     void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile)
     {
         if (compile && fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
             CompileBlock(block);
         }
-        
+
         // The 'DSP' compute block only is compiled..
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
             ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
@@ -876,7 +895,7 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
             (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
         } else {
-            //std::cout << "FBCCompiler: reuse compiled block" << std::endl;
+            // std::cout << "FBCCompiler: reuse compiled block" << std::endl;
         }
     }
 };

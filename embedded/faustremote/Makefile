@@ -13,11 +13,11 @@ INCPATH = -I. -I../../compiler -I../../compiler/errors -I../../architecture -I..
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= -O3 $(INCPATH) -arch x86_64 -fvisibility=hidden 
+	CXXFLAGS	= -O3 $(INCPATH) -arch x86_64 -std=c++11 -fvisibility=hidden 
 	LIB_EXT     	= dylib
 else 
 	ARCHFLAGS	:= 
-	CXXFLAGS	= -O3 $(INCPATH) -fvisibility=hidden 
+	CXXFLAGS	= -O3 $(INCPATH) -std=c++11 -fvisibility=hidden 
 	LIBFLAGS	:= --mode=link --tag=CXX -fvisibility=hidden
 	LIB_EXT     	= so
 endif

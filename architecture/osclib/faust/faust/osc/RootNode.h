@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "faust/osc/MessageDriven.h"
+#include "faust/gui/JSONUI.h"
 
 namespace oscfaust
 {
@@ -104,21 +105,22 @@ class RootNode : public MessageDriven
 {
 	int *fUPDIn, *fUDPOut, *fUDPErr;	// the osc port numbers (required by the hello method)
 	OSCIO* fIO;                         // an OSC IO controler
+    JSONUI* fJSON;
 	
 	typedef std::map<std::string, std::vector<aliastarget> > TAliasMap;
 	TAliasMap fAliases;
 
 	void processAlias(const std::string& address, float val);
 	void eraseAliases(const std::string& target);
-	void eraseAlias  (const std::string& target, const std::string& alias);
-	bool aliasError  (const Message* msg);
+	void eraseAlias(const std::string& target, const std::string& alias);
+	bool aliasError(const Message* msg);
 
 	protected:
-				 RootNode(const char *name, OSCIO* io = 0) : MessageDriven(name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io) {}
+				 RootNode(const char *name, JSONUI* json, OSCIO* io = NULL) : MessageDriven(name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fJSON(json), fIO(io) {}
 		virtual ~RootNode() {}
 
 	public:
-		static SRootNode create(const char* name, OSCIO* io = 0) { return new RootNode(name, io); }
+		static SRootNode create(const char* name, JSONUI* json, OSCIO* io = NULL) { return new RootNode(name, json, io); }
 
 		virtual void processMessage(const Message* msg);
 		virtual bool accept(const Message* msg);

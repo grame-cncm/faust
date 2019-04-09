@@ -27,18 +27,18 @@
 
 template <class T>
 struct FBCExecutor {
-    
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
-    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false) {};
-    
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue){};
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false){};
+
     virtual void setIntValue(int offset, int value) {}
-    virtual int getIntValue(int offset) { return -1; }
-    
+    virtual int  getIntValue(int offset) { return -1; }
+
     virtual void setInput(int offset, T* buffer) {}
     virtual void setOutput(int offset, T* buffer) {}
-    
+
     virtual ~FBCExecutor() {}
-    
+
+    virtual void dumpMemory(FBCBlockInstruction<T>* block, const std::string& name, const std::string& filename) {}
 };
 
 #endif

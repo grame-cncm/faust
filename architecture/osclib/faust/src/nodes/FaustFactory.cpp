@@ -34,7 +34,7 @@ using namespace std;
 namespace oscfaust
 {
 
-FaustFactory::FaustFactory(GUI* ui, OSCIO * io) : fIO(io), fGUI(ui) {}
+FaustFactory::FaustFactory(GUI* ui, JSONUI* json, OSCIO* io) : fIO(io), fGUI(ui), fJSON(json) {}
 FaustFactory::~FaustFactory() {}
 
 /**
@@ -46,7 +46,7 @@ void FaustFactory::opengroup(const char* label)
 	if (fNodes.size() == 0) {	
 		// the stack is empty: creates a root node 
 		// and gives the root node a possible OSCIO controler
-		fRoot = RootNode::create(label, fIO);	
+		fRoot = RootNode::create(label, fJSON, fIO);
 		fNodes.push(fRoot);					
 		
 	} else {
@@ -67,7 +67,7 @@ void FaustFactory::opengroup(const char* label)
 }
 
 //--------------------------------------------------------------------------
-SRootNode FaustFactory::root() const	{ return fRoot; }
+SRootNode FaustFactory::root() const { return fRoot; }
 
 //--------------------------------------------------------------------------
 // add an alias to the root node

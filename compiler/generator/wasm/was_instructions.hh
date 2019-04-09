@@ -33,7 +33,7 @@ using namespace std;
 
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 
-#define audioPtrSize audioSampleSize()
+#define audioPtrSize gGlobal->audioSampleSize()
 
 #define wasmBlockSize int(pow(2, 16))
 
@@ -42,7 +42,7 @@ using namespace std;
 
  - in internal memory mode, a memory segment is allocated, otherwise it is given by the external JS runtime
  - DSP fields start at offset 0, then followed by audio buffers
- - the JSON string is written at offset 0, to be copied and converted in a string 
+ - the JSON string is written at offset 0, to be copied and converted in a string
  by the runtime (JS or something else) before using the DSP itsef.
 
 */
@@ -59,10 +59,7 @@ inline int pow2limit(int x)
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max(
-        (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize())))) /
-         wasmBlockSize),
-        1);
+    return std::max<int>((pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
 
     // Bigger memory block for soundfile test
     /*
@@ -106,13 +103,13 @@ struct WASInst {
     map<string, int>         fFunctionSymbolTable;
     map<string, MathFunDesc> fMathLibTable;  // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;    // Table : field_name, { offset, size, type }
-    
+
     // To generate tee_local the first time the variable access is compiled, then local.get will be used
-    map<string, bool>        fTeeMap;
+    map<string, bool> fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
-    bool fFastMemory;    // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
+    bool fFastMemory;  // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
 
     WASInst(bool fast_memory = false)
     {
@@ -139,12 +136,20 @@ struct WASInst {
         fMathLibTable["min_f"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
         fMathLibTable["powf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
         fMathLibTable["remainderf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kFloat, 2);
-        fMathLibTable["rintf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
-        fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
-        fMathLibTable["sinf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
-        fMathLibTable["sqrtf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
-        fMathLibTable["tanf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
-
+        fMathLibTable["rintf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
+        fMathLibTable["roundf"]     = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
+        fMathLibTable["sinf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
+        fMathLibTable["sqrtf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
+        fMathLibTable["tanf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
+        
+        // Additional hyperbolic math functions
+        fMathLibTable["acoshf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
+        fMathLibTable["asinhf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kFloat, 1);
+        fMathLibTable["atanhf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kFloat, 1);
+        fMathLibTable["coshf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kFloat, 1);
+        fMathLibTable["sinhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kFloat, 1);
+        fMathLibTable["tanhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, 1);
+       
         // Double version
         fMathLibTable["fabs"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F64Abs, Typed::kDouble, 1);
         fMathLibTable["acos"]      = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", Typed::kDouble, 1);
@@ -168,7 +173,15 @@ struct WASInst {
         fMathLibTable["sin"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
         fMathLibTable["sqrt"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
         fMathLibTable["tan"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
-
+        
+        // Additional hyperbolic math functions
+        fMathLibTable["acosh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kDouble, 1);
+        fMathLibTable["asinh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kDouble, 1);
+        fMathLibTable["atanh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kDouble, 1);
+        fMathLibTable["cosh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kDouble, 1);
+        fMathLibTable["sinh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kDouble, 1);
+        fMathLibTable["tanh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kDouble, 1);
+   
         fStructOffset     = 0;
         fSubContainerType = -1;
         fFastMemory       = fast_memory;
@@ -182,11 +195,6 @@ struct WASInst {
 
     map<string, MemoryDesc>& getFieldTable() { return fFieldTable; }
 
-    int getFieldOffset(const string& name)
-    {
-        return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
-    }
-
     // Check if address is constant, so that to be used as an 'offset' in load/store
     int getConstantOffset(Address* address)
     {
@@ -197,14 +205,14 @@ struct WASInst {
             return 0;
         }
 
-        NamedAddress*     named = dynamic_cast<NamedAddress*>(address);
+        NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
 
         if (named && fFieldTable.find(named->getName()) != fFieldTable.end()) {
             MemoryDesc tmp = fFieldTable[named->getName()];
             return tmp.fOffset;
         } else if (indexed && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
-            MemoryDesc tmp = fFieldTable[indexed->getName()];
+            MemoryDesc    tmp = fFieldTable[indexed->getName()];
             Int32NumInst* num;
             if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
                 return tmp.fOffset + (num->fNum << offStrNum);
@@ -216,7 +224,6 @@ struct WASInst {
 
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
-
 };
 
 #endif

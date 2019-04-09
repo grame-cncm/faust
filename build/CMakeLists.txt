@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.15.11)
+set (VERSION 2.17.6)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -35,6 +35,7 @@ option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
 option ( INCLUDE_ITP    	"Include Faust Machine library"	off )
 option ( INCLUDE_EMCC    	"Include emcc targets"	on )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
+option ( SELF_CONTAINED_LIBRARY	"Don't search system architecture files." off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
 	set ( DEPLOYMENT_TARGET_VERSION  10.11)
@@ -60,6 +61,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/generator/fir
 	${SRCDIR}/generator/interpreter
 	${SRCDIR}/generator/rust
+	${SRCDIR}/generator/soul
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
@@ -207,6 +209,10 @@ if (INCLUDE_DYNAMIC)
 #	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
+#self contained library
+if (SELF_CONTAINED_LIBRARY)
+	add_definitions( -DFAUST_SELF_CONTAINED_LIB )
+endif()
 
 ####################################
 # add sub projects (emcc, osclib, interpreter)
@@ -341,7 +347,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU iOS juce max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
+set (ARCHSRC android api AU iOS juce soul max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()

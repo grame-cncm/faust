@@ -56,7 +56,7 @@ struct TypingVisitor : public InstVisitor {
                 }
             }
             // Specific cases for FunArgs
-        } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "samplingFreq")) {
+        } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "sample_rate")) {
             fCurType = Typed::kInt32;
         } else {
             fCurType = Typed::kNoType;

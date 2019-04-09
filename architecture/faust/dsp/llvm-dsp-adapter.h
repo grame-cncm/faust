@@ -22,8 +22,6 @@
 #ifndef LLVM_DSP_ADAPTER_H
 #define LLVM_DSP_ADAPTER_H
 
-#include "faust/gui/CGlue.h"
-#include "faust/gui/SoundUI.h"
 #include "faust/gui/JSONUIDecoder.h"
 
 /*
@@ -36,30 +34,16 @@ extern "C"
 #endif
     
     // LLVM module API
-   
     typedef char comp_llvm_dsp;
-    
-    comp_llvm_dsp* newmydsp();
-    void deletemydsp(comp_llvm_dsp* dsp);
-    
-    int getNumInputsmydsp(comp_llvm_dsp* dsp);
-    int getNumOutputsmydsp(comp_llvm_dsp* dsp);
-    
-    void buildUserInterfacemydsp(comp_llvm_dsp* dsp, UIGlue* ui);
-    
-    int getSampleRatemydsp(comp_llvm_dsp* dsp);
-    
-    void initmydsp(comp_llvm_dsp* dsp, int samplingRate);
-    void instanceInitmydsp(comp_llvm_dsp* dsp, int samplingRate);
-    void instanceConstantsmydsp(comp_llvm_dsp* dsp, int samplingRate);
-    void instanceResetUserInterfacemydsp(comp_llvm_dsp* dsp);
+
+    // Used in -sch mode
+    void allocatemydsp(comp_llvm_dsp* dsp);
+    void destroymydsp(comp_llvm_dsp* dsp);
+   
+    void instanceConstantsmydsp(comp_llvm_dsp* dsp, int sample_rate);
     void instanceClearmydsp(comp_llvm_dsp* dsp);
     
-    void classInitmydsp(int samplingRate);
-    
-    void metadatamydsp(MetaGlue* meta);
-    
-    void setDefaultSoundmydsp(Soundfile* sf);
+    void classInitmydsp(int sample_rate);
     
     char* getJSONmydsp();
     
@@ -74,68 +58,80 @@ class mydsp : public dsp {
     private:
         
         comp_llvm_dsp* fDSP;
-        JSONUIDecoder* fDecoder;
+        JSONUITemplatedDecoder* fDecoder;
+    
+        std::string removeChar(const std::string& str, char c)
+        {
+            std::string res;
+            res.reserve(str.size());
+            for (size_t i = 0; i < str.size(); ++i) {
+                if (str[i] != c) res += str[i];
+            }
+            return res;
+        }
     
     public:
-        
+    
         mydsp()
         {
-            fDecoder = new JSONUIDecoder(getJSONmydsp());
-            fDSP = newmydsp();
-            setDefaultSoundmydsp(defaultsound);
+            std::string json = removeChar(getJSONmydsp(), '\\');
+            fDecoder = createJSONUIDecoder(json);
+            fDSP = static_cast<comp_llvm_dsp*>(calloc(1, fDecoder->getDSPSize()));
+            allocatemydsp(fDSP);
         }
         
         virtual ~mydsp()
         {
-            deletemydsp(fDSP);
+            destroymydsp(fDSP);
+            free(fDSP);
             delete fDecoder;
         }
+  
+        virtual int getNumInputs() { return fDecoder->getNumInputs(); }
+        
+        virtual int getNumOutputs() { return fDecoder->getNumOutputs(); }
     
-        virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
-        
-        virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
-        
         virtual void buildUserInterface(UI* ui_interface)
         {
-            UIGlue glue;
-            buildUIGlue(&glue, ui_interface, fDecoder->hasCompileOption("-double"));
-            buildUserInterfacemydsp(fDSP, &glue);
-        }
-        
-        virtual int getSampleRate()
-        {
-            return getSampleRatemydsp(fDSP);
-        }
-        
-        virtual void init(int samplingRate)
-        {
-            classInitmydsp(samplingRate);
-            initmydsp(fDSP, samplingRate);
+            fDecoder->buildUserInterface(ui_interface, fDSP);
         }
     
-        virtual void instanceInit(int samplingRate)
+        virtual int getSampleRate()
         {
-            instanceInitmydsp(fDSP, samplingRate);
+            return fDecoder->getSampleRate(fDSP);
         }
         
-        virtual void instanceConstants(int samplingRate)
+        virtual void init(int sample_rate)
         {
-            instanceConstantsmydsp(fDSP, samplingRate);
+            classInit(sample_rate);
+            instanceInit(sample_rate);
+        }
+    
+        virtual void instanceInit(int sample_rate)
+        {
+            instanceConstants(sample_rate);
+            instanceResetUserInterface();
+            instanceClear();
         }
         
+        virtual void instanceConstants(int sample_rate)
+        {
+            instanceConstantsmydsp(fDSP, sample_rate);
+        }
+    
         virtual void instanceResetUserInterface()
         {
-            instanceResetUserInterfacemydsp(fDSP);
+            fDecoder->resetUserInterface(fDSP, defaultsound);
         }
-        
+    
         virtual void instanceClear()
         {
             instanceClearmydsp(fDSP);
         }
     
-        static void classInit(int samplingRate)
+        static void classInit(int sample_rate)
         {
-            classInitmydsp(samplingRate);
+            classInitmydsp(sample_rate);
         }
     
         virtual dsp* clone()
@@ -145,9 +141,7 @@ class mydsp : public dsp {
         
         virtual void metadata(Meta* m)
         {
-            MetaGlue glue;
-            buildMetaGlue(&glue, m);
-            metadatamydsp(&glue);
+            fDecoder->metadata(m);
         }
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)

@@ -129,16 +129,16 @@ class CodeLoop : public virtual Garbageable {
     ///< create a non recursive loop
     CodeLoop(CodeLoop* encl, const string& index_name, int size = 0)
         : fIsRecursive(false),
-        fRecSymbolSet(gGlobal->nil),
-        fEnclosingLoop(encl),
-        fSize(size),
-        fOrder(-1),
-        fIndex(-1),
-        fPreInst(new BlockInst()),
-        fComputeInst(new BlockInst()),
-        fPostInst(new BlockInst()),
-        fLoopIndex(index_name),
-        fUseCount(0)
+          fRecSymbolSet(gGlobal->nil),
+          fEnclosingLoop(encl),
+          fSize(size),
+          fOrder(-1),
+          fIndex(-1),
+          fPreInst(new BlockInst()),
+          fComputeInst(new BlockInst()),
+          fPostInst(new BlockInst()),
+          fLoopIndex(index_name),
+          fUseCount(0)
     {
     }
 
@@ -170,7 +170,7 @@ class CodeLoop : public virtual Garbageable {
     ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
 
     SimpleForLoopInst* generateSimpleScalarLoop(const string& counter);
-    
+
     BlockInst* generateOneSample();
 
     void generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp);

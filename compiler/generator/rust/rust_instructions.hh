@@ -337,7 +337,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '[';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkFloat(inst->fNumTable[i]);
             sep = ',';
         }
@@ -347,7 +347,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '[';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << inst->fNumTable[i];
             sep = ',';
         }
@@ -357,7 +357,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '[';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkDouble(inst->fNumTable[i]);
             sep = ',';
         }

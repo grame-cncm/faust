@@ -207,6 +207,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "environment"   return ENVIRONMENT;
 
 "waveform"  return WAVEFORM;
+"route"     return ROUTE;
 "enable"   	return ENABLE;
 "control"   return CONTROL;
 

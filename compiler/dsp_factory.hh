@@ -25,12 +25,12 @@
 #include <string.h>
 #include <ostream>
 #include <string>
-#include <vector>
 
 #include "exception.hh"
-#include "faust/dsp/dsp.h"
+#include "export.hh"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
+#include "TMutex.h"
 
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
@@ -92,6 +92,8 @@ class dsp_factory_imp : public dsp_factory_base {
     }
 
     virtual ~dsp_factory_imp() {}
+    
+    static TLockAble* gDSPFactoriesLock;
 
     std::string getName()
     {
@@ -125,24 +127,9 @@ class dsp_factory_imp : public dsp_factory_base {
     virtual void                setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }
     virtual dsp_memory_manager* getMemoryManager() { return fManager; }
 
-    virtual void* allocate(size_t size)
-    {
-        if (fManager) {
-            return fManager->allocate(size);
-        } else {
-            faustassert(false);
-            return nullptr;
-        }
-    }
-    virtual void destroy(void* ptr)
-    {
-        if (fManager) {
-            fManager->destroy(ptr);
-        } else {
-            faustassert(false);
-        }
-    }
-
+    virtual void* allocate(size_t size);
+    virtual void destroy(void* ptr);
+  
     virtual void metadata(Meta* meta) { faustassert(false); }
 
     virtual void write(std::ostream* out, bool binary = false, bool small = false) {}
@@ -177,5 +164,17 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 
 std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,
                       std::string& error_msg);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+EXPORT bool startMTDSPFactories();
+
+EXPORT void stopMTDSPFactories();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

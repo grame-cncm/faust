@@ -90,7 +90,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
+global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
@@ -104,6 +104,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
@@ -163,6 +164,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
+    gOneSampleControl     = false;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version
@@ -257,6 +259,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
     BOXWAVEFORM      = symbol("BoxWaveform");
+    BOXROUTE         = symbol("BoxRoute");
     BOXWIRE          = symbol("BoxWire");
     BOXSLOT          = symbol("BoxSlot");
     BOXSYMBOLIC      = symbol("BoxSymbolic");
@@ -373,16 +376,16 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     SYMRECREF = symbol("SYMRECREF");
     SYMLIFTN  = symbol("LIFTN");
 
-    gMachineFloatSize  = 4;
-    gMachineInt32Size  = 4;
-    gMachineInt64Size  = 8;
-    gMachineDoubleSize = 8;
+    gMachineFloatSize  = sizeof(float);
+    gMachineInt32Size  = sizeof(int);
+    gMachineInt64Size  = sizeof(long int);
+    gMachineDoubleSize = sizeof(double);
     gMachineBoolSize   = sizeof(bool);
 
     // Assuming we are compiling for a 64 bits machine
-    gMachinePtrSize = 8;
+    gMachinePtrSize = sizeof(nullptr);
 
-    gMachineMaxStackSize = MAX_STACK_SIZE;
+    gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
     gOutputLang          = "";
 
 #ifdef WASM_BUILD
@@ -392,6 +395,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
 #ifdef INTERP_BUILD
     gInterpreterVisitor = 0;  // Will be (possibly) allocated in Interp backend
+#endif
+
+#ifdef SOUL_BUILD
+    gTableSizeVisitor = 0;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -498,8 +505,15 @@ void global::init()
     // Init type size table
     gTypeSizeMap[Typed::kFloat]         = gMachineFloatSize;
     gTypeSizeMap[Typed::kFloat_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloat_ptr_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kFloat_vec]     = gMachineFloatSize * gVecSize;
     gTypeSizeMap[Typed::kFloat_vec_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kDouble]         = gMachineDoubleSize;
+    gTypeSizeMap[Typed::kDouble_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
+    gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
 
     gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
     gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
@@ -511,24 +525,22 @@ void global::init()
     gTypeSizeMap[Typed::kInt64_vec]     = gMachineInt64Size * gVecSize;
     gTypeSizeMap[Typed::kInt64_vec_ptr] = gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kDouble]         = gMachineDoubleSize;
-    gTypeSizeMap[Typed::kDouble_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
-    gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
-
     gTypeSizeMap[Typed::kBool]         = gMachineBoolSize;
     gTypeSizeMap[Typed::kBool_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kBool_vec]     = gMachineBoolSize * gVecSize;
     gTypeSizeMap[Typed::kBool_vec_ptr] = gMachinePtrSize;
 
     // Takes the type of internal real
-    gTypeSizeMap[Typed::kFloatMacro]     = gTypeSizeMap[itfloat()];
-    gTypeSizeMap[Typed::kFloatMacro_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloatMacro]         = gTypeSizeMap[itfloat()];
+    gTypeSizeMap[Typed::kFloatMacro_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloatMacro_ptr_ptr] = gMachinePtrSize;
 
     gTypeSizeMap[Typed::kVoid_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kVoid_ptr_ptr] = gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kObj_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kObj_ptr]   = gMachinePtrSize;
+    gTypeSizeMap[Typed::kSound_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kUint_ptr]  = gMachinePtrSize;
 
     gCurrentLocal = setlocale(LC_ALL, NULL);
     if (gCurrentLocal != NULL) {
@@ -550,14 +562,27 @@ void global::init()
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
         "fLength", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fSampleRate", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
+        "fSR", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped(
         "fOffset", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
-    // Foreign math functions supported by the Interp backend
+    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
+    
+    gMathForeignFunctions["acoshf"] = true;
+    gMathForeignFunctions["acosh"]  = true;
+    gMathForeignFunctions["acoshl"] = true;
+
+    gMathForeignFunctions["asinhf"] = true;
+    gMathForeignFunctions["asinh"]  = true;
+    gMathForeignFunctions["asinhl"] = true;
+
+    gMathForeignFunctions["atanhf"] = true;
+    gMathForeignFunctions["atanh"]  = true;
+    gMathForeignFunctions["atanhl"] = true;
+  
     gMathForeignFunctions["coshf"] = true;
     gMathForeignFunctions["cosh"]  = true;
     gMathForeignFunctions["coshl"] = true;
@@ -576,10 +601,12 @@ void global::printCompilationOptions(ostream& dst, bool backend)
     if (backend) {
 #ifdef LLVM_BUILD
         if (gOutputLang == "llvm") {
-            dst << gOutputLang << " " << LLVM_VERSION << ", ";
+            dst << "-lang " << gOutputLang << " " << LLVM_VERSION << " ";
+        } else {
+            dst << "-lang " << gOutputLang << " ";
         }
 #else
-        dst << gOutputLang << ", ";
+        dst << "-lang " << gOutputLang << " ";
 #endif
     }
     if (gInPlace) dst << "-inpl ";
@@ -605,6 +632,11 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
             << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
     }
+}
+
+int global::audioSampleSize()
+{
+    return int(pow(2.f, float(gFloatSize + 1)));
 }
 
 global::~global()

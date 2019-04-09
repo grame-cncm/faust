@@ -50,24 +50,24 @@ class Cdsp : public dsp {
             return getSampleRatemydsp(fDSP);
         }
         
-        virtual void init(int samplingRate)
+        virtual void init(int sample_rate)
         {
-            initmydsp(fDSP, samplingRate);
+            initmydsp(fDSP, sample_rate);
         }
         
-        static void classInit(int samplingRate)
+        static void classInit(int sample_rate)
         {
-            classInitmydsp(samplingRate);
+            classInitmydsp(sample_rate);
         }
         
-        virtual void instanceInit(int samplingRate)
+        virtual void instanceInit(int sample_rate)
         {
-            instanceInitmydsp(fDSP, samplingRate);
+            instanceInitmydsp(fDSP, sample_rate);
         }
         
-        virtual void instanceConstants(int samplingRate)
+        virtual void instanceConstants(int sample_rate)
         {
-            instanceConstantsmydsp(fDSP, samplingRate);
+            instanceConstantsmydsp(fDSP, sample_rate);
         }
         
         virtual void instanceResetUserInterface()

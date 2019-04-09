@@ -485,7 +485,7 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigSoundfileLength(sig, sf, x)) {
         return generateCacheCode(sig, subst("$0cache->fLength[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileRate(sig, sf, x)) {
-        return generateCacheCode(sig, subst("$0cache->fSampleRate[$1]", CS(sf), CS(x)));
+        return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         return generateCacheCode(sig,
                                  subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z)));
@@ -527,8 +527,11 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
  FOREIGN CONSTANTS
  *****************************************************************************/
 
-string ScalarCompiler::generateFConst(Tree sig, const string& file, const string& exp)
+string ScalarCompiler::generateFConst(Tree sig, const string& file, const string& exp_aux)
 {
+    // Special case for 02/25/19 renaming
+    string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
+
     string          ctype, vname;
     old_Occurences* o = fOccMarkup->retrieve(sig);
 
@@ -926,14 +929,19 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
+    int size;
+    if (!isSigInt(tsize, &size)) {
+        stringstream error;
+        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
+        throw faustexception(error.str());
+    }
+
     string generator(CS(content));
     Tree   g;
     string cexp;
     string ctype, vname;
-    int    size;
 
     // already compiled but check if we need to add declarations
-
     faustassert(isSigGen(content, g));
     pair<string, string> kvnames;
     if (!fInstanceInitProperty.get(g, kvnames)) {
@@ -943,11 +951,6 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         fClass->addInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
     }
 
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
@@ -963,7 +966,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(size)));
 
     // initialisation du generateur de contenu
-    fClass->addInitCode(subst("$0.init(samplingFreq);", generator));
+    fClass->addInitCode(subst("$0.init(sample_rate);", generator));
     // remplissage de la table
     fClass->addInitCode(subst("$0.fill($1,$2);", generator, T(size), vname));
 
@@ -973,11 +976,16 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 
 string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
-    // string generator(CS(content));
+    int size;
+    if (!isSigInt(tsize, &size)) {
+        stringstream error;
+        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
+        throw faustexception(error.str());
+    }
+
     Tree   g;
     string cexp;
     string ctype, vname;
-    int    size;
 
     faustassert(isSigGen(content, g));
 
@@ -992,12 +1000,6 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
             faustassert(b);
             fClass->addStaticInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
         }
-    }
-
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
     }
 
     // definition du nom et du type de la table
@@ -1024,7 +1026,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     }
 
     // initialisation du generateur de contenu
-    fClass->addStaticInitCode(subst("$0.init(samplingFreq);", cexp));
+    fClass->addStaticInitCode(subst("$0.init(sample_rate);", cexp));
     // remplissage de la table
     fClass->addStaticInitCode(subst("$0.fill($1,$2);", cexp, T(size), vname));
 
@@ -1050,7 +1052,7 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 {
     // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
-    // et donc le code était dupliqué(dans tester.dsp par exemple)
+    // et donc le code était dupliqué (dans tester.dsp par exemple)
     // return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
 
     // cerr << "generateRDTable " << *sig << endl;

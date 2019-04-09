@@ -41,6 +41,7 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/misc.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/netjack-dsp.h"
 
