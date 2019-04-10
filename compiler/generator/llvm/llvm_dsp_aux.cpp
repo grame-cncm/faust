@@ -38,6 +38,7 @@
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
+#include "lock_api.hh"
 
 #include <llvm-c/Core.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
@@ -327,7 +328,7 @@ llvm_dsp::llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp) : fFactory(factory),
 
 llvm_dsp::~llvm_dsp()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     llvm_dsp_factory_aux::gLLVMFactoryTable.removeDSP(fFactory, this);
 
     // Used in -sch mode
@@ -423,24 +424,20 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 EXPORT vector<string> getAllDSPFactories()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
 }
 
 EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        TLock lock(dsp_factory_imp::gDSPFactoriesLock);
-        return llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory);
-    } else {
-        return false;
-    }
+    LOCK_API
+    return (factory) ? llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory) : false;
 }
 
 string llvm_dsp_factory_aux::getTarget()
@@ -455,13 +452,13 @@ EXPORT string getDSPMachineTarget()
 
 EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return factory->getLibraryList();
 }
 
 EXPORT void deleteAllDSPFactories()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
 }
 
@@ -529,7 +526,7 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(
         MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
 }
@@ -538,7 +535,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
                                                        string& error_msg)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
@@ -556,28 +553,28 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
 
 EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return factory->writeDSPFactoryToMachine(target);
 }
 
 EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
                                          const string& target)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return (factory) ? factory->writeDSPFactoryToMachineFile(machine_code_path, target) : false;
 }
 
 EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path,
                                             const string& target)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return (factory) ? factory->writeDSPFactoryToObjectcodeFile(object_code_path, target) : false;
 }
 
 // Instance
 EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     dsp* dsp = fFactory->createDSPInstance(this);
     llvm_dsp_factory_aux::gLLVMFactoryTable.addDSP(this, dsp);
     return static_cast<llvm_dsp*>(dsp);

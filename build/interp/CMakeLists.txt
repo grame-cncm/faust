@@ -30,7 +30,7 @@ set (CMAKE_BUILD_TYPE Release)
 
 #######################################
 # collect source files
-FILE(GLOB SRC ${FAUSTITP}/interpreter_dsp_aux.cpp ${FAUSTGEN}/export.cpp ${FAUSTROOT}/dsp_factory.cpp)
+FILE(GLOB SRC ${FAUSTITP}/interpreter_dsp_aux.cpp ${FAUSTGEN}/export.cpp ${FAUSTROOT}/lock_api.cpp)
 FILE(GLOB SRCH ${FAUSTITP}/*.h ${FAUSTGEN}/dsp_aux.h ${FAUSTGEN}/export.h)
 
 set( INCLUDE

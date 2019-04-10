@@ -22,6 +22,7 @@
 #include "interpreter_dsp_aux.hh"
 #include "compatibility.hh"
 #include "libfaust.h"
+#include "lock_api.hh"
 
 using namespace std;
 
@@ -46,43 +47,39 @@ dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return static_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
-    if (factory) {
-        TLock lock(dsp_factory_imp::gDSPFactoriesLock);
-        return gInterpreterFactoryTable.deleteDSPFactory(factory);
-    } else {
-        return false;
-    }
-}
+    LOCK_API
+    return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory) : false;
+ }
 
 EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
 {
     // TODO
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     vector<string> res;
     return res;
 }
 
 EXPORT vector<string> getAllInterpreterDSPFactories()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return gInterpreterFactoryTable.getAllDSPFactories();
 }
 
 EXPORT void deleteAllInterpreterDSPFactories()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     gInterpreterFactoryTable.deleteAllDSPFactories();
 }
 
 EXPORT interpreter_dsp::~interpreter_dsp()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     gInterpreterFactoryTable.removeDSP(fFactory, this);
 
     if (fFactory->getMemoryManager()) {
@@ -95,7 +92,7 @@ EXPORT interpreter_dsp::~interpreter_dsp()
 
 EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     dsp* dsp = fFactory->createDSPInstance(this);
     gInterpreterFactoryTable.addDSP(this, dsp);
     return static_cast<interpreter_dsp*>(dsp);
@@ -166,13 +163,13 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const string& bitcode, string& error_msg)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     return readInterpreterDSPFactoryFromBitcodeAux(bitcode, error_msg);
 }
 
 EXPORT string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     stringstream writer;
     factory->write(&writer, true);
     return writer.str();
@@ -180,7 +177,7 @@ EXPORT string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* facto
 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const string& bitcode_path, string& error_msg)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     string base = basename((char*)bitcode_path.c_str());
     size_t pos  = bitcode_path.find(".fbc");
 
@@ -201,7 +198,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const s
 
 EXPORT void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const string& bitcode_path)
 {
-    TLock lock(dsp_factory_imp::gDSPFactoriesLock);
+    LOCK_API
     ofstream writer(bitcode_path.c_str());
     factory->write(&writer, true);
 }

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,44 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-#include "dsp_factory.hh"
-#include "faust/dsp/dsp.h"
+#include "TMutex.h"
+#include "export.hh"
 
-// Global API access lock
-TLockAble* dsp_factory_imp::gDSPFactoriesLock = nullptr;
+extern TLockAble* gDSPFactoriesLock;
 
-void* dsp_factory_imp::allocate(size_t size)
-{
-    if (fManager) {
-        return fManager->allocate(size);
-    } else {
-        faustassert(false);
-        return nullptr;
-    }
-}
-void dsp_factory_imp::destroy(void* ptr)
-{
-    if (fManager) {
-        fManager->destroy(ptr);
-    } else {
-        faustassert(false);
-    }
-}
+#define LOCK_API TLock lock(gDSPFactoriesLock);
 
-extern "C" EXPORT bool startMTDSPFactories()
-{
-    try {
-        if (!dsp_factory_imp::gDSPFactoriesLock) {
-            dsp_factory_imp::gDSPFactoriesLock = new TLockAble();
-        }
-        return true;
-    } catch (...) {
-        return false;
-    }
-}
-
-extern "C" EXPORT void stopMTDSPFactories()
-{
-    delete dsp_factory_imp::gDSPFactoriesLock;
-    dsp_factory_imp::gDSPFactoriesLock = nullptr;
-}
+extern "C" EXPORT bool startMTDSPFactories();
+extern "C" EXPORT void stopMTDSPFactories();
