@@ -509,14 +509,29 @@ class FBCLLVMCompiler {
                     pushUnaryRealCall("acos");
                     it++;
                     break;
+                    
+                case FBCInstruction::kAcoshf:
+                    pushUnaryRealCall("acosh");
+                    it++;
+                    break;
 
                 case FBCInstruction::kAsinf:
                     pushUnaryRealCall("asin");
                     it++;
                     break;
+                    
+                case FBCInstruction::kAsinhf:
+                    pushUnaryRealCall("asinh");
+                    it++;
+                    break;
 
                 case FBCInstruction::kAtanf:
                     pushUnaryRealCall("atan");
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kAtanhf:
+                    pushUnaryRealCall("atanh");
                     it++;
                     break;
 

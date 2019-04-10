@@ -1161,10 +1161,13 @@ struct FBCInstructionOptimizer {
 
         do {
             FBCBasicInstruction<T>* inst1 = *cur;
-            FBCBasicInstruction<T>* inst2 = *(cur + 1);
+            FBCBasicInstruction<T>* inst2 = nullptr;
 
             // Specialization
-            if (inst1->fOpcode == FBCInstruction::kInt32Value && FBCInstruction::isChoice(inst2->fOpcode)) {
+            if (inst1->fOpcode == FBCInstruction::kInt32Value
+                && ((cur + 1) != cur_block->fInstructions.end())
+                && (inst2 = *(cur + 1))
+                && FBCInstruction::isChoice(inst2->fOpcode)) {
                 if (inst1->fIntValue == 1) {
                     new_block->merge(optimize_aux(inst2->fBranch1, optimizer));
                 } else if (inst1->fIntValue == 0) {
@@ -1192,6 +1195,7 @@ struct FBCInstructionOptimizer {
                 new_block->push(optimizer.rewrite(cur, next));
                 cur = next;
             }
+            
         } while (cur != cur_block->fInstructions.end());
 
         return new_block;
