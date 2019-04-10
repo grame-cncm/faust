@@ -30,14 +30,10 @@
 #include "export.hh"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
-#include "TMutex.h"
+#include "faust/dsp/dsp.h"
 
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
-
-struct dsp_memory_manager;
-class dsp_factory;
-class dsp;
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, Interpreter, WebAssembly).
@@ -92,8 +88,6 @@ class dsp_factory_imp : public dsp_factory_base {
     }
 
     virtual ~dsp_factory_imp() {}
-    
-    static TLockAble* gDSPFactoriesLock;
 
     std::string getName()
     {
@@ -127,8 +121,24 @@ class dsp_factory_imp : public dsp_factory_base {
     virtual void                setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }
     virtual dsp_memory_manager* getMemoryManager() { return fManager; }
 
-    virtual void* allocate(size_t size);
-    virtual void destroy(void* ptr);
+    virtual void* allocate(size_t size)
+    {
+        if (fManager) {
+            return fManager->allocate(size);
+        } else {
+            faustassert(false);
+            return nullptr;
+        }
+    }
+
+    virtual void destroy(void* ptr)
+    {
+        if (fManager) {
+            fManager->destroy(ptr);
+        } else {
+            faustassert(false);
+        }
+    }
   
     virtual void metadata(Meta* meta) { faustassert(false); }
 
@@ -164,17 +174,5 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 
 std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,
                       std::string& error_msg);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-EXPORT bool startMTDSPFactories();
-
-EXPORT void stopMTDSPFactories();
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

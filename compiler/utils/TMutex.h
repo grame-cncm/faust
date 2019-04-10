@@ -24,6 +24,8 @@
 #ifndef __TMutex__
 #define __TMutex__
 
+#include <new>
+
 #ifdef _WIN32
 #include <windows.h>
 #else

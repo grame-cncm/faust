@@ -213,13 +213,13 @@ std::vector<std::string> getAllInterpreterDSPFactories();
  *
  * @return true if 'multi-thread' safe access is started.
  */
-bool startMTDSPFactories();
+extern "C" bool startMTDSPFactories();
 
 /**
  * Stop multi-thread access mode.
  *
  */
-void stopMTDSPFactories();
+extern "C" void stopMTDSPFactories();
 
 /**
  * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all

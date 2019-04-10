@@ -34,6 +34,7 @@
 #include "libfaust.h"
 #include "llvm_dynamic_dsp_aux.hh"
 #include "rn_base64.h"
+#include "lock_api.hh"
 
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/ExecutionEngine/ObjectCache.h>
@@ -122,7 +123,8 @@ void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
 // Bitcode
 string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
-    string             res;
+    string res;
+    
     raw_string_ostream out(res);
 #if defined(LLVM_70) || defined(LLVM_80)
     WriteBitcodeToFile(*fModule, out);
@@ -135,7 +137,7 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 
 bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
 {
-    STREAM_ERROR   err;
+    STREAM_ERROR err;
     raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
     if (err) {
         cerr << "ERROR : writeDSPFactoryToBitcodeFile could not open file : " << err.message();
@@ -383,7 +385,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                     const char* argv[], const string& target, string& error_msg,
                                                     int opt_level)
 {
-    TLock  lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     string expanded_dsp_content, sha_key;
 
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
@@ -559,14 +561,14 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
                                                    int opt_level)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(bit_code))), target, error_msg,
                                         opt_level);
 }
 
 EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     return (factory) ? factory->writeDSPFactoryToBitcode() : "";
 }
 
@@ -574,9 +576,8 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target,
                                                        string& error_msg, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
-
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : " + ec.message() + "\n";
         return nullptr;
@@ -587,7 +588,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
 
 EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     return (factory) ? factory->writeDSPFactoryToBitcodeFile(bit_code_path) : false;
 }
 
@@ -596,7 +597,8 @@ EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
                                                  int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -637,13 +639,13 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
 EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, string& error_msg,
                                               int opt_level)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     return readDSPFactoryFromIRAux(MEMORY_BUFFER_CREATE(StringRef(ir_code)), target, error_msg, opt_level);
 }
 
 EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     return (factory) ? factory->writeDSPFactoryToIR() : "";
 }
 
@@ -651,7 +653,7 @@ EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg,
                                                   int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
 
     if (error_code ec = buffer.getError()) {
@@ -664,7 +666,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
 
 EXPORT bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
 {
-    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    LOCK_API
     return (factory) ? factory->writeDSPFactoryToIRFile(ir_code_path) : false;
 }
 
@@ -730,7 +732,8 @@ extern "C" {
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
                                                    const char* target, char* error_msg, int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
+    
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -740,7 +743,8 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                      const char* argv[], const char* target, char* error_msg,
                                                      int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
+    
     llvm_dsp_factory* factory =
         createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
@@ -750,7 +754,8 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
                                                     int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
+    
     llvm_dsp_factory* factory = readDSPFactoryFromBitcode(bit_code, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -764,7 +769,8 @@ EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg,
                                                         int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
+    
     llvm_dsp_factory* factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -777,7 +783,8 @@ EXPORT bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char*
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
+    
     llvm_dsp_factory* factory = readDSPFactoryFromIR(ir_code, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
