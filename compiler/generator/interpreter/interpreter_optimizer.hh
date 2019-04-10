@@ -65,18 +65,8 @@ struct FBCInstructionCopyOptimizer : public FBCInstructionOptimizer<T> {
     }
 };
 
-#ifndef NDEBUG
-// To avoid asan and tsan hits. (reading past allocated memory)
-#  define DEF_INST2()
-#  define INST2 (*(cur+1))
-#  define DEF_INST3()
-#  define INST3 (*(cur+2))
-#else
-#  define DEF_INST2() const FBCBasicInstruction<T>* inst2 = *(cur + 1)
-#  define INST2 inst2
-#  define DEF_INST3() const FBCBasicInstruction<T>* inst3 = *(cur + 2)
-#  define INST3 inst3
-#endif
+#define INST2 (*(cur+1))
+#define INST3 (*(cur+2))
 
 // Cast optimizer
 template <class T>
@@ -86,7 +76,6 @@ struct FBCInstructionCastOptimizer : public FBCInstructionOptimizer<T> {
     virtual FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
 
         if (inst1->fOpcode == FBCInstruction::kLoadInt && INST2->fOpcode == FBCInstruction::kCastReal) {
             end = cur + 2;
@@ -111,7 +100,6 @@ struct FBCInstructionLoadStoreOptimizer : public FBCInstructionOptimizer<T> {
     FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
 
         if (inst1->fOpcode == FBCInstruction::kInt32Value && INST2->fOpcode == FBCInstruction::kLoadIndexedReal) {
             end = cur + 2;
@@ -144,7 +132,6 @@ struct FBCInstructionMoveOptimizer : public FBCInstructionOptimizer<T> {
     FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
 
         // Optimize Heap Load/Store as Move
         if (inst1->fOpcode == FBCInstruction::kLoadReal && INST2->fOpcode == FBCInstruction::kStoreReal) {
@@ -241,7 +228,6 @@ struct FBCInstructionPairMoveOptimizer : public FBCInstructionOptimizer<T> {
     FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
 
         if (inst1->fOpcode == FBCInstruction::kMoveReal && INST2->fOpcode == FBCInstruction::kMoveReal &&
             (inst1->fOffset1 == (inst1->fOffset2 + 1)) && (INST2->fOffset1 == (INST2->fOffset2 + 1)) &&
@@ -374,8 +360,6 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
     FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
-        DEF_INST3();
 
         faustassert(gFIRMath2Heap.size() > 0);
         faustassert(gFIRMath2Stack.size() > 0);
@@ -626,7 +610,6 @@ struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<T> {
     virtual FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
 
         if (inst1->fOpcode == FBCInstruction::kRealValue && INST2->fOpcode == FBCInstruction::kStoreReal) {
             end = cur + 2;
@@ -655,7 +638,6 @@ struct FBCInstructionCastSpecializer : public FBCInstructionOptimizer<T> {
     virtual FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
 
         if (inst1->fOpcode == FBCInstruction::kInt32Value && INST2->fOpcode == FBCInstruction::kCastReal) {
             end = cur + 2;
@@ -1045,8 +1027,6 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
     virtual FBCBasicInstruction<T>* rewrite(const InstructionIT cur, InstructionIT& end)
     {
         const FBCBasicInstruction<T>* inst1 = *cur;
-        DEF_INST2();
-        DEF_INST3();
 
         FBCBasicInstruction<T>* res;
 
@@ -1175,7 +1155,6 @@ struct FBCInstructionOptimizer {
 
         do {
             const FBCBasicInstruction<T>* inst1 = *cur;
-            DEF_INST2();
 
             // Specialization
             if (inst1->fOpcode == FBCInstruction::kInt32Value && FBCInstruction::isChoice(INST2->fOpcode)) {
@@ -1323,9 +1302,7 @@ struct FBCInstructionOptimizer {
     }
 };
 
-#undef DEF_INST2
 #undef INST2
-#undef DEF_INST3
 #undef INST3
 
 #endif
