@@ -270,10 +270,10 @@ class APIUI : public PathBuilder, public Meta, public UI
     
         // -- widget's layouts
 
-        virtual void openTabBox(const char* label)          { fControlsLevel.push_back(label); }
-        virtual void openHorizontalBox(const char* label)   { fControlsLevel.push_back(label); }
-        virtual void openVerticalBox(const char* label)     { fControlsLevel.push_back(label); }
-        virtual void closeBox()                             { fControlsLevel.pop_back(); }
+        virtual void openTabBox(const char* label)          { pushLabel(label); }
+        virtual void openHorizontalBox(const char* label)   { pushLabel(label); }
+        virtual void openVerticalBox(const char* label)     { pushLabel(label); }
+        virtual void closeBox()                             { popLabel(); }
 
         // -- active widgets
 

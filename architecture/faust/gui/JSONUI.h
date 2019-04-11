@@ -206,7 +206,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
     
         virtual void openGenericGroup(const char* label, const char* name)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
@@ -235,7 +235,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
     
         virtual void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
             fTab -= 1;
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;

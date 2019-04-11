@@ -48,22 +48,22 @@ class PrintUI : public PathBuilder, public UI
 
         virtual void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
             std::cout << "openTabBox label : " << label << std::endl;
         }
         virtual void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
             std::cout << "openHorizontalBox label : " << label << std::endl;
         }
         virtual void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
             std::cout << "openVerticalBox label : " << label << std::endl;
         }
         virtual void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
             std::cout << "closeBox" << std::endl;
         }
 

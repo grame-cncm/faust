@@ -30,10 +30,11 @@
 
 #include "Text.hh"
 #include "text_instructions.hh"
+#include "faust/gui/PathBuilder.h"
 
 using namespace std;
 
-struct SOULInstUIVisitor : public DispatchVisitor {
+struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
     SOULStringTypeManager fTypeManager;
     int                   fTab;
@@ -54,7 +55,7 @@ struct SOULInstUIVisitor : public DispatchVisitor {
         }
         fMetaAux.clear();
     }
-   
+    
     virtual void visit(AddMetaDeclareInst* inst)
     {
         fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
@@ -67,6 +68,7 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ label: " << quote(inst->fLabel)
+            << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
             addMeta();
             fOut << " ]];";
@@ -74,6 +76,7 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ label: " << quote(inst->fLabel)
+            << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
             addMeta();
             fOut << " ]];";
@@ -88,6 +91,7 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ label: " << quote(inst->fLabel)
+            << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
@@ -98,6 +102,7 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ label: " << quote(inst->fLabel)
+            << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
@@ -114,7 +119,8 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
-            << " [[ label: " << inst->fLabel
+            << " [[ label: " << quote(inst->fLabel)
+            << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
@@ -123,6 +129,7 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ label: " << quote(inst->fLabel)
+            << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
@@ -133,13 +140,16 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     
     virtual void visit(OpenboxInst* inst)
     {
+        pushLabel(inst->fName);
         fMetaAux.clear();
     }
     
     virtual void visit(CloseboxInst* inst)
     {
+        popLabel();
         fMetaAux.clear();
     }
+    
 };
 
 class SOULInstVisitor : public TextInstVisitor {
