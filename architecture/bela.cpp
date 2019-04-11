@@ -52,9 +52,10 @@
 
 using namespace std;
 
+#include "faust/gui/SimpleParser.h"
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/dsp.h"
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MidiUI.h"
 
 // for MIDI support
@@ -274,7 +275,7 @@ public:
 // To be modified: We can have 8 inputs, 8 outputs, and 16 digital In or Out.
 #define MAXBELAWIDGETS 16
 
-class BelaUI : public UI
+class BelaUI : public GenericUI
 {
     
 private:
@@ -310,12 +311,6 @@ public:
         }
     }
     
-    // -- widget's layouts
-    virtual void openTabBox(const char* label) {}
-    virtual void openHorizontalBox(const char* label) {}
-    virtual void openVerticalBox(const char* label) {}
-    virtual void closeBox() {}
-    
     // -- active widgets
     virtual void addButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
@@ -326,9 +321,6 @@ public:
     // -- passive widgets
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
-    
-    // -- soundfiles
-    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
     // -- metadata declarations
     virtual void declare(FAUSTFLOAT* z, const char* k, const char* id)
