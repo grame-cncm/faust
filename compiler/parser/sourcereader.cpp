@@ -261,7 +261,7 @@ Tree SourceReader::parseFile(const char* fname)
 
     // We are requested to parse an URL file
     if (isURL(yyfilename)) {
-        char* buffer = 0;
+        char* buffer = nullptr;
     #ifdef EMCC
         // Call JS code to load URL
         buffer = (char*)EM_ASM_INT({
@@ -279,7 +279,7 @@ Tree SourceReader::parseFile(const char* fname)
             return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
         }, yyfilename);
 
-        Tree res = 0;
+        Tree res = nullptr;
         if (strlen(buffer) == 0) {
             stringstream error;
             error << "ERROR : unable to access URL '" << fname << "'" << endl;
@@ -305,21 +305,21 @@ Tree SourceReader::parseFile(const char* fname)
     } else {
 
         // Test for local url
-		if (isFILE(yyfilename)) {
+        if (isFILE(yyfilename)) {
             yyfilename = &yyfilename[7]; // skip 'file://'
-		}
-
-    #ifdef EMCC
-        string fullpath;
+        }
+        
         // Try to open local file
+        string fullpath;
         FILE* tmp_file = yyin = fopenSearch(yyfilename, fullpath); // Keep file to properly close it
         if (yyin) {
             Tree res = parseLocal(fullpath.c_str());
             fclose(tmp_file);
             return res;
         } else {
+        #ifdef EMCC
             // Try to open with the complete URL
-            Tree res = 0;
+            Tree res = nullptr;
             for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
                 if (isURL(gGlobal->gImportDirList[i].c_str())) {
                     // Keep the created filename in the global state, so that the 'yyfilename'
@@ -328,22 +328,11 @@ Tree SourceReader::parseFile(const char* fname)
                     if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
                 }
             }
+        #endif
             stringstream error;
             error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
         }
-    #else
-        string fullpath;
-        FILE* tmp_file = yyin = fopenSearch(yyfilename, fullpath); // Keep file to properly close it
-        if (!yyin) {
-            stringstream error;
-            error << "ERROR : unable to open file " << yyfilename << endl;
-            throw faustexception(error.str());
-        }
-        Tree res = parseLocal(fullpath.c_str());
-        fclose(tmp_file);
-        return res;
-    #endif
     }
 }
 
@@ -409,7 +398,7 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 		} else {
 			Tree foo = hd(def);
             Tree exp = tl(def);
-            for (auto m : M[foo]) {
+            for (auto& m : M[foo]) {
                 exp = boxMetadata(exp, m);
             }
             lresult = cons(cons(foo,exp), lresult);
