@@ -95,7 +95,7 @@ ioslib :
 	$(MAKE) -C $(BUILDLOCATION) ioslib
 
 wasm :
-	mkdir wasm-libraries && cp libraries/*.lib libraries/old/*.lib wasm-libraries
+	mkdir -p wasm-libraries && cp libraries/*.lib libraries/old/*.lib wasm-libraries
 	$(MAKE) -C $(BUILDLOCATION) wasmlib
 	rm -rf wasm-libraries
 
