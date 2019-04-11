@@ -32,7 +32,7 @@
 #include <string>
 
 #ifdef WIN32
-# define strdup _strdup
+#define strdup _strdup
 #endif
 
 static const std::string base64_chars =

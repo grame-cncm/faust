@@ -63,7 +63,9 @@ CodeContainer::CodeContainer()
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst()),
       fSubContainerType(kInt),
-      fGeneratedSR(false)
+      fGeneratedSR(false),
+      fInt32ControlNum(0),
+      fRealControlNum(0)
 {
     fCurLoop = new CodeLoop(0, "i");
 }
@@ -258,8 +260,8 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         BlockInst* block = InstBuilder::genBlockInst();
 
         it++;
-        Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
-        string faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
+        Int32NumInst* arg1             = dynamic_cast<Int32NumInst*>(*it);
+        string        faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
 
         list<NamedTyped*> named_args;
         named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
@@ -280,11 +282,12 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));
         return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
- 
+
     } else {
         list<NamedTyped*> named_args;
         for (size_t i = 0; i < types.size(); i++) {
-            named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
+            named_args.push_back(
+                InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
         }
         pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         return InstBuilder::genFunCallInst(name, args);
@@ -319,11 +322,11 @@ void CodeContainer::produceInfoFunctions(int tabs, const string& classname, cons
     producer->Tab(tabs);
     generateGetInputs(subst("getNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
     generateGetOutputs(subst("getNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
-    
+
     // Input Rates
     producer->Tab(tabs);
     generateGetInputRate(subst("getInputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
-    
+
     // Output Rates
     producer->Tab(tabs);
     generateGetOutputRate(subst("getOutputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
@@ -344,13 +347,13 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gGlobal->gDSPStruct);
         pushOtherComputeMethod(builder.fFunctionDef);
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive)
-                                                          ? subst("/* Recursive function $0 */", T(loop_num))
-                                                          : subst("/* Vectorizable function $0 */", T(loop_num))));
+                                                              ? subst("/* Recursive function $0 */", T(loop_num))
+                                                              : subst("/* Vectorizable function $0 */", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive)
-                                                          ? subst("/* Recursive loop $0 */", T(loop_num))
-                                                          : subst("/* Vectorizable loop $0 */", T(loop_num))));
+                                                              ? subst("/* Recursive loop $0 */", T(loop_num))
+                                                              : subst("/* Vectorizable loop $0 */", T(loop_num))));
         // Generates scalar or vectorized loop
         generateDAGLoopInternal(loop, loop_code, count, omp);
     }
@@ -359,7 +362,7 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
 void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
 {
     int loop_num = 0;
-    
+
     if (gGlobal->gDeepFirstSwitch) {
         set<CodeLoop*>  visited;
         list<CodeLoop*> result;
@@ -382,14 +385,14 @@ void CodeContainer::processFIR(void)
 {
     // Possibly add "fSamplingRate" field
     generateSR();
-    
+
     // Possibly groups tasks (used by VectorCodeContainer, OpenMPCodeContainer and WSSCodeContainer)
     if (gGlobal->gGroupTaskSwitch) {
         CodeLoop::computeUseCount(fCurLoop);
         set<CodeLoop*> visited;
         CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
-    
+
     // Sort struct fields by size and type
     // 05/16/17 : deactivated since it slows down the code...
     /*
@@ -401,32 +404,32 @@ void CodeContainer::processFIR(void)
 BlockInst* CodeContainer::flattenFIR(void)
 {
     BlockInst* global_block = InstBuilder::genBlockInst();
-    
+
     // Declaration part
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Declaration part =========="));
     global_block->merge(fExtGlobalDeclarationInstructions);
     global_block->merge(fGlobalDeclarationInstructions);
     global_block->merge(fDeclarationInstructions);
-    
+
     // Init method
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Init method =========="));
     global_block->merge(fInitInstructions);
     global_block->merge(fResetUserInterfaceInstructions);
     global_block->merge(fClearInstructions);
     global_block->merge(fPostInitInstructions);
-    
+
     // Static init method
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Static init method =========="));
     global_block->merge(fStaticInitInstructions);
     global_block->merge(fPostStaticInitInstructions);
-    
+
     // Subcontainers
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Subcontainers =========="));
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
         global_block->merge((*it)->flattenFIR());
     }
-    
+
     // Compute method
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute control =========="));
     global_block->merge(fComputeBlockInstructions);
@@ -434,7 +437,7 @@ BlockInst* CodeContainer::flattenFIR(void)
     global_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Post compute DSP =========="));
     global_block->merge(fPostComputeBlockInstructions);
-    
+
     return global_block;
 }
 
@@ -482,11 +485,11 @@ void CodeContainer::generateJSON(JSONInstVisitor* visitor)
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
-    
+
     // "name", "filename" found in medata
     visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
                   gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "", std::map<std::string, int>());
-    
+
     generateUserInterface(visitor);
     generateMetaData(visitor);
 }
@@ -495,22 +498,22 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
     block = DspRenamer().getCode(block);
-    
+
     // Inline subcontainers 'instanceInit' and 'fill' function call
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* inst_init_fun =
-        (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
+            (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
         // dump2FIR(inst_init_fun);
         block = FunctionCallInliner(inst_init_fun).getCode(block);
-        
+
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), "dsp", true, false);
         // dump2FIR(fill_fun);
         block = FunctionCallInliner(fill_fun).getCode(block);
     }
-    
+
     // dump2FIR(block);
     return block;
 }
@@ -572,10 +575,10 @@ DeclareFunInst* CodeContainer::generateAllocate(const string& name, const string
 
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(fAllocateInstructions);
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-    
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
@@ -586,13 +589,13 @@ DeclareFunInst* CodeContainer::generateDestroy(const string& name, const string&
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    
+
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(fDestroyInstructions);
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-    
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
@@ -648,37 +651,39 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, const s
     return generateGetIORate(name, obj, fOutputRates, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod,
+                                                     bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    
+
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(fClearInstructions);
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-    
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod,
+                                                         bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
-    
+
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(fInitInstructions);
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-    
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
@@ -700,14 +705,15 @@ DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool is
 
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-  
+
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
                                                   (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
+                                                       bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -720,10 +726,10 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const
     block->pushBackInst(fPostInitInstructions);
     block->pushBackInst(fResetUserInterfaceInstructions);
     block->pushBackInst(fClearInstructions);
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-  
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
@@ -736,9 +742,9 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
     }
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     if (fSubContainerType == kInt) {
-        args.push_back(InstBuilder::genNamedTyped("output", Typed::kInt32_ptr));
+        args.push_back(InstBuilder::genNamedTyped(fTableName, Typed::kInt32_ptr));
     } else {
-        args.push_back(InstBuilder::genNamedTyped("output", itfloatptr()));
+        args.push_back(InstBuilder::genNamedTyped(fTableName, itfloatptr()));
     }
 
     BlockInst* block = InstBuilder::genBlockInst();
@@ -747,7 +753,7 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
 
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
- 
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
@@ -783,7 +789,8 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const string& obj, bool ismethod,
+                                                    bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -821,7 +828,8 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const string& obj, bool ismethod,
+                                                     bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -846,13 +854,13 @@ DeclareFunInst* CodeContainer::generateComputeFun(const string& name, const stri
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kFloatMacro_ptr_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kFloatMacro_ptr_ptr));
-    
+
     // Generates control + DSP block
     BlockInst* block = generateComputeAux();
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-    
+
     // Creates function
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
@@ -864,9 +872,10 @@ DeclareFunInst* CodeContainer::generateCalloc()
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt64));
     args.push_back(InstBuilder::genNamedTyped("size", Typed::kInt64));
-    
+
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
+    FunTyped* fun_type =
+        InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("calloc", fun_type);
 }
 
@@ -874,7 +883,7 @@ DeclareFunInst* CodeContainer::generateFree()
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("ptr", Typed::kVoid_ptr));
-    
+
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("free", fun_type);
@@ -883,16 +892,16 @@ DeclareFunInst* CodeContainer::generateFree()
 DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
 {
     list<NamedTyped*> args;
-  
+
     BlockInst* block = InstBuilder::genBlockInst();
     {
         list<ValueInst*> args;
         args.push_back(InstBuilder::genInt64NumInst(1));
         args.push_back(InstBuilder::genInt64NumInst(size));
-        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(InstBuilder::genFunCallInst("calloc", args),
-                                                                             InstBuilder::genBasicTyped(Typed::kObj_ptr))));
+        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(
+            InstBuilder::genFunCallInst("calloc", args), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
     }
-    
+
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kObj_ptr), FunTyped::kLocal);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
@@ -902,17 +911,18 @@ DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const strin
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
-    
+
     BlockInst* block = InstBuilder::genBlockInst();
     {
         list<ValueInst*> args;
-        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj), InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
+        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
+                                                InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args)));
     }
-    
+
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());
-    
+
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kLocal);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);

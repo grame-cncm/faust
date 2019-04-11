@@ -44,9 +44,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     int  fIntHeapOffset;    // Offset in Integer HEAP
     int  fSoundHeapOffset;  // Offset in Sound HEAP
     bool fCommute;          // Whether to try commutative operation reverse order generation
-  
+
     std::map<std::string, MemoryDesc> fFieldTable;  // Table : field_name, { offset, size, type }
- 
+
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
     FBCBlockInstruction<T>*              fCurrentBlock;
 
@@ -83,7 +83,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["atan2f"]     = FBCInstruction::kAtan2f;
         gMathLibTable["ceilf"]      = FBCInstruction::kCeilf;
         gMathLibTable["cosf"]       = FBCInstruction::kCosf;
-        gMathLibTable["coshf"]      = FBCInstruction::kCoshf;
         gMathLibTable["expf"]       = FBCInstruction::kExpf;
         gMathLibTable["floorf"]     = FBCInstruction::kFloorf;
         gMathLibTable["fmodf"]      = FBCInstruction::kFmodf;
@@ -95,9 +94,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["remainderf"] = FBCInstruction::kRemReal;
         gMathLibTable["roundf"]     = FBCInstruction::kRoundf;
         gMathLibTable["sinf"]       = FBCInstruction::kSinf;
-        gMathLibTable["sinhf"]      = FBCInstruction::kSinhf;
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tanf"]       = FBCInstruction::kTanf;
+        
+        // Hyperbolic
+        gMathLibTable["acoshf"]     = FBCInstruction::kAcoshf;
+        gMathLibTable["asinhf"]     = FBCInstruction::kAsinhf;
+        gMathLibTable["atanhf"]     = FBCInstruction::kAtanhf;
+        gMathLibTable["coshf"]      = FBCInstruction::kCoshf;
+        gMathLibTable["sinhf"]      = FBCInstruction::kSinhf;
         gMathLibTable["tanhf"]      = FBCInstruction::kTanhf;
 
         // Double version
@@ -108,7 +113,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["atan2"]     = FBCInstruction::kAtan2f;
         gMathLibTable["ceil"]      = FBCInstruction::kCeilf;
         gMathLibTable["cos"]       = FBCInstruction::kCosf;
-        gMathLibTable["cosh"]      = FBCInstruction::kCoshf;
         gMathLibTable["exp"]       = FBCInstruction::kExpf;
         gMathLibTable["floor"]     = FBCInstruction::kFloorf;
         gMathLibTable["fmod"]      = FBCInstruction::kFmodf;
@@ -120,9 +124,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["remainder"] = FBCInstruction::kRemReal;
         gMathLibTable["round"]     = FBCInstruction::kRoundf;
         gMathLibTable["sin"]       = FBCInstruction::kSinf;
-        gMathLibTable["sinh"]      = FBCInstruction::kSinhf;
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tan"]       = FBCInstruction::kTanf;
+        
+        // Hyperbolic
+        gMathLibTable["acosh"]     = FBCInstruction::kAcoshf;
+        gMathLibTable["asinh"]     = FBCInstruction::kAsinhf;
+        gMathLibTable["atanh"]     = FBCInstruction::kAtanhf;
+        gMathLibTable["cosh"]      = FBCInstruction::kCoshf;
+        gMathLibTable["sinh"]      = FBCInstruction::kSinhf;
         gMathLibTable["tanh"]      = FBCInstruction::kTanhf;
 
         // Min/max directly handled in FunCallInst
@@ -226,7 +236,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     {
         // Not supported for now
         throw faustexception("ERROR : AddSoundfileInst not supported for interp\n");
-        
+
         MemoryDesc tmp = fFieldTable[inst->fSFZone];
         fUserInterfaceBlock->push(
             new FIRUserInterfaceInstruction<T>(FBCInstruction::kAddSoundfile, tmp.fOffset, inst->fLabel, inst->fURL));
@@ -244,7 +254,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
-       
+
         if (array_typed && array_typed->fSize > 1) {
             if (array_typed->fType->getType() == Typed::kInt32) {
                 fFieldTable[inst->fAddress->getName()] =
@@ -267,7 +277,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 fRealHeapOffset++;
             }
         }
-      
+
         // Simulate a 'Store'
         if (inst->fValue) {
             visitStore(inst->fAddress, inst->fValue, inst->fType);
@@ -284,28 +294,31 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         if (!startWith(inst->fAddress->getName(), "input")) {
             faustassert(fFieldTable.find(inst->fAddress->getName()) != fFieldTable.end());
         }
-      
+
         NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
         if (named) {
             MemoryDesc tmp = fFieldTable[named->getName()];
             faustassert(tmp.fOffset >= 0);
-            
+
             switch (tmp.fType) {
                 case Typed::kInt32:
-                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, named->getName(), 0, 0, tmp.fOffset, 0));
+                    fCurrentBlock->push(
+                        new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, named->getName(), 0, 0, tmp.fOffset, 0));
                     break;
                 case Typed::kSound_ptr:
-                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadSound, named->getName(), 0, 0, tmp.fOffset, 0));
+                    fCurrentBlock->push(
+                        new FBCBasicInstruction<T>(FBCInstruction::kLoadSound, named->getName(), 0, 0, tmp.fOffset, 0));
                     break;
                 default:
-                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, named->getName(), 0, 0, tmp.fOffset, 0));
+                    fCurrentBlock->push(
+                        new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, named->getName(), 0, 0, tmp.fOffset, 0));
                     break;
             }
 
         } else {
             // Indexed
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            
+
             std::string num;
             // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
@@ -323,7 +336,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     fCurrentBlock->push(new FBCBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                                                        ? FBCInstruction::kLoadIndexedInt
                                                                        : FBCInstruction::kLoadIndexedReal,
-                                                                    indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
+                                                                   indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
                 }
             }
         }
@@ -339,18 +352,16 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Waveform array store...
         ArrayTyped* array_typed;
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {
-            
             MemoryDesc tmp = fFieldTable[address->getName()];
             faustassert(tmp.fOffset >= 0);
-            
+
             switch (array_typed->fType->getType()) {
                 case Typed::kInt32: {
                     Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
                     faustassert(int_array);
-                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(
-                        FBCInstruction::kBlockStoreInt, tmp.fOffset,
-                        int(int_array->fNumTable.size()),
-                        int_array->fNumTable));
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FBCInstruction::kBlockStoreInt, tmp.fOffset,
+                                                                           int(int_array->fNumTable.size()),
+                                                                           int_array->fNumTable));
                     break;
                 }
                 case Typed::kFloat: {
@@ -379,23 +390,23 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Compile value
             value->accept(this);
             NamedAddress* named = dynamic_cast<NamedAddress*>(address);
-            
+
             if (named) {
                 MemoryDesc tmp = fFieldTable[named->getName()];
                 faustassert(tmp.fOffset >= 0);
-                
+
                 switch (tmp.fType) {
                     case Typed::kInt32:
-                        fCurrentBlock->push(
-                            new FBCBasicInstruction<T>(FBCInstruction::kStoreInt, named->getName(), 0, 0, tmp.fOffset, 0));
+                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreInt, named->getName(), 0,
+                                                                       0, tmp.fOffset, 0));
                         break;
                     case Typed::kSound_ptr:
-                        fCurrentBlock->push(
-                            new FBCBasicInstruction<T>(FBCInstruction::kStoreSound, named->getName(), 0, 0, tmp.fOffset, 0));
+                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreSound, named->getName(), 0,
+                                                                       0, tmp.fOffset, 0));
                         break;
                     default:
-                        fCurrentBlock->push(
-                            new FBCBasicInstruction<T>(FBCInstruction::kStoreReal, named->getName(), 0, 0, tmp.fOffset, 0));
+                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreReal, named->getName(), 0,
+                                                                       0, tmp.fOffset, 0));
                         break;
                 }
 
@@ -581,7 +592,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         // Compile 'select'
         previous->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
-                                                  0, 0, 0, 0, then_block, else_block));
+                                                  "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
         fCurrentBlock = previous;
@@ -611,7 +622,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'if'
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
         fCurrentBlock = previous;
@@ -647,14 +658,17 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fEnd->accept(this);
 
         // Add branch that moves back on loop block itself
-        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, 0, 0, 0, 0, loop_body_block, 0));
+        fCurrentBlock->push(
+            new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, loop_body_block, 0));
 
         // Finally add 'return'
         fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Add the loop block in previous
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_body_block));
-      
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, "",
+                                                  ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block,
+                                                  loop_body_block));
+
         // Restore current block
         fCurrentBlock = previous;
     }

@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+        cout << "dynamic-jack-gtk [-llvm|interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (is_llvm) {
         cout << "Using LLVM backend" << endl;
@@ -151,16 +151,20 @@ int main(int argc, char* argv[])
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
         
         if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
             cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
             factory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
         }
         
         if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
             cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
             factory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
         }
         
+        
         if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
             cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
             factory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
         }
@@ -187,7 +191,8 @@ int main(int argc, char* argv[])
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         
         if (!factory) {
-            cout << "Trying to use createInterpreterDSPFactoryFromFile..." << error_msg;
+            cerr << "Cannot create factory : " << error_msg;
+            cout << "Trying to use createInterpreterDSPFactoryFromFile..." << endl;
             factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
         }
     }
@@ -208,7 +213,7 @@ int main(int argc, char* argv[])
     //DSP = new mydsp();
     
     /*
-    measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of  measure
+    measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < 2; i++) {
         mes->measure();
         cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
@@ -250,12 +255,9 @@ int main(int argc, char* argv[])
     if (dsp_poly) dsp_poly->setGroup(true);
     
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
-  
-    // After audio.init that calls 'init'
-    finterface->recallState(rcfilename);
-    
+   
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -275,6 +277,8 @@ int main(int argc, char* argv[])
         audio.addMidiIn(dsp_poly);
     }
     
+    // State (after UI construction)
+    finterface->recallState(rcfilename);
     audio.start();
 
     if (is_httpd) {

@@ -24,6 +24,10 @@ responds with its root address, followed by its IP address, followed
 by the UDP ports numbers (listening port, output port, error port).
 See the note about network management below for ports numbering scheme.
 
+#### 'json' message
+
+The `json` message is handled by any module root address. The JSON module description will be sent on the output port.
+
 #### 'xmit' message
 
 The `xmit` message is handled by any module root address. It must be followed by an integer value (Ø|1|2). It turns the OSC UI transmit mode on or all or alias. When `all`, any change of a UI element generates the corresponding OSC message including aliases messages if any and the module could be used as a remote control for similar modules. In `alias` mode, only the aliases messages are sent.
@@ -86,7 +90,6 @@ Thus, messages addressed to applications launched with `-reuse 1` must be send t
 
 Different listening port numbers can be used to create a group of applications restricted to a local host or to create an arbitrary group of applications distributed over the local network.
 
-
 ---
 
 ##  Summary of the command line options
@@ -100,7 +103,6 @@ Different listening port numbers can be used to create a group of applications r
 - `-reuse [0|1]`: turns listening port sharing on or off  (default: 0)
 - `-bundle [0|1]`: turns OSC bundles on or off  (default: 0)
 - `-help`: print a summary of the OSC options
-
 
 ---
 

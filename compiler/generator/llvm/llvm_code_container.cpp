@@ -20,16 +20,19 @@
  ************************************************************************/
 
 #ifdef WIN32
-# pragma warning (disable: 4146 4244 4275)
+#pragma warning(disable : 4146 4244 4275)
 #endif
 
+#include "llvm_code_container.hh"
 #include "compatibility.hh"
 #include "exception.hh"
+#include "fir_to_fir.hh"
 #include "global.hh"
-#include "llvm_code_container.hh"
 #include "llvm_dynamic_dsp_aux.hh"
 #include "llvm_instructions.hh"
-#include "fir_to_fir.hh"
+
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 
 using namespace std;
 
@@ -61,19 +64,10 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
     fModule = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *fContext);
-#if defined(LLVM_35)
-    fModule->setDataLayout(
-        "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-"
-        "s0:64:64-f80:128:128-n8:16:32:64-S128");
-#endif
     fBuilder = new IRBuilder<>(*fContext);
 
     // Check pointer size
-#ifndef LLVM_35
     faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout().getPointerSize())));
-#else
-    faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout()->getPointerSize())));
-#endif
 
     // Set "-fast-math"
     FastMathFlags FMF;
@@ -82,12 +76,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
-#if defined(LLVM_35)
-    fBuilder->SetFastMathFlags(FMF);
-#else
     fBuilder->setFastMathFlags(FMF);
-#endif
-
     fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 }
 
@@ -107,11 +96,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
-#if defined(LLVM_35)
-    fBuilder->SetFastMathFlags(FMF);
-#else
     fBuilder->setFastMathFlags(FMF);
-#endif
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -157,44 +142,43 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
     generateDeclarations(&fStructVisitor);
 
     DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
-    //dump2FIR(dec_type);
-
-    LLVM_TYPE dsp_type = type_helper.convertFIRType(dec_type->fType);
+  
+    LLVMType dsp_type = type_helper.convertFIRType(dec_type->fType);
     return PointerType::get(dsp_type, 0);
 }
 
 void LLVMCodeContainer::generateGetJSON()
 {
-    PointerType*    string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-    VECTOR_OF_TYPES getJSON_args;
-    FunctionType*   getJSON_type = FunctionType::get(string_ptr, MAKE_VECTOR_OF_TYPES(getJSON_args), false);
-    Function*       getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
+    PointerType*  string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
+    LLVMVecTypes  getJSON_args;
+    FunctionType* getJSON_type = FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
+    Function* getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
 
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
-    
+
     // JSON generation
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
-    
-    std::map<std::string, int> path_index_table;
+
+    map<string, int> path_index_table;
     for (auto& it : json_visitor1.fPathTable) {
         // Get field index
         path_index_table[it.second] = fStructVisitor.getFieldOffset(it.first);
     }
-    
+
     faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
 
-    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "", FAUSTVERSION, compile_options.str(),
-                                 gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(fStructVisitor.getStructSize()),
-                                 path_index_table);
+    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
+                                 FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
+                                 gGlobal->gImportDirList, to_string(fStructVisitor.getStructSize()), path_index_table);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
 
     BasicBlock* return_block = BasicBlock::Create(*fContext, "return_block", getJSON);
     ReturnInst::Create(*fContext, fCodeProducer->genStringConstant(json_visitor.JSON(true)), return_block);
-    
+
     verifyFunction(*getJSON);
     fBuilder->ClearInsertionPoint();
 }
@@ -232,22 +216,20 @@ void LLVMCodeContainer::generateFunMaps()
 void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body)
 {
     Typed::VarType type = itfloat();
-    
     string fun1 = fun1_aux + isuffix();
     string fun2 = fun2_aux + isuffix();
-    
+
     list<NamedTyped*> args1;
     list<ValueInst*>  args2;
-    
     for (int i = 0; i < num_args; i++) {
         string var = gGlobal->getFreshID("val");
         args1.push_back(InstBuilder::genNamedTyped(var, type));
         args2.push_back(InstBuilder::genLoadFunArgsVar(var));
     }
-    
+
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
-    
+
     InstBuilder::genDeclareFunInst(fun2, fun_type)->accept(fCodeProducer);
     if (body) {
         BlockInst* block = InstBuilder::genBlockInst();
@@ -260,13 +242,12 @@ void LLVMCodeContainer::produceInternal()
 {
     // Generate DSP structure
     llvm::PointerType* dsp_ptr = generateDspStruct();
-    
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
-   
+
     /// Memory methods
     generateCalloc()->accept(fCodeProducer);
     generateFree()->accept(fCodeProducer);
-  
+
     generateNewDsp("new" + fKlassName, fStructVisitor.getStructSize())->accept(fCodeProducer);
     generateDeleteDsp("delete" + fKlassName, "dsp")->accept(fCodeProducer);
 
@@ -275,9 +256,8 @@ void LLVMCodeContainer::produceInternal()
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);
-   
+
     generateInstanceInitFun("instanceInit" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-    
     generateFillFun("fill" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 }
 
@@ -285,9 +265,8 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     // Sub containers
     generateSubContainers();
-    
+
     llvm::PointerType* dsp_ptr = generateDspStruct();
-   
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
 
     generateFunMaps();
@@ -297,15 +276,11 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateGlobalDeclarations(fCodeProducer);
 
     generateStaticInitFun("classInit" + fKlassName, false)->accept(fCodeProducer);
-
     generateInstanceClear("instanceClear" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-   
     generateInstanceConstants("instanceConstants" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-    
     generateAllocate("allocate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-    
     generateDestroy("destroy" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
-    
+
     generateGetJSON();
 
     // Compute
@@ -313,7 +288,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Link LLVM modules defined in 'ffunction'
     set<string> S;
-    string error;
+    string      error;
 
     collectLibrary(S);
     if (S.size() > 0) {
@@ -331,9 +306,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Possibly link with additional LLVM modules
     if (!linkAllModules(fContext, fModule, error)) {
-        stringstream llvm_error;
-        llvm_error << "ERROR : " << error << endl;
-        throw faustexception(llvm_error.str());
+        throw faustexception("ERROR : " + error);
     }
 
     return new llvm_dynamic_dsp_factory_aux("", fModule, fContext, "", -1);
@@ -486,13 +459,13 @@ void LLVMWorkStealingCodeContainer::generateCompute()
 {
     // Possibly generate separated functions
     generateComputeFunctions(fCodeProducer);
-   
+
     // Generates "computeThread" code
     generateComputeThread("computeThread" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 
     // Generates prototype to be used by worker threads
     generateComputeThreadExternal("computeThreadExternal", "dsp")->accept(fCodeProducer);
-    
+
     // Generates compute
     generateComputeFun("compute" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 }

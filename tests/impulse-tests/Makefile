@@ -34,6 +34,7 @@ SRCDIR := tools
 all:
 	$(MAKE) cpp
 	$(MAKE) cpp1
+	$(MAKE) ocpp
 	$(MAKE) c
 	$(MAKE) mute
 	$(MAKE) wasm
@@ -49,6 +50,7 @@ help:
 	@echo " 'all' (default): call all the targets below"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
+	@echo " 'ocpp'   : check float and double outputs with the ocpp backend in scalar mode"
 	@echo " 'cpp1'   : check float and double outputs with the cpp backend in scalar one-sample mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'mute'   : check double output with mute"
@@ -102,6 +104,9 @@ cpp:
 
 cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -os"
+
+ocpp:
+	$(MAKE) -f Make.gcc outdir=ocpp/double           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
 
 c:
 	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"

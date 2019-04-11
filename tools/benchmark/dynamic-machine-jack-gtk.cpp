@@ -29,40 +29,19 @@
 
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/interpreter-machine-dsp.h"
-
-#include "faust/dsp/dsp-adapter.h"
-#include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
-
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/GTKUI.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
-
 #include "faust/misc.h"
 
 using namespace std;
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
-
-struct malloc_memory_manager : public dsp_memory_manager {
-    
-    void* allocate(size_t size)
-    {
-        void* res = malloc(size);
-        //cout << "malloc_manager : " << size << " " << res << endl;
-        return res;
-    }
-    virtual void destroy(void* ptr)
-    {
-        //cout << "free_manager : " << ptr << endl;
-        free(ptr);
-    }
-    
-};
 
 int main(int argc, char* argv[])
 {
@@ -80,10 +59,8 @@ int main(int argc, char* argv[])
     bool is_httpd = isopt(argv, "-httpd");
     int nvoices = lopt(argv, "-nvoices", -1);
     
-    malloc_memory_manager manager;
-    
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "dynamic-machine-jack-gtk [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.fbc" << endl;
+        cout << "dynamic-machine-jack-gtk [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
@@ -102,35 +79,12 @@ int main(int argc, char* argv[])
     
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
-    int argc1 = 0;
-    const char* argv1[64];
-    
-    cout << "Compiled with additional options : ";
-    for (int i = 1; i < argc-1; i++) {
-        if ((string(argv[i]) == "-midi")
-            || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-httpd")) {
-            continue;
-        } else if (string(argv[i]) == "-nvoices") {
-            i++;
-            continue;
-        }
-        argv1[argc1++] = argv[i];
-        cout << argv[i] << " ";
-    }
-    cout << endl;
-    
-    argv1[argc1] = 0;  // NULL terminated argv
-    
-    //factory = readDSPFactoryFromMachineFile(argv[1], "");
     factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
-    
     if (!factory) {
         cerr << "Cannot create factory : " << error_msg;
         exit(EXIT_FAILURE);
     }
     
-    //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
@@ -156,12 +110,9 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(finterface);
    
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
 
-    // After audio.init that calls 'init'
-    finterface->recallState(rcfilename);
-    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -181,6 +132,8 @@ int main(int argc, char* argv[])
         audio.addMidiIn(dsp_poly);
     }
     
+    // State (after UI construction)
+    finterface->recallState(rcfilename);
     audio.start();
 
     if (is_httpd) {
@@ -207,9 +160,6 @@ int main(int argc, char* argv[])
     delete midiinterface;
     delete httpdinterface;
     delete oscinterface;
-  
-    //deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
-    
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     
     return 0;

@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include "exception.hh"
+#include "global.hh"
 #include "routeSchema.h"
 
 using namespace std;
@@ -151,10 +152,12 @@ void routeSchema::draw(device& dev)
 {
     faustassert(placed());
 
-    drawRectangle(dev);
-    // drawText(dev);
-    drawOrientationMark(dev);
-    drawInputArrows(dev);
+    if (gGlobal->gDrawRouteFrame) {
+        drawRectangle(dev);
+        // drawText(dev);
+        drawOrientationMark(dev);
+        drawInputArrows(dev);
+    }
 }
 
 /**
@@ -221,7 +224,7 @@ void routeSchema::collectTraits(collector& c)
         point p1  = fInputPoint[src];
         point p2  = fOutputPoint[dst];
         // cerr << "add traits: " << p1.x << 'x' << p1.y << " -> " << p2.x << "x" << p2.y << endl;
-        int dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+        double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
         c.addTrait(trait(point(p1.x + dx, p1.y), point(p2.x - dx, p2.y)));
     }
 }

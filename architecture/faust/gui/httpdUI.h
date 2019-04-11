@@ -31,6 +31,7 @@
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
+#include "faust/gui/GUI.h"
 #include "faust/misc.h"
 
 #ifndef _WIN32

@@ -7,7 +7,7 @@ IF NOT EXIST faust.sln (
 )
 
 
-cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../backends/most.cmake -C ../targets/most.cmake ..
+cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../backends/most.cmake -C ../targets/windows.cmake ..
 cmake --build . --config Release --  /maxcpucount:4
 cpack -G NSIS64
 move Faust-*.exe ..

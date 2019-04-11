@@ -1,4 +1,4 @@
-% man(1) Version 2.16.0 (20-March-2019) | Faust man page
+% man(1) Version 2.17.6 (08-April-2019) | Faust man page
 
 NAME
 ====
@@ -54,7 +54,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, interp.
+                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, soul, interp.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -136,6 +136,8 @@ Block diagram options:
   **-svg**       **--svg**                        print block-diagram to a svg file.
 
   **-sd**        **--simplify-diagrams**          try to further simplify diagrams before drawing.
+
+  **-drf**       **--draw-route-frame**           draw route frames instead of simple cables.
 
   **-f** \<n>     **--fold** \<n>                   threshold during block-diagram generation (default 25 elements).
 

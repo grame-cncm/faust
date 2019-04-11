@@ -90,7 +90,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
+global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
@@ -104,6 +104,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
@@ -163,6 +164,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
+    gOneSampleControl     = false;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version
@@ -383,7 +385,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = sizeof(nullptr);
 
-    gMachineMaxStackSize = MAX_STACK_SIZE;
+    gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
     gOutputLang          = "";
 
 #ifdef WASM_BUILD
@@ -393,6 +395,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
 #ifdef INTERP_BUILD
     gInterpreterVisitor = 0;  // Will be (possibly) allocated in Interp backend
+#endif
+
+#ifdef SOUL_BUILD
+    gTableSizeVisitor = 0;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -508,7 +514,7 @@ void global::init()
     gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
     gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
     gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kInt32_vec]     = gMachineInt32Size * gVecSize;
@@ -563,7 +569,20 @@ void global::init()
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
-    // Foreign math functions supported by the Interp backend
+    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
+    
+    gMathForeignFunctions["acoshf"] = true;
+    gMathForeignFunctions["acosh"]  = true;
+    gMathForeignFunctions["acoshl"] = true;
+
+    gMathForeignFunctions["asinhf"] = true;
+    gMathForeignFunctions["asinh"]  = true;
+    gMathForeignFunctions["asinhl"] = true;
+
+    gMathForeignFunctions["atanhf"] = true;
+    gMathForeignFunctions["atanh"]  = true;
+    gMathForeignFunctions["atanhl"] = true;
+  
     gMathForeignFunctions["coshf"] = true;
     gMathForeignFunctions["cosh"]  = true;
     gMathForeignFunctions["coshl"] = true;
@@ -582,10 +601,12 @@ void global::printCompilationOptions(ostream& dst, bool backend)
     if (backend) {
 #ifdef LLVM_BUILD
         if (gOutputLang == "llvm") {
-            dst << gOutputLang << " " << LLVM_VERSION << ", ";
+            dst << "-lang " << gOutputLang << " " << LLVM_VERSION << " ";
+        } else {
+            dst << "-lang " << gOutputLang << " ";
         }
 #else
-        dst << gOutputLang << ", ";
+        dst << "-lang " << gOutputLang << " ";
 #endif
     }
     if (gInPlace) dst << "-inpl ";

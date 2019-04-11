@@ -1,5 +1,5 @@
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char name[256];
     char rcfilename[256];
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     
     QTGUI interface;
     FUI finterface;
-
+    
     // Add add DSP
     addAllDSP();
     
@@ -21,14 +21,14 @@ int main(int argc, char *argv[])
     
     // Combine FUI
     combineUI(dsp_chain, &finterface);
-  
+    
 #ifdef HTTPCTRL
     // Combine httpdUI
     httpdUI httpdinterface(name, 1, 1, argc, argv);
     std::cout << "HTTPD is on" << std::endl;
     combineUI(dsp_chain, &httpdinterface);
 #endif
-  
+    
 #ifdef OSCCTRL
     // Combine OSCUI
     OSCUI oscinterface(name, argc, argv);
@@ -38,10 +38,8 @@ int main(int argc, char *argv[])
     
     std::vector<audio*> audio_chain = initJACKClients(dsp_chain);
     
-    finterface.recallState(rcfilename);
-    
     startJACKClients(audio_chain);
- 
+    
 #ifdef HTTPCTRL
     httpdinterface.run();
 #endif
@@ -50,6 +48,8 @@ int main(int argc, char *argv[])
     oscinterface.run();
 #endif
     
+    // After the allocation of controllers
+    finterface.recallState(rcfilename);
     interface.run();
     
     myApp.setStyleSheet(interface.styleSheet());

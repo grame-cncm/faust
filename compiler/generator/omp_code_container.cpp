@@ -46,14 +46,12 @@ void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    
+
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("input$0", T(i));
         string name2 = subst("input$0_ptr", T(i));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1,
-            type,
-            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+            name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
@@ -61,14 +59,12 @@ void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
 {
     // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    
+
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("output$0", T(i));
         string name2 = subst("output$0_ptr", T(i));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1,
-            type,
-            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+            name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
@@ -175,7 +171,7 @@ void OpenMPCodeContainer::processFIR()
     CodeContainer::processFIR();
 
     // Sort arrays to be at the begining (break code genaration when 'soundfile' is used)
-    //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    // fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Prepare global loop
     fGlobalLoopBlock = generateDAGLoopOMP(fFullCount);

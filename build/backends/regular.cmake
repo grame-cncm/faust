@@ -6,6 +6,7 @@
 #    STATIC    embed the backend in the faust static library
 #    DYNAMIC   embed the backend in the faust dynamic library
 #    WASM      embed the backend in the faust wasm library
+#    SOUL      embed the backend in the faust wasm library
 
 
 set ( C_BACKEND      COMPILER STATIC DYNAMIC CACHE STRING  "Include C backend" FORCE )
@@ -16,5 +17,6 @@ set ( JAVA_BACKEND   COMPILER STATIC DYNAMIC CACHE STRING  "Include JAVA backend
 set ( LLVM_BACKEND                       OFF CACHE STRING  "Include LLVM backend" FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC CACHE STRING  "Include old CPP backend" FORCE )
 set ( RUST_BACKEND                       OFF CACHE STRING  "Include RUST backend" FORCE )
+set ( SOUL_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include SOUL backend"      FORCE )
 set ( WASM_BACKEND   WASM COMPILER STATIC DYNAMIC CACHE STRING  "Include WASM backend" FORCE )
 

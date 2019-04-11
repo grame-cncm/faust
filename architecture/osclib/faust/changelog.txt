@@ -5,7 +5,11 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 research@grame.fr
 ====================================================
-Copyright GRAME (c) 2011 - 2018
+Copyright GRAME (c) 2011 - 2019
+
+----------------------------------------------------
+Version 1.21                           [April. 03 2019]
+- new ‘json’ message to get the program JSON description
 
 ----------------------------------------------------
 Version 1.20                           [Aout. 30 2018]

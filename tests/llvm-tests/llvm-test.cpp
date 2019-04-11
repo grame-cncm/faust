@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -59,46 +59,81 @@ static std::string pathToContent(const std::string& path)
     return result;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char** argv)
 {
-    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help")) {
         cout << "llvm-test foo.dsp" << endl;
         exit(EXIT_FAILURE);
     }
     
     string error_msg;
-    
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
-    dsp_factory* factory = createDSPFactoryFromFile(argv[argc-1], 0, NULL, "", error_msg, -1);
     
-    if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
-        exit(EXIT_FAILURE);
+    {
+        dsp_factory* factory = createDSPFactoryFromFile(argv[argc-1], 0, NULL, "", error_msg, -1);
+        
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());    
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
+        dummyaudio audio(2);
+        if (!audio.init("FaustDSP", DSP)) {
+            return 0;
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
     
-    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
-    printList(factory->getLibraryList());
-    printList(factory->getIncludePathnames());    
-    
-    dsp* DSP = factory->createDSPInstance();
-    if (!DSP) {
-        cerr << "Cannot create instance "<< endl;
-        exit(EXIT_FAILURE);
+    {
+        dsp_factory* factory = createDSPFactoryFromString("score", "process = +;", 0, NULL, "", error_msg, -1);
+        
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
+        dummyaudio audio(2);
+        if (!audio.init("FaustDSP", DSP)) {
+            return 0;
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
-    
-    cout << "getName " << factory->getName() << endl;
-    cout << "getSHAKey " << factory->getSHAKey() << endl;
-    
-    dummyaudio audio(2);
-    if (!audio.init("FaustDSP", DSP)) {
-        return 0;
-    }
-    
-    audio.start();
-    audio.stop();
-    
-    delete DSP;
-    deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     
     // Test generateAuxFilesFromFile/generateAuxFilesFromString
     int argc2 = 0;

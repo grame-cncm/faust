@@ -38,9 +38,9 @@ struct Printable : public virtual Garbageable {
     virtual ~Printable() {}
 };
 
-// ==========================
+// ========================
 //  Base classes for types
-// ==========================
+// ========================
 
 struct InstVisitor;
 struct CloneVisitor;
@@ -90,7 +90,7 @@ struct Typed : public Printable {
 
     Typed() {}
     virtual ~Typed() {}
-  
+
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)
     {
@@ -230,19 +230,18 @@ struct Typed : public Printable {
                 return kNoType;
         }
     }
-    
+
     static std::string gTypeString[];
-    
+
     static void init();
-   
+
     virtual VarType getType() = 0;
-    
+
     virtual int getSize() = 0;
-    
+
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;
-    
 };
 
 #endif

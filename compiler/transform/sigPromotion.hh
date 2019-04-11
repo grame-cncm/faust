@@ -30,7 +30,6 @@
 //----------------------------------------------------------------------
 
 class SignalPromotion : public SignalIdentity {
-
    public:
     SignalPromotion() {}
 

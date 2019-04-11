@@ -30,7 +30,7 @@
 #include "compatibility.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "export.hh"
+#include "lock_api.hh"
 #include "libfaust.h"
 
 #ifdef WIN32
@@ -209,7 +209,7 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
         sep  = " ";
     }
 
-    return "\"" + res3 + "\"";
+    return quote(res3);
 }
 
 // External C++ libfaust API
@@ -228,6 +228,7 @@ Same DSP code and same normalized compilation options will generate the same SHA
 EXPORT string expandDSPFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
                                   string& sha_key, string& error_msg)
 {
+    LOCK_API
     if (dsp_content == "") {
         error_msg = "Unable to read file";
         return "";
@@ -252,7 +253,7 @@ EXPORT string expandDSPFromString(const string& name_app, const string& dsp_cont
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
-        argv1[argc1] = 0;  // NULL terminated argv
+        argv1[argc1] = nullptr;  // NULL terminated argv
 
         // 'expandDsp' adds the normalized compilation options in the DSP code before computing the SHA key
         return expandDSP(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
@@ -269,6 +270,7 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
                                        string& error_msg)
 {
+    LOCK_API
     if (dsp_content == "") {
         error_msg = "Unable to read file";
         return false;
@@ -282,22 +284,22 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
                 argv1[argc1++] = argv[i];
             }
         }
-        argv1[argc1] = 0;  // NULL terminated argv
+        argv1[argc1] = nullptr;  // NULL terminated argv
 
         dsp_factory_base* factory =
             compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
         // Factory is no more needed
         delete factory;
-        return (factory != NULL);
+        return (factory != nullptr);
     }
 }
 
-    // External C libfaust API
+// External C libfaust API
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+    
 EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                       char* error_msg)
 {

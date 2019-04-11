@@ -26,6 +26,8 @@ GCC ?= gcc
 
 OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
 
+soul:
+	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 
 all:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp 	FAUSTOPTIONS=" -a ./min.cpp"

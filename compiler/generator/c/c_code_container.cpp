@@ -127,11 +127,11 @@ void CCodeContainer::produceInternal()
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
         *fOut << "static void fill" << fKlassName << "(" << fKlassName
-              << subst("* dsp, int $0, int* output) {", counter);
+              << subst("* dsp, int $0, int* " + fTableName + ") {", counter);
     } else {
         tab(n, *fOut);
         *fOut << "static void fill" << fKlassName << "(" << fKlassName
-              << subst("* dsp, int $0, $1* output) {", counter, ifloat());
+              << subst("* dsp, int $0, $1* " + fTableName + ") {", counter, ifloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
@@ -350,7 +350,7 @@ void CCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "}";
     }
-    
+
     if (gGlobal->gOneSample) {
         tab(n, *fOut);
         *fOut << "void control" << fKlassName << subst("(int* icontrol, $0* fcontrol) {", xfloat());
@@ -360,11 +360,13 @@ void CCodeContainer::produceClass()
         generateComputeBlock(&fCodeProducer);
         tab(n, *fOut);
         *fOut << "};" << endl;
-        
+
         tab(n, *fOut);
-        *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fInt32ControlNum << "; }";
+        *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fInt32ControlNum
+              << "; }";
         tab(n, *fOut);
-        *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fRealControlNum << "; }";
+        *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fRealControlNum
+              << "; }";
     }
 
     // Compute
@@ -442,7 +444,7 @@ void CScalarCodeContainer::generateCompute(int n)
         // Generates local variables declaration and setup
         generateComputeBlock(&fCodeProducer);
     }
-    
+
     if (gGlobal->gOneSample) {
         // Generates one sample computation
         BlockInst* block = fCurLoop->generateOneSample();
@@ -453,7 +455,7 @@ void CScalarCodeContainer::generateCompute(int n)
         loop->accept(&fCodeProducer);
     }
 
-    /* 
+    /*
     // TODO : atomic switch
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);
