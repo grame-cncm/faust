@@ -243,8 +243,8 @@ inline int32_t startSectionAux(BufferWithRandomAccess* out, BinaryConsts::Sectio
 
 inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
 {
-    int32_t size =
-        int32_t(out->size()) - start - 5;  // section size does not include the 5 bytes of the size field itself
+    // section size does not include the 5 bytes of the size field itself
+    int32_t size = int32_t(out->size()) - start - 5;
     out->writeAt(start, U32LEB(size));
 }
 
@@ -722,8 +722,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         int32_t start = startSection(BinaryConsts::Section::Memory);
         *fOut << U32LEB(1);  // num memories
-        *fOut << U32LEB(0);  // memory flags
+        *fOut << U32LEB(1);  // memory flags, 1 means [min, max]
+        // minimum memory pages number
         size_t size_pos = fOut->writeU32LEBPlaceholder();
+        // maximum memory pages number, to be extended on JS side for soundfiles
+        fOut->writeU32LEBPlaceholder();
         finishSection(start);
         return size_pos;
     }

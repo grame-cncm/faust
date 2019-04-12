@@ -327,7 +327,7 @@ void WASTCodeContainer::produceClass()
 
     // Prepare compilation options
     stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options, false);
+    gGlobal->printCompilationOptions(compile_options);
 
     // JSON generation
     JSONInstVisitor json_visitor1;
@@ -362,14 +362,15 @@ void WASTCodeContainer::produceClass()
     // Insert memory generation
     tab(n + 1, *fOut);
     if (fInternalMemory) {
+        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
         *fOut << "(memory (export \"memory\") ";
-        // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
-        // and DSP + audio buffer size
-        *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size())
-              << ")";  // memory initial pages
+        // Since JSON is written in data segment at offset 0, the memory size
+        // must be computed taking account JSON size and DSP + audio buffer size
+        *fOut << memory_size // initial memory pages
+              << " " << (memory_size + 1000) << ")";  // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
     } else {
-        // Memory size set by JS code, so use a minimum value that contains the data segment size (shoud be OK for any
-        // JSON)
+        // Memory size set by JS code, so use a minimum value that contains
+        // the data segment size (shoud be OK for any JSON)
         *fOut << "(import \"env\" \"memory\" (memory $0 1))";
     }
 

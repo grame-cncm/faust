@@ -24,10 +24,10 @@
  ************************************************************************
  ************************************************************************/
 //
-//  mspUI.h for faustgen
+//  mspUI.h for static Max/MSP externals and faustgen~
 //
 //  Created by Martin Di Rollo on 18/04/12.
-//  Copyright (c) 2012-2018 Grame. All rights reserved.
+//  Copyright (c) 2012-2019 Grame. All rights reserved.
 //
 
 #ifndef _mspUI_h
@@ -40,7 +40,8 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
 
-#define STR_SIZE 512
+#define STR_SIZE    512
+#define MULTI_SIZE  256
 
 #ifdef WIN32
 #include <stdio.h>
@@ -193,8 +194,6 @@ class mspBargraph : public mspUIObject {
             }
         }
 };
-
-#define MULTI_SIZE  256
 
 class mspUI : public UI, public PathBuilder
 {

@@ -335,7 +335,7 @@ void WASMCodeContainer::produceClass()
 
     // Prepare compilation options
     stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options, false);
+    gGlobal->printCompilationOptions(compile_options);
 
     // JSON generation
     JSONInstVisitor json_visitor1;
@@ -361,10 +361,12 @@ void WASMCodeContainer::produceClass()
 
     // Memory size can now be written
     if (fInternalMemory) {
-        // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
-        // and DSP + audio buffer size
-        fBinaryOut.writeAt(begin_memory, U32LEB(genMemSize(gGlobal->gWASMVisitor->getStructSize(),
-                                                           fNumInputs + fNumOutputs, (int)json.size())));
+        int memory_size = genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        // Since JSON is written in data segment at offset 0, the memory size
+        // must be computed taking account JSON size and DSP + audio buffer size
+        fBinaryOut.writeAt(begin_memory, U32LEB(memory_size));
+        // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
+        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size+1000));
     }
 
     // Data segment contains the JSON string starting at offset 0,
