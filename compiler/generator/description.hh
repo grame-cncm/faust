@@ -32,7 +32,6 @@
 #include <string>
 #include "garbageable.hh"
 #include "signals.hh"
-#include "smartpointer.hh"
 #include "tlib.hh"
 #include "uitree.hh"
 

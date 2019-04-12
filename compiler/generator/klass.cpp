@@ -44,7 +44,6 @@
 #include "ppsig.hh"
 #include "recursivness.hh"
 #include "signals.hh"
-#include "smartpointer.hh"
 #include "uitree.hh"
 
 static int gTaskCount = 0;
