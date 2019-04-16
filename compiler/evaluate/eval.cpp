@@ -171,7 +171,7 @@ static Tree real_a2sb(Tree exp)
             return abstr;
 
         } else {
-            evalerror(yyfilename, -1, "a2sb : internal error : not an abstraction inside closure", exp);
+            evalerror(yyfilename, -1, "a2sb : internal error : not an abstraction inside closure (1)", exp);
             // Never reached...
             return 0;
         }
@@ -1174,13 +1174,26 @@ static Tree applyList(Tree fun, Tree larg)
         }
     }
 
+    // Here fun is a closure, we can test the content of abstr
+
     if (isBoxEnvironment(abstr)) {
         evalerrorbox(yyfilename, -1, "an environment can't be used as a function", fun);
     }
 
-    if (!isBoxAbstr(abstr, id, body)) {
-        evalerror(yyfilename, -1, "(internal) not an abstraction inside closure", fun);
+    if (isBoxIdent(abstr)) {
+        // We have an unevaluated Ident inside a closure
+        // std::cerr << "applyList we are apply an ident inside a closure: " << boxpp(abstr) << std::endl;
+        Tree fff = eval(abstr, visited, localValEnv);
+        // std::cerr << "applyList it's value is : " << boxpp(fff) << std::endl;
+
+        return applyList(fff, larg);
     }
+
+    if (!isBoxAbstr(abstr, id, body)) {
+        evalerror(yyfilename, -1, "(internal) not an abstraction inside closure (2)", fun);
+    }
+
+    // Here abstr is an abstraction, we can test the content of abstr
 
     // try to synthetise a  name from the function name and the argument name
     {
