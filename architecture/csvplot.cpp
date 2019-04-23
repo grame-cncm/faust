@@ -41,12 +41,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 #include <iostream>
-#include <map>
-#include <stack>
 #include <string>
-#include <vector>
+#include <iomanip>
 
 #include "faust/audio/channels.h"
 #include "faust/dsp/dsp.h"
@@ -81,9 +78,10 @@ mydsp DSP;
 
 int main(int argc, char* argv[])
 {
+    FAUSTFLOAT fnbsamples;
+    
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
-    float fnbsamples;
     interface->addOption("-n", &fnbsamples, 4*1024, 0.0, 100000000.0);
     
     if (DSP.getNumInputs() > 0)
@@ -111,6 +109,8 @@ int main(int argc, char* argv[])
     cout << endl;
     
     int nbsamples = int(fnbsamples);
+    cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
+    
     while (nbsamples > kFrames)
     {
         DSP.compute(kFrames, 0, chan.buffers());
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
             {
                 if (c > 0)
                     printf(",\t");
-                printf("%8f", chan.buffers()[c][i]);
+                cout << chan.buffers()[c][i];
             }
             cout << endl;
         }
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         {
             if (c > 0)
                 printf(",\t");
-            printf("%8f", chan.buffers()[c][i]);
+            cout << chan.buffers()[c][i];
         }
         cout << endl;
     }

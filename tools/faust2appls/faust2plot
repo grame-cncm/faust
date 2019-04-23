@@ -11,6 +11,7 @@
 . faustoptflags
 
 ARCHFILE=$FAUSTARCH/matlabplot.cpp
+FAUSTFLOAT=float
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -55,6 +56,8 @@ for p in $@; do
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
+    elif [ $p = "-double" ]; then
+        FAUSTFLOAT="double"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -74,7 +77,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+		$CXX $CXXFLAGS $PROCARCH $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
