@@ -81,7 +81,11 @@ class teensy_midi : public midi_handler {
                         break;
                     case usbMIDI.NoteOn:
                         for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->keyOn(time, channel, data1, data2);
+                            if(data2 == 0){
+                                fMidiInputs[i]->keyOff(time, channel, data1, data2);
+                            }else{
+                                fMidiInputs[i]->keyOn(time, channel, data1, data2);
+                            }
                         }
                         break;
                     case usbMIDI.ControlChange:
