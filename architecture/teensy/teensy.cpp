@@ -3,6 +3,10 @@
 #include "faust/gui/MapUI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
+// MIDI support
+#include "faust/gui/MidiUI.h"
+#include "faust/gui/UI.h"
+#include "faust/midi/teensy-midi.h"
 
 <<includeIntrinsic>>
 
@@ -10,6 +14,12 @@
 
 #define MULT_16 2147483647
 #define DIV_16 4.6566129e-10
+
+teensy_midi gMIDI;
+MidiUI* gMidiInterface = NULL;
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+extern usb_midi_class usbMIDI;
 
 AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new audio_block_t*[fDSP->getNumInputs()])
 {
@@ -30,10 +40,18 @@ AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new
 			fOutChannel[i] = new float[AUDIO_BLOCK_SAMPLES];
 		}
 	}
+	gMidiInterface = new MidiUI(&gMIDI);
+	fDSP->buildUserInterface(gMidiInterface);
+	gMidiInterface->run();	
 }
 
 void AudioFaust::update(void)
 {
+	// Pass to Faust the midi messages recived by the Teensy
+	gMIDI.processMidi(usbMIDI);
+	// Synchronize all GUI controllers
+	GUI::updateAllGuis();
+		
 	audio_block_t *inBlock[fDSP->getNumInputs()], *outBlock[fDSP->getNumOutputs()];
   int32_t val;
 	
