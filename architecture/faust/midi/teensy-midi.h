@@ -38,7 +38,7 @@ class teensy_midi : public midi_handler {
     public:
 
         void processMidi(usb_midi_class usbMIDI){
-            if(usbMIDI.read()){
+            while(usbMIDI.read()){
                 
                 byte type, channel, data1, data2, cable;
                 type = usbMIDI.getType();       // which MIDI message, 128-255
@@ -50,19 +50,54 @@ class teensy_midi : public midi_handler {
                 
                 switch(type){
                     case usbMIDI.Clock:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->clock(time);
+                        }
+                        break;
                     case usbMIDI.Start:
-                        handleSync(time, type);
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->startSync(time);
+                        }
+                        break;                
+                    case usbMIDI.Stop:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->stopSync(time);
+                        }
                         break;
                     case usbMIDI.ProgramChange:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->progChange(time, channel, data1);
+                        }
+                        break;
                     case usbMIDI.AfterTouchChannel:
-                        handleData1(time, type, channel, data1);
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->chanPress(time, channel, data1);
+                        }
                         break;
                     case usbMIDI.NoteOff:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->keyOff(time, channel, data1, data2);
+                        }
+                        break;
                     case usbMIDI.NoteOn:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->keyOn(time, channel, data1, data2);
+                        }
+                        break;
                     case usbMIDI.ControlChange:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
+                        }
+                        break;
                     case usbMIDI.PitchBend:
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->pitchWheel(time, channel, (data2 << 7) + data1);
+                        }
+                        break;
                     case usbMIDI.AfterTouchPoly:
-                        handleData2(time, type, channel, data1, data2);
+                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                            fMidiInputs[i]->keyPress(time, channel, data1, data2);
+                        }
                         break;
                 }   
             }
