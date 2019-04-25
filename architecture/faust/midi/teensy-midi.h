@@ -29,16 +29,13 @@
 
 #include "faust/midi/midi.h"
 
-
-
-class MapUI;
-
 class teensy_midi : public midi_handler {
 
     public:
 
-        void processMidi(usb_midi_class usbMIDI){
-            while(usbMIDI.read()){
+        void processMidi(usb_midi_class usbMIDI)
+        {
+            while(usbMIDI.read()) {
                 
                 byte type, channel, data1, data2, cable;
                 type = usbMIDI.getType();       // which MIDI message, 128-255
@@ -48,7 +45,7 @@ class teensy_midi : public midi_handler {
                 cable = usbMIDI.getCable();     // which virtual cable with MIDIx8, 0-7
                 double time = (double)usbMIDI.Clock;
                 
-                switch(type){
+                switch(type) {
                     case usbMIDI.Clock:
                         for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                             fMidiInputs[i]->clock(time);
@@ -81,9 +78,9 @@ class teensy_midi : public midi_handler {
                         break;
                     case usbMIDI.NoteOn:
                         for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            if(data2 == 0){
+                            if (data2 == 0) {
                                 fMidiInputs[i]->keyOff(time, channel, data1, data2);
-                            }else{
+                            } else {
                                 fMidiInputs[i]->keyOn(time, channel, data1, data2);
                             }
                         }

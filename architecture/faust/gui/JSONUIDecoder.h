@@ -228,7 +228,6 @@ struct JSONUIDecoderAux {
             
             // Meta data declaration for input items
             if (isInput(type)) {
-                fInControl[counterIn] = init;
                 for (size_t i = 0; i < (*it)->meta.size(); i++) {
                     REAL_UI(ui_interface)->declare(&fInControl[counterIn], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
@@ -299,15 +298,14 @@ struct JSONUIDecoderAux {
             
             // Meta data declaration for input items
             if (isInput(type)) {
-                *REAL_ADR(offset) = init;
                 for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                   REAL_UI(ui_interface)->declare(REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                    REAL_UI(ui_interface)->declare(REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
                 for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                   REAL_UI(ui_interface)->declare(REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                    REAL_UI(ui_interface)->declare(REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             // Meta data declaration for group opening or closing
@@ -367,14 +365,12 @@ struct JSONUIDecoderAux {
             
             // Meta data declaration for input items
             if (isInput(type)) {
-                memory_block[offset] = init;
                 for (size_t i = 0; i < (*it)->meta.size(); i++) {
                     ui_interface->declare(ui_interface->uiInterface, REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
-                memory_block[offset] = init;
                 for (size_t i = 0; i < (*it)->meta.size(); i++) {
                     ui_interface->declare(ui_interface->uiInterface, REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }

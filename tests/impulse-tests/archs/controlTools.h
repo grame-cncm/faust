@@ -15,6 +15,8 @@
 #include "faust/audio/channels.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/midi.h"
 #include "faust/misc.h"
 
 using std::max;
@@ -202,6 +204,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     int nouts = DSP->getNumOutputs();
     channels ochan(kFrames, nouts);
     
+    // Test polyphony
     for (int i = 0; i < num_voices; i++) {
         DSP->keyOn(0, 60 + i*2, 100);
     }
@@ -254,6 +257,11 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     DSP->buildUserInterface(&controlui);
     controlui.initRandom();
     
+    // MIDI control
+    midi_handler handler;
+    MidiUI midi_ui(&handler);
+    DSP->buildUserInterface(&midi_ui);
+    
     // Init signal processor and the user interface values
     DSP->init(44100);
     
@@ -294,6 +302,19 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // recall saved state
     finterface.recallState(rcfilename);
+    
+    // Test MIDI control
+    for (int i = 0; i < 127; i++) {
+        handler.handleData2(0, midi::MidiStatus::MIDI_CONTROL_CHANGE, 0, i, 100);
+        handler.handleData2(0, midi::MidiStatus::MIDI_POLY_AFTERTOUCH, 0, i, 75);
+        handler.handleData2(0, midi::MidiStatus::MIDI_NOTE_ON, 0, i, 75);
+        handler.handleData2(0, midi::MidiStatus::MIDI_NOTE_OFF, 0, i, 75);
+        handler.handleData2(0, midi::MidiStatus::MIDI_PITCH_BEND, 0, i, 1000);
+    }
+    handler.handleData1(0, midi::MidiStatus::MIDI_PROGRAM_CHANGE, 0, 10);
+    handler.handleData1(0, midi::MidiStatus::MIDI_AFTERTOUCH, 0, 10);
+    
+    GUI::updateAllGuis();
     
     // print audio frames
     int i;
