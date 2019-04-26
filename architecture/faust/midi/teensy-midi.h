@@ -6,15 +6,15 @@
  and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 3 of
  the License, or (at your option) any later version.
-
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
+ 
  You should have received a copy of the GNU General Public License
  along with this program; If not, see <http://www.gnu.org/licenses/>.
-
+ 
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
@@ -30,12 +30,12 @@
 #include "faust/midi/midi.h"
 
 class teensy_midi : public midi_handler {
-
+    
     public:
-
+        
         void processMidi(usb_midi_class usbMIDI)
         {
-            while(usbMIDI.read()) {
+            while (usbMIDI.read()) {
                 
                 byte type, channel, data1, data2, cable;
                 type = usbMIDI.getType();       // which MIDI message, 128-255
@@ -55,7 +55,7 @@ class teensy_midi : public midi_handler {
                         for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                             fMidiInputs[i]->startSync(time);
                         }
-                        break;                
+                        break;
                     case usbMIDI.Stop:
                         for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                             fMidiInputs[i]->stopSync(time);
@@ -100,7 +100,7 @@ class teensy_midi : public midi_handler {
                             fMidiInputs[i]->keyPress(time, channel, data1, data2);
                         }
                         break;
-                }   
+                }
             }
         }
 };
