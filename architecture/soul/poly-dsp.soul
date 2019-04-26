@@ -178,7 +178,6 @@ graph mydsp_poly
     let
     {
         midiParser = soul::NoteEvents::MPEParser;
-        // Works if array size > 1
         voices = dsp_voice[NVOICES];
         voiceAllocator = RoundRobinVoiceAllocator (NVOICES);
     }

@@ -32,6 +32,8 @@
 
 class dsp;
 class MapUI;
+class MidiUI;
+class teensy_midi;
 
 class AudioFaust : public AudioStream
 {
@@ -43,7 +45,9 @@ class AudioFaust : public AudioStream
     private:
         float** fInChannel;
         float** fOutChannel;
-        MapUI* UI;
+        MapUI* fUI;
+        teensy_midi* fMIDIHandler;
+        MidiUI* fMIDIInterface;
         dsp* fDSP;
 };
 
