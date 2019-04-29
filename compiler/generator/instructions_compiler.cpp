@@ -2007,11 +2007,11 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
         extractMetadata(str, simplifiedLabel, metadata);
 
         // add metadata if any
-        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
-            const string&      key    = i->first;
-            const set<string>& values = i->second;
-            for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(*j)));
+        for (auto& i : metadata) {
+            const string&      key    = i.first;
+            const set<string>& values = i.second;
+            for (auto& j : values) {
+                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }
         // At rool level and if label is empty, use the name kept in "metadata" (either the one coded in 'declare name
@@ -2056,23 +2056,22 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     // Extract "url" metadata to be given as parameter to 'addSoundfile' function
     if (isSigSoundfile(sig, path)) {
-        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
-            const string      key    = i->first;
-            const set<string> values = i->second;
-            for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
+        for (auto& i : metadata) {
+            const string&      key    = i.first;
+            const set<string>& values = i.second;
+            for (auto& j : values) {
                 if (key == "url") {
-                    url = prepareURL(*j);
+                    url = prepareURL(j);
                 }
             }
         }
     } else {
         // Add metadata if any
-        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
-            const string&      key    = i->first;
-            const set<string>& values = i->second;
-            for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                pushUserInterfaceMethod(
-                    InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(*j)));
+        for (auto& i : metadata) {
+            const string&      key    = i.first;
+            const set<string>& values = i.second;
+            for (auto& j : values) {
+                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }
     }

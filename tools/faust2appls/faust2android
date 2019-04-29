@@ -168,10 +168,10 @@ if [ $SOUNDFILE -eq 1 ]; then
 							echo "Warning: soundfile with absolute path is not copied !"
 					else
 							#create destination path and possibly create directory
-							sfpath="$APPFOLDER/assets"
+							sfpath="$APPFOLDER/assets/$(dirname $snd)/"
 							if ! [ -d $sfpath ]; then
 									echo "Create $sfpath"
-									mkdir $sfpath
+									mkdir -p $sfpath
 							fi
 							echo "Copy $snd in apk"
 							cp $snd $sfpath		
