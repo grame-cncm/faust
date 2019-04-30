@@ -31,6 +31,7 @@
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
+#include "faust/gui/GUI.h"
 #include "faust/misc.h"
 
 #ifndef _WIN32
@@ -258,19 +259,19 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         // -- widget's layouts
         void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
 
         // -- active widgets

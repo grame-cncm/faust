@@ -23,9 +23,9 @@
 #define _WASM_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "vec_code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "vec_code_container.hh"
 #include "wasm_instructions.hh"
 
 using namespace std;
@@ -37,14 +37,13 @@ class WASMCodeContainer : public virtual CodeContainer {
     std::stringstream      fHelper;
     int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
-                                            bool addreturn);
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateClassInit(const string& name);
     DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                        bool isvirtual);
-    
+
     void generateComputeAux(BlockInst* compute_block);
 
    public:

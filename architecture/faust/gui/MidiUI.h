@@ -601,6 +601,7 @@ class MidiUI : public GUI, public midi
             fMidiHandler = midi_handler;
             fMidiHandler->addMidiIn(this);
             fDelete = delete_handler;
+            fTimeStamp = false;
         }
  
         virtual ~MidiUI() 

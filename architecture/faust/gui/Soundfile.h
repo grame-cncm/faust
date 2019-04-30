@@ -49,7 +49,7 @@
 /*
  The soundfile structure to be used by the DSP code. Soundfile has a MAX_SOUNDFILE_PARTS parts 
  (even a single soundfile or an empty soundfile). 
- fLength, fOffset and fSampleRate field are filled accordingly by repeating 
+ fLength, fOffset and fSR fields are filled accordingly by repeating
  the actual parts if needed.
  
  It has to be 'packed' to that the LLVM backend can correctly access it.
@@ -63,10 +63,10 @@
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     FAUSTFLOAT** fBuffers;
-    int fLength[MAX_SOUNDFILE_PARTS];      // length of each part
-    int fSampleRate[MAX_SOUNDFILE_PARTS];  // sample rate of each part
-    int fOffset[MAX_SOUNDFILE_PARTS];      // offset of each part in the global buffer
-    int fChannels;                         // max number of channels of all concatenated files
+    int fLength[MAX_SOUNDFILE_PARTS];     // length of each part
+    int fSR[MAX_SOUNDFILE_PARTS];         // sample rate of each part
+    int fOffset[MAX_SOUNDFILE_PARTS];     // offset of each part in the global buffer
+    int fChannels;                        // max number of channels of all concatenated files
 
     Soundfile()
     {
@@ -96,7 +96,7 @@ class SoundfileReader {
     void emptyFile(Soundfile* soundfile, int part, int& offset)
     {
         soundfile->fLength[part] = BUFFER_SIZE;
-        soundfile->fSampleRate[part] = SAMPLE_RATE;
+        soundfile->fSR[part] = SAMPLE_RATE;
         soundfile->fOffset[part] = offset;
         // Update offset
         offset += soundfile->fLength[part];
@@ -139,7 +139,7 @@ class SoundfileReader {
         if (checkFile(file_name)) {
             return file_name;
         } else {
-            for (int i = 0; i < sound_directories.size(); i++) {
+            for (size_t i = 0; i < sound_directories.size(); i++) {
                 std::string path_name = sound_directories[i] + "/" + file_name;
                 if (checkFile(path_name)) { return path_name; }
             }
@@ -190,7 +190,7 @@ class SoundfileReader {
             int total_length = 0;
             
             // Compute total length and chan max of all files
-            for (int i = 0; i < path_name_list.size(); i++) {
+            for (size_t i = 0; i < path_name_list.size(); i++) {
                 int chan, length;
                 if (path_name_list[i] == "__empty_sound__") {
                     length = BUFFER_SIZE;
@@ -212,7 +212,7 @@ class SoundfileReader {
             int offset = 0;
             
             // Read all files
-            for (int i = 0; i < path_name_list.size(); i++) {
+            for (size_t i = 0; i < path_name_list.size(); i++) {
                 if (path_name_list[i] == "__empty_sound__") {
                     emptyFile(soundfile, i, offset);
                 } else {
@@ -242,7 +242,7 @@ class SoundfileReader {
                                         const std::vector<std::string>& file_name_list)
     {
         std::vector<std::string> path_name_list;
-        for (int i = 0; i < file_name_list.size(); i++) {
+        for (size_t i = 0; i < file_name_list.size(); i++) {
             std::string path_name = checkFile(sound_directories, file_name_list[i]);
             // If 'path_name' is not found, it is replaced by an empty sound (= silence)
             path_name_list.push_back((path_name == "") ? "__empty_sound__" : path_name);

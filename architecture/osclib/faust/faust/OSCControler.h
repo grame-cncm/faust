@@ -65,9 +65,9 @@ class OSCControler
 			see at http://www.iana.org/assignments/port-numbers
 			5507-5552  Unassigned
 		*/
-		enum { kUDPBasePort = 5510};
+		enum { kUDPBasePort = 5510 };
             
-        OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
+        OSCControler(int argc, char* argv[], GUI* ui, JSONUI* json, OSCIO* io = NULL, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
 
         virtual ~OSCControler();
 	

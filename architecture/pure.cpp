@@ -289,7 +289,7 @@ void PureUI::run() {}
 
 class dsp {
  protected:
-  int fSamplingFreq;
+  int fSampleRate;
  public:
   // internal freelist for custom voice allocation
   dsp *prev, *next;
@@ -298,7 +298,7 @@ class dsp {
   virtual int getNumInputs() = 0;
   virtual int getNumOutputs() = 0;
   virtual void buildUserInterface(UI* interface) = 0;
-  virtual void init(int samplingRate) = 0;
+  virtual void init(int sample_date) = 0;
   virtual void compute(int len, double** inputs, double** outputs) = 0;
 };
 

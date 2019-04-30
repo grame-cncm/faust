@@ -11,6 +11,7 @@
 . faustoptflags
 
 ARCHFILE=$FAUSTARCH/matlabplot.cpp
+FAUSTFLOAT=float
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -34,6 +35,10 @@ for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2plot <file.dsp>"
+        echo "With the compiled program 'file', you can add [-s start] [-n samples] [-r rate]:"
+        echo "Use -s to start at the given sample number (default is 0)"
+        echo "Use -n to render the wanted number of samples (default is 16)"
+        echo "Use -r to change the sample rate (default is 44100 Hz)"
         exit
     fi
 
@@ -51,6 +56,8 @@ for p in $@; do
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
+    elif [ $p = "-double" ]; then
+        FAUSTFLOAT="double"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -70,7 +77,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+		$CXX $CXXFLAGS $PROCARCH $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

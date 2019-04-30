@@ -26,7 +26,7 @@
 #include <sstream>
 
 #ifdef WIN32
-# pragma warning (disable: 4251 4275 4800)
+#pragma warning(disable : 4251 4275 4800)
 #endif
 
 #include "Text.hh"
@@ -51,35 +51,33 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 #ifdef EMCC
 
 EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
-
     // Done once when creating the first factory
     FaustModule.faust               = FaustModule.faust || {};
     FaustModule.faust.wasm_module   = FaustModule.faust.wasm_module || [];
     FaustModule.faust.wasm_instance = FaustModule.faust.wasm_instance || [];
-    FaustModule.faust.importObject  = FaustModule.faust.importObject || {
-        env : {
-            memoryBase : 0,
-            tableBase : 0,
+    FaustModule.faust.importObject  = FaustModule.faust.importObject || {env : {memoryBase : 0,
+                                                                               tableBase : 0,
 
-            // Integer version
-            _abs : Math.abs,
-        
-            // Float version
-            _acosf : Math.acos,
-            _asinf : Math.asin,
-            _atanf : Math.atan,
-            _atan2f : Math.atan2,
-            _ceilf : Math.ceil,
-            _cosf : Math.cos,
-            _expf : Math.exp,
-            _floorf : Math.floor,
-            _fmodf : function(x, y){ return x % y; },
+                                                                               // Integer version
+                                                                               _abs : Math.abs,
+
+                                                                               // Float version
+                                                                               _acosf : Math.acos,
+                                                                               _asinf : Math.asin,
+                                                                               _atanf : Math.atan,
+                                                                               _atan2f : Math.atan2,
+                                                                               _ceilf : Math.ceil,
+                                                                               _cosf : Math.cos,
+                                                                               _expf : Math.exp,
+                                                                               _floorf : Math.floor,
+                                                                               _fmodf : function(x, y){return x % y; },
             _logf: Math.log,
             _log10f: Math.log10,
             _max_f: Math.max,
             _min_f: Math.min,
-            _remainderf: function(x, y) { return x - Math.round(x / y) * y; },
             _powf: Math.pow,
+            _remainderf: function(x, y) {
+    return x - Math.round(x / y) * y; },
             _roundf: Math.fround,
             _sinf: Math.sin,
             _sqrtf: Math.sqrt,
@@ -94,13 +92,15 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             _cos: Math.cos,
             _exp: Math.exp,
             _floor: Math.floor,
-            _fmod: function(x, y) { return x % y; },
+            _fmod: function(x, y) {
+    return x % y; },
             _log: Math.log,
             _log10: Math.log10,
             _max_: Math.max,
             _min_: Math.min,
-            _remainder:function(x, y) { return x - Math.round(x / y) * y; },
             _pow: Math.pow,
+            _remainder:function(x, y) {
+    return x - Math.round(x / y) * y; },
             _round: Math.fround,
             _sin: Math.sin,
             _sqrt: Math.sqrt,
@@ -110,8 +110,9 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             memory: FaustModule['wasmMemory'],
                 
             table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
-    }
-};
+}
+}
+;
 
 // Copy native 'binary' string in JavaScript Uint8Array
 var factory_code = new Uint8Array(code_size);
@@ -193,14 +194,22 @@ void wasm_dsp_factory::setDSPCode(std::string code)
     fFactory->setDSPCode(code);
 }
 
-std::string              wasm_dsp_factory::getCompileOptions() { return fDecoder->fCompileOptions; }
-std::vector<std::string> wasm_dsp_factory::getLibraryList() { return fDecoder->fLibraryList; }
-std::vector<std::string> wasm_dsp_factory::getIncludePathnames() { return fDecoder->fIncludePathnames; }
+std::string wasm_dsp_factory::getCompileOptions()
+{
+    return fDecoder->fCompileOptions;
+}
+std::vector<std::string> wasm_dsp_factory::getLibraryList()
+{
+    return fDecoder->fLibraryList;
+}
+std::vector<std::string> wasm_dsp_factory::getIncludePathnames()
+{
+    return fDecoder->fIncludePathnames;
+}
 
 #ifdef EMCC
 
 EM_JS(int, createJSDSPInstance, (int module), {
-
     var wasm_instance = new WebAssembly.Instance(FaustModule.faust.wasm_module[module], FaustModule.faust.importObject);
     FaustModule.faust.wasm_instance.push(wasm_instance);
     return FaustModule.faust.wasm_instance.length - 1;
@@ -393,7 +402,7 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
 
 #endif
 
-    // Instance API
+// Instance API
 
 #ifdef EMCC
 
@@ -434,19 +443,19 @@ int wasm_dsp::getSampleRate()
     return EM_ASM_INT({ return FaustModule.faust.wasm_instance[$0].exports.getSampleRate($1); }, fIndex, fDSP);
 }
 
-void wasm_dsp::init(int samplingRate)
+void wasm_dsp::init(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1); }, fIndex, fDSP, samplingRate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1); }, fIndex, fDSP, sample_rate);
 }
 
-void wasm_dsp::instanceInit(int samplingRate)
+void wasm_dsp::instanceInit(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fIndex, fDSP, samplingRate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
-void wasm_dsp::instanceConstants(int samplingRate)
+void wasm_dsp::instanceConstants(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fIndex, fDSP, samplingRate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceResetUserInterface()
@@ -587,15 +596,15 @@ int wasm_dsp::getSampleRate()
     return -1;
 }
 
-void wasm_dsp::init(int samplingRate)
+void wasm_dsp::init(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceInit(int samplingRate)
+void wasm_dsp::instanceInit(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceConstants(int samplingRate)
+void wasm_dsp::instanceConstants(int sample_rate)
 {
 }
 

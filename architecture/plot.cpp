@@ -41,12 +41,8 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
-
-#include <vector>
-#include <stack>
 #include <string>
-#include <map>
-#include <iostream> 
+#include <iostream>
 #include <limits> 
 #include <iomanip>
 
@@ -54,6 +50,8 @@
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 #include "faust/audio/channels.h"
+
+using namespace std;
 
 /******************************************************************************
 *******************************************************************************
@@ -79,7 +77,7 @@ mydsp DSP;
 	
 #define kFrames 512
 	
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     FAUSTFLOAT fnbsamples;
 
@@ -92,8 +90,6 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    //std::cout << "sizeof(FAUSTFLOAT) = " << sizeof(FAUSTFLOAT) << std::endl;;
-
     // init signal processor and the user interface values
     DSP.init(44100);
 
@@ -104,14 +100,14 @@ int main(int argc, char *argv[])
     channels chan(kFrames, nouts);
   
     int nbsamples = int(fnbsamples);
-    std::cout << std::setprecision(std::numeric_limits<FAUSTFLOAT>::max_digits10);
+    cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
     while (nbsamples > kFrames) {
         DSP.compute(kFrames, 0, chan.buffers());
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
-                std::cout << chan.buffers()[c][i];
+                cout << chan.buffers()[c][i];
             }
-            std::cout << std::endl;
+            cout << endl;
         }
         nbsamples -= kFrames;
     }
@@ -119,9 +115,9 @@ int main(int argc, char *argv[])
     DSP.compute(nbsamples, 0, chan.buffers());
     for (int i = 0; i < nbsamples; i++) {
         for (int c = 0; c < nouts; c++) {
-            std::cout << chan.buffers()[c][i];
+            cout << chan.buffers()[c][i];
         }
-        std::cout << std::endl;
+        cout << endl;
     }
     return 0;
 } 

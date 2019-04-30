@@ -66,14 +66,12 @@ createInfoPList() {
     ) > "$2"
 }
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
@@ -84,7 +82,7 @@ do
         echo "faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
-        echo "Use '-native' to compile for the native CPU"
+        echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"

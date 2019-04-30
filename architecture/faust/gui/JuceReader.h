@@ -40,7 +40,7 @@ struct JuceReader : public SoundfileReader {
         if (file.existsAsFile()) {
             return true;
         } else {
-            std::cerr << "ERROR : cannot open '" << path_name << std::endl;
+            std::cerr << "ERROR : cannot open '" << path_name << "'" << std::endl;
             return false;
         }
     }
@@ -60,7 +60,7 @@ struct JuceReader : public SoundfileReader {
         int channels = std::min<int>(max_chan, int(formatReader->numChannels));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
-        soundfile->fSampleRate[part] = int(formatReader->sampleRate);
+        soundfile->fSR[part] = int(formatReader->sampleRate);
         soundfile->fOffset[part] = offset;
         
         FAUSTFLOAT* buffers[soundfile->fChannels];

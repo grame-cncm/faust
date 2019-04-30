@@ -15,8 +15,8 @@ By default it will create *file~.mxo* external along with a *file.maxpat* patch 
 The following options are available: 
 
   - `-opt native` : to activate the best compilation options for the native CPU
-  - `-opt generic` : to activate the best compilation options for a generic CPU
-  - `-native` to compile for the native CPU
+  - `-opt generic` : to activate the best compilation options for a generic CPU 
+  - `-native` to compile for the native CPU (otherwise the 'generic' mode is used by default)
   - `-nvoices <num>` : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
   - `-effect <effect.dsp>` : to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI
   - `-midi` : to activate MIDI control

@@ -91,6 +91,27 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+
+        // Quad version
+        gFunctionSymbolTable["fabsl"]      = true;
+        gFunctionSymbolTable["acosl"]      = true;
+        gFunctionSymbolTable["asinl"]      = true;
+        gFunctionSymbolTable["atanl"]      = true;
+        gFunctionSymbolTable["atan2l"]     = true;
+        gFunctionSymbolTable["ceill"]      = true;
+        gFunctionSymbolTable["cosl"]       = true;
+        gFunctionSymbolTable["expl"]       = true;
+        gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["floorl"]     = true;
+        gFunctionSymbolTable["fmodl"]      = true;
+        gFunctionSymbolTable["logl"]       = true;
+        gFunctionSymbolTable["log10l"]     = true;
+        gFunctionSymbolTable["powl"]       = true;
+        gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["roundl"]     = true;
+        gFunctionSymbolTable["sinl"]       = true;
+        gFunctionSymbolTable["sqrtl"]      = true;
+        gFunctionSymbolTable["tanl"]       = true;
     }
 
     virtual ~CInstVisitor() {}
@@ -306,10 +327,10 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-      
+
         DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
         StoreVarInst*   c99_init_inst    = NULL;
-        
+
         if (c99_declare_inst) {
             InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
             *fOut << "{";
@@ -317,13 +338,12 @@ class CInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
 
             // To generate C99 compatible loops...
-            c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-            c99_declare_inst =
-                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
+            c99_init_inst    = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+            c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
             // C99 loop variable declared outside the loop
             c99_declare_inst->accept(this);
         }
-        
+
         if (gGlobal->gClang && !inst->fIsRecursive) {
             *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
             tab(fTab, *fOut);

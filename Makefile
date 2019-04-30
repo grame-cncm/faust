@@ -1,4 +1,4 @@
-version := 2.15.10
+version := 2.17.8
 
 system	?= $(shell uname -s)
 
@@ -95,7 +95,9 @@ ioslib :
 	$(MAKE) -C $(BUILDLOCATION) ioslib
 
 wasm :
+	mkdir -p wasm-libraries && cp libraries/*.lib libraries/old/*.lib wasm-libraries
 	$(MAKE) -C $(BUILDLOCATION) wasmlib
+	rm -rf wasm-libraries
 
 sound2faust :
 	$(MAKE) -C tools/sound2faust
@@ -167,9 +169,9 @@ doc: $(wildcard compiler/*.cpp) $(wildcard compiler/*/*.cpp)  $(wildcard compile
 
 
 format :
-	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format-mp-5.0 -i -style=file {} \;
-	find compiler -path compiler/parser -prune -o -iname '*.hh' -execdir clang-format-mp-5.0 -i -style=file {} \;
-	find compiler -path compiler/parser -prune -o -iname '*.h' -execdir clang-format-mp-5.0 -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.hh' -execdir clang-format -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.h' -execdir clang-format -i -style=file {} \;
 
 # the target 'lib' can be used to init and update the libraries submodule
 updatesubmodules :

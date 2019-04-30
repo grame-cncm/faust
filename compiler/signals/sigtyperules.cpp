@@ -63,7 +63,10 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
 //#define TRACE(x) x
-#define TRACE(x) { ; }
+#define TRACE(x) \
+    {            \
+        ;        \
+    }
 
 /**
  * The empty type environment (also property key for closed term type)
@@ -682,7 +685,7 @@ static Type infereWaveformType(Tree wfsig, Tree env)
     double lo, hi;
 
     if (n == 0) {
-        throw faustexception("ERROR, empty waveform");
+        throw faustexception("ERROR empty waveform\n");
     }
 
     lo = hi = tree2float(wfsig->branch(0));

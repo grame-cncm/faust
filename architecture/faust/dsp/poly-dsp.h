@@ -99,19 +99,19 @@ class GroupUI : public GUI, public PathBuilder
         // -- widget's layouts
         void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
 
         // -- active widgets
@@ -511,15 +511,15 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             dsp_voice_group::buildUserInterface(ui_interface);
         }
 
-        void init(int samplingRate)
+        void init(int sample_rate)
         {
-            decorator_dsp::init(samplingRate);
-            fVoiceGroup->init(samplingRate);
+            decorator_dsp::init(sample_rate);
+            fVoiceGroup->init(sample_rate);
             fPanic = FAUSTFLOAT(0);
             
             // Init voices
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                fVoiceTable[i]->init(samplingRate);
+                fVoiceTable[i]->init(sample_rate);
             }
         }
     
@@ -530,14 +530,14 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             instanceClear();
         }
 
-        void instanceConstants(int samplingRate)
+        void instanceConstants(int sample_rate)
         {
-            decorator_dsp::instanceConstants(samplingRate);
-            fVoiceGroup->instanceConstants(samplingRate);
+            decorator_dsp::instanceConstants(sample_rate);
+            fVoiceGroup->instanceConstants(sample_rate);
             
             // Init voices
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                fVoiceTable[i]->instanceConstants(samplingRate);
+                fVoiceTable[i]->instanceConstants(sample_rate);
             }
         }
 

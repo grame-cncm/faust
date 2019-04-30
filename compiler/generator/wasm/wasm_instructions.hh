@@ -243,7 +243,8 @@ inline int32_t startSectionAux(BufferWithRandomAccess* out, BinaryConsts::Sectio
 
 inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
 {
-    int32_t size = int32_t(out->size()) - start - 5;  // section size does not include the 5 bytes of the size field itself
+    // section size does not include the 5 bytes of the size field itself
+    int32_t size = int32_t(out->size()) - start - 5;
     out->writeAt(start, U32LEB(size));
 }
 
@@ -292,8 +293,8 @@ struct LocalVariableCounter : public DispatchVisitor {
     {
         string         name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
-        
-        //std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
+
+        // std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
         // stack/loop variables accessed by [var_num, type] pairs
@@ -365,7 +366,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     std::map<string, pair<string, string> > fFunImports;  // function name, [module, base]
 
     using DispatchVisitor::visit;
-    
+
     FunAndTypeCounter() : DispatchVisitor(), WASInst()
     {
         // Additional functions defined in the module
@@ -373,8 +374,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt32));
             args.push_back(InstBuilder::genNamedTyped("arg2", Typed::kInt32));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["min_i"] = fun_type;
             fFunTypes["max_i"] = fun_type;
         }
@@ -385,8 +385,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getNumInputs"]  = fun_type;
             fFunTypes["getNumOutputs"] = fun_type;
         }
@@ -395,8 +394,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getSampleRate"] = fun_type;
         }
 
@@ -404,11 +402,10 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
-            fFunTypes["init"]              = fun_type;
-            fFunTypes["classInit"]         = fun_type;
+            args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+            FunTyped* fun_type     = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            fFunTypes["init"]      = fun_type;
+            fFunTypes["classInit"] = fun_type;
             fFunTypes["instanceConstants"] = fun_type;
             fFunTypes["instanceInit"]      = fun_type;
         }
@@ -417,8 +414,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["instanceClear"]              = fun_type;
             fFunTypes["instanceResetUserInterface"] = fun_type;
         }
@@ -429,8 +425,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
             args.push_back(InstBuilder::genNamedTyped("value", itfloat()));
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["setParamValue"] = fun_type;
         }
 
@@ -453,8 +448,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));  // so that fun type is correcty generated
             args.push_back(
                 InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));  // so that fun type is correcty generated
-            FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+            FunTyped* fun_type   = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["compute"] = fun_type;
         }
     }
@@ -464,22 +458,21 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string name = inst->fAddress->getName();
-      
+        string      name        = inst->fAddress->getName();
+
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] =
-                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += (array_typed->fSize * audioSampleSize());
+                fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += audioSampleSize();
+                fStructOffset += gGlobal->audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
                 faustassert(inst->fValue == nullptr);
@@ -499,6 +492,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
         // will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+            faustassert(fMathLibTable.find(inst->fName) != fMathLibTable.end());
             MathFunDesc desc = fMathLibTable[inst->fName];
 
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
@@ -728,8 +722,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         int32_t start = startSection(BinaryConsts::Section::Memory);
         *fOut << U32LEB(1);  // num memories
-        *fOut << U32LEB(0);  // memory flags
+        *fOut << U32LEB(1);  // memory flags, 1 means [min, max]
+        // minimum memory pages number
         size_t size_pos = fOut->writeU32LEBPlaceholder();
+        // maximum memory pages number, to be extended on JS side for soundfiles
+        fOut->writeU32LEBPlaceholder();
         finishSection(start);
         return size_pos;
     }
@@ -820,25 +817,24 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string name = inst->fAddress->getName();
-        
-        //std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
+        string      name        = inst->fAddress->getName();
+
+        // std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fFieldTable.find(name) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] =
-                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += (array_typed->fSize * audioSampleSize());
+                fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += audioSampleSize();
+                fStructOffset += gGlobal->audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
                 faustassert(inst->fValue == nullptr);
@@ -918,7 +914,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(TeeVarInst* inst)
     {
         string name = inst->fAddress->getName();
-        
+
         faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
         LocalVarDesc local = fLocalVarTable[name];
 
@@ -937,7 +933,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         inst->fValue->accept(&fTypingVisitor);
         Typed::VarType type = fTypingVisitor.fCurType;
-        string name = inst->fAddress->getName();
+        string         name = inst->fAddress->getName();
 
         if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
@@ -1105,6 +1101,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         *fOut << int8_t(BinaryConsts::F64Const) << inst->fNum;
     }
+
+    virtual void visit(BoolNumInst* inst) { faustassert(false); }
 
     virtual void visit(Int32NumInst* inst)
     {
@@ -1347,13 +1345,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // End of loop block
         *fOut << int8_t(BinaryConsts::End);
     }
-    
+
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
         throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
     }
-    
 };
 
 #endif

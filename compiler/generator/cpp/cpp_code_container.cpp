@@ -114,23 +114,22 @@ void CPPCodeContainer::produceInit(int tabs)
 {
     if (gGlobal->gMemoryManager) {
         tab(tabs, *fOut);
-        *fOut << "virtual void init(int samplingFreq) {}";
+        *fOut << "virtual void init(int sample_rate) {}";
     } else {
         tab(tabs, *fOut);
-        *fOut << "virtual void init(int samplingFreq) {";
+        *fOut << "virtual void init(int sample_rate) {";
         tab(tabs + 1, *fOut);
-        *fOut << "classInit(samplingFreq);";
+        *fOut << "classInit(sample_rate);";
         tab(tabs + 1, *fOut);
-        *fOut << "instanceInit(samplingFreq);";
+        *fOut << "instanceInit(sample_rate);";
         tab(tabs, *fOut);
         *fOut << "}";
     }
 
     tab(tabs, *fOut);
-    tab(tabs, *fOut);
-    *fOut << "virtual void instanceInit(int samplingFreq) {";
+    *fOut << "virtual void instanceInit(int sample_rate) {";
     tab(tabs + 1, *fOut);
-    *fOut << "instanceConstants(samplingFreq);";
+    *fOut << "instanceConstants(sample_rate);";
     tab(tabs + 1, *fOut);
     *fOut << "instanceResetUserInterface();";
     tab(tabs + 1, *fOut);
@@ -182,7 +181,7 @@ void CPPCodeContainer::produceInternal()
 
     // Inits
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -196,10 +195,10 @@ void CPPCodeContainer::produceInternal()
     tab(n + 1, *fOut);
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, int* output) {", counter);
+        *fOut << "void fill" << fKlassName << subst("(int $0, int* " + fTableName + ") {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, $1* output) {", counter, ifloat());
+        *fOut << "void fill" << fKlassName << subst("(int $0, $1* " + fTableName + ") {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -267,6 +266,10 @@ void CPPCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
+
+    if (gGlobal->gOneSample) {
+        fSuperKlassName = "one_sample_dsp";
+    }
 
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
@@ -350,7 +353,7 @@ void CPPCodeContainer::produceClass()
     */
 
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int samplingFreq) {";
+    *fOut << "static void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -382,7 +385,7 @@ void CPPCodeContainer::produceClass()
     = inliner2.getCode(res1);
         }
 
-        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "static void classInit(int sample_rate) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             res1->accept(&fCodeProducer);
@@ -393,7 +396,7 @@ void CPPCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceConstants(int samplingFreq) {";
+    *fOut << "virtual void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -435,7 +438,7 @@ void CPPCodeContainer::produceClass()
     false); InlineVoidFunctionCall inliner2(fill_fun); res1 = inliner2.getCode(res1); res2 = inliner2.getCode(res2);
         }
 
-        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int sample_rate) {";
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         res1->accept(&fCodeProducer);
@@ -459,7 +462,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
-    generateGetSampleRate("dsp", true, true)->accept(&fCodeProducer);
+    generateGetSampleRate("getSampleRate", "dsp", true, true)->accept(&fCodeProducer);
 
     // User interface
     tab(n + 1, *fOut);
@@ -469,7 +472,7 @@ void CPPCodeContainer::produceClass()
     generateUserInterface(&fCodeProducer);
     tab(n + 1, *fOut);
     *fOut << "}";
-    
+
     if (gGlobal->gOneSample) {
         tab(n + 1, *fOut);
         *fOut << subst("virtual void control(int* icontrol, $0* fcontrol) {", xfloat());
@@ -479,7 +482,7 @@ void CPPCodeContainer::produceClass()
         generateComputeBlock(&fCodeProducer);
         tab(n + 1, *fOut);
         *fOut << "};" << endl;
-        
+
         tab(n + 1, *fOut);
         *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";
         tab(n + 1, *fOut);
@@ -569,7 +572,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
     generateComputeFunctions(&fCodeProducer);
-  
+
     // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -641,7 +644,7 @@ void CPPWorkStealingCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "extern \"C\" void computeThreadExternal(void* dsp, int num_thread) {";
     tab(n + 1, *fOut);
-    *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
+    *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread" << fKlassName << "(num_thread);";
     tab(n, *fOut);
     *fOut << "}" << endl;
 }
@@ -652,7 +655,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n + 1);
     tab(n + 1, *fOut);
     generateComputeFunctions(&fCodeProducer);
-   
+
     // Generates declaration
     tab(n + 1, *fOut);
     *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -667,7 +670,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
 
     // Generates "computeThread" code
     tab(n + 1, *fOut);
-    *fOut << "void computeThread(int num_thread) {";
+    *fOut << "void computeThread" << fKlassName << "(int num_thread) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -678,4 +681,3 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     *fOut << "}";
 }
-

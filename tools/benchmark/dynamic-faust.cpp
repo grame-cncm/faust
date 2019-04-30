@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -63,10 +63,10 @@ int main(int argc, char* argv[])
         cout << "dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-target xxx' to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')\n";
         cout << "Use '-opt (native|generic)' to discover and compile with the optimal compilation parameters\n";
-        cout << "Use '-o foo.ll' to generate a LLVM IR textual file\n";
-        cout << "Use '-o foo.bc' to generate a LLVM bitcode file\n";
-        cout << "Use '-o foo.mc' to generate a LLVM machine code file\n";
-        cout << "Use '-o foo.o' to generate a LLVM object code file\n";
+        cout << "Use '-o foo.ll' to generate an LLVM IR textual file\n";
+        cout << "Use '-o foo.bc' to generate an LLVM bitcode file\n";
+        cout << "Use '-o foo.mc' to generate an LLVM machine code file\n";
+        cout << "Use '-o foo.o' to generate an LLVM object code file\n";
         return 0;
     }
     
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (out_filename == "") {
         cerr << "ERROR : no output file given...\n";
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
                 optimal_options = bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
             }
         } catch (...) {
-            cerr << "libfaust error...";
+            cerr << "libfaust error...\n";
             exit(EXIT_FAILURE);
         }
         
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
     } else  {
-        cerr << "ERROR : unrognized file extension " << out_filename << "\n";
+        cerr << "ERROR : unrecognized file extension " << out_filename << "\n";
         exit(EXIT_FAILURE);
     }
      

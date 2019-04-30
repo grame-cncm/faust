@@ -25,19 +25,15 @@
 #include <string.h>
 #include <ostream>
 #include <string>
-#include <vector>
 
 #include "exception.hh"
-#include "faust/dsp/dsp.h"
+#include "export.hh"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
+#include "faust/dsp/dsp.h"
 
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
-
-struct dsp_memory_manager;
-class dsp_factory;
-class dsp;
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, Interpreter, WebAssembly).
@@ -134,6 +130,7 @@ class dsp_factory_imp : public dsp_factory_base {
             return nullptr;
         }
     }
+
     virtual void destroy(void* ptr)
     {
         if (fManager) {
@@ -142,7 +139,7 @@ class dsp_factory_imp : public dsp_factory_base {
             faustassert(false);
         }
     }
-
+  
     virtual void metadata(Meta* meta) { faustassert(false); }
 
     virtual void write(std::ostream* out, bool binary = false, bool small = false) {}

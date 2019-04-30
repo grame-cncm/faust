@@ -32,7 +32,7 @@
 #include <sstream>
 
 #ifdef WIN32
-# define strdup _strdup
+#define strdup _strdup
 #endif
 
 using namespace std;
@@ -40,7 +40,7 @@ using namespace std;
 static char* addFileNum(const char* fname)
 {
     char f[256];
-    char s[256];
+    char s[512];
     int  i;
 
     // remove suffixes (.xxx.yyy)
@@ -50,7 +50,7 @@ static char* addFileNum(const char* fname)
     f[i] = 0;
 
     // add number and .ps suffix
-    snprintf(s, 256, "%s-%d.ps", f, ++gGlobal->gFileNum);
+    snprintf(s, 511, "%s-%d.ps", f, ++gGlobal->gFileNum);
     // cerr << "file name " << s << endl;
     return strdup(s);
 }

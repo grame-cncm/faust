@@ -122,7 +122,7 @@ class GUI : public UI
         {
             for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
                 FAUSTFLOAT* z = m->first;
-                clist*	l = m->second;
+                clist* l = m->second;
                 if (z) {
                     FAUSTFLOAT v = *z;
                     for (clist::iterator c = l->begin(); c != l->end(); c++) {

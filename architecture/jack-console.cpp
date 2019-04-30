@@ -43,6 +43,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/gui/GUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/JSONUIDecoder.h"

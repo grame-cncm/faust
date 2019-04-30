@@ -23,13 +23,14 @@
 #include "fir_to_fir.hh"
 #include "global.hh"
 #include "instructions_complexity.hh"
+#include "struct_manager.hh"
 
 using namespace std;
 
 dsp_factory_base* FIRCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", ((dynamic_cast<stringstream*>(fOut)) ? dynamic_cast<stringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* FIRCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -68,11 +69,10 @@ void FIRCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* ds
 
 void FIRCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    list<CodeContainer*>::const_iterator it;
     *dst << "======= Sub container begin ==========" << endl << endl;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        (*it)->produceInternal();
-        (*it)->dump(dst);
+    for (auto& it : fSubContainers) {
+        it->produceInternal();
+        it->dump(dst);
     }
     *dst << "======= Sub container end ==========" << endl << endl;
 }
@@ -94,9 +94,11 @@ void FIRCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
     }
 
     if (fDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Declarations ==========" << endl;
+        *dst << "======= DSP struct ==========" << endl;
         *dst << endl;
-        fDeclarationInstructions->accept(&firvisitor);
+        StructInstVisitor visitor;
+        fDeclarationInstructions->accept(&visitor);
+        visitor.getStructType(fKlassName)->accept(&firvisitor);
         *dst << endl;
     }
 
@@ -187,12 +189,11 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
 {
     // Compute memory footprint
     if (fTopLevel) {
-        int                                  total_heap_size = 0;
-        list<CodeContainer*>::const_iterator it;
+        int total_heap_size = 0;
 
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+        for (auto& it : fSubContainers) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
-            (*it)->generateDeclarations(&heap_counter);
+            it->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
 
@@ -240,9 +241,8 @@ void FIRCodeContainer::produceClass()
 
     *fOut << "======= External types declaration ==========" << endl;
     *fOut << endl;
-    map<Typed::VarType, DeclareStructTypeInst*>::const_iterator it;
-    for (it = gGlobal->gExternalStructTypes.begin(); it != gGlobal->gExternalStructTypes.end(); it++) {
-        ((*it).second)->accept(&firvisitor);
+    for (auto& it : gGlobal->gExternalStructTypes) {
+        (it.second)->accept(&firvisitor);
         *fOut << endl;
     }
     *fOut << endl;
@@ -337,12 +337,10 @@ void FIRWorkStealingCodeContainer::dumpMemory(ostream* dst)
 {
     // Compute memory footprint
     if (fTopLevel) {
-        int                                  total_heap_size = 0;
-        list<CodeContainer*>::const_iterator it;
-
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+        int total_heap_size = 0;
+        for (auto& it : fSubContainers) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
-            (*it)->generateDeclarations(&heap_counter);
+            it->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
 

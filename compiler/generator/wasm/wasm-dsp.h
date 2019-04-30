@@ -62,11 +62,11 @@ class wasm_dsp : public dsp {
 
     int getSampleRate();
 
-    void init(int samplingRate);
+    void init(int sample_rate);
 
-    void instanceInit(int samplingRate);
+    void instanceInit(int sample_rate);
 
-    void instanceConstants(int samplingRate);
+    void instanceConstants(int sample_rate);
 
     void instanceResetUserInterface();
 
@@ -100,13 +100,13 @@ class wasm_dsp_factory : public dsp_factory {
 
     /* Return factory expanded DSP code */
     std::string getDSPCode();
-    
+
     /* Return factory compile options */
     std::string getCompileOptions();
-    
+
     /* Get the Faust DSP factory list of library dependancies */
     std::vector<std::string> getLibraryList();
-    
+
     /* Get the list of all used includes */
     std::vector<std::string> getIncludePathnames();
 
@@ -118,7 +118,6 @@ class wasm_dsp_factory : public dsp_factory {
 
     /* Return the currently set custom memory manager */
     dsp_memory_manager* getMemoryManager();
-    
 };
 
 /**

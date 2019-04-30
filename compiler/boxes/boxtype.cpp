@@ -90,7 +90,7 @@ bool getBoxType(Tree box, int* inum, int* onum)
 
 static bool infereBoxType(Tree t, int* inum, int* onum)
 {
-    Tree a, b, ff, l, s, c;
+    Tree a, b, ff, l, s, c, ins, outs, lroutes;
     // Tree abstr, genv, vis, lenv;
 
     xtended* p = (xtended*)getUserData(t);
@@ -306,6 +306,9 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
 
     } else if (isBoxMetadata(t, a, b)) {
         return getBoxType(a, inum, onum);
+
+    } else if (isBoxRoute(t, ins, outs, lroutes)) {
+        return isBoxInt(ins, inum) & isBoxInt(outs, onum);
 
     } else {
         stringstream error;

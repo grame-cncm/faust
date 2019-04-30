@@ -228,9 +228,9 @@ class timed_dsp : public decorator_dsp {
             delete [] fOutputsSlice;
         }
         
-        virtual void init(int samplingRate)
+        virtual void init(int sample_rate)
         {
-            fDSP->init(samplingRate);
+            fDSP->init(sample_rate);
         }
         
         virtual void buildUserInterface(UI* ui_interface)   

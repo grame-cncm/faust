@@ -98,19 +98,19 @@ class JuceParameterUI : public GUI, public PathBuilder {
         
         virtual void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         virtual void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         virtual void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         virtual void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
         
         // -- active widgets

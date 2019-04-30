@@ -7,8 +7,8 @@
     "test": ""
   },
   "keywords": [
-    "faust"
+    "faust", "mydsp"
   ],
-  "author": "",
+  "author": "GRAME",
   "license": "ISC"
 }

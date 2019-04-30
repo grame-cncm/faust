@@ -51,7 +51,7 @@
 #include <libgen.h>
 #endif
 
-#include "mspUI.h"
+#include "faust/gui/mspUI.h"
 #include "jpatcher_api.h"
 #include "jgraphics.h"
 #include "ext_drag.h"

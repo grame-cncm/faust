@@ -28,6 +28,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+ #include <unistd.h>
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"
@@ -110,16 +111,24 @@ int main(int argc, char* argv[])
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     
     int trace_mode = lopt(argv, "-trace", 0);
+    bool is_output = isopt(argv, "-output");
     bool is_control = isopt(argv, "-control");
+    bool is_noui = isopt(argv, "-noui");
+    int time_out = lopt(argv, "-timeout", 10);
     
-    if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 5) {
-        cout << "interp-tracer -trace <1-5> -control [additional Faust options (-ftz xx)] foo.dsp" << endl;
+    if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
+        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp" << endl;
         cout << "-control to activate min/max control check\n";
+        cout << "-output to display output samples\n";
+        cout << "-noui to start the application without UI\n";
+        cout << "-timeout <num> when used in -noui mode, to stop the application after a given timeout in seconds (default = 10s)\n";
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
         cout << "-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO\n";
-        cout << "-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN\n";
-        cout << "-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN\n";
+        cout << "-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, fails at first FP_INFINITE, FP_NAN or LOAD errors\n";
+        cout << "-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, continue after FP_INFINITE, FP_NAN or LOAD errors\n";
+        cout << "-trace 6 to only check LOAD errors and continue\n";
+        cout << "-trace 7 to only check LOAD errors and exit\n";
         exit(EXIT_FAILURE);
     }
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
@@ -129,7 +138,11 @@ int main(int argc, char* argv[])
     
     cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
-        if (string(argv[i]) == "-trace" || string(argv[i]) == "-control") {
+        if (string(argv[i]) == "-control"
+            || string(argv[i]) == "-noui"
+            || string(argv[i]) == "-output") {
+            continue;
+        } else if (string(argv[i]) == "-trace" || string(argv[i]) == "-timeout") {
             i++;
             continue;
         }
@@ -138,12 +151,17 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {
         char mode[8]; sprintf(mode, "%d", trace_mode);
         setenv("FAUST_INTERP_TRACE", mode, 1);
+    }
+    
+    if (is_output > 0) {
+        char mode[8]; sprintf(mode, "%d", is_output);
+        setenv("FAUST_INTERP_OUTPUT", mode, 1);
     }
     
     string error_msg;
@@ -157,19 +175,22 @@ int main(int argc, char* argv[])
     
     dsp* DSP = factory->createDSPInstance();
     if (!DSP) {
-        cerr << "Cannot create instance "<< endl;
+        cerr << "Cannot create instance " << endl;
         exit(EXIT_FAILURE);
     }
     
     cout << "getName " << factory->getName() << endl;
     
-    dummyaudio audio(44100, 4, INT_MAX);
+    dummyaudio audio(44100, 16, INT_MAX);
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
     
-    GUI* interface = new GTKUI(filename, &argc, &argv);
-    DSP->buildUserInterface(interface);
+    GUI* interface = nullptr;
+    if (!is_noui) {
+        interface = new GTKUI(filename, &argc, &argv);
+        DSP->buildUserInterface(interface);
+    }
     
     if (is_control) {
         
@@ -253,7 +274,11 @@ int main(int argc, char* argv[])
         audio.start();
     }
    
-    interface->run();
+    if (!is_noui) {
+        interface->run();
+    } else {
+        usleep(time_out * 1e6);
+    }
     audio.stop();
     
 end:

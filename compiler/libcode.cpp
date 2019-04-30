@@ -107,6 +107,10 @@
 #include "wast_code_container.hh"
 #endif
 
+#ifdef SOUL_BUILD
+#include "soul_code_container.hh"
+#endif
+
 using namespace std;
 
 extern const char* mathsuffix[4];
@@ -137,37 +141,41 @@ static void enumBackends(ostream& out)
 #ifdef C_BUILD
     out << dspto << "C" << endl;
 #endif
-    
+
 #ifdef CPP_BUILD
     out << dspto << "C++" << endl;
 #endif
-    
+
 #ifdef FIR_BUILD
     out << dspto << "FIR" << endl;
 #endif
-    
+
 #ifdef INTERP_BUILD
     out << dspto << "Interpreter" << endl;
 #endif
-    
+
 #ifdef JAVA_BUILD
     out << dspto << "Java" << endl;
 #endif
-    
+
 #ifdef LLVM_BUILD
     out << dspto << "LLVM IR" << endl;
 #endif
-    
+
 #ifdef OCPP_BUILD
     out << dspto << "old C++" << endl;
 #endif
-    
+
 #ifdef RUST_BUILD
     out << dspto << "Rust" << endl;
 #endif
-    
+
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
+#endif
+
+#ifdef SOUL_BUILD
+    out << dspto << "SOUL" << endl;
 #endif
 }
 
@@ -179,20 +187,18 @@ static void callFun(compile_fun fun)
 #else
 static void callFun(compile_fun fun)
 {
-    if (startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm")) {
-        // No thread support in asm.js and wast/wasm
-        fun(NULL);
-    } else {
-        pthread_t      thread;
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-#ifndef EMCC
-        pthread_attr_setstacksize(&attr, 524288 * 128);
+#ifdef EMCC
+    // No thread support in JS
+    fun(NULL);
+#else
+    pthread_t      thread;
+    pthread_attr_t attr;
+    faustassert(pthread_attr_init(&attr) == 0);
+    faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
+    faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
+    faustassert(pthread_create(&thread, &attr, fun, NULL) == 0);
+    pthread_join(thread, NULL);
 #endif
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-        pthread_create(&thread, &attr, fun, NULL);
-        pthread_join(thread, NULL);
-    }
 }
 #endif
 
@@ -332,6 +338,10 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gGlobal->gDrawSignals = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
+            gGlobal->gDrawRouteFrame = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
@@ -517,7 +527,7 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-exp10", "--generate-exp10")) {
             gGlobal->gHasExp10 = true;
             i += 1;
-            
+
         } else if (isCmd(argv[i], "-os", "--one-sample")) {
             gGlobal->gOneSample = true;
             i += 1;
@@ -540,7 +550,7 @@ static bool processCmdline(int argc, const char* argv[])
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
                 gGlobal->gImportDirList.push_back(argv[i + 1]);
             } else {
-                char temp[PATH_MAX + 1];
+                char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gGlobal->gImportDirList.push_back(path);
@@ -551,8 +561,8 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
                 gGlobal->gArchitectureDirList.push_back(argv[i + 1]);
-             } else {
-                char temp[PATH_MAX + 1];
+            } else {
+                char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gGlobal->gArchitectureDirList.push_back(path);
@@ -631,13 +641,12 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
-    
-    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp"
-        && gGlobal->gOutputLang != "c"
-        && gGlobal->gOutputLang != "fir") {
-        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c' or 'fir' backends\n");
+
+    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" &&
+        startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
+        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
-    
+
     if (gGlobal->gOneSample && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
     }
@@ -742,7 +751,6 @@ static void printHelp()
 
     cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
          << endl;
-    cout << tab << "-time     --compilation-time            display compilation phases timing information." << endl;
 
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
@@ -760,7 +768,7 @@ static void printHelp()
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
          << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
-            "llvm, cllvm, fir, wast/wasm, interp."
+            "llvm, cllvm, fir, wast/wasm, soul, interp."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
@@ -845,6 +853,7 @@ static void printHelp()
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
     cout << tab << "-sd        --simplify-diagrams          try to further simplify diagrams before drawing." << endl;
+    cout << tab << "-drf       --draw-route-frame           draw route frames instead of simple cables." << endl;
     cout << tab
          << "-f <n>     --fold <n>                   threshold during block-diagram generation (default 25 elements)."
          << endl;
@@ -868,6 +877,7 @@ static void printHelp()
 
     cout << endl << "Debug options:" << line;
     cout << tab << "-d          --details                   print compilation details." << endl;
+    cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
@@ -910,9 +920,9 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-    /****************************************************************
-                                    MAIN
-    *****************************************************************/
+/****************************************************************
+                                MAIN
+*****************************************************************/
 
 #ifdef OCPP_BUILD
 
@@ -1027,6 +1037,7 @@ static void initFaustFloat()
 
 static void initFaustDirectories(int argc, const char* argv[])
 {
+#if !defined(FAUST_SELF_CONTAINED_LIB)
     char s[1024];
     getFaustPathname(s, 1024);
 
@@ -1076,6 +1087,7 @@ static void initFaustDirectories(int argc, const char* argv[])
     //        cerr << "\t" << d << "\n";
     //    }
     //    cerr << endl;
+#endif
 }
 
 static void initDocumentNames()
@@ -1091,7 +1103,7 @@ static void initDocumentNames()
         gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
         gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
     }
-    
+
     // Add gMasterDirectory in gImportDirList and gArchitectureDirList
     gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
     gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
@@ -1234,9 +1246,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
 #ifdef LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
-        gGlobal->gFAUSTFLOATToInternal =
-            true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;
 #ifdef CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
@@ -1256,10 +1267,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputLang == "llvm") {
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-        gGlobal->gAllowForeignFunction =
-            true;  // libc functions will be found by the LLVM linker, but not user defined ones...
-        gGlobal->gFAUSTFLOATToInternal =
-            true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        // libc functions will be found by the LLVM linker, but not user defined ones...
+        gGlobal->gAllowForeignFunction = true;
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;
+
+        gGlobal->gUseDefaultSound = false;
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1363,8 +1376,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "rust") {
 #ifdef RUST_BUILD
-            gGlobal->gFAUSTFLOATToInternal =
-                true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
@@ -1378,7 +1391,20 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
+        } else if (startWith(gGlobal->gOutputLang, "soul")) {
+#ifdef SOUL_BUILD
+            gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
 
+            // "one sample control" model by default;
+            gGlobal->gOneSampleControl = true;
+            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+
+            container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+#else
+            throw faustexception("ERROR : -lang rust not supported since SOUL backend is not built\n");
+#endif
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
@@ -1410,10 +1436,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    stringstream error;
-                    error << "ERROR : cannot generate helper JS file, outpath is incorrect : "
-                          << "\"" << outpath << "\"" << endl;
-                    throw faustexception(error.str());
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
+                         << endl;
                 }
             } else {
                 helpers = &cout;
@@ -1453,10 +1477,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    stringstream error;
-                    error << "ERROR : cannot generate helper JS file, outpath is incorrect : "
-                          << "\"" << outpath << "\"" << endl;
-                    throw faustexception(error.str());
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
+                         << endl;
                 }
             } else {
                 helpers = &cout;
@@ -1640,16 +1662,28 @@ static void generateOutputFiles()
             faustassert(D);
             ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
 
-            if (gGlobal->gMetaDataSet.count(tree("name")) > 0)
-                D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("author")) > 0)
-                D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)
-                D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("license")) > 0)
-                D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("version")) > 0)
-                D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
+            const MetaDataSet&          mds = gGlobal->gMetaDataSet;
+            MetaDataSet::const_iterator it1;
+            set<Tree>::const_iterator   it2;
+
+            for (it1 = mds.begin(); it1 != mds.end(); ++it1) {
+                const std::string key = tree2str(it1->first);
+                for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
+                    const std::string value = tree2str(*it2);
+                    if (key == "name")
+                        D->name(value);
+                    else if (key == "author")
+                        D->author(value);
+                    else if (key == "copyright")
+                        D->copyright(value);
+                    else if (key == "license")
+                        D->license(value);
+                    else if (key == "version")
+                        D->version(value);
+                    else
+                        D->declare(key, value);
+                }
+            }
 
             D->className(gGlobal->gClassName);
             D->inputs(container->inputs());

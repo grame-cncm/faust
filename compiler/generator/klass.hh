@@ -39,16 +39,15 @@ using namespace std;
 #include <map>
 #include <set>
 #include <string>
+
 #include "property.hh"
 #include "sigtype.hh"
-#include "smartpointer.hh"
 #include "tlib.hh"
 #include "uitree.hh"
-
-#define kMaxCategory 32
-
 #include "graphSorting.hh"
 #include "loop.hh"
+
+#define kMaxCategory 32
 
 class Klass  //: public Target
 {

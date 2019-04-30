@@ -115,10 +115,10 @@ class FUI : public UI, public PathBuilder
 
         // -- widget's layouts (just keep track of group labels)
 
-        virtual void openTabBox(const char* label) { fControlsLevel.push_back(label); }
-        virtual void openHorizontalBox(const char* label) { fControlsLevel.push_back(label); }
-        virtual void openVerticalBox(const char* label) { fControlsLevel.push_back(label); }
-        virtual void closeBox() { fControlsLevel.pop_back(); };
+        virtual void openTabBox(const char* label) { pushLabel(label); }
+        virtual void openHorizontalBox(const char* label) { pushLabel(label);; }
+        virtual void openVerticalBox(const char* label) { pushLabel(label); }
+        virtual void closeBox() { popLabel(); };
 
         // -- active widgets (just add an element)
 

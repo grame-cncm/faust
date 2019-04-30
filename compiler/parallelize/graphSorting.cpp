@@ -23,9 +23,8 @@
 #include <set>
 
 #ifdef WIN32
-#pragma warning (disable: 4800)
+#pragma warning(disable : 4800)
 #endif
-
 
 /**
  * Set the order of a loop and place it to appropriate set

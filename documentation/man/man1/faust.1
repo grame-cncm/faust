@@ -1,4 +1,4 @@
-.TH "man" "1" "" "Version 2.15.10 (08\-March\-2019)" "Faust man page"
+.TH "man" "1" "" "Version 2.17.8 (23\-April\-2019)" "Faust man page"
 .SH NAME
 .PP
 Faust \- DSP to C/C++, Rust, LLVM IR, JAVA, WebAssembly (wast/wasm),
@@ -31,9 +31,6 @@ module <file>.
 .PP
 \f[B]\-t\f[] <sec> \f[B]\-\-timeout\f[] <sec> abort compilation after
 <sec> seconds (default 120).
-.PP
-\f[B]\-time\f[] \f[B]\-\-compilation\-time\f[] display compilation
-phases timing information.
 .SS Output options:
 .PP
 \f[B]\-o\f[] <file> the output file.
@@ -55,7 +52,7 @@ directory of the generated output code and of additional generated files
 .PP
 \f[B]\-lang\f[] <lang> \f[B]\-\-language\f[] select output language,
 \[aq]lang\[aq] should be in c, ocpp, cpp (default), rust, java, llvm,
-cllvm, fir, wast/wasm, interp.
+cllvm, fir, wast/wasm, soul, interp.
 .PP
 \f[B]\-single\f[] \f[B]\-\-single\-precision\-floats\f[] use single
 precision floats for internal computations (default).
@@ -170,6 +167,9 @@ postscript file.
 \f[B]\-sd\f[] \f[B]\-\-simplify\-diagrams\f[] try to further simplify
 diagrams before drawing.
 .PP
+\f[B]\-drf\f[] \f[B]\-\-draw\-route\-frame\f[] draw route frames instead
+of simple cables.
+.PP
 \f[B]\-f\f[] <n> \f[B]\-\-fold\f[] <n> threshold during block\-diagram
 generation (default 25 elements).
 .PP
@@ -194,6 +194,9 @@ printing Faust \-mdoc listings.
 .SS Debug options:
 .PP
 \f[B]\-d\f[] \f[B]\-\-details\f[] print compilation details.
+.PP
+\f[B]\-time\f[] \f[B]\-\-compilation\-time\f[] display compilation
+phases timing information.
 .PP
 \f[B]\-tg\f[] \f[B]\-\-task\-graph\f[] print the internal task graph in
 dot format.

@@ -58,11 +58,23 @@ struct interval : public virtual Garbageable {
 
     interval() : valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) {}
     interval(double n) : valid(true), lo(n), hi(n) {}
+    interval(bool v, double n, double m) : valid(v), lo(n), hi(m) {}
     interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m)) {}
     interval(const interval& r) : valid(r.valid), lo(r.lo), hi(r.hi) {}
 
-    bool isvalid() { return valid; }
+    // bool isvalid() { return valid; }
+    bool isempty() { return hi < lo; }
     bool isconst() { return valid && (lo == hi); }
+    bool ispowerof2()
+    {
+        int n = int(hi);
+        return isconst() && ((n & (-n)) == n);
+    }
+    bool isbitmask()
+    {
+        int n = int(hi) + 1;
+        return isconst() && ((n & (-n)) == n);
+    }
     bool haszero() { return (lo <= 0) && (0 <= hi); }
 };
 
@@ -79,6 +91,17 @@ inline interval reunion(const interval& x, const interval& y)
 {
     if (x.valid & y.valid) {
         return interval(min(x.lo, y.lo), max(x.hi, y.hi));
+    } else {
+        return interval();
+    }
+}
+
+inline interval intersection(const interval& x, const interval& y)
+{
+    if (x.valid & y.valid) {
+        double lo = max(x.lo, y.lo);
+        double hi = min(x.hi, y.hi);
+        return interval(true, lo, hi);
     } else {
         return interval();
     }

@@ -295,23 +295,22 @@ void remote_dsp_factory::decodeJSON(const string& json)
 {
     fJSONDecoder = new JSONUIDecoder(json);
     
-    if (fJSONDecoder->fMetadatas.find("code") != fJSONDecoder->fMetadatas.end()) {
-        fExpandedDSP = base64_decode(fJSONDecoder->fMetadatas["code"]);
+    if (fJSONDecoder->fMetadata.find("code") != fJSONDecoder->fMetadata.end()) {
+        fExpandedDSP = base64_decode(fJSONDecoder->fMetadata["code"]);
     }
     
-    if (fJSONDecoder->fMetadatas.find("sha_key") != fJSONDecoder->fMetadatas.end()) {
-        fSHAKey = fJSONDecoder->fMetadatas["sha_key"];
+    if (fJSONDecoder->fMetadata.find("sha_key") != fJSONDecoder->fMetadata.end()) {
+        fSHAKey = fJSONDecoder->fMetadata["sha_key"];
     }
 }
 
 // Declaring meta datas
 void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) 
 { 
-    map<string,string>::iterator it;
-    for (it = fJSONDecoder->fMetadatas.begin() ; it != fJSONDecoder->fMetadatas.end(); it++) {
-        m->declare(it->first.c_str(), it->second.c_str());
+    for (auto& it : fJSONDecoder->fMetadata) {
+        m->declare(it.first.c_str(), it.second.c_str());
     }
-}   
+}
 
 // Create Remote DSP Instance from factory
 remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char* argv[], 
@@ -565,11 +564,11 @@ int remote_dsp_aux::getNumOutputs()
 
 // Useless fonction in our case but required for a DSP interface
 //Interesting to implement one day ! 
-void remote_dsp_aux::init(int /*samplingRate*/) {}
+void remote_dsp_aux::init(int /*sample_rate*/) {}
 
-void remote_dsp_aux::instanceConstants(int /*samplingRate*/) {}
+void remote_dsp_aux::instanceConstants(int /*sample_rate*/) {}
 
-void remote_dsp_aux::instanceInit(int /*samplingRate*/) {}
+void remote_dsp_aux::instanceInit(int /*sample_rate*/) {}
 
 void remote_dsp_aux::instanceResetUserInterface() {}
 
@@ -902,11 +901,8 @@ EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory)
             if (sfactory->refs() == 2) { // Local stack pointer + the one in gRemoteFactoryDSPTable...
             
                 // Possibly delete remaining DSP
-                list<remote_dsp_aux*>::iterator it1;
-                for (it1 = dsp_list1.begin(); it1 != dsp_list1.end(); it1++) { delete (*it1); }
-                
-                list<remote_audio_aux*>::iterator it2;
-                for (it2 = dsp_list2.begin(); it2 != dsp_list2.end(); it2++) { delete (*it2); }
+                for (auto& it : dsp_list1) { delete it; }
+                for (auto& it : dsp_list2) { delete it; }
                 
                 // Last use, remove from the global table, pointer will be deleted
                 remote_dsp_factory::gRemoteFactoryDSPTable.erase(factory);
@@ -923,18 +919,16 @@ EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory)
 EXPORT void deleteAllRemoteDSPFactories()
 {
     // Delete remote factories...
-    RemoteFactoryDSPTableIt it1;
-    for (it1 = remote_dsp_factory::gRemoteFactoryDSPTable.begin(); it1 != remote_dsp_factory::gRemoteFactoryDSPTable.end(); it1++) {
+    for (auto& it : remote_dsp_factory::gRemoteFactoryDSPTable) {
         // Decrement counter up to one...
-        while (((*it1).first)->refs() > 1) { ((*it1).first)->removeReference(); }
+        while ((it.first)->refs() > 1) { (it.first)->removeReference(); }
     }
     // Then clear the table thus finally deleting all ref = 1 smart pointers
     remote_dsp_factory::gRemoteFactoryDSPTable.clear();
     
     // Delete our own local LLVM factories...
-    LocalFactoryDSPTableIt it2;
-    for (it2 = remote_dsp_factory::gLocalFactoryDSPTable.begin(); it2 != remote_dsp_factory::gLocalFactoryDSPTable.end(); it2++) {
-        while (!deleteDSPFactory(*it2)) {}
+    for (auto& it : remote_dsp_factory::gLocalFactoryDSPTable) {
+        while (!deleteDSPFactory(it)) {}
     }
 }
 
@@ -964,9 +958,9 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
 {
     if (remote_dsp_factory::gDNS && remote_dsp_factory::gDNS->fLocker.Lock()) {
         
-        for (map<string, remote_DNS::member>::iterator it = remote_dsp_factory::gDNS->fClients.begin(); it !=  remote_dsp_factory::gDNS->fClients.end(); it++){
+        for (auto& it : remote_dsp_factory::gDNS->fClients) {
             
-            remote_DNS::member iterMem = it->second;
+            remote_DNS::member iterMem = it.second;
             lo_timetag now;
             lo_timetag_now(&now);
             
@@ -1116,19 +1110,19 @@ EXPORT int remote_dsp::getNumOutputs()
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
 }
 
-EXPORT void remote_dsp::init(int samplingRate)
+EXPORT void remote_dsp::init(int sample_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->init(samplingRate);
+    reinterpret_cast<remote_dsp_aux*>(this)->init(sample_rate);
 }
 
-EXPORT void remote_dsp::instanceInit(int samplingRate)
+EXPORT void remote_dsp::instanceInit(int sample_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(samplingRate);
+    reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(sample_rate);
 }
 
-EXPORT void remote_dsp::instanceConstants(int samplingRate)
+EXPORT void remote_dsp::instanceConstants(int sample_rate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->instanceConstants(samplingRate);
+    reinterpret_cast<remote_dsp_aux*>(this)->instanceConstants(sample_rate);
 }
 
 EXPORT void remote_dsp::instanceResetUserInterface()
@@ -1213,11 +1207,10 @@ EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int 
 
 EXPORT void deleteRemoteAudioInstance(remote_audio* audio)
 {
-    RemoteFactoryDSPTableIt it;
     remote_audio_aux* audio_aux = reinterpret_cast<remote_audio_aux*>(audio);
     remote_dsp_factory* factory = audio_aux->getFactory();
     
-    it = remote_dsp_factory::gRemoteFactoryDSPTable.find(factory);
+    RemoteFactoryDSPTableIt it = remote_dsp_factory::gRemoteFactoryDSPTable.find(factory);
     assert(it != remote_dsp_factory::gRemoteFactoryDSPTable.end());
     (*it).second.second.remove(audio_aux);
     

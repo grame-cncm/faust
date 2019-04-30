@@ -9,11 +9,14 @@
 #include "faust/gui/SoundUI.h"
 
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/one-sample-dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/channels.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/midi.h"
 #include "faust/misc.h"
 
 using std::max;
@@ -46,7 +49,7 @@ struct TestMemoryReader : public MemoryReader {
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         soundfile->fLength[part] = SOUND_LENGTH;
-        soundfile->fSampleRate[part] = SOUND_SR;
+        soundfile->fSR[part] = SOUND_SR;
         soundfile->fOffset[part] = offset;
         
         // Audio frames have to be written for each chan
@@ -108,7 +111,10 @@ struct CheckControlUI : public GenericUI {
     }
 };
 
-// Standard memory manager
+//----------------------------------------------------------------------------
+// Test memory manager
+//----------------------------------------------------------------------------
+
 struct malloc_memory_manager : public dsp_memory_manager {
     
     virtual void* allocate(size_t size)
@@ -156,7 +162,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     DSP->setGroup(false);
     DSP->buildUserInterface(&sound_ui);
     DSP->setGroup(true);
-   
+  
     // Get control and then 'initRandom'
     CheckControlUI controlui;
     DSP->buildUserInterface(&controlui);
@@ -167,7 +173,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     
     // Check getSampleRate
     if (DSP->getSampleRate() != 44100) {
-        cerr << "ERROR in getSampleRate" << std::endl;
+        cerr << "ERROR in getSampleRate : " << DSP->getSampleRate() << std::endl;
     }
     
     // Check default after 'init'
@@ -198,6 +204,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     int nouts = DSP->getNumOutputs();
     channels ochan(kFrames, nouts);
     
+    // Test polyphony
     for (int i = 0; i < num_voices; i++) {
         DSP->keyOn(0, 60 + i*2, 100);
     }
@@ -250,12 +257,17 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     DSP->buildUserInterface(&controlui);
     controlui.initRandom();
     
+    // MIDI control
+    midi_handler handler;
+    MidiUI midi_ui(&handler);
+    DSP->buildUserInterface(&midi_ui);
+    
     // Init signal processor and the user interface values
     DSP->init(44100);
     
     // Check getSampleRate
     if (DSP->getSampleRate() != 44100) {
-        cerr << "ERROR in getSampleRate" << std::endl;
+        cerr << "ERROR in getSampleRate : " << DSP->getSampleRate() << std::endl;
     }
     
     // Check default after 'init'
@@ -290,6 +302,19 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // recall saved state
     finterface.recallState(rcfilename);
+    
+    // Test MIDI control
+    for (int i = 0; i < 127; i++) {
+        handler.handleData2(0, midi::MidiStatus::MIDI_CONTROL_CHANGE, 0, i, 100);
+        handler.handleData2(0, midi::MidiStatus::MIDI_POLY_AFTERTOUCH, 0, i, 75);
+        handler.handleData2(0, midi::MidiStatus::MIDI_NOTE_ON, 0, i, 75);
+        handler.handleData2(0, midi::MidiStatus::MIDI_NOTE_OFF, 0, i, 75);
+        handler.handleData2(0, midi::MidiStatus::MIDI_PITCH_BEND, 0, i, 1000);
+    }
+    handler.handleData1(0, midi::MidiStatus::MIDI_PROGRAM_CHANGE, 0, 10);
+    handler.handleData1(0, midi::MidiStatus::MIDI_AFTERTOUCH, 0, 10);
+    
+    GUI::updateAllGuis();
     
     // print audio frames
     int i;

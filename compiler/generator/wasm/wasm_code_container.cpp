@@ -109,7 +109,10 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler mode not supported for WebAssembly\n");
     } else if (gGlobal->gVectorSwitch) {
-        //throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
+        // throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
+        if (gGlobal->gVectorLoopVariant == 0) {
+            throw faustexception("ERROR : Vector mode with -lv 0 not supported for WebAssembly\n");
+        }
         container = new WASMVectorCodeContainer(name, numInputs, numOutputs, dst, internal_memory);
     } else {
         container = new WASMScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
@@ -124,7 +127,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
@@ -158,7 +161,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
@@ -195,13 +198,13 @@ WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInpu
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
 DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                           bool isvirtual, bool addreturn)
+                                                           bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
+    args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* init_block = InstBuilder::genBlockInst();
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
@@ -209,9 +212,8 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
-    if (addreturn) {
-        init_block->pushBackInst(InstBuilder::genRetInst());
-    }
+
+    init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
@@ -240,6 +242,7 @@ void WASMCodeContainer::produceClass()
     // Mathematical functions and global variables are handled in a separated visitor that creates functions types and
     // global variable offset
     generateGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
+    generateExtGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
 
     // Update struct offset to take account of global variables defined in 'generateGlobalDeclarations' in the separated
     // visitor
@@ -290,10 +293,10 @@ void WASMCodeContainer::produceClass()
     gGlobal->gWASMVisitor->generateGetParamValue();
 
     // 6) getSampleRate
-    generateGetSampleRate("dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 7) init
-    generateInit("dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInit("init", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 8) instanceClear
     generateInstanceClear("instanceClear", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
@@ -302,7 +305,7 @@ void WASMCodeContainer::produceClass()
     generateInstanceConstants("instanceConstants", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 10) instanceInit
-    generateInstanceInit("dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInstanceInit("instanceInit", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 11) instanceResetUserInterface
     generateInstanceResetUserInterface("instanceResetUserInterface", "dsp", false, false)
@@ -323,19 +326,18 @@ void WASMCodeContainer::produceClass()
     generateComputeFunctions(gGlobal->gWASMVisitor);
 
     gGlobal->gWASMVisitor->finishSection(functions_start);
-    
+
     // TO REMOVE when 'soundfile' is implemented
     {
         // Generate UI: only to trigger exception when using 'soundfile' primitive
         generateUserInterface(gGlobal->gWASMVisitor);
     }
 
-    // JSON generation
-
     // Prepare compilation options
     stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options, false);
+    gGlobal->printCompilationOptions(compile_options);
 
+    // JSON generation
     JSONInstVisitor json_visitor1;
     generateUserInterface(&json_visitor1);
 
@@ -349,20 +351,22 @@ void WASMCodeContainer::produceClass()
     }
 
     // "name", "filename" found in metadata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, to_string(gGlobal->gWASMVisitor->getStructSize()),
-                                  path_index_table);
+    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
+                                  to_string(gGlobal->gWASMVisitor->getStructSize()), path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
 
     string json = json_visitor2.JSON(true);
-  
+
     // Memory size can now be written
     if (fInternalMemory) {
-        // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
-        // and DSP + audio buffer size
-        fBinaryOut.writeAt(begin_memory, U32LEB(genMemSize(gGlobal->gWASMVisitor->getStructSize(),
-                                                           fNumInputs + fNumOutputs, (int)json.size())));
+        int memory_size = genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        // Since JSON is written in data segment at offset 0, the memory size
+        // must be computed taking account JSON size and DSP + audio buffer size
+        fBinaryOut.writeAt(begin_memory, U32LEB(memory_size));
+        // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
+        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size+1000));
     }
 
     // Data segment contains the JSON string starting at offset 0,
@@ -437,22 +441,22 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
 {
     DeclareFunInst* int_max_fun = WASInst::generateIntMax();
     DeclareFunInst* int_min_fun = WASInst::generateIntMin();
-    
+
     // Remove unecessary cast
     compute_block = CastRemover().getCode(compute_block);
-    
+
     // Inline "max_i" call
     compute_block = FunctionCallInliner(int_max_fun).getCode(compute_block);
-    
+
     // Inline "min_i" call
     compute_block = FunctionCallInliner(int_min_fun).getCode(compute_block);
-    
+
     // Push the loop in compute block
     fComputeBlockInstructions->pushBackInst(compute_block);
-    
+
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-    
+
     // Creates function and visit it
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
@@ -468,7 +472,7 @@ void WASMScalarCodeContainer::generateCompute()
     // Loop 'i' variable is moved by bytes
     BlockInst* compute_block = InstBuilder::genBlockInst();
     compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
-    
+
     generateComputeAux(compute_block);
 }
 

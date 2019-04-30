@@ -51,11 +51,12 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-notrace' to only generate the best compilation parameters\n";
         cout << "Use '-generic' to compile for a generic processor, otherwise the native CPU will be used\n";
         cout << "Use '-single' to execute only scalar test\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";
+        cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM\n";
         return 0;
     }
     
@@ -64,6 +65,7 @@ int main(int argc, char* argv[])
     bool is_single = isopt(argv, "-single");
     bool is_generic = isopt(argv, "-generic");
     int run = lopt(argv, "-run", 1);
+    int opt = lopt(argv, "-opt", -1);
     int buffer_size = 1024;
     
     if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion () << endl;
@@ -86,7 +88,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc-1; i++) {
         if (string(argv[i]) == "-single" || string(argv[i]) == "-generic") {
             continue;
-        } else if (string(argv[i]) == "-run") {
+        } else if (string(argv[i]) == "-run" || string(argv[i]) == "-opt" ) {
             i++;
             continue;
         }
@@ -99,7 +101,7 @@ int main(int argc, char* argv[])
     argv1[argc1++] = "-I";
     argv1[argc1++] = "/usr/local/share/faust";
  
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     //FAUSTBENCH_LOG<string>("faustbench LLVM");
     
@@ -109,7 +111,7 @@ int main(int argc, char* argv[])
         if (is_single) {
             string error_msg;
             
-            dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, -1);
+            dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, opt);
             if (!factory) {
                 cerr << "Cannot create factory : " << error_msg;
                 exit(EXIT_FAILURE);
@@ -136,7 +138,7 @@ int main(int argc, char* argv[])
             }
         }
     } catch (...) {
-        cerr << "libfaust error...";
+        cerr << "libfaust error...\n";
         exit(EXIT_FAILURE);
     }
     

@@ -25,6 +25,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "exception.hh"
+
 template <class T>
 class P {
    private:
@@ -46,19 +48,14 @@ class P {
     T& operator*() const
     {
         if (p == 0) {
-            // throw std::runtime_error("Null dereference in P<?>::operator*() const ");
-            fprintf(stderr, "Null dereference in P<?>::operator*() const \n ");
-            exit(1);
+            throw faustexception("ERROR : null dereference in P<?>::operator*() const \n");
         }
         return *p;
     }
     T* operator->() const
     {
         if (p == 0) {
-            fprintf(stderr, "Null dereference in P<?>::operator->() const \n ");
-            // throw std::runtime_error("Null dereference in P<?>::operator->() const ");
-            // std::cerr << "Null dereference in P<?>::operator->() const " << std::endl;
-            exit(1);
+            throw faustexception("ERROR : null dereference in P<?>::operator->() const \n");
         }
         return p;
     }

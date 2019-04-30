@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     
-    argv1[argc1] = 0;  // NULL terminated argv
+    argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (nvoices <= 0) {
         cout << "Cannot start polyphonic with 0 voice\n";
@@ -192,12 +192,9 @@ int main(int argc, char* argv[])
     DSP->setGroup(true);
    
     if (!audio.init(filename, DSP)) {
-        return 0;
+        exit(EXIT_FAILURE);
     }
-
-    // After audio.init that calls 'init'
-    finterface->recallState(rcfilename);
-    
+ 
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -216,6 +213,8 @@ int main(int argc, char* argv[])
         std::cout << "MIDI is on" << std::endl;
     }
     
+    // State (after UI construction)
+    finterface->recallState(rcfilename);
     audio.start();
 
     if (is_httpd) {

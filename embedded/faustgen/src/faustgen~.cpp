@@ -1143,23 +1143,6 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
     return d;
 }
 
-static bool check_digit(const string& name)
-{
-    for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) { return true; }
-    }
-    return false;
-}
-
-static int count_digit(const string& name)
-{
-    int count = 0;
-    for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) { count++; }
-    }
-    return count;
-}
-
 // Called upon sending the object a message inside the max patcher
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)

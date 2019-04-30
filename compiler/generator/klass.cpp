@@ -44,7 +44,6 @@
 #include "ppsig.hh"
 #include "recursivness.hh"
 #include "signals.hh"
-#include "smartpointer.hh"
 #include "uitree.hh"
 
 static int gTaskCount = 0;
@@ -131,13 +130,12 @@ void Klass::closeLoop(Tree sig)
 void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
 {
     if (!content.empty()) {
-        list<string>::iterator s;
         fout << "\\";
         tab(n, fout);
         fout << decl;
         string sep = "(";
-        for (s = content.begin(); s != content.end(); s++) {
-            fout << sep << *s;
+        for (auto& s : content) {
+            fout << sep << s;
             sep = ", ";
         }
         fout << ')';
@@ -175,11 +173,11 @@ void Klass::printIncludeFile(ostream& fout)
     }
 
     collectIncludeFile(S);
-    for (f = S.begin(); f != S.end(); f++) {
-        string inc = *f;
+    for (auto& f : S) {
+        string inc = f;
         // Only print non-empty include (inc is actually quoted)
         if (inc.size() > 2) {
-            fout << "#include " << *f << "\n";
+            fout << "#include " << f << "\n";
         }
     }
 }
@@ -234,22 +232,22 @@ void Klass::printMetadata(int n, const MetaDataSet& S, ostream& fout)
     fout << "virtual void metadata(Meta* m) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
             tab(n + 1, fout);
-            fout << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            fout << "m->declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
             // "contributor"
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
+            for (auto& j : i.second) {
+                if (j == *i.second.begin()) {
                     tab(n + 1, fout);
-                    fout << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
+                    fout << "m->declare(\"" << *(i.first) << "\", " << *j << ");";
                 } else {
                     tab(n + 1, fout);
                     fout << "m->declare(\""
                          << "contributor"
-                         << "\", " << **j << ");";
+                         << "\", " << *j << ");";
                 }
             }
         }
@@ -816,7 +814,7 @@ void Klass::println(int n, ostream& fout)
     printlines(n + 1, fDeclCode, fout);
 
     tab(n + 1, fout);
-    fout << "int fSamplingFreq;\n";
+    fout << "int fSampleRate;\n";
 
     tab(n, fout);
     fout << "  public:";
@@ -847,7 +845,7 @@ void Klass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "static void classInit(int samplingFreq) {";
+    fout << "static void classInit(int sample_rate) {";
     printlines(n + 2, fStaticInitCode, fout);
     tab(n + 1, fout);
     fout << "}";
@@ -861,9 +859,9 @@ void Klass::println(int n, ostream& fout)
     }
 
     tab(n + 1, fout);
-    fout << "virtual void instanceConstants(int samplingFreq) {";
+    fout << "virtual void instanceConstants(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "fSamplingFreq = samplingFreq;";
+    fout << "fSampleRate = sample_rate;";
     printlines(n + 2, fInitCode, fout);
     tab(n + 1, fout);
     fout << "}";
@@ -882,22 +880,22 @@ void Klass::println(int n, ostream& fout)
 
     if (gGlobal->gMemoryManager) {
         tab(n + 1, fout);
-        fout << "virtual void init(int samplingFreq) {}";
+        fout << "virtual void init(int sample_rate) {}";
     } else {
         tab(n + 1, fout);
-        fout << "virtual void init(int samplingFreq) {";
+        fout << "virtual void init(int sample_rate) {";
         tab(n + 2, fout);
-        fout << "classInit(samplingFreq);";
+        fout << "classInit(sample_rate);";
         tab(n + 2, fout);
-        fout << "instanceInit(samplingFreq);";
+        fout << "instanceInit(sample_rate);";
         tab(n + 1, fout);
         fout << "}";
     }
 
     tab(n + 1, fout);
-    fout << "virtual void instanceInit(int samplingFreq) {";
+    fout << "virtual void instanceInit(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "instanceConstants(samplingFreq);";
+    fout << "instanceConstants(sample_rate);";
     tab(n + 2, fout);
     fout << "instanceResetUserInterface();";
     tab(n + 2, fout);
@@ -915,7 +913,7 @@ void Klass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "virtual int getSampleRate() {";
     tab(n + 2, fout);
-    fout << "return fSamplingFreq;";
+    fout << "return fSampleRate;";
     tab(n + 1, fout);
     fout << "}";
 
@@ -1375,17 +1373,15 @@ void Klass::printComputeMethodScheduler(int n, ostream& fout)
  */
 void SigIntGenKlass::println(int n, ostream& fout)
 {
-    list<Klass*>::iterator k;
-
     tab(n, fout);
     fout << "class " << fKlassName << " {";
 
     tab(n, fout);
     fout << "  private:";
     tab(n + 1, fout);
-    fout << "int fSamplingFreq;";
+    fout << "int fSampleRate;";
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
+    for (auto& k : fSubClassList) k->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1400,9 +1396,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "void init(int samplingFreq) {";
+    fout << "void init(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "fSamplingFreq = samplingFreq;";
+    fout << "fSampleRate = sample_rate;";
     printlines(n + 2, fInitCode, fout);
     printlines(n + 2, fClearCode, fout);
     tab(n + 1, fout);
@@ -1427,17 +1423,15 @@ void SigIntGenKlass::println(int n, ostream& fout)
  */
 void SigFloatGenKlass::println(int n, ostream& fout)
 {
-    list<Klass*>::iterator k;
-
     tab(n, fout);
     fout << "class " << fKlassName << " {";
 
     tab(n, fout);
     fout << "  private:";
     tab(n + 1, fout);
-    fout << "int fSamplingFreq;";
+    fout << "int fSampleRate;";
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
+    for (auto& k : fSubClassList) k->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1452,9 +1446,9 @@ void SigFloatGenKlass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "void init(int samplingFreq) {";
+    fout << "void init(int sample_rate) {";
     tab(n + 2, fout);
-    fout << "fSamplingFreq = samplingFreq;";
+    fout << "fSampleRate = sample_rate;";
     printlines(n + 2, fInitCode, fout);
     printlines(n + 2, fClearCode, fout);
     tab(n + 1, fout);
@@ -1476,22 +1470,17 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
 static void merge(set<string>& dst, set<string>& src)
 {
-    set<string>::iterator i;
-    for (i = src.begin(); i != src.end(); i++) dst.insert(*i);
+    for (auto& i : src) dst.insert(i);
 }
 
 void Klass::collectIncludeFile(set<string>& S)
 {
-    list<Klass*>::iterator k;
-
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->collectIncludeFile(S);
+    for (auto& k : fSubClassList) k->collectIncludeFile(S);
     merge(S, fIncludeFileSet);
 }
 
 void Klass::collectLibrary(set<string>& S)
 {
-    list<Klass*>::iterator k;
-
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->collectLibrary(S);
+    for (auto& k : fSubClassList) k->collectLibrary(S);
     merge(S, fLibrarySet);
 }
