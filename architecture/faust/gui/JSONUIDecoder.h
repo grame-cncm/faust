@@ -438,6 +438,7 @@ struct JSONUITemplatedDecoder
     virtual void metadata(Meta* m) = 0;
     virtual void metadata(MetaGlue* glue) = 0;
     virtual int getDSPSize() = 0;
+    virtual std::string getName() = 0;
     virtual std::string getLibVersion() = 0;
     virtual std::string getCompileOptions() = 0;
     virtual std::vector<std::string> getLibraryList() = 0;
@@ -459,6 +460,7 @@ struct JSONUIFloatDecoder : public JSONUIDecoderAux<float>, public JSONUITemplat
     void metadata(Meta* m) { JSONUIDecoderAux<float>::metadata(m); }
     void metadata(MetaGlue* glue) { JSONUIDecoderAux<float>::metadata(glue); }
     int getDSPSize() { return fDSPSize; }
+    std::string getName() { return fName; }
     std::string getLibVersion() { return fVersion; }
     std::string getCompileOptions() { return fCompileOptions; }
     std::vector<std::string> getLibraryList() { return fLibraryList; }
@@ -489,6 +491,7 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderAux<double>, public JSONUITempl
     void metadata(Meta* m) { JSONUIDecoderAux<double>::metadata(m); }
     void metadata(MetaGlue* glue) { JSONUIDecoderAux<double>::metadata(glue); }
     int getDSPSize() { return fDSPSize; }
+    std::string getName() { return fName; }
     std::string getLibVersion() { return fVersion; }
     std::string getCompileOptions() { return fCompileOptions; }
     std::vector<std::string> getLibraryList() { return fLibraryList; }
