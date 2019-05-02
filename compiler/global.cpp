@@ -228,6 +228,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gBoxSlotNumber = 0;
     gMemoryManager = false;
+    
+    gLocalCausalityCheck = false;
+    gCausality           = false;
 
     gOccurrences = 0;
     gFoldingFlag = false;
