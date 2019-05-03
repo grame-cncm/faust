@@ -309,7 +309,7 @@ void DspFaust::stop()
 	fPolyEngine->stop();
 }
 
-bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, const char* address)
+bool DspFaust::configureOSC(int xmit, int inport, int outport, int errport, const char* address)
 {
 #if OSCCTRL
 #if JUCE_DRIVER
@@ -329,6 +329,15 @@ bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, con
 #endif
 #else
     return false;
+#endif
+}
+
+bool DspFaust::isOSCOn()
+{
+#if OSCCTRL
+	return true;
+#else
+  return false;
 #endif
 }
 

@@ -4,6 +4,7 @@
     <string name="zoomin">Zoom In</string>
     <string name="zoomout">Zoom Out</string>
     <string name="reset">Reset</string>
+    <string name="setting">OSC Setting</string>
     <string name="keyboard">Keyboard Interface</string>
     <string name="lock">Lock</string>
     <string name="keyboard_activity">Keyboard Activity</string>
