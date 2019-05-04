@@ -78,11 +78,13 @@ mydsp DSP;
 
 int main(int argc, char* argv[])
 {
-    FAUSTFLOAT fnbsamples;
+    FAUSTFLOAT nb_samples;
+    FAUSTFLOAT sample_rate;
     
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
-    interface->addOption("-n", &fnbsamples, 4*1024, 0.0, 100000000.0);
+    interface->addOption("-n", &nb_samples, 4096.0, 0.0, 100000000.0);
+    interface->addOption("-sr", &sample_rate, 44100.0, 0.0, 192000.0);
     
     if (DSP.getNumInputs() > 0)
     {
@@ -90,12 +92,13 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
-    // init signal processor and the user interface values
-    DSP.init(44100);
-    
     // modify the UI values according to the command line options
     interface->process_init();
     
+    // init DSP with SR
+    DSP.init(sample_rate);
+    
+    // init signal processor and the user interface values
     int nouts = DSP.getNumOutputs();
     channels chan(kFrames, nouts);
     
@@ -108,7 +111,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     
-    int nbsamples = int(fnbsamples);
+    int nbsamples = int(nb_samples);
     cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
     
     while (nbsamples > kFrames)
