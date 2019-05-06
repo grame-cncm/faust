@@ -50,6 +50,10 @@
 #include "faust/gui/console.h"
 #include "faust/misc.h"
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 using namespace std;
 
 /******************************************************************************
@@ -97,6 +101,11 @@ int main(int argc, char* argv[])
     
     // init DSP with SR
     DSP.init(sample_rate);
+    
+#ifdef SOUNDFILE
+    SoundUI soundinterface;
+    DSP.buildUserInterface(&soundinterface);
+#endif
     
     // init signal processor and the user interface values
     int nouts = DSP.getNumOutputs();
