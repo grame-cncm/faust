@@ -88,9 +88,6 @@ debug :
 	$(MAKE) -C $(BUILDLOCATION) FAUSTDIR=faustdebug CMAKEOPT=-DCMAKE_BUILD_TYPE=Debug
 #	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
 
-plugin :
-	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
-
 ioslib :
 	$(MAKE) -C $(BUILDLOCATION) ioslib
 

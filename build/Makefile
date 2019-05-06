@@ -93,6 +93,7 @@ help:
 	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode."
 	@echo " 'oscdynamic' : builds the OSC library in dynamic mode."
 	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode."
+	@echo " 'oscandroid' : builds the OSC library for Android."
 	@echo
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo
@@ -152,6 +153,9 @@ osc: $(PROJ)
 
 oscdynamic: $(PROJ)
 	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
+
+oscandroid: $(PROJ)
+	cd ../architecture/osclib/android/&& ndk-build 
 
 http: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) -- $(JOBS)
