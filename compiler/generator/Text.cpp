@@ -292,7 +292,6 @@ string indent(const string& str, int tabs)
         }
         outstream << line << endl;
     }
-
     return outstream.str();
 }
 
