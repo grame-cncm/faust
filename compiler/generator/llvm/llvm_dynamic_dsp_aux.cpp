@@ -109,7 +109,7 @@ void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
     string             res;
     raw_string_ostream out_str(res);
     if (binary) {
-#if defined(LLVM_70) || defined(LLVM_80)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
         WriteBitcodeToFile(*fModule, out_str);
 #else
         WriteBitcodeToFile(fModule, out_str);
@@ -126,7 +126,7 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
     string res;
     
     raw_string_ostream out(res);
-#if defined(LLVM_70) || defined(LLVM_80)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -143,7 +143,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bi
         cerr << "ERROR : writeDSPFactoryToBitcodeFile could not open file : " << err.message();
         return false;
     }
-#if defined(LLVM_70) || defined(LLVM_80)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -204,11 +204,7 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
         }
         Builder.Inliner = createFunctionInliningPass(Threshold);
     } else {
-#if defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
         Builder.Inliner = createAlwaysInlinerLegacyPass();
-#else
-        Builder.Inliner = createAlwaysInlinerPass();
-#endif
     }
 
     Builder.DisableUnrollLoops = (OptLevel == 0);
@@ -263,7 +259,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
-#if !defined(LLVM_60) && !defined(LLVM_70) && !defined(LLVM_80)
+#if defined(LLVM_50)
     builder.setCodeModel(CodeModel::JITDefault);
 #endif
 
@@ -278,19 +274,13 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     TargetOptions targetOptions;
 
     // -fastmath is activated at IR level, and has to be setup at JIT level also
-#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70) && !defined(LLVM_80)
-    targetOptions.LessPreciseFPMADOption = true;
-#endif
     targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
     targetOptions.UnsafeFPMath          = true;
     targetOptions.NoInfsFPMath          = true;
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
-
-#if defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
-    targetOptions.NoTrappingFPMath = true;
-    targetOptions.FPDenormalMode   = FPDenormal::IEEE;
-#endif
+    targetOptions.NoTrappingFPMath      = true;
+    targetOptions.FPDenormalMode        = FPDenormal::IEEE;
 
     targetOptions.GuaranteedTailCallOpt = true;
     
@@ -329,11 +319,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         }
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
-            // TargetRegistry::printRegisteredTargetsForVersion(cout);
-#else
+    #if defined(LLVM_50)
             TargetRegistry::printRegisteredTargetsForVersion();
-#endif
+    #endif
             dumpLLVM(fModule);
         }
 
@@ -345,11 +333,8 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         pm.add(createVerifierPass());
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-#if defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
             // TODO
-#else
-            tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
-#endif
+            // tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
         }
 
         // Now that we have all of the passes ready, run them.
@@ -491,7 +476,6 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     fModule->setTargetTriple(TargetTriple);
 
     string Error;
-    
     auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
 
     // Print an error and exit if we couldn't find the requested target.
@@ -502,9 +486,8 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
         return false;
     }
 
-    // auto CPU = "generic"; llvm::sys::getHostCPUName()
-    auto CPU      = llvm::sys::getHostCPUName();
-    auto Features = "";
+    string CPU = llvm::sys::getHostCPUName();
+    string Features;
 
     TargetOptions opt;
     
@@ -522,12 +505,11 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     }
 
     legacy::PassManager pass;
-    auto                FileType = TargetMachine::CGFT_ObjectFile;
-
-#if defined(LLVM_70) || defined(LLVM_80)
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+ 
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, TargetMachine::CGFT_ObjectFile)) {
 #else
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, FileType, true)) {
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, TargetMachine::CGFT_ObjectFile, true)) {
 #endif
         errs() << "ERROR : writeDSPFactoryToObjectcodeFile : can't emit a file of this type";
         return false;
