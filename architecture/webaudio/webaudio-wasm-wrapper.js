@@ -295,8 +295,8 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         /*
         // New API test
         
-        //var code =  "process = _,_,_,_;";
-        var code =  "import(\"stdfaust.lib\"); process = dm.zita_rev1;";
+        //var code = "process = _,_,_,_;";
+        var code = "import(\"stdfaust.lib\"); process = dm.zita_rev1;";
         //var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = _+vol,_+(0.3*vol);";
     	//var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = (_+vol)*os.osc(440),_+(0.3*vol*os.osc(800));";     
         //var code = "import(\"stdfaust.lib\"); process = os.osc(440);";

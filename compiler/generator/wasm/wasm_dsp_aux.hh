@@ -32,7 +32,7 @@
 #include "wasm_binary.hh"
 
 class wasm_dsp_factory;
-struct JSONUIDecoder;
+struct JSONUITemplatedDecoder;
 
 /*
  Read the wasm binary module, extract the JSON, define a new end for the module (without the last 'data segment'
@@ -264,8 +264,8 @@ struct WasmBinaryReader {
 class EXPORT wasm_dsp : public dsp {
    private:
     wasm_dsp_factory* fFactory;
-    int               fIndex;  // Index of Wasm DSP instance
-    int               fDSP;    // Index of Wasm DSP memory
+    int               fIndex;  // Index of wasm DSP instance
+    int               fDSP;    // Index of wasm DSP memory
 
    public:
     wasm_dsp() : fFactory(nullptr), fIndex(-1), fDSP(-1) {}
@@ -305,10 +305,10 @@ typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
    protected:
-    dsp_factory_base* fFactory;
-    JSONUIDecoder*    fDecoder;
-    int               fModule;  // Index of Wasm DSP module
-    std::string       fJSON;
+    dsp_factory_base*          fFactory;
+    JSONUITemplatedDecoder*    fDecoder;
+    int                        fModule;  // Index of wasm DSP module
+    std::string                fJSON;
 
    public:
     wasm_dsp_factory() {}
@@ -328,7 +328,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     std::vector<std::string> getLibraryList();
     std::vector<std::string> getIncludePathnames();
 
-    JSONUIDecoder* getDecoder() { return fDecoder; }
+    JSONUITemplatedDecoder* getDecoder() { return fDecoder; }
 
     std::string getJSON() { return fJSON; }
 

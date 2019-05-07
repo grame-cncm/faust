@@ -409,9 +409,13 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
 
-    // Generate JSON
+    // Generate JSON (which checks for non duplicated path)
     if (gGlobal->gPrintJSONSwitch) {
         fContainer->generateJSONFile();
+    } else {
+        // Checks for non duplicated path
+        JSONInstVisitor path_checker;
+        fContainer->generateUserInterface(&path_checker);
     }
 
     endTiming("compileMultiSignal");

@@ -82,7 +82,13 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             _sinf: Math.sin,
             _sqrtf: Math.sqrt,
             _tanf: Math.tan,
-                
+            _acoshf: Math.acosh,
+            _asinhf: Math.asinh,
+            _atanhf: Math.atanh,
+            _coshf: Math.cosh,
+            _sinhf: Math.sinh,
+            _tanhf: Math.tanh,
+        
             // Double version
             _acos: Math.acos,
             _asin: Math.asin,
@@ -105,7 +111,13 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             _sin: Math.sin,
             _sqrt: Math.sqrt,
             _tan: Math.tan,
-                
+            _acosh: Math.acosh,
+            _asinh: Math.asinh,
+            _atanh: Math.atanh,
+            _cosh: Math.cosh,
+            _sinh: Math.sinh,
+            _tanh: Math.tanh,
+        
             // Emscripten generated global memory segment is used
             memory: FaustModule['wasmMemory'],
                 
@@ -145,7 +157,7 @@ wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory
     createModuleFromString();
     std::cout << "fModule " << fModule << std::endl;
 
-    fDecoder = new JSONUIDecoder(fJSON);
+    fDecoder = createJSONUIDecoder(fJSON);
     std::cout << " fFactory->getJSON() " << fJSON << std::endl;
     */
     fModule  = -1;
@@ -196,15 +208,15 @@ void wasm_dsp_factory::setDSPCode(std::string code)
 
 std::string wasm_dsp_factory::getCompileOptions()
 {
-    return fDecoder->fCompileOptions;
+    return fDecoder->getCompileOptions();
 }
 std::vector<std::string> wasm_dsp_factory::getLibraryList()
 {
-    return fDecoder->fLibraryList;
+    return fDecoder->getLibraryList();
 }
 std::vector<std::string> wasm_dsp_factory::getIncludePathnames()
 {
-    return fDecoder->fIncludePathnames;
+    return fDecoder->getIncludePathnames();
 }
 
 #ifdef EMCC
@@ -408,7 +420,7 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
 
 wasm_dsp::wasm_dsp(wasm_dsp_factory* factory, int index) : fFactory(factory), fIndex(index)
 {
-    fDSP = EM_ASM_INT({ return FaustModule._malloc($0); }, fFactory->getDecoder()->fDSPSize);
+    fDSP = EM_ASM_INT({ return FaustModule._malloc($0); }, fFactory->getDecoder()->getDSPSize());
 }
 
 wasm_dsp::~wasm_dsp()
@@ -435,7 +447,8 @@ int wasm_dsp::getNumOutputs()
 
 void wasm_dsp::buildUserInterface(UI* ui_interface)
 {
-    fFactory->getDecoder()->buildUserInterface(ui_interface);
+    // TO CHECK
+    fFactory->getDecoder()->buildUserInterface(ui_interface, reinterpret_cast<char*>(fDSP));
 }
 
 int wasm_dsp::getSampleRate()

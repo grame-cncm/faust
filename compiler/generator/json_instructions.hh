@@ -23,9 +23,11 @@
 #define _JSON_INSTRUCTIONS_H
 
 #include <string>
+#include <set>
 
 #include "faust/gui/JSONUI.h"
 #include "instructions.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -38,9 +40,20 @@ using namespace std;
 */
 
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
-    map<string, string> fPathTable;  // Table : field_name, complete path
+    map<string, string> fPathTable; // Table : field_name, complete path
+    set<string> fPathSet;           // Set of already build path
 
     using DispatchVisitor::visit;
+    
+    const string& checkPath(const string& path)
+    {
+        if (fPathSet.find(path) != fPathSet.end()) {
+            throw faustexception("ERROR : path '" + path + "' is already used\n");
+        } else {
+            fPathSet.insert(path);
+        }
+        return path;
+    }
 
     JSONInstVisitor(const std::string& name, const std::string& filename, int inputs, int outputs, int sr_index,
                     const std::string& sha_key, const std::string& dsp_code, const std::string& version,
@@ -88,7 +101,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
             addCheckButton(inst->fLabel.c_str(), nullptr);
         }
 
-        fPathTable[inst->fZone] = buildPath(inst->fLabel);
+        fPathTable[inst->fZone] = checkPath(buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -108,7 +121,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                 break;
         }
 
-        fPathTable[inst->fZone] = buildPath(inst->fLabel);
+        fPathTable[inst->fZone] = checkPath(buildPath(inst->fLabel));
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -125,13 +138,13 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                 break;
         }
 
-        fPathTable[inst->fZone] = buildPath(inst->fLabel);
+        fPathTable[inst->fZone] = checkPath(buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
         addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
-        fPathTable[inst->fSFZone] = buildPath(inst->fLabel);
+        fPathTable[inst->fSFZone] = checkPath(buildPath(inst->fLabel));
     }
 
     void setInputs(int input) { fInputs = input; }

@@ -189,7 +189,7 @@ class SoundfileReader {
             int cur_chan = 1; // At least one buffer
             int total_length = 0;
             
-            // Compute total length and chan max of all files
+            // Compute total length and channels max of all files
             for (size_t i = 0; i < path_name_list.size(); i++) {
                 int chan, length;
                 if (path_name_list[i] == "__empty_sound__") {
