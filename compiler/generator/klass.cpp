@@ -55,6 +55,7 @@ bool Klass::fNeedPowerDef = false;
  */
 void Klass::setLoopProperty(Tree sig, Loop* l)
 {
+    cerr << "setLoopProperty(" << *sig << " HAS LOOP " << l << ")" << endl;
     fLoopProperty.set(sig, l);
 }
 
@@ -63,7 +64,13 @@ void Klass::setLoopProperty(Tree sig, Loop* l)
  */
 bool Klass::getLoopProperty(Tree sig, Loop*& l)
 {
-    return fLoopProperty.get(sig, l);
+    bool r = fLoopProperty.get(sig, l);
+    if (r) {
+        cerr << "getLoopProperty(" << *sig << ") -> " << l << endl;
+    } else {
+        cerr << "getLoopProperty(" << *sig << ") -> NONE" << endl;
+    }
+    return r;
 }
 
 /**
@@ -73,7 +80,7 @@ bool Klass::getLoopProperty(Tree sig, Loop*& l)
 void Klass::openLoop(const string& size)
 {
     fTopLoop = new Loop(fTopLoop, size);
-    // cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
+    cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
@@ -83,8 +90,12 @@ void Klass::openLoop(const string& size)
  */
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
+    Loop* l;
+    if (fLoopProperty.get(recsymbol, l)) {
+        cerr << "\nWARNING ALREADY A LOOP for " << *recsymbol << endl;
+    }
     fTopLoop = new Loop(recsymbol, fTopLoop, size);
-    // cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
+    cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
@@ -102,11 +113,11 @@ void Klass::closeLoop(Tree sig)
     // cerr << endl;
 
     Tree S = symlist(sig);
-    // cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
+    cerr << "CLOSE LOOP :" << l << " with symbols " << *S << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // cout << " will absorb" << endl;
         // empty or dependent loop -> absorbed by enclosing one
-        // cerr << "absorbed by : " << fTopLoop << endl;
+        cerr << "absorbed by : " << fTopLoop << endl;
         fTopLoop->absorb(l);
         // delete l; HACK !!!
     } else {
@@ -118,10 +129,10 @@ void Klass::closeLoop(Tree sig)
         // in this loop are defined in this loop
         for (Tree lsym = l->fRecSymbolSet; !isNil(lsym); lsym = tl(lsym)) {
             this->setLoopProperty(hd(lsym), l);
-            // cerr << "loop " << l << " defines " << *hd(lsym) << endl;
+            cerr << "loop " << l << " defines " << *hd(lsym) << endl;
         }
     }
-    // cerr << "\n" << endl;
+    cerr << "\n" << endl;
 }
 
 /**

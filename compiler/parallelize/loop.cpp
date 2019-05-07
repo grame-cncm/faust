@@ -189,6 +189,12 @@ void Loop::println(int n, ostream& fout)
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         tab(n, fout);
         fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
+        fout << " (dependencies: ";
+        for (auto l : fBackwardLoopDependencies) {
+            fout << l << " ";
+        }
+        fout << ")";
+
         if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "// pre processing";
