@@ -77,6 +77,7 @@ string VectorCompiler::CS(Tree sig)
         // cerr << "CS : " << code << " for " << ppsig(sig) << endl;
         setCompiledExpression(sig, code);
     } else {
+        // cerr << "ENTER Already Compiled Section for " << *sig << endl;
         // we require an already compiled expression
         // therefore we must update the dependencies of
         // the current loop
@@ -111,6 +112,7 @@ string VectorCompiler::CS(Tree sig)
                 // cerr << "Expression absorbée" << *sig << endl;
             }
         }
+        // cerr << "EXIT Already Compiled Section for " << *sig << endl;
     }
     // cerr << "EXIT VectorCompiler::CS : "<< ppsig(sig) << "---code---> " << code << endl;
     return code;
@@ -126,7 +128,7 @@ void VectorCompiler::generateCodeRecursions(Tree sig)
 {
     Tree   id, body;
     string code;
-    // cerr << "VectorCompiler::generateCodeRecursions( " << ppsig(sig) << " )" << endl;
+    // cerr << "VectorCompiler::generateCodeRecursions( " << *sig << " )" << endl;
     if (getCompiledExpression(sig, code)) {
         // cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
         return;
@@ -153,7 +155,7 @@ string VectorCompiler::generateCodeNonRec(Tree sig)
         // already visited
         return code;
     } else {
-        // cerr << "VectorCompiler::generateCodeNonRec( " << ppsig(sig) << " )" << endl;
+        // cerr << "VectorCompiler::generateCodeNonRec( " << *sig << " )" << endl;
         code = generateLoopCode(sig);
         setCompiledExpression(sig, code);
         return code;
@@ -174,7 +176,7 @@ string VectorCompiler::generateLoopCode(Tree sig)
 
     l = fClass->topLoop();
     faustassert(l);
-    // cerr << "VectorCompiler::OLDgenerateCode " << ppsig(sig) << endl;
+    // cerr << "VectorCompiler::generateLoopCode " << ppsig(sig, true) << endl;
     if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
@@ -184,7 +186,7 @@ string VectorCompiler::generateLoopCode(Tree sig)
                 return ScalarCompiler::generateCode(sig);
             } else if (fClass->getLoopProperty(x, l2)) {
                 string c = ScalarCompiler::generateCode(sig);
-                // cerr << "SPECIAL CASE TO PREVENT VECTOR BUG " << *sig << endl;
+                // cerr << "SPECIAL CASE TO PREVENT BUG " << ppsig(sig, true) << endl;
                 return c;
             } else {
                 // x must be defined

@@ -28,7 +28,7 @@
 #include "recursivness.hh"
 #include "xtended.hh"
 
-ppsig::ppsig(Tree s) : sig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false)
+ppsig::ppsig(Tree s, bool hiderec) : sig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(hiderec)
 {
 }
 

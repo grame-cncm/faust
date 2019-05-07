@@ -1111,6 +1111,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup->retrieve(e)->getMaxDelay();
         } else {
+            cerr << "UNUSED PROJECTION " << *sig << '.' << i << endl;
             // this projection is not used therefore
             // we should not generate code for it
             used[i] = false;

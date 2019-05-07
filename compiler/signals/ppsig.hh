@@ -50,7 +50,7 @@ class ppsig : public virtual Garbageable {
     int  fPriority;       ///< priority context
     bool fHideRecursion;  ///<
    public:
-    ppsig(Tree s);
+    ppsig(Tree s, bool hiderec=false);
     ostream& print(ostream& fout) const;
 
    private:
