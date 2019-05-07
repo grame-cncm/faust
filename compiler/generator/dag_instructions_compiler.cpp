@@ -239,6 +239,7 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
     int       i;
     Tree      x;
     CodeLoop* l;
+    CodeLoop* l2;
 
     l = fContainer->getCurLoop();
     faustassert(l);
@@ -250,6 +251,10 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
             if (l->hasRecDependencyIn(singleton(x))) {
                 // x is already in the loop stack
                 return InstructionsCompiler::generateCode(sig);
+            } else if (fContainer->getLoopProperty(x, l2)) {
+                ValueInst* c = InstructionsCompiler::generateCode(sig);
+                // cerr << "SPECIAL CASE TO PREVENT VECTOR BUG " << ppsig(sig, true) << endl;
+                return c;
             } else {
                 // x must be defined
                 fContainer->openLoop(sig, "i");

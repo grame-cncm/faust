@@ -184,7 +184,7 @@ string VectorCompiler::generateLoopCode(Tree sig)
                 return ScalarCompiler::generateCode(sig);
             } else if (fClass->getLoopProperty(x, l2)) {
                 string c = ScalarCompiler::generateCode(sig);
-                // cerr << "SPECIAL CASE TO PREVENT VECTOR BUG " << ppsig(sig, true) << endl;
+                // cerr << "SPECIAL CASE TO PREVENT VECTOR BUG " << *sig << endl;
                 return c;
             } else {
                 // x must be defined
