@@ -5,7 +5,7 @@
     if (!window.dspName) window.dspName = "mydsp";
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let audioInput;
-    let dspNode, faustUI
+    let dspNode, $faustUI;
     let dspOutputHandler = () => {};
     
     // MIDI input handling
@@ -117,10 +117,10 @@
             // console.log(dspNode.getParams());
             if (typeof _f4u$t === "undefined") return;
             if (typeof jQuery === "undefined") return;
-            if (faustUI) faustUI.remove();
-            faustUI = $("<div>");
-            $("body").append(faustUI);
-            dspOutputHandler = _f4u$t.main(dspNode.getJSON(), faustUI, (path, val) => dspNode.setParamValue(path, val));
+            if ($faustUI) $faustUI.remove();
+            $faustUI = $("<div>");
+            $("body").append($faustUI);
+            dspOutputHandler = _f4u$t.main(dspNode.getJSON(), $faustUI, (path, val) => dspNode.setParamValue(path, val));
             dspNode.setOutputParamHandler(dspOutputHandler);
         
             loadDSPState(); // Load DSP state from local storage
@@ -137,12 +137,15 @@
         source.start(); // play the file
         audioCtx.resume().then(() => console.log("Audio resumed"));
     }, false);
+    
     // On desktop
     window.addEventListener("mousedown", () => {
         if (audioCtx.state !== "suspended") return;
         audioCtx.resume().then(() => console.log("Audio resumed"))
     });
+    
     if (typeof _f4u$t !== "undefined") _f4u$t.main_loop = () => {}; // No polling from the server needed, so use an empty loop
+    
     // Start monophonic instrument
     if (typeof Module !== "undefined") {
         console.log("Compiled with EMCC");
@@ -152,6 +155,7 @@
         initDSP();
         activateMIDIInput();
     }
+
     // Save DSP state to local storage
     setInterval(() => dspNode ? saveDSPState() : null, 1000);
 

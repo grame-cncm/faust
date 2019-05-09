@@ -55,25 +55,6 @@ struct itemInfo {
     std::vector<std::pair<std::string, std::string> > meta;
 };
 
-/*
-// Menu {'low' : 440.0; 'mid' : 880.0; 'hi' : 1760.0}
-static bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values);
-static bool parseMenuItem(const char*& p, std::string& name, double& value);
-
-// Menu {'foo.wav'; 'bar.wav'}
-static bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug = false);
-static bool parseMenuItem2(const char*& p, std::string& name);
-
-static void skipBlank(const char*& p);
-static bool parseChar(const char*& p, char x);
-static bool parseWord(const char*& p, const char* w);
-static bool parseString(const char*& p, char quote, std::string& s);
-static bool parseSQString(const char*& p, std::string& s);
-static bool parseDQString(const char*& p, std::string& s);
-static bool parseDouble(const char*& p, double& x);
-static bool parseList(const char*& p, std::vector<std::string>& items);
-*/
-
 // ---------------------------------------------------------------------
 //                          Elementary parsers
 // ---------------------------------------------------------------------

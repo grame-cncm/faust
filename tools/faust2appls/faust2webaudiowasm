@@ -228,8 +228,7 @@ EndOfCode
 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-        BINARIES="$BINARIES$name.html;$name-processor.js;"
-        rm $name.wasm
+        BINARIES="$BINARIES$name.html;$name-processor.js;$name.wasm;"
         rm -f $name"_effect".wasm
     else
         BINARIES="$BINARIES$name.html;$name.wasm;"

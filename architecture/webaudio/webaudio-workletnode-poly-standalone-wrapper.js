@@ -375,7 +375,7 @@ class mydspPoly {
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
-    load()
+    async load()
     {
     	return new Promise((resolve, reject) => {   
             let real_url = (this.baseURL === "") ? "mydsp-processor.js" : (this.baseURL + "/mydsp-processor.js");
@@ -391,7 +391,7 @@ class mydspPoly {
         });
     }
 
-    loadGui() 
+    async loadGui() 
     {
         return new Promise((resolve, reject) => {
             try {

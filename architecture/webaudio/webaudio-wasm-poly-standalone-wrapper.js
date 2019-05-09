@@ -26,15 +26,8 @@
  * @property {boolean} debug - debug mode
  */
 class FaustWasm2ScriptProcessorPoly {
-    static heap2Str(buf) {
-        let str = "";
-        let i = 0;
-        while (buf[i] !== 0) {
-            str += String.fromCharCode(buf[i++]);
-        }
-        return str;
-    }
-    /**
+
+   /**
      * Creates an instance of FaustWasm2ScriptProcessorPoly.
      * @param {string} dspName - dsp name
      * @param {{ [key: string]: any }} dspProps - dsp properties parsed by json

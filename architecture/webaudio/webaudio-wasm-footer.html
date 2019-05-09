@@ -133,12 +133,15 @@
         source.start(); // play the file
         audioCtx.resume().then(() => console.log("Audio resumed"));
     }, false);
+    
     // On desktop
     window.addEventListener("mousedown", () => {
         if (audioCtx.state !== "suspended") return;
         audioCtx.resume().then(() => console.log("Audio resumed"))
     });
+    
     if (typeof _f4u$t !== "undefined") _f4u$t.main_loop = () => {}; // No polling from the server needed, so use an empty loop
+    
     // Start monophonic instrument
     if (typeof Module !== "undefined") {
         console.log("Compiled with EMCC");
@@ -148,6 +151,7 @@
         initDSP();
         activateMIDIInput();
     }
+
     // Save DSP state to local storage
     setInterval(() => dspNode ? saveDSPState() : null, 1000);
 

@@ -96,9 +96,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                     case '\n':
                     case '\t':
                         break;
-                    // add escape for single quote
+                    // replace single quote with '_'
                     case '\'':
-                        dst << "\\'";
+                        dst << '_';
                         break;
                     default:
                         dst << src[i];
