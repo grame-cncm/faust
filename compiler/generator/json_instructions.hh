@@ -41,8 +41,8 @@ using namespace std;
 
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     map<string, string> fPathTable; // Table : field_name, complete path
-    set<string> fControlPathSet;    // Set of already build control paths
-    set<string> fSoundPathSet;      // Set of already build sound paths
+    set<string> fControlPathSet;    // Set of already used control paths
+    set<string> fSoundPathSet;      // Set of already used sound paths
 
     using DispatchVisitor::visit;
     

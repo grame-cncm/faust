@@ -169,7 +169,7 @@ processor RoundRobinVoiceAllocator (int voiceCount)
 }
 
 // Allocates voices, does dynamic voice management, connect to MIDI parser
-graph mydsp_poly_effect
+graph mydsp_poly_effect [[ main ]]
 {
     input event int midiIn;
     output stream float audioOut0;
