@@ -36,6 +36,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
+#include "faust/gui/MetaDataUI.h"
 #include "faust/midi/midi.h"
 #include "faust/gui/ValueConverter.h"
 
@@ -81,9 +82,24 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
     #else
         MidiMeta meta;
         mono_dsp->metadata(&meta);
-        std::string numVoices = meta.get("nvoices", "0");
-        nvoices = std::atoi(numVoices.c_str());
-        if (nvoices < 0) nvoices = 0;
+        bool found_voices = false;
+        // If "options" metadata is used
+        std::string options = meta.get("options", "");
+        if (options != "") {
+            std::map<std::string, std::string> metadata;
+            std::string res;
+            MetaDataUI::extractMetadata(options, res, metadata);
+            if (metadata.find("nvoices") != metadata.end()) {
+                nvoices = std::atoi(metadata["nvoices"].c_str());
+                found_voices = true;
+            }
+        }
+        // Otherwise test for "nvoices" metadata
+        if (!found_voices) {
+            std::string numVoices = meta.get("nvoices", "0");
+            nvoices = std::atoi(numVoices.c_str());
+        }
+        nvoices = std::max<int>(0, nvoices);
     #endif
     }
     

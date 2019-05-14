@@ -220,11 +220,11 @@ EndOfCode
 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-    	rm -f $name.wasm $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
+    	rm -f $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
     	if [ $WAP = "true" ]; then
-        	BINARIES="$BINARIES$name.js, $name-processor.js, main.json, test$name.html"
+        	BINARIES="$BINARIES$name.js, $name-processor.js, $name.wasm, main.json, test$name.html"
         else
-        	BINARIES="$BINARIES$name.js, $name-processor.js"
+        	BINARIES="$BINARIES$name.js, $name-processor.js , $name.wasm"
         fi
     else
         BINARIES="$BINARIES$name.js, $name.wasm"
