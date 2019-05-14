@@ -237,7 +237,7 @@ void SourceReader::checkName()
         if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
             gGlobal->gMetaDataSet[name].insert(tree(quote(stripEnd(basename((char*)yyfilename), ".dsp"))));
         }
-        gGlobal->gMetaDataSet[tree("filename")].insert(tree(quote(stripEnd(basename((char*)yyfilename), ".dsp"))));
+        gGlobal->gMetaDataSet[tree("filename")].insert(tree(quote(basename((char*)yyfilename))));
     }
 }
 
