@@ -77,7 +77,7 @@ for p in $FILES; do
     f=$(basename "$p")
     NAME=${f%.dsp}
     FNAME=FaustPlugin_$NAME
-    LIBNAME=$FNAME$EXT
+    LIBNAME="lib$FNAME$EXT"
 
     SRCDIR=$(dirname "$p")
 
