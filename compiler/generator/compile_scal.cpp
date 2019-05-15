@@ -1121,6 +1121,9 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     // generate delayline for each element of a recursive definition
     for (int i = 0; i < N; i++) {
         if (used[i]) {
+            if (delay[i] == 0) {
+                cerr << ">>>>>> NOT A REAL RECURSION (Not used delayed)" << *sigProj(i, sig) << endl;
+            }
             generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
         }
     }
