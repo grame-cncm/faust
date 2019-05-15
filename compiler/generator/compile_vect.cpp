@@ -71,7 +71,7 @@ void VectorCompiler::compileMultiSignal(Tree L)
 string VectorCompiler::CS(Tree sig)
 {
     string code;
-    // cerr << "ENTER VectorCompiler::CS : "<< ppsig(sig) << endl;
+    cerr << "ENTER VectorCompiler::CS : " << ppsig(sig) << endl;
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
         // cerr << "CS : " << code << " for " << ppsig(sig) << endl;
@@ -109,31 +109,38 @@ string VectorCompiler::CS(Tree sig)
             } else if (getCertifiedSigType(sig)->variability() < kSamp) {
                 // cerr << "SLOW EXPRESSION " << endl;
             } else {
-                // cerr << "Expression absorbée" << *sig << endl;
+                // cerr << "Expression absorbée " << *sig << " --code--> " << code << endl;
             }
         }
         // cerr << "EXIT Already Compiled Section for " << *sig << endl;
     }
-    // cerr << "EXIT VectorCompiler::CS : "<< ppsig(sig) << "---code---> " << code << endl;
+    cerr << "EXIT  VectorCompiler::CS : " << ppsig(sig) << " --code--> " << code << endl;
     return code;
 }
 
 string VectorCompiler::generateCode(Tree sig)
 {
+    Tree   id, body;
+    string code;
     generateCodeRecursions(sig);
-    return generateCodeNonRec(sig);
+    code = generateCodeNonRec(sig);
+    if (isRec(sig, id, body)) {
+        cerr << " VectorCompiler::generateCode(" << ppsig(sig) << ") -> " << code << endl;
+    }
+
+    return code;
 }
 
 void VectorCompiler::generateCodeRecursions(Tree sig)
 {
     Tree   id, body;
     string code;
-    // cerr << "VectorCompiler::generateCodeRecursions( " << *sig << " )" << endl;
+    cerr << "VectorCompiler::generateCodeRecursions( " << *sig << " )" << endl;
     if (getCompiledExpression(sig, code)) {
-        // cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
+        cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
         return;
     } else if (isRec(sig, id, body)) {
-        // cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
+        cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
         setCompiledExpression(sig, "[RecursionVisited]");
         fClass->openLoop(sig, "count");
         generateRec(sig, id, body);
