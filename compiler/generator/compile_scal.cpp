@@ -38,10 +38,12 @@
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "privatise.hh"
+#include "recRemover.hh"
 #include "recursivness.hh"
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
+#include "signalSplitter.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -140,6 +142,33 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
     fOccMarkup->mark(L3);  // annotate L3 with occurences analysis
+
+    //****************************************************************************************************
+    //****************************************************************************************************
+
+    startTiming("Signal Splitter");
+    cerr << "Start Signal Splitter" << endl;
+    SignalSplitter SS(fOccMarkup);
+    //SS.trace(true);
+    Tree L3S = SS.mapself(L3);
+    cerr << "\n\nL3S = " << ppsig(L3S) << endl;
+    SS.print(cerr);
+    cerr << endl;
+
+    RecRemover RR;
+    cerr << "Remove Recursions" << endl;
+    for (auto s : SS.fSplittedSignals) {
+        //cerr << ppsig(s) << "\n";
+        cerr << ppsig(RR.self(s)) << "\n";
+        cerr << endl;
+    }
+
+    cerr << "End Signal Splitter" << endl;
+
+    endTiming("Signal Splitter");
+
+    //****************************************************************************************************
+    //****************************************************************************************************
 
     endTiming("ScalarCompiler::prepare");
 
