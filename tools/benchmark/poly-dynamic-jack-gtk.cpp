@@ -144,20 +144,62 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
-        /*
+        
         // Test Write/Read
         if (factory) {
-            cout << "Test writePolyDSPFactoryToBitcodeFile/readPolyDSPFactoryFromBitcodeFile" << endl;
-            string path_name = factory->getName();
-            writePolyDSPFactoryToBitcodeFile(factory, path_name);
-            delete factory;
-            factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", -1);
+            {
+                cout << "Test writePolyDSPFactoryToBitcodeFile/readPolyDSPFactoryFromBitcodeFile" << endl;
+                string path_name = factory->getName();
+                writePolyDSPFactoryToBitcodeFile(factory, path_name);
+                delete factory;
+                factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", error_msg, -1);
+                if (!factory) {
+                    cerr << "ERROR : readPolyDSPFactoryFromBitcodeFile " << error_msg;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+            {
+                cout << "Test writePolyDSPFactoryToIRFile/readPolyDSPFactoryFromIRFile" << endl;
+                string path_name = factory->getName();
+                writePolyDSPFactoryToIRFile(factory, path_name);
+                delete factory;
+                factory = readPolyDSPFactoryFromIRFile(path_name, "", error_msg, -1);
+                if (!factory) {
+                    cerr << "readPolyDSPFactoryFromIRFile " << error_msg;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+            {
+                cout << "Test writePolyDSPFactoryToMachineFile/readPolyDSPFactoryFromMachineFile" << endl;
+                string path_name = factory->getName();
+                writePolyDSPFactoryToMachineFile(factory, path_name, "");
+                delete factory;
+                factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", error_msg, -1);
+                if (!factory) {
+                    cerr << "readPolyDSPFactoryFromBitcodeFile " << error_msg;
+                    exit(EXIT_FAILURE);
+                }
+            }
         }
-        */
+        
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
         factory = createInterpreterPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
+        // Test Write/Read
+        if (factory) {
+            cout << "Test writeInterpreterPolyDSPFactoryToMachineFile/readInterpreterPolyDSPFactoryFromMachineFile" << endl;
+            string path_name = factory->getName();
+            writeInterpreterPolyDSPFactoryToMachineFile(factory, path_name);
+            delete factory;
+            factory = readInterpreterPolyDSPFactoryFromMachineFile(path_name, error_msg);
+            if (!factory) {
+                cerr << "readInterpreterPolyDSPFactoryFromMachineFile " << error_msg;
+                exit(EXIT_FAILURE);
+            }
+        }
     }
     
     if (!factory) {

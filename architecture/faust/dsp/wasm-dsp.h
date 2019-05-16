@@ -1,22 +1,24 @@
 /************************************************************************
- ************************************************************************
- Copyright (C) 2017 GRAME, Centre National de Creation Musicale
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU Lesser General Public License as published by
- the Free Software Foundation; either version 2.1 of the License, or
- (at your option) any later version.
-
+ FAUST Architecture File
+ Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
- ************************************************************************
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef wasm_dsp_H
@@ -32,10 +34,6 @@
  @{
  */
 
-namespace Runtime {
-class ModuleInstance;
-}
-
 /**
  * Get the library version.
  *
@@ -47,36 +45,38 @@ extern "C" const char* getCLibFaustVersion();
  * DSP instance class with methods.
  */
 class wasm_dsp : public dsp {
-   private:
-    // wasm_dsp objects are allocated using wasm_dsp_factory::createDSPInstance();
-    wasm_dsp() {}
+    
+    private:
+    
+        // wasm_dsp objects are allocated using wasm_dsp_factory::createDSPInstance();
+        wasm_dsp() {}
 
-   public:
-    wasm_dsp(Runtime::ModuleInstance* instance);
+    public:
 
-    int getNumInputs();
+        int getNumInputs();
 
-    int getNumOutputs();
+        int getNumOutputs();
 
-    void buildUserInterface(UI* ui_interface);
+        void buildUserInterface(UI* ui_interface);
 
-    int getSampleRate();
+        int getSampleRate();
 
-    void init(int sample_rate);
+        void init(int sample_rate);
 
-    void instanceInit(int sample_rate);
+        void instanceInit(int sample_rate);
 
-    void instanceConstants(int sample_rate);
+        void instanceConstants(int sample_rate);
 
-    void instanceResetUserInterface();
+        void instanceResetUserInterface();
 
-    void instanceClear();
+        void instanceClear();
 
-    wasm_dsp* clone();
+        wasm_dsp* clone();
 
-    void metadata(Meta* m);
+        void metadata(Meta* m);
 
-    void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
 };
 
 /**
@@ -84,40 +84,42 @@ class wasm_dsp : public dsp {
  */
 
 class wasm_dsp_factory : public dsp_factory {
-   public:
-    virtual ~wasm_dsp_factory();
+    
+    public:
+    
+        virtual ~wasm_dsp_factory();
 
-    /**
-     *  Return factory name:
-     *  either the name declared in DSP with [declare name "foo"] syntax
-     *  or 'filename' (if createWasmDSPFactoryFromFile is used)
-     *  or 'name_app' (if createWasmDSPFactoryFromString is used)
-     */
-    std::string getName();
+        /**
+         *  Return factory name:
+         *  either the name declared in DSP with [declare name "foo"] syntax
+         *  or 'filename' (if createWasmDSPFactoryFromFile is used)
+         *  or 'name_app' (if createWasmDSPFactoryFromString is used)
+         */
+        std::string getName();
 
-    /* Return factory SHA key */
-    std::string getSHAKey();
+        /* Return factory SHA key */
+        std::string getSHAKey();
 
-    /* Return factory expanded DSP code */
-    std::string getDSPCode();
+        /* Return factory expanded DSP code */
+        std::string getDSPCode();
 
-    /* Return factory compile options */
-    std::string getCompileOptions();
+        /* Return factory compile options */
+        std::string getCompileOptions();
 
-    /* Get the Faust DSP factory list of library dependancies */
-    std::vector<std::string> getLibraryList();
+        /* Get the Faust DSP factory list of library dependancies */
+        std::vector<std::string> getLibraryList();
 
-    /* Get the list of all used includes */
-    std::vector<std::string> getIncludePathnames();
+        /* Get the list of all used includes */
+        std::vector<std::string> getIncludePathnames();
 
-    /* Create a new DSP instance, to be deleted with C++ 'delete' */
-    wasm_dsp* createDSPInstance();
+        /* Create a new DSP instance, to be deleted with C++ 'delete' */
+        wasm_dsp* createDSPInstance();
 
-    /* Set a custom memory manager to be used when creating instances */
-    void setMemoryManager(dsp_memory_manager* manager);
+        /* Set a custom memory manager to be used when creating instances */
+        void setMemoryManager(dsp_memory_manager* manager);
 
-    /* Return the currently set custom memory manager */
-    dsp_memory_manager* getMemoryManager();
+        /* Return the currently set custom memory manager */
+        dsp_memory_manager* getMemoryManager();
 };
 
 /**
@@ -244,5 +246,45 @@ void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::stri
 /*!
  @}
  */
+
+#ifdef EMCC
+#include <emscripten.h>
+#include <emscripten/bind.h>
+using namespace emscripten;
+
+EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
+{
+    class_<wasm_dsp_factory>("wasm_dsp_factory")
+    .constructor()
+    .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
+    .function("getJSON", &wasm_dsp_factory::getJSON, allow_raw_pointers())
+    .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
+                    allow_raw_pointers())
+    .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
+                    allow_raw_pointers())
+    .class_function("createAudioBuffers", &wasm_dsp_factory::createJSAudioBuffers, allow_raw_pointers())
+    .class_function("deleteAudioBuffers", &wasm_dsp_factory::deleteJSAudioBuffers, allow_raw_pointers())
+    .class_function("copyAudioBuffer", &wasm_dsp_factory::copyJSAudioBuffer, allow_raw_pointers())
+    .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage);
+}
+
+EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
+{
+    class_<wasm_dsp>("wasm_dsp")
+    .constructor()
+    .function("getNumInputs", &wasm_dsp::getNumInputs, allow_raw_pointers())
+    .function("getNumOutputs", &wasm_dsp::getNumOutputs, allow_raw_pointers())
+    .function("getSampleRate", &wasm_dsp::getSampleRate, allow_raw_pointers())
+    .function("init", &wasm_dsp::init, allow_raw_pointers())
+    .function("instanceInit", &wasm_dsp::instanceInit, allow_raw_pointers())
+    .function("instanceConstants", &wasm_dsp::instanceConstants, allow_raw_pointers())
+    .function("instanceResetUserInterface", &wasm_dsp::instanceResetUserInterface, allow_raw_pointers())
+    .function("instanceClear", &wasm_dsp::instanceClear, allow_raw_pointers())
+    .function("clone", &wasm_dsp::clone, allow_raw_pointers())
+    .function("compute", &wasm_dsp::computeJS, allow_raw_pointers())
+    .function("computeJSTest", &wasm_dsp::computeJSTest, allow_raw_pointers());
+}
+
+#endif
 
 #endif

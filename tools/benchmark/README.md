@@ -31,7 +31,7 @@ Here are the available options:
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
 
-Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 7 (see the **interp-trace** tool). 
 
 ## poly-dynamic-jack-gtk
 
@@ -47,7 +47,7 @@ Here are the available options:
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
 
-Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 7 (see the **interp-trace** tool). 
 
 ## dynamic-machine-jack-gtk
 

@@ -254,7 +254,7 @@ std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path, std::string& error_msg);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bit_code_path, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a bitcode file.
@@ -263,7 +263,7 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::str
  * @param bitcode_path - the bitcode file pathname
  *
  */
-void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
+void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bit_code_path);
 
 /*!
  @}
