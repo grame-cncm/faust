@@ -356,6 +356,13 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 // create a tuple of signals
 Tree sigCartesianProd(Tree s1, Tree s2);
 
+// cache
+Tree sigWrite(Tree id, Tree sig);
+bool isSigWrite(Tree s, Tree& id, Tree& sig);
+
+Tree sigRead(Tree sig);
+bool isSigRead(Tree s, Tree& sig);
+
 /*****************************************************************************
                              FTZ wrapping
     Add FTZ wrapping to a signal

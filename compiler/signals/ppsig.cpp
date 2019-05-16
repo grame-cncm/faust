@@ -293,6 +293,12 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "control", x, y);
     }
 
+    else if (isSigWrite(sig, x, y)) {
+        fout << "sigWrite(" << x << " := " << ppsig(y) << ")";
+    } else if (isSigRead(sig, x)) {
+        fout << "sigRead(" << x << ")";
+    }
+
     else {
         cerr << "[[" << *sig << "]]";
     }

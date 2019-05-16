@@ -366,6 +366,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
     SIGTUPLE           = symbol("SigTuple");
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
+    SIGREAD            = symbol("SigRead");
+    SIGWRITE           = symbol("SigWrite");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");

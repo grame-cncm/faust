@@ -688,6 +688,32 @@ Tree sigCartesianProd(Tree s1, Tree s2)
 }
 
 /**
+ * 
+ *  Explicit Cache
+ *
+ */
+
+Tree sigWrite(Tree id, Tree sig)
+{
+    return tree(gGlobal->SIGWRITE, id, sig);
+}
+
+bool isSigWrite(Tree s, Tree& id, Tree& sig)
+{
+    return isTree(s, gGlobal->SIGWRITE, id, sig);
+}
+
+Tree sigRead(Tree id)
+{
+    return tree(gGlobal->SIGREAD, id);
+}
+
+bool isSigRead(Tree s, Tree& id)
+{
+    return isTree(s, gGlobal->SIGREAD, id);
+}
+
+/**
  * Test if exp is very simple that is it
  * can't be considered a real component
  * @param exp the signal we want to test
