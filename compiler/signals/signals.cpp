@@ -688,19 +688,25 @@ Tree sigCartesianProd(Tree s1, Tree s2)
 }
 
 /**
- * 
+ *
  *  Explicit Cache
  *
  */
 
-Tree sigWrite(Tree id, Tree sig)
+Tree sigWrite(Tree id, int dmax, Tree sig)
 {
-    return tree(gGlobal->SIGWRITE, id, sig);
+    return tree(gGlobal->SIGWRITE, id, tree(dmax), sig);
 }
 
-bool isSigWrite(Tree s, Tree& id, Tree& sig)
+bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig)
 {
-    return isTree(s, gGlobal->SIGWRITE, id, sig);
+    Tree tmax;
+    if (isTree(s, gGlobal->SIGWRITE, id, tmax, sig)) {
+        *dmax = tree2int(tmax);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 Tree sigRead(Tree id)

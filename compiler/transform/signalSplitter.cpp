@@ -45,9 +45,11 @@ Tree SignalSplitter::transformation(Tree sig)
     Tree x, y;
 
     if (isSigFixDelay(sig, x, y)) {
+        old_Occurences* ox = fOccMarkup->retrieve(x);
+
         Tree v = self(x);
         Tree w = self(y);
-        fSplittedSignals.insert(sigWrite(v,v));
+        fSplittedSignals.insert(sigWrite(v, ox->getMaxDelay(), v));
         return sigFixDelay(sigRead(v), w);
 #if 0
     } else if (isProj(sig, &i, x)) {
