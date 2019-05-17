@@ -289,17 +289,40 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         var time2 = performance.now();
         
         console.log("Faust compilation duration : " + (time2 - time1));
-
         faust.error_msg = faust_module.UTF8ToString(error_msg_ptr);
-        
-        /*
+    
+        if (module_code_ptr === 0) {
+            return null;
+        } else {
+
+            var factory_code_ptr = faust.getWasmCModule(module_code_ptr);
+            var factory_code_size = faust.getWasmCModuleSize(module_code_ptr);
+
+            // Copy native 'binary' string in JavaScript Uint8Array
+            var factory_code = new Uint8Array(factory_code_size);
+            for (var i = 0; i < factory_code_size; i++) {
+                // faster than 'getValue' which gets the type of access for each read...
+                factory_code[i] = faust_module.HEAP8[factory_code_ptr + i];
+            }
+            
+        //===========================      
         // New API test
+        //=========================== 
+        
+        console.log("New API test");
         
         //var code = "process = _,_,_,_;";
-        var code = "import(\"stdfaust.lib\"); process = dm.zita_rev1;";
+        //var code = "import(\"stdfaust.lib\"); process = dm.zita_rev1;";
         //var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = _+vol,_+(0.3*vol);";
-    	//var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = (_+vol)*os.osc(440),_+(0.3*vol*os.osc(800));";     
+    	//var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process =	(_+vol)*os.osc(440),_+(0.3*vol*os.osc(800));";   
+    	//var code = "process = (_+0.5),(_+0.7);";     
         //var code = "import(\"stdfaust.lib\"); process = os.osc(440);";
+        
+        var code = "import(\"stdfaust.lib\"); process = os.osc(nentry(\"freq\", 440, 200, 5000, 10))*nentry(\"gain\", 0.5, 0, 1, 0.01)*button(\"gate\"); effect = _*0.5,_*0.7;"
+        
+         //var code = "import(\"stdfaust.lib\"); process = os.osc(nentry(\"freq\", 440, 200, 5000, 10))*nentry(\"gain\", 0.5, 0, 1, 0.01)*button(\"gate\");"
+        
+        console.log(code);
 
         var argv1 = faust_module.makeStringVector();
         console.log(argv1);
@@ -311,21 +334,52 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         argv1.push_back("http://127.0.0.1:8000/libraries/");
         
         var time3 = performance.now();
-        var factory_ptr = faust_module.wasm_dynamic_dsp_factory.createWasmDSPFactoryFromString2("FaustDSP", code, argv1, false);   
-        console.log("FACTORY JSON : " + factory_ptr.getJSON())
+        //var factory_ptr = faust_module.wasm_dynamic_dsp_factory.createWasmDSPFactoryFromString2("FaustDSP", code, argv1, false);   
+        
+        var factory_ptr = faust_module.wasm_dsp_poly_factory.createWasmPolyDSPFactoryFromString2("FaustDSP", code, argv1, false);   
          
      	var time4 = performance.now();
         console.log("C++ Faust compilation duration : " + (time4 - time3));
         
+        // Test extractJSON
+       	var test_json = faust_module.wasm_dsp_factory.extractJSON(factory_code);
+        console.log("EXTRACT JSON : " + test_json);
+        
         if (factory_ptr) {
         	console.log("factory_ptr " + factory_ptr);
-        	var instance_ptr = factory_ptr.createDSPInstance();
+        	//var instance_ptr = factory_ptr.createDSPInstance();
+        	var instance_ptr = factory_ptr.createPolyDSPInstance(8, true, true);
+        	
+        	instance_ptr.init(44100);
+        	
+        	// Test MIDI
+        	instance_ptr.keyOn(0, 60, 100);
+        	instance_ptr.keyOn(0, 67, 100);
+        	instance_ptr.keyOn(0, 75, 100);
+        	
+        	//instance_ptr.computeJSTest(128);
+        	
+        	var js_inputs = faust_module.wasm_dsp_factory.createAudioBuffers(instance_ptr.getNumInputs(), 128);
+        	var js_outputs = faust_module.wasm_dsp_factory.createAudioBuffers(instance_ptr.getNumOutputs(), 128);
+        	
+        	//console.log("instance_ptr1.compute " + instance_ptr1.compute);
+        	
+        	instance_ptr.compute(128, js_inputs, js_outputs);
+        	
+        	faust_module.wasm_dsp_factory.printAudioBuffers(js_outputs, instance_ptr.getNumOutputs(), 128);
+        	
+        	faust_module.wasm_dsp_factory.deleteAudioBuffers(js_inputs, instance_ptr.getNumInputs());
+        	faust_module.wasm_dsp_factory.deleteAudioBuffers(js_outputs, instance_ptr.getNumOutputs());
+        
+        	instance_ptr.keyOff(0, 60, 100);
+        	instance_ptr.keyOff(0, 67, 100);
+        	instance_ptr.keyOff(0, 75, 100);
+        	
         	console.log("instance_ptr " + instance_ptr);
         	console.log("instance_ptr getNumInputs " + instance_ptr.getNumInputs());
         	console.log("instance_ptr getNumOutputs " + instance_ptr.getNumOutputs());
-     	 	instance_ptr.init(44100);
         	
-        	instance_ptr.computeJSTest(128);      	
+        	//instance_ptr.computeJSTest(128);      	
         	//instance_ptr.compute(128, 0, 0);
         	 
         } else {
@@ -336,8 +390,8 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         .then(dsp_file => dsp_file.arrayBuffer())
         .then(dsp_bytes => { var factory_ptr1 = faust_module.wasm_dsp_factory.readWasmDSPFactoryFromMachine2(dsp_bytes);
         	console.log("factory_ptr1 " + factory_ptr);
-        	var instance_ptr1 = factory_ptr.createDSPInstance();
-        	console.log("instance_ptr1 " + instance_ptr);
+        	var instance_ptr1 = factory_ptr1.createDSPInstance();
+        	console.log("instance_ptr1 " + instance_ptr1);
         	console.log("instance_ptr1 getNumInputs " + instance_ptr1.getNumInputs());
         	console.log("instance_ptr1 getNumOutputs " + instance_ptr1.getNumOutputs());
         	
@@ -356,22 +410,9 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         	//instance_ptr1.computeJSTest(128);
         });    
          
+        //=========================== 
         // End API test
-        */
-
-        if (module_code_ptr === 0) {
-            return null;
-        } else {
-
-            var factory_code_ptr = faust.getWasmCModule(module_code_ptr);
-            var factory_code_size = faust.getWasmCModuleSize(module_code_ptr);
-
-            // Copy native 'binary' string in JavaScript Uint8Array
-            var factory_code = new Uint8Array(factory_code_size);
-            for (var i = 0; i < factory_code_size; i++) {
-                // faster than 'getValue' which gets the type of access for each read...
-                factory_code[i] = faust_module.HEAP8[factory_code_ptr + i];
-            }
+        //=========================== 
 
             var helpers_code_ptr = faust.getWasmCHelpers(module_code_ptr);
             var helpers_code = faust_module.UTF8ToString(helpers_code_ptr);

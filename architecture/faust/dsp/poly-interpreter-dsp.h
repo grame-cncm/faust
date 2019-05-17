@@ -26,6 +26,7 @@
 
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/poly-dsp.h"
+#include "faust/misc.h"
 
 /**
  *  Interpreter backend based Polyphonic DSP factory class.
@@ -55,7 +56,7 @@ struct interpreter_dsp_poly_factory : public dsp_poly_factory {
     virtual ~interpreter_dsp_poly_factory()
     {
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fProcessFactory));
-        if (fEffectFactory) { deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fEffectFactory)); }
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fEffectFactory));
     }
     
 };
@@ -70,10 +71,10 @@ struct interpreter_dsp_poly_factory : public dsp_poly_factory {
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::string& name_app,
-                                                                   const std::string& dsp_content,
-                                                                   int argc, const char* argv[],
-                                                                   std::string& error_msg)
+static interpreter_dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::string& name_app,
+                                                                               const std::string& dsp_content,
+                                                                               int argc, const char* argv[],
+                                                                               std::string& error_msg)
 {
     try {
         return new interpreter_dsp_poly_factory(name_app, dsp_content, argc, argv, error_msg);
@@ -92,9 +93,9 @@ static dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::st
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* createInterpreterPolyDSPFactoryFromFile(const std::string& filename,
-                                                      int argc, const char* argv[],
-                                                      std::string& error_msg)
+static interpreter_dsp_poly_factory* createInterpreterPolyDSPFactoryFromFile(const std::string& filename,
+                                                                             int argc, const char* argv[],
+                                                                             std::string& error_msg)
 {
     return createInterpreterPolyDSPFactoryFromString("FaustDSP", pathToContent(filename), argc, argv, error_msg);
 }

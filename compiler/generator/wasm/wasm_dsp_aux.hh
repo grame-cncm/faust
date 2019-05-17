@@ -53,7 +53,7 @@ struct WasmBinaryReader {
         data_segment_pos = -1;
         if (debug) std::cerr << "WasmBinaryReader size : " << size << std::endl;
     }
-
+    
     ~WasmBinaryReader() { free(input); }
 
     bool more() { return pos < size; }
@@ -313,6 +313,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
    public:
     wasm_dsp_factory() {}
     wasm_dsp_factory(dsp_factory_base* factory);
+    wasm_dsp_factory(int module, uintptr_t json);
 
     virtual ~wasm_dsp_factory();
 
@@ -329,8 +330,6 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     std::vector<std::string> getIncludePathnames();
 
     JSONUITemplatedDecoder* getDecoder() { return fDecoder; }
-
-    std::string getJSON() { return fJSON; }
 
     wasm_dsp* createDSPInstance();
 
@@ -350,17 +349,22 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
 
     // Audio buffer management
     static uintptr_t createJSAudioBuffers(int chan, int frames);
-    static void      deleteJSAudioBuffers(uintptr_t js_buffers, int chan);
-
     static FAUSTFLOAT** createAudioBuffers(int chan, int frames);
-    static void         deleteAudioBuffers(FAUSTFLOAT** buffers, int chan);
-
+    
+    static void deleteJSAudioBuffers(uintptr_t js_buffers, int chan);
+    static void deleteAudioBuffers(FAUSTFLOAT** buffers, int chan);
+   
     static void copyJSAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames);
     static void copyAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames);
-
+    
+    static void printJSAudioBuffers(uintptr_t js_buffers, int chan, int frames);
+    static void printAudioBuffers(FAUSTFLOAT** buffers, int chan, int frames);
+   
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
+    
+    static std::string extractJSON(const std::string& code);
 
     static dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 };
@@ -369,11 +373,11 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
 EXPORT void deleteAllWasmDSPFactories();
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code);
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
 
 EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path);
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
 EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
 

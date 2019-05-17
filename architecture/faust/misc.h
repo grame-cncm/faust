@@ -28,6 +28,8 @@
 #include <map>
 #include <cstdlib>
 #include <string.h>
+#include <fstream>
+#include <string>
 
 #include "faust/gui/meta.h"
 
@@ -67,6 +69,26 @@ static const char* lopts(char* argv[], const char* name, const char* def)
 	int	i;
 	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
 	return def;
+}
+
+static std::string pathToContent(const std::string& path)
+{
+    std::ifstream file(path.c_str(), std::ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = int(file.tellg());
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    std::string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
 }
 
 #endif

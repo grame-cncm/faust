@@ -144,11 +144,12 @@ wasm_dsp_factory* getWasmDSPFactoryFromSHAKey(const std::string& sha_key);
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
+ * @param internal_memory - whether to use an internallay allocated memory block for wasm module
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
 wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
-                                               std::string& error_msg);
+                                               std::string& error_msg, bool internal_memory);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all
@@ -161,11 +162,12 @@ wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int 
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
+ * @param internal_memory - whether to use an internallay allocated memory block for wasm module
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
 wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                                 const char* argv[], std::string& error_msg);
+                                                 const char* argv[], std::string& error_msg, bool internal_memory);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.
@@ -208,10 +210,11 @@ std::vector<std::string> getAllWasmDSPFactories();
  * decrement reference counter when the factory is no more needed.
  *
  * @param machine_code - the machine code string
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code);
+wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code string.
@@ -229,10 +232,11 @@ std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
  * decrement reference counter when the factory is no more needed.
  *
  * @param machine_code_path - the machine code file pathname
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path);
+wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code file.
@@ -257,7 +261,6 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
     class_<wasm_dsp_factory>("wasm_dsp_factory")
     .constructor()
     .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
-    .function("getJSON", &wasm_dsp_factory::getJSON, allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
                     allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,

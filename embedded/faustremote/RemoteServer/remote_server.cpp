@@ -11,8 +11,9 @@
 #include "rn_base64.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-
 #include "faust/dsp/poly-dsp.h"
+#include "faust/misc.h"
+
 //#include "faust/midi/RtMidi.cpp"
 
 #include <string.h>

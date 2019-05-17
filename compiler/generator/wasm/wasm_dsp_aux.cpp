@@ -29,7 +29,6 @@
 #pragma warning(disable : 4251 4275 4800)
 #endif
 
-#include "Text.hh"
 #include "compatibility.hh"
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
@@ -50,34 +49,41 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 #ifdef EMCC
 
-EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
+using namespace std;
+
+EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size),
+{
     // Done once when creating the first factory
     FaustModule.faust               = FaustModule.faust || {};
     FaustModule.faust.wasm_module   = FaustModule.faust.wasm_module || [];
     FaustModule.faust.wasm_instance = FaustModule.faust.wasm_instance || [];
-    FaustModule.faust.importObject  = FaustModule.faust.importObject || {env : {memoryBase : 0,
-                                                                               tableBase : 0,
+    FaustModule.faust.importObject  = FaustModule.faust.importObject ||
+    { env :
+        {
+            memoryBase : 0,
+            tableBase : 0,
 
-                                                                               // Integer version
-                                                                               _abs : Math.abs,
+            // Integer version
+            _abs : Math.abs,
 
-                                                                               // Float version
-                                                                               _acosf : Math.acos,
-                                                                               _asinf : Math.asin,
-                                                                               _atanf : Math.atan,
-                                                                               _atan2f : Math.atan2,
-                                                                               _ceilf : Math.ceil,
-                                                                               _cosf : Math.cos,
-                                                                               _expf : Math.exp,
-                                                                               _floorf : Math.floor,
-                                                                               _fmodf : function(x, y){return x % y; },
+            // Float version
+            _acosf : Math.acos,
+            _asinf : Math.asin,
+            _atanf : Math.atan,
+            _atan2f : Math.atan2,
+            _ceilf : Math.ceil,
+            _cosf : Math.cos,
+            _expf : Math.exp,
+            _floorf : Math.floor,
+            _fmodf : function(x, y)
+            { return x % y; },
             _logf: Math.log,
             _log10f: Math.log10,
             _max_f: Math.max,
             _min_f: Math.min,
             _powf: Math.pow,
-            _remainderf: function(x, y) {
-    return x - Math.round(x / y) * y; },
+            _remainderf: function(x, y)
+            { return x - Math.round(x / y) * y; },
             _roundf: Math.fround,
             _sinf: Math.sin,
             _sqrtf: Math.sqrt,
@@ -98,15 +104,15 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             _cos: Math.cos,
             _exp: Math.exp,
             _floor: Math.floor,
-            _fmod: function(x, y) {
-    return x % y; },
+            _fmod: function(x, y)
+            { return x % y; },
             _log: Math.log,
             _log10: Math.log10,
             _max_: Math.max,
             _min_: Math.min,
             _pow: Math.pow,
-            _remainder:function(x, y) {
-    return x - Math.round(x / y) * y; },
+            _remainder:function(x, y)
+            { return x - Math.round(x / y) * y; },
             _round: Math.fround,
             _sin: Math.sin,
             _sqrt: Math.sqrt,
@@ -119,23 +125,31 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             _tanh: Math.tanh,
         
             // Emscripten generated global memory segment is used
-            memory: FaustModule['wasmMemory'],
-                
+            //memory: FaustModule['wasmMemory'],
+            memory: wasmMemory,
+            
             table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
-}
-}
-;
+        }
+    };
 
-// Copy native 'binary' string in JavaScript Uint8Array
-var factory_code = new Uint8Array(code_size);
-for (var i = 0; i < code_size; i++) {
-    // faster than 'getValue' which gets the type of access for each read...
-    factory_code[i] = FaustModule.HEAP8[code_ptr + i];
-}
+    // Copy native 'binary' string in JavaScript Uint8Array
+    var factory_code = new Uint8Array(code_size);
+    for (var i = 0; i < code_size; i++) {
+        // faster than 'getValue' which gets the type of access for each read...
+        factory_code[i] = FaustModule.HEAP8[code_ptr + i];
+    }
 
-// Compile wasm module
-FaustModule.faust.wasm_module.push(new WebAssembly.Module(factory_code));
-return FaustModule.faust.wasm_module.length - 1;
+    // Compile wasm module
+    FaustModule.faust.wasm_module.push(new WebAssembly.Module(factory_code));
+    
+    /*
+    var finished = false;
+    WebAssembly.compile(factory_code)
+    .then(module => { console.log("COMPILED"); console.log(module); finished = true; FaustModule.faust.wasm_module.push(module); })
+    .catch(function(error) { console.log(error); });
+    */
+ 
+    return FaustModule.faust.wasm_module.length - 1;
 });
 
 void wasm_dsp_factory::createModuleFromString()
@@ -152,16 +166,8 @@ void wasm_dsp_factory::createModuleFromString()
 
 wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory)
 {
-    // Deactivated for now
-    /*
     createModuleFromString();
-    std::cout << "fModule " << fModule << std::endl;
-
     fDecoder = createJSONUIDecoder(fJSON);
-    std::cout << " fFactory->getJSON() " << fJSON << std::endl;
-    */
-    fModule  = -1;
-    fDecoder = nullptr;
 }
 
 #else
@@ -170,12 +176,22 @@ void wasm_dsp_factory::createModuleFromString()
 {
 }
 
-wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory)
+wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 {
+    fFactory = factory;
     fModule = 0;
+    fDecoder = nullptr;
 }
 
 #endif
+
+wasm_dsp_factory::wasm_dsp_factory(int module, uintptr_t json)
+{
+    fFactory = nullptr;
+    fModule = module;
+    fJSON = reinterpret_cast<const char*>(json);
+    fDecoder = createJSONUIDecoder(fJSON);
+}
 
 wasm_dsp_factory::~wasm_dsp_factory()
 {
@@ -183,38 +199,45 @@ wasm_dsp_factory::~wasm_dsp_factory()
     delete fDecoder;
 }
 
-std::string wasm_dsp_factory::getName()
+string wasm_dsp_factory::extractJSON(const string& code)
+{
+    WasmBinaryReader reader(code);
+    reader.read();
+    return reader.json;
+}
+
+string wasm_dsp_factory::getName()
 {
     return fFactory->getName();
 }
 
-std::string wasm_dsp_factory::getSHAKey()
+string wasm_dsp_factory::getSHAKey()
 {
     return fFactory->getSHAKey();
 }
-void wasm_dsp_factory::setSHAKey(std::string sha_key)
+void wasm_dsp_factory::setSHAKey(string sha_key)
 {
     fFactory->setSHAKey(sha_key);
 }
 
-std::string wasm_dsp_factory::getDSPCode()
+string wasm_dsp_factory::getDSPCode()
 {
     return fFactory->getDSPCode();
 }
-void wasm_dsp_factory::setDSPCode(std::string code)
+void wasm_dsp_factory::setDSPCode(string code)
 {
     fFactory->setDSPCode(code);
 }
 
-std::string wasm_dsp_factory::getCompileOptions()
+string wasm_dsp_factory::getCompileOptions()
 {
     return fDecoder->getCompileOptions();
 }
-std::vector<std::string> wasm_dsp_factory::getLibraryList()
+vector<string> wasm_dsp_factory::getLibraryList()
 {
     return fDecoder->getLibraryList();
 }
-std::vector<std::string> wasm_dsp_factory::getIncludePathnames()
+vector<string> wasm_dsp_factory::getIncludePathnames()
 {
     return fDecoder->getIncludePathnames();
 }
@@ -251,16 +274,16 @@ dsp_memory_manager* wasm_dsp_factory::getMemoryManager()
     return nullptr;
 }
 
-void wasm_dsp_factory::write(std::ostream* out, bool binary, bool small)
+void wasm_dsp_factory::write(ostream* out, bool binary, bool small)
 {
     fFactory->write(out, binary, small);
 }
-void wasm_dsp_factory::writeAux(std::ostream* out, bool binary, bool small)
+void wasm_dsp_factory::writeAux(ostream* out, bool binary, bool small)
 {
     fFactory->writeAux(out, binary, small);
 }
 
-std::string wasm_dsp_factory::getBinaryCode()
+string wasm_dsp_factory::getBinaryCode()
 {
     return fFactory->getBinaryCode();
 }
@@ -288,6 +311,15 @@ void wasm_dsp_factory::deleteAudioBuffers(FAUSTFLOAT** buffers, int chan)
     delete[] buffers;
 }
 
+void wasm_dsp_factory::printAudioBuffers(FAUSTFLOAT** buffers, int chan_aux, int count)
+{
+    for (int chan = 0; chan < chan_aux; chan++) {
+        for (int frame = 0; frame < count; frame++) {
+            std::cout << "frame input = " << frame << " : " << (buffers[chan][frame]) << std::endl;
+        }
+    }
+}
+
 uintptr_t wasm_dsp_factory::createJSAudioBuffers(int chan, int frames)
 {
     return reinterpret_cast<uintptr_t>(createAudioBuffers(chan, frames));
@@ -303,23 +335,30 @@ void wasm_dsp_factory::deleteJSAudioBuffers(uintptr_t js_buffers, int chan)
     deleteAudioBuffers(reinterpret_cast<FAUSTFLOAT**>(js_buffers), chan);
 }
 
+void wasm_dsp_factory::printJSAudioBuffers(uintptr_t js_buffers, int chan, int frames)
+{
+    printAudioBuffers(reinterpret_cast<FAUSTFLOAT**>(js_buffers), chan, frames);
+}
+
 // Static constructor
 
-std::string wasm_dsp_factory::gErrorMessage = "";
+string wasm_dsp_factory::gErrorMessage = "";
 
-const std::string& wasm_dsp_factory::getErrorMessage()
+const string& wasm_dsp_factory::getErrorMessage()
 {
     return wasm_dsp_factory::gErrorMessage;
 }
 
-wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path)
+wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const string& machine_code_path)
 {
-    return readWasmDSPFactoryFromMachineFile(machine_code_path);
+    string error_msg;
+    return readWasmDSPFactoryFromMachineFile(machine_code_path, error_msg);
 }
 
-wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const std::string& machine_code)
+wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string& machine_code)
 {
-    return readWasmDSPFactoryFromMachine(machine_code);
+    string error_msg;
+    return readWasmDSPFactoryFromMachine(machine_code, error_msg);
 }
 
 // C++ API
@@ -336,7 +375,7 @@ EXPORT void deleteAllWasmDSPFactories()
 
 #ifdef EMCC
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code)
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code, string& error_msg)
 {
     wasm_dsp_factory* factory = new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", machine_code, ""));
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
@@ -345,15 +384,15 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machin
     return factory;
 }
 
-EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
+EXPORT string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
 {
     return factory->getBinaryCode();
 }
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path)
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path, string& error_msg)
 {
-    std::ifstream infile;
-    infile.open(machine_code_path, std::ifstream::in | std::ifstream::binary);
+    ifstream infile;
+    infile.open(machine_code_path, ifstream::in | ifstream::binary);
 
     if (infile.is_open()) {
         // get length of file:
@@ -367,48 +406,48 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& ma
 
         // create factory
         wasm_dsp_factory* factory =
-            readWasmDSPFactoryFromMachine(string(machine_code, length));  // Keep the binary string
+            readWasmDSPFactoryFromMachine(string(machine_code, length), error_msg);  // Keep the binary string
 
         infile.close();
         delete[] machine_code;
 
         return factory;
     } else {
-        std::cerr << "readWasmDSPFactoryFromMachineFile : cannot open '" << machine_code_path << "' file\n";
+        error_msg = "ERROR : cannot open '" + machine_code_path + "' file\n";
         return nullptr;
     }
 }
 
-EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path)
+EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const string& machine_code_path)
 {
-    std::ofstream outfile;
-    outfile.open(machine_code_path, std::ofstream::out | std::ofstream::binary);
+    ofstream outfile;
+    outfile.open(machine_code_path, ofstream::out | ofstream::binary);
     if (outfile.is_open()) {
         outfile << factory->getBinaryCode();
         outfile.close();
     } else {
-        std::cerr << "writeWasmDSPFactoryToMachineFile : cannot open '" << machine_code_path << "' file\n";
+        cerr << "writeWasmDSPFactoryToMachineFile : cannot open '" << machine_code_path << "' file\n";
     }
 }
 
 #else
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code)
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code, string& error_msg)
 {
     return nullptr;
 }
 
-EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
+EXPORT string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
 {
     return "";
 }
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path)
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path, string& error_msg)
 {
     return nullptr;
 }
 
-EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path)
+EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const string& machine_code_path)
 {
 }
 
@@ -458,7 +497,7 @@ int wasm_dsp::getSampleRate()
 
 void wasm_dsp::init(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1); }, fIndex, fDSP, sample_rate);
+    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceInit(int sample_rate)
@@ -493,7 +532,7 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 {
-    // std::cout << "wasm_dsp::computeJS " << count << std::endl;
+    // cout << "wasm_dsp::computeJS " << count << endl;
 
     EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count, input,
            output);
@@ -501,7 +540,7 @@ void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    // std::cout << "wasm_dsp::compute " << count << std::endl;
+    // cout << "wasm_dsp::compute " << count << endl;
 
     EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count,
            reinterpret_cast<uintptr_t>(input), reinterpret_cast<uintptr_t>(output));
@@ -514,16 +553,17 @@ void wasm_dsp::computeJSTest(int count)
 
     std::cout << "computeJSTest " << count << " " << getNumInputs() << " " << getNumOutputs() << std::endl;
     std::cout << "computeJSTest inputs " << inputs << " outputs " << outputs << std::endl;
+    std::cout << "computeJSTest getNumInputs() " << getNumInputs() << " getNumOutputs() " << getNumOutputs() << std::endl;
 
     for (int chan = 0; chan < getNumInputs(); chan++) {
-        for (int frame = 0; frame < 10; frame++) {
+        for (int frame = 0; frame < count; frame++) {
             std::cout << "frame input = " << frame << " : " << (inputs[chan][frame]) << std::endl;
         }
     }
 
-    // init(44100);
-    // compute(count, inputs, outputs);
+    compute(count, inputs, outputs);
 
+    /*
     wasm_dsp* dsp1 = clone();
     wasm_dsp* dsp2 = clone();
     wasm_dsp* dsp3 = clone();
@@ -539,9 +579,10 @@ void wasm_dsp::computeJSTest(int count)
     std::cout << "JSON " << jsonui.JSON(true);
 
     seq->compute(count, inputs, outputs);
+    */
 
     for (int chan = 0; chan < getNumOutputs(); chan++) {
-        for (int frame = 0; frame < 10; frame++) {
+        for (int frame = 0; frame < count; frame++) {
             std::cout << "frame output = " << frame << " : " << (outputs[chan][frame]) << std::endl;
         }
     }
@@ -555,7 +596,6 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
     class_<wasm_dsp_factory>("wasm_dsp_factory")
         .constructor()
         .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
-        .function("getJSON", &wasm_dsp_factory::getJSON, allow_raw_pointers())
         .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
                         allow_raw_pointers())
         .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
@@ -563,7 +603,9 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
         .class_function("createAudioBuffers", &wasm_dsp_factory::createJSAudioBuffers, allow_raw_pointers())
         .class_function("deleteAudioBuffers", &wasm_dsp_factory::deleteJSAudioBuffers, allow_raw_pointers())
         .class_function("copyAudioBuffer", &wasm_dsp_factory::copyJSAudioBuffer, allow_raw_pointers())
-        .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage);
+        .class_function("printAudioBuffers", &wasm_dsp_factory::printJSAudioBuffers, allow_raw_pointers())
+        .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
+        .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)

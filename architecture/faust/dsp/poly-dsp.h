@@ -316,14 +316,66 @@ class dsp_poly : public decorator_dsp, public midi {
 
     public:
     
+        dsp_poly()
+        {}
         dsp_poly(dsp* dsp):decorator_dsp(dsp)
         {}
     
         virtual ~dsp_poly() {}
     
+        // Reimplemented for EMCC
+        virtual int getNumInputs() { return decorator_dsp::getNumInputs(); }
+        virtual int getNumOutputs() { return decorator_dsp::getNumOutputs(); }
+        virtual void buildUserInterface(UI* ui_interface) { decorator_dsp::buildUserInterface(ui_interface); }
+        virtual int getSampleRate() { return decorator_dsp::getSampleRate(); }
+        virtual void init(int sample_rate) { decorator_dsp::init(sample_rate); }
+        virtual void instanceInit(int sample_rate) { decorator_dsp::instanceInit(sample_rate); }
+        virtual void instanceConstants(int sample_rate) { decorator_dsp::instanceConstants(sample_rate); }
+        virtual void instanceResetUserInterface() { decorator_dsp::instanceResetUserInterface(); }
+        virtual void instanceClear() { decorator_dsp::instanceClear(); }
+        virtual dsp_poly* clone() { return new dsp_poly(fDSP->clone()); }
+        virtual void metadata(Meta* m) { decorator_dsp::metadata(m); }
+        virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs)
+        {
+            decorator_dsp::compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs),reinterpret_cast<FAUSTFLOAT**>(outputs));
+        }
+    
+        virtual  MapUI* keyOn(int channel, int pitch, int velocity)
+        {
+            return midi::keyOn(channel, pitch, velocity);
+        }
+        virtual  void keyOff(int channel, int pitch, int velocity)
+        {
+            midi::keyOff(channel, pitch, velocity);
+        }
+        virtual  void keyPress(int channel, int pitch, int press)
+        {
+            midi::keyPress(channel, pitch, press);
+        }
+        virtual void chanPress(int channel, int press)
+        {
+            midi::chanPress(channel, press);
+        }
+        virtual void ctrlChange(int channel, int ctrl, int value)
+        {
+            midi::ctrlChange(channel, ctrl, value);
+        }
+        virtual void ctrlChange14bits(int channel, int ctrl, int value)
+        {
+            midi::ctrlChange14bits(channel, ctrl, value);
+        }
+        virtual void pitchWheel(int channel, int wheel)
+        {
+            midi::pitchWheel(channel, wheel);
+        }
+        virtual void progChange(int channel, int pgm)
+        {
+            midi::progChange(channel, pgm);
+        }
+    
         // Group API
-        virtual void setGroup(bool group) = 0;
-        virtual bool getGroup() = 0;
+        virtual void setGroup(bool group) {}
+        virtual bool getGroup() { return false; }
 
 };
 
@@ -676,26 +728,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {}
 
 };
-
-static std::string pathToContent(const std::string& path)
-{
-    std::ifstream file(path.c_str(), std::ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    std::string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
 
 /**
  * Polyphonic DSP with an integrated effect. fPolyDSP will respond to MIDI messages.

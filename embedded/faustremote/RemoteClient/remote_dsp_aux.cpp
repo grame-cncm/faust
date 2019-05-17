@@ -29,6 +29,8 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/misc.h"
+
 #include "remote_dsp_aux.h"
 #include "libfaust.h"
 #include "utilities.h"

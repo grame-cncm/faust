@@ -258,7 +258,6 @@ int main(int argc, char* argv[])
     // State (after UI construction)
     finterface->recallState(rcfilename);
     audio.start();
-
     if (is_httpd) {
         httpdinterface->run();
     }
@@ -270,6 +269,19 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface->run();
     }
+    
+    /*
+    // Test MIDI API
+    DSP->keyOn(0, 60, 100);
+    DSP->keyOn(0, 64, 100);
+    DSP->keyOn(0, 57, 100);
+    
+    usleep(1000000);
+    
+    DSP->keyOff(0, 60, 100);
+    DSP->keyOff(0, 64, 100);
+    DSP->keyOff(0, 57, 100);
+    */
     
     interface->run();
 

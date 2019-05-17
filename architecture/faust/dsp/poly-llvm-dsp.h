@@ -26,6 +26,7 @@
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/poly-dsp.h"
+#include "faust/misc.h"
 
 /**
  *  LLVM backend based Polyphonic DSP factory class.
@@ -57,7 +58,7 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
     virtual ~llvm_dsp_poly_factory()
     {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(fProcessFactory));
-        if (fEffectFactory) { deleteDSPFactory(static_cast<llvm_dsp_factory*>(fEffectFactory)); }
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(fEffectFactory));
     }
 
 };
@@ -75,12 +76,12 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
-                                                        const std::string& dsp_content,
-                                                        int argc, const char* argv[],
-                                                        const std::string& target,
-                                                        std::string& error_msg,
-                                                        int opt_level = -1)
+static llvm_dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
+                                                             const std::string& dsp_content,
+                                                             int argc, const char* argv[],
+                                                             const std::string& target,
+                                                             std::string& error_msg,
+                                                             int opt_level = -1)
 {
     try {
         return new llvm_dsp_poly_factory(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
@@ -102,11 +103,11 @@ static dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
-                                                      int argc, const char* argv[],
-                                                      const std::string& target,
-                                                      std::string& error_msg,
-                                                      int opt_level = -1)
+static llvm_dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
+                                                           int argc, const char* argv[],
+                                                           const std::string& target,
+                                                           std::string& error_msg,
+                                                           int opt_level = -1)
 {
     return createPolyDSPFactoryFromString("FaustDSP", pathToContent(filename), argc, argv, target, error_msg, opt_level);
 }

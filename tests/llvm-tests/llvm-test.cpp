@@ -39,26 +39,6 @@ static void printList(const vector<string>& list)
     }
 }
 
-static std::string pathToContent(const std::string& path)
-{
-    std::ifstream file(path.c_str(), std::ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    std::string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
-
 int main(int argc, const char** argv)
 {
     if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help")) {
