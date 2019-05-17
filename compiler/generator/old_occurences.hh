@@ -32,7 +32,6 @@ class old_Occurences {
     int       fOccurences[4];  ///< Occurences count according to Contexts
     bool      fMultiOcc;       ///< True when exp has multiple occ. or occ. in higher ctxt
     bool      fOutDelayOcc;    ///< True when exp has at least one occ. outside a delay
-    int       fMinDelay;       ///< Minimal fix delay usage
     int       fMaxDelay;       ///< Maximal fix delay usage
     Tree      fExecCondition;  ///< When this expression must be computed
 
@@ -43,7 +42,6 @@ class old_Occurences {
     bool hasMultiOccurences() const;     ///< true if multiple occurences or occ. in higher ctxt
     bool hasOutDelayOccurences() const;  ///< true if has occurences outside a a delay
     int  getMaxDelay() const;            ///< return the maximal delay collected
-    int  getMinDelay() const;            ///< return the minimal delay collected
     Tree getExecCondition() const;       ///< return the exec condition
 };
 
