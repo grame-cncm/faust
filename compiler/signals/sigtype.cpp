@@ -82,7 +82,10 @@ ostream& SimpleType::print(ostream& dst) const
  */
 ostream& TableType::print(ostream& dst) const
 {
-    dst << "KB?S"[variability()] << "CI?E"[computability()] << " " << fInterval << ":Table(";
+    const char* v = "KB?S";
+    const char* c = "CI?E";
+
+    dst << v[variability()] << c[computability()] << " " << fInterval << ":Table(";
     fContent->print(dst);
     return dst << ')';
 }
@@ -100,7 +103,10 @@ bool TableType::isMaximal() const
  */
 ostream& TupletType::print(ostream& dst) const
 {
-    dst << "KB?S"[variability()] << "CI?E"[computability()] << " " << fInterval << " : {";
+    const char* v = "KB?S";
+    const char* c = "CI?E";
+
+    dst << v[variability()] << c[computability()] << " " << fInterval << " : {";
     string sep = "";
     for (unsigned int i = 0; i < fComponents.size(); i++, sep = "*") {
         dst << sep;
