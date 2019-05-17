@@ -149,16 +149,16 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("Signal Splitter");
     cerr << "Start Signal Splitter" << endl;
     SignalSplitter SS(fOccMarkup);
-    //SS.trace(true);
+    // SS.trace(true);
     Tree L3S = SS.mapself(L3);
     cerr << "\n\nL3S = " << ppsig(L3S) << endl;
-    SS.print(cerr);
+    // SS.print(cerr);
     cerr << endl;
 
     RecRemover RR;
     cerr << "Remove Recursions" << endl;
     for (auto s : SS.fSplittedSignals) {
-        //cerr << ppsig(s) << "\n";
+        // cerr << ppsig(s) << "\n";
         cerr << ppsig(RR.self(s)) << "\n";
         cerr << endl;
     }
