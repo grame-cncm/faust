@@ -187,8 +187,8 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Read and Write
-    else if (isSigRead(sig, x)) {  // x is used as an id, we don't go into it
-        return sig;
+    else if (isSigRead(sig, x, &i, y)) {  // x is used as an id, we don't go into it
+        return sigRead(x, i, self(y));
     } else if (isSigWrite(sig, x, &i, y)) {  // x is used as an id, we don't go into it
         return sigWrite(x, i, self(y));
     }

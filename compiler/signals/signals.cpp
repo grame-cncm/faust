@@ -709,14 +709,20 @@ bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig)
     }
 }
 
-Tree sigRead(Tree id)
+Tree sigRead(Tree id, int dmin, Tree dl)
 {
-    return tree(gGlobal->SIGREAD, id);
+    return tree(gGlobal->SIGREAD, id, tree(dmin), dl);
 }
 
-bool isSigRead(Tree s, Tree& id)
+bool isSigRead(Tree s, Tree& id, int* dmin, Tree& dl)
 {
-    return isTree(s, gGlobal->SIGREAD, id);
+    Tree tmin;
+    if (isTree(s, gGlobal->SIGREAD, id, tmin, dl)) {
+        *dmin = tree2int(tmin);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
