@@ -357,8 +357,8 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 Tree sigCartesianProd(Tree s1, Tree s2);
 
 // cache
-Tree sigWrite(Tree id, Tree sig);
-bool isSigWrite(Tree s, Tree& id, Tree& sig);
+Tree sigWrite(Tree id, int dmax, Tree sig);
+bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig);
 
 Tree sigRead(Tree sig);
 bool isSigRead(Tree s, Tree& sig);
