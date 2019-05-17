@@ -360,8 +360,8 @@ Tree sigCartesianProd(Tree s1, Tree s2);
 Tree sigWrite(Tree id, int dmax, Tree sig);
 bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig);
 
-Tree sigRead(Tree sig);
-bool isSigRead(Tree s, Tree& sig);
+Tree sigRead(Tree id, int dmin, Tree dl);
+bool isSigRead(Tree s, Tree& id, int* dmin, Tree& dl);
 
 /*****************************************************************************
                              FTZ wrapping

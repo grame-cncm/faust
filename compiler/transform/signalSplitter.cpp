@@ -45,24 +45,13 @@ Tree SignalSplitter::transformation(Tree sig)
     Tree x, y;
 
     if (isSigFixDelay(sig, x, y)) {
-        old_Occurences* ox = fOccMarkup->retrieve(x);
+        int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
+        interval i    = getCertifiedSigType(y)->getInterval();
+        Tree     v    = self(x);
+        Tree     w    = self(y);
 
-        Tree v = self(x);
-        Tree w = self(y);
-        fSplittedSignals.insert(sigWrite(v, ox->getMaxDelay(), v));
-        return sigFixDelay(sigRead(v), w);
-#if 0
-    } else if (isProj(sig, &i, x)) {
-        Tree r = self(x);
-        Tree id, le;
-        if (isRec(r,id,le)) {
-            Tree v = nth(le, i);
-            return v;
-        } else {
-            cerr << "INTERNAL ERROR" << endl;
-            exit(1);
-        }
-#endif
+        fSplittedSignals.insert(sigWrite(v, dmax, v));
+        return sigRead(v, int(i.lo), w);
     } else {
         return SignalIdentity::transformation(sig);
     }

@@ -295,8 +295,8 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigWrite(sig, x, &i, y)) {
         fout << "sigWrite(" << x << '[' << i << ']' << " := " << ppsig(y) << ")";
-    } else if (isSigRead(sig, x)) {
-        fout << "sigRead(" << x << ")";
+    } else if (isSigRead(sig, x, &i, y)) {
+        fout << "sigRead(" << x << '<' << i << '>' << ", " << ppsig(y) << ")";
     }
 
     else {
