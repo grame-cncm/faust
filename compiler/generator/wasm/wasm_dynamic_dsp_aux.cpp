@@ -252,16 +252,13 @@ EXPORT void freeWasmCModule(WasmModule* module)
 
 #ifdef EMCC
 
-/*
-vector<string> makeStringVector()
-{
-    vector<string> v;
-    return v;
-}
-*/
-
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+
+vector<string> makeStringVector()
+{
+    return vector<string>();
+}
 
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dynamic_dsp_factory)
 {

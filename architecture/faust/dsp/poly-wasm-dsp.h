@@ -192,12 +192,6 @@ static void writeWasmPolyDSPFactoryToMachineFile(dsp_poly_factory* factory, cons
 #include <emscripten/bind.h>
 using namespace emscripten;
 
-vector<string> makeStringVector()
-{
-    vector<string> v;
-    return v;
-}
-
 EMSCRIPTEN_BINDINGS(CLASS_MapUI) {
     
     class_<MapUI>("MapUI")
@@ -205,8 +199,6 @@ EMSCRIPTEN_BINDINGS(CLASS_MapUI) {
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_poly_factory) {
-    //emscripten::function("makeStringVector", &makeStringVector);
-    //register_vector<string>("vector<string>");
     class_<wasm_dsp_poly_factory>("wasm_dsp_poly_factory")
     .constructor()
     .function("createPolyDSPInstance", &wasm_dsp_poly_factory::createPolyDSPInstance, allow_raw_pointers())
@@ -230,8 +222,13 @@ EMSCRIPTEN_BINDINGS(CLASS_dsp_poly)
     .function("clone", &dsp_poly::clone, allow_raw_pointers())
     .function("compute", &dsp_poly::computeJS, allow_raw_pointers())
     .function("keyOn", &dsp_poly::keyOn, allow_raw_pointers())
-    .function("keyOff", &dsp_poly::keyOff, allow_raw_pointers());
-    //.function("compute", &dsp_poly::computeJS, allow_raw_pointers());
+    .function("keyOff", &dsp_poly::keyOff, allow_raw_pointers())
+    .function("keyPress", &dsp_poly::keyPress, allow_raw_pointers())
+    .function("chanPress", &dsp_poly::chanPress, allow_raw_pointers())
+    .function("ctrlChange", &dsp_poly::ctrlChange, allow_raw_pointers())
+    .function("ctrlChange14bits", &dsp_poly::ctrlChange14bits, allow_raw_pointers())
+    .function("pitchWheel", &dsp_poly::pitchWheel, allow_raw_pointers())
+    .function("progChange", &dsp_poly::progChange, allow_raw_pointers());
 }
 
 #endif

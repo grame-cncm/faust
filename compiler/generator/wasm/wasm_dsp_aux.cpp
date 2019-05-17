@@ -298,9 +298,9 @@ FAUSTFLOAT** wasm_dsp_factory::createAudioBuffers(int chan, int frames)
     return buffers;
 }
 
-void wasm_dsp_factory::copyAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames)
+void wasm_dsp_factory::copyAudioBuffer(FAUSTFLOAT** out, FAUSTFLOAT* in, int chan, int frames)
 {
-    memcpy(js_buffers[chan], js_buffer, frames * sizeof(FAUSTFLOAT));
+    memcpy(out[chan], in, frames * sizeof(FAUSTFLOAT));
 }
 
 void wasm_dsp_factory::deleteAudioBuffers(FAUSTFLOAT** buffers, int chan)
@@ -325,9 +325,9 @@ uintptr_t wasm_dsp_factory::createJSAudioBuffers(int chan, int frames)
     return reinterpret_cast<uintptr_t>(createAudioBuffers(chan, frames));
 }
 
-void wasm_dsp_factory::copyJSAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames)
+void wasm_dsp_factory::copyJSAudioBuffer(uintptr_t out, uintptr_t in, int chan, int frames)
 {
-    copyAudioBuffer(reinterpret_cast<FAUSTFLOAT**>(js_buffers), reinterpret_cast<FAUSTFLOAT*>(js_buffer), chan, frames);
+    copyAudioBuffer(reinterpret_cast<FAUSTFLOAT**>(out), reinterpret_cast<FAUSTFLOAT*>(in), chan, frames);
 }
 
 void wasm_dsp_factory::deleteJSAudioBuffers(uintptr_t js_buffers, int chan)
@@ -351,14 +351,12 @@ const string& wasm_dsp_factory::getErrorMessage()
 
 wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const string& machine_code_path)
 {
-    string error_msg;
-    return readWasmDSPFactoryFromMachineFile(machine_code_path, error_msg);
+    return readWasmDSPFactoryFromMachineFile(machine_code_path, wasm_dsp_factory::gErrorMessage);
 }
 
 wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string& machine_code)
 {
-    string error_msg;
-    return readWasmDSPFactoryFromMachine(machine_code, error_msg);
+    return readWasmDSPFactoryFromMachine(machine_code, wasm_dsp_factory::gErrorMessage);
 }
 
 // C++ API
@@ -486,7 +484,6 @@ int wasm_dsp::getNumOutputs()
 
 void wasm_dsp::buildUserInterface(UI* ui_interface)
 {
-    // TO CHECK
     fFactory->getDecoder()->buildUserInterface(ui_interface, reinterpret_cast<char*>(fDSP));
 }
 
@@ -532,16 +529,12 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 {
-    // cout << "wasm_dsp::computeJS " << count << endl;
-
     EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count, input,
            output);
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    // cout << "wasm_dsp::compute " << count << endl;
-
     EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count,
            reinterpret_cast<uintptr_t>(input), reinterpret_cast<uintptr_t>(output));
 }
@@ -643,7 +636,6 @@ int wasm_dsp::getNumOutputs()
 
 void wasm_dsp::buildUserInterface(UI* ui_interface)
 {
-    // TODO : use JSONUIDecoder
 }
 
 int wasm_dsp::getSampleRate()
@@ -678,7 +670,6 @@ wasm_dsp* wasm_dsp::clone()
 
 void wasm_dsp::metadata(Meta* m)
 {
-    // TODO : JSONUIDecoder
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)

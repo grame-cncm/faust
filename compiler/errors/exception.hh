@@ -37,7 +37,6 @@ class faustexception : public std::runtime_error {
    public:
 #ifdef EMCC
     static const char* gJSExceptionMsg;
-
     faustexception(const std::string& msg = "") : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg.c_str()); }
     faustexception(char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
     faustexception(const char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
