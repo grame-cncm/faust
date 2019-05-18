@@ -19,28 +19,31 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGNALSPLITTER__
-#define __SIGNALSPLITTER__
+#ifndef __SIGIDENTITY__
+#define __SIGIDENTITY__
 
-#include <iostream>
-#include <set>
-#include <unordered_map>
-#include "old_occurences.hh"
-#include "sigIdentity.hh"
+#include <stdlib.h>
+#include <cstdlib>
+#include "property.hh"
+#include "sigtyperules.hh"
+#include "tree.hh"
+#include "treeTraversal.hh"
 
-// Make explicit automatic promotion to float
-class SignalSplitter : public SignalIdentity {
-    old_OccMarkup* fOccMarkup;
+//-------------------------SignalIdentity-------------------------------
+// An identity transformation on signals. Can be used to test
+// that everything works, and as a pattern for real transformations.
+//----------------------------------------------------------------------
+
+class SignalVisitor : public TreeTraversal {
+    bool fVisitGen;
 
    public:
-    std::set<Tree> fSplittedSignals;
-
-   public:
-    SignalSplitter(old_OccMarkup* om) : fOccMarkup(om) {}
-    virtual ostream& print(ostream& dst) const;
+    SignalVisitor() : fVisitGen(false) {}
 
    protected:
-    virtual Tree transformation(Tree sig);
+    virtual void visit(Tree t);
+    virtual void traceEnter(Tree t);
+    virtual void traceExit(Tree t, Tree r);
 };
 
 #endif
