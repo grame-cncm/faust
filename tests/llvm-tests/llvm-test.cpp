@@ -35,7 +35,7 @@ using namespace std;
 static void printList(const vector<string>& list)
 {
     for (int i = 0; i < list.size(); i++) {
-        std::cout << "item: " << list[i] << "\n";
+        cout << "item: " << list[i] << "\n";
     }
 }
 

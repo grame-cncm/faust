@@ -60,22 +60,11 @@ class mydsp : public dsp {
         comp_llvm_dsp* fDSP;
         JSONUITemplatedDecoder* fDecoder;
     
-        std::string removeChar(const std::string& str, char c)
-        {
-            std::string res;
-            res.reserve(str.size());
-            for (size_t i = 0; i < str.size(); ++i) {
-                if (str[i] != c) res += str[i];
-            }
-            return res;
-        }
-    
     public:
     
         mydsp()
         {
-            std::string json = removeChar(getJSONmydsp(), '\\');
-            fDecoder = createJSONUIDecoder(json);
+            fDecoder = createJSONUIDecoder(getJSONmydsp());
             fDSP = static_cast<comp_llvm_dsp*>(calloc(1, fDecoder->getDSPSize()));
             allocatemydsp(fDSP);
         }

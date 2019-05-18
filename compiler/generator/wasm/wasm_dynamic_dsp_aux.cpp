@@ -248,8 +248,6 @@ EXPORT void freeWasmCModule(WasmModule* module)
 }
 #endif
 
-// C API
-
 #ifdef EMCC
 
 list<GUI*> GUI::fGuiList;

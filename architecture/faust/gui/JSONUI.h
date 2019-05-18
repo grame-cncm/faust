@@ -29,6 +29,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
@@ -73,6 +74,26 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             }
         }
     
+        std::string flatten(const std::string& src)
+        {
+            std::string dst;
+            for (size_t i = 0; i < src.size(); i++) {
+                switch (src[i]) {
+                    case '\n':
+                    case '\t':
+                        break;
+                        // replace single quote with '_'
+                    case '\'':
+                        dst += '_';
+                        break;
+                    default:
+                        dst += src[i];
+                        break;
+                }
+            }
+            return dst;
+        }
+    
         void addMeta(int tab_val, bool quote = true)
         {
             if (fMetaAux.size() > 0) {
@@ -86,26 +107,6 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 tab(tab_val, fUI); fUI << ((quote) ? "],": "]");
                 fMetaAux.clear();
             }
-        }
-    
-        std::string flatten(const std::string& src)
-        {
-            std::stringstream dst;
-            for (size_t i = 0; i < src.size(); i++) {
-                switch (src[i]) {
-                    case '\n':
-                    case '\t':
-                        break;
-                    // replace single quote with '_'
-                    case '\'':
-                        dst << '_';
-                        break;
-                    default:
-                        dst << src[i];
-                        break;
-                }
-            }
-            return dst.str();
         }
     
         std::string getAddressIndex(const std::string& path)
@@ -212,7 +213,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
-            addMeta(fTab + 1);
+            addMeta(fTab);
             tab(fTab, fUI); fUI << "\"items\": [";
             fCloseUIPar = ' ';
             fTab += 1;
@@ -251,15 +252,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
-            tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
+            fTab += 1;
+            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
+                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             } else {
-                tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
-            addMeta(fTab + 1, false);
+            addMeta(fTab, false);
+            fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
         }
@@ -280,17 +283,19 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
-            tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
+            fTab += 1;
+            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
+                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
             }
-            addMeta(fTab + 1);
-            tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
-            tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
-            tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\",";
-            tab(fTab + 1, fUI); fUI << "\"step\": \"" << step << "\"";
+            addMeta(fTab);
+            tab(fTab, fUI); fUI << "\"init\": \"" << init << "\",";
+            tab(fTab, fUI); fUI << "\"min\": \"" << min << "\",";
+            tab(fTab, fUI); fUI << "\"max\": \"" << max << "\",";
+            tab(fTab, fUI); fUI << "\"step\": \"" << step << "\"";
+            fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
         }
@@ -318,15 +323,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
-            tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
+            fTab += 1;
+            tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
+            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
+                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
             }
-            addMeta(fTab + 1);
-            tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
-            tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\"";
+            addMeta(fTab);
+            tab(fTab, fUI); fUI << "\"min\": \"" << min << "\",";
+            tab(fTab, fUI); fUI << "\"max\": \"" << max << "\"";
+            fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
         }
@@ -347,13 +354,15 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
-            tab(fTab + 1, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
+            fTab += 1;
+            tab(fTab, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
+            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
+            tab(fTab, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
+            tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"";
+                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"";
             }
+            fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
         }
@@ -420,7 +429,13 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 JSON << fUI.str();
             }
             tab(fTab, JSON); JSON << "}";
-            return (flat) ? flatten(JSON.str()) : JSON.str();
+            if (flat) {
+                return flatten(JSON.str());
+            } else {
+                std::string json = JSON.str();
+                std::replace(json.begin(), json.end(), '\'', '_');
+                return json;
+            }
         }
     
 };

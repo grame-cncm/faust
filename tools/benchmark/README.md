@@ -143,7 +143,7 @@ Set root to the OSC program name (like '/freeverb'). Then use the available opti
 - `-port <port> to set the OSC input port`
 - `-outport <port>' to set the OSC output port`
 
-Note that the OSC *input port* of the **faust-osc-controller** tool has to be the *output port* of the controlled program. And the OSC *output port* of the **faust-osc-controller** tool has to be the *input port* of the controlled program. The controler and controlled programs both have to send messages using the -xmit (1|2) parameter, depending if you use real paths or alisases.
+Note that the OSC *input port* of the **faust-osc-controller** tool has to be the *output port* of the controlled program. And the OSC *output port* of the **faust-osc-controller** tool has to be the *input port* of the controlled program. The controler and controlled programs both have to send messages using the -xmit (1|2) parameter, depending if you use real paths or aliases.
 
 Example:
 

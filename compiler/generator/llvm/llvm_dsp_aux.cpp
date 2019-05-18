@@ -248,9 +248,8 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
         fCompute           = (computeFun)loadOptimize("compute" + fClassName);
         fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
-
-        string json = removeChar(fGetJSON(), '\\');
-        fDecoder    = createJSONUIDecoder(json);
+        
+        fDecoder = createJSONUIDecoder(fGetJSON());
         endTiming("initJIT");
         return true;
     } catch (

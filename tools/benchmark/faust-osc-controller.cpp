@@ -26,6 +26,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <algorithm>
 
 #include "faust/gui/GTKUI.h"
 #include "faust/gui/OSCUI.h"
@@ -42,11 +43,7 @@ ztimedmap GUI::gTimedZoneMap;
 
 static string replaceChar(string str, char src, char dst)
 {
-    for (size_t i = 0; i < str.length(); ++i) {
-        if (str[i] == src) {
-            str[i] = dst;
-        }
-    }
+    replace(str.begin(), str.end(), src, dst);
     return str;
 }
 

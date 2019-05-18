@@ -55,7 +55,7 @@ mydsp DSP;
 int main(int argc, char *argv[])
 {
     JSONUI json(DSP.getNumInputs(), DSP.getNumOutputs());
-    // Add metadata before UI is mandatory for proper JSONUI functionning
+    // Add metadata before UI is mandatory for proper JSONUI functioning
     DSP.metadata(&json);
     DSP.buildUserInterface(&json);
     cout << json.JSON();

@@ -204,6 +204,16 @@ static bool parseSQString(const char*& p, std::string& s)
 }
 
 /**
+ * @brief parseUQString, parse a underscore quoted string _..._ and store the result in s
+ * @param p the string to parse, then the remaining string
+ * @param s the (unquoted) string found if any
+ * @return true if a string was found at the begin of p
+ */
+static bool parseUQString(const char*& p, std::string& s)
+{
+    return parseString(p, '_', s);
+}
+/**
  * @brief parseDQString, parse a double quoted string "..." and store the result in s
  * @param p the string to parse, then the remaining string
  * @param s the (unquoted) string found if any
@@ -241,7 +251,9 @@ static bool parseMenuItem(const char*& p, std::string& name, double& value)
 static bool parseMenuItem2(const char*& p, std::string& name)
 {
     const char* saved = p;  // to restore position if we fail
-    if (parseSQString(p, name)) {
+    
+    // single quoted or underscore string (like 'label' or _label_)
+    if (parseSQString(p, name) || parseUQString(p, name) ) {
         return true;
     } else {
         p = saved;

@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface = new MidiUI(&midi_handler);
         DSP->buildUserInterface(midiinterface);
-        std::cout << "MIDI is on" << std::endl;
+        cout << "MIDI is on" << endl;
     }
     
     // State (after UI construction)

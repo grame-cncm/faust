@@ -80,7 +80,7 @@ class proxy_osc_dsp : public proxy_dsp {
                 goto fail;
             }
             
-            // Wait for 'json' reply from OSC application
+            // Wait for 'json' reply from the OSC application
             if (lo_server_recv_noblock(server, time_out * 1000) == 0) {
                 std::cerr << "No '" << host << "' OSC application on input " << int_port << " and output " << out_port << std::endl;
                 goto fail;
@@ -89,6 +89,8 @@ class proxy_osc_dsp : public proxy_dsp {
             lo_address_free(target);
             lo_message_free(message);
             lo_server_free(server);
+            
+            // Creates the proxy from the retrieved JSON
             init(fJSON);
             return;
             

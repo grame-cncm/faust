@@ -77,7 +77,7 @@ struct malloc_memory_manager : public dsp_memory_manager {
 static void printList(const vector<string>& list)
 {
     for (int i = 0; i < list.size(); i++) {
-        std::cout << "item: " << list[i] << "\n";
+        cout << "item: " << list[i] << "\n";
     }
 }
 

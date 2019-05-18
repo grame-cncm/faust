@@ -31,12 +31,12 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
+    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
-    std::string error_msg;
+    string error_msg;
     dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
     if (!factory) {
-        std::cerr << "Cannot create factory : " << error_msg;
+        cerr << "Cannot create factory : " << error_msg;
         exit(1);
     }
     
