@@ -47,7 +47,7 @@ class TreeTraversal {
     std::set<Tree> fVisited;    // avoid visiting a tree twice
 
    public:
-    TreeTraversal() : fTraceFlag(false), fIndent(0), fMessage("TreeTraversal") {}
+    TreeTraversal(string msg = "TreeTraversal") : fTraceFlag(false), fIndent(0), fMessage(msg) {}
 
     void self(Tree t);
     void mapself(Tree lt);
