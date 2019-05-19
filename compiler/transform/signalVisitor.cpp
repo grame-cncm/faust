@@ -42,13 +42,13 @@
 void SignalVisitor::traceEnter(Tree t)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << endl;
+    cerr << "ENTER " << fMessage << ": " << ppsig(t) << endl;
 }
 
-void SignalVisitor::traceExit(Tree t, Tree r)
+void SignalVisitor::traceExit(Tree t)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << " => " << ppsig(r) << endl;
+    cerr << "EXIT  " << fMessage << ": " << ppsig(t) << endl;
 }
 
 void SignalVisitor::visit(Tree sig)

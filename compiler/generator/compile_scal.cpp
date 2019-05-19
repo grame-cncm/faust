@@ -43,7 +43,9 @@
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
+#include "signalDependencies.hh"
 #include "signalSplitter.hh"
+#include "signalVisitor.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -145,6 +147,11 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     //****************************************************************************************************
     //****************************************************************************************************
+    // startTiming("Signal Visitor");
+    // SignalVisitor SV;
+    // SV.trace(true);
+    // SV.mapself(L3);
+    // endTiming("Signal Visitor)");
 
     startTiming("Signal Splitter");
     cerr << "Start Signal Splitter" << endl;
@@ -159,7 +166,14 @@ Tree ScalarCompiler::prepare(Tree LS)
     cerr << "Remove Recursions" << endl;
     for (auto s : SS.fSplittedSignals) {
         // cerr << ppsig(s) << "\n";
-        cerr << ppsig(RR.self(s)) << "\n";
+        SignalDependencies D;
+        D.trace(false, "Dependencies");
+
+        Tree e = RR.self(s);
+        cerr << ppsig(e) << "\n";
+        cerr << endl;
+        D.self(e);
+        D.print(cerr);
         cerr << endl;
     }
 

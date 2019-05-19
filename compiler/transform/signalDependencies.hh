@@ -19,31 +19,32 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SignalVisitor__
-#define __SignalVisitor__
+#ifndef _SignalDependencies_
+#define _SignalDependencies_
 
-#include <stdlib.h>
 #include <cstdlib>
+#include <iostream>
+#include <map>
 #include "property.hh"
+#include "signalVisitor.hh"
 #include "sigtyperules.hh"
 #include "tree.hh"
-#include "treeTraversal.hh"
 
 //-------------------------SignalIdentity-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.
 //----------------------------------------------------------------------
 
-class SignalVisitor : public TreeTraversal {
-    bool fVisitGen;
+class SignalDependencies : public SignalVisitor {
+    bool                fVisitGen;
+    std::map<Tree, int> fDependencies;  // The dependencies revelated by a visit
 
    public:
-    SignalVisitor() : fVisitGen(false) {}
+    SignalDependencies() : fVisitGen(false) {}
+    virtual ostream& print(ostream& dst) const;
 
    protected:
     virtual void visit(Tree t);
-    virtual void traceEnter(Tree t);
-    virtual void traceExit(Tree t);
 };
 
 #endif
