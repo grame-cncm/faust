@@ -54,10 +54,10 @@ using namespace std;
 EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size),
 {
     // Done once when creating the first factory
-    FaustModule.faust               = FaustModule.faust || {};
-    FaustModule.faust.wasm_module   = FaustModule.faust.wasm_module || [];
-    FaustModule.faust.wasm_instance = FaustModule.faust.wasm_instance || [];
-    FaustModule.faust.importObject  = FaustModule.faust.importObject ||
+    faust_module.faust               = faust_module.faust || {};
+    faust_module.faust.wasm_module   = faust_module.faust.wasm_module || [];
+    faust_module.faust.wasm_instance = faust_module.faust.wasm_instance || [];
+    faust_module.faust.importObject  = faust_module.faust.importObject ||
     { env :
         {
             memoryBase : 0,
@@ -136,20 +136,20 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size),
     var factory_code = new Uint8Array(code_size);
     for (var i = 0; i < code_size; i++) {
         // faster than 'getValue' which gets the type of access for each read...
-        factory_code[i] = FaustModule.HEAP8[code_ptr + i];
+        factory_code[i] = faust_module.HEAP8[code_ptr + i];
     }
 
     // Compile wasm module
-    FaustModule.faust.wasm_module.push(new WebAssembly.Module(factory_code));
+    faust_module.faust.wasm_module.push(new WebAssembly.Module(factory_code));
     
     /*
     var finished = false;
     WebAssembly.compile(factory_code)
-    .then(module => { console.log("COMPILED"); console.log(module); finished = true; FaustModule.faust.wasm_module.push(module); })
+    .then(module => { console.log("COMPILED"); console.log(module); finished = true; faust_module.faust.wasm_module.push(module); })
     .catch(function(error) { console.log(error); });
     */
  
-    return FaustModule.faust.wasm_module.length - 1;
+    return faust_module.faust.wasm_module.length - 1;
 });
 
 void wasm_dsp_factory::createModuleFromString()
@@ -185,11 +185,11 @@ wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 
 #endif
 
-wasm_dsp_factory::wasm_dsp_factory(int module, uintptr_t json)
+wasm_dsp_factory::wasm_dsp_factory(int module, const std::string& json)
 {
     fFactory = nullptr;
     fModule = module;
-    fJSON = reinterpret_cast<const char*>(json);
+    fJSON = json;
     fDecoder = createJSONUIDecoder(fJSON);
 }
 
@@ -245,9 +245,9 @@ vector<string> wasm_dsp_factory::getIncludePathnames()
 #ifdef EMCC
 
 EM_JS(int, createJSDSPInstance, (int module), {
-    var wasm_instance = new WebAssembly.Instance(FaustModule.faust.wasm_module[module], FaustModule.faust.importObject);
-    FaustModule.faust.wasm_instance.push(wasm_instance);
-    return FaustModule.faust.wasm_instance.length - 1;
+    var wasm_instance = new WebAssembly.Instance(faust_module.faust.wasm_module[module], faust_module.faust.importObject);
+    faust_module.faust.wasm_instance.push(wasm_instance);
+    return faust_module.faust.wasm_instance.length - 1;
 });
 
 wasm_dsp* wasm_dsp_factory::createDSPInstance()
@@ -298,9 +298,14 @@ FAUSTFLOAT** wasm_dsp_factory::createAudioBuffers(int chan, int frames)
     return buffers;
 }
 
-void wasm_dsp_factory::copyAudioBuffer(FAUSTFLOAT** out, FAUSTFLOAT* in, int chan, int frames)
+void wasm_dsp_factory::copyFromAudioBuffer(FAUSTFLOAT** out, FAUSTFLOAT* in, int chan, int frames)
 {
     memcpy(out[chan], in, frames * sizeof(FAUSTFLOAT));
+}
+
+void wasm_dsp_factory::copyToAudioBuffer(FAUSTFLOAT** in, FAUSTFLOAT* out, int chan, int frames)
+{
+    memcpy(out, in[chan], frames * sizeof(FAUSTFLOAT));
 }
 
 void wasm_dsp_factory::deleteAudioBuffers(FAUSTFLOAT** buffers, int chan)
@@ -325,9 +330,14 @@ uintptr_t wasm_dsp_factory::createJSAudioBuffers(int chan, int frames)
     return reinterpret_cast<uintptr_t>(createAudioBuffers(chan, frames));
 }
 
-void wasm_dsp_factory::copyJSAudioBuffer(uintptr_t out, uintptr_t in, int chan, int frames)
+void wasm_dsp_factory::copyJSFromAudioBuffer(uintptr_t out, uintptr_t in, int chan, int frames)
 {
-    copyAudioBuffer(reinterpret_cast<FAUSTFLOAT**>(out), reinterpret_cast<FAUSTFLOAT*>(in), chan, frames);
+    copyFromAudioBuffer(reinterpret_cast<FAUSTFLOAT**>(out), reinterpret_cast<FAUSTFLOAT*>(in), chan, frames);
+}
+
+void wasm_dsp_factory::copyJSToAudioBuffer(uintptr_t in, uintptr_t out, int chan, int frames)
+{
+    copyToAudioBuffer(reinterpret_cast<FAUSTFLOAT**>(in), reinterpret_cast<FAUSTFLOAT*>(out), chan, frames);
 }
 
 void wasm_dsp_factory::deleteJSAudioBuffers(uintptr_t js_buffers, int chan)
@@ -359,6 +369,13 @@ wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string&
     return readWasmDSPFactoryFromMachine(machine_code, wasm_dsp_factory::gErrorMessage);
 }
 
+wasm_dsp_factory* wasm_dsp_factory::connectWasmDSPFactory(int module, const std::string& json)
+{
+    wasm_dsp_factory* factory = new wasm_dsp_factory(module, json);
+    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
+    return factory;
+}
+
 // C++ API
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
@@ -377,8 +394,6 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_cod
 {
     wasm_dsp_factory* factory = new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", machine_code, ""));
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
-    factory->setSHAKey("");
-    factory->setDSPCode("");
     return factory;
 }
 
@@ -457,7 +472,8 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
 
 wasm_dsp::wasm_dsp(wasm_dsp_factory* factory, int index) : fFactory(factory), fIndex(index)
 {
-    fDSP = EM_ASM_INT({ return FaustModule._malloc($0); }, fFactory->getDecoder()->getDSPSize());
+    fDSP = EM_ASM_INT({ return faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize());
+    buildUserInterface(&fMapUI);
 }
 
 wasm_dsp::~wasm_dsp()
@@ -465,21 +481,21 @@ wasm_dsp::~wasm_dsp()
     EM_ASM(
         {
             // Empty the JS structures so that the instance can be GCed
-            FaustModule.faust.wasm_instance[$0] = null;
+            faust_module.faust.wasm_instance[$0] = null;
             // Free the DSP memory
-            FaustModule._free($1);
+            faust_module._free($1);
         },
         fIndex, fDSP);
 }
 
 int wasm_dsp::getNumInputs()
 {
-    return EM_ASM_INT({ return FaustModule.faust.wasm_instance[$0].exports.getNumInputs($1); }, fIndex, fDSP);
+    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); }, fIndex, fDSP);
 }
 
 int wasm_dsp::getNumOutputs()
 {
-    return EM_ASM_INT({ return FaustModule.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fIndex, fDSP);
+    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fIndex, fDSP);
 }
 
 void wasm_dsp::buildUserInterface(UI* ui_interface)
@@ -489,32 +505,32 @@ void wasm_dsp::buildUserInterface(UI* ui_interface)
 
 int wasm_dsp::getSampleRate()
 {
-    return EM_ASM_INT({ return FaustModule.faust.wasm_instance[$0].exports.getSampleRate($1); }, fIndex, fDSP);
+    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); }, fIndex, fDSP);
 }
 
 void wasm_dsp::init(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.init($1, $2); }, fIndex, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.init($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceInit(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fIndex, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceConstants(int sample_rate)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fIndex, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fIndex, fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceResetUserInterface()
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); }, fIndex, fDSP);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); }, fIndex, fDSP);
 }
 
 void wasm_dsp::instanceClear()
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.instanceClear($1); }, fIndex, fDSP);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceClear($1); }, fIndex, fDSP);
 }
 
 wasm_dsp* wasm_dsp::clone()
@@ -527,16 +543,20 @@ void wasm_dsp::metadata(Meta* m)
     fFactory->getDecoder()->metadata(m);
 }
 
-void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
+void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count, input,
-           output);
+    std::cout << "computeJS " << count << " " << inputs << " " << outputs << std::endl;
+    
+    /*
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count, inputs,
+           outputs);
+    */
 }
 
-void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
-    EM_ASM({ FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count,
-           reinterpret_cast<uintptr_t>(input), reinterpret_cast<uintptr_t>(output));
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count,
+           reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs));
 }
 
 void wasm_dsp::computeJSTest(int count)
@@ -584,6 +604,16 @@ void wasm_dsp::computeJSTest(int count)
     wasm_dsp_factory::deleteAudioBuffers(outputs, getNumOutputs());
 }
 
+void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
+{
+    fMapUI.setParamValue(path, value);
+}
+
+FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
+{
+    return fMapUI.getParamValue(path);
+}
+
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
 {
     class_<wasm_dsp_factory>("wasm_dsp_factory")
@@ -593,9 +623,11 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
                         allow_raw_pointers())
         .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
                         allow_raw_pointers())
+        .class_function("connectWasmDSPFactory", &wasm_dsp_factory::connectWasmDSPFactory, allow_raw_pointers())
         .class_function("createAudioBuffers", &wasm_dsp_factory::createJSAudioBuffers, allow_raw_pointers())
         .class_function("deleteAudioBuffers", &wasm_dsp_factory::deleteJSAudioBuffers, allow_raw_pointers())
-        .class_function("copyAudioBuffer", &wasm_dsp_factory::copyJSAudioBuffer, allow_raw_pointers())
+        .class_function("copyFromAudioBuffer", &wasm_dsp_factory::copyJSFromAudioBuffer, allow_raw_pointers())
+        .class_function("copyToAudioBuffer", &wasm_dsp_factory::copyJSToAudioBuffer, allow_raw_pointers())
         .class_function("printAudioBuffers", &wasm_dsp_factory::printJSAudioBuffers, allow_raw_pointers())
         .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
         .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
@@ -615,7 +647,9 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
         .function("instanceClear", &wasm_dsp::instanceClear, allow_raw_pointers())
         .function("clone", &wasm_dsp::clone, allow_raw_pointers())
         .function("compute", &wasm_dsp::computeJS, allow_raw_pointers())
-        .function("computeJSTest", &wasm_dsp::computeJSTest, allow_raw_pointers());
+        .function("computeJSTest", &wasm_dsp::computeJSTest, allow_raw_pointers())
+        .function("setParamValue", &wasm_dsp::setParamValue, allow_raw_pointers())
+        .function("getParamValue", &wasm_dsp::getParamValue, allow_raw_pointers());
 }
 
 #else
@@ -682,6 +716,15 @@ void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 
 void wasm_dsp::computeJSTest(int count)
 {
+}
+
+void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
+{
+}
+
+FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
+{
+    return -1;
 }
 
 #endif

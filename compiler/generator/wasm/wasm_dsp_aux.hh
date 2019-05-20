@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 
+#include "faust/gui/MapUI.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
@@ -266,6 +267,7 @@ class EXPORT wasm_dsp : public dsp {
     wasm_dsp_factory* fFactory;
     int               fIndex;  // Index of wasm DSP instance
     int               fDSP;    // Index of wasm DSP memory
+    MapUI             fMapUI;
 
    public:
     wasm_dsp() : fFactory(nullptr), fIndex(-1), fDSP(-1) {}
@@ -294,9 +296,13 @@ class EXPORT wasm_dsp : public dsp {
 
     virtual void metadata(Meta* m);
 
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
-    virtual void computeJS(int count, uintptr_t input, uintptr_t output);
+    virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs);
+    
+    virtual void setParamValue(const std::string& path, FAUSTFLOAT value);
+    
+    virtual FAUSTFLOAT getParamValue(const std::string& path);
 
     virtual void computeJSTest(int count);
 };
@@ -313,7 +319,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
    public:
     wasm_dsp_factory() {}
     wasm_dsp_factory(dsp_factory_base* factory);
-    wasm_dsp_factory(int module, uintptr_t json);
+    wasm_dsp_factory(int module, const std::string& json);
 
     virtual ~wasm_dsp_factory();
 
@@ -346,6 +352,10 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path);
 
     static wasm_dsp_factory* readWasmDSPFactoryFromMachine2(const std::string& machine_code);
+    
+    static wasm_dsp_factory* connectWasmDSPFactory(int module, const std::string& json);
+    
+    static std::string extractJSON(const std::string& code);
 
     // Audio buffer management
     static uintptr_t createJSAudioBuffers(int chan, int frames);
@@ -354,8 +364,11 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static void deleteJSAudioBuffers(uintptr_t js_buffers, int chan);
     static void deleteAudioBuffers(FAUSTFLOAT** buffers, int chan);
    
-    static void copyJSAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames);
-    static void copyAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames);
+    static void copyJSFromAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames);
+    static void copyFromAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames);
+    
+    static void copyJSToAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames);
+    static void copyToAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames);
     
     static void printJSAudioBuffers(uintptr_t js_buffers, int chan, int frames);
     static void printAudioBuffers(FAUSTFLOAT** buffers, int chan, int frames);
@@ -363,8 +376,6 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
-    
-    static std::string extractJSON(const std::string& code);
 
     static dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 };

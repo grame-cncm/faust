@@ -50,9 +50,23 @@ wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(cons
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
 
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc1, argv1,
+    return createWasmDSPFactoryFromString(name_app, dsp_content, argc1, argv1,
                                                                wasm_dsp_factory::gErrorMessage, internal_memory);
-    return factory;
+}
+
+std::string wasm_dynamic_dsp_factory::genereateWasmFromString2(const std::string&           name_app,
+                                                            const std::string&              dsp_content,
+                                                            const std::vector<std::string>& argv,
+                                                            bool                            internal_memory)
+{
+    int         argc1 = 0;
+    const char* argv1[64];
+    for (size_t i = 0; i < argv.size(); i++) {
+        argv1[argc1++] = argv[i].c_str();
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+    
+    return generateWasmFromString(name_app, dsp_content, argc1, argv1,wasm_dsp_factory::gErrorMessage, internal_memory);
 }
 
 // C++ API
@@ -152,6 +166,28 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
     } else {
         return nullptr;
     }
+}
+
+EXPORT std::string generateWasmFromString(const string& name_app, const string& dsp_content, int argc,
+                                         const char* argv[], string& error_msg, bool internal_memory)
+{
+    int         argc1 = 0;
+    const char* argv1[64];
+    
+    argv1[argc1++] = "faust";
+    argv1[argc1++] = "-lang";
+    // argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
+    argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
+    argv1[argc1++] = "-o";
+    argv1[argc1++] = "binary";
+    
+    for (int i = 0; i < argc; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+    
+    dsp_factory_base* dsp_factory_aux = compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
+    return (dsp_factory_aux) ? dsp_factory_aux->getBinaryCode() : "";
 }
 
 #ifdef __cplusplus
@@ -265,7 +301,9 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dynamic_dsp_factory)
     class_<wasm_dynamic_dsp_factory>("wasm_dynamic_dsp_factory")
         .constructor()
         .class_function("createWasmDSPFactoryFromString2", &wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2,
-                        allow_raw_pointers());
+                        allow_raw_pointers())
+        .class_function("genereateWasmFromString2", &wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2,
+                    allow_raw_pointers());
 }
 
 #endif
