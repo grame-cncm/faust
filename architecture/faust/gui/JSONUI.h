@@ -82,7 +82,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                     case '\n':
                     case '\t':
                         break;
-                        // replace single quote with '_'
+                    // replace single quote with '_'
                     case '\'':
                         dst += '_';
                         break;

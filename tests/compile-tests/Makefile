@@ -1,7 +1,6 @@
 #
-# Makefile for testing the faust compiler output
+# Makefile for testing the Faust compiler output
 #
-
 system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
@@ -26,9 +25,6 @@ GCC ?= gcc
 
 OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
 
-soul:
-	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
-
 all:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp 	FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
@@ -38,14 +34,17 @@ all:
 	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 	$(MAKE) gcc
+
+soul:
+	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 
 #########################################################################
 # interp lang has a special status since the corresponding backend may not
 # be available due to gcc specific extensions
 interp:
 	$(MAKE) -f Make.lang outdir=interp lang=interp ext=itp FAUSTOPTIONS=""
-
 
 help:
 	@echo "-------- FAUST compilation tests --------"
@@ -59,7 +58,6 @@ help:
 	@echo " 'interp'     : compiles using the interpreter backend"
 	
 gcc: $(gccobj)
-
 
 #########################################################################
 # rules for c/c++ compilation

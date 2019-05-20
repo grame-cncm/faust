@@ -41,8 +41,8 @@ class proxy_dsp : public dsp {
 
     private:
     
-        int fSampleRate;
         JSONUIDecoder* fDecoder;
+        int fSampleRate;
         
     public:
     
