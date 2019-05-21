@@ -389,8 +389,8 @@ struct global {
     Sym TUPLETTYPE;
 
     // Explicitation of the cache system when compiling signals
-    Sym SIGWRITE;
-    Sym SIGREAD;
+    Sym SIGDELAYLINEWRITE;
+    Sym SIGDELAYLINEREAD;
 
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;

@@ -43,6 +43,9 @@ Tree SignalSplitter::transformation(Tree sig)
     faustassert(sig);
     int  i;
     Tree x, y;
+    Type t = getCertifiedSigType(sig);
+    if (t->variability() <= kSamp) {
+    }
 
     if (isSigFixDelay(sig, x, y)) {
         int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
@@ -50,8 +53,8 @@ Tree SignalSplitter::transformation(Tree sig)
         Tree     v    = self(x);
         Tree     w    = self(y);
 
-        fSplittedSignals.insert(sigWrite(v, dmax, v));
-        return sigRead(v, int(i.lo), w);
+        fSplittedSignals.insert(sigDelayLineWrite(v, dmax, v));
+        return sigDelayLineRead(v, int(i.lo), w);
     } else {
         return SignalIdentity::transformation(sig);
     }

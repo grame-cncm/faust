@@ -357,11 +357,11 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 Tree sigCartesianProd(Tree s1, Tree s2);
 
 // cache
-Tree sigWrite(Tree id, int dmax, Tree sig);
-bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig);
+Tree sigDelayLineWrite(Tree id, int dmax, Tree sig);
+bool isSigDelayLineWrite(Tree s, Tree& id, int* dmax, Tree& sig);
 
-Tree sigRead(Tree id, int dmin, Tree dl);
-bool isSigRead(Tree s, Tree& id, int* dmin, Tree& dl);
+Tree sigDelayLineRead(Tree id, int dmin, Tree dl);
+bool isSigDelayLineRead(Tree s, Tree& id, int* dmin, Tree& dl);
 
 /*****************************************************************************
                              FTZ wrapping

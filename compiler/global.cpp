@@ -228,7 +228,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gBoxSlotNumber = 0;
     gMemoryManager = false;
-    
+
     gLocalCausalityCheck = false;
     gCausality           = false;
 
@@ -366,8 +366,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
     SIGTUPLE           = symbol("SigTuple");
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
-    SIGREAD            = symbol("SigRead");
-    SIGWRITE           = symbol("SigWrite");
+    SIGDELAYLINEREAD   = symbol("SigDelayLineRead");
+    SIGDELAYLINEWRITE  = symbol("SigDelayLineWrite");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");
@@ -575,7 +575,7 @@ void global::init()
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
     // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
-    
+
     gMathForeignFunctions["acoshf"] = true;
     gMathForeignFunctions["acosh"]  = true;
     gMathForeignFunctions["acoshl"] = true;
@@ -587,7 +587,7 @@ void global::init()
     gMathForeignFunctions["atanhf"] = true;
     gMathForeignFunctions["atanh"]  = true;
     gMathForeignFunctions["atanhl"] = true;
-  
+
     gMathForeignFunctions["coshf"] = true;
     gMathForeignFunctions["cosh"]  = true;
     gMathForeignFunctions["coshl"] = true;
