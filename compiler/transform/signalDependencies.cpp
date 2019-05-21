@@ -5,7 +5,7 @@ void SignalDependencies::visit(Tree t)
     Tree id, dl;
     int  dmin;
 
-    if (isSigRead(t, id, &dmin, dl)) {
+    if (isSigDelayLineRead(t, id, &dmin, dl)) {
         auto p = fDependencies.find(id);
         if (p != fDependencies.end()) {
             // the dependency already exists, we take the minimum

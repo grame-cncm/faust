@@ -693,15 +693,15 @@ Tree sigCartesianProd(Tree s1, Tree s2)
  *
  */
 
-Tree sigWrite(Tree id, int dmax, Tree sig)
+Tree sigDelayLineWrite(Tree id, int dmax, Tree sig)
 {
-    return tree(gGlobal->SIGWRITE, id, tree(dmax), sig);
+    return tree(gGlobal->SIGDELAYLINEWRITE, id, tree(dmax), sig);
 }
 
-bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig)
+bool isSigDelayLineWrite(Tree s, Tree& id, int* dmax, Tree& sig)
 {
     Tree tmax;
-    if (isTree(s, gGlobal->SIGWRITE, id, tmax, sig)) {
+    if (isTree(s, gGlobal->SIGDELAYLINEWRITE, id, tmax, sig)) {
         *dmax = tree2int(tmax);
         return true;
     } else {
@@ -709,15 +709,15 @@ bool isSigWrite(Tree s, Tree& id, int* dmax, Tree& sig)
     }
 }
 
-Tree sigRead(Tree id, int dmin, Tree dl)
+Tree sigDelayLineRead(Tree id, int dmin, Tree dl)
 {
-    return tree(gGlobal->SIGREAD, id, tree(dmin), dl);
+    return tree(gGlobal->SIGDELAYLINEREAD, id, tree(dmin), dl);
 }
 
-bool isSigRead(Tree s, Tree& id, int* dmin, Tree& dl)
+bool isSigDelayLineRead(Tree s, Tree& id, int* dmin, Tree& dl)
 {
     Tree tmin;
-    if (isTree(s, gGlobal->SIGREAD, id, tmin, dl)) {
+    if (isTree(s, gGlobal->SIGDELAYLINEREAD, id, tmin, dl)) {
         *dmin = tree2int(tmin);
         return true;
     } else {
