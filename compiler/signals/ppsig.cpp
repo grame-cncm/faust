@@ -299,6 +299,12 @@ ostream& ppsig::print(ostream& fout) const
         fout << "sigDelayLineRead(" << x << '<' << i << '>' << ", " << ppsig(y) << ")";
     }
 
+    else if (isSigControlWrite(sig, x, y)) {
+        fout << "sigControlWrite(" << x << " := " << ppsig(y) << ")";
+    } else if (isSigControlRead(sig, x)) {
+        fout << "sigControlRead(" << x << ")";
+    }
+
     else {
         cerr << "[[" << *sig << "]]";
     }

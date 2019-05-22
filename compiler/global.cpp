@@ -369,6 +369,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGTUPLEACCESS     = symbol("SigTupleAccess");
     SIGDELAYLINEREAD   = symbol("SigDelayLineRead");
     SIGDELAYLINEWRITE  = symbol("SigDelayLineWrite");
+    SIGCONTROLREAD     = symbol("SigControlRead");
+    SIGCONTROLWRITE    = symbol("SigControlWrite");
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");
