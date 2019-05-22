@@ -46,11 +46,12 @@ Tree RecRemover::transformation(Tree sig)
 
     if (isProj(sig, &i, x)) {
         Tree id, le;
-        if (isRec(x,id,le)) {
+        if (isRec(x, id, le)) {
             Tree v = nth(le, i);
             return v;
         } else {
-            cerr << "INTERNAL ERROR" << endl;
+            cerr << "RecRemover INTERNAL ERROR" << endl;
+            cerr << ppsig(x) << endl;
             exit(1);
         }
     } else {

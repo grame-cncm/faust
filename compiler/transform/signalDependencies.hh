@@ -25,6 +25,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
+
+#include "digraph.hh"
+#include "digraphop.hh"
 #include "property.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
@@ -37,11 +40,14 @@
 
 class SignalDependencies : public SignalVisitor {
     bool                fVisitGen;
+    Tree                fRoot;
     std::map<Tree, int> fDependencies;  // The dependencies revelated by a visit
+    digraph<Tree>       fGraph;
 
    public:
-    SignalDependencies() : fVisitGen(false) {}
-    virtual ostream& print(ostream& dst) const;
+    SignalDependencies(Tree root);  // : fVisitGen(false), fRoot(root) { self(root); }
+    virtual ostream&     print(ostream& dst) const;
+    const digraph<Tree>& graph() const;
 
    protected:
     virtual void visit(Tree t);
