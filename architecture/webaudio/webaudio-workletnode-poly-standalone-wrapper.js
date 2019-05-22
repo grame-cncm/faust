@@ -361,13 +361,10 @@ class mydspPoly {
      */
     constructor(context, baseURL = "")
     {
-        // Resume audio context each time...
-        context.resume();
-        
-    	console.log("baseLatency " + context.baseLatency);
-    	console.log("outputLatency " + context.outputLatency);
-    	console.log("sampleRate " + context.sampleRate);
-    
+        console.log("baseLatency " + context.baseLatency);
+        console.log("outputLatency " + context.outputLatency);
+        console.log("sampleRate " + context.sampleRate);
+
         this.context = context;
         this.baseURL = baseURL;
     }

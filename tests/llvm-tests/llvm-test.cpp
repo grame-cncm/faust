@@ -28,6 +28,7 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
 #include "faust/audio/dummy-audio.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -38,6 +39,38 @@ static void printList(const vector<string>& list)
         cout << "item: " << list[i] << "\n";
     }
 }
+
+struct testUI : public GenericUI {
+    
+    FAUSTFLOAT fInit;
+    FAUSTFLOAT fMin;
+    FAUSTFLOAT fMax;
+    FAUSTFLOAT fStep;
+    
+    testUI(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fInit = init;
+        fMin = min;
+        fMax = max;
+        fStep = step;
+    }
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        if (init != fInit) {
+            cerr << "ERROR in addVerticalSlider init : " << fInit << " " << init << "\n";
+        }
+        if (min != fMin) {
+            cerr << "ERROR in addVerticalSlider min : " << fMin << " " << min << "\n";
+        }
+        if (max != fMax) {
+            cerr << "ERROR in addVerticalSlider max : " << fMax << " " << max << "\n";
+        }
+        if (step != fStep) {
+            cerr << "ERROR in addVerticalSlider step : " << fStep << " " << step << "\n";
+        }
+    }
+    
+};
 
 int main(int argc, const char** argv)
 {
@@ -84,7 +117,6 @@ int main(int argc, const char** argv)
     
     {
         dsp_factory* factory = createDSPFactoryFromString("score", "process = +;", 0, NULL, "", error_msg, -1);
-        
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -115,6 +147,25 @@ int main(int argc, const char** argv)
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
     
+    cout << "=============================\n";
+    cout << "Test of UI element encoding\n";
+    {
+        dsp_factory* factory = createDSPFactoryFromString("score", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, "", error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+
+        testUI test(0.5, 0, 1, 0.025);
+        DSP->buildUserInterface(&test);
+    }
+    
     // Test generateAuxFilesFromFile/generateAuxFilesFromString
     int argc2 = 0;
     const char* argv2[64];
@@ -133,7 +184,7 @@ int main(int argc, const char** argv)
             string pathname = "/private/var/tmp/" + filename.substr(0, filename.size() - 4) + "-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
-                cout << "ERROR in generateAuxFilesFromFile error : " << pathname << " cannot be opened\n";
+                cerr << "ERROR in generateAuxFilesFromFile error : " << pathname << " cannot be opened\n";
             } else {
                 cout << "generateAuxFilesFromFile OK\n";
             }
@@ -149,7 +200,7 @@ int main(int argc, const char** argv)
             string pathname = "/private/var/tmp/FaustDSP-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
-                cout << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+                cerr << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
             } else {
                 cout << "generateAuxFilesFromString OK\n";
             }

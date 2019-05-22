@@ -212,6 +212,10 @@ struct JSONUIDecoderAux {
    
     void buildUserInterface(UI* ui_interface)
     {
+        // MANDATORY: to be sure floats or double are correctly parsed
+        char* tmp_local = setlocale(LC_ALL, NULL);
+        setlocale(LC_ALL, "C");
+        
         int counterIn = 0;
         int counterOut = 0;
         int counterSound = 0;
@@ -279,10 +283,15 @@ struct JSONUIDecoderAux {
                 counterSound++;
             }
         }
+        setlocale(LC_ALL, tmp_local);
     }
     
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {
+        // MANDATORY: to be sure floats or double are correctly parsed
+        char* tmp_local = setlocale(LC_ALL, NULL);
+        setlocale(LC_ALL, "C");
+        
         int counterSound = 0;
         std::vector<itemInfo*>::iterator it;
         
@@ -345,6 +354,7 @@ struct JSONUIDecoderAux {
                 counterSound++;
             }
         }
+        setlocale(LC_ALL, tmp_local);
     }
     
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)
