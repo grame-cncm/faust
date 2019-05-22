@@ -18,11 +18,14 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
 #include "signalSplitter.hh"
+
 #include <stdlib.h>
 #include <cstdlib>
 #include <map>
+
+#include "digraph.hh"
+#include "digraphop.hh"
 #include "global.hh"
 #include "ppsig.hh"
 #include "property.hh"
