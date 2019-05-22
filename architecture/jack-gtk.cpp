@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
-    int control = 0;
+    bool control = true;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
