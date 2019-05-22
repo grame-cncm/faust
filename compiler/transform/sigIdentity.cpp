@@ -193,6 +193,13 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigDelayLineWrite(x, i, self(y));
     }
 
+    // Read and Write
+    else if (isSigControlRead(sig, x)) {  // x is used as an id, we don't go into it
+        return sig;
+    } else if (isSigControlWrite(sig, x, y)) {  // x is used as an id, we don't go into it
+        return sigControlWrite(x, self(y));
+    }
+
     else {
         stringstream error;
         error << "ERROR : unrecognized signal : " << *sig << endl;

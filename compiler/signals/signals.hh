@@ -363,6 +363,12 @@ bool isSigDelayLineWrite(Tree s, Tree& id, int* dmax, Tree& sig);
 Tree sigDelayLineRead(Tree id, int dmin, Tree dl);
 bool isSigDelayLineRead(Tree s, Tree& id, int* dmin, Tree& dl);
 
+Tree sigControlWrite(Tree id, Tree sig);
+bool isSigControlWrite(Tree s, Tree& id, Tree& sig);
+
+Tree sigControlRead(Tree id);
+bool isSigControlRead(Tree s, Tree& id);
+
 /*****************************************************************************
                              FTZ wrapping
     Add FTZ wrapping to a signal

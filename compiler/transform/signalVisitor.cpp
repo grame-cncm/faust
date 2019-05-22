@@ -235,6 +235,14 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    // Read and Write
+    else if (isSigControlRead(sig, x)) {  // x is used as an id, we don't go into it
+        return;
+    } else if (isSigControlWrite(sig, x, y)) {  // x is used as an id, we don't go into it
+        self(y);
+        return;
+    }
+
     else {
         stringstream error;
         error << "ERROR : unrecognized signal : " << *sig << endl;

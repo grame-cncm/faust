@@ -41,13 +41,18 @@ Computes constant expressions
 Tree SignalSplitter::transformation(Tree sig)
 {
     faustassert(sig);
-    int  i;
-    Tree x, y;
-    Type t = getCertifiedSigType(sig);
-    if (t->variability() <= kSamp) {
-    }
+    int             i;
+    double          v;
+    Tree            x, y;
+    Type            t   = getCertifiedSigType(sig);
+    old_Occurences* occ = fOccMarkup->retrieve(sig);
 
-    if (isSigFixDelay(sig, x, y)) {
+    if (isSigInt(sig, &i) || isSigReal(sig, &v)) {
+        return sig;
+    } else if (t->variability() < kSamp) {
+        fSplittedSignals.insert(sigControlWrite(sig, sig));
+        return sigControlRead(sig);
+    } else if (isSigFixDelay(sig, x, y)) {
         int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
         interval i    = getCertifiedSigType(y)->getInterval();
         Tree     v    = self(x);
@@ -55,6 +60,10 @@ Tree SignalSplitter::transformation(Tree sig)
 
         fSplittedSignals.insert(sigDelayLineWrite(v, dmax, v));
         return sigDelayLineRead(v, int(i.lo), w);
+    } else if (occ->hasMultiOccurences()) {
+        Tree r = SignalIdentity::transformation(sig);
+        fSplittedSignals.insert(sigDelayLineWrite(r, 0, r));
+        return sigDelayLineRead(r, 0, sigInt(0));
     } else {
         return SignalIdentity::transformation(sig);
     }

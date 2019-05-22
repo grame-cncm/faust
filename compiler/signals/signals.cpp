@@ -725,6 +725,27 @@ bool isSigDelayLineRead(Tree s, Tree& id, int* dmin, Tree& dl)
     }
 }
 
+// control expressions
+Tree sigControlWrite(Tree id, Tree sig)
+{
+    return tree(gGlobal->SIGCONTROLWRITE, id, sig);
+}
+
+bool isSigControlWrite(Tree s, Tree& id, Tree& sig)
+{
+    return isTree(s, gGlobal->SIGCONTROLWRITE, id, sig);
+}
+
+Tree sigControlRead(Tree id)
+{
+    return tree(gGlobal->SIGCONTROLREAD, id);
+}
+
+bool isSigControlRead(Tree s, Tree& id)
+{
+    return (isTree(s, gGlobal->SIGCONTROLREAD, id));
+}
+
 /**
  * Test if exp is very simple that is it
  * can't be considered a real component
