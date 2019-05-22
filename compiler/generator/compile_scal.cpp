@@ -156,28 +156,37 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("Signal Splitter");
     cerr << "Start Signal Splitter" << endl;
     SignalSplitter SS(fOccMarkup);
-    // SS.trace(true);
+    SS.trace(true, "Signal Splitter");
     Tree L3S = SS.mapself(L3);
     cerr << "\n\nL3S = " << ppsig(L3S) << endl;
-    // SS.print(cerr);
+    SS.print(cerr);
     cerr << endl;
 
-    RecRemover RR;
+    RecRemover    RR;
+    digraph<Tree> G;
     cerr << "Remove Recursions" << endl;
     for (auto s : SS.fSplittedSignals) {
-        // cerr << ppsig(s) << "\n";
-        SignalDependencies D;
-        D.trace(false, "Dependencies");
-
         Tree e = RR.self(s);
         cerr << ppsig(e) << "\n";
         cerr << endl;
-        D.self(e);
+        // cerr << ppsig(s) << "\n";
+        SignalDependencies D(e);
+        // D.trace(false, "Dependencies");
+
+        // D.self(e);
         D.print(cerr);
-        cerr << endl;
+        cerr << "DIGRAPH: " << D.graph() << endl;
+        G.add(D.graph());
     }
 
     cerr << "End Signal Splitter" << endl;
+
+    cerr << "Graph of dependencies : " << endl;
+    cerr << G << endl;
+
+    cerr << "DAG " << endl;
+    digraph<digraph<Tree>> DG = graph2dag(G);
+    cerr << DG << endl;
 
     endTiming("Signal Splitter");
 
