@@ -1846,10 +1846,14 @@ struct InstBuilder {
         FloatNumInst*  float_num  = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
         BasicTyped*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
+        CastInst*      cast       = dynamic_cast<CastInst*>(inst);
 
         if (!typed) {
             // Default case
             return new CastInst(inst, typed_ext);
+        } else if (cast && (cast->fType == typed_ext)) {
+            // Casting an already casted value with the same type
+            return inst;
         } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer

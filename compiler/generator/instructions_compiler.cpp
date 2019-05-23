@@ -782,13 +782,11 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     list<NamedTyped*> args_types;
 
     for (int i = 0; i < ffarity(ff); i++) {
-        stringstream num;
-        num << i;
         Tree parameter = nth(largs, i);
         // Reversed...
         int         sig_argtype = ffargtype(ff, (ffarity(ff) - 1) - i);
         BasicTyped* argtype     = genBasicFIRTyped(sig_argtype);
-        args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
+        args_types.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), argtype));
         args_value.push_back(InstBuilder::genCastInst(CS(parameter), argtype));
     }
 
