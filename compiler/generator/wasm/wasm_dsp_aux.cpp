@@ -45,6 +45,8 @@
 using namespace emscripten;
 #endif
 
+//#define NEW_EMCC 1
+
 dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 #ifdef EMCC
@@ -166,8 +168,13 @@ void wasm_dsp_factory::createModuleFromString()
 
 wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory)
 {
+#ifdef NEW_EMCC
     createModuleFromString();
     fDecoder = createJSONUIDecoder(fJSON);
+#else
+    fModule  = -1;
+    fDecoder = nullptr;
+#endif
 }
 
 #else

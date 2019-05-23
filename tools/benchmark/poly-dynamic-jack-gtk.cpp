@@ -221,6 +221,12 @@ int main(int argc, char* argv[])
         cout << "Running in double..." << endl;
     }
     
+    /*
+    JSONUI json(DSP->getNumInputs(), DSP->getNumOutputs());
+    DSP->buildUserInterface(&json);
+    cout << "JSON : " << json.JSON() << endl;
+    */
+    
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
     
