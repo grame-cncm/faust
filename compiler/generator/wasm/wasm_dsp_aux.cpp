@@ -340,11 +340,38 @@ wasm_dsp* wasm_dsp_factory::createDSPInstance()
     return dsp;
 }
 
+wasm_dsp* wasm_dsp_factory::createDSPInstance2(int instance)
+{
+    wasm_dsp* dsp = new wasm_dsp(this, instance);
+    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
+    return dsp;
+}
+
+// To keep 'wasmMemory' in the generated JS library
+EM_JS(void, connectMemory, (),
+{
+    faust_module.faust = faust_module.faust || {};
+    faust_module.faust.memory = faust_module.faust.memory || wasmMemory;
+});
+
+wasm_dsp_factory* wasm_dsp_factory::connectWasmDSPFactory(int module, const std::string& json)
+{
+    connectMemory();
+    wasm_dsp_factory* factory = new wasm_dsp_factory(module, json);
+    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
+    return factory;
+}
+
 #else
 
 wasm_dsp* wasm_dsp_factory::createDSPInstance()
 {
     return nullptr;
+}
+
+wasm_dsp_factory* wasm_dsp_factory::connectWasmDSPFactory(int module, const std::string& json)
+{
+    return nullptr;;
 }
 
 #endif
@@ -450,13 +477,6 @@ wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const str
 wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string& machine_code)
 {
     return readWasmDSPFactoryFromMachine(machine_code, wasm_dsp_factory::gErrorMessage);
-}
-
-wasm_dsp_factory* wasm_dsp_factory::connectWasmDSPFactory(int module, const std::string& json)
-{
-    wasm_dsp_factory* factory = new wasm_dsp_factory(module, json);
-    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
-    return factory;
 }
 
 // C++ API
@@ -628,12 +648,8 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
-    std::cout << "computeJS " << count << " " << inputs << " " << outputs << std::endl;
-    
-    /*
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fIndex, fDSP, count, inputs,
            outputs);
-    */
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -702,6 +718,7 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
     class_<wasm_dsp_factory>("wasm_dsp_factory")
         .constructor()
         .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
+        .function("createDSPInstance2", &wasm_dsp_factory::createDSPInstance2, allow_raw_pointers())
         .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
                         allow_raw_pointers())
         .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,

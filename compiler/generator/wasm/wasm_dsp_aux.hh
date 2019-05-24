@@ -338,6 +338,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     JSONUITemplatedDecoder* getDecoder() { return fDecoder; }
 
     wasm_dsp* createDSPInstance();
+    wasm_dsp* createDSPInstance2(int instance);
 
     void                setMemoryManager(dsp_memory_manager* manager);
     dsp_memory_manager* getMemoryManager();
