@@ -246,9 +246,9 @@ if [ $SOURCE -eq 0 ]; then
 		#		wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
 		#   unzip -d /opt/gradle gradle-4.6-bin.zip
 
-		if [ -f /opt/gradle/gradle-4.6/bin/gradle ]; then
-			FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.6/bin/gradle}
-		else 
+		if [ -f /opt/gradle/gradle-4.10.1/bin/gradle ]; then
+			FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.10.1/bin/gradle}
+		else
 			FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
 			chmod a+x ./gradlew
 		fi
