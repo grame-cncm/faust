@@ -63,10 +63,10 @@ Tree SignalSplitter::transformation(Tree sig)
 
         fSplittedSignals.insert(sigDelayLineWrite(v, dmax, v));
         return sigDelayLineRead(v, int(i.lo), w);
-    } else if (occ->hasMultiOccurences()) {
-        Tree r = SignalIdentity::transformation(sig);
-        fSplittedSignals.insert(sigDelayLineWrite(r, 0, r));
-        return sigDelayLineRead(r, 0, sigInt(0));
+        // } else if (occ->hasMultiOccurences()) {
+        //     Tree r = SignalIdentity::transformation(sig);
+        //     fSplittedSignals.insert(sigDelayLineWrite(r, 0, r));
+        //     return sigDelayLineRead(r, 0, sigInt(0));
     } else {
         return SignalIdentity::transformation(sig);
     }
