@@ -156,7 +156,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("Signal Splitter");
     cerr << "Start Signal Splitter" << endl;
     SignalSplitter SS(fOccMarkup);
-    SS.trace(true, "Signal Splitter");
+    SS.trace(false, "Signal Splitter");
     Tree L3S = SS.mapself(L3);
     cerr << "\n\nL3S = " << ppsig(L3S) << endl;
     SS.print(cerr);
@@ -174,8 +174,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         // D.trace(false, "Dependencies");
 
         // D.self(e);
-        D.print(cerr);
-        cerr << "DIGRAPH: " << D.graph() << endl;
+        //D.print(cerr);
+        //cerr << "DIGRAPH: " << D.graph() << endl;
         G.add(D.graph());
     }
 
@@ -188,10 +188,38 @@ Tree ScalarCompiler::prepare(Tree LS)
     digraph<digraph<Tree>> DG = graph2dag(G);
     cerr << DG << endl;
 
+    cerr << "\nSERIALIZE\n" ;
+    auto V = serialize(DG);
+    int step = 0;
+    for (auto s : V) {
+        cerr << step++ << ": " << s << endl;
+    }
+/*
+    cerr << "\nPARALLELIZE\n" ;
+    auto P = parallelize(DG);
+    step = 0;
+    for (auto v : P) {
+        ++ step;
+        int inst = 0;
+        for (auto s : v) {
+            for (auto u : s) {
+                cerr << step << '.' << ++inst << ": " << u << endl;
+            }
+        }
+    }
+*/
     endTiming("Signal Splitter");
 
     //****************************************************************************************************
     //****************************************************************************************************
+
+    cerr << "\n\n\nTEST7:        G = " << G << endl;
+    cerr << "number of cycles: " << cycles(G) << endl;
+    cerr << "0-cycles        : " << cycles(cut(G, 1)) << endl;
+    auto H = graph2dag(G);
+    cerr << "graph2dag(G)    = " << H << endl;
+    cerr << "parallelize(H)  = " << parallelize(H) << endl;
+    cerr << "serialize(H)    = " << serialize(H) << endl;
 
     endTiming("ScalarCompiler::prepare");
 
