@@ -41,7 +41,7 @@ class EXPORT wasm_dynamic_dsp_factory : public wasm_dsp_factory {
                                                              const std::vector<std::string>& argv,
                                                              bool                            internal_memory);
     
-    static std::string genereateWasmFromString2(const std::string&              name_app,
+    static std::string generateWasmFromString2(const std::string&              name_app,
                                                 const std::string&              dsp_content,
                                                 const std::vector<std::string>& argv,
                                                 bool                            internal_memory);

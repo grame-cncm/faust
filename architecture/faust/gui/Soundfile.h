@@ -157,6 +157,17 @@ class SoundfileReader {
      * @return true if the sound resource is available, false otherwise.
      */
     virtual bool checkFile(const std::string& path_name) = 0;
+    
+    /**
+     * Check the availability of a sound resource.
+     *
+     * @param buffer - the sound buffer
+     * @param buffer - the sound buffer length
+     *
+     * @return true if the sound resource is available, false otherwise.
+     */
+
+    virtual bool checkFile(unsigned char* buffer, size_t length) { return true; }
 
     /**
      * Get the channels and length values of the given sound resource.
@@ -167,6 +178,17 @@ class SoundfileReader {
      *
      */
     virtual void getParamsFile(const std::string& path_name, int& channels, int& length) = 0;
+    
+    /**
+     * Get the channels and length values of the given sound resource.
+     *
+     * @param buffer - the sound buffer
+     * @param buffer - the sound buffer length
+     * @param channels - the channels value to be filled with the sound resource number of channels
+     * @param length - the length value to be filled with the sound resource length in frames
+     *
+     */
+    virtual void getParamsFile(unsigned char* buffer, size_t size, int& channels, int& length) {}
 
     /**
      * Read one sound resource and fill the 'soundfile' structure accordingly
@@ -178,6 +200,18 @@ class SoundfileReader {
      *
      */
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) = 0;
+    
+    /**
+     * Read one sound resource and fill the 'soundfile' structure accordingly
+     *
+     * @param buffer - the sound buffer
+     * @param buffer - the sound buffer length
+     * @param part - the part number to be filled in the soundfile
+     * @param offset - the offset value to be incremented with the actual sound resource length in frames
+     * @param max_chan - the maximum number of mono channels to fill
+     *
+     */
+    virtual void readFile(Soundfile* soundfile, unsigned char* buffer, size_t length, int part, int& offset, int max_chan) {}
 
   public:
     

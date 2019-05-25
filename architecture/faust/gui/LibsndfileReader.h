@@ -33,17 +33,131 @@
 
 #include "faust/gui/Soundfile.h"
 
+struct VFLibsndfile {
+    
+    #define SIGNED_SIZEOF(x) ((int)sizeof(x))
+    
+    unsigned char* fBuffer;
+    size_t fLength;
+    size_t fOffset;
+    SF_VIRTUAL_IO fVIO;
+    
+    VFLibsndfile(unsigned char* buffer, size_t length):fBuffer(buffer), fLength(length), fOffset(0)
+    {
+        fVIO.get_filelen = vfget_filelen;
+        fVIO.seek = vfseek;
+        fVIO.read = vfread;
+        fVIO.write = vfwrite;
+        fVIO.tell = vftell;
+    }
+    
+    static sf_count_t vfget_filelen(void* user_data)
+    {
+        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
+        return vf->fLength;
+    }
+  
+    static sf_count_t vfseek(sf_count_t offset, int whence, void* user_data)
+    {
+        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
+        switch (whence) {
+            case SEEK_SET:
+                vf->fOffset = offset;
+                break;
+                
+            case SEEK_CUR:
+                vf->fOffset = vf->fOffset + offset;
+                break;
+                
+            case SEEK_END:
+                vf->fOffset = vf->fLength + offset;
+                break;
+                
+            default:
+                break;
+        };
+        
+        return vf->fOffset;
+    }
+    
+    static sf_count_t vfread(void* ptr, sf_count_t count, void* user_data)
+    {
+        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
+        
+        /*
+         **	This will break badly for files over 2Gig in length, but
+         **	is sufficient for testing.
+         */
+        if (vf->fOffset + count > vf->fLength) {
+            count = vf->fLength - vf->fOffset;
+        }
+        
+        memcpy(ptr, vf->fBuffer + vf->fOffset, count);
+        vf->fOffset += count;
+        
+        return count;
+    }
+    
+    static sf_count_t vfwrite(const void* ptr, sf_count_t count, void* user_data)
+    {
+        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
+        
+        /*
+         **	This will break badly for files over 2Gig in length, but
+         **	is sufficient for testing.
+         */
+        if (vf->fOffset >= SIGNED_SIZEOF(vf->fBuffer)) {
+            return 0;
+        }
+        
+        if (vf->fOffset + count > SIGNED_SIZEOF(vf->fBuffer)) {
+            count = sizeof (vf->fBuffer) - vf->fOffset;
+        }
+        
+        memcpy(vf->fBuffer + vf->fOffset, ptr, (size_t)count);
+        vf->fOffset += count;
+        
+        if (vf->fOffset > vf->fLength) {
+            vf->fLength = vf->fOffset;
+        }
+        
+        return count;
+    }
+    
+    static sf_count_t vftell(void* user_data)
+    {
+        VFLibsndfile* vf = static_cast<VFLibsndfile*>(user_data);
+        return vf->fOffset;
+    }
+ 
+};
+
 struct LibsndfileReader : public SoundfileReader {
 	
     LibsndfileReader() {}
 	
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
 	
+    // Check file
     bool checkFile(const std::string& path_name)
     {
         SF_INFO snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
+        return checkFileAux(snd_file, path_name);
+    }
+    
+    bool checkFile(unsigned char* buffer, size_t length)
+    {
+        SF_INFO snd_info;
+        snd_info.format = 0;
+        VFLibsndfile vio(buffer, length);
+        SNDFILE* snd_file = sf_open_virtual(&vio.fVIO, SFM_READ, &snd_info, &vio);
+        return checkFileAux(snd_file, "virtual file");
+    }
+    
+    bool checkFileAux(SNDFILE* snd_file, const std::string& path_name)
+    {
         if (snd_file) {
             sf_close(snd_file);
             return true;
@@ -52,28 +166,55 @@ struct LibsndfileReader : public SoundfileReader {
             return false;
         }
     }
-	
+
     // Open the file and returns its length and channels
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
+        getParamsFileAux(snd_file, snd_info, channels, length);
+    }
+    
+    void getParamsFile(unsigned char* buffer, size_t size, int& channels, int& length)
+    {
+        SF_INFO	snd_info;
+        snd_info.format = 0;
+        VFLibsndfile vio(buffer, size);
+        SNDFILE* snd_file = sf_open_virtual(&vio.fVIO, SFM_READ, &snd_info, &vio);
+        getParamsFileAux(snd_file, snd_info, channels, length);
+    }
+    
+    void getParamsFileAux(SNDFILE* snd_file, SF_INFO& snd_info, int& channels, int& length)
+    {
         assert(snd_file);
         channels = int(snd_info.channels);
         length = int(snd_info.frames);
         sf_close(snd_file);
     }
-	
-    // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
+    
+    // Read the file
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        // Open sndfile
         SF_INFO	snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
+        readFileAux(soundfile, snd_file, snd_info, part, offset, max_chan);
+    }
+    
+    void readFile(Soundfile* soundfile, unsigned char* buffer, size_t length, int part, int& offset, int max_chan)
+    {
+        SF_INFO	snd_info;
+        snd_info.format = 0;
+        VFLibsndfile vio(buffer, length);
+        SNDFILE* snd_file = sf_open_virtual(&vio.fVIO, SFM_READ, &snd_info, &vio);
+        readFileAux(soundfile, snd_file, snd_info, part, offset, max_chan);
+    }
+	
+    // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
+    void readFileAux(Soundfile* soundfile, SNDFILE* snd_file, SF_INFO& snd_info, int part, int& offset, int max_chan)
+    {
         assert(snd_file);
-		
         int channels = std::min<int>(max_chan, snd_info.channels);
 		
         soundfile->fLength[part] = int(snd_info.frames);

@@ -54,7 +54,7 @@ wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(cons
                                                                wasm_dsp_factory::gErrorMessage, internal_memory);
 }
 
-std::string wasm_dynamic_dsp_factory::genereateWasmFromString2(const std::string&           name_app,
+std::string wasm_dynamic_dsp_factory::generateWasmFromString2(const std::string&           name_app,
                                                             const std::string&              dsp_content,
                                                             const std::vector<std::string>& argv,
                                                             bool                            internal_memory)
@@ -302,7 +302,7 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dynamic_dsp_factory)
         .constructor()
         .class_function("createWasmDSPFactoryFromString2", &wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2,
                         allow_raw_pointers())
-        .class_function("genereateWasmFromString2", &wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2,
+        .class_function("generateWasmFromString2", &wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2,
                     allow_raw_pointers());
 }
 
