@@ -47,11 +47,15 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 #ifdef EMCC
 
-wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+#include "faust/gui/SoundUI.h"
+
+wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
-    wasm_dsp_factory* factory = new wasm_dsp_factory(instance, json);
-    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
-    return factory;
+    fFactory = nullptr;
+    fInstance = instance;
+    fJSON = json;
+    fDecoder = createJSONUIDecoder(fJSON);
+    fSoundUI = new SoundUI();
 }
 
 wasm_dsp_factory::~wasm_dsp_factory()
@@ -60,6 +64,14 @@ wasm_dsp_factory::~wasm_dsp_factory()
     EM_ASM({ faust_module.faust.wasm_instance[$0] = null; }, fInstance);
     delete fFactory;
     delete fDecoder;
+    delete fSoundUI;
+}
+
+wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+{
+    wasm_dsp_factory* factory = new wasm_dsp_factory(instance, json);
+    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
+    return factory;
 }
 
 // To keep 'wasmMemory' in the generated JS library
@@ -130,6 +142,25 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
     }
 }
 
+/*
+PRE_PACKED_STRUCTURE
+struct mydsp {
+    
+    Soundfile* fSoundfile0;
+    int iRec0[2];
+    int fSampleRate;
+    
+} POST_PACKED_STRUCTURE;
+*/
+
+PRE_PACKED_STRUCTURE
+struct mydsp {
+    
+    Soundfile* fSoundfile0;
+    int fSampleRate;
+    
+} POST_PACKED_STRUCTURE;
+
 wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 {
     fDSP = EM_ASM_INT({ return faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize());
@@ -137,6 +168,25 @@ wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
     if (fFactory->fMapUI.getParamsCount() == 0) {
         buildUserInterface(&fFactory->fMapUI);
     }
+    buildUserInterface(factory->fSoundUI);
+    
+    std::cout << "fDSP " << fDSP << std::endl;
+    
+    mydsp* dsp = reinterpret_cast<mydsp*>(fDSP);
+    Soundfile* sf = dsp->fSoundfile0;
+    std::cout << "sf->fLength[0] " << sf->fLength[0] << std::endl;
+    std::cout << "sf->fSR[0] " << sf->fSR[0] << std::endl;
+    std::cout << "sf->fOffset[0] " << sf->fOffset[0] << std::endl;
+    std::cout << "sf->fChannels " << sf->fChannels << std::endl;
+    
+    FAUSTFLOAT** fBuffers = sf->fBuffers;
+    for (int chan = 0; chan < getNumOutputs(); chan++) {
+        for (int frame = 10000; frame < 10000 + 10; frame++) {
+            std::cout << "sample " << fBuffers[chan][frame] << std::endl;
+        }
+    }
+    
+    std::cout << "fSampleRate " << dsp->fSampleRate << std::endl;
 }
 
 wasm_dsp::~wasm_dsp()
@@ -204,6 +254,57 @@ void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
     EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count, inputs,
            outputs);
+    
+    mydsp* dsp = reinterpret_cast<mydsp*>(fDSP);
+    std::cout << "count " << count << std::endl;
+    std::cout << "fDSP " << fDSP << std::endl;
+    std::cout << "sizeof(mydsp) " << sizeof(mydsp) << std::endl;
+    
+    Soundfile* sf = dsp->fSoundfile0;
+    std::cout << "dsp->fSoundfile0 " << long(&dsp->fSoundfile0) << std::endl;
+    std::cout << "dsp->fSampleRate " << long(&dsp->fSampleRate) << std::endl;
+    std::cout << "sf->fBuffers " << long(&sf->fBuffers) << std::endl;
+    std::cout << "sf->fLength " << long(&sf->fLength) << std::endl;
+  
+    int* fLength = reinterpret_cast<int*>(reinterpret_cast<char*>(sf) + 4);
+    std::cout << "fLength " << long(fLength) << std::endl;
+    std::cout << "fLength[0] " << fLength[0] << std::endl;
+    
+    int* fSR = reinterpret_cast<int*>(reinterpret_cast<char*>(sf) + 4 + 1024);
+    std::cout << "fSR " << long(fSR) << std::endl;
+    std::cout << "fSR[0] " << fSR[0] << std::endl;
+    
+    /*
+    mydsp* dsp = reinterpret_cast<mydsp*>(fDSP);
+    Soundfile* sf = dsp->fSoundfile0;
+    std::cout << "dsp->fSoundfile0 " << long(&dsp->fSoundfile0) << std::endl;
+    std::cout << "dsp->fSampleRate " << long(&dsp->fSampleRate) << std::endl;
+    std::cout << "sf " << long(sf) << std::endl;
+    std::cout << "sf->fBuffers " << long(&sf->fBuffers[0]) << std::endl;
+    std::cout << "sf->fLength " << long(&sf->fLength[0]) << std::endl;
+    std::cout << "sf->fSR " << long(&sf->fSR[0]) << std::endl;
+    std::cout << "sf->fOffset " << long(&sf->fOffset[0]) << std::endl;
+    std::cout << "sf->fChannels " << long(&sf->fChannels) << std::endl;
+    
+    std::cout << "sf->fLength[0] " << sf->fLength[0] << std::endl;
+    std::cout << "sf->fSR[0] " << sf->fSR[0] << std::endl;
+    std::cout << "sf->fOffset[0] " << sf->fOffset[0] << std::endl;
+    std::cout << "sf->fChannels " << sf->fChannels << std::endl;
+    
+    std::cout << "long(&dsp->fSoundfile0) - fDSP " << (long(&dsp->fSoundfile0) - fDSP) << std::endl;
+    std::cout << "long(&dsp->fSampleRate) - long(&dsp->fSoundfile0) " << long(&dsp->fSampleRate) - long(&dsp->fSoundfile0) << std::endl;
+    */
+    
+    //std::cout << "dsp->iRec0[0] " << dsp->iRec0[0] << std::endl;
+    
+    FAUSTFLOAT** fBuffers = reinterpret_cast<FAUSTFLOAT**>(outputs);
+    for (int chan = 0; chan < getNumOutputs(); chan++) {
+        for (int frame = 0; frame < 10; frame++) {
+            std::cout << "sample " << fBuffers[chan][frame] << std::endl;
+        }
+    }
+    
+    std::cout << "fSampleRate " << dsp->fSampleRate << std::endl;
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -220,6 +321,13 @@ void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
 FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
 {
     return fFactory->fMapUI.getParamValue(path);
+}
+
+wasm_dsp* wasm_dsp_factory::createDSPInstance()
+{
+    wasm_dsp* dsp = new wasm_dsp(this);
+    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
+    return dsp;
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
@@ -256,15 +364,23 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
 
 #else
 
-wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
-    return nullptr;
+    fFactory = nullptr;
+    fInstance = instance;
+    fJSON = json;
+    fDecoder = createJSONUIDecoder(fJSON);
 }
 
 wasm_dsp_factory::~wasm_dsp_factory()
 {
     delete fFactory;
     delete fDecoder;
+}
+
+wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+{
+    return nullptr;
 }
 
 string wasm_dsp_factory::extractJSON(const string& code)
@@ -364,6 +480,14 @@ FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
     return -1;
 }
 
+
+wasm_dsp* wasm_dsp_factory::createDSPInstance()
+{
+    wasm_dsp* dsp = new wasm_dsp(this);
+    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
+    return dsp;
+}
+
 #endif
 
 wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
@@ -371,14 +495,6 @@ wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
     fFactory = factory;
     fModule = 0;
     fDecoder = nullptr;
-}
-
-wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
-{
-    fFactory = nullptr;
-    fInstance = instance;
-    fJSON = json;
-    fDecoder = createJSONUIDecoder(fJSON);
 }
 
 string wasm_dsp_factory::getName()
@@ -415,13 +531,6 @@ vector<string> wasm_dsp_factory::getLibraryList()
 vector<string> wasm_dsp_factory::getIncludePathnames()
 {
     return fDecoder->getIncludePathnames();
-}
-
-wasm_dsp* wasm_dsp_factory::createDSPInstance()
-{
-    wasm_dsp* dsp = new wasm_dsp(this);
-    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
-    return dsp;
 }
 
 void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager)

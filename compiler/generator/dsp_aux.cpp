@@ -39,9 +39,6 @@
 
 using namespace std;
 
-// Used by LLVM backend (for now)
-Soundfile* dynamic_defaultsound = new Soundfile(64);
-
 // Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {

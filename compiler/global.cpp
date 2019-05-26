@@ -505,46 +505,6 @@ void global::init()
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
-    // Init type size table
-    gTypeSizeMap[Typed::kFloat]         = gMachineFloatSize;
-    gTypeSizeMap[Typed::kFloat_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kFloat_ptr_ptr] = gMachinePtrSize;
-    gTypeSizeMap[Typed::kFloat_vec]     = gMachineFloatSize * gVecSize;
-    gTypeSizeMap[Typed::kFloat_vec_ptr] = gMachinePtrSize;
-
-    gTypeSizeMap[Typed::kDouble]         = gMachineDoubleSize;
-    gTypeSizeMap[Typed::kDouble_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
-    gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
-    gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
-
-    gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
-    gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kInt32_vec]     = gMachineInt32Size * gVecSize;
-    gTypeSizeMap[Typed::kInt32_vec_ptr] = gMachinePtrSize;
-
-    gTypeSizeMap[Typed::kInt64]         = gMachineInt64Size;
-    gTypeSizeMap[Typed::kInt64_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kInt64_vec]     = gMachineInt64Size * gVecSize;
-    gTypeSizeMap[Typed::kInt64_vec_ptr] = gMachinePtrSize;
-
-    gTypeSizeMap[Typed::kBool]         = gMachineBoolSize;
-    gTypeSizeMap[Typed::kBool_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kBool_vec]     = gMachineBoolSize * gVecSize;
-    gTypeSizeMap[Typed::kBool_vec_ptr] = gMachinePtrSize;
-
-    // Takes the type of internal real
-    gTypeSizeMap[Typed::kFloatMacro]         = gTypeSizeMap[itfloat()];
-    gTypeSizeMap[Typed::kFloatMacro_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kFloatMacro_ptr_ptr] = gMachinePtrSize;
-
-    gTypeSizeMap[Typed::kVoid_ptr]     = gMachinePtrSize;
-    gTypeSizeMap[Typed::kVoid_ptr_ptr] = gMachinePtrSize;
-
-    gTypeSizeMap[Typed::kObj_ptr]   = gMachinePtrSize;
-    gTypeSizeMap[Typed::kSound_ptr] = gMachinePtrSize;
-    gTypeSizeMap[Typed::kUint_ptr]  = gMachinePtrSize;
-
     gCurrentLocal = setlocale(LC_ALL, NULL);
     if (gCurrentLocal != NULL) {
         gCurrentLocal = strdup(gCurrentLocal);
@@ -635,6 +595,49 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
             << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
     }
+}
+
+void global::initTypeSizeMap()
+{
+    // Init type size table
+    gTypeSizeMap[Typed::kFloat]         = gMachineFloatSize;
+    gTypeSizeMap[Typed::kFloat_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloat_ptr_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloat_vec]     = gMachineFloatSize * gVecSize;
+    gTypeSizeMap[Typed::kFloat_vec_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kDouble]         = gMachineDoubleSize;
+    gTypeSizeMap[Typed::kDouble_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
+    gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
+    gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kInt32_vec]     = gMachineInt32Size * gVecSize;
+    gTypeSizeMap[Typed::kInt32_vec_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kInt64]         = gMachineInt64Size;
+    gTypeSizeMap[Typed::kInt64_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kInt64_vec]     = gMachineInt64Size * gVecSize;
+    gTypeSizeMap[Typed::kInt64_vec_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kBool]         = gMachineBoolSize;
+    gTypeSizeMap[Typed::kBool_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kBool_vec]     = gMachineBoolSize * gVecSize;
+    gTypeSizeMap[Typed::kBool_vec_ptr] = gMachinePtrSize;
+
+    // Takes the type of internal real
+    gTypeSizeMap[Typed::kFloatMacro]         = gTypeSizeMap[itfloat()];
+    gTypeSizeMap[Typed::kFloatMacro_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloatMacro_ptr_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kVoid_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kVoid_ptr_ptr] = gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kObj_ptr]   = gMachinePtrSize;
+    gTypeSizeMap[Typed::kSound_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kUint_ptr]  = gMachinePtrSize;
 }
 
 int global::audioSampleSize()

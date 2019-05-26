@@ -306,6 +306,8 @@ class EXPORT wasm_dsp : public dsp {
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
+class SoundUI;
+
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     friend class wasm_dsp;
    protected:
@@ -315,9 +317,13 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     int                      fInstance; // Index of wasm DSP instance
     std::string              fJSON;
     MapUI                    fMapUI;
+#ifdef EMCC
+    SoundUI*                 fSoundUI;
+#endif
 
    public:
-    wasm_dsp_factory() {}
+    wasm_dsp_factory():fFactory(nullptr), fDecoder(nullptr), fModule(0), fInstance(0)
+    {}
     wasm_dsp_factory(dsp_factory_base* factory);
     wasm_dsp_factory(int instance, const std::string& json);
 

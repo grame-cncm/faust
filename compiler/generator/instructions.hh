@@ -491,6 +491,15 @@ struct StructTyped : public Typed {
         }
         return size;
     }
+    
+    int getOffset(int field)
+    {
+        int offset = 0;
+        for (int i = 0; i < field; i++) {
+            offset += fFields[i]->getSize();
+        }
+        return offset;
+    }
 
     string getName(int index) { return fFields[index]->fName; }
 

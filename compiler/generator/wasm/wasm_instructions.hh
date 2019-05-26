@@ -1070,8 +1070,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 LocalVarDesc  local = fLocalVarTable[indexed->getName()];
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                     *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
+                    if (struct_type) {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(struct_type->fType->getOffset(num->fNum));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
+                    }
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {
                     *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
@@ -1349,7 +1354,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
+        //throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
     }
 };
 

@@ -563,6 +563,8 @@ struct global {
 
     void printCompilationOptions(ostream& dst, bool backend = true);
 
+    void initTypeSizeMap();
+    
     int audioSampleSize();
 };
 

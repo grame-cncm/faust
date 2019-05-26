@@ -390,8 +390,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // Local variable
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                    *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.const " << (num->fNum << offStrNum)
-                          << "))";
+                    DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+                    *fOut << "(i32.add (local.get " << indexed->getName();
+                    if (struct_type) {
+                        *fOut << ") (i32.const " << struct_type->fType->getOffset(num->fNum);
+                    } else {
+                        *fOut << ") (i32.const " << (num->fNum << offStrNum);
+                    }
+                    *fOut << "))";
                 } else {
                     *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
                     indexed->fIndex->accept(this);
@@ -400,7 +406,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-
+  
     virtual void visit(LoadVarAddressInst* inst)
     {
         // Not implemented in WASM
@@ -684,7 +690,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
+        //throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
     }
 };
 
