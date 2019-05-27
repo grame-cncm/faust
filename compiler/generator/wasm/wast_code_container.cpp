@@ -162,6 +162,22 @@ void WASTCodeContainer::produceInternal()
     generateDeclarations(gGlobal->gWASTVisitor);
 }
 
+static string json_flatten(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '"':
+                dst += '\\'; dst += '"';
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
 void WASTCodeContainer::produceClass()
 {
     int n = 0;
@@ -224,7 +240,7 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
     WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
-
+    
     // getNumInputs/getNumOutputs
     generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
     generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
@@ -376,7 +392,7 @@ void WASTCodeContainer::produceClass()
 
     // Generate one data segment containing the JSON string starting at offset 0
     tab(n + 1, *fOut);
-    *fOut << "(data (i32.const 0) \"" << json << "\")";
+    *fOut << "(data (i32.const 0) \"" << json_flatten(json) << "\")";
 
     // And write end of code stream on *fOut
     *fOut << end;

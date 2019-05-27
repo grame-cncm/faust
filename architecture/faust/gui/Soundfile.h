@@ -63,15 +63,18 @@
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     FAUSTFLOAT** fBuffers;
-    int fLength[MAX_SOUNDFILE_PARTS];     // length of each part
-    int fSR[MAX_SOUNDFILE_PARTS];         // sample rate of each part
-    int fOffset[MAX_SOUNDFILE_PARTS];     // offset of each part in the global buffer
-    int fChannels;                        // max number of channels of all concatenated files
+    int* fLength;   // length of each part
+    int* fSR;       // sample rate of each part
+    int* fOffset;   // offset of each part in the global buffer
+    int fChannels;  // max number of channels of all concatenated files
 
     Soundfile()
     {
         fBuffers  = NULL;
         fChannels = -1;
+        fLength   = new int[MAX_SOUNDFILE_PARTS];
+        fSR       = new int[MAX_SOUNDFILE_PARTS];
+        fOffset   = new int[MAX_SOUNDFILE_PARTS];
     }
 
     ~Soundfile()
@@ -81,6 +84,9 @@ struct Soundfile {
             delete fBuffers[chan];
         }
         delete[] fBuffers;
+        delete[] fLength;
+        delete[] fSR;
+        delete[] fOffset;
     }
 
 } POST_PACKED_STRUCTURE;

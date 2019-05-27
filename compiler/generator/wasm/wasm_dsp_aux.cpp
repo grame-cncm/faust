@@ -142,25 +142,6 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
     }
 }
 
-/*
-PRE_PACKED_STRUCTURE
-struct mydsp {
-    
-    Soundfile* fSoundfile0;
-    int iRec0[2];
-    int fSampleRate;
-    
-} POST_PACKED_STRUCTURE;
-*/
-
-PRE_PACKED_STRUCTURE
-struct mydsp {
-    
-    Soundfile* fSoundfile0;
-    int fSampleRate;
-    
-} POST_PACKED_STRUCTURE;
-
 wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 {
     fDSP = EM_ASM_INT({ return faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize());
@@ -169,24 +150,6 @@ wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
         buildUserInterface(&fFactory->fMapUI);
     }
     buildUserInterface(factory->fSoundUI);
-    
-    std::cout << "fDSP " << fDSP << std::endl;
-    
-    mydsp* dsp = reinterpret_cast<mydsp*>(fDSP);
-    Soundfile* sf = dsp->fSoundfile0;
-    std::cout << "sf->fLength[0] " << sf->fLength[0] << std::endl;
-    std::cout << "sf->fSR[0] " << sf->fSR[0] << std::endl;
-    std::cout << "sf->fOffset[0] " << sf->fOffset[0] << std::endl;
-    std::cout << "sf->fChannels " << sf->fChannels << std::endl;
-    
-    FAUSTFLOAT** fBuffers = sf->fBuffers;
-    for (int chan = 0; chan < getNumOutputs(); chan++) {
-        for (int frame = 10000; frame < 10000 + 10; frame++) {
-            std::cout << "sample " << fBuffers[chan][frame] << std::endl;
-        }
-    }
-    
-    std::cout << "fSampleRate " << dsp->fSampleRate << std::endl;
 }
 
 wasm_dsp::~wasm_dsp()
@@ -252,59 +215,8 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count, inputs,
-           outputs);
-    
-    mydsp* dsp = reinterpret_cast<mydsp*>(fDSP);
-    std::cout << "count " << count << std::endl;
-    std::cout << "fDSP " << fDSP << std::endl;
-    std::cout << "sizeof(mydsp) " << sizeof(mydsp) << std::endl;
-    
-    Soundfile* sf = dsp->fSoundfile0;
-    std::cout << "dsp->fSoundfile0 " << long(&dsp->fSoundfile0) << std::endl;
-    std::cout << "dsp->fSampleRate " << long(&dsp->fSampleRate) << std::endl;
-    std::cout << "sf->fBuffers " << long(&sf->fBuffers) << std::endl;
-    std::cout << "sf->fLength " << long(&sf->fLength) << std::endl;
-  
-    int* fLength = reinterpret_cast<int*>(reinterpret_cast<char*>(sf) + 4);
-    std::cout << "fLength " << long(fLength) << std::endl;
-    std::cout << "fLength[0] " << fLength[0] << std::endl;
-    
-    int* fSR = reinterpret_cast<int*>(reinterpret_cast<char*>(sf) + 4 + 1024);
-    std::cout << "fSR " << long(fSR) << std::endl;
-    std::cout << "fSR[0] " << fSR[0] << std::endl;
-    
-    /*
-    mydsp* dsp = reinterpret_cast<mydsp*>(fDSP);
-    Soundfile* sf = dsp->fSoundfile0;
-    std::cout << "dsp->fSoundfile0 " << long(&dsp->fSoundfile0) << std::endl;
-    std::cout << "dsp->fSampleRate " << long(&dsp->fSampleRate) << std::endl;
-    std::cout << "sf " << long(sf) << std::endl;
-    std::cout << "sf->fBuffers " << long(&sf->fBuffers[0]) << std::endl;
-    std::cout << "sf->fLength " << long(&sf->fLength[0]) << std::endl;
-    std::cout << "sf->fSR " << long(&sf->fSR[0]) << std::endl;
-    std::cout << "sf->fOffset " << long(&sf->fOffset[0]) << std::endl;
-    std::cout << "sf->fChannels " << long(&sf->fChannels) << std::endl;
-    
-    std::cout << "sf->fLength[0] " << sf->fLength[0] << std::endl;
-    std::cout << "sf->fSR[0] " << sf->fSR[0] << std::endl;
-    std::cout << "sf->fOffset[0] " << sf->fOffset[0] << std::endl;
-    std::cout << "sf->fChannels " << sf->fChannels << std::endl;
-    
-    std::cout << "long(&dsp->fSoundfile0) - fDSP " << (long(&dsp->fSoundfile0) - fDSP) << std::endl;
-    std::cout << "long(&dsp->fSampleRate) - long(&dsp->fSoundfile0) " << long(&dsp->fSampleRate) - long(&dsp->fSoundfile0) << std::endl;
-    */
-    
-    //std::cout << "dsp->iRec0[0] " << dsp->iRec0[0] << std::endl;
-    
-    FAUSTFLOAT** fBuffers = reinterpret_cast<FAUSTFLOAT**>(outputs);
-    for (int chan = 0; chan < getNumOutputs(); chan++) {
-        for (int frame = 0; frame < 10; frame++) {
-            std::cout << "sample " << fBuffers[chan][frame] << std::endl;
-        }
-    }
-    
-    std::cout << "fSampleRate " << dsp->fSampleRate << std::endl;
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); },
+           fFactory->fInstance, fDSP, count, inputs, outputs);
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)

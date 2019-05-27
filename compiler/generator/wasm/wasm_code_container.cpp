@@ -318,7 +318,7 @@ void WASMCodeContainer::produceClass()
 
     // 13) min_i
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
-
+    
     // 14) setParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     gGlobal->gWASMVisitor->generateSetParamValue();
 

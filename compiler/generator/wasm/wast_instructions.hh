@@ -221,11 +221,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType      type   = fTypingVisitor.fCurType;
+        Typed::VarType        type = fTypingVisitor.fCurType;
         Address::AccessType access = inst->fAddress->getAccess();
+        string                name = inst->fAddress->getName();
+        IndexedAddress*    indexed =  dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (access & Address::kStruct || access & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -243,8 +245,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fAddress->accept(this);
                 *fOut << ")";
             }
+        
         } else {
-            *fOut << "(local.get $" << inst->fAddress->getName() << ")";
+            *fOut << "(local.get $" << name << ")";
         }
     }
 
@@ -390,6 +393,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // Local variable
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    // Hack for 'soundfile'
                     DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                     *fOut << "(i32.add (local.get " << indexed->getName();
                     if (struct_type) {

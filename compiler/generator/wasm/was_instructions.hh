@@ -204,21 +204,23 @@ struct WASInst {
         if (!fFastMemory || no_offset_opt) {
             return 0;
         }
-
+        
+        string name = address->getName();
         NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
-
-        if (named && fFieldTable.find(named->getName()) != fFieldTable.end()) {
-            MemoryDesc tmp = fFieldTable[named->getName()];
-            return tmp.fOffset;
-        } else if (indexed && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
-            MemoryDesc    tmp = fFieldTable[indexed->getName()];
-            Int32NumInst* num;
-            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                return tmp.fOffset + (num->fNum << offStrNum);
+        
+        if (fFieldTable.find(name) != fFieldTable.end()) {
+            MemoryDesc tmp = fFieldTable[name];
+            if (named) {
+                return tmp.fOffset;
+            } else if (indexed) {
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    return tmp.fOffset + (num->fNum << offStrNum);
+                }
             }
         }
-
+        
         return 0;
     }
 
