@@ -3,10 +3,13 @@
 SignalDependencies::SignalDependencies(Tree root) : fVisitGen(false), fRoot(root)
 {
     Tree id, content;
-    int  dmax;
+    int  dmax, i;
 
     if (isSigDelayLineWrite(root, id, &dmax, content) || isSigControlWrite(root, id, content)) {
         fRoot = id;
+        self(content);
+    } else if (isSigOutput(root, &i, content)) {
+        fRoot = root;  // sigInt(i);
         self(content);
     } else {
         std::cerr << "**** BIG ERROR ***" << endl;

@@ -52,6 +52,11 @@ Tree SignalSplitter::transformation(Tree sig)
 
     if (isSigInt(sig, &i) || isSigReal(sig, &v)) {
         return sig;
+    } else if (isSigOutput(sig, &i, x)) {
+        Tree v = self(x);
+        fSplittedSignals.insert(sigOutput(i, v));
+        return sigOutput(i, v);
+
     } else if (isSigFixDelay(sig, x, y)) {
         int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
         interval i    = getCertifiedSigType(y)->getInterval();
