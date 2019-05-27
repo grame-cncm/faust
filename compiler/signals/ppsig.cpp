@@ -206,6 +206,7 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isSigInput(sig, &i)) {
         fout << "IN[" << i << "]";
     } else if (isSigOutput(sig, &i, x)) {
+        fout << sig << "@";
         printout(fout, i, x);
     }
 

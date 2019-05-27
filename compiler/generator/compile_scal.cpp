@@ -154,10 +154,30 @@ Tree ScalarCompiler::prepare(Tree LS)
     // endTiming("Signal Visitor)");
 
     startTiming("Signal Splitter");
+
+    // Decorate output expressions
+    Tree L3d  = gGlobal->nil;
+    int  onum = 0;
+    for (Tree l = L3; isList(l); l = tl(l)) {
+        L3d = cons(sigOutput(onum++, hd(l)), L3d);
+    }
+    L3d = reverse(L3d);
+
+    recursivnessAnnotation(L3d);  // Annotate L3 with recursivness information
+
+    startTiming("typeAnnotation");
+    typeAnnotation(L3d, true);  // Annotate L3 with type information
+    endTiming("typeAnnotation");
+
+    sharingAnalysis(L3);  // annotate L3 with sharing count
+
     cerr << "Start Signal Splitter" << endl;
-    SignalSplitter SS(fOccMarkup);
+    old_OccMarkup* fOccMarkup2 = new old_OccMarkup(fConditionProperty);
+    fOccMarkup2->mark(L3d);  // annotate L3 with occurences analysis
+
+    SignalSplitter SS(fOccMarkup2);
     SS.trace(false, "Signal Splitter");
-    Tree L3S = SS.mapself(L3);
+    Tree L3S = SS.mapself(L3d);
     cerr << "\n\nL3S = " << ppsig(L3S) << endl;
     SS.print(cerr);
     cerr << endl;
@@ -174,40 +194,50 @@ Tree ScalarCompiler::prepare(Tree LS)
         // D.trace(false, "Dependencies");
 
         // D.self(e);
-        //D.print(cerr);
-        //cerr << "DIGRAPH: " << D.graph() << endl;
+        // D.print(cerr);
+        // cerr << "DIGRAPH: " << D.graph() << endl;
         G.add(D.graph());
     }
 
     cerr << "End Signal Splitter" << endl;
 
-    cerr << "Graph of dependencies : " << endl;
-    cerr << G << endl;
+    cerr << "Graph of dependencies" << endl;
+    {
+        ofstream f;
+        f.open("graph.dot");
+        dotfile(f, G);
+        f.close();
+    }
 
-    cerr << "DAG " << endl;
+    cerr << "DAG of dependencies" << endl;
     digraph<digraph<Tree>> DG = graph2dag(G);
-    cerr << DG << endl;
+    {
+        ofstream f;
+        f.open("dag.dot");
+        dotfile(f, DG);
+        f.close();
+    }
 
-    cerr << "\nSERIALIZE\n" ;
-    auto V = serialize(DG);
-    int step = 0;
+    cerr << "\nSERIALIZE\n";
+    auto V    = serialize(DG);
+    int  step = 0;
     for (auto s : V) {
         cerr << step++ << ": " << s << endl;
     }
-/*
-    cerr << "\nPARALLELIZE\n" ;
-    auto P = parallelize(DG);
-    step = 0;
-    for (auto v : P) {
-        ++ step;
-        int inst = 0;
-        for (auto s : v) {
-            for (auto u : s) {
-                cerr << step << '.' << ++inst << ": " << u << endl;
+    /*
+        cerr << "\nPARALLELIZE\n" ;
+        auto P = parallelize(DG);
+        step = 0;
+        for (auto v : P) {
+            ++ step;
+            int inst = 0;
+            for (auto s : v) {
+                for (auto u : s) {
+                    cerr << step << '.' << ++inst << ": " << u << endl;
+                }
             }
         }
-    }
-*/
+    */
     endTiming("Signal Splitter");
 
     //****************************************************************************************************
