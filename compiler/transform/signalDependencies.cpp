@@ -28,6 +28,9 @@ void SignalDependencies::visit(Tree t)
             fDependencies[id] = dmin;
         }
         self(dl);
+    } else if (isSigControlRead(t, id)) {
+        fGraph.add(fRoot, id);
+        fDependencies[id] = 0;
     } else {
         SignalVisitor::visit(t);
     }
