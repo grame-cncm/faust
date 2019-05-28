@@ -1492,7 +1492,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                   << "\"" << gGlobal->gOutputLang << "\"" << endl;
             throw faustexception(error.str());
         }
-
+    
         // New compiler
         if (container) {
             if (gGlobal->gVectorSwitch) {
@@ -1512,10 +1512,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             new_comp->compileMultiSignal(signals);
         }
     }
-    
-    // Has to be done *after* gMachinePtrSize is set by the actual backend
-    gGlobal->initTypeSizeMap();
-
+  
     /****************************************************************
      * generate output file
      ****************************************************************/

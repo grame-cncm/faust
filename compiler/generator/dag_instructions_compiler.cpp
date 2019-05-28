@@ -39,6 +39,9 @@ DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : Ins
 
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {
+    // Has to be done *after* gMachinePtrSize is set by the actual backend
+    gGlobal->initTypeSizeMap();
+
     L = prepare(L);  // Optimize, share and annotate expression
 
     // "input" and "inputs" used as a name convention

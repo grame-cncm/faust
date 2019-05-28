@@ -308,6 +308,9 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
 
 void InstructionsCompiler::compileMultiSignal(Tree L)
 {
+    // Has to be done *after* gMachinePtrSize is set by the actual backend
+    gGlobal->initTypeSizeMap();
+
     L = prepare(L);  // Optimize, share and annotate expression
 
     startTiming("compileMultiSignal");
