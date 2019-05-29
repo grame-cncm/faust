@@ -659,7 +659,7 @@ struct CloseboxInst : public StatementInst {
 };
 
 struct AddButtonInst : public StatementInst {
-    enum ButtonType { kDefaultButton, kCheckbutton };
+    enum ButtonType { kDefaultButton, kCheckButton };
 
     string     fLabel;
     string     fZone;
@@ -1721,7 +1721,7 @@ struct InstBuilder {
 
     static AddButtonInst* genAddCheckbuttonInst(const string& label, const string& zone)
     {
-        return new AddButtonInst(label, zone, AddButtonInst::kCheckbutton);
+        return new AddButtonInst(label, zone, AddButtonInst::kCheckButton);
     }
 
     static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min,

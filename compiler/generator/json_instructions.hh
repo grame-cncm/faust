@@ -42,8 +42,7 @@ using namespace std;
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     map<string, string> fPathTable; // Table : field_name, complete path
     set<string> fControlPathSet;    // Set of already used control paths
-    set<string> fSoundPathSet;      // Set of already used sound paths
-
+ 
     using DispatchVisitor::visit;
     
     const string& checkPath(set<string>& table, const string& path)
@@ -96,12 +95,18 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
 
     virtual void visit(AddButtonInst* inst)
     {
-        if (inst->fType == AddButtonInst::kDefaultButton) {
-            addButton(inst->fLabel.c_str(), nullptr);
-        } else {
-            addCheckButton(inst->fLabel.c_str(), nullptr);
+        switch (inst->fType) {
+            case AddButtonInst::kDefaultButton:
+                addButton(inst->fLabel.c_str(), nullptr);
+                break;
+            case AddButtonInst::kCheckButton:
+                addCheckButton(inst->fLabel.c_str(), nullptr);
+                break;
+            default:
+                faustassert(false);
+                break;
         }
-
+        faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
         fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
@@ -121,7 +126,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                 faustassert(false);
                 break;
         }
-
+        faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
         fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
@@ -138,14 +143,15 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                 faustassert(false);
                 break;
         }
-
+        faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
         fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
         addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
-        fPathTable[inst->fSFZone] = checkPath(fSoundPathSet, buildPath(inst->fLabel));
+        faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
+        fPathTable[inst->fSFZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
     void setInputs(int input) { fInputs = input; }

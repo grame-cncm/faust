@@ -42,12 +42,6 @@ static bool noNtrl(const Node& n)
 #endif
 
 #ifdef LLVM_BUILD
-
-#if defined(LLVM_35) || defined(LLVM_38)
-#define __STDC_LIMIT_MACROS
-#define __STDC_CONSTANT_MACROS
-#endif
-
 #include <llvm/IR/Instructions.h>
 
 using namespace llvm;

@@ -162,22 +162,6 @@ void WASTCodeContainer::produceInternal()
     generateDeclarations(gGlobal->gWASTVisitor);
 }
 
-static string json_flatten(const string& src)
-{
-    string dst;
-    for (size_t i = 0; i < src.size(); i++) {
-        switch (src[i]) {
-            case '"':
-                dst += '\\'; dst += '"';
-                break;
-            default:
-                dst += src[i];
-                break;
-        }
-    }
-    return dst;
-}
-
 void WASTCodeContainer::produceClass()
 {
     int n = 0;
@@ -352,7 +336,9 @@ void WASTCodeContainer::produceClass()
     map<string, string>::iterator it;
     std::map<std::string, int>    path_index_table;
     map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
+    
     for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
+        faustassert(path_index_table.find((*it).second) == path_index_table.end());
         // Get field index
         MemoryDesc tmp                 = fieldTable1[(*it).first];
         path_index_table[(*it).second] = tmp.fOffset;
@@ -365,7 +351,7 @@ void WASTCodeContainer::produceClass()
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
 
-    string json = json_visitor2.JSON(true);
+    string json = flatten_json(json_visitor2.JSON(true));
 
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();
@@ -392,7 +378,7 @@ void WASTCodeContainer::produceClass()
 
     // Generate one data segment containing the JSON string starting at offset 0
     tab(n + 1, *fOut);
-    *fOut << "(data (i32.const 0) \"" << json_flatten(json) << "\")";
+    *fOut << "(data (i32.const 0) \"" << json << "\")";
 
     // And write end of code stream on *fOut
     *fOut << end;
@@ -411,9 +397,9 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return '";
+    fHelper << "return \"";
     fHelper << json;
-    fHelper << "';";
+    fHelper << "\";";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";
