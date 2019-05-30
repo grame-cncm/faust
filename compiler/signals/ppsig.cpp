@@ -92,7 +92,7 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cu
 ostream& ppsig::printout(ostream& fout, int i, Tree x) const
 {
     if (fPriority > 0) fout << "(";
-    fout << "OUT" << i << " = " << ppsig(x, fEnv, 0);
+    fout << "OUT[" << i << "] = " << ppsig(x, fEnv, 0);
     if (fPriority > 0) fout << ")";
     return fout;
 }

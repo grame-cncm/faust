@@ -184,19 +184,15 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     RecRemover    RR;
     digraph<Tree> G;
+    Dictionnary   Dic;
+
     cerr << "Remove Recursions" << endl;
     for (auto s : SS.fSplittedSignals) {
         Tree e = RR.self(s);
         cerr << ppsig(e) << "\n";
         cerr << endl;
-        // cerr << ppsig(s) << "\n";
-        SignalDependencies D(e);
-        // D.trace(false, "Dependencies");
-
-        // D.self(e);
-        // D.print(cerr);
-        // cerr << "DIGRAPH: " << D.graph() << endl;
-        G.add(D.graph());
+        G.add(dependencyGraph(e));
+        Dic.add(e);
     }
 
     cerr << "End Signal Splitter" << endl;
@@ -205,7 +201,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     {
         ofstream f;
         f.open("graph.dot");
-        dotfile(f, G);
+        dotfile2(f, Dic, G);
         f.close();
     }
 
