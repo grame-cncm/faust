@@ -57,9 +57,9 @@ void Dictionnary::add(Tree sig)
     int  dmax, i;
     // Analyzed signals are supposed to be DelayLines, Controls or Outputs
     if (isSigDelayLineWrite(sig, id, &dmax, content) || isSigControlWrite(sig, id, content)) {
-        fDefinitions[id] = content;
+        fDefinitions[id] = sig;
     } else if (isSigOutput(sig, &i, content)) {
-        fDefinitions[sig] = content;
+        fDefinitions[sig] = sig;
     } else {
         std::cerr << "**** BIG ERROR ***" << endl;
     }
@@ -82,9 +82,31 @@ digraph<Tree> dependencyGraph(Tree sig)
     return D.graph();
 }
 
+// replace ;= by \n
+static string format(const string& s)
+{
+    string r;
+    int    state = 0;
+    for (char c : s) {
+        if ((state == 0) & (c != ':')) {
+            r += c;
+        } else if ((state == 0) & (c == ':')) {
+            state = 1;
+        } else if ((state == 1) & (c != '=')) {
+            r += ':';
+            r += c;
+            state = 0;
+        } else if ((state == 1) & (c == '=')) {
+            r += "\\n";
+            state = 0;
+        }
+    }
+    return r;
+}
+
 ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
 {
-    file << "digraph mygraph {" << endl;
+    file << "digraph mygraph { \n\t node [shape=box]" << endl;
     for (Tree n : g.nodes()) {
         stringstream sn;
         sn << '"' << ppsig(dict[n]) << '"';
@@ -94,13 +116,14 @@ ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
             sm << '"' << ppsig(dict[c.first]) << '"';
             hascnx = true;
             if (c.second == 0) {
-                file << "\t" << sn.str() << "->" << sm.str() << ";" << endl;
+                file << "\t" << format(sn.str()) << "->" << format(sm.str()) << ";" << endl;
             } else {
-                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];" << endl;
+                file << "\t" << format(sn.str()) << "->" << format(sm.str()) << " [label=\"" << c.second << "\"];"
+                     << endl;
             }
         }
         if (!hascnx) {
-            file << "\t" << sn.str() << ";" << endl;
+            file << "\t" << format(sn.str()) << ";" << endl;
         }
     }
 
