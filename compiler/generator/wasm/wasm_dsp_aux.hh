@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "faust/gui/MapUI.h"
+#include "faust/gui/JSONControl.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
@@ -262,7 +263,7 @@ struct WasmBinaryReader {
 
 // The C++ side version of compiled wasm code
 
-class EXPORT wasm_dsp : public dsp {
+class EXPORT wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
     int               fDSP;       // Index of wasm DSP memory
@@ -313,16 +314,14 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
    protected:
     dsp_factory_base*        fFactory;
     JSONUITemplatedDecoder*  fDecoder;
-    int                      fModule;   // Index of wasm DSP module
     int                      fInstance; // Index of wasm DSP instance
-    std::string              fJSON;
     MapUI                    fMapUI;
 #ifdef EMCC
     SoundUI*                 fSoundUI;
 #endif
 
    public:
-    wasm_dsp_factory():fFactory(nullptr), fDecoder(nullptr), fModule(0), fInstance(0)
+    wasm_dsp_factory():fFactory(nullptr), fDecoder(nullptr), fInstance(0)
     {}
     wasm_dsp_factory(dsp_factory_base* factory);
     wasm_dsp_factory(int instance, const std::string& json);
@@ -332,10 +331,10 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     std::string getName();
 
     std::string getSHAKey();
-    void        setSHAKey(std::string sha_key);
+    void        setSHAKey(const std::string& sha_key);
 
     std::string getDSPCode();
-    void        setDSPCode(std::string code);
+    void        setDSPCode(const std::string& code);
 
     std::string              getCompileOptions();
     std::vector<std::string> getLibraryList();

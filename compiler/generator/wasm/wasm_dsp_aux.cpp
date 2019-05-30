@@ -53,8 +53,7 @@ wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
     fFactory = nullptr;
     fInstance = instance;
-    fJSON = json;
-    fDecoder = createJSONUIDecoder(fJSON);
+    fDecoder = createJSONUIDecoder(json);
     fSoundUI = new SoundUI();
 }
 
@@ -280,8 +279,7 @@ wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
     fFactory = nullptr;
     fInstance = instance;
-    fJSON = json;
-    fDecoder = createJSONUIDecoder(fJSON);
+    fDecoder = createJSONUIDecoder(json);
 }
 
 wasm_dsp_factory::~wasm_dsp_factory()
@@ -405,7 +403,6 @@ wasm_dsp* wasm_dsp_factory::createDSPInstance()
 wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 {
     fFactory = factory;
-    fModule = 0;
     fDecoder = nullptr;
 }
 
@@ -418,7 +415,7 @@ string wasm_dsp_factory::getSHAKey()
 {
     return fFactory->getSHAKey();
 }
-void wasm_dsp_factory::setSHAKey(string sha_key)
+void wasm_dsp_factory::setSHAKey(const string& sha_key)
 {
     fFactory->setSHAKey(sha_key);
 }
@@ -427,7 +424,7 @@ string wasm_dsp_factory::getDSPCode()
 {
     return fFactory->getDSPCode();
 }
-void wasm_dsp_factory::setDSPCode(string code)
+void wasm_dsp_factory::setDSPCode(const string& code)
 {
     fFactory->setDSPCode(code);
 }

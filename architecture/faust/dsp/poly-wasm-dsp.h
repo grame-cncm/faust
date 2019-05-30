@@ -35,12 +35,11 @@
 
 struct wasm_dsp_poly_factory : public dsp_poly_factory {
     
-    wasm_dsp_poly_factory() {}
     wasm_dsp_poly_factory(const std::string& name_app,
-                        const std::string& dsp_content,
-                        int argc, const char* argv[],
-                        std::string& error_msg,
-                        bool internal_memory)
+                          const std::string& dsp_content,
+                          int argc, const char* argv[],
+                          std::string& error_msg,
+                          bool internal_memory)
     {
         fProcessFactory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg, internal_memory);
         if (fProcessFactory) {
@@ -56,6 +55,11 @@ struct wasm_dsp_poly_factory : public dsp_poly_factory {
         }
     }
     
+    wasm_dsp_poly_factory(wasm_dsp_factory* process_factory = NULL,
+                          wasm_dsp_factory* effect_factory = NULL)
+        : dsp_poly_factory(process_factory, effect_factory)
+    {}
+    
     virtual ~wasm_dsp_poly_factory()
     {
         deleteWasmDSPFactory(static_cast<wasm_dsp_factory*>(fProcessFactory));
@@ -65,16 +69,6 @@ struct wasm_dsp_poly_factory : public dsp_poly_factory {
     dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group)
     {
         return dsp_poly_factory::createPolyDSPInstance(nvoices, control, group);
-    }
-    
-    FAUSTFLOAT** createAudioBuffers(int chan, int frames)
-    {
-        FAUSTFLOAT** buffers = new FAUSTFLOAT*[chan];
-        for (int i = 0; i < chan; i++) {
-            buffers[i] = new FAUSTFLOAT[frames];
-            memset(buffers[i], 0, frames * sizeof(FAUSTFLOAT));
-        }
-        return buffers;
     }
     
     static wasm_dsp_poly_factory* createWasmPolyDSPFactoryFromString2(const std::string&              name_app,
@@ -198,9 +192,14 @@ EMSCRIPTEN_BINDINGS(CLASS_MapUI) {
     .constructor();
 }
 
+EMSCRIPTEN_BINDINGS(CLASS_dsp_poly_factory) {
+    class_<dsp_poly_factory>("dsp_poly_factory")
+    .constructor<dsp_poly_factory*, dsp_poly_factory*>();
+}
+
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_poly_factory) {
     class_<wasm_dsp_poly_factory>("wasm_dsp_poly_factory")
-    .constructor()
+    .constructor<wasm_dsp_factory*, wasm_dsp_factory*>()
     .function("createPolyDSPInstance", &wasm_dsp_poly_factory::createPolyDSPInstance, allow_raw_pointers())
     .class_function("createWasmPolyDSPFactoryFromString2",
                     &wasm_dsp_poly_factory::createWasmPolyDSPFactoryFromString2,
@@ -211,6 +210,11 @@ EMSCRIPTEN_BINDINGS(CLASS_dsp_poly)
 {
     class_<dsp_poly>("dsp_poly")
     .constructor()
+    // Additional JSON based API
+    .function("getJSON", &dsp_poly::getJSON, allow_raw_pointers())
+    .function("setParamValue", &dsp_poly::setParamValue, allow_raw_pointers())
+    .function("getParamValue", &dsp_poly::getParamValue, allow_raw_pointers())
+    // DSP API
     .function("getNumInputs", &dsp_poly::getNumInputs, allow_raw_pointers())
     .function("getNumOutputs", &dsp_poly::getNumOutputs, allow_raw_pointers())
     .function("getSampleRate", &dsp_poly::getSampleRate, allow_raw_pointers())
@@ -221,6 +225,7 @@ EMSCRIPTEN_BINDINGS(CLASS_dsp_poly)
     .function("instanceClear", &dsp_poly::instanceClear, allow_raw_pointers())
     .function("clone", &dsp_poly::clone, allow_raw_pointers())
     .function("compute", &dsp_poly::computeJS, allow_raw_pointers())
+    // MIDI API
     .function("keyOn", &dsp_poly::keyOn, allow_raw_pointers())
     .function("keyOff", &dsp_poly::keyOff, allow_raw_pointers())
     .function("keyPress", &dsp_poly::keyPress, allow_raw_pointers())

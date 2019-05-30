@@ -40,6 +40,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
+#include "faust/gui/JSONControl.h"
 
 #define kActiveVoice      0
 #define kFreeVoice        -1
@@ -312,18 +313,35 @@ struct dsp_voice_group {
  * Base class for MIDI controllable DSP.
  */
 
-class dsp_poly : public decorator_dsp, public midi {
+#ifdef EMCC
+#include "faust/gui/JSONUI.h"
+#endif
 
+class dsp_poly : public decorator_dsp, public midi, public JSONControl {
+
+    protected:
+    
+    #ifdef EMCC
+        MapUI fMapUI;
+        std::string fJSON;
+    #endif
+    
     public:
     
         dsp_poly()
         {}
         dsp_poly(dsp* dsp):decorator_dsp(dsp)
-        {}
+        {
+            JSONUI jsonui(getNumInputs(), getNumOutputs());
+            buildUserInterface(&jsonui);
+            fJSON = jsonui.JSON(true);
+            buildUserInterface(&fMapUI);
+        }
     
         virtual ~dsp_poly() {}
     
         // Reimplemented for EMCC
+    #ifdef EMCC
         virtual int getNumInputs() { return decorator_dsp::getNumInputs(); }
         virtual int getNumOutputs() { return decorator_dsp::getNumOutputs(); }
         virtual void buildUserInterface(UI* ui_interface) { decorator_dsp::buildUserInterface(ui_interface); }
@@ -335,10 +353,23 @@ class dsp_poly : public decorator_dsp, public midi {
         virtual void instanceClear() { decorator_dsp::instanceClear(); }
         virtual dsp_poly* clone() { return new dsp_poly(fDSP->clone()); }
         virtual void metadata(Meta* m) { decorator_dsp::metadata(m); }
+    
+        // Additional API
+        std::string getJSON() { return fJSON; }
+    
+        virtual void setParamValue(const std::string& path, FAUSTFLOAT value)
+        {
+            fMapUI.setParamValue(path, value);
+            GUI::updateAllGuis();
+        }
+        
+        virtual FAUSTFLOAT getParamValue(const std::string& path) { return fMapUI.getParamValue(path); }
+
         virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs)
         {
             decorator_dsp::compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs),reinterpret_cast<FAUSTFLOAT**>(outputs));
         }
+    #endif
     
         virtual  MapUI* keyOn(int channel, int pitch, int velocity)
         {
