@@ -332,10 +332,12 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         {}
         dsp_poly(dsp* dsp):decorator_dsp(dsp)
         {
+        #ifdef EMCC
             JSONUI jsonui(getNumInputs(), getNumOutputs());
             buildUserInterface(&jsonui);
             fJSON = jsonui.JSON(true);
             buildUserInterface(&fMapUI);
+        #endif
         }
     
         virtual ~dsp_poly() {}
