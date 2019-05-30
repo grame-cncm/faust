@@ -33,24 +33,17 @@
 #include "sigtyperules.hh"
 #include "tree.hh"
 
-//-------------------------SignalIdentity-------------------------------
-// An identity transformation on signals. Can be used to test
-// that everything works, and as a pattern for real transformations.
-//----------------------------------------------------------------------
+using namespace std;
 
-class SignalDependencies : public SignalVisitor {
-    bool                fVisitGen;
-    Tree                fRoot;
-    std::map<Tree, int> fDependencies;  // The dependencies revelated by a visit
-    digraph<Tree>       fGraph;
+digraph<Tree> dependencyGraph(Tree sig);
+
+class Dictionnary {
+    map<Tree, Tree> fDefinitions;
 
    public:
-    SignalDependencies(Tree root);  // : fVisitGen(false), fRoot(root) { self(root); }
-    virtual ostream&     print(ostream& dst) const;
-    const digraph<Tree>& graph() const;
-
-   protected:
-    virtual void visit(Tree t);
+    void add(Tree sig);
+    Tree operator[](Tree id);
 };
+ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g);
 
 #endif
