@@ -82,11 +82,12 @@ digraph<Tree> dependencyGraph(Tree sig)
     return D.graph();
 }
 
-// replace ;= by \n
+// replace ;= by \n, max columns 40
 static string format(const string& s)
 {
     string r;
     int    state = 0;
+    int    count = 1;
     for (char c : s) {
         if ((state == 0) & (c != ':')) {
             r += c;
@@ -97,8 +98,12 @@ static string format(const string& s)
             r += c;
             state = 0;
         } else if ((state == 1) & (c == '=')) {
-            r += "\\n";
-            state = 0;
+            r += ":=\\n";
+            state = 2;
+            count = 1;
+        } else if (state == 2) {
+            r += c;
+            if (++count % 40 == 0) r += "\\n";
         }
     }
     return r;
