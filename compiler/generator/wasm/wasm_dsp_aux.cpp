@@ -155,6 +155,8 @@ wasm_dsp::~wasm_dsp()
 {
     // Free the DSP memory
     EM_ASM({ faust_module._free($0); }, fDSP);
+    
+    wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
 int wasm_dsp::getNumInputs()
@@ -234,23 +236,18 @@ FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
     return fFactory->fMapUI.getParamValue(path);
 }
 
-wasm_dsp* wasm_dsp_factory::createDSPInstance()
-{
-    wasm_dsp* dsp = new wasm_dsp(this);
-    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
-    return dsp;
-}
-
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
 {
     class_<wasm_dsp_factory>("wasm_dsp_factory")
     .constructor()
     .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
+    .function("deleteDSPInstance", &wasm_dsp_factory::deleteDSPInstance, allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
                     allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
                     allow_raw_pointers())
     .class_function("createWasmDSPFactory", &wasm_dsp_factory::createWasmDSPFactory, allow_raw_pointers())
+    .class_function("deleteWasmDSPFactory", &wasm_dsp_factory::deleteWasmDSPFactory2, allow_raw_pointers())
     .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
     .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
 }
@@ -323,6 +320,7 @@ wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory), fDSP(-1)
 
 wasm_dsp::~wasm_dsp()
 {
+    wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
 int wasm_dsp::getNumInputs()
@@ -388,14 +386,6 @@ void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
 FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
 {
     return -1;
-}
-
-
-wasm_dsp* wasm_dsp_factory::createDSPInstance()
-{
-    wasm_dsp* dsp = new wasm_dsp(this);
-    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
-    return dsp;
 }
 
 #endif
@@ -465,6 +455,18 @@ string wasm_dsp_factory::getBinaryCode()
     return fFactory->getBinaryCode();
 }
 
+wasm_dsp* wasm_dsp_factory::createDSPInstance()
+{
+    wasm_dsp* dsp = new wasm_dsp(this);
+    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
+    return dsp;
+}
+
+void wasm_dsp_factory::deleteDSPInstance(wasm_dsp* dsp)
+{
+    delete dsp;
+}
+
 // Static constructor
 
 string wasm_dsp_factory::gErrorMessage = "";
@@ -482,6 +484,11 @@ wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const str
 wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string& machine_code)
 {
     return readWasmDSPFactoryFromMachine(machine_code, wasm_dsp_factory::gErrorMessage);
+}
+
+bool wasm_dsp_factory::deleteWasmDSPFactory2(wasm_dsp_factory* factory)
+{
+    return (factory) ? wasm_dsp_factory::gWasmFactoryTable.deleteDSPFactory(factory) : false;
 }
 
 // C++ API

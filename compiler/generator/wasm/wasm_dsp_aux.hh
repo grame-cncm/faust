@@ -343,6 +343,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     JSONUITemplatedDecoder* getDecoder() { return fDecoder; }
 
     wasm_dsp* createDSPInstance();
+    void deleteDSPInstance(wasm_dsp* dsp);
   
     void                setMemoryManager(dsp_memory_manager* manager);
     dsp_memory_manager* getMemoryManager();
@@ -357,6 +358,8 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static wasm_dsp_factory* readWasmDSPFactoryFromMachine2(const std::string& machine_code);
     
     static wasm_dsp_factory* createWasmDSPFactory(int instance, const std::string& json);
+    
+    static bool deleteWasmDSPFactory2(wasm_dsp_factory* factory);
     
     static std::string extractJSON(const std::string& code);
    
