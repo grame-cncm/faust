@@ -61,7 +61,7 @@ struct JSONUIDecoderAux {
     std::string fCompileOptions;
     
     std::map<std::string, std::string> fMetadata;
-    std::vector<itemInfo*> fUiItems;     
+    std::vector<itemInfo> fUiItems;
     
     std::vector<std::string> fLibraryList;
     std::vector<std::string> fIncludePathnames;
@@ -77,9 +77,22 @@ struct JSONUIDecoderAux {
     controlMap fPathInputTable;     // [path, <index, zone>]
     controlMap fPathOutputTable;    // [path, <index, zone>]
 
-    bool isInput(const std::string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
+    bool isInput(const std::string& type)
+    {
+        return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox");
+    }
     bool isOutput(const std::string& type) { return (type == "hbargraph" || type == "vbargraph"); }
     bool isSoundfile(const std::string& type) { return (type == "soundfile"); }
+    
+    std::string getString(std::map<std::string, std::string >& map, const std::string& key)
+    {
+        return (map.find(key) != map.end()) ? map[key] : "";
+    }
+    
+    int getInt(std::map<std::string, std::string >& map, const std::string& key)
+    {
+        return (map.find(key) != map.end()) ? std::atoi(map[key].c_str()) : -1;
+    }
 
     JSONUIDecoderAux(const std::string& json)
     {
@@ -90,10 +103,10 @@ struct JSONUIDecoderAux {
         parseJson(p, meta_data0, fMetadata, meta_data2, fUiItems);
         
         // meta_data0 contains <name : val>, <inputs : val>, <ouputs : val> pairs etc...
-        fName = (meta_data0.find("name") != meta_data0.end()) ? meta_data0["name"] : "";
-        fFileName = (meta_data0.find("filename") != meta_data0.end()) ? meta_data0["filename"] : "";
-        fVersion = (meta_data0.find("version") != meta_data0.end()) ? meta_data0["version"] : "";
-        fCompileOptions = (meta_data0.find("compile_options") != meta_data0.end()) ? meta_data0["compile_options"] : "";
+        fName = getString(meta_data0, "name");
+        fFileName = getString(meta_data0, "filename");
+        fVersion = getString(meta_data0, "version");
+        fCompileOptions = getString(meta_data0, "compile_options");
         
         if (meta_data2.find("library_list") != meta_data2.end()) {
             fLibraryList = meta_data2["library_list"];
@@ -102,18 +115,17 @@ struct JSONUIDecoderAux {
             fIncludePathnames = meta_data2["include_pathnames"];
         }
         
-        fDSPSize = (meta_data0.find("size") != meta_data0.end()) ? std::atoi(meta_data0["size"].c_str()) : -1;
-        fNumInputs = (meta_data0.find("inputs") != meta_data0.end()) ? std::atoi(meta_data0["inputs"].c_str()) : -1;
-        fNumOutputs = (meta_data0.find("outputs") != meta_data0.end()) ? std::atoi(meta_data0["outputs"].c_str()) : -1;
-        fSRIndex = (meta_data0.find("sr_index") != meta_data0.end()) ? std::atoi(meta_data0["sr_index"].c_str()) : -1;
+        fDSPSize = getInt(meta_data0, "size");
+        fNumInputs = getInt(meta_data0, "inputs");
+        fNumOutputs = getInt(meta_data0, "outputs");
+        fSRIndex = getInt(meta_data0, "sr_index");
        
         fInputItems = 0;
         fOutputItems = 0;
         fSoundfileItems = 0;
         
-        std::vector<itemInfo*>::iterator it;
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            std::string type = (*it)->type;
+        for (auto& it : fUiItems) {
+            std::string type = it.type;
             if (isInput(type)) {
                 fInputItems++;
             } else if (isOutput(type)) {
@@ -127,37 +139,33 @@ struct JSONUIDecoderAux {
         fOutControl = new REAL[fOutputItems];
         fSoundfiles = new Soundfile*[fSoundfileItems];
         
-        int counterIn = 0;
-        int counterOut = 0;
+        int countIn = 0;
+        int countOut = 0;
         
         // Prepare the fPathTable and init zone
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            std::string type = (*it)->type;
+        for (auto& it : fUiItems) {
+            std::string type = it.type;
             // Meta data declaration for input items
             if (isInput(type)) {
-                if ((*it)->address != "") {
-                    fPathInputTable[(*it)->address] = std::make_pair(std::atoi((*it)->index.c_str()), &fInControl[counterIn]);
+                if (it.address != "") {
+                    fPathInputTable[it.address] = std::make_pair(std::atoi(it.index.c_str()), &fInControl[countIn]);
                 }
-                fInControl[counterIn] = STR2REAL((*it)->init);
-                counterIn++;
+                fInControl[countIn] = STR2REAL(it.init);
+                countIn++;
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
-                if ((*it)->address != "") {
-                    fPathOutputTable[(*it)->address] = std::make_pair(std::atoi((*it)->index.c_str()), &fOutControl[counterOut]);
+                if (it.address != "") {
+                    fPathOutputTable[it.address] = std::make_pair(std::atoi(it.index.c_str()), &fOutControl[countOut]);
                 }
-                fOutControl[counterOut] = REAL(0);
-                counterOut++;
+                fOutControl[countOut] = REAL(0);
+                countOut++;
             }
         }
     }
     
     virtual ~JSONUIDecoderAux()
     {
-        std::vector<itemInfo*>::iterator it;
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            delete(*it);
-        }
         delete [] fInControl;
         delete [] fOutControl;
         delete [] fSoundfiles;
@@ -165,39 +173,35 @@ struct JSONUIDecoderAux {
     
     void metadata(Meta* m)
     {
-        std::map<std::string, std::string>::iterator it;
-        for (it = fMetadata.begin(); it != fMetadata.end(); it++) {
-            m->declare((*it).first.c_str(), (*it).second.c_str());
+        for (auto& it : fMetadata) {
+            m->declare(it.first.c_str(), it.second.c_str());
         }
     }
     
     void metadata(MetaGlue* m)
     {
-        std::map<std::string, std::string>::iterator it;
-        for (it = fMetadata.begin(); it != fMetadata.end(); it++) {
-            m->declare(m->metaInterface, (*it).first.c_str(), (*it).second.c_str());
+        for (auto& it : fMetadata) {
+            m->declare(m->metaInterface, it.first.c_str(), it.second.c_str());
         }
     }
     
     void resetUserInterface()
     {
-        std::vector<itemInfo*>::iterator it;
         int item = 0;
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            if (isInput((*it)->type)) {
-                fInControl[item++] = STR2REAL((*it)->init);
+        for (auto& it : fUiItems) {
+            if (isInput(it.type)) {
+                fInControl[item++] = STR2REAL(it.init);
             }
         }
     }
     
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
-        std::vector<itemInfo*>::iterator it;
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            int offset = std::atoi((*it)->index.c_str());
-            if (isInput((*it)->type)) {
-                *REAL_ADR(offset) = STR2REAL((*it)->init);
-            } else if (isSoundfile((*it)->type)) {
+        for (auto& it : fUiItems) {
+            int offset = std::atoi(it.index.c_str());
+            if (isInput(it.type)) {
+                *REAL_ADR(offset) = STR2REAL(it.init);
+            } else if (isSoundfile(it.type)) {
                 if (*SOUNDFILE_ADR(offset) == nullptr) {
                     *SOUNDFILE_ADR(offset) = defaultsound;
                 }
@@ -216,71 +220,69 @@ struct JSONUIDecoderAux {
         char* tmp_local = setlocale(LC_ALL, NULL);
         setlocale(LC_ALL, "C");
         
-        int counterIn = 0;
-        int counterOut = 0;
-        int counterSound = 0;
-        std::vector<itemInfo*>::iterator it;
+        int countIn = 0;
+        int countOut = 0;
+        int countSound = 0;
         
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
+        for (auto& it : fUiItems) {
             
-            std::string type = (*it)->type;
-            
-            REAL init = STR2REAL((*it)->init);
-            REAL min = STR2REAL((*it)->min);
-            REAL max = STR2REAL((*it)->max);
-            REAL step = STR2REAL((*it)->step);
+            std::string type = it.type;
+            REAL init = STR2REAL(it.init);
+            REAL min = STR2REAL(it.min);
+            REAL max = STR2REAL(it.max);
+            REAL step = STR2REAL(it.step);
             
             // Meta data declaration for input items
             if (isInput(type)) {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(&fInControl[counterIn], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    REAL_UI(ui_interface)->declare(&fInControl[countIn], it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(&fOutControl[counterOut], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    REAL_UI(ui_interface)->declare(&fOutControl[countOut], it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             // Meta data declaration for group opening or closing
             else {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(0, (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    REAL_UI(ui_interface)->declare(0, it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             
             if (type == "hgroup") {
-                REAL_UI(ui_interface)->openHorizontalBox((*it)->label.c_str());
+                REAL_UI(ui_interface)->openHorizontalBox(it.label.c_str());
             } else if (type == "vgroup") { 
-                REAL_UI(ui_interface)->openVerticalBox((*it)->label.c_str());
+                REAL_UI(ui_interface)->openVerticalBox(it.label.c_str());
             } else if (type == "tgroup") {
-                REAL_UI(ui_interface)->openTabBox((*it)->label.c_str());
+                REAL_UI(ui_interface)->openTabBox(it.label.c_str());
             } else if (type == "vslider") {
-                REAL_UI(ui_interface)->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
+                REAL_UI(ui_interface)->addVerticalSlider(it.label.c_str(), &fInControl[countIn], init, min, max, step);
             } else if (type == "hslider") {
-                REAL_UI(ui_interface)->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
+                REAL_UI(ui_interface)->addHorizontalSlider(it.label.c_str(), &fInControl[countIn], init, min, max, step);            
             } else if (type == "checkbox") {
-                REAL_UI(ui_interface)->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
+                REAL_UI(ui_interface)->addCheckButton(it.label.c_str(), &fInControl[countIn]);
             } else if (type == "soundfile") {
-                REAL_UI(ui_interface)->addSoundfile((*it)->label.c_str(), (*it)->url.c_str(), &fSoundfiles[counterSound]);
+                REAL_UI(ui_interface)->addSoundfile(it.label.c_str(), it.url.c_str(), &fSoundfiles[countSound]);
             } else if (type == "hbargraph") {
-                REAL_UI(ui_interface)->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
+                REAL_UI(ui_interface)->addHorizontalBargraph(it.label.c_str(), &fOutControl[countOut], min, max);
             } else if (type == "vbargraph") {
-                REAL_UI(ui_interface)->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
+                REAL_UI(ui_interface)->addVerticalBargraph(it.label.c_str(), &fOutControl[countOut], min, max);
             } else if (type == "nentry") {
-                REAL_UI(ui_interface)->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
+                REAL_UI(ui_interface)->addNumEntry(it.label.c_str(), &fInControl[countIn], init, min, max, step);
             } else if (type == "button") {
-                REAL_UI(ui_interface)->addButton((*it)->label.c_str(), &fInControl[counterIn]);
+                REAL_UI(ui_interface)->addButton(it.label.c_str(), &fInControl[countIn]);
             } else if (type == "close") {
                 REAL_UI(ui_interface)->closeBox();
             }
             
             if (isInput(type)) {
-                counterIn++;
+                countIn++;
             } else if (isOutput(type)) {
-                counterOut++;
+                countOut++;
             } else if (isSoundfile(type)) {
-                counterSound++;
+                countSound++;
             }
         }
         setlocale(LC_ALL, tmp_local);
@@ -292,66 +294,64 @@ struct JSONUIDecoderAux {
         char* tmp_local = setlocale(LC_ALL, NULL);
         setlocale(LC_ALL, "C");
         
-        int counterSound = 0;
-        std::vector<itemInfo*>::iterator it;
+        int countSound = 0;
         
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
+        for (auto& it : fUiItems) {
             
-            std::string type = (*it)->type;
-            int offset = std::atoi((*it)->index.c_str());
-            
-            REAL init = STR2REAL((*it)->init);
-            REAL min = STR2REAL((*it)->min);
-            REAL max = STR2REAL((*it)->max);
-            REAL step = STR2REAL((*it)->step);
+            std::string type = it.type;
+            int offset = std::atoi(it.index.c_str());
+            REAL init = STR2REAL(it.init);
+            REAL min = STR2REAL(it.min);
+            REAL max = STR2REAL(it.max);
+            REAL step = STR2REAL(it.step);
             
             // Meta data declaration for input items
             if (isInput(type)) {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    REAL_UI(ui_interface)->declare(REAL_ADR(offset), it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    REAL_UI(ui_interface)->declare(REAL_ADR(offset), it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             // Meta data declaration for group opening or closing
             else {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(0, (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    REAL_UI(ui_interface)->declare(0, it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             
             if (type == "hgroup") {
-                REAL_UI(ui_interface)->openHorizontalBox((*it)->label.c_str());
+                REAL_UI(ui_interface)->openHorizontalBox(it.label.c_str());
             } else if (type == "vgroup") {
-                REAL_UI(ui_interface)->openVerticalBox((*it)->label.c_str());
+                REAL_UI(ui_interface)->openVerticalBox(it.label.c_str());
             } else if (type == "tgroup") {
-                REAL_UI(ui_interface)->openTabBox((*it)->label.c_str());
+                REAL_UI(ui_interface)->openTabBox(it.label.c_str());
             } else if (type == "vslider") {
-                REAL_UI(ui_interface)->addVerticalSlider((*it)->label.c_str(), REAL_ADR(offset), init, min, max, step);
+                REAL_UI(ui_interface)->addVerticalSlider(it.label.c_str(), REAL_ADR(offset), init, min, max, step);
             } else if (type == "hslider") {
-                REAL_UI(ui_interface)->addHorizontalSlider((*it)->label.c_str(), REAL_ADR(offset), init, min, max, step);
+                REAL_UI(ui_interface)->addHorizontalSlider(it.label.c_str(), REAL_ADR(offset), init, min, max, step);
             } else if (type == "checkbox") {
-                REAL_UI(ui_interface)->addCheckButton((*it)->label.c_str(), REAL_ADR(offset));
+                REAL_UI(ui_interface)->addCheckButton(it.label.c_str(), REAL_ADR(offset));
             } else if (type == "soundfile") {
-                REAL_UI(ui_interface)->addSoundfile((*it)->label.c_str(), (*it)->url.c_str(), SOUNDFILE_ADR(offset));
+                REAL_UI(ui_interface)->addSoundfile(it.label.c_str(), it.url.c_str(), SOUNDFILE_ADR(offset));
             } else if (type == "hbargraph") {
-                REAL_UI(ui_interface)->addHorizontalBargraph((*it)->label.c_str(), REAL_ADR(offset), min, max);
+                REAL_UI(ui_interface)->addHorizontalBargraph(it.label.c_str(), REAL_ADR(offset), min, max);
             } else if (type == "vbargraph") {
-                REAL_UI(ui_interface)->addVerticalBargraph((*it)->label.c_str(), REAL_ADR(offset), min, max);
+                REAL_UI(ui_interface)->addVerticalBargraph(it.label.c_str(), REAL_ADR(offset), min, max);
             } else if (type == "nentry") {
-                REAL_UI(ui_interface)->addNumEntry((*it)->label.c_str(), REAL_ADR(offset), init, min, max, step);
+                REAL_UI(ui_interface)->addNumEntry(it.label.c_str(), REAL_ADR(offset), init, min, max, step);
             } else if (type == "button") {
-                REAL_UI(ui_interface)->addButton((*it)->label.c_str(), REAL_ADR(offset));
+                REAL_UI(ui_interface)->addButton(it.label.c_str(), REAL_ADR(offset));
             } else if (type == "close") {
                 REAL_UI(ui_interface)->closeBox();
             }
             
             if (isSoundfile(type)) {
-                counterSound++;
+                countSound++;
             }
         }
         setlocale(LC_ALL, tmp_local);
@@ -360,7 +360,7 @@ struct JSONUIDecoderAux {
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)
     {
         /*
-        int counterSound = 0;
+        int countSound = 0;
         std::vector<itemInfo*>::iterator it;
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
@@ -405,7 +405,7 @@ struct JSONUIDecoderAux {
             } else if (type == "checkbox") {
                 ui_interface->addCheckButton(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset));
             } else if (type == "soundfile") {
-                ui_interface->addSoundfile(ui_interface->uiInterface, (*it)->label.c_str(), (*it)->url.c_str(), &fSoundfiles[counterSound]);
+                ui_interface->addSoundfile(ui_interface->uiInterface, (*it)->label.c_str(), (*it)->url.c_str(), &fSoundfiles[countSound]);
             } else if (type == "hbargraph") {
                 ui_interface->addHorizontalBargraph(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset), min, max);
             } else if (type == "vbargraph") {
@@ -419,7 +419,7 @@ struct JSONUIDecoderAux {
             }
             
             if (isSoundfile(type)) {
-                counterSound++;
+                countSound++;
             }
         }
         */

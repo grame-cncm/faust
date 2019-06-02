@@ -204,16 +204,6 @@ static bool parseSQString(const char*& p, std::string& s)
 }
 
 /**
- * @brief parseUQString, parse a underscore quoted string _..._ and store the result in s
- * @param p the string to parse, then the remaining string
- * @param s the (unquoted) string found if any
- * @return true if a string was found at the begin of p
- */
-static bool parseUQString(const char*& p, std::string& s)
-{
-    return parseString(p, '_', s);
-}
-/**
  * @brief parseDQString, parse a double quoted string "..." and store the result in s
  * @param p the string to parse, then the remaining string
  * @param s the (unquoted) string found if any
@@ -252,8 +242,8 @@ static bool parseMenuItem2(const char*& p, std::string& name)
 {
     const char* saved = p;  // to restore position if we fail
     
-    // single quoted or underscore string (like 'label' or _label_)
-    if (parseSQString(p, name) || parseUQString(p, name) ) {
+    // single quoted
+    if (parseSQString(p, name)) {
         return true;
     } else {
         p = saved;
@@ -399,7 +389,7 @@ static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& v
 // "type" : "...", "label" : "...", "address" : "...", ...
 // and store the result in uiItems Vector
 /// ---------------------------------------------------------------------
-static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numItems)
+static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItems)
 {
     if (parseChar(p, '{')) {
    
@@ -413,72 +403,63 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                         numItems++;
                     }
                     if (parseChar(p, ':') && parseDQString(p, value)) {   
-                        itemInfo* item = new itemInfo;
-                        item->type = value;
+                        itemInfo item;
+                        item.type = value;
                         uiItems.push_back(item);
                     }
                 }
                 
                 else if (label == "label") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->label = value;
+                        uiItems[numItems].label = value;
                     }
                 }
                 
                 else if (label == "url") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->url = value;
+                        uiItems[numItems].url = value;
                     }
                 }
                 
                 else if (label == "address") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->address = value;
+                        uiItems[numItems].address = value;
                     }
                 }
                 
                 else if (label == "index") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->index = value;
+                        uiItems[numItems].index = value;
                     }
                 }
                 
                 else if (label == "meta") {
-                    itemInfo* item = uiItems[numItems];
-                    if (!parseItemMetaData(p, item->meta)) {
+                    if (!parseItemMetaData(p, uiItems[numItems].meta)) {
                         return false;
                     }
                 }
                 
                 else if (label == "init") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->init = value;
+                        uiItems[numItems].init = value;
                     }
                 }
                 
                 else if (label == "min") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->min = value;
+                        uiItems[numItems].min = value;
                     }
                 }
                 
                 else if (label == "max") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->max = value;
+                        uiItems[numItems].max = value;
                     }
                 }
                 
                 else if (label == "step"){
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        itemInfo* item = uiItems[numItems];
-                        item->step = value;
+                        uiItems[numItems].step = value;
                     }
                 }
                 
@@ -490,8 +471,8 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                             }
                         } while (tryChar(p, ','));
                         if (parseChar(p, ']')) {
-                            itemInfo* item = new itemInfo;
-                            item->type = "close";
+                            itemInfo item;
+                            item.type = "close";
                             uiItems.push_back(item);
                             numItems++;
                         }
@@ -519,7 +500,7 @@ static bool parseJson(const char*& p,
                       std::map<std::string, std::string>& metaDatas0,
                       std::map<std::string, std::string>& metaDatas1,
                       std::map<std::string, std::vector<std::string> >& metaDatas2,
-                      std::vector<itemInfo*>& uiItems)
+                      std::vector<itemInfo>& uiItems)
 {
     parseChar(p, '{');
     
