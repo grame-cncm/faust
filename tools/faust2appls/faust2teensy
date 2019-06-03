@@ -69,7 +69,7 @@ MODULENAME="${BASENAME%.dsp}"
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     faust -a $FAUSTARCH/teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
-    cp /usr/local/share/faust/teensy/teensy.h $MODULENAME/$MODULENAME.h
+    cp $FAUSTARCH/teensy/teensy.h $MODULENAME/$MODULENAME.h
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
