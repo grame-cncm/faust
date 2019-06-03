@@ -196,16 +196,10 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
                 }
             }
 
-            /*
-            // attempting to open a new OSC port, if default not available create a new one
-            int oscPortNumber = 5510;
-            while (!Osc.init(oscPortNumber)) oscPortNumber++;
-            Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
-            */
             // Use machine buffer size and sample rate
             AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
-            // Do not work on Android 4.xx
+            // Does not work on Android 4.xx
             /*
              String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
              String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
@@ -215,8 +209,6 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
 
             // TODO: sr and buffer length should change in function of the device for best latency perfs
             dspFaust = new DspFaust(sampleRate, bufferSize);
-
-            //Osc.startListening();
         }
 
         fBuildUI = (dspFaust.getScreenColor() < 0);
@@ -400,8 +392,8 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             	}
                 return true;
             case R.id.action_settings:
-                    Log.d("FaustJava", "OSC setting");
-                    ui.settingWindow.showWindow(parametersInfo);
+                Log.d("FaustJava", "OSC setting");
+                ui.settingWindow.showWindow(parametersInfo);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -464,7 +456,6 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
         if (permissionToRecordAccepted) {
             // only stops audio when the user press the return button (and not when the screen is rotated)
             if (!isChangingConfigurations()) {
-                //Osc.stopListening();
                 dspFaust.stop(); // TODO: not sure if needed
                 dspFaust.delete();
                 dspFaust = null;
