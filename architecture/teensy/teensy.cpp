@@ -24,14 +24,19 @@
 
 
 #include "teensy.h"
+
 // IMPORTANT: in order for MapUI to work, the teensy linker must be g++
 #include "faust/gui/MapUI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
+
 // MIDI support
+#if MIDICTRL
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/UI.h"
 #include "faust/midi/teensy-midi.h"
+extern usb_midi_class usbMIDI;
+#endif
 
 <<includeIntrinsic>>
 
@@ -43,13 +48,12 @@
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-extern usb_midi_class usbMIDI;
-
 AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new audio_block_t*[fDSP->getNumInputs()])
 {
     fUI = new MapUI();
     fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
     fDSP->buildUserInterface(fUI);
+    
     // allocating Faust inputs
     if (fDSP->getNumInputs() > 0) {
         fInChannel = new float*[fDSP->getNumInputs()];
@@ -57,6 +61,7 @@ AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new
             fInChannel[i] = new float[AUDIO_BLOCK_SAMPLES];
         }
     }
+    
     // allocating Faust outputs
     if (fDSP->getNumOutputs() > 0) {
         fOutChannel = new float*[fDSP->getNumOutputs()];
@@ -64,18 +69,23 @@ AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new
             fOutChannel[i] = new float[AUDIO_BLOCK_SAMPLES];
         }
     }
+    
+#if MIDICTRL
     fMIDIHandler = new teensy_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
     fMIDIInterface->run();
+#endif
 }
 
 void AudioFaust::update(void)
 {
-    // Pass to Faust the midi messages recived by the Teensy
+#if MIDICTRL
+    // Pass the MIDI messages received by the Teensy
     fMIDIHandler->processMidi(usbMIDI);
     // Synchronize all GUI controllers
     GUI::updateAllGuis();
+#endif
     
     audio_block_t *inBlock[fDSP->getNumInputs()], *outBlock[fDSP->getNumOutputs()];
     int32_t val;
@@ -110,8 +120,6 @@ AudioFaust::~AudioFaust()
 {
     delete fDSP;
     delete fUI;
-    delete fMIDIInterface;
-    delete fMIDIHandler;
     for (int i = 0; i < fDSP->getNumInputs(); i++) {
         delete[] fInChannel[i];
     }
@@ -120,6 +128,10 @@ AudioFaust::~AudioFaust()
         delete[] fOutChannel[i];
     }
     delete [] fOutChannel;
+#if MIDICTRL
+    delete fMIDIInterface;
+    delete fMIDIHandler;
+#endif
 }
 
 void AudioFaust::setParamValue(const std::string& path, float value)
