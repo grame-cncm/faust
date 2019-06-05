@@ -29,25 +29,22 @@ public class SettingWindow {
     EditText ipAddress, inPort, outPort;
     Point size;
 
-    public void buildWindow(Context c){
+    public void buildWindow(Context c) {
         WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         size = new Point();
         display.getSize(size);
+        
         // the global elements are instantiated
-
         mainWindowLayout = new LinearLayout(c);
 
         ipAddressLayout = new LinearLayout(c);
         inPortLayout = new LinearLayout(c);
         outPortLayout = new LinearLayout(c);
         xMitLayout = new LinearLayout(c);
-
-
         mainWindow = new PopupWindow(c);
 
         closeButton = new TextView(c);
-
         ipAddressValue = new TextView(c);
         inPortValue = new TextView(c);
         outPortValue = new TextView(c);
@@ -87,7 +84,6 @@ public class SettingWindow {
         ipAddress.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
         ipAddress.setTextColor(Color.GRAY);
 
-
         inPort.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         inPort.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -97,7 +93,6 @@ public class SettingWindow {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         outPort.setInputType(InputType.TYPE_CLASS_NUMBER);
         outPort.setTextColor(Color.GRAY);
-
 
         String[] items = {"OFF","All","Alias"};
         xmitSelection.setItems(items);
@@ -132,10 +127,9 @@ public class SettingWindow {
         mainWindow.setContentView(windowLayout);
         mainWindow.setFocusable(true);
         mainWindow.update();
+    }
 
-}
-
-    public void showWindow(final ParametersInfo parametersInfo){
+    public void showWindow(final ParametersInfo parametersInfo) {
 
         mainWindow.showAtLocation(mainWindowLayout, Gravity.CENTER,0,0);
         mainWindow.update(0, 0, size.x*700/800, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -163,7 +157,7 @@ public class SettingWindow {
             });
         }
 
-        closeButton.setOnClickListener(new View.OnClickListener(){
+        closeButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v){
                 configOSC(parametersInfo);
                 mainWindow.dismiss();
@@ -172,7 +166,7 @@ public class SettingWindow {
 
     }
 
-    void configOSC (final ParametersInfo parametersInfo) {
+    void configOSC(final ParametersInfo parametersInfo) {
 
         Log.d("FaustJava", "ipAddress : " + ipAddress.getText().toString());
         parametersInfo.ipAddress= ipAddress.getText().toString();
@@ -187,20 +181,14 @@ public class SettingWindow {
         parametersInfo.xmit= xmitSelection.id;
 
         FaustActivity.dspFaust.configureOSC(parametersInfo.xmit,parametersInfo.inPort,parametersInfo.outPort,5512,parametersInfo.ipAddress);
-
     }
 
-    void initOSC(final ParametersInfo parametersInfo){
-
-        parametersInfo.ipAddress="192.168.1.5";
-        parametersInfo.inPort=5510;
-        parametersInfo.outPort=5511;
-        parametersInfo.xmit=1;
-
+    void initOSC(final ParametersInfo parametersInfo) {
+        parametersInfo.ipAddress = "192.168.1.5";
+        parametersInfo.inPort = 5510;
+        parametersInfo.outPort = 5511;
+        parametersInfo.xmit = 1;
         FaustActivity.dspFaust.configureOSC(1,5510,5511,5512,"192.168.1.5");
-
     }
-
-
 
 }
