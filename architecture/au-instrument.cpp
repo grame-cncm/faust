@@ -1,5 +1,4 @@
 /************************************************************************
-
  IMPORTANT NOTE : this file contains two clearly delimited sections :
  the ARCHITECTURE section (in two parts) and the USER section. Each section
  is governed by its own copyright and license. Please check individually
@@ -66,9 +65,9 @@ static const UInt32 kMaxActiveNotes = 32;
 
 /******************************************************************************
  *******************************************************************************
- *
- *	VECTOR INTRINSICS
- *
+ 
+ VECTOR INTRINSICS
+ 
  *******************************************************************************
  *******************************************************************************/
 
@@ -83,6 +82,7 @@ static const UInt32 kMaxActiveNotes = 32;
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
 class FaustAUInstrument;
 
 struct FaustAUInstrumentNote : public SynthNote

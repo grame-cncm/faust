@@ -1,8 +1,7 @@
 /************************************************************************
- 
  IMPORTANT NOTE : this file contains two clearly delimited sections :
- the ARCHITECTURE section (in two parts) and the USER section. Each
- section is governed by its own copyright and license. Please check individually
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
  each section for license and copyright information.
  *************************************************************************/
 
@@ -10,7 +9,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -152,4 +151,6 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
+

@@ -1,22 +1,37 @@
-//-------------------------------------------------------------------
-// FAUST architecture file for SuperCollider.
-// Copyright (C) 2005-2012 Stefan Kersten.
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-// 02111-1307 USA
-//-------------------------------------------------------------------
+/************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2005-2012 Stefan Kersten.
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
 
 // The prefix is set to "Faust" in the faust2supercollider script, otherwise set empty
 #if !defined(SC_FAUST_PREFIX)
@@ -45,12 +60,6 @@ using namespace std;
 #else
     #define STRDUP strdup
 #endif
-
-//----------------------------------------------------------------------------
-// Vector intrinsics
-//----------------------------------------------------------------------------
-
-<<includeIntrinsic>>
 
 //----------------------------------------------------------------------------
 // Metadata
@@ -200,11 +209,25 @@ private:
     Control* mControls;
 };
 
-//----------------------------------------------------------------------------
-// FAUST generated code
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
 
 <<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 //----------------------------------------------------------------------------
 // SuperCollider/Faust interface
@@ -292,7 +315,7 @@ static std::string normalizeClassName(const std::string& name)
   bool upnext=true;
   while ((c=name[i++])) {
     if (upnext) { c = toupper(c); upnext=false; }
-    if ( (c == '_') || (c == '-') || isspace(c)) { upnext=true; continue; }
+    if ((c == '_') || (c == '-') || isspace(c)) { upnext=true; continue; }
     s += c;
     if (i > 31) { break; }
   }
@@ -540,4 +563,5 @@ extern "C" FAUST_EXPORT int server_type(void) { return sc_server_supernova; }
 extern "C" FAUST_EXPORT int server_type(void) { return sc_server_scsynth; }
 #endif
 
-// EOF
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+

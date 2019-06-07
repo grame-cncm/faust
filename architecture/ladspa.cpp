@@ -1,35 +1,34 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
-*************************************************************************/
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -52,12 +51,12 @@
 #define xsym(name) #name
 
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
 
@@ -122,15 +121,15 @@ class portCollector : public UI
 	const char* 			fPortNames[MAXPORT];		// table of port names to be used in a LADSPA_Descriptor
 	LADSPA_PortRangeHint 	fPortHints[MAXPORT];		// table of port hints to be used in a LADSPA_Descriptor
 
-    std::string					fPluginName;				// toplevel prefix used as plugin name
-    std::stack<std::string>			fPrefix;					// current prefix for controls name
+    std::string					fPluginName;			// toplevel prefix used as plugin name
+    std::stack<std::string>		fPrefix;				// current prefix for controls name
 
 
 	//--------------------------------------------------------------------------------------
     std::string simplify(const std::string& src)
 	{
-		int		i=0;
-		int		level=2;
+		int		i = 0;
+		int		level = 2;
         std::string	dst;
 
 		while (src[i] ) {
@@ -192,10 +191,10 @@ class portCollector : public UI
 		return (dst.size() > 0) ? dst :src;
 	}
 
-	void addPortDescr(int type, const char* label, int hint, float min=0.0, float max=0.0)
+	void addPortDescr(int type, const char* label, int hint, float min = 0.0, float max = 0.0)
 	{
         std::string fullname = simplify(fPrefix.top() + "-" + label);
-		char * str = strdup(fullname.c_str());
+		char* str = strdup(fullname.c_str());
 
 		fPortDescs[fInsCount + fOutsCount + fCtrlCount] = type;
 		fPortNames[fInsCount + fOutsCount + fCtrlCount] = str;
@@ -287,7 +286,7 @@ class portCollector : public UI
 		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
 	}
     
-	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
+	virtual void openFrameBox(const char* label)	{ openAnyBox(label); }
 	virtual void openTabBox(const char* label)		{ openAnyBox(label); }
 	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
 	virtual void openVerticalBox(const char* label)	{ openAnyBox(label); }
@@ -427,7 +426,7 @@ struct PLUGIN
 	PLUGIN(unsigned long r, portData* d, dsp* p) : fSampleRate(r), fPortData(d), fDsp(p) {}
 };
 
-LADSPA_Handle instantiate_method (const struct _LADSPA_Descriptor * Descriptor, unsigned long SampleRate)
+LADSPA_Handle instantiate_method (const struct _LADSPA_Descriptor* Descriptor, unsigned long SampleRate)
 {
 	dsp*		p = new mydsp();
 	portData* 	d = new portData(p->getNumInputs(), p->getNumOutputs());
@@ -436,7 +435,7 @@ LADSPA_Handle instantiate_method (const struct _LADSPA_Descriptor * Descriptor, 
 	return new PLUGIN (SampleRate, d, p);
 }
 
-void connect_method (LADSPA_Handle Instance, unsigned long Port, LADSPA_Data * DataLocation)
+void connect_method (LADSPA_Handle Instance, unsigned long Port, LADSPA_Data* DataLocation)
 {
 	PLUGIN* p = (PLUGIN*) Instance;
 	p->fPortData->setPortData(Port, DataLocation);
@@ -493,7 +492,7 @@ void init_descriptor(LADSPA_Descriptor* descriptor)
 
 //--------------------------------------------------------------------------------------
 
-const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index)
+const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 {
     if (Index == 0) {
 		if (gDescriptor == 0)
@@ -518,5 +517,3 @@ const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index)
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-

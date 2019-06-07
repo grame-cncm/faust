@@ -1,35 +1,34 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
-*************************************************************************/
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -122,11 +121,13 @@ class OwlUI : public UI
 	PatchParameterId	fParameter;                             // current parameter ID, value NO_PARAMETER means not set
 	int					fParameterIndex;						// number of OwlParameters collected so far
 	OwlParameter		fParameterTable[MAXOWLPARAMETERS];		// kind of static list of OwlParameters
-        PatchButtonId fButton;
-        int fButtonIndex;
-        OwlButton fButtonTable[MAXOWLBUTTONS];
+    PatchButtonId fButton;
+    int fButtonIndex;
+    OwlButton fButtonTable[MAXOWLBUTTONS];
+    
 	// check if the widget is an Owl parameter and, if so, add the corresponding OwlParameter
-	void addOwlParameter(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) {
+	void addOwlParameter(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
+    {
 		if ((fParameter >= PARAMETER_A) && (fParameterIndex < MAXOWLPARAMETERS)) {
 			fParameterTable[fParameterIndex] = OwlParameter(fPatch, fParameter, zone, label, lo, hi);
 			fParameterTable[fParameterIndex].bind();
@@ -134,7 +135,8 @@ class OwlUI : public UI
 		}
 		fParameter = NO_PARAMETER; 		// clear current parameter ID
 	}
-	void addOwlButton(const char* label, FAUSTFLOAT* zone) {
+	void addOwlButton(const char* label, FAUSTFLOAT* zone)
+    {
 		if ((fButton >= PUSHBUTTON) && (fButtonIndex < MAXOWLBUTTONS)) {
 			fButtonTable[fButtonIndex] = OwlButton(fPatch, fButton, zone, label);
 			fButtonTable[fButtonIndex].bind();
@@ -144,7 +146,8 @@ class OwlUI : public UI
 	}
 
 	// we dont want to create a widget by-ut we clear the current parameter ID just in case
-	void skip() {
+	void skip()
+    {
 		fParameter = NO_PARAMETER; 		// clear current parameter ID
 		fButton = NO_BUTTON;
 	}
@@ -156,9 +159,10 @@ class OwlUI : public UI
 	virtual ~OwlUI() {}
 	
 	// should be called before compute() to update widget's zones registered as Owl parameters
-	void update() {
-		for (int i=0; i<fParameterIndex; i++)  fParameterTable[i].update();
-		for (int i=0; i<fButtonIndex; i++)  fButtonTable[i].update();
+	void update()
+    {
+		for (int i = 0; i < fParameterIndex; i++) fParameterTable[i].update();
+		for (int i = 0; i < fButtonIndex; i++) fButtonTable[i].update();
 	}
 
 	//---------------------- virtual methods called by buildUserInterface ----------------
@@ -188,10 +192,11 @@ class OwlUI : public UI
 
 	// -- metadata declarations
 
-    virtual void declare(FAUSTFLOAT* z, const char* k, const char* id) {
+    virtual void declare(FAUSTFLOAT* z, const char* k, const char* id)
+    {
     	if (strcasecmp(k,"OWL") == 0) {
           if (strncasecmp(id, "PARAMETER_", 10) == 0)
-            id += 10;
+              id += 10;
           if (strcasecmp(id,"A") == 0)  fParameter = PARAMETER_A;
           else if (strcasecmp(id,"B") == 0)  fParameter = PARAMETER_B;
           else if (strcasecmp(id,"C") == 0)  fParameter = PARAMETER_C;
@@ -217,15 +222,24 @@ struct OwlMemoryManager : public dsp_memory_manager {
     }
     virtual void destroy(void* ptr)
     {
-      delete (uint8_t*)ptr;
+        delete (uint8_t*)ptr;
     }    
 };
 
 #endif // __FaustCommonInfrastructure__
-
-/**************************BEGIN USER SECTION **************************/
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
 
 <<includeclass>>
 
@@ -249,34 +263,34 @@ public:
 
     FaustPatch() : fUI(this)
     {      
-      fDSP = new mydsp();
-      mydsp::fManager = &mem; // set custom memory manager
-      mydsp::classInit(int(getSampleRate())); // initialise static tables
-      fDSP->instanceInit(int(getSampleRate())); // initialise DSP instance
-      fDSP->buildUserInterface(&fUI); // Map OWL parameters
+        fDSP = new mydsp();
+        mydsp::fManager = &mem; // set custom memory manager
+        mydsp::classInit(int(getSampleRate())); // initialise static tables
+        fDSP->instanceInit(int(getSampleRate())); // initialise DSP instance
+        fDSP->buildUserInterface(&fUI); // Map OWL parameters
     }
 
     ~FaustPatch(){
-      delete fDSP;
-      mydsp::classDestroy(); // destroy static tables
+        delete fDSP;
+        mydsp::classDestroy(); // destroy static tables
     }
     
     void processAudio(AudioBuffer &buffer)
     {
         // Reasonably assume we will not have more than 32 channels
-        float*  ins[32];
-        float*  outs[32];
-        int     n = buffer.getChannels();
+        float* ins[32];
+        float* outs[32];
+        int n = buffer.getChannels();
         
         if ((fDSP->getNumInputs() < 32) && (fDSP->getNumOutputs() < 32)) {
 
             // create the table of input channels
-            for(int ch = 0; ch < fDSP->getNumInputs(); ++ch) {
+            for (int ch = 0; ch < fDSP->getNumInputs(); ++ch) {
                 ins[ch] = buffer.getSamples(ch%n);
             }
 
             // create the table of output channels
-            for(int ch = 0; ch < fDSP->getNumOutputs(); ++ch) {
+            for (int ch = 0; ch < fDSP->getNumOutputs(); ++ch) {
                 outs[ch] = buffer.getSamples(ch%n);
             }
 
@@ -308,4 +322,5 @@ extern "C" {
 
 #endif // __FaustPatch_h__
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+

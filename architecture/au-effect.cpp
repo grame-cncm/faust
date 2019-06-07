@@ -1,5 +1,4 @@
 /************************************************************************
-
  IMPORTANT NOTE : this file contains two clearly delimited sections :
  the ARCHITECTURE section (in two parts) and the USER section. Each section
  is governed by its own copyright and license. Please check individually
@@ -85,14 +84,10 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
-
 static const int kPreset_One = 0;
 static const int kNumberPresets = 1;
 static AUPreset kPresets[kNumberPresets] =
 { { kPreset_One, CFSTR("Default") }, };
-
 
 #define MAX_OUT_CHANNELS 1000
 
@@ -162,7 +157,6 @@ public:
 };
 
 /**********************************************************************************/
-
 
 AUDIOCOMPONENT_ENTRY(AUBaseFactory, FaustAU)
 
@@ -348,7 +342,6 @@ OSStatus FaustAUEffect::NewFactoryPresetSet(const AUPreset & inNewFactoryPreset)
 
 OSStatus FaustAUEffect::GetPresets(CFArrayRef * outData) const
 {
-
     if (outData == NULL) {
         return noErr;
     }
@@ -369,7 +362,6 @@ OSStatus FaustAUEffect::GetPropertyInfo(AudioUnitPropertyID inID,
         AudioUnitElement inElement,
         UInt32& outDataSize,
         Boolean& outWritable)
-
 {
     if (inScope == kAudioUnitScope_Global)
     {
@@ -491,3 +483,5 @@ OSStatus FaustAUEffect::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
      */
     return noErr;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
