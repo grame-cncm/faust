@@ -190,17 +190,19 @@ void SOULCodeContainer::produceClass()
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     
-    *fOut << "// Event used to call additional methods";
-    tab(n + 1, *fOut);
-    *fOut << "input event int eventclassInit;";
-    tab(n + 1, *fOut);
-    *fOut << "input event int eventinstanceConstants;";
-    tab(n + 1, *fOut);
-    *fOut << "input event int eventinstanceResetUserInterface;";
-    tab(n + 1, *fOut);
-    *fOut << "input event int eventinstanceClear;";
-    tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
+    if (gGlobal->gOutputLang == "soul-dsp") {
+        *fOut << "// Event used to call additional methods";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventclassInit;";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventinstanceConstants;";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventinstanceResetUserInterface;";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventinstanceClear;";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+    }
     
     SOULInstUIVisitor ui_visitor(n + 1);
     generateUserInterface(&ui_visitor);
@@ -236,17 +238,19 @@ void SOULCodeContainer::produceClass()
         generateUserInterface(&fCodeProducer);
     }
     
-    tab(n + 1, *fOut);
-    *fOut << "// Event handler used to call additional methods";
-    tab(n + 1, *fOut);
-    *fOut << "event eventclassInit (int sample_rate) { classInit(sample_rate); }";
-    tab(n + 1, *fOut);
-    *fOut << "event eventinstanceConstants (int sample_rate) { instanceConstants(sample_rate); }";
-    tab(n + 1, *fOut);
-    *fOut << "event eventinstanceResetUserInterface (int dummy) { instanceResetUserInterface(); }";
-    tab(n + 1, *fOut);
-    *fOut << "event eventinstanceClear (int dummy) { instanceClear(); }";
-    tab(n + 1, *fOut);
+    if (gGlobal->gOutputLang == "soul-dsp") {
+        tab(n + 1, *fOut);
+        *fOut << "// Event handler used to call additional methods";
+        tab(n + 1, *fOut);
+        *fOut << "event eventclassInit (int sample_rate) { classInit(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceConstants (int sample_rate) { instanceConstants(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceResetUserInterface (int dummy) { instanceResetUserInterface(); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceClear (int dummy) { instanceClear(); }";
+        tab(n + 1, *fOut);
+    }
   
     // Sub containers
     generateSubContainers();

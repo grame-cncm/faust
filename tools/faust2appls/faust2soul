@@ -24,7 +24,6 @@ POLY="POLY"
 EFFECT=""
 NVOICES=-1
 OPTIONS=""
-EXT=".soul"
 PLAY="false"
 
 while [ $1 ] 
@@ -66,6 +65,26 @@ shift
 
 done
 
+createSOULPatch()
+{
+    (
+    echo '{'
+    echo '"soulPatchV1":'
+    echo '{'
+    echo "\"ID\": \"grame.soul.$1\","
+    echo '"version": "1.0",'
+    echo "\"name\": \"$1\","
+    echo '"description": "SOUL example",'
+    echo '"category": "synth",'
+    echo '"manufacturer": "GRAME",'
+    echo '"website": "https://faust.grame.fr",'
+    echo '"isInstrument": true,'
+    echo "\"source\": \"$1.soul\""
+    echo '}'
+    echo '}'
+    ) > "$2"
+}
+
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #-------------------------------------------------------------------
@@ -76,12 +95,12 @@ for p in $FILES; do
     f=$(basename "$p")
 	SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # create a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
-    # compile faust to c++
+    # compile Faust to SOUL
     if [ $POLY = "POLY2" ]; then
        if [ $EFFECT = "auto" ]; then
             cat > $TMP/effect.dsp << EndOfCode
@@ -109,17 +128,20 @@ EndOfCode
         fi
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
     fi
+
+    # create patch
+    createSOULPatch "${f%.dsp}" "${f%.dsp}.soulpatch"
     
     rm -f $p.json "$TMP/${f%.dsp}_tmp1.soul" "$TMP/${f%.dsp}_tmp2.soul" "$TMP/effect.dsp"
-    cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}$EXT"
+    cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}.soul"
     rm -rf "$TDR"
     
     if [ $PLAY = "true" ] ; then
-    	soul play "$SRCDIR/${f%.dsp}$EXT"
+    	soul play "$SRCDIR/${f%.dsp}.soulpatch"
     fi
 
     # collect binary file name for FaustGIDE
-    BINARIES="$SRCDIR/${f%.dsp}$EXT"
+    BINARIES="${f%.dsp}.soul;${f%.dsp}.soulpatch"
 done
 
 echo $BINARIES
