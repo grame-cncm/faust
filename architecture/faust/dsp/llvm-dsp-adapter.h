@@ -123,7 +123,7 @@ class mydsp : public dsp {
             classInitmydsp(sample_rate);
         }
     
-        virtual dsp* clone()
+        virtual mydsp* clone()
         {
             return new mydsp();
         }
