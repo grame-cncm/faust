@@ -3,10 +3,7 @@
  the ARCHITECTURE section (in two parts) and the USER section. Each section
  is governed by its own copyright and license. Please check individually
  each section for license and copyright information.
-
- If there is no copyright and license information in the USER section,
- the user should place there copyright and license information of their
- choice.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -79,16 +76,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
 
-/******************************************************************************
- *******************************************************************************
- 
- VECTOR INTRINSICS
- 
- *******************************************************************************
- *******************************************************************************/
-
-<<includeIntrinsic>>
-
 /**
  * A UI that simply collects the active zones in a vector
  * and provides a method to copy the csound controls
@@ -131,6 +118,16 @@ public:
 
     int size() { return vZone.size(); }
 };
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -177,8 +174,8 @@ static char* makeDescription(int numa, int numk = 0)
 {
     char* str = (char*)malloc(numa+numk+1); // NEED TO BE CHANGED ?
     if (str) {
-        for (int i=0; i<numa; i++) str[i] = 'a';
-        for (int i=0; i<numk; i++) str[numa+i] = 'J';
+        for (int i = 0; i < numa; i++) str[i] = 'a';
+        for (int i = 0; i < numk; i++) str[numa+i] = 'J';
         str[numa+numk] = 0;
     }
     return str;

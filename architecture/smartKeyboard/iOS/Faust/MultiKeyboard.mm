@@ -120,7 +120,7 @@
                     }
                 }
                 else{
-                    printf("Error in the JSON interface descriptiom\n");
+                    printf("Error in the JSON interface description\n");
                 }
             }
             dspParameters = [NSMutableDictionary dictionary]; // empty dictionary in that case

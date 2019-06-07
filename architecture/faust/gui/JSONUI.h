@@ -426,13 +426,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 JSON << fUI.str();
             }
             tab(fTab, JSON); JSON << "}";
-            if (flat) {
-                return flatten(JSON.str());
-            } else {
-                std::string json = JSON.str();
-                std::replace(json.begin(), json.end(), '\'', '_');
-                return json;
-            }
+            return (flat) ? flatten(JSON.str()) : JSON.str();
         }
     
 };
