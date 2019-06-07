@@ -29,7 +29,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //#include <io.h>
 #endif
 
-#if !defined(EMCC) && !defined(WIN32)
+#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID)
 #include <execinfo.h>
 #endif
 
@@ -37,6 +37,7 @@ class faustexception : public std::runtime_error {
    public:
 #ifdef EMCC
     static const char* gJSExceptionMsg;
+
     faustexception(const std::string& msg = "") : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg.c_str()); }
     faustexception(char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
     faustexception(const char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
@@ -53,7 +54,7 @@ class faustexception : public std::runtime_error {
 
 inline void stacktrace(std::stringstream& str, int val)
 {
-#if !defined(EMCC) && !defined(WIN32)
+#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID)
     void*  callstack[val];
     int    frames = backtrace(callstack, val);
     char** strs   = backtrace_symbols(callstack, frames);
