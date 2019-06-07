@@ -1,3 +1,4 @@
+/************************** BEGIN faust-poly-engine.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
@@ -631,3 +632,4 @@ extern "C" {
 #endif
 
 #endif // __faust_poly_engine__
+/**************************  END  faust-poly-engine.h **************************/

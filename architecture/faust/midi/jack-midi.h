@@ -1,3 +1,4 @@
+/************************** BEGIN jack-midi.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -203,3 +204,4 @@ class jack_midi_handler : public midi_handler {
 };
 
 #endif
+/**************************  END  jack-midi.h **************************/

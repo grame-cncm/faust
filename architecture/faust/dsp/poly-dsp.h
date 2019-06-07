@@ -1,3 +1,4 @@
+/************************** BEGIN poly-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -899,3 +900,4 @@ struct dsp_poly_factory : public dsp_factory {
 };
 
 #endif // __poly_dsp__
+/**************************  END  poly-dsp.h **************************/

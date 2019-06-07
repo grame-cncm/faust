@@ -1,3 +1,4 @@
+/************************** BEGIN interpreter-machine-dsp.h **************************/
 /************************************************************************
  ************************************************************************
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -223,3 +224,4 @@ void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, c
  */
 
 #endif
+/**************************  END  interpreter-machine-dsp.h **************************/

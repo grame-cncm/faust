@@ -1,3 +1,4 @@
+/************************** BEGIN faust-engine.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
@@ -72,3 +73,4 @@ extern "C" {
 #endif
 
 #endif // __faust_engine__
+/**************************  END  faust-engine.h **************************/

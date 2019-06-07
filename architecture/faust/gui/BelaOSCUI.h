@@ -1,3 +1,4 @@
+/************************** BEGIN BelaOSCUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -179,3 +180,4 @@ class BelaOSCUI : public GUI {
 /***************************END OSC SECTION ***************************/
 
 #endif // __BelaOSCUI__
+/**************************  END  BelaOSCUI.h **************************/

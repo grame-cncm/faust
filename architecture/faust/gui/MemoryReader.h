@@ -1,3 +1,4 @@
+/************************** BEGIN MemoryReader.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -97,3 +98,4 @@ struct MemoryReader : public SoundfileReader {
 };
 
 #endif
+/**************************  END  MemoryReader.h **************************/

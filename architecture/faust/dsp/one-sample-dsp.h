@@ -1,3 +1,4 @@
+/************************** BEGIN one-sample-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2019 GRAME, Centre National de Creation Musicale
@@ -97,3 +98,4 @@ class one_sample_dsp : public dsp {
 };
 
 #endif
+/**************************  END  one-sample-dsp.h **************************/

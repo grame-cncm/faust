@@ -1,3 +1,4 @@
+/************************** BEGIN alsa-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -712,3 +713,4 @@ void* __run (void* ptr)
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
+/**************************  END  alsa-dsp.h **************************/

@@ -1,3 +1,4 @@
+/************************** BEGIN sound-player.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -424,3 +425,4 @@ class PositionManager : public GUI {
  */
 
 #endif
+/**************************  END  sound-player.h **************************/

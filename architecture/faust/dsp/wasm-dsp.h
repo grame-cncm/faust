@@ -1,3 +1,4 @@
+/************************** BEGIN wasm-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2019 GRAME, Centre National de Creation Musicale
@@ -291,3 +292,4 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
 #endif
 
 #endif
+/**************************  END  wasm-dsp.h **************************/

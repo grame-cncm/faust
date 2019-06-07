@@ -1,3 +1,4 @@
+/************************** BEGIN PresetUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -225,3 +226,4 @@ LoaderUI::LoaderUI(PresetUI* presetui)
 }
 
 #endif
+/**************************  END  PresetUI.h **************************/

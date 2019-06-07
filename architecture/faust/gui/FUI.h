@@ -1,3 +1,4 @@
+/************************** BEGIN FUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -147,3 +148,4 @@ class FUI : public UI, public PathBuilder
 
 #endif
 
+/**************************  END  FUI.h **************************/

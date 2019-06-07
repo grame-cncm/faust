@@ -1,3 +1,4 @@
+/************************** BEGIN misc.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -93,3 +94,4 @@ static std::string pathToContent(const std::string& path)
 
 #endif
 
+/**************************  END  misc.h **************************/

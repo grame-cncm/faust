@@ -1,3 +1,4 @@
+/************************** BEGIN proxy-osc-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2019 GRAME, Centre National de Creation Musicale
@@ -104,3 +105,4 @@ class proxy_osc_dsp : public proxy_dsp {
 };
 
 #endif
+/**************************  END  proxy-osc-dsp.h **************************/

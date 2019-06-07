@@ -1,3 +1,4 @@
+/************************** BEGIN LibsndfileReader.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -248,3 +249,4 @@ struct LibsndfileReader : public SoundfileReader {
 };
 
 #endif
+/**************************  END  LibsndfileReader.h **************************/

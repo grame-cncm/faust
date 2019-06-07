@@ -1,3 +1,4 @@
+/************************** BEGIN bela-midi.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -288,3 +289,4 @@ void cleanup(BeagleRTContext *context, void *userData)
     delete fMidiUI;
 }
 */
+/**************************  END  bela-midi.h **************************/

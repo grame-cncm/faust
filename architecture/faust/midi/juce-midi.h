@@ -1,3 +1,4 @@
+/************************** BEGIN juce-midi.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -297,3 +298,4 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
 
 #endif // __juce_midi__
 
+/**************************  END  juce-midi.h **************************/

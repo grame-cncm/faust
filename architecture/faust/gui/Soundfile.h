@@ -1,3 +1,4 @@
+/************************** BEGIN Soundfile.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2017 GRAME, Centre National de Creation Musicale
@@ -293,3 +294,4 @@ class SoundfileReader {
 };
 
 #endif
+/**************************  END  Soundfile.h **************************/

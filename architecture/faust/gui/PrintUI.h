@@ -1,3 +1,4 @@
+/************************** BEGIN PrintUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -118,3 +119,4 @@ class PrintUI : public PathBuilder, public UI
 };
 
 #endif // FAUST_PRINTUI_H
+/**************************  END  PrintUI.h **************************/

@@ -1,3 +1,4 @@
+/************************** BEGIN dsp-adapter.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -172,3 +173,4 @@ class dsp_sample_adapter : public decorator_dsp {
 };
 
 #endif
+/**************************  END  dsp-adapter.h **************************/

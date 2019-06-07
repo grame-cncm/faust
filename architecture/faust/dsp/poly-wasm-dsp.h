@@ -1,3 +1,4 @@
+/************************** BEGIN poly-wasm-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2019 GRAME, Centre National de Creation Musicale
@@ -239,3 +240,4 @@ EMSCRIPTEN_BINDINGS(CLASS_dsp_poly)
 #endif
 
 #endif // __poly_wasm_dsp__
+/**************************  END  poly-wasm-dsp.h **************************/

@@ -1,3 +1,4 @@
+/************************** BEGIN vstui.h **************************/
 #ifndef __VST_UI_H__
 #define __VST_UI_H__
 
@@ -457,3 +458,4 @@ class vstUI : public UI
 }; // end of vstUI class
 
 #endif
+/**************************  END  vstui.h **************************/

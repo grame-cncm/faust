@@ -1,3 +1,4 @@
+/************************** BEGIN SoundUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -154,3 +155,4 @@ class SoundUI : public GenericUI
 };
 
 #endif
+/**************************  END  SoundUI.h **************************/

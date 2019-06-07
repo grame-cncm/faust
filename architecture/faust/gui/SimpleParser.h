@@ -1,3 +1,4 @@
+/************************** BEGIN SimpleParser.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -528,3 +529,4 @@ static bool parseJson(const char*& p,
 }
 
 #endif // SIMPLEPARSER_H
+/**************************  END  SimpleParser.h **************************/

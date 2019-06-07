@@ -1,3 +1,4 @@
+/************************** BEGIN JSONControl.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2019 GRAME, Centre National de Creation Musicale
@@ -41,3 +42,4 @@ struct JSONControl {
 };
 
 #endif
+/**************************  END  JSONControl.h **************************/

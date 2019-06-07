@@ -1,3 +1,4 @@
+/************************** BEGIN rt-midi.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -275,3 +276,4 @@ class rt_midi : public midi_handler {
 
 
 #endif // __rt_midi__
+/**************************  END  rt-midi.h **************************/

@@ -1,3 +1,4 @@
+/************************** BEGIN samAudio.h **************************/
 /************************************************************************
   SHARC Audio Module Faust Architecture File
   Copyright (c) 2018 Analog Devices, Inc. All rights reserved.
@@ -136,3 +137,4 @@ class samAudio : public audio {
 };
 					
 #endif
+/**************************  END  samAudio.h **************************/

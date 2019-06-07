@@ -1,3 +1,4 @@
+/************************** BEGIN android-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -573,3 +574,4 @@ class androidaudio : public audio {
 };
 
 #endif 
+/**************************  END  android-dsp.h **************************/

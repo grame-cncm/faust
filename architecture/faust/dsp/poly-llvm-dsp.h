@@ -1,3 +1,4 @@
+/************************** BEGIN poly-llvm-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -245,3 +246,4 @@ static void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const st
 }
 
 #endif // __poly_llvm_dsp_tools__
+/**************************  END  poly-llvm-dsp.h **************************/

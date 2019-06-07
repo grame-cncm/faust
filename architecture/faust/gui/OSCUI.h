@@ -1,3 +1,4 @@
+/************************** BEGIN OSCUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -220,3 +221,4 @@ class OSCUI : public GUI
 };
 
 #endif // __OSCUI__
+/**************************  END  OSCUI.h **************************/

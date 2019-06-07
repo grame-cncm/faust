@@ -1,3 +1,4 @@
+/************************** BEGIN mspUI.h **************************/
 /************************************************************************
     FAUST Architecture File
     Copyright (C) 2010-2015 GRAME, Centre National de Creation Musicale
@@ -406,3 +407,4 @@ static int count_digit(const string& name)
 }
 
 #endif
+/**************************  END  mspUI.h **************************/

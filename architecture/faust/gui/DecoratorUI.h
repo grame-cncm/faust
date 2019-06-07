@@ -1,3 +1,4 @@
+/************************** BEGIN DecoratorUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -108,3 +109,4 @@ class DecoratorUI : public UI
 };
 
 #endif
+/**************************  END  DecoratorUI.h **************************/

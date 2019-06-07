@@ -1,3 +1,4 @@
+/************************** BEGIN JuceParameterUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -154,3 +155,4 @@ class JuceParameterUI : public GUI, public PathBuilder {
 };
 
 #endif
+/**************************  END  JuceParameterUI.h **************************/

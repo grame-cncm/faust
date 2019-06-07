@@ -1,3 +1,4 @@
+/************************** BEGIN dsp-checker.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -88,3 +89,4 @@ class dsp_checker : public decorator_dsp
 };
 
 #endif
+/**************************  END  dsp-checker.h **************************/

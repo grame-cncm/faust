@@ -1,3 +1,4 @@
+/************************** BEGIN console.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -281,3 +282,4 @@ public:
 #endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
+/**************************  END  console.h **************************/

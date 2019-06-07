@@ -1,3 +1,4 @@
+/************************** BEGIN JSONUIDecoder.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -543,3 +544,4 @@ static JSONUITemplatedDecoder* createJSONUIDecoder(const std::string& json)
 }
 
 #endif
+/**************************  END  JSONUIDecoder.h **************************/
