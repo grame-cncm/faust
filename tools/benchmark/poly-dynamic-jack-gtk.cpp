@@ -87,18 +87,20 @@ int main(int argc, char* argv[])
     bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
     bool is_httpd = isopt(argv, "-httpd");
+    bool is_resample = isopt(argv, "-resample");
     int nvoices = lopt(argv, "-nvoices", -1);
     
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "poly-dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "poly-dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
         cout << "Use '-httpd' to activate HTTP control\n";
+        cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
         exit(EXIT_FAILURE);
     }
     
@@ -122,7 +124,8 @@ int main(int argc, char* argv[])
             || (string(argv[i]) == "-interp")
             || (string(argv[i]) == "-midi")
             || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-httpd")) {
+            || (string(argv[i]) == "-httpd")
+            || (string(argv[i]) == "-resample")) {
             continue;
         } else if (string(argv[i]) == "-nvoices") {
             i++;
@@ -233,16 +236,22 @@ int main(int argc, char* argv[])
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
     
-    SoundUI* soundinterface = new SoundUI();
+    if (!audio.init(filename, DSP)) {
+        exit(EXIT_FAILURE);
+    }
+    
+    // After audio init to get SR
+    SoundUI* soundinterface = nullptr;
+    if (is_resample) {
+        soundinterface = new SoundUI("", audio.getSampleRate());
+    } else {
+        soundinterface = new SoundUI();
+    }
     // SoundUI has to be dispatched on all internal voices
     DSP->setGroup(false);
     DSP->buildUserInterface(soundinterface);
     DSP->setGroup(true);
-   
-    if (!audio.init(filename, DSP)) {
-        exit(EXIT_FAILURE);
-    }
- 
+    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);

@@ -200,6 +200,15 @@ struct LibsndfileReader : public SoundfileReader {
     }
     
     // Read the file
+    void copyToOut(Soundfile* soundfile, int size, int channels, int max_channels, int offset, FAUSTFLOAT* buffer)
+    {
+        for (int sample = 0; sample < size; sample++) {
+            for (int chan = 0; chan < channels; chan++) {
+                soundfile->fBuffers[chan][offset + sample] = buffer[sample * max_channels + chan];
+            }
+        }
+    }
+    
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         SF_INFO	snd_info;
@@ -254,10 +263,11 @@ struct LibsndfileReader : public SoundfileReader {
         if  (isResampling(snd_info.samplerate)) {
             int error;
             resampler = src_new(SRC_SINC_FASTEST, channels, &error);
-            buffer_out = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
             if (error != 0) {
+                std::cerr << "ERROR : src_new " << src_strerror(error) << std::endl;
                 throw -1;
             }
+            buffer_out = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
         }
     #endif
         
@@ -278,32 +288,20 @@ struct LibsndfileReader : public SoundfileReader {
                     int res = src_process(resampler, &src_data);
                     if (res != 0) {
                         std::cerr << "ERROR : src_process " << src_strerror(res) << std::endl;
-                        throw -2;
+                        throw -1;
                     }
-                    for (int sample = 0; sample < src_data.output_frames_gen; sample++) {
-                        for (int chan = 0; chan < channels; chan++) {
-                            soundfile->fBuffers[chan][offset + sample] = buffer_out[sample * snd_info.channels + chan];
-                        }
-                    }
+                    copyToOut(soundfile, src_data.output_frames_gen, channels, snd_info.channels, offset, buffer_out);
                     in_offset += src_data.input_frames_used;
                     // Update offset
                     offset += src_data.output_frames_gen;
                 } while (in_offset < nbf);
             } else {
-                for (int sample = 0; sample < nbf; sample++) {
-                    for (int chan = 0; chan < channels; chan++) {
-                        soundfile->fBuffers[chan][offset + sample] = buffer_in[sample * snd_info.channels + chan];
-                    }
-                }
+                copyToOut(soundfile, nbf, channels, snd_info.channels, offset, buffer_in);
                 // Update offset
                 offset += nbf;
             }
         #else
-            for (int sample = 0; sample < nbf; sample++) {
-                for (int chan = 0; chan < channels; chan++) {
-                    soundfile->fBuffers[chan][offset + sample] = buffer_in[sample * snd_info.channels + chan];
-                }
-            }
+            copyToOut(soundfile, nbf, channels, snd_info.channels, offset, buffer_in);
             // Update offset
             offset += nbf;
         #endif
