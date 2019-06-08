@@ -14,9 +14,11 @@ int main(int argc, char* argv[])
     const char* argv1[argc1];
 #endif
     bool is_vec = false;
-    for (int i = 0; i < argc - 2;  i++) {
+    for (int i = 0; i < argc - 2; i++) {
         argv1[i] = argv[i + 2];
-        is_vec = is_vec || (strcmp(argv1[i], "-vec") == 0) || (strcmp(argv1[i], "-omp") == 0) || (strcmp(argv1[i], "-sch") == 0);
+        is_vec = is_vec || (strcmp(argv1[i], "-vec") == 0)
+                        || (strcmp(argv1[i], "-omp") == 0)
+                        || (strcmp(argv1[i], "-sch") == 0);
     }
     
     llvm_dsp_factory* factory = NULL;

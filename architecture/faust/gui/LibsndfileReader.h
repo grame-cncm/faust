@@ -25,12 +25,13 @@
 #ifndef __LibsndfileReader__
 #define __LibsndfileReader__
 
+#ifdef SAMPLERATE
+#include <samplerate.h>
+#endif
 #include <sndfile.h>
 #include <string.h>
 #include <assert.h>
 #include <iostream>
-#include <sstream>
-#include <fstream>
 
 #include "faust/gui/Soundfile.h"
 
@@ -190,7 +191,11 @@ struct LibsndfileReader : public SoundfileReader {
     {
         assert(snd_file);
         channels = int(snd_info.channels);
+    #ifdef SAMPLERATE
+        length = (isResampling(snd_info.samplerate)) ? ((double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate)) + BUFFER_SIZE) : int(snd_info.frames);
+    #else
         length = int(snd_info.frames);
+    #endif
         sf_close(snd_file);
     }
     
@@ -217,33 +222,97 @@ struct LibsndfileReader : public SoundfileReader {
     {
         assert(snd_file);
         int channels = std::min<int>(max_chan, snd_info.channels);
-		
+    #ifdef SAMPLERATE
+        if (isResampling(snd_info.samplerate)) {
+            soundfile->fLength[part] = int(double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate));
+            soundfile->fSR[part] = fDriverSR;
+        } else {
+            soundfile->fLength[part] = int(snd_info.frames);
+            soundfile->fSR[part] = snd_info.samplerate;
+        }
+    #else
         soundfile->fLength[part] = int(snd_info.frames);
         soundfile->fSR[part] = snd_info.samplerate;
+    #endif
         soundfile->fOffset[part] = offset;
 		
         // Read and fill snd_info.channels number of channels
         sf_count_t nbf;
-		FAUSTFLOAT* buffer = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
-		sample_read reader;
+        FAUSTFLOAT* buffer_in = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
+        sample_read reader;
 		
         if (sizeof(FAUSTFLOAT) == 4) {
             reader = reinterpret_cast<sample_read>(sf_readf_float);
         } else {
             reader = reinterpret_cast<sample_read>(sf_readf_double);
         }
+        
+    #ifdef SAMPLERATE
+        // Resampling
+        SRC_STATE* resampler = nullptr;
+        FAUSTFLOAT* buffer_out = nullptr;
+        if  (isResampling(snd_info.samplerate)) {
+            int error;
+            resampler = src_new(SRC_SINC_FASTEST, channels, &error);
+            buffer_out = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
+            if (error != 0) {
+                throw -1;
+            }
+        }
+    #endif
+        
         do {
-            nbf = reader(snd_file, buffer, BUFFER_SIZE);
+            nbf = reader(snd_file, buffer_in, BUFFER_SIZE);
+        #ifdef SAMPLERATE
+            // Resampling
+            if  (isResampling(snd_info.samplerate)) {
+                int in_offset = 0;
+                SRC_DATA src_data;
+                src_data.src_ratio = double(fDriverSR)/double(snd_info.samplerate);
+                do {
+                    src_data.data_in = &buffer_in[in_offset * snd_info.channels];
+                    src_data.data_out = buffer_out;
+                    src_data.input_frames = nbf - in_offset;
+                    src_data.output_frames = BUFFER_SIZE;
+                    src_data.end_of_input = (nbf < BUFFER_SIZE);
+                    int res = src_process(resampler, &src_data);
+                    if (res != 0) {
+                        std::cerr << "ERROR : src_process " << src_strerror(res) << std::endl;
+                        throw -2;
+                    }
+                    for (int sample = 0; sample < src_data.output_frames_gen; sample++) {
+                        for (int chan = 0; chan < channels; chan++) {
+                            soundfile->fBuffers[chan][offset + sample] = buffer_out[sample * snd_info.channels + chan];
+                        }
+                    }
+                    in_offset += src_data.input_frames_used;
+                    // Update offset
+                    offset += src_data.output_frames_gen;
+                } while (in_offset < nbf);
+            } else {
+                for (int sample = 0; sample < nbf; sample++) {
+                    for (int chan = 0; chan < channels; chan++) {
+                        soundfile->fBuffers[chan][offset + sample] = buffer_in[sample * snd_info.channels + chan];
+                    }
+                }
+                // Update offset
+                offset += nbf;
+            }
+        #else
             for (int sample = 0; sample < nbf; sample++) {
                 for (int chan = 0; chan < channels; chan++) {
-                    soundfile->fBuffers[chan][offset + sample] = buffer[sample * snd_info.channels + chan];
+                    soundfile->fBuffers[chan][offset + sample] = buffer_in[sample * snd_info.channels + chan];
                 }
             }
             // Update offset
             offset += nbf;
+        #endif
         } while (nbf == BUFFER_SIZE);
 		
         sf_close(snd_file);
+    #ifdef SAMPLERATE
+        if (resampler) src_delete(resampler);
+    #endif
     }
 
 };

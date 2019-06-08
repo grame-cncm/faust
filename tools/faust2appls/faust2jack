@@ -37,7 +37,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-resample] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
    	    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
@@ -45,6 +45,7 @@ do
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        echo "Use '-resample' to resample soundfiles to the audio driver sample rate"
         exit
     fi
 
@@ -76,6 +77,9 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-resample" ]; then
+        SOUNDFILEDEFS+=" -DSAMPLERATE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile samplerate`
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
@@ -131,7 +135,7 @@ EndOfCode
 		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $ARCHLIB -o "${f%.dsp}"
 	) > /dev/null || exit
 
-    #remove tempory stuff
+    # remove tempory stuff
 	rm -f "$f.cpp" effect.h "$f.json"
 
 	# collect binary file name for FaustWorks

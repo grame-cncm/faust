@@ -62,19 +62,21 @@ class SoundUI : public GenericUI
         std::vector<std::string> fSoundfileDir;             // The soundfile directories
         std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles
         SoundfileReader* fSoundReader;
-    
+
      public:
     
-        SoundUI(const std::string& sound_directory = "", SoundfileReader* reader = nullptr)
+        SoundUI(const std::string& sound_directory = "", int sample_rate = -1, SoundfileReader* reader = nullptr)
         {
             fSoundfileDir.push_back(sound_directory);
             fSoundReader = (reader) ? reader : &gReader;
+            fSoundReader->setSampleRate(sample_rate);
         }
     
-        SoundUI(const std::vector<std::string>& sound_directories, SoundfileReader* reader = nullptr)
+        SoundUI(const std::vector<std::string>& sound_directories, int sample_rate, SoundfileReader* reader = nullptr)
         :fSoundfileDir(sound_directories)
         {
             fSoundReader = (reader) ? reader : &gReader;
+            fSoundReader->setSampleRate(sample_rate);
         }
     
         virtual ~SoundUI()

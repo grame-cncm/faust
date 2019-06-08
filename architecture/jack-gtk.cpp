@@ -186,13 +186,6 @@ int main(int argc, char* argv[])
     
     GTKUI interface(name, &argc, &argv);
     FUI finterface;
-#if SOUNDFILE
-    SoundUI soundinterface;
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
-    DSP->buildUserInterface(&soundinterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
-#endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 #ifdef HTTPCTRL
@@ -215,6 +208,15 @@ int main(int argc, char* argv[])
     audio.init(name, DSP);
 #endif
     
+// After audio init to get SR
+#if SOUNDFILE
+    SoundUI soundinterface("", audio.getSampleRate());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
+#endif
+
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);

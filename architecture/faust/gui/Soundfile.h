@@ -32,7 +32,7 @@
 #define FAUSTFLOAT float
 #endif
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 16384
 #define SAMPLE_RATE 44100
 #define MAX_CHAN 64
 #define MAX_SOUNDFILE_PARTS 256
@@ -100,6 +100,8 @@ class SoundfileReader {
     
    protected:
     
+    int fDriverSR;
+    
     void emptyFile(Soundfile* soundfile, int part, int& offset)
     {
         soundfile->fLength[part] = BUFFER_SIZE;
@@ -153,7 +155,9 @@ class SoundfileReader {
             return "";
         }
     }
-
+    
+    bool isResampling(int sample_rate) { return (fDriverSR > 0 && fDriverSR != sample_rate); }
+ 
     // To be implemented by subclasses
 
     /**
@@ -223,7 +227,9 @@ class SoundfileReader {
   public:
     
     virtual ~SoundfileReader() {}
-
+    
+    void setSampleRate(int sample_rate) { fDriverSR = sample_rate; }
+   
     Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
     {
         try {
