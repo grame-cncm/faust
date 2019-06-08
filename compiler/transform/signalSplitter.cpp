@@ -64,11 +64,15 @@ Tree SignalSplitter::transformation(Tree sig)
         Tree     w    = self(y);
 
         fSplittedSignals.insert(sigDelayLineWrite(v, dmax, v));
-        return sigDelayLineRead(v, int(i.lo), w);
+        Tree inst = sigDelayLineRead(v, int(i.lo), w);
+        return inst;
+
     } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
         Tree r = SignalIdentity::transformation(sig);
         fSplittedSignals.insert(sigControlWrite(sig, r));
-        return sigControlRead(sig);
+        Tree inst = sigControlRead(sig);
+        return inst;
+
     } else {
         return SignalIdentity::transformation(sig);
     }
