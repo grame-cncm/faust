@@ -249,7 +249,7 @@ struct LibsndfileReader : public SoundfileReader {
         sf_count_t nbf;
         FAUSTFLOAT* buffer_in = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
         sample_read reader;
-		
+        
         if (sizeof(FAUSTFLOAT) == 4) {
             reader = reinterpret_cast<sample_read>(sf_readf_float);
         } else {

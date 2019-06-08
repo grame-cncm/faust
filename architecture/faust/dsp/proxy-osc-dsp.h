@@ -26,6 +26,7 @@
 #define __proxy_osc_dsp__
 
 #include <lo/lo.h>
+
 #include "faust/dsp/proxy-dsp.h"
 
 //----------------------------------------------------------------

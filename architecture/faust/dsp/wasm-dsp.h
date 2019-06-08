@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 

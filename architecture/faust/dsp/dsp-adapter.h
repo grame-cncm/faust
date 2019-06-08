@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <iostream>
+
 #include "faust/dsp/dsp.h"
 
 // Adapts a DSP for a different number of inputs/outputs

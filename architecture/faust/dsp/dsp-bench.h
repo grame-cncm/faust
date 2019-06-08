@@ -495,5 +495,4 @@ class measure_dsp : public decorator_dsp {
 };
 
 #endif
-
 /**************************  END  dsp-bench.h **************************/
