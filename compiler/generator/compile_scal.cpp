@@ -191,6 +191,10 @@ Tree ScalarCompiler::prepare(Tree LS)
         Tree e = RR.self(s);
         cerr << ppsig(e) << "\n";
         cerr << endl;
+
+        Type ty = getSimpleType(e);
+        cerr << "Its type : " << ty << "\n";
+        cerr << endl;
         G.add(dependencyGraph(e));
         Dic.add(e);
     }
