@@ -223,6 +223,16 @@ static Type T(Tree term, Tree ignoreenv)
     }
 }
 
+Type getSimpleType(Tree sig)
+{
+    AudioType* ty = (AudioType*)sig->getType();
+    if (ty == 0) {
+        ty = T(sig, gGlobal->NULLTYPEENV);
+        sig->setType(ty);
+    }
+    return ty;
+}
+
 static void CheckPartInterval(Tree s, Type t)
 {
     interval i = t->getInterval();
@@ -478,6 +488,26 @@ static Type infereSigType(Tree sig, Tree env)
         return T(sel, env) | T(s1, env) | T(s2, env) | T(s3, env);
     }
 
+    else if (isSigDelayLineWrite(sig, id, &i, x)) {
+        return T(x, env);
+    }
+
+    else if (isSigDelayLineRead(sig, id, &i, x)) {
+        return getCertifiedSigType(id);
+    }
+
+    else if (isSigControlWrite(sig, id, x)) {
+        return T(x, env);
+    }
+
+    else if (isSigControlRead(sig, id)) {
+        return getCertifiedSigType(id);
+    }
+
+    else if (isSigOutput(sig, &i, x)) {
+        return T(x, env);
+    }
+
     else if (isNil(sig)) {
         Type t = new TupletType(); /*sig->setType(t);*/
         return t;
@@ -486,6 +516,8 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isList(sig)) {
         return T(hd(sig), env) * T(tl(sig), env);
     }
+
+    cerr << "ERROR : Unrecognized signal during type inference " << ppsig(sig) << endl;
 
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");

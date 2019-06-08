@@ -58,4 +58,9 @@ void typeAnnotation(Tree sig, bool causality);
  */
 void annotationStatistics();
 
+/**
+ *	Simple type inference for "instruction" signals
+ */
+::Type getSimpleType(Tree sig);
+
 #endif

@@ -52,6 +52,7 @@ Tree SignalSplitter::transformation(Tree sig)
 
     if (isSigInt(sig, &i) || isSigReal(sig, &v)) {
         return sig;
+
     } else if (isSigOutput(sig, &i, x)) {
         Tree v = self(x);
         fSplittedSignals.insert(sigOutput(i, v));
