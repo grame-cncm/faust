@@ -22,7 +22,6 @@
  architecture section is not modified.
  ************************************************************************/
 
-
 #ifndef __coreaudio_ios_dsp__
 #define __coreaudio_ios_dsp__
 

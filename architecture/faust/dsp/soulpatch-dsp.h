@@ -194,22 +194,22 @@ class soulpatch_dsp : public dsp {
         {
             fConfig.sampleRate = double(sample_rate);
             fPlayer = fPatch->compileNewPlayer(fConfig, nullptr);
+            
+            // FAUST soul code has additional functions
             soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
             for (int i = 0; i < fPlayer->getNumParameters(); i++) {
                 std::string label = params[i]->ID->getCharPointer();
                 if (label == "eventclassInit") {
                     fClassInit = params[i];
-                }
-                if (label == "eventinstanceConstants") {
+                } else if (label == "eventinstanceConstants") {
                     fInstanceConstants = params[i];
-                }
-                if (label == "eventinstanceResetUserInterface") {
+                } else if (label == "eventinstanceResetUserInterface") {
                     fInstanceResetUserInterface = params[i];
-                }
-                if (label == "eventinstanceClear") {
+                } else if (label == "eventinstanceClear") {
                     fInstanceClear = params[i];
                 }
             }
+            
             classInit(sample_rate);
             instanceInit(sample_rate);
         }

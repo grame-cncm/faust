@@ -187,7 +187,7 @@ struct LibsndfileReader : public SoundfileReader {
         getParamsFileAux(snd_file, snd_info, channels, length);
     }
     
-    void getParamsFileAux(SNDFILE* snd_file, SF_INFO& snd_info, int& channels, int& length)
+    void getParamsFileAux(SNDFILE* snd_file, const SF_INFO& snd_info, int& channels, int& length)
     {
         assert(snd_file);
         channels = int(snd_info.channels);
@@ -227,7 +227,7 @@ struct LibsndfileReader : public SoundfileReader {
     }
 	
     // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
-    void readFileAux(Soundfile* soundfile, SNDFILE* snd_file, SF_INFO& snd_info, int part, int& offset, int max_chan)
+    void readFileAux(Soundfile* soundfile, SNDFILE* snd_file, const SF_INFO& snd_info, int part, int& offset, int max_chan)
     {
         assert(snd_file);
         int channels = std::min<int>(max_chan, snd_info.channels);

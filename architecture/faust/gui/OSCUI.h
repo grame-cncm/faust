@@ -22,13 +22,6 @@
  architecture section is not modified.
  ************************************************************************/
 
-/*
- Copyright (C) 2011-2019 Grame - Lyon
- All rights reserved.
- Redistribution and use in source and binary forms, with or without
- modification, are permitted.
- */
-
 #ifndef __OSCUI__
 #define __OSCUI__
 

@@ -88,7 +88,7 @@ do
         SOUNDFILEDEFS="DEFINES += SOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-resample" ]; then
-        SOUNDFILEDEFS="DEFINES += SAMPLERATE"
+        SOUNDFILEDEFS+=" DEFINES += SAMPLERATE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile samplerate`
     elif [ $p = "-osc" ]; then
          OSCDEFS="DEFINES += OSCCTRL"

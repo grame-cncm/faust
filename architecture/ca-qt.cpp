@@ -336,15 +336,6 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 #endif
     
-#ifdef SOUNDFILE
-    // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
-    DSP->buildUserInterface(&soundinterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
-#endif
-    
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif
@@ -366,6 +357,17 @@ int main(int argc, char *argv[])
     coreaudio audio(srate, fpb);
     audio.init(name, DSP);
     audio.start();
+   
+// After audio init to get SR
+#ifdef SOUNDFILE
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"), audio.getSampleRate());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
+#endif
+    
 #ifdef IOS
     sensors.start();
 #endif
