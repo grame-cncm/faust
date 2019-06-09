@@ -70,7 +70,7 @@ class soulpatch_dsp : public dsp {
         soul::patch::PatchInstance::Ptr fPatch;
         soul::patch::PatchPlayerConfiguration fConfig;
     
-        // Evennt handler used to call additional functions
+        // Event handlers used to call additional functions
         soul::patch::Parameter::Ptr fClassInit;
         soul::patch::Parameter::Ptr fInstanceConstants;
         soul::patch::Parameter::Ptr fInstanceResetUserInterface;
