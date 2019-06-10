@@ -117,7 +117,7 @@ bool llvm_dsp_factory_aux::crossCompile(const string& target)
 void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
-        // Install a LLVM error handler
+        // Install an LLVM error handler
         LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
     }
 }
@@ -125,7 +125,14 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 void llvm_dsp_factory_aux::stopLLVMLibrary()
 {
     if (--llvm_dsp_factory_aux::gInstance == 0) {
-#ifndef __APPLE__  // Crash on OSX, so deactivated in this case...
+        // Remove the LLVM error handler
+#ifdef __APPLE__
+    #if defined(LLVM_90)
+        LLVMResetFatalErrorHandler();
+    #else
+        #warning Crash on OSX before LLVM 9.0, so deactivated in this case
+    #endif
+#else
         LLVMResetFatalErrorHandler();
 #endif
     }

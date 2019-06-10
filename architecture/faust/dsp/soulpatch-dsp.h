@@ -69,6 +69,7 @@ class soulpatch_dsp : public dsp {
         soul::patch::PatchPlayer::Ptr fPlayer;
         soul::patch::PatchInstance::Ptr fPatch;
         soul::patch::PatchPlayerConfiguration fConfig;
+        soul::patch::PatchPlayer::RenderContext fRenderContext;
     
         // Event handlers used to call additional functions
         soul::patch::Parameter::Ptr fClassInit;
@@ -106,6 +107,10 @@ class soulpatch_dsp : public dsp {
                 std::cerr << "getCompileError " << error->getCharPointer() << std::endl;
                 throw std::bad_alloc();
             }
+            
+            // Setup fixed parts of the render context
+            fRenderContext.numInputChannels = countTotalBusChannels(fPlayer->getBuses().inputBuses, fPlayer->getBuses().numInputBuses);
+            fRenderContext.numOutputChannels = countTotalBusChannels(fPlayer->getBuses().outputBuses, fPlayer->getBuses().numOutputBuses);
         }
     
         virtual ~soulpatch_dsp()
@@ -120,12 +125,12 @@ class soulpatch_dsp : public dsp {
 
         virtual int getNumInputs()
         {
-            return countTotalBusChannels(fPlayer->getBuses().inputBuses, fPlayer->getBuses().numInputBuses);
+            return fRenderContext.numInputChannels;
         }
     
         virtual int getNumOutputs()
         {
-            return countTotalBusChannels(fPlayer->getBuses().outputBuses, fPlayer->getBuses().numOutputBuses);
+            return fRenderContext.numOutputChannels;
         }
     
         virtual void buildUserInterface(UI* ui_interface)
@@ -251,13 +256,10 @@ class soulpatch_dsp : public dsp {
             }
            
             // DSP compute
-            soul::patch::PatchPlayer::RenderContext rc;
-            rc.inputChannels = (const float**)inputs;
-            rc.numInputChannels = getNumInputs();
-            rc.outputChannels = outputs;
-            rc.numOutputChannels = getNumOutputs();
-            rc.numFrames = count;
-            fPlayer->render(rc);
+            fRenderContext.inputChannels = (const float**)inputs;
+            fRenderContext.outputChannels = outputs;
+            fRenderContext.numFrames = count;
+            fPlayer->render(fRenderContext);
             
             // Update outputs control
             for (auto& i : fOutputsControl) {
