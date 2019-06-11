@@ -344,7 +344,7 @@ class mydspNode extends AudioWorkletNode {
 }
 
 // Factory class
-class mydsp {
+export default class mydsp {
 
     /**
      * Factory constructor.
