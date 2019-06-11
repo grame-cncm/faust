@@ -22,7 +22,6 @@
  
  ************************************************************************/
 
-
 #include "teensy.h"
 
 // IMPORTANT: in order for MapUI to work, the teensy linker must be g++

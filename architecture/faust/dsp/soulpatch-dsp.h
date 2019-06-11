@@ -34,8 +34,10 @@
 
 #include "soul_patch.h"
 
+class soulpatch_dsp_factory;
+
 /**
-* SOUL signal processor definition.
+* Faust wrapped SOUL DSP.
 */
 
 class soulpatch_dsp : public dsp {
@@ -62,12 +64,12 @@ class soulpatch_dsp : public dsp {
             
         };
     
-        std::string fPath;
+        soulpatch_dsp_factory* fFactory;
+    
         std::vector<ZoneParam*> fInputsControl;
         std::vector<ZoneParam*> fOutputsControl;
     
         soul::patch::PatchPlayer::Ptr fPlayer;
-        soul::patch::PatchInstance::Ptr fPatch;
         soul::patch::PatchPlayerConfiguration fConfig;
         soul::patch::PatchPlayer::RenderContext fRenderContext;
     
@@ -88,30 +90,7 @@ class soulpatch_dsp : public dsp {
     
     public:
 
-        soulpatch_dsp(const std::string& path)
-        {
-            fPath = path;
-            soul::patch::SOULPatchLibrary library("/usr/local/lib/SOUL_PatchLoader.dylib");
-            if (!library.loadedSuccessfully()) {
-                throw std::bad_alloc();
-            }
-            
-            fPatch = library.createPatchFromFileBundle(fPath.c_str());
-            soul::patch::Description desc = fPatch->getDescription();
-            
-            fConfig.sampleRate = 44100;
-            fConfig.maxFramesPerBlock = 4096;
-            fPlayer = fPatch->compileNewPlayer(fConfig, nullptr);
-            soul::patch::String::Ptr error = fPlayer->getCompileError();
-            if (error) {
-                std::cerr << "getCompileError " << error->getCharPointer() << std::endl;
-                throw std::bad_alloc();
-            }
-            
-            // Setup fixed parts of the render context
-            fRenderContext.numInputChannels = countTotalBusChannels(fPlayer->getBuses().inputBuses, fPlayer->getBuses().numInputBuses);
-            fRenderContext.numOutputChannels = countTotalBusChannels(fPlayer->getBuses().outputBuses, fPlayer->getBuses().numOutputBuses);
-        }
+        soulpatch_dsp(soulpatch_dsp_factory* factory);
     
         virtual ~soulpatch_dsp()
         {
@@ -195,29 +174,8 @@ class soulpatch_dsp : public dsp {
             if (fClassInit) fClassInit->setValue(0);
         }
     
-        virtual void init(int sample_rate)
-        {
-            fConfig.sampleRate = double(sample_rate);
-            fPlayer = fPatch->compileNewPlayer(fConfig, nullptr);
-            
-            // FAUST soul code has additional functions
-            soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
-            for (int i = 0; i < fPlayer->getNumParameters(); i++) {
-                std::string label = params[i]->ID->getCharPointer();
-                if (label == "eventclassInit") {
-                    fClassInit = params[i];
-                } else if (label == "eventinstanceConstants") {
-                    fInstanceConstants = params[i];
-                } else if (label == "eventinstanceResetUserInterface") {
-                    fInstanceResetUserInterface = params[i];
-                } else if (label == "eventinstanceClear") {
-                    fInstanceClear = params[i];
-                }
-            }
-            
-            classInit(sample_rate);
-            instanceInit(sample_rate);
-        }
+        virtual void init(int sample_rate);
+    
   
         virtual void instanceInit(int sample_rate)
         {
@@ -241,10 +199,7 @@ class soulpatch_dsp : public dsp {
             if (fInstanceClear) fInstanceClear->setValue(0);
         }
  
-        virtual soulpatch_dsp* clone()
-        {
-            return new soulpatch_dsp(fPath);
-        }
+        virtual soulpatch_dsp* clone();
     
         virtual void metadata(Meta* m) {}
     
@@ -270,6 +225,132 @@ class soulpatch_dsp : public dsp {
         virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
        
 };
+
+/**
+ * Faust wrapped SOUL patches factory
+ */
+
+class soulpatch_dsp_factory : public dsp_factory {
+    
+    protected:
+    
+        friend soulpatch_dsp;
+    
+        struct FaustSOULFile : public soul::patch::VirtualFile {
+            
+            virtual soul::patch::String::Ptr getName() { return {}; }
+            
+            virtual soul::patch::String::Ptr getAbsolutePath() { return {}; }
+            
+            virtual soul::patch::VirtualFile::Ptr getParent() { return {}; }
+            
+            virtual soul::patch::VirtualFile::Ptr getChildFile (const char* subPath) { return {}; }
+            
+            virtual bool isFolder() { return false; }
+            
+            virtual int64_t getSize() { return 0; }
+            
+            virtual int64_t getLastModificationTime() { return 0; }
+            
+            virtual int64_t read (uint64_t startPositionInFile, void* targetBuffer, uint64_t bytesToRead) { return 0; }
+            
+            virtual uint64_t findChildFiles (const char* wildcard, soul::patch::FileSearchCallback* callback) { return 0; }
+        };
+    
+        struct FaustSourceFilePreprocessor : public soul::patch::SourceFilePreprocessor {
+            
+            virtual soul::patch::VirtualFile::Ptr preprocessSourceFile (soul::patch::VirtualFile& inputFile) override
+            {
+                return {};
+            }
+            
+        };
+    
+        std::string fPath;
+        soul::patch::PatchInstance::Ptr fPatch;
+        soul::patch::Description fDescription;
+        FaustSourceFilePreprocessor::Ptr fProcessor;
+    
+        // So that to force sub-classes to use deleteDSPFactory(dsp_factory* factory);
+        virtual ~soulpatch_dsp_factory() {}
+    
+    public:
+    
+        soulpatch_dsp_factory(const std::string& path)
+        {
+            fPath = path;
+            soul::patch::SOULPatchLibrary library("/usr/local/lib/SOUL_PatchLoader.dylib");
+            if (!library.loadedSuccessfully()) {
+                throw std::bad_alloc();
+            }
+            
+            fPatch = library.createPatchFromFileBundle(fPath.c_str());
+            fDescription = fPatch->getDescription();
+        }
+    
+        virtual std::string getName() { return fDescription.name; }
+        virtual std::string getSHAKey() { return ""; }
+        virtual std::string getDSPCode() { return ""; }
+        virtual std::string getCompileOptions() { return ""; }
+        virtual std::vector<std::string> getLibraryList() { return {}; }
+        virtual std::vector<std::string> getIncludePathnames() { return {}; }
+    
+        virtual soulpatch_dsp* createDSPInstance()
+        {
+            return new soulpatch_dsp(this);
+        }
+    
+        virtual void setMemoryManager(dsp_memory_manager* manager) {}
+        virtual dsp_memory_manager* getMemoryManager() { return nullptr; };
+    
+};
+
+soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
+{
+    fFactory = factory;
+    
+    fConfig.sampleRate = 44100;
+    fConfig.maxFramesPerBlock = 4096;
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get());
+    soul::patch::String::Ptr error = fPlayer->getCompileError();
+    if (error) {
+        std::cerr << "getCompileError " << error->getCharPointer() << std::endl;
+        throw std::bad_alloc();
+    }
+    
+    // Setup fixed parts of the render context
+    fRenderContext.numInputChannels = countTotalBusChannels(fPlayer->getBuses().inputBuses, fPlayer->getBuses().numInputBuses);
+    fRenderContext.numOutputChannels = countTotalBusChannels(fPlayer->getBuses().outputBuses, fPlayer->getBuses().numOutputBuses);
+}
+
+void soulpatch_dsp::init(int sample_rate)
+{
+    fConfig.sampleRate = double(sample_rate);
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get());
+    
+    // FAUST soul code has additional functions
+    soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
+    for (int i = 0; i < fPlayer->getNumParameters(); i++) {
+        std::string label = params[i]->ID->getCharPointer();
+        if (label == "eventclassInit") {
+            fClassInit = params[i];
+        } else if (label == "eventinstanceConstants") {
+            fInstanceConstants = params[i];
+        } else if (label == "eventinstanceResetUserInterface") {
+            fInstanceResetUserInterface = params[i];
+        } else if (label == "eventinstanceClear") {
+            fInstanceClear = params[i];
+        }
+    }
+    
+    classInit(sample_rate);
+    instanceInit(sample_rate);
+}
+
+soulpatch_dsp* soulpatch_dsp::clone()
+{
+    return fFactory->createDSPInstance();
+}
 
 #endif
 /**************************  END  soulpatch-dsp.h **************************/
