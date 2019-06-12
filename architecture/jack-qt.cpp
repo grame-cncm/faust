@@ -188,14 +188,6 @@ int main(int argc, char* argv[])
     
     QTGUI interface;
     FUI finterface;
-#ifdef SOUNDFILE
-    // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
-    DSP->buildUserInterface(&soundinterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
-#endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 #ifdef HTTPCTRL
@@ -210,6 +202,16 @@ int main(int argc, char* argv[])
 #else
     jackaudio audio;
     audio.init(name, DSP);
+#endif
+    
+// After audio init to get SR
+#ifdef SOUNDFILE
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"), audio.getSampleRate());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #ifdef OSCCTRL

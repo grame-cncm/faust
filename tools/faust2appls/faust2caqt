@@ -33,7 +33,8 @@ NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
-SOUNDFILEFLAGS=""
+SAMPLERATEDEFS=""
+SAMPLERATELIBS=""
 OPT=""
 
 while [ $1 ] 
@@ -88,8 +89,8 @@ do
         SOUNDFILEDEFS="DEFINES += SOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-resample" ]; then
-        SOUNDFILEDEFS+=" DEFINES += SAMPLERATE"
-        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile samplerate`
+        SAMPLERATEDEFS="DEFINES += SAMPLERATE"
+        SAMPLERATELIBS=`pkg-config --cflags --static --libs samplerate`
     elif [ $p = "-osc" ]; then
          OSCDEFS="DEFINES += OSCCTRL"
          OSCLIBS="-lOSCFaust"
@@ -193,7 +194,7 @@ EndOfCode
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$PRESETDEFS"
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null || exit
