@@ -33,8 +33,9 @@
  ************************************************************************/
 
 #include <math.h>
-#include "faust/gui/CGlue.h"
-#include "faust/gui/SoundUI.h"
+#include <stdio.h>
+
+#include "faust/gui/CInterface.h"
 
 #define max(a,b) ((a < b) ? b : a)
 #define min(a,b) ((a < b) ? a : b)
@@ -62,6 +63,8 @@
 int main(int argc, char* argv[])
 {
     mydsp* dsp = newmydsp();
+    printf("DSP inputs: %d\n", getNumInputsmydsp(dsp));
+    printf("DSP inputs: %d\n", getNumOutputsmydsp(dsp));
     deletemydsp(dsp);
 }
 
