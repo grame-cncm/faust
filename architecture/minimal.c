@@ -60,11 +60,43 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+#define BUFFER_SIZE 64
+#define SAMPLE_RATE 44100
+
 int main(int argc, char* argv[])
 {
     mydsp* dsp = newmydsp();
+    
     printf("DSP inputs: %d\n", getNumInputsmydsp(dsp));
-    printf("DSP inputs: %d\n", getNumOutputsmydsp(dsp));
+    printf("DSP outputs: %d\n", getNumOutputsmydsp(dsp));
+    
+    // Init with audio driver SR
+    initmydsp(dsp, SAMPLE_RATE);
+    
+    // Compute one buffer
+    FAUSTFLOAT* inputs[getNumInputsmydsp(dsp)];
+    FAUSTFLOAT* outputs[getNumOutputsmydsp(dsp)];
+    for (int chan = 0; chan < getNumInputsmydsp(dsp); ++chan) {
+        inputs[chan] = malloc(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+    }
+    for (int chan = 0; chan < getNumOutputsmydsp(dsp); ++chan) {
+        outputs[chan] = malloc(sizeof(FAUSTFLOAT) * BUFFER_SIZE);
+    }
+    computemydsp(dsp, BUFFER_SIZE, inputs, outputs);
+    
+    // Print output buffers
+    for (int frame = 0; frame < BUFFER_SIZE; ++frame) {
+        for (int chan = 0; chan <  getNumOutputsmydsp(dsp); ++chan) {
+            printf("Audio output chan: %d sample: %f\n", chan, outputs[chan][frame]);
+        }
+    }
+    
+    for (int chan = 0; chan < getNumInputsmydsp(dsp); ++chan) {
+        free(inputs[chan]);
+    }
+    for (int chan = 0; chan < getNumOutputsmydsp(dsp); ++chan) {
+        free(outputs[chan]);
+    }
     deletemydsp(dsp);
 }
 

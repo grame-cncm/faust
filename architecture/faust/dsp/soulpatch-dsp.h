@@ -52,15 +52,8 @@ class soulpatch_dsp : public dsp {
             ZoneParam(soul::patch::Parameter::Ptr param):fParam(param)
             {}
             
-            void reflectZone()
-            {
-                fParam->setValue(fZone);
-            }
-            
-            void modifyZone()
-            {
-                fZone = fParam->getValue();
-            }
+            void reflectZone() { fParam->setValue(fZone); }
+            void modifyZone() { fZone = fParam->getValue(); }
             
         };
     
