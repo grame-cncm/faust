@@ -140,7 +140,17 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     
     virtual void visit(OpenboxInst* inst)
     {
-        pushLabel(inst->fName);
+        switch (inst->fOrient) {
+            case 0:
+                pushLabel("v:" + inst->fName);
+                break;
+            case 1:
+                pushLabel("h:" + inst->fName);
+                break;
+            case 2:
+                pushLabel("t:" + inst->fName);
+                break;
+        }
         fMetaAux.clear();
     }
     

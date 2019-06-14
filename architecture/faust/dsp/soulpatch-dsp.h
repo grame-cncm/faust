@@ -32,7 +32,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/GUI/UI.h"
 
-#include "soul_patch.h"
+#include "API/soul_patch.h"
 
 class soulpatch_dsp_factory;
 
