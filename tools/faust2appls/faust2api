@@ -75,6 +75,7 @@ echoHelp ()
     echo ""
     echo "Android specific options:"
     echo "   -package: set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
     echo "iOS specific options"
     echo "   -midi: add built-in RtMidi support to the API."
