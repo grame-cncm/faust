@@ -49,7 +49,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         if (fMetaAux.size() > 0) {
             for (size_t i = 0; i < fMetaAux.size(); i++) {
                 if (!std::isdigit(fMetaAux[i].first[0])) {
-                    fOut << ", " << fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
+                    fOut << ", " << "meta_" + fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
                 }
             }
         }

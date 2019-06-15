@@ -44,6 +44,11 @@ class soulpatch_dsp : public dsp {
     
     private:
     
+        bool startWith(const std::string& str, const std::string& prefix)
+        {
+            return (str.substr(0, prefix.size()) == prefix);
+        }
+    
         struct ZoneParam {
             
             FAUSTFLOAT fZone;
@@ -111,11 +116,22 @@ class soulpatch_dsp : public dsp {
             {
                 ui_interface->openVerticalBox("Inputs");
                 soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
+                
                 for (int i = 0; i < fPlayer->getNumParameters(); i++) {
+                    
                     std::string label = params[i]->ID->getCharPointer();
                     ZoneParam* param = new ZoneParam(params[i]);
                     FAUSTFLOAT* zone = &param->fZone;
                     fInputsControl.push_back(param);
+                    
+                    // Possibly add metadata
+                    for (int j = 0; j < params[i]->getNumProperties(); j++) {
+                        std::string key = params[i]->getPropertyName(j)->getCharPointer();
+                        if (startWith(key, "meta_")) {
+                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getPropertyValue(j)->getCharPointer());
+                        }
+                    }
+                    
                     if (label.find("Hslider") != std::string::npos) {
                         ui_interface->addHorizontalSlider(params[i]->name->getCharPointer(), zone,
                                                           params[i]->initialValue, params[i]->minValue,
@@ -139,11 +155,22 @@ class soulpatch_dsp : public dsp {
             {
                 ui_interface->openVerticalBox("Outputs");
                 soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
+                
                 for (int i = 0; i < fPlayer->getNumParameters(); i++) {
+                    
                     std::string label = params[i]->ID->getCharPointer();
                     ZoneParam* param = new ZoneParam(params[i]);
                     FAUSTFLOAT* zone = &param->fZone;
                     fOutputsControl.push_back(param);
+                    
+                    // Possibly add metadata
+                    for (int j = 0; j < params[i]->getNumProperties(); j++) {
+                        std::string key = params[i]->getPropertyName(j)->getCharPointer();
+                        if (startWith(key, "meta_")) {
+                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getPropertyValue(j)->getCharPointer());
+                        }
+                    }
+                    
                     if (label.find("Hbargraph") != std::string::npos) {
                         ui_interface->addHorizontalBargraph(params[i]->name->getCharPointer(), zone,
                                                             params[i]->initialValue, params[i]->minValue);
