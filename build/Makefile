@@ -103,7 +103,6 @@ help:
 	@echo
 	@echo "Targets excluded from all:"
 	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
-	@echo " 'asmjslib'   : builds the libfaust as an ASMJS library"
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
@@ -290,11 +289,9 @@ reset: $(FAUSTDIR)
 #===============================================================
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
+	mkdir -p wasm-libraries && cp ../libraries/*.lib ../libraries/old/*.lib wasm-libraries
 	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
-
-asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
-	@$(MAKE) checkemcc
-	cmake --build $(FAUSTDIR) --target asmjslib $(BUILDOPT) -- $(JOBS)
+	rm -rf wasm-libraries
 
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
