@@ -37,7 +37,7 @@ endif
 DESTDIR ?=
 
 
-.PHONY: faust install uninstall osc http package
+.PHONY: faust install uninstall osc http package wasmglue
 
 MAKE ?= make
 
@@ -292,6 +292,10 @@ wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	mkdir -p wasm-libraries && cp ../libraries/*.lib ../libraries/old/*.lib wasm-libraries
 	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
 	rm -rf wasm-libraries
+
+wasmglue: $(FAUSTDIR) $(FAUSTDIR)/Makefile
+	@$(MAKE) checkemcc
+	cmake --build $(FAUSTDIR) --target wasmglue $(BUILDOPT) -- $(JOBS)
 
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
