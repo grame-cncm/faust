@@ -19,22 +19,13 @@ set (WASM_LINK_FLAGS "--bind -O3 --memory-init-file 0 -s LINKABLE=1 -s WASM=1 -s
 ####################################
 # Add the different targets
 add_executable(wasmlib EXCLUDE_FROM_ALL ${SRC} ${HH})
-target_include_directories (wasmlib PRIVATE ${SRCDIR}/generator/wasm)
-target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB -DWASM_BUILD)
+target_include_directories (wasmlib PRIVATE ${SRCDIR}/generator/wasm ${FAUST_INC})
+target_compile_definitions (wasmlib PRIVATE -DEMCC -DFAUST_LIB -DWASM_BUILD ${FAUST_DEFINITIONS})
 set_target_properties (wasmlib PROPERTIES
 		OUTPUT_NAME libfaust-wasm
-		LINK_FLAGS ${WASM_LINK_FLAGS})
-
-set_target_properties(wasmlib PROPERTIES  
+		LINK_FLAGS ${WASM_LINK_FLAGS}
 		COMPILE_FLAGS -O3 
 		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
 		SUFFIX ".js" )
-
-foreach (TARGET wasmlib)
-	# add definitions
-	target_compile_definitions (${TARGET} PRIVATE ${FAUST_DEFINITIONS})
-	# set include directories
-	target_include_directories (${TARGET} PRIVATE ${FAUST_INC})
-endforeach()
 
 scan_backends (wasmlib  WASM)
