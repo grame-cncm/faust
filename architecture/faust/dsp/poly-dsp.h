@@ -158,6 +158,8 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     int fNote;                          // Playing note actual pitch
     int fDate;                          // KeyOn date
+    int fRelease;                       // Current number of samples used in release mode to detect end of note
+    int fMinRelease;                    // Max of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain' control
@@ -169,6 +171,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
+        fMinRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
@@ -224,6 +227,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             fNote = kFreeVoice;
         } else {
             // Release voice
+            fRelease = fMinRelease;
             fNote = kReleaseVoice;
         }
     }
@@ -427,7 +431,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         FAUSTFLOAT** fMixBuffer;
         int fDate;
 
-        FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+        FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
         {
             FAUSTFLOAT level = 0;
             for (int i = 0; i < getNumOutputs(); i++) {
@@ -439,6 +443,18 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 }
             }
             return level;
+        }
+    
+        void mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+        {
+            FAUSTFLOAT level = 0;
+            for (int i = 0; i < getNumOutputs(); i++) {
+                FAUSTFLOAT* mixChannel = mixBuffer[i];
+                FAUSTFLOAT* outChannel = outputBuffer[i];
+                for (int j = 0; j < count; j++) {
+                    mixChannel[j] += outChannel[j];
+                }
+            }
         }
 
         void clearOutput(int count, FAUSTFLOAT** mixBuffer)
@@ -667,9 +683,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     if (voice->fNote != kFreeVoice) {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
-                        voice->fLevel = mixVoice(count, fMixBuffer, outputs);
+                        voice->fLevel = mixCheckVoice(count, fMixBuffer, outputs);
                         // Check the level to possibly set the voice in kFreeVoice again
-                        if ((voice->fLevel < VOICE_STOP_LEVEL) && (voice->fNote == kReleaseVoice)) {
+                        voice->fRelease -= count;
+                        if ((voice->fNote == kReleaseVoice)
+                            && (voice->fRelease < 0)
+                            && (voice->fLevel < VOICE_STOP_LEVEL)) {
                             voice->fNote = kFreeVoice;
                         }
                     }
