@@ -99,7 +99,7 @@ dsp/sched/control.cpp : dsp/control.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
 	
-# Specific rule to test 'soundfile' primitive that does not work yet in s-ch mode
+# Specific rule to test 'soundfile' primitive that does not work yet in sch mode
 dsp/sched/sound.cpp : dsp/sound.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -double -i -a $(arch) $<  -o $@

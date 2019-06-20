@@ -110,6 +110,9 @@ if [ "$system" = "Darwin" ]; then
         rm -rf good
     done
     
+    # Remove sound folder
+    rm -rf sound
+    
     for scriptname in $OSXSOUNDSR; do
         ($scriptname -soundfile -resample sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -resample succeeded !")||(echo "ERROR: $scriptname -soundfile -resample failed")
         rm -rf good
