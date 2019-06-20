@@ -77,11 +77,11 @@ class soulpatch_dsp : public dsp {
         soul::patch::Parameter::Ptr fInstanceResetUserInterface;
         soul::patch::Parameter::Ptr fInstanceClear;
     
-        int countTotalBusChannels(const soul::patch::Bus* buses, int numBuses)
+        int countTotalBusChannels(soul::patch::Span<soul::patch::Bus> buses)
         {
             int res = 0;
-            for (int i = 0; i < numBuses; ++i) {
-                res += buses[i].numChannels;
+            for (auto& i : buses) {
+                res += i.numChannels;
             }
             return res;
         }
@@ -115,9 +115,9 @@ class soulpatch_dsp : public dsp {
             ui_interface->openVerticalBox("SOUL");
             {
                 ui_interface->openVerticalBox("Inputs");
-                soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
+                soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
                 
-                for (int i = 0; i < fPlayer->getNumParameters(); i++) {
+                for (int i = 0; i < params.size(); i++) {
                     
                     std::string label = params[i]->ID->getCharPointer();
                     ZoneParam* param = new ZoneParam(params[i]);
@@ -125,10 +125,11 @@ class soulpatch_dsp : public dsp {
                     fInputsControl.push_back(param);
                     
                     // Possibly add metadata
-                    for (int j = 0; j < params[i]->getNumProperties(); j++) {
-                        std::string key = params[i]->getPropertyName(j)->getCharPointer();
+                    soul::patch::Span<const char*> names = params[i]->getPropertyNames();
+                    for (int j = 0; j < names.size(); j++) {
+                        std::string key = names[j];
                         if (startWith(key, "meta_")) {
-                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getPropertyValue(j)->getCharPointer());
+                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getProperty(names[j]));
                         }
                     }
                     
@@ -154,9 +155,9 @@ class soulpatch_dsp : public dsp {
             }
             {
                 ui_interface->openVerticalBox("Outputs");
-                soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
+                soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
                 
-                for (int i = 0; i < fPlayer->getNumParameters(); i++) {
+                for (int i = 0; i < params.size(); i++) {
                     
                     std::string label = params[i]->ID->getCharPointer();
                     ZoneParam* param = new ZoneParam(params[i]);
@@ -164,10 +165,11 @@ class soulpatch_dsp : public dsp {
                     fOutputsControl.push_back(param);
                     
                     // Possibly add metadata
-                    for (int j = 0; j < params[i]->getNumProperties(); j++) {
-                        std::string key = params[i]->getPropertyName(j)->getCharPointer();
+                    soul::patch::Span<const char*> names = params[i]->getPropertyNames();
+                    for (int j = 0; j < params[i]->getPropertyNames().size(); j++) {
+                        std::string key = names[j];
                         if (startWith(key, "meta_")) {
-                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getPropertyValue(j)->getCharPointer());
+                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getProperty(names[j]));
                         }
                     }
                     
@@ -339,8 +341,8 @@ soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
     }
     
     // Setup fixed parts of the render context
-    fRenderContext.numInputChannels = countTotalBusChannels(fPlayer->getBuses().inputBuses, fPlayer->getBuses().numInputBuses);
-    fRenderContext.numOutputChannels = countTotalBusChannels(fPlayer->getBuses().outputBuses, fPlayer->getBuses().numOutputBuses);
+    fRenderContext.numInputChannels = countTotalBusChannels(fPlayer->getInputBuses());
+    fRenderContext.numOutputChannels = countTotalBusChannels(fPlayer->getOutputBuses());
 }
 
 void soulpatch_dsp::init(int sample_rate)
@@ -349,8 +351,8 @@ void soulpatch_dsp::init(int sample_rate)
     fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get());
     
     // FAUST soul code has additional functions
-    soul::patch::Parameter::Ptr* params = fPlayer->getParameters();
-    for (int i = 0; i < fPlayer->getNumParameters(); i++) {
+    soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
+    for (int i = 0; i < params.size(); i++) {
         std::string label = params[i]->ID->getCharPointer();
         if (label == "eventclassInit") {
             fClassInit = params[i];

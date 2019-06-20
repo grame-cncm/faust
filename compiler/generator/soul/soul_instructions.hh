@@ -67,17 +67,17 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
             << ", path: " << quote(buildPath(inst->fLabel))
-            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
+            << ", boolean";
             addMeta();
             fOut << " ]];";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
             << ", path: " << quote(buildPath(inst->fLabel))
-            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
+            << ", boolean";
             addMeta();
             fOut << " ]];";
         }
@@ -90,7 +90,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
             << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
@@ -101,7 +101,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
             << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
@@ -119,7 +119,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
             << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
@@ -128,7 +128,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         } else {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
             << ", path: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
