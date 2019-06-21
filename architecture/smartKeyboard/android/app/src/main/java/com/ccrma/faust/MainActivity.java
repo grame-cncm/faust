@@ -29,15 +29,16 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+implements ActivityCompat.OnRequestPermissionsResultCallback {
+
     private DspFaust dspFaust;
     private Context context;
     private RelativeLayout mainLayout;
 
-    // Requesting permission to RECORD_AUDIO
-    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+    // For audio input request permission
+    private static final int AUDIO_ECHO_REQUEST = 0;
     private boolean permissionToRecordAccepted = false;
-    private String [] permissions = {Manifest.permission.RECORD_AUDIO};
 
     private void createFaust(){
         if (dspFaust == null) {
@@ -100,22 +101,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    
     // Record audio permission callback
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode){
-            case REQUEST_RECORD_AUDIO_PERMISSION:
-                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                break;
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        
+        if (AUDIO_ECHO_REQUEST != requestCode) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            return;
         }
-        if (!permissionToRecordAccepted) { // if permission is declined, the app is terminated
+        
+        if (grantResults.length != 1 ||
+            grantResults[0] != PackageManager.PERMISSION_GRANTED) {
             finish();
-        }
-        else { // otherwise we can instantiate our audio engine
+        } else {
+            // Permission was granted
+            permissionToRecordAccepted = true;
             createFaust();
         }
     }
+    
+    // For audio input request permission
+    private boolean isRecordPermissionGranted() {
+        return (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED);
+    }
+    
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, AUDIO_ECHO_REQUEST);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,11 +139,10 @@ public class MainActivity extends AppCompatActivity {
 
         context = getApplicationContext();
         mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
-
-        if(Build.VERSION.SDK_INT >= 23) {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
-        }
-        else{
+        
+        if (Build.VERSION.SDK_INT >= 23 && !isRecordPermissionGranted()){
+            requestRecordPermission();
+        } else {
             permissionToRecordAccepted = true;
             createFaust();
         }
