@@ -125,7 +125,7 @@ elseif(WIN32 OR MSYS)
 	endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
 	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32) #.lib)
-else()
+elseif(NOT ANDROID)
 	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
 
