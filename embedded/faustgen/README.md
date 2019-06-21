@@ -11,7 +11,7 @@ faustgen~
 ## How to compile...
 
 ### Prerequisites
-- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line.
+- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line, and the compiled `libfaust` library.
 - you must have downloaded the [Max SDK](https://cycling74.com/downloads/sdk).
 - you must have [cmake](https://cmake.org/) installed.
 - [Windows] you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed.
