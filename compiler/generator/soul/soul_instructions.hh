@@ -68,7 +68,8 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ name: " << quote(inst->fLabel)
-            << ", path: " << quote(buildPath(inst->fLabel))
+            << ", group: " << quote(buildPath(inst->fLabel))
+            << ", text: \"off|on\""
             << ", boolean";
             addMeta();
             fOut << " ]];";
@@ -76,7 +77,8 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ name: " << quote(inst->fLabel)
-            << ", path: " << quote(buildPath(inst->fLabel))
+            << ", group: " << quote(buildPath(inst->fLabel))
+            << ", text: \"off|on\""
             << ", boolean";
             addMeta();
             fOut << " ]];";
@@ -91,7 +93,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ name: " << quote(inst->fLabel)
-            << ", path: " << quote(buildPath(inst->fLabel))
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
@@ -102,7 +104,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ name: " << quote(inst->fLabel)
-            << ", path: " << quote(buildPath(inst->fLabel))
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
@@ -120,7 +122,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
             << " [[ name: " << quote(inst->fLabel)
-            << ", path: " << quote(buildPath(inst->fLabel))
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
@@ -129,7 +131,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ name: " << quote(inst->fLabel)
-            << ", path: " << quote(buildPath(inst->fLabel))
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
