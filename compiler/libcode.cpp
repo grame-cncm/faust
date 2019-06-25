@@ -360,6 +360,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-fc", "--fold-complexity") && (i + 1 < argc)) {
+            gGlobal->gFoldComplexity = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-mns", "--max-name-size") && (i + 1 < argc)) {
             gGlobal->gMaxNameSize = std::atoi(argv[i + 1]);
             i += 2;
@@ -855,7 +859,12 @@ static void printHelp()
     cout << tab << "-sd        --simplify-diagrams          try to further simplify diagrams before drawing." << endl;
     cout << tab << "-drf       --draw-route-frame           draw route frames instead of simple cables." << endl;
     cout << tab
-         << "-f <n>     --fold <n>                   threshold during block-diagram generation (default 25 elements)."
+         << "-f <n>     --fold <n>                   threshold to activate folding mode during block-diagram "
+            "generation (default 25 elements)."
+         << endl;
+    cout << tab
+         << "-fc <n>    --fold-complexity <n>       complexity threshold to fold an expression in folding mode "
+            "(default 2)"
          << endl;
     cout << tab
          << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)."
@@ -1492,7 +1501,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                   << "\"" << gGlobal->gOutputLang << "\"" << endl;
             throw faustexception(error.str());
         }
-    
+
         // New compiler
         if (container) {
             if (gGlobal->gVectorSwitch) {
@@ -1512,7 +1521,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             new_comp->compileMultiSignal(signals);
         }
     }
-  
+
     /****************************************************************
      * generate output file
      ****************************************************************/

@@ -372,7 +372,7 @@ static schema* generateDiagramSchema(Tree t)
     }
 
     if (gGlobal->gFoldingFlag && /*(gOccurrences->getCount(t) > 0) &&*/
-        (boxComplexity(t) > 2) && getDefNameProperty(t, id)) {
+        (boxComplexity(t) >= gGlobal->gFoldComplexity) && getDefNameProperty(t, id)) {
         char temp[1024];
         getBoxType(t, &ins, &outs);
         stringstream l;

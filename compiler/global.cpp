@@ -109,6 +109,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gScaledSVG        = false;
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
     gFoldThreshold    = 25;
+    gFoldComplexity   = 2;
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
@@ -228,7 +229,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gBoxSlotNumber = 0;
     gMemoryManager = false;
-    
+
     gLocalCausalityCheck = false;
     gCausality           = false;
 
@@ -530,7 +531,7 @@ void global::init()
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
     // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
-    
+
     gMathForeignFunctions["acoshf"] = true;
     gMathForeignFunctions["acosh"]  = true;
     gMathForeignFunctions["acoshl"] = true;
@@ -542,7 +543,7 @@ void global::init()
     gMathForeignFunctions["atanhf"] = true;
     gMathForeignFunctions["atanh"]  = true;
     gMathForeignFunctions["atanhl"] = true;
-  
+
     gMathForeignFunctions["coshf"] = true;
     gMathForeignFunctions["cosh"]  = true;
     gMathForeignFunctions["coshl"] = true;

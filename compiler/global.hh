@@ -109,7 +109,8 @@ struct global {
     bool   gShadowBlur;      // note: svg2pdf doesn't like the blur filter
     bool   gScaledSVG;       // to draw scaled SVG files
     bool   gStripDocSwitch;  // Strip <mdoc> content from doc listings.
-    int    gFoldThreshold;
+    int    gFoldThreshold;   // global complexity threshold before activating folding
+    int    gFoldComplexity;  // individual complexity threshold before folding
     int    gMaxNameSize;
     bool   gSimpleNames;
     bool   gSimplifyDiagrams;
@@ -564,7 +565,7 @@ struct global {
     void printCompilationOptions(ostream& dst, bool backend = true);
 
     void initTypeSizeMap();
-    
+
     int audioSampleSize();
 };
 
