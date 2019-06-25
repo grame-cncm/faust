@@ -1,4 +1,4 @@
-.TH "man" "1" "" "Version 2.17.14 (20\-June\-2019)" "Faust man page"
+.TH "man" "1" "" "Version 2.18.0 (25\-June\-2019)" "Faust man page"
 .SH NAME
 .PP
 Faust \- DSP to C/C++, Rust, LLVM IR, JAVA, WebAssembly (wast/wasm),
@@ -170,11 +170,13 @@ diagrams before drawing.
 \f[B]\-drf\f[] \f[B]\-\-draw\-route\-frame\f[] draw route frames instead
 of simple cables.
 .PP
-\f[B]\-f\f[] <n> \f[B]\-\-fold\f[] <n> threshold during block\-diagram
-generation (default 25 elements).
+\f[B]\-f\f[] <n> \f[B]\-\-fold\f[] <n> threshold to activate folding
+mode during block\-diagram generation (default 25 elements).
 .PP
-\f[B]\-mns\f[] <n> \f[B]\-\-max\-name\-size\f[] <n> threshold during
-block\-diagram generation (default 40 char).
+\f[B]\-fc\f[] <n> \f[B]\-\-fold\-complexity\f[] <n> complexity threshold
+to fold an expression in folding mode (default 2) \f[B]\-mns\f[] <n>
+\f[B]\-\-max\-name\-size\f[] <n> threshold during block\-diagram
+generation (default 40 char).
 .PP
 \f[B]\-sn\f[] \f[B]\-\-simple\-names\f[] use simple names (without
 arguments) during block\-diagram generation.

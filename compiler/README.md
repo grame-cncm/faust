@@ -1,4 +1,4 @@
-% man(1) Version 2.17.14 (20-June-2019) | Faust man page
+% man(1) Version 2.18.0 (25-June-2019) | Faust man page
 
 NAME
 ====
@@ -139,8 +139,9 @@ Block diagram options:
 
   **-drf**       **--draw-route-frame**           draw route frames instead of simple cables.
 
-  **-f** \<n>     **--fold** \<n>                   threshold during block-diagram generation (default 25 elements).
+  **-f** \<n>     **--fold** \<n>                   threshold to activate folding mode during block-diagram generation (default 25 elements).
 
+  **-fc** \<n>    **--fold-complexity** \<n>       complexity threshold to fold an expression in folding mode (default 2)
   **-mns** \<n>   **--max-name-size** \<n>          threshold during block-diagram generation (default 40 char).
 
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.

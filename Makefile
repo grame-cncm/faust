@@ -1,4 +1,4 @@
-version := 2.17.14
+version := 2.18.0
 
 system	?= $(shell uname -s)
 
