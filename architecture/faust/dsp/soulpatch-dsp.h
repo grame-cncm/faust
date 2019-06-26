@@ -28,9 +28,11 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include "faust/dsp/dsp.h"
 #include "faust/GUI/UI.h"
+#include "faust/GUI/JSONUIDecoder.h"
 
 #include "API/soul_patch.h"
 
@@ -47,6 +49,28 @@ class soulpatch_dsp : public dsp {
         bool startWith(const std::string& str, const std::string& prefix)
         {
             return (str.substr(0, prefix.size()) == prefix);
+        }
+    
+        std::string unquote(const std::string& str)
+        {
+            return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
+        }
+    
+        int countTotalBusChannels(soul::patch::Span<soul::patch::Bus> buses)
+        {
+            int res = 0;
+            for (auto& i : buses) {
+                res += i.numChannels;
+            }
+            return res;
+        }
+        
+        bool checkParam(soul::patch::Span<const char*> names, const std::string& name)
+        {
+            for (int i = 0; i < names.size(); i++) {
+                if (names[i] == name) return true;
+            }
+            return false;
         }
     
         struct ZoneParam {
@@ -76,15 +100,10 @@ class soulpatch_dsp : public dsp {
         soul::patch::Parameter::Ptr fInstanceConstants;
         soul::patch::Parameter::Ptr fInstanceResetUserInterface;
         soul::patch::Parameter::Ptr fInstanceClear;
+        JSONUITemplatedDecoder* fDecoder;
     
-        int countTotalBusChannels(soul::patch::Span<soul::patch::Bus> buses)
-        {
-            int res = 0;
-            for (auto& i : buses) {
-                res += i.numChannels;
-            }
-            return res;
-        }
+        midi_handler* fMIDIHander;
+        std::vector<soul::patch::MIDIMessage> fMIDIMessages;
     
     public:
 
@@ -98,7 +117,11 @@ class soulpatch_dsp : public dsp {
             for (auto& i : fOutputsControl) {
                 delete i;
             }
+            delete fDecoder;
         }
+    
+        void setMidiHandler(midi_handler* handler) { fMIDIHander = handler; }
+        midi_handler* getMidiHandler() { return fMIDIHander; }
 
         virtual int getNumInputs()
         {
@@ -112,78 +135,87 @@ class soulpatch_dsp : public dsp {
     
         virtual void buildUserInterface(UI* ui_interface)
         {
-            ui_interface->openVerticalBox("SOUL");
-            {
-                ui_interface->openVerticalBox("Inputs");
-                soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
+            if (fDecoder) {
                 
+                soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
                 for (int i = 0; i < params.size(); i++) {
-                    
                     std::string label = params[i]->ID->getCharPointer();
-                    ZoneParam* param = new ZoneParam(params[i]);
-                    FAUSTFLOAT* zone = &param->fZone;
-                    fInputsControl.push_back(param);
+                    if (label.find("Hslider") != std::string::npos
+                        || label.find("Vslider") != std::string::npos
+                        || label.find("Entry") != std::string::npos
+                        || label.find("Button") != std::string::npos
+                        || label.find("Checkbox") != std::string::npos) {
+                        // Additional event handlers are added before the control handlers, so the control index start at 5
+                        fDecoder->setReflectZoneFun(i-5, [=](double value) { params[i]->setValue(value); });
+                    } else if (label.find("Hbargraph") != std::string::npos
+                        || label.find("Vbargraph") != std::string::npos) {
+                        // Additional event handlers are added before the control handlers, so the control index start at 5
+                        fDecoder->setModifyZoneFun(i-5, [=]() { std::cout << params[i]->getValue() << std::endl; return params[i]->getValue(); });
+                    }
+                }
+                fDecoder->buildUserInterface(ui_interface);
+                
+            } else {
+                
+                ui_interface->openVerticalBox("SOUL");
+                {
+                    ui_interface->openVerticalBox("Inputs");
                     
-                    // Possibly add metadata
-                    soul::patch::Span<const char*> names = params[i]->getPropertyNames();
-                    for (int j = 0; j < names.size(); j++) {
-                        std::string key = names[j];
-                        if (startWith(key, "meta_")) {
-                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getProperty(names[j]));
+                    soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
+                    for (int i = 0; i < params.size(); i++) {
+                        
+                        std::string label = params[i]->ID->getCharPointer();
+                        ZoneParam* param = new ZoneParam(params[i]);
+                        FAUSTFLOAT* zone = &param->fZone;
+                        fInputsControl.push_back(param);
+                        
+                        // Possibly add 'Faust compatible' metadata
+                        soul::patch::Span<const char*> names = params[i]->getPropertyNames();
+                        for (int j = 0; j < names.size(); j++) {
+                            std::string key = names[j];
+                            if (key == "unit") {
+                                ui_interface->declare(zone, key.c_str(), params[i]->getProperty(names[j]));
+                            }
+                        }
+                        
+                        if (checkParam(params[i]->getPropertyNames(), "boolean")) {
+                            ui_interface->addButton(params[i]->name->getCharPointer(), zone);
+                        } else if (!checkParam(params[i]->getPropertyNames(), "hidden")) {
+                            ui_interface->addHorizontalSlider(params[i]->name->getCharPointer(), zone,
+                                                              params[i]->initialValue, params[i]->minValue,
+                                                              params[i]->maxValue, params[i]->step);
                         }
                     }
-                    
-                    if (label.find("Hslider") != std::string::npos) {
-                        ui_interface->addHorizontalSlider(params[i]->name->getCharPointer(), zone,
-                                                          params[i]->initialValue, params[i]->minValue,
-                                                          params[i]->maxValue, params[i]->step);
-                    } else if (label.find("Vslider") != std::string::npos) {
-                        ui_interface->addVerticalSlider(params[i]->name->getCharPointer(), zone,
-                                                        params[i]->initialValue, params[i]->minValue,
-                                                        params[i]->maxValue, params[i]->step);
-                    } else if (label.find("Entry") != std::string::npos) {
-                        ui_interface->addNumEntry(params[i]->name->getCharPointer(), zone,
-                                                  params[i]->initialValue, params[i]->minValue,
-                                                  params[i]->maxValue, params[i]->step);
-                    } else if (label.find("Button") != std::string::npos) {
-                        ui_interface->addButton(params[i]->name->getCharPointer(), zone);
-                    } else if (label.find("Checkbox") != std::string::npos) {
-                        ui_interface->addCheckButton(params[i]->name->getCharPointer(), zone);
+                    ui_interface->closeBox();
+                }
+                {
+                    ui_interface->openVerticalBox("Outputs");
+                    /*
+                    soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
+                    for (int i = 0; i < params.size(); i++) {
+                        
+                        std::string label = params[i]->ID->getCharPointer();
+                        ZoneParam* param = new ZoneParam(params[i]);
+                        FAUSTFLOAT* zone = &param->fZone;
+                        fOutputsControl.push_back(param);
+                     
+                        // Possibly add 'Faust compatible' metadata
+                        soul::patch::Span<const char*> names = params[i]->getPropertyNames();
+                        for (int j = 0; j < names.size(); j++) {
+                            std::string key = names[j];
+                            if (key == "unit") {
+                                ui_interface->declare(zone, key.c_str(), params[i]->getProperty(names[j]));
+                            }
+                        }
+                        if !(checkParam(params[i]->getPropertyNames(), "hidden")) {
+                            ui_interface->addVerticalBargraph(params[i]->name->getCharPointer(), zone, params[i]->minValue, params[i]->maxValue);
+                        }
                     }
+                    */
+                    ui_interface->closeBox();
                 }
                 ui_interface->closeBox();
             }
-            {
-                ui_interface->openVerticalBox("Outputs");
-                soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
-                
-                for (int i = 0; i < params.size(); i++) {
-                    
-                    std::string label = params[i]->ID->getCharPointer();
-                    ZoneParam* param = new ZoneParam(params[i]);
-                    FAUSTFLOAT* zone = &param->fZone;
-                    fOutputsControl.push_back(param);
-                    
-                    // Possibly add metadata
-                    soul::patch::Span<const char*> names = params[i]->getPropertyNames();
-                    for (int j = 0; j < params[i]->getPropertyNames().size(); j++) {
-                        std::string key = names[j];
-                        if (startWith(key, "meta_")) {
-                            ui_interface->declare(zone, key.substr(5).c_str(), params[i]->getProperty(names[j]));
-                        }
-                    }
-                    
-                    if (label.find("Hbargraph") != std::string::npos) {
-                        ui_interface->addHorizontalBargraph(params[i]->name->getCharPointer(), zone,
-                                                            params[i]->initialValue, params[i]->minValue);
-                    } else if (label.find("Vbargraph") != std::string::npos) {
-                        ui_interface->addVerticalBargraph(params[i]->name->getCharPointer(), zone,
-                                                          params[i]->initialValue, params[i]->minValue);
-                    }
-                }
-                ui_interface->closeBox();
-            }
-            ui_interface->closeBox();
         }
     
         virtual int getSampleRate()
@@ -197,7 +229,6 @@ class soulpatch_dsp : public dsp {
         }
     
         virtual void init(int sample_rate);
-    
   
         virtual void instanceInit(int sample_rate)
         {
@@ -228,10 +259,22 @@ class soulpatch_dsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             // Update inputs control
-            for (auto& i : fInputsControl) {
-                i->reflectZone();
+            if (fDecoder) {
+                for (auto& i : fDecoder->getInputControls()) {
+                    i->reflectZone();
+                }
+            } else {
+                for (auto& i : fInputsControl) {
+                    i->reflectZone();
+                }
             }
-           
+            
+            // MIDI handling
+            if (fMIDIHander) {
+                fRenderContext.numMIDIMessages = fMIDIHander->getMessages(reinterpret_cast<std::vector<MIDIMessage>*>(&fMIDIMessages));
+                fRenderContext.incomingMIDI = std::addressof(fMIDIMessages[0]);
+            }
+        
             // DSP compute
             fRenderContext.inputChannels = (const float**)inputs;
             fRenderContext.outputChannels = outputs;
@@ -239,8 +282,14 @@ class soulpatch_dsp : public dsp {
             fPlayer->render(fRenderContext);
             
             // Update outputs control
-            for (auto& i : fOutputsControl) {
-                i->modifyZone();
+            if (fDecoder) {
+                for (auto& i : fDecoder->getOutputControls()) {
+                    i->modifyZone();
+                }
+            } else {
+                for (auto& i : fOutputsControl) {
+                    i->modifyZone();
+                }
             }
         }
     
@@ -330,6 +379,8 @@ class soulpatch_dsp_factory : public dsp_factory {
 soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
 {
     fFactory = factory;
+    fDecoder = nullptr;
+    fMIDIHander = nullptr;
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
@@ -349,12 +400,19 @@ void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
     fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get());
+    fMIDIMessages.resize(1024);
     
     // FAUST soul code has additional functions
     soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();
     for (int i = 0; i < params.size(); i++) {
         std::string label = params[i]->ID->getCharPointer();
-        if (label == "eventclassInit") {
+        if (label == "eventbuildUserInterface") {
+            soul::patch::Span<const char*> names = params[i]->getPropertyNames();
+            // JSON is the first key
+            std::string json = unquote(params[i]->getProperty(names[0])->getCharPointer());
+            json.erase(std::remove(json.begin(), json.end(), '\\'), json.end());
+            fDecoder = createJSONUIDecoder(json);
+        } else if (label == "eventclassInit") {
             fClassInit = params[i];
         } else if (label == "eventinstanceConstants") {
             fInstanceConstants = params[i];
@@ -365,6 +423,7 @@ void soulpatch_dsp::init(int sample_rate)
         }
     }
     
+    fPlayer->reset();
     classInit(sample_rate);
     instanceInit(sample_rate);
 }

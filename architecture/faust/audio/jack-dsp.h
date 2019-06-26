@@ -187,7 +187,6 @@ class jackaudio : public audio {
             fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
             
             runControlCallbacks();
-            
             return 0;
         }
         
@@ -516,6 +515,8 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
             
             // MIDI out
             processMidiOut(nframes);
+            
+            runControlCallbacks();
             return 0;
         }
         

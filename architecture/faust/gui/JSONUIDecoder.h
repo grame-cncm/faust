@@ -30,6 +30,7 @@
 #include <utility>
 #include <cstdlib>
 #include <sstream>
+#include <functional>
 
 #include "faust/gui/CGlue.h"
 #include "faust/gui/meta.h"
@@ -48,12 +49,51 @@
 #define REAL_ADR(offset)       reinterpret_cast<REAL*>(&memory_block[offset])
 #define SOUNDFILE_ADR(offset)  reinterpret_cast<Soundfile**>(&memory_block[offset])
 
+typedef std::function<void(double)> ReflectFunction;
+typedef std::function<double()> ModifyFunction;
+
+struct ExtZoneParam {
+
+    virtual void reflectZone() = 0;
+    virtual void modifyZone() = 0;
+    
+    virtual void setReflectZoneFun(ReflectFunction reflect) = 0;
+    virtual void setModifyZoneFun(ModifyFunction modify) = 0;
+    
+};
+
 template <typename REAL>
 struct JSONUIDecoderAux {
-
-    typedef std::map<std::string, std::pair <int, REAL*> > controlMap;
     
-    REAL STR2REAL(const std::string& str) { return REAL(std::strtod(str.c_str(), NULL)); }
+    struct ZoneParam : public ExtZoneParam {
+        
+        REAL fZone;
+        int fIndex;
+        ReflectFunction fReflect;
+        ModifyFunction fModify;
+        
+    #if TARGET_OS_IPHONE
+        ZoneParam(int index, ReflectFunction reflect = nullptr, ModifyFunction modify = nullptr)
+        :fIndex(index), fReflect(reflect), fModify(modify)
+        {}
+        void reflectZone() { if (fReflect) fReflect(fZone); }
+        void modifyZone() { if (fModify) fZone = fModify(); }
+    #else
+        ZoneParam(int index, ReflectFunction reflect = [](REAL value) {}, ModifyFunction modify = []() { return REAL(-1); })
+        :fIndex(index), fReflect(reflect), fModify(modify)
+        {}
+        void reflectZone() { fReflect(fZone); }
+        void modifyZone() { fZone = fModify(); }
+    #endif
+        
+        void setReflectZoneFun(ReflectFunction reflect) { fReflect = reflect; }
+        void setModifyZoneFun(ModifyFunction modify) { fModify = modify; }
+        
+    };
+
+    typedef std::vector<ExtZoneParam*> controlMap;
+    
+    REAL STR2REAL(const std::string& str) { return REAL(std::strtod(str.c_str(), nullptr)); }
  
     std::string fName;
     std::string fFileName;
@@ -67,16 +107,14 @@ struct JSONUIDecoderAux {
     std::vector<std::string> fLibraryList;
     std::vector<std::string> fIncludePathnames;
     
-    REAL* fInControl;
-    REAL* fOutControl;
     Soundfile** fSoundfiles;
     
     int fNumInputs, fNumOutputs, fSRIndex;
     int fInputItems, fOutputItems, fSoundfileItems;
     int fDSPSize;
     
-    controlMap fPathInputTable;     // [path, <index, zone>]
-    controlMap fPathOutputTable;    // [path, <index, zone>]
+    controlMap fPathInputTable;     // [path, ZoneParam]
+    controlMap fPathOutputTable;    // [path, ZoneParam]
 
     bool isInput(const std::string& type)
     {
@@ -93,6 +131,16 @@ struct JSONUIDecoderAux {
     int getInt(std::map<std::string, std::string >& map, const std::string& key)
     {
         return (map.find(key) != map.end()) ? std::atoi(map[key].c_str()) : -1;
+    }
+    
+    void setReflectZoneFun(int index, ReflectFunction fun)
+    {
+        fPathInputTable[index]->setReflectZoneFun(fun);
+    }
+    
+    void setModifyZoneFun(int index, ModifyFunction fun)
+    {
+        fPathOutputTable[index]->setModifyZoneFun(fun);
     }
 
     JSONUIDecoderAux(const std::string& json)
@@ -136,39 +184,28 @@ struct JSONUIDecoderAux {
             }
         }
         
-        fInControl = new REAL[fInputItems];
-        fOutControl = new REAL[fOutputItems];
         fSoundfiles = new Soundfile*[fSoundfileItems];
-        
-        int countIn = 0;
-        int countOut = 0;
         
         // Prepare the fPathTable and init zone
         for (auto& it : fUiItems) {
             std::string type = it.type;
             // Meta data declaration for input items
             if (isInput(type)) {
-                if (it.address != "") {
-                    fPathInputTable[it.address] = std::make_pair(std::atoi(it.index.c_str()), &fInControl[countIn]);
-                }
-                fInControl[countIn] = STR2REAL(it.init);
-                countIn++;
+                ZoneParam* param = new ZoneParam(std::atoi(it.index.c_str()));
+                fPathInputTable.push_back(param);
+                param->fZone = STR2REAL(it.init);
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
-                if (it.address != "") {
-                    fPathOutputTable[it.address] = std::make_pair(std::atoi(it.index.c_str()), &fOutControl[countOut]);
-                }
-                fOutControl[countOut] = REAL(0);
-                countOut++;
+                ZoneParam* param = new ZoneParam(std::atoi(it.index.c_str()));
+                fPathOutputTable.push_back(param);
+                param->fZone = REAL(0);
             }
         }
     }
     
     virtual ~JSONUIDecoderAux()
     {
-        delete [] fInControl;
-        delete [] fOutControl;
         delete [] fSoundfiles;
     }
     
@@ -191,7 +228,7 @@ struct JSONUIDecoderAux {
         int item = 0;
         for (auto& it : fUiItems) {
             if (isInput(it.type)) {
-                fInControl[item++] = STR2REAL(it.init);
+                static_cast<ZoneParam*>(fPathInputTable[item++])->fZone = STR2REAL(it.init);
             }
         }
     }
@@ -218,7 +255,7 @@ struct JSONUIDecoderAux {
     void buildUserInterface(UI* ui_interface)
     {
         // MANDATORY: to be sure floats or double are correctly parsed
-        char* tmp_local = setlocale(LC_ALL, NULL);
+        char* tmp_local = setlocale(LC_ALL, nullptr);
         setlocale(LC_ALL, "C");
         
         int countIn = 0;
@@ -236,13 +273,13 @@ struct JSONUIDecoderAux {
             // Meta data declaration for input items
             if (isInput(type)) {
                 for (size_t i = 0; i < it.meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(&fInControl[countIn], it.meta[i].first.c_str(), it.meta[i].second.c_str());
+                    REAL_UI(ui_interface)->declare(&static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone, it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
                 for (size_t i = 0; i < it.meta.size(); i++) {
-                    REAL_UI(ui_interface)->declare(&fOutControl[countOut], it.meta[i].first.c_str(), it.meta[i].second.c_str());
+                    REAL_UI(ui_interface)->declare(&static_cast<ZoneParam*>(fPathOutputTable[countOut])->fZone, it.meta[i].first.c_str(), it.meta[i].second.c_str());
                 }
             }
             // Meta data declaration for group opening or closing
@@ -259,21 +296,21 @@ struct JSONUIDecoderAux {
             } else if (type == "tgroup") {
                 REAL_UI(ui_interface)->openTabBox(it.label.c_str());
             } else if (type == "vslider") {
-                REAL_UI(ui_interface)->addVerticalSlider(it.label.c_str(), &fInControl[countIn], init, min, max, step);
+                REAL_UI(ui_interface)->addVerticalSlider(it.label.c_str(), &static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone, init, min, max, step);
             } else if (type == "hslider") {
-                REAL_UI(ui_interface)->addHorizontalSlider(it.label.c_str(), &fInControl[countIn], init, min, max, step);            
+                REAL_UI(ui_interface)->addHorizontalSlider(it.label.c_str(), &static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone, init, min, max, step);
             } else if (type == "checkbox") {
-                REAL_UI(ui_interface)->addCheckButton(it.label.c_str(), &fInControl[countIn]);
+                REAL_UI(ui_interface)->addCheckButton(it.label.c_str(), &static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone);
             } else if (type == "soundfile") {
                 REAL_UI(ui_interface)->addSoundfile(it.label.c_str(), it.url.c_str(), &fSoundfiles[countSound]);
             } else if (type == "hbargraph") {
-                REAL_UI(ui_interface)->addHorizontalBargraph(it.label.c_str(), &fOutControl[countOut], min, max);
+                 REAL_UI(ui_interface)->addHorizontalBargraph(it.label.c_str(), &static_cast<ZoneParam*>(fPathOutputTable[countOut])->fZone, min, max);
             } else if (type == "vbargraph") {
-                REAL_UI(ui_interface)->addVerticalBargraph(it.label.c_str(), &fOutControl[countOut], min, max);
+                REAL_UI(ui_interface)->addVerticalBargraph(it.label.c_str(), &static_cast<ZoneParam*>(fPathOutputTable[countOut])->fZone, min, max);
             } else if (type == "nentry") {
-                REAL_UI(ui_interface)->addNumEntry(it.label.c_str(), &fInControl[countIn], init, min, max, step);
+                REAL_UI(ui_interface)->addNumEntry(it.label.c_str(), &static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone, init, min, max, step);
             } else if (type == "button") {
-                REAL_UI(ui_interface)->addButton(it.label.c_str(), &fInControl[countIn]);
+                REAL_UI(ui_interface)->addButton(it.label.c_str(), &static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone);
             } else if (type == "close") {
                 REAL_UI(ui_interface)->closeBox();
             }
@@ -292,7 +329,7 @@ struct JSONUIDecoderAux {
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {
         // MANDATORY: to be sure floats or double are correctly parsed
-        char* tmp_local = setlocale(LC_ALL, NULL);
+        char* tmp_local = setlocale(LC_ALL, nullptr);
         setlocale(LC_ALL, "C");
         
         int countSound = 0;
@@ -360,70 +397,7 @@ struct JSONUIDecoderAux {
     
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)
     {
-        /*
-        int countSound = 0;
-        std::vector<itemInfo*>::iterator it;
-        
-        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            
-            std::string type = (*it)->type;
-            int offset = std::atoi((*it)->index.c_str());
-            
-            REAL init = STR2REAL((*it)->init);
-            REAL min = STR2REAL((*it)->min);
-            REAL max = STR2REAL((*it)->max);
-            REAL step = STR2REAL((*it)->step);
-            
-            // Meta data declaration for input items
-            if (isInput(type)) {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    ui_interface->declare(ui_interface->uiInterface, REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
-                }
-            }
-            // Meta data declaration for output items
-            else if (isOutput(type)) {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    ui_interface->declare(ui_interface->uiInterface, REAL_ADR(offset), (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
-                }
-            }
-            // Meta data declaration for group opening or closing
-            else {
-                for (size_t i = 0; i < (*it)->meta.size(); i++) {
-                    ui_interface->declare(ui_interface->uiInterface, 0, (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
-                }
-            }
-            
-            if (type == "hgroup") {
-                ui_interface->openHorizontalBox(ui_interface->uiInterface, (*it)->label.c_str());
-            } else if (type == "vgroup") {
-                ui_interface->openVerticalBox(ui_interface->uiInterface, (*it)->label.c_str());
-            } else if (type == "tgroup") {
-                ui_interface->openTabBox(ui_interface->uiInterface, (*it)->label.c_str());
-            } else if (type == "vslider") {
-                ui_interface->addVerticalSlider(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset), init, min, max, step);
-            } else if (type == "hslider") {
-                ui_interface->addHorizontalSlider(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset), init, min, max, step);
-            } else if (type == "checkbox") {
-                ui_interface->addCheckButton(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset));
-            } else if (type == "soundfile") {
-                ui_interface->addSoundfile(ui_interface->uiInterface, (*it)->label.c_str(), (*it)->url.c_str(), &fSoundfiles[countSound]);
-            } else if (type == "hbargraph") {
-                ui_interface->addHorizontalBargraph(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset), min, max);
-            } else if (type == "vbargraph") {
-                ui_interface->addVerticalBargraph(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset), min, max);
-            } else if (type == "nentry") {
-                ui_interface->addNumEntry(ui_interface->uiInterface,(*it)->label.c_str(), REAL_ADR(offset), init, min, max, step);
-            } else if (type == "button") {
-                ui_interface->addButton(ui_interface->uiInterface, (*it)->label.c_str(), REAL_ADR(offset));
-            } else if (type == "close") {
-                ui_interface->closeBox(ui_interface->uiInterface);
-            }
-            
-            if (isSoundfile(type)) {
-                countSound++;
-            }
-        }
-        */
+        // TODO
     }
     
     bool hasCompileOption(const std::string& option)
@@ -457,7 +431,12 @@ struct JSONUITemplatedDecoder
     virtual int getNumInputs() = 0;
     virtual int getNumOutputs() = 0;
     virtual int getSampleRate(char* memory_block) = 0;
+    virtual void setReflectZoneFun(int index, ReflectFunction fun) = 0;
+    virtual void setModifyZoneFun(int index, ModifyFunction fun) = 0;
+    virtual std::vector<ExtZoneParam*>& getInputControls() = 0;
+    virtual std::vector<ExtZoneParam*>& getOutputControls() = 0;
     virtual void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr) = 0;
+    virtual void buildUserInterface(UI* ui_interface) = 0;
     virtual void buildUserInterface(UI* ui_interface, char* memory_block) = 0;
     virtual void buildUserInterface(UIGlue* ui_interface, char* memory_block) = 0;
     virtual bool hasCompileOption(const std::string& option) = 0;
@@ -479,9 +458,29 @@ struct JSONUIFloatDecoder : public JSONUIDecoderAux<float>, public JSONUITemplat
     int getNumInputs() { return fNumInputs; }
     int getNumOutputs() { return fNumOutputs; }
     int getSampleRate(char* memory_block)  { return JSONUIDecoderAux<float>::getSampleRate(memory_block); }
+    void setReflectZoneFun(int index, ReflectFunction fun)
+    {
+        JSONUIDecoderAux<float>::setReflectZoneFun(index, fun);
+    }
+    void setModifyZoneFun(int index, ModifyFunction fun)
+    {
+        JSONUIDecoderAux<float>::setModifyZoneFun(index, fun);
+    }
+    std::vector<ExtZoneParam*>& getInputControls()
+    {
+        return fPathInputTable;
+    }
+    std::vector<ExtZoneParam*>& getOutputControls()
+    {
+        return fPathOutputTable;
+    }
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
         JSONUIDecoderAux<float>::resetUserInterface(memory_block, defaultsound);
+    }
+    void buildUserInterface(UI* ui_interface)
+    {
+        JSONUIDecoderAux<float>::buildUserInterface(ui_interface);
     }
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {
@@ -510,9 +509,29 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderAux<double>, public JSONUITempl
     int getNumInputs() { return fNumInputs; }
     int getNumOutputs() { return fNumOutputs; }
     int getSampleRate(char* memory_block) { return JSONUIDecoderAux<double>::getSampleRate(memory_block); }
+    void setReflectZoneFun(int index, ReflectFunction fun)
+    {
+        JSONUIDecoderAux<double>::setReflectZoneFun(index, fun);
+    }
+    void setModifyZoneFun(int index, ModifyFunction fun)
+    {
+        JSONUIDecoderAux<double>::setModifyZoneFun(index, fun);
+    }
+    std::vector<ExtZoneParam*>& getInputControls()
+    {
+        return fPathInputTable;
+    }
+    std::vector<ExtZoneParam*>& getOutputControls()
+    {
+        return fPathOutputTable;
+    }
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
         JSONUIDecoderAux<double>::resetUserInterface(memory_block, defaultsound);
+    }
+    void buildUserInterface(UI* ui_interface)
+    {
+        JSONUIDecoderAux<double>::buildUserInterface(ui_interface);
     }
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {

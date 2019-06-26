@@ -32,6 +32,16 @@
 
 class MapUI;
 
+/*************************************
+ A time-stamped short MIDI message
+**************************************/
+
+struct MIDIMessage
+{
+    uint32_t frameIndex;
+    uint8_t byte0, byte1, byte2;
+};
+
 /*******************************************************************************
  * MIDI processor definition.
  *
@@ -143,6 +153,7 @@ class midi {
  * - decoding Real-Time messages: handleSync
  * - decoding one data byte messages: handleData1
  * - decoding two data byte messages: handleData2
+ * - getting ready messages in polling mode
  ****************************************************/
 
 class midi_handler : public midi {
@@ -173,7 +184,9 @@ class midi_handler : public midi {
     
         void setName(const std::string& name) { fName = name; }
         std::string getName() { return fName; }
-        
+    
+        virtual int getMessages(std::vector<MIDIMessage>* message) { return 0; }
+    
         void handleSync(double time, int type)
         {
             if (type == MIDI_CLOCK) {

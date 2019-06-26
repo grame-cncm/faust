@@ -351,7 +351,7 @@ void WASTCodeContainer::produceClass()
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
 
-    string json = flatten_json(json_visitor2.JSON(true));
+    string json = flattenJSON(json_visitor2.JSON(true));
 
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();

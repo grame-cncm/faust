@@ -111,7 +111,7 @@ Here are the available options:
 
 - `-notrace to only generate the best compilation parameters`
 - `-generic to compile for a generic processor, otherwise the native CPU will be used`
-- `-single to only scalar test`
+- `-single to only execute the scalar test`
 - `-run <num> to execute each test <num> times`
 - `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means "maximal level" if range changes in the future)`
 

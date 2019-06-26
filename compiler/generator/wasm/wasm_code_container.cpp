@@ -392,7 +392,7 @@ void WASMCodeContainer::produceClass()
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
     fHelper << "return \"";
-    fHelper << flatten_json(json);
+    fHelper << flattenJSON(json);
     fHelper << "\";";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);

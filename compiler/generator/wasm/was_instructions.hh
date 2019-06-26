@@ -56,29 +56,6 @@ inline int pow2limit(int x)
     return n;
 }
 
-
-inline string flatten_json(const string& src)
-{
-    string dst;
-    for (size_t i = 0; i < src.size(); i++) {
-        switch (src[i]) {
-            case '"':
-                dst += "\\\"";
-                break;
-            case '\\':
-                dst += "\\";
-                break;
-            case '\'':
-                dst += "\\'";
-                break;
-            default:
-                dst += src[i];
-                break;
-        }
-    }
-    return dst;
-}
-
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
