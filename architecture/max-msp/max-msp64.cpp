@@ -119,7 +119,7 @@ using namespace std;
 #define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION    "0.67"
+#define EXTERNAL_VERSION    "0.68"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -475,6 +475,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     
     // Send JSON to JS script
     faust_create_jsui(x);
+    
+    // Display controls
+    x->m_dspUI->displayControls();
     return x;
 }
 

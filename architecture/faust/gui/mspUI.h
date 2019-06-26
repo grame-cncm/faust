@@ -361,26 +361,23 @@ class mspUI : public UI, public PathBuilder
         int itemsCount() { return fUITable1.size(); }
         void clear()
         {
-            iterator it;
-            for (it = begin1(); it != end1(); it++) {
-                delete (*it).second;
+            for (auto& it : fUITable1) {
+                delete it.second;
             }
+            
             fUITable1.clear();
             fUITable2.clear();
         }
         
         void displayControls()
         {
-            iterator it;
-            post((char*)"------- labels and ranges ----------");
-            for (it = fUITable1.begin(); it != fUITable1.end(); it++) {
+            post((char*)"------- Range and path ----------");
+            for (auto& it : fUITable2) {
                 char param[STR_SIZE];
-                it->second->toString(param);
+                it.second->toString(param);
                 post(param);
-            }
-            post((char*)"------- complete paths ----------");
-            for (it = fUITable2.begin(); it != fUITable2.end(); it++) {
-                post(it->first.c_str());
+                string path = "Complete path: " + it.first;
+                post(path.c_str());
             }
             post((char*)"---------------------------------");
         }
