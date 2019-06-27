@@ -113,22 +113,23 @@ ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
 {
     file << "digraph mygraph { \n\t node [shape=box]" << endl;
     for (Tree n : g.nodes()) {
-        stringstream sn;
-        sn << '"' << ppsig(dict[n]) << '"';
+        stringstream sn, src;
+        src << ppsig(dict[n]);
+        sn << '"' << format(src.str()) << '"';
         bool hascnx = false;
         for (const auto& c : g.connections(n)) {
-            stringstream sm;
-            sm << '"' << ppsig(dict[c.first]) << '"';
+            stringstream sm, dst;
+            dst << ppsig(dict[c.first]);
+            sm << '"' << format(dst.str()) << '"';
             hascnx = true;
             if (c.second == 0) {
-                file << "\t" << format(sn.str()) << "->" << format(sm.str()) << ";" << endl;
+                file << "\t" << sn.str() << "->" << sm.str() << ";" << endl;
             } else {
-                file << "\t" << format(sn.str()) << "->" << format(sm.str()) << " [label=\"" << c.second << "\"];"
-                     << endl;
+                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];" << endl;
             }
         }
         if (!hascnx) {
-            file << "\t" << format(sn.str()) << ";" << endl;
+            file << "\t" << sn.str() << ";" << endl;
         }
     }
 

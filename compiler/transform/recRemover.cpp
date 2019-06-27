@@ -33,9 +33,7 @@
 #include "xtended.hh"
 
 /********************************************************************
-SignalSplitter::transformation(Tree sig) :
-
-Computes constant expressions
+RecRemover: remove useless recursions after instruction split
 **********************************************************************/
 
 Tree RecRemover::transformation(Tree sig)
