@@ -63,9 +63,9 @@ Tree SignalSplitter::transformation(Tree sig)
         interval i    = getCertifiedSigType(y)->getInterval();
         Tree     v    = self(x);
         Tree     w    = self(y);
-
-        fSplittedSignals.insert(sigDelayLineWrite(v, dmax, v));
-        Tree inst = sigDelayLineRead(v, int(i.lo), w);
+        // we use x (the delayed signal) has unique identifier for the delay-line
+        fSplittedSignals.insert(sigDelayLineWrite(x, dmax, v));
+        Tree inst = sigDelayLineRead(x, int(i.lo), w);
         return inst;
 
     } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
