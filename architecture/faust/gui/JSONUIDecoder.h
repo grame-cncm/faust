@@ -72,7 +72,7 @@ struct JSONUIDecoderAux {
         ReflectFunction fReflect;
         ModifyFunction fModify;
         
-    #if TARGET_OS_IPHONE
+    #if defined(TARGET_OS_IPHONE) || defined(WIN32)
         ZoneParam(int index, ReflectFunction reflect = nullptr, ModifyFunction modify = nullptr)
         :fIndex(index), fReflect(reflect), fModify(modify)
         {}
