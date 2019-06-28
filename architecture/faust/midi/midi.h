@@ -36,11 +36,13 @@ class MapUI;
  A time-stamped short MIDI message
 **************************************/
 
+#pragma pack (push, 1)
 struct MIDIMessage
 {
     uint32_t frameIndex;
     uint8_t byte0, byte1, byte2;
 };
+#pragma pack (pop)
 
 /*******************************************************************************
  * MIDI processor definition.
@@ -185,6 +187,7 @@ class midi_handler : public midi {
         void setName(const std::string& name) { fName = name; }
         std::string getName() { return fName; }
     
+        // To be used in polling mode
         virtual int getMessages(std::vector<MIDIMessage>* message) { return 0; }
     
         void handleSync(double time, int type)

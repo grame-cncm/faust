@@ -28,7 +28,9 @@
 #include <iostream>
 #include <cstdlib>
 
+#include <jack/jack.h>
 #include <jack/midiport.h>
+
 #include "faust/midi/midi.h"
 #include "faust/gui/ring-buffer.h"
 
@@ -43,7 +45,16 @@ class jack_midi_handler : public midi_handler {
     protected:
 
         ringbuffer_t* fOutBuffer;
+        jack_port_t* fInputMidiPort;    // JACK input MIDI port
+        jack_port_t* fOutputMidiPort;   // JACK output MIDI port
 
+        bool initPorts(jack_client_t* client)
+        {
+            fInputMidiPort = jack_port_register(client, "midi_in_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+            fOutputMidiPort = jack_port_register(client, "midi_out_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+            return fInputMidiPort && fOutputMidiPort;
+        }
+    
         void writeMessage(double date, unsigned char* buffer, size_t size)
         {
             size_t res;
@@ -78,6 +89,12 @@ class jack_midi_handler : public midi_handler {
                 }
             }
         }
+    
+        virtual void processMidiIn(jack_nframes_t nframes)
+        {
+            // MIDI input
+            processMidiInBuffer(jack_port_get_buffer(fInputMidiPort, nframes));
+        }
 
         void processMidiOutBuffer(void* port_buf_out_aux, bool reset = false)
         {
@@ -100,11 +117,17 @@ class jack_midi_handler : public midi_handler {
                 }
             }
         }
+    
+        virtual void processMidiOut(jack_nframes_t nframes)
+        {
+            // MIDI output
+            processMidiOutBuffer(jack_port_get_buffer(fOutputMidiPort, nframes));
+        }
 
     public:
 
         jack_midi_handler(const std::string& name = "JACKHandler")
-            :midi_handler(name)
+            :midi_handler(name), fInputMidiPort(nullptr), fOutputMidiPort(nullptr)
         {
             fOutBuffer = ringbuffer_create(8192);
         }
@@ -112,7 +135,32 @@ class jack_midi_handler : public midi_handler {
         {
             ringbuffer_free(fOutBuffer);
         }
-
+    
+        // To be used in polling mode
+        int getMessages(std::vector<MIDIMessage>* messages)
+        {
+            int count = 0;
+            jack_nframes_t first_time_stamp = 0;
+            void* port_buf_in = jack_port_get_buffer(fInputMidiPort, 1024);
+            for (size_t i = 0; i < jack_midi_get_event_count(port_buf_in); ++i) {
+                jack_midi_event_t event;
+                if (jack_midi_event_get(&event, port_buf_in, i) == 0) {
+                    // Small messages
+                    if (event.size <= 3) {
+                        if (count == 0) first_time_stamp = event.time;
+                        MIDIMessage& mes = messages->at(count++);
+                        mes.frameIndex = (uint32_t)(event.time - first_time_stamp);
+                        mes.byte0 = event.buffer[0];
+                        mes.byte1 = event.buffer[1];
+                        mes.byte2 = event.buffer[2];
+                    } else {
+                        std::cerr << "getMessages : long messages are not supported yet\n";
+                    }
+                }
+            }
+            return count;
+        }
+    
         // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
