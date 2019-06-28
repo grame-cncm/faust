@@ -36,7 +36,9 @@
 #include "xtended.hh"
 
 /********************************************************************
-SignalSplitter::transformation(Tree sig) :
+SignalSplitter: transforms a list of signals into a list of
+"instructions".
+
 
 Computes constant expressions
 **********************************************************************/
@@ -64,6 +66,9 @@ Tree SignalSplitter::transformation(Tree sig)
         Tree     v    = self(x);
         Tree     w    = self(y);
         // we use x (the delayed signal) has unique identifier for the delay-line
+        if (dmax == 0) {
+            cerr << "STRANGE CASE DMAX=0 FOR " << ppsig(sig) << endl;
+        }
         fSplittedSignals.insert(sigDelayLineWrite(x, dmax, v));
         Tree inst = sigDelayLineRead(x, int(i.lo), w);
         return inst;

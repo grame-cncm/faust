@@ -138,7 +138,17 @@ Tree SignalIdentity::transformation(Tree sig)
         } else {
             // first visit
             rec(var, gGlobal->nil);  // to avoid infinite recursions
-            return rec(var, mapself(le));
+            Tree lr = mapself(le);
+            rec(var, le);  // place back the recursive definitions
+            if (lr == le) {
+                // no reason to change variables
+                return sig;
+            } else {
+                // we made a real transformation
+                // we need a new rec id
+                Tree var2 = tree(Node(unique("rec_")));
+                return rec(var2, lr);
+            }
         }
     }
 
