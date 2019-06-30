@@ -488,20 +488,20 @@ static Type infereSigType(Tree sig, Tree env)
         return T(sel, env) | T(s1, env) | T(s2, env) | T(s3, env);
     }
 
-    else if (isSigDelayLineWrite(sig, id, &i, x)) {
+    else if (isSigDelayLineWrite(sig, id, u, &i, x)) {
         return T(x, env);
     }
 
-    else if (isSigDelayLineRead(sig, id, &i, x)) {
-        return getCertifiedSigType(id);
+    else if (isSigDelayLineRead(sig, id, u, &i, x)) {
+        return getCertifiedSigType(u);
     }
 
-    else if (isSigControlWrite(sig, id, x)) {
+    else if (isSigControlWrite(sig, id, u, x)) {
         return T(x, env);
     }
 
-    else if (isSigControlRead(sig, id)) {
-        return getCertifiedSigType(id);
+    else if (isSigControlRead(sig, id, u)) {
+        return getCertifiedSigType(u);
     }
 
     else if (isSigOutput(sig, &i, x)) {

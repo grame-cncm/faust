@@ -693,15 +693,24 @@ Tree sigCartesianProd(Tree s1, Tree s2)
  *
  */
 
-Tree sigDelayLineWrite(Tree id, int dmax, Tree sig)
+/**
+ * @brief A delayline write "instruction"
+ *
+ * @param id: unique indetifier of the delayline
+ * @param origin: the original signal (for its type)
+ * @param dmax: maximun delay (ie size of the delayline)
+ * @param sig: signal to write into the delay line
+ * @return a delayline write instruction
+ */
+Tree sigDelayLineWrite(Tree id, Tree origin, int dmax, Tree sig)
 {
-    return tree(gGlobal->SIGDELAYLINEWRITE, id, tree(dmax), sig);
+    return tree(gGlobal->SIGDELAYLINEWRITE, id, origin, tree(dmax), sig);
 }
 
-bool isSigDelayLineWrite(Tree s, Tree& id, int* dmax, Tree& sig)
+bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* dmax, Tree& sig)
 {
     Tree tmax;
-    if (isTree(s, gGlobal->SIGDELAYLINEWRITE, id, tmax, sig)) {
+    if (isTree(s, gGlobal->SIGDELAYLINEWRITE, id, origin, tmax, sig)) {
         *dmax = tree2int(tmax);
         return true;
     } else {
@@ -709,15 +718,24 @@ bool isSigDelayLineWrite(Tree s, Tree& id, int* dmax, Tree& sig)
     }
 }
 
-Tree sigDelayLineRead(Tree id, int dmin, Tree dl)
+/**
+ * @brief A delayline read "instruction"
+ *
+ * @param id: unique indetifier of the delayline
+ * @param origin: the original signal (for its type)
+ * @param dmin: the minimum reading delay
+ * @param dl: the reading delay signal
+ * @return a delayline read instruction
+ */
+Tree sigDelayLineRead(Tree id, Tree origin, int dmin, Tree dl)
 {
-    return tree(gGlobal->SIGDELAYLINEREAD, id, tree(dmin), dl);
+    return tree(gGlobal->SIGDELAYLINEREAD, id, origin, tree(dmin), dl);
 }
 
-bool isSigDelayLineRead(Tree s, Tree& id, int* dmin, Tree& dl)
+bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl)
 {
     Tree tmin;
-    if (isTree(s, gGlobal->SIGDELAYLINEREAD, id, tmin, dl)) {
+    if (isTree(s, gGlobal->SIGDELAYLINEREAD, id, origin, tmin, dl)) {
         *dmin = tree2int(tmin);
         return true;
     } else {
@@ -725,25 +743,37 @@ bool isSigDelayLineRead(Tree s, Tree& id, int* dmin, Tree& dl)
     }
 }
 
-// control expressions
-Tree sigControlWrite(Tree id, Tree sig)
+/**
+ * @brief a control write "instruction"
+ *
+ * @param id: unique identifier of the control signal
+ * @param sig: the control signal
+ * @return a control write instruction
+ */
+Tree sigControlWrite(Tree id, Tree origin, Tree sig)
 {
-    return tree(gGlobal->SIGCONTROLWRITE, id, sig);
+    return tree(gGlobal->SIGCONTROLWRITE, id, origin, sig);
 }
 
-bool isSigControlWrite(Tree s, Tree& id, Tree& sig)
+bool isSigControlWrite(Tree s, Tree& id, Tree& origin, Tree& sig)
 {
-    return isTree(s, gGlobal->SIGCONTROLWRITE, id, sig);
+    return isTree(s, gGlobal->SIGCONTROLWRITE, id, origin, sig);
 }
 
-Tree sigControlRead(Tree id)
+/**
+ * @brief a control read "instruction"
+ *
+ * @param id: unique identifier of the control signal
+ * @return a control read instruction
+ */
+Tree sigControlRead(Tree id, Tree origin)
 {
-    return tree(gGlobal->SIGCONTROLREAD, id);
+    return tree(gGlobal->SIGCONTROLREAD, id, origin);
 }
 
-bool isSigControlRead(Tree s, Tree& id)
+bool isSigControlRead(Tree s, Tree& id, Tree& origin)
 {
-    return (isTree(s, gGlobal->SIGCONTROLREAD, id));
+    return (isTree(s, gGlobal->SIGCONTROLREAD, id, origin));
 }
 
 /**

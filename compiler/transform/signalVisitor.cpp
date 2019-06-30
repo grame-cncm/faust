@@ -227,18 +227,18 @@ void SignalVisitor::visit(Tree sig)
     }
 
     // Read and Write
-    else if (isSigDelayLineRead(sig, x, &i, y)) {  // x is used as an id, we don't go into it
+    else if (isSigDelayLineRead(sig, id, x, &i, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
-    } else if (isSigDelayLineWrite(sig, x, &i, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigDelayLineWrite(sig, id, x, &i, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }
 
     // Read and Write
-    else if (isSigControlRead(sig, x)) {  // x is used as an id, we don't go into it
+    else if (isSigControlRead(sig, id, x)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigControlWrite(sig, x, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigControlWrite(sig, id, x, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }

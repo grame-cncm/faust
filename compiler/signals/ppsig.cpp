@@ -294,16 +294,16 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "control", x, y);
     }
 
-    else if (isSigDelayLineWrite(sig, x, &i, y)) {
-        fout << "sigDelayLineWrite(" << x << '[' << i << ']' << " := " << ppsig(y) << ")";
-    } else if (isSigDelayLineRead(sig, x, &i, y)) {
-        fout << "sigDelayLineRead(" << x << '<' << i << '>' << ", " << ppsig(y) << ")";
+    else if (isSigDelayLineWrite(sig, x, c, &i, y)) {
+        fout << "sigDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
+    } else if (isSigDelayLineRead(sig, x, c, &i, y)) {
+        fout << "sigDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
     }
 
-    else if (isSigControlWrite(sig, x, y)) {
-        fout << "sigControlWrite(" << x << " := " << ppsig(y) << ")";
-    } else if (isSigControlRead(sig, x)) {
-        fout << "sigControlRead(" << x << ")";
+    else if (isSigControlWrite(sig, x, c, y)) {
+        fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+    } else if (isSigControlRead(sig, x, c)) {
+        fout << "sigControlRead(" << *x << ")";
     }
 
     else {

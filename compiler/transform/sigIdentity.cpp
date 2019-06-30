@@ -197,17 +197,17 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Read and Write
-    else if (isSigDelayLineRead(sig, x, &i, y)) {  // x is used as an id, we don't go into it
-        return sigDelayLineRead(x, i, self(y));
-    } else if (isSigDelayLineWrite(sig, x, &i, y)) {  // x is used as an id, we don't go into it
-        return sigDelayLineWrite(x, i, self(y));
+    else if (isSigDelayLineRead(sig, x, u, &i, y)) {  // x is used as an id, we don't go into it
+        return sigDelayLineRead(x, u, i, self(y));
+    } else if (isSigDelayLineWrite(sig, x, u, &i, y)) {  // x is used as an id, we don't go into it
+        return sigDelayLineWrite(x, u, i, self(y));
     }
 
     // Read and Write
-    else if (isSigControlRead(sig, x)) {  // x is used as an id, we don't go into it
+    else if (isSigControlRead(sig, x, u)) {  // x is used as an id, we don't go into it
         return sig;
-    } else if (isSigControlWrite(sig, x, y)) {  // x is used as an id, we don't go into it
-        return sigControlWrite(x, self(y));
+    } else if (isSigControlWrite(sig, x, u, y)) {  // x is used as an id, we don't go into it
+        return sigControlWrite(x, u, self(y));
     }
 
     else {

@@ -16,10 +16,10 @@ class SignalDependencies : public SignalVisitor {
    public:
     SignalDependencies(Tree root)
     {
-        Tree id, content;
+        Tree id, origin, content;
         int  dmax, i;
         // Analyzed signals are supposed to be DelayLines, Controls or Outputs
-        if (isSigDelayLineWrite(root, id, &dmax, content) || isSigControlWrite(root, id, content)) {
+        if (isSigDelayLineWrite(root, id, origin, &dmax, content) || isSigControlWrite(root, id, origin, content)) {
             fRoot = id;
             self(content);
         } else if (isSigOutput(root, &i, content)) {
@@ -34,14 +34,14 @@ class SignalDependencies : public SignalVisitor {
    protected:
     virtual void visit(Tree t)
     {
-        Tree id, dl;
+        Tree id, origin, dl;
         int  dmin;
 
         // the dependencies are DelayLines or Control signals
-        if (isSigDelayLineRead(t, id, &dmin, dl)) {
+        if (isSigDelayLineRead(t, id, origin, &dmin, dl)) {
             fGraph.add(fRoot, id, dmin);
             self(dl);
-        } else if (isSigControlRead(t, id)) {
+        } else if (isSigControlRead(t, origin, id)) {
             fGraph.add(fRoot, id);
         } else {
             SignalVisitor::visit(t);
@@ -53,10 +53,10 @@ class SignalDependencies : public SignalVisitor {
 
 void Dictionnary::add(Tree sig)
 {
-    Tree id, content;
+    Tree id, origin, content;
     int  dmax, i;
     // Analyzed signals are supposed to be DelayLines, Controls or Outputs
-    if (isSigDelayLineWrite(sig, id, &dmax, content) || isSigControlWrite(sig, id, content)) {
+    if (isSigDelayLineWrite(sig, id, origin, &dmax, content) || isSigControlWrite(sig, id, origin, content)) {
         fDefinitions[id] = sig;
     } else if (isSigOutput(sig, &i, content)) {
         fDefinitions[sig] = sig;
