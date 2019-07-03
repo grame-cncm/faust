@@ -427,7 +427,7 @@ USAGE: _ : mth_octave_spectral_level(M,ftop,NBands,tau,dB_offset);
 **dB_offset = constant dB offset in all band level meters.";
 
 //////////////////////
-declare FilterBanks "Arbritary-Crossover Filter-Banks and Spectrum Analyzers 
+declare FilterBanks "Arbitrary-Crossover Filter-Banks and Spectrum Analyzers 
 These are similar to the Mth-octave filter-banks above, except that the band-split frequencies are passed explicitly as arguments. 
 
 USAGE:
@@ -1094,7 +1094,7 @@ with {
 // w1 (set to HALF the desired passband width in rad/sec),
 // there is a desired center-frequency parameter wc (also in rad/s).
 // Thus, tf2sb implements a fourth-order digital bandpass filter section
-// specified by the coefficients of a second-order analog lowpass prototpe
+// specified by the coefficients of a second-order analog lowpass prototype
 // section.  Such sections can be combined in series for higher orders.
 // The order of mappings is (1) frequency scaling (to set lowpass cutoff w1),
 // (2) bandpass mapping to wc, then (3) the bilinear transform, with the 
@@ -1368,8 +1368,8 @@ with {
   wu = 2*PI*fu; // digital (z-plane) upper passband edge
 
   c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
-  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  wla = c*tan(wl/c); // analog (s-plane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-plane) upper cutoff
 
   wc = sqrt(wla*wua); // s-plane center frequency
   w1 = wua - wc^2/wua; // s-plane lowpass prototype cutoff
@@ -1402,8 +1402,8 @@ with {
   wu = 2*PI*fu; // digital (z-plane) upper passband edge
 
   c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
-  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  wla = c*tan(wl/c); // analog (s-plane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-plane) upper cutoff
 
   wc = sqrt(wla*wua); // s-plane center frequency
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
@@ -1439,8 +1439,8 @@ with { // octave script output:
   wu = 2*PI*fu; // digital (z-plane) upper passband edge
 
   c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
-  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  wla = c*tan(wl/c); // analog (s-plane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-plane) upper cutoff
 
   wc = sqrt(wla*wua); // s-plane center frequency
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
@@ -2005,7 +2005,7 @@ mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
 
 filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 
-//=========== Arbritary-Crossover Filter-Banks and Spectrum Analyzers ========
+//=========== Arbitrary-Crossover Filter-Banks and Spectrum Analyzers ========
 // These are similar to the Mth-octave filter-banks above, except that the
 // band-split frequencies are passed explicitly as arguments. 
 //
