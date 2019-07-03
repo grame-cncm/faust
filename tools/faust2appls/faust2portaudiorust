@@ -52,8 +52,9 @@ for p in $FILES; do
     # compile Faust DSP and put in the cargo folder
     faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
-    # add JACK dependency
+    # add dependencies
     echo "portaudio = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
+    echo "libm = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
 
     # build the project
     cd "$SRCDIR/$dspName"
