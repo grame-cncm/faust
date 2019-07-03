@@ -44,8 +44,10 @@ extern usb_midi_class usbMIDI;
 #define MULT_16 2147483647
 #define DIV_16 4.6566129e-10
 
+#if MIDICTRL
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+#endif
 
 AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new audio_block_t*[fDSP->getNumInputs()])
 {
