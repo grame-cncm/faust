@@ -384,7 +384,7 @@ soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get());
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
     soul::patch::String::Ptr error = fPlayer->getCompileError();
     if (error) {
         std::cerr << "getCompileError " << error->getCharPointer() << std::endl;
@@ -399,7 +399,7 @@ soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
 void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get());
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
     fMIDIMessages.resize(1024);
     
     // FAUST soul code has additional functions
