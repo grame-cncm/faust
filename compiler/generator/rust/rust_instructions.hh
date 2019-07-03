@@ -96,7 +96,7 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["cosf"]       = "f32::cos";
         fMathLibTable["expf"]       = "f32::exp";
         fMathLibTable["floorf"]     = "f32::floor";
-        fMathLibTable["fmodf"]      = "f32::fmod";
+        fMathLibTable["fmodf"]      = "libm::fmodf";
         fMathLibTable["logf"]       = "f32::log";
         fMathLibTable["log10f"]     = "f32::log10";
         fMathLibTable["max_f"]      = "f32::max";
@@ -118,7 +118,7 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["cos"]       = "f64::cos";
         fMathLibTable["exp"]       = "f64::exp";
         fMathLibTable["floor"]     = "f64::floor";
-        fMathLibTable["fmod"]      = "f64::fmod";
+        fMathLibTable["fmod"]      = "libm::fmod";
         fMathLibTable["log"]       = "f64::log";
         fMathLibTable["log10"]     = "f32::log10";
         fMathLibTable["max_"]      = "f64::max";
