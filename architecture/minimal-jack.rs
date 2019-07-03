@@ -24,6 +24,7 @@
 extern crate jack;
 use jack::prelude as j;
 use std::io;
+extern crate libm;
 
 pub trait Meta {
 

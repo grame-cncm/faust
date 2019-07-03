@@ -20,7 +20,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2jackrust [additional Faust options (-vec -vs 8...)] <file.dsp>"
     fi
-    
+
     if [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -52,8 +52,9 @@ for p in $FILES; do
     # compile Faust DSP and put in the cargo folder
     faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
-    # add JACK dependency
+    # add dependencies
     echo "jack = \"0.5.3\"" >> "$SRCDIR/$dspName/Cargo.toml"
+    echo "libm = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
 
     # build the project
     cd "$SRCDIR/$dspName"
@@ -61,5 +62,3 @@ for p in $FILES; do
     cargo build
 
 done
-
-
