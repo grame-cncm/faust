@@ -24,6 +24,7 @@
 extern crate portaudio;
 use portaudio as pa;
 use std::io;
+extern crate libm;
 
 pub trait Meta {
 
@@ -75,7 +76,7 @@ fn main() {
 fn run() -> Result<(), pa::Error> {
 
 
-    let pa = try!(pa::PortAudio::new());
+    let pa = pa::PortAudio::new()?;
 
     // Allocation DSP on the heap
     let mut dsp = Box::new(mydsp::new());
@@ -84,10 +85,10 @@ fn run() -> Result<(), pa::Error> {
 
     //Create a input/output stream with the same number of input and output channels
     const INTERLEAVED: bool = false;// We want NON interleaved streams
-    let input_device = try!(pa.default_input_device());
-    let output_device = try!(pa.default_output_device());
-    let input_latency = try!(pa.device_info(input_device)).default_low_input_latency;
-    let output_latency = try!(pa.device_info(output_device)).default_low_input_latency;
+    let input_device = pa.default_input_device()?;
+    let output_device = pa.default_output_device()?;
+    let input_latency = pa.device_info(input_device)?.default_low_input_latency;
+    let output_latency = pa.device_info(output_device)?.default_low_input_latency;
 
     let in_params = pa::StreamParameters::new(input_device, CHANNELS, INTERLEAVED, input_latency);
     let out_params = pa::StreamParameters::new(output_device, CHANNELS, INTERLEAVED, output_latency);
@@ -129,17 +130,17 @@ fn run() -> Result<(), pa::Error> {
         pa::Continue
     };
 
-    let mut stream = try!(pa.open_non_blocking_stream(settings, callback));
+    let mut stream = pa.open_non_blocking_stream(settings, callback)?;
 
-    try!(stream.start());
+    stream.start()?;
 
     // Wait for user input to quit
     println!("Press enter/return to quit...");
     let mut user_input = String::new();
     io::stdin().read_line(&mut user_input).ok();
 
-    try!(stream.stop());
-    try!(stream.close());
+    stream.stop()?;
+    stream.close()?;
 
     Ok(())
 }
