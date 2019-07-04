@@ -140,10 +140,10 @@ void RustCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, output: &mut[i32]) {", counter);
+        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, output: &mut[$1]) {", counter, ifloat());
+        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
