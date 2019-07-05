@@ -71,14 +71,14 @@ Tree SignalSplitter::transformation(Tree sig)
         if (dmax == 0) {
             cerr << "STRANGE CASE DMAX=0 FOR " << ppsig(sig) << endl;
         }
-        Tree id = uniqueID("DL", sig);
+        Tree id = uniqueID("D", x);
         fSplittedSignals.insert(sigDelayLineWrite(id, x, dmax, v));
         Tree inst = sigDelayLineRead(id, x, int(i.lo), w);
         return inst;
 
     } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
         Tree r  = SignalIdentity::transformation(sig);
-        Tree id = uniqueID("CTRL", sig);
+        Tree id = uniqueID("C", sig);
         fSplittedSignals.insert(sigControlWrite(id, sig, r));
         Tree inst = sigControlRead(id, sig);
         return inst;

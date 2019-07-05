@@ -206,7 +206,6 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isSigInput(sig, &i)) {
         fout << "IN[" << i << "]";
     } else if (isSigOutput(sig, &i, x)) {
-        fout << sig << "@";
         printout(fout, i, x);
     }
 
@@ -295,15 +294,19 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigDelayLineWrite(sig, x, c, &i, y)) {
-        fout << "sigDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
+        // fout << "sigDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
+        fout << *x << '[' << i << ']' << " := " << ppsig(y) << ";";
     } else if (isSigDelayLineRead(sig, x, c, &i, y)) {
-        fout << "sigDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
+        // fout << "sigDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
+        fout << *x /* << '<' << i << '>'*/ << "[" << ppsig(y) << "]";
     }
 
     else if (isSigControlWrite(sig, x, c, y)) {
-        fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+        fout << *x << " := " << ppsig(y) << ";";
     } else if (isSigControlRead(sig, x, c)) {
-        fout << "sigControlRead(" << *x << ")";
+        // fout << "sigControlRead(" << *x << ")";
+        fout << *x;
     }
 
     else {
