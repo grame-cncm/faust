@@ -15,20 +15,23 @@ class SignalDependencies : public SignalVisitor {
     digraph<Tree> fGraph;  // Its graph of dependencies
 
    public:
-    SignalDependencies(Tree root)
+    SignalDependencies(Tree sig)
     {
         Tree id, origin, content;
         int  dmax, i;
         // Analyzed signals are supposed to be "instructions": DelayLines, Controls or Outputs.
         // It is an error otherwise
-        if (isSigDelayLineWrite(root, id, origin, &dmax, content)) {
+        if (isSigDelayLineWrite(sig, id, origin, &dmax, content)) {
             fRoot = id;
+            fGraph.add(fRoot);
             self(content);
-        } else if (isSigControlWrite(root, id, origin, content)) {
+        } else if (isSigControlWrite(sig, id, origin, content)) {
             fRoot = id;
+            fGraph.add(fRoot);
             self(content);
-        } else if (isSigOutput(root, &i, content)) {
-            fRoot = root;  // sigInt(i);
+        } else if (isSigOutput(sig, &i, content)) {
+            fRoot = sig;
+            fGraph.add(fRoot);
             self(content);
         } else {
             std::cerr << "**** BIG ERROR ***" << endl;
@@ -36,7 +39,7 @@ class SignalDependencies : public SignalVisitor {
     }
     const digraph<Tree>& graph() const
     {
-        // std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
+        std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
         return fGraph;
     }
 
@@ -97,28 +100,32 @@ digraph<Tree> dependencyGraph(Tree sig)
 // replace ;= by \n, max columns 40
 static string format(const string& s)
 {
-    string r;
-    int    state = 0;
-    int    count = 1;
-    for (char c : s) {
-        if ((state == 0) & (c != ':')) {
-            r += c;
-        } else if ((state == 0) & (c == ':')) {
-            state = 1;
-        } else if ((state == 1) & (c != '=')) {
-            r += ':';
-            r += c;
-            state = 0;
-        } else if ((state == 1) & (c == '=')) {
-            r += ":=\\n";
-            state = 2;
-            count = 1;
-        } else if (state == 2) {
-            r += c;
-            if (++count % 40 == 0) r += "\\n";
+    if (s.size() < 20) {
+        return s;
+    } else {
+        string r;
+        int    state = 0;
+        int    count = 1;
+        for (char c : s) {
+            if ((state == 0) & (c != ':')) {
+                r += c;
+            } else if ((state == 0) & (c == ':')) {
+                state = 1;
+            } else if ((state == 1) & (c != '=')) {
+                r += ':';
+                r += c;
+                state = 0;
+            } else if ((state == 1) & (c == '=')) {
+                r += ":=\\n";
+                state = 2;
+                count = 1;
+            } else if (state == 2) {
+                r += c;
+                if (++count % 40 == 0) r += "\\n";
+            }
         }
+        return r;
     }
-    return r;
 }
 
 ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
