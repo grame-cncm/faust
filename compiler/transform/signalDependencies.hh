@@ -46,4 +46,10 @@ class Dictionnary {
 };
 ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g);
 
+/**
+ * A bijective function that returns a unique ID, that starts with prefix, associated to sig
+ * uniqueID(prefix,sig) -> ID
+ */
+Tree uniqueID(const char* prefix, Tree sig);
+
 #endif

@@ -4,6 +4,7 @@
 
 #include "ppsig.hh"
 #include "signalDependencies.hh"
+#include "symbol.hh"
 
 //-------------------------SignalDependencies---------------------------
 // Compute the dependency graph (delay lines and controls) of a signal
@@ -18,8 +19,12 @@ class SignalDependencies : public SignalVisitor {
     {
         Tree id, origin, content;
         int  dmax, i;
-        // Analyzed signals are supposed to be DelayLines, Controls or Outputs
-        if (isSigDelayLineWrite(root, id, origin, &dmax, content) || isSigControlWrite(root, id, origin, content)) {
+        // Analyzed signals are supposed to be "instructions": DelayLines, Controls or Outputs.
+        // It is an error otherwise
+        if (isSigDelayLineWrite(root, id, origin, &dmax, content)) {
+            fRoot = id;
+            self(content);
+        } else if (isSigControlWrite(root, id, origin, content)) {
             fRoot = id;
             self(content);
         } else if (isSigOutput(root, &i, content)) {
@@ -29,7 +34,11 @@ class SignalDependencies : public SignalVisitor {
             std::cerr << "**** BIG ERROR ***" << endl;
         }
     }
-    const digraph<Tree>& graph() const { return fGraph; }
+    const digraph<Tree>& graph() const
+    {
+        // std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
+        return fGraph;
+    }
 
    protected:
     virtual void visit(Tree t)
@@ -41,7 +50,7 @@ class SignalDependencies : public SignalVisitor {
         if (isSigDelayLineRead(t, id, origin, &dmin, dl)) {
             fGraph.add(fRoot, id, dmin);
             self(dl);
-        } else if (isSigControlRead(t, origin, id)) {
+        } else if (isSigControlRead(t, id, origin)) {
             fGraph.add(fRoot, id);
         } else {
             SignalVisitor::visit(t);
@@ -57,6 +66,7 @@ void Dictionnary::add(Tree sig)
     int  dmax, i;
     // Analyzed signals are supposed to be DelayLines, Controls or Outputs
     if (isSigDelayLineWrite(sig, id, origin, &dmax, content) || isSigControlWrite(sig, id, origin, content)) {
+        // cerr << "Dictionnary::add " << id << "@" << *id << " := " << *sig << endl;
         fDefinitions[id] = sig;
     } else if (isSigOutput(sig, &i, content)) {
         fDefinitions[sig] = sig;
@@ -79,6 +89,8 @@ Tree Dictionnary::operator[](Tree id)
 digraph<Tree> dependencyGraph(Tree sig)
 {
     SignalDependencies D(sig);
+    // D.trace(true, "compute dependencies");
+    // cerr << "Dependencies of " << ppsig(sig) << " are " << D.graph() << endl;
     return D.graph();
 }
 
@@ -114,6 +126,7 @@ ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
     file << "digraph mygraph { \n\t node [shape=box]" << endl;
     for (Tree n : g.nodes()) {
         stringstream sn, src;
+        // cerr << "dict[" << *n << "] = " << *dict[n] << endl;
         src << ppsig(dict[n]);
         sn << '"' << format(src.str()) << '"';
         bool hascnx = false;
