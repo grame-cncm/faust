@@ -1825,11 +1825,11 @@ public:
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    virtual void addHorizontalBargraph(const char* label , FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         openVerticalBox(label);
         if (isNumerical(zone)) {
-            addNumDisplay(0, zone, min, min, max, (max-min)/1000.0);
+            addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
         } else {
             AbstractDisplay* bargraph;
             bool db = (fUnit[zone] == "dB");
@@ -1859,7 +1859,7 @@ public:
     {
         openVerticalBox(label);
         if (isNumerical(zone)) {
-            addNumDisplay(0, zone, min, min, max, (max-min)/1000.0);
+            addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
         } else {
             AbstractDisplay* bargraph;
             bool db = (fUnit[zone] == "dB");
