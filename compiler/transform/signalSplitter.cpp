@@ -35,6 +35,8 @@
 #include "tree.hh"
 #include "xtended.hh"
 
+static Tree uniqueID(const char* prefix, Tree sig);
+
 /********************************************************************
 SignalSplitter: transforms a list of signals into a list of
 "instructions".
@@ -69,14 +71,14 @@ Tree SignalSplitter::transformation(Tree sig)
         if (dmax == 0) {
             cerr << "STRANGE CASE DMAX=0 FOR " << ppsig(sig) << endl;
         }
-        Tree id = tree(unique("DL"));
+        Tree id = uniqueID("DL", sig);
         fSplittedSignals.insert(sigDelayLineWrite(id, x, dmax, v));
         Tree inst = sigDelayLineRead(id, x, int(i.lo), w);
         return inst;
 
     } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
         Tree r  = SignalIdentity::transformation(sig);
-        Tree id = tree(unique("CTRL"));
+        Tree id = uniqueID("CTRL", sig);
         fSplittedSignals.insert(sigControlWrite(id, sig, r));
         Tree inst = sigControlRead(id, sig);
         return inst;
@@ -95,4 +97,20 @@ ostream& SignalSplitter::print(ostream& dst) const
         sep = ",\n\t";
     }
     return dst << "\n}\n";
+}
+
+/**
+ *
+ */
+Tree uniqueID(const char* prefix, Tree sig)
+{
+    Tree ID;
+    Tree key = tree(symbol(prefix));
+    if (getProperty(sig, key, ID)) {
+        return ID;
+    } else {
+        ID = tree(unique(prefix));
+        setProperty(sig, key, ID);
+        return ID;
+    }
 }
