@@ -52,12 +52,12 @@ struct param {
 
 class CMDUI : public UI
 {
-    int                             fArgc;
-    char**                          fArgv;
-    std::vector<char*>              fFiles;
-    std::stack<std::string>         fPrefix;
-    std::map<std::string, param>    fKeyParam;
-    bool                            fIgnoreParam;
+    int                           fArgc;
+    char**                        fArgv;
+    std::vector<char*>            fFiles;
+    std::stack<std::string>       fPrefix;
+    std::map<std::string, param>  fKeyParam;
+    bool                          fIgnoreParam;
     
     void openAnyBox(const char* label)
     {
@@ -137,7 +137,8 @@ class CMDUI : public UI
     
 public:
     
-    CMDUI(int argc, char* argv[], bool ignore_param = false) : UI(), fArgc(argc), fArgv(argv), fIgnoreParam(ignore_param) { fPrefix.push("-"); }
+    CMDUI(int argc, char* argv[], bool ignore_param = false)
+    : UI(), fArgc(argc), fArgv(argv), fIgnoreParam(ignore_param) { fPrefix.push("-"); }
     virtual ~CMDUI() {}
     
     void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -197,21 +198,23 @@ public:
         return true;
     }
     
-    void printhelp_command()
+    void printhelp_command(bool duplex = false)
     {
         std::map<std::string, param>::iterator i;
-        std::cout << fArgc << "\n";
         std::cout << fArgv[0] << " option list : ";
         for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
             std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
         }
-        std::cout << " infile outfile\n";
+        if (duplex) {
+            std::cout << " infile outfile\n";
+        } else {
+            std::cout << " outfile\n";
+        }
     }
     
     void printhelp_init()
     {
         std::map<std::string, param>::iterator i;
-        std::cout << fArgc << "\n";
         std::cout << fArgv[0] << " option list : ";
         for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
             std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
@@ -219,7 +222,7 @@ public:
         std::cout << std::endl;
     }
     
-    void process_command()
+    void process_command(bool duplex = false)
     {
         std::map<std::string, param>::iterator p;
         for (int i = 1; i < fArgc; i++) {
@@ -227,7 +230,7 @@ public:
                 if ((strcmp(fArgv[i], "-help") == 0)
                     || (strcmp(fArgv[i], "-h") == 0)
                     || (strcmp(fArgv[i], "--help") == 0)) 	{
-                    printhelp_command();
+                    printhelp_command(duplex);
                     exit(1);
                 }
                 p = fKeyParam.find(fArgv[i]);
@@ -251,8 +254,8 @@ public:
     unsigned long files() { return fFiles.size(); }
     char* file(int n) { return fFiles[n]; }
     
-    char* input_file() { std::cout << "input file " << fFiles[0] << "\n"; return fFiles[0]; }
-    char* output_file() { std::cout << "output file " << fFiles[1] << "\n"; return fFiles[1]; }
+    char* input_file() { return fFiles[0]; }
+    char* output_file() { return fFiles[1]; }
     
     void process_init()
     {

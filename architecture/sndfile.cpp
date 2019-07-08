@@ -49,6 +49,7 @@
 #include "faust/gui/console.h"
 #include "faust/gui/FUI.h"
 #include "faust/dsp/dsp.h"
+#include "faust/dsp/dsp-tools.h"
 #include "faust/misc.h"
 
 #ifndef FAUSTFLOAT
@@ -60,6 +61,8 @@
 
 #define WRITE_SAMPLE sf_writef_float
 //#define WRITE_SAMPLE sf_writef_float
+
+using namespace std;
 
 /******************************************************************************
  *******************************************************************************
@@ -83,118 +86,10 @@
 
 mydsp DSP;
 
-class Separator
-{
-    
-    private:
-    
-        int fNumFrames;
-        int fNumInputs;
-        int fNumOutputs;
-        
-        FAUSTFLOAT* fInput;
-        FAUSTFLOAT* fOutputs[256];
-        
-    public:
-        
-        Separator(int numFrames, int numInputs, int numOutputs)
-        {
-            fNumFrames = numFrames;
-            fNumInputs = numInputs;
-            fNumOutputs = max(numInputs, numOutputs);
-            
-            // allocate interleaved input channel
-            fInput = (FAUSTFLOAT*)calloc(fNumFrames * fNumInputs, sizeof(FAUSTFLOAT));
-            
-            // allocate separate output channels
-            for (int i = 0; i < fNumOutputs; i++) {
-                fOutputs[i] = (FAUSTFLOAT*)calloc(fNumFrames, sizeof(FAUSTFLOAT));
-            }
-        }
-        
-        ~Separator()
-        {
-            // free interleaved input channel
-            free(fInput);
-            
-            // free separate output channels
-            for (int i = 0; i < fNumOutputs; i++) {
-                free(fOutputs[i]);
-            }
-        }
-        
-        FAUSTFLOAT* input() { return fInput; }
-        
-        FAUSTFLOAT** outputs() { return fOutputs; }
-        
-        void separate()
-        {
-            for (int s = 0; s < fNumFrames; s++) {
-                for (int c = 0; c < fNumInputs; c++) {
-                    fOutputs[c][s] = fInput[c + s*fNumInputs];
-                }
-            }
-        }
-};
-
-class Interleaver
-{
-    
-    private:
-        
-        int fNumFrames;
-        int fNumChans;
-        
-        FAUSTFLOAT* fInputs[256];
-        FAUSTFLOAT* fOutput;
-        
-    public:
-        
-        Interleaver(int numFrames, int numChans)
-        {
-            fNumFrames = numFrames;
-            fNumChans = numChans;
-            
-            // allocate separate input channels
-            for (int i = 0; i < fNumChans; i++) {
-                fInputs[i] = (FAUSTFLOAT*)calloc(fNumFrames, sizeof(FAUSTFLOAT));
-            }
-            
-            // allocate interleaved output channel
-            fOutput = (FAUSTFLOAT*)calloc(fNumFrames * fNumChans, sizeof(FAUSTFLOAT));
-            
-        }
-        
-        ~Interleaver()
-        {
-            // free separate input channels
-            for (int i = 0; i < fNumChans; i++) {
-                free(fInputs[i]);
-            }
-            
-            // free interleaved output channel
-            free(fOutput);
-        }
-        
-        FAUSTFLOAT** inputs() { return fInputs; }
-        
-        FAUSTFLOAT* output() { return fOutput; }
-        
-        void interleave()
-        {
-            for (int s = 0; s < fNumFrames; s++) {
-                for (int c = 0; c < fNumChans; c++) {
-                    fOutput[c + s*fNumChans] = max(min(fInputs[c][s], FAUSTFLOAT(1.0)),FAUSTFLOAT(-1.0));
-                }
-            }
-        }
-    
-};
-
 #define kFrames 512
 
 // loptrm : Scan command-line arguments and remove and return long int value when found
-long loptrm(int *argcP, char *argv[], const char* longname, const char* shortname, long def)
+long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
 {
     int argc = *argcP;
     for (int i = 2; i < argc; i++) {
@@ -216,18 +111,12 @@ int main(int argc, char* argv[])
     SNDFILE* out_sf;
     SF_INFO in_info;
     SF_INFO out_info;
-    unsigned int nAppend = 0; // number of frames to append beyond the input file
+
+    unsigned int nAppend = loptrm(&argc, argv, "--continue", "-c", 0);
     
-    if (argc < 3) {
-        fprintf(stderr,"*** USAGE: %s input_sfile output_sfile\n", argv[0]);
-        exit(1);
-    }
-    
-    nAppend = loptrm(&argc, argv, "--continue", "-c", 0);
-    
-    CMDUI* interface = new CMDUI(argc, argv);
+    CMDUI* interface = new CMDUI(argc, argv, true);
     DSP.buildUserInterface(interface);
-    interface->process_command();
+    interface->process_command(true);
     
     // open input file
     in_info.format = 0;
@@ -251,8 +140,8 @@ int main(int argc, char* argv[])
     }
     
     // create separator and interleaver
-    Separator sep(kFrames, in_info.channels, DSP.getNumInputs());
-    Interleaver ilv(kFrames, DSP.getNumOutputs());
+    Deinterleaver sep(kFrames, in_info.channels, DSP.getNumInputs());
+    Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
     
     // init signal processor
     DSP.init(in_info.samplerate);
@@ -262,7 +151,7 @@ int main(int argc, char* argv[])
     int nbf;
     do {
         nbf = READ_SAMPLE(in_sf, sep.input(), kFrames);
-        sep.separate();
+        sep.deinterleave();
         DSP.compute(nbf, sep.outputs(), ilv.inputs());
         ilv.interleave();
         WRITE_SAMPLE(out_sf, ilv.output(), nbf);
@@ -272,9 +161,9 @@ int main(int argc, char* argv[])
     
     // compute tail, if any
     if (nAppend > 0) {
-        FAUSTFLOAT *input = (FAUSTFLOAT*)calloc(nAppend * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
-        FAUSTFLOAT *inputs[1] = { input };
-        Interleaver ailv(nAppend, DSP.getNumOutputs());
+        FAUSTFLOAT* input = (FAUSTFLOAT*)calloc(nAppend * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
+        FAUSTFLOAT* inputs[1] = { input };
+        Interleaver ailv(nAppend, DSP.getNumOutputs(), DSP.getNumOutputs());
         DSP.compute(nAppend, inputs, ailv.inputs());
         ailv.interleave();
         WRITE_SAMPLE(out_sf, ailv.output(), nAppend);

@@ -48,228 +48,11 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/GUI/ControlUI.h"
+#include "faust/gui/console.h"
 #include "faust/GUI/meta.h"
+#include "faust/dsp/dsp-tools.h"
 
 using namespace std;
-
-/******************************************************************************
-*******************************************************************************
-
-								USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-struct param {
-	float* fZone; float fMin; float fMax;
-	param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
-};
-
-class CMDUI : public ControlUI
-{
-	int             fArgc;
-	char**          fArgv;
-    std::string     fOutFile;
-	long            fNumframes;
-	stack<string>	fPrefix;
-	map<string, param>	fKeyParam;
-	
-	void openAnyBox(const char* label)
-	{
-		string prefix;
-		
-		if (label && label[0]) {
-			prefix = fPrefix.top() + "-" + label;
-		} else {
-			prefix = fPrefix.top();
-		}
-		fPrefix.push(prefix);
-	}
-
-	string simplify(const string& src)
-	{
-		int i = 0;
-		int level = 0;
-		string dst;
-		
-		while (src[i]) {
-		
-			switch (level) {
-			
-				case 0 : 	
-				case 1 : 			
-				case 2 : 	
-					// Skip the begin of the label "--foo-"
-					// until 3 '-' have been read
-					if (src[i]=='-') { level++; }
-					break;
-							
-				case 3 :	
-					// copy the content, but skip non alphnum
-					// and content in parenthesis
-					switch (src[i]) {
-						case '(' : 	
-						case '[' : 	
-							level++;
-							break;
-							
-						case '-' : 	
-							dst += '-';
-							break;
-									
-						default :
-							if (isalnum(src[i])) {
-								dst+= tolower(src[i]); 
-							}
-                    }
-					break;
-					
-				default :	
-					// here we are inside parenthesis and 
-					// we skip the content until we are back to
-					// level 3
-					switch (src[i]) {
-		
-						case '(' : 	
-						case '[' : 
-							level++;
-							break;
-									
-						case ')' : 	
-						case ']' : 
-							level--;
-							break;
-							
-						default :
-							break;
-					}
-            }
-			i++;
-		}
-		return dst;
-	}
-	
-public:
-		
-    CMDUI(int argc, char *argv[]):ControlUI(), fArgc(argc), fArgv(argv), fNumframes(44100), fOutFile("out.wav")
-    {
-        fPrefix.push("-");
-    }
-    
-	virtual ~CMDUI() {}
-		
-	void addOption(const char* label, float* zone, float init, float min, float max)
-	{
-		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
-		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
-	}
-	
-	virtual void addButton(const char* label, float* zone)
-	{
-		addOption(label,zone,0,0,1);
-	}
-	
-	virtual void addToggleButton(const char* label, float* zone)
-	{
-		addOption(label,zone,0,0,1);
-	}
-	
-	virtual void addCheckButton(const char* label, float* zone)
-	{
-		addOption(label,zone,0,0,1);
-	}
-		
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,init,min,max);
-	}
-		
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,init,min,max);
-	}
-
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,init,min,max);
-	}
-		
-	// -- passive widgets
-	
-	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
-	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
-	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(const char* label)		{ openAnyBox(label); }
-	
-	virtual void closeBox() 							{ fPrefix.pop(); }
-	
-	virtual void show() {}
-	virtual void run() 	{}
-	
-	void printhelp() 
-	{
-		cerr << "usage: " << fArgv[0] << " [options]" << endl;
-		cerr << "        [options]: " << endl;
-		cerr << "              samples: number of samples to generate, default is 44100 (1 second of sound)" << endl;
-		cerr << "           -o outfile: name of the output file, default is 'out.wav'" << endl;
-
-		if (fKeyParam.size()) {
-			map<string, param>::iterator i;
-			cerr << "        [faust module options]: \n";
-			for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-				cout << "           " << i->first << " [" << i->second.fMin << ".." << i->second.fMax <<" ] \n";
-			}
-		}
-		exit(1);
-	}
-		
-	void process_command()
-	{
-		map<string, param>::iterator p;
-		
-		for (int i = 1; i < fArgc; i++) {
-			if (fArgv[i][0] == '-') {
-				if ((strcmp(fArgv[i], "-help") == 0)
-					 || (strcmp(fArgv[i], "-h") == 0)
-					 || (strcmp(fArgv[i], "--help") == 0)) 	{
-					printhelp();
-				}
-
-				if (strcmp(fArgv[i], "-o") == 0) {
-					fOutFile = fArgv[i+1];
-				} else {
-					p = fKeyParam.find(fArgv[i]); 
-					if (p == fKeyParam.end()) {
-						cout << fArgv[0] << ": unrecognized option " << fArgv[i] << "\n";
-						printhelp();
-					}
-					*(p->second.fZone) = float(strtod(fArgv[i+1], NULL));
-				}
-				i++;				
-			} else {
-				fNumframes = strtol(fArgv[i], NULL, 10);
-				if (fNumframes <= 0 ) printhelp();
-			}
-		}
-	}
-
-	const char* output_file() { return fOutFile.c_str(); }
-	long num_frames() { return fNumframes; }
-		
-	void process_init()
-	{
-		map<string, param>::iterator p;
-		for (int i = 1; i < fArgc; i++) {
-			if (fArgv[i][0] == '-') {
-				p = fKeyParam.find(fArgv[i]); 
-				if (p != fKeyParam.end()) {
-					*(p->second.fZone) = float(strtod(fArgv[i+1], NULL));
-					i++;
-				}
-			}
-		}
-	}		
-};
 
 /******************************************************************************
  *******************************************************************************
@@ -292,76 +75,41 @@ public:
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp DSP;
-		
-class Interleaver
-{
-    
-    private:
-        
-        int fNumFrames;
-        int fNumInputs;
-        int fNumOutputs;
-        
-        float*	fInputs[256];
-        float*	fOutput;
-        
-    public:
-              
-        Interleaver(int numFrames, int numInputs, int numOutputs)
-        {
-            fNumFrames 	= numFrames;
-            fNumInputs 	= max(numInputs, numOutputs);
-            fNumOutputs = numOutputs;
-            
-            // allocate separate input channels
-            for (int i = 0; i < fNumInputs; i++) {
-                fInputs[i] = (float*)calloc(fNumFrames, sizeof(float));
-            }
-            
-            // allocate interleaved output channel
-            fOutput = (float*)calloc(fNumFrames*fNumOutputs, sizeof(float));
-            
-        }
-        
-        ~Interleaver()
-        {
-            // free separate input channels
-            for (int i = 0; i < fNumInputs; i++) {
-                free(fInputs[i]);
-            }
-            
-            // free interleaved output channel
-            free(fOutput);
-        }
-        
-        float**	inputs() { return fInputs; }
-        float* 	output() { return fOutput; }
-        
-        void interleave()
-        { 	
-            for (int s = 0; s < fNumFrames; s++) {
-                for (int c = 0; c < fNumOutputs; c++) {
-                    fOutput[c + s*fNumOutputs] = fInputs[c][s];
-                }
-            }
-        }
-
-};
 
 #define kFrames			512
 #define kSampleRate		44100
 
-int main(int argc, char *argv[])
+// loptrm : Scan command-line arguments and remove and return long int value when found
+long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
 {
-	CMDUI* interface = new CMDUI(argc, argv);
+    int argc = *argcP;
+    for (int i = 2; i < argc; i++) {
+        if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
+            int optval = atoi(argv[i]);
+            for (int j = i-1; j < argc-2; j++) {  // make it go away for sake of "faust/gui/console.h"
+                argv[j] = argv[j+2];
+            }
+            *argcP -= 2;
+            return optval;
+        }
+    }
+    return def;
+}
+
+int main(int argc, char* argv[])
+{
+	CMDUI* interface = new CMDUI(argc, argv, true);
 	DSP.buildUserInterface(interface);
 	interface->process_command();
+    
+    unsigned int nSamples = loptrm(&argc, argv, "--samples", "-s", 44100*5);
 		
 	// open output file
 	SNDFILE* out_sf;
-	SF_INFO	out_info = { interface->num_frames(), kSampleRate, DSP.getNumOutputs(),
-                        SF_FORMAT_WAV|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE, 0, 0};
-	out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
+    SF_INFO	out_info = { nSamples, kSampleRate, DSP.getNumOutputs(),
+        SF_FORMAT_WAV|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE, 0, 0};
+    
+	out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
 	if (out_sf == NULL) { 
 		cerr << "Error: "; 
 		sf_perror(out_sf); 
@@ -376,17 +124,16 @@ int main(int argc, char *argv[])
 	interface->process_init();
 
 	// process all samples
-	int frames = interface->num_frames();
-	int nbf;
+    int frames = nSamples;
+ 	int nbf = 0;
 	do {
-		 if (frames > kFrames) {
-		 	nbf = kFrames;
-		 	frames -= kFrames;
-		 }
-		 else {
+        if (frames > kFrames) {
+            nbf = kFrames;
+            frames -= kFrames;
+        } else {
 		 	nbf = frames;
 		 	frames = 0;
-		 }
+        }
 		DSP.compute(nbf, 0, ilv.inputs());
 		ilv.interleave();
 		sf_writef_float(out_sf, ilv.output(), nbf);		
