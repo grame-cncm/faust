@@ -106,7 +106,7 @@ void old_OccMarkup::mark(Tree root)
     fRootTree = root;
     fPropKey  = tree(unique("OCCURRENCES"));
 
-    if (isList(root)) {
+    if (isList(root) || isNil(root)) {
         while (isList(root)) {
             // incOcc(kSamp, 1, hd(root));
             incOcc(gGlobal->nil, kSamp, 0, 0, gGlobal->nil, hd(root));
@@ -117,6 +117,11 @@ void old_OccMarkup::mark(Tree root)
         // incOcc(kSamp, 1, root);
         incOcc(gGlobal->nil, kSamp, 0, 0, gGlobal->nil, root);
     }
+}
+
+void old_OccMarkup::marksubexp(Tree root)
+{
+    incOcc(gGlobal->nil, kSamp, 0, 0, gGlobal->nil, root);
 }
 
 old_Occurences* old_OccMarkup::retrieve(Tree t)

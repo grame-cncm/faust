@@ -62,8 +62,9 @@ class old_OccMarkup {
     old_OccMarkup() {}
     old_OccMarkup(map<Tree, Tree> conditions) : fConditions(conditions) {}
 
-    void            mark(Tree root);   ///< start markup of root tree with new unique key
-    old_Occurences* retrieve(Tree t);  ///< occurences of subtree t within root tree
+    void            mark(Tree root);       ///< start markup of root tree with new unique key
+    void            marksubexp(Tree exp);  ///< mark an additional expression with the same key
+    old_Occurences* retrieve(Tree t);      ///< occurences of subtree t within root tree
 };
 
 #endif
