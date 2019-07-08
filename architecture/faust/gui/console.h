@@ -200,14 +200,14 @@ public:
     
     void printhelp_command(bool duplex = false)
     {
-        std::cout << fArgv[0] << " option list : ";
+        std::cout << fArgv[0] << " ";
         for (auto& i : fKeyParam) {
             std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
         }
         if (duplex) {
-            std::cout << " infile outfile\n";
+            std::cout << "infile outfile\n";
         } else {
-            std::cout << " outfile\n";
+            std::cout << "outfile\n";
         }
     }
     
