@@ -74,10 +74,6 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
-
-#define kFrames			512
-#define kSampleRate		44100
 
 // loptrm : Scan command-line arguments and remove and return long int value when found
 long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
@@ -95,6 +91,11 @@ long loptrm(int* argcP, char* argv[], const char* longname, const char* shortnam
     }
     return def;
 }
+
+mydsp DSP;
+
+#define kFrames         512
+#define kSampleRate     44100
 
 int main(int argc, char* argv[])
 {

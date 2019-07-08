@@ -25,8 +25,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2sndfile <file.dsp>"
-        echo "With the compiled program 'file', you can add [-c samples] for the number of frames to append beyond the input file"
+        echo "faust2sndfile <foo.dsp>"
+        echo "With the compiled program 'foo', you can add [-c samples] for the number of frames to append beyond the input file"
     fi
     
     if [ ${p:0:1} = "-" ]; then
@@ -41,13 +41,13 @@ shift
 
 done
 
-
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 
 for f in $FILES; do
 
+	SRCDIR=$(dirname "$p")
 	LINPUTS=$(faust -uim "$f" | grep FAUST_INPUTS)
 	NINPUTS=${LINPUTS//[^0-9]/}
 	if [ $NINPUTS -gt 0 ]; then
@@ -66,7 +66,10 @@ for f in $FILES; do
 
     # remove c++ file
     rm "$f.cpp"
-
+    
+    # collect binary file name for FaustGIDE
+    BINARIES="$BINARIES$SRCDIR/${f%.dsp}"
+ 
 done
 
-
+echo $BINARIES

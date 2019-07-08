@@ -200,10 +200,9 @@ public:
     
     void printhelp_command(bool duplex = false)
     {
-        std::map<std::string, param>::iterator i;
         std::cout << fArgv[0] << " option list : ";
-        for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-            std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+        for (auto& i : fKeyParam) {
+            std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
         }
         if (duplex) {
             std::cout << " infile outfile\n";
@@ -214,16 +213,19 @@ public:
     
     void printhelp_init()
     {
-        std::map<std::string, param>::iterator i;
         std::cout << fArgv[0] << " option list : ";
-        for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-            std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+        for (auto& i : fKeyParam) {
+            std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
         }
         std::cout << std::endl;
     }
     
     void process_command(bool duplex = false)
     {
+        if (fArgc == 1) {
+            printhelp_command(duplex);
+            exit(1);
+        }
         std::map<std::string, param>::iterator p;
         for (int i = 1; i < fArgc; i++) {
             if (fArgv[i][0] == '-') {
