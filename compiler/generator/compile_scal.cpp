@@ -175,7 +175,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup2->mark(L3d);  // annotate L3 with occurences analysis
 
     SignalSplitter SS(fOccMarkup2);
-    SS.trace(false, "Signal Splitter");
+    SS.trace(true, "Signal Splitter");
     Tree L3S = SS.mapself(L3d);
     cerr << "\n\nL3S = " << ppsig(L3S) << endl;
     SS.print(cerr);

@@ -26,10 +26,12 @@
 #include <set>
 #include <unordered_map>
 #include "old_occurences.hh"
+#include "property.hh"
 #include "sigIdentity.hh"
 
 // Make explicit automatic promotion to float
 class SignalSplitter : public SignalIdentity {
+    property<Tree> fDelayLineName;
     old_OccMarkup* fOccMarkup;
 
    public:

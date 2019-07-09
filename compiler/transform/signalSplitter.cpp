@@ -48,43 +48,60 @@ Computes constant expressions
 Tree SignalSplitter::transformation(Tree sig)
 {
     faustassert(sig);
-    int             i;
+    int             n;
     double          v;
     Tree            x, y;
     Type            t   = getCertifiedSigType(sig);
     old_Occurences* occ = fOccMarkup->retrieve(sig);
 
-    if (isSigInt(sig, &i) || isSigReal(sig, &v)) {
+    if (isSigInt(sig, &n) || isSigReal(sig, &v)) {
         return sig;
 
-    } else if (isSigOutput(sig, &i, x)) {
+    } else if (isSigOutput(sig, &n, x)) {
         Tree v = self(x);
-        fSplittedSignals.insert(sigOutput(i, v));
-        return sigOutput(i, v);
+        fSplittedSignals.insert(sigOutput(n, v));
+        return sigOutput(n, v);
 
     } else if (isSigFixDelay(sig, x, y)) {
         int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
         interval i    = getCertifiedSigType(y)->getInterval();
-        Tree     v    = self(x);
-        Tree     w    = self(y);
-        // we use x (the delayed signal) has unique identifier for the delay-line
-        if (dmax == 0) {
-            cerr << "STRANGE CASE DMAX=0 FOR " << ppsig(sig) << endl;
-            cerr << "              RETURNING " << ppsig(v) << endl;
-            return v;
-        }
-        Tree id = uniqueID("D", x);
-        fSplittedSignals.insert(sigDelayLineWrite(id, x, dmax, v));
-        Tree inst = sigDelayLineRead(id, x, int(i.lo), w);
-        return inst;
+        Tree     rec, var, le;
 
+        if (isProj(x, &n, rec)) {
+            if (isRec(rec, var, le)) {
+                Tree id;
+                if (!fDelayLineName.get(x, id)) {
+                    // Never visited before, it is the first time for this branch
+                    id = tree(unique("R"));     // we need a unique id for the recursive delay line
+                    fDelayLineName.set(x, id);  // we save it for the next visit
+                    fSplittedSignals.insert(sigDelayLineWrite(id, x, dmax, self(nth(le, n))));
+                }
+                Tree w = self(y);
+                return sigDelayLineRead(id, x, int(i.lo), w);
+
+            } else {
+                // This case is impossible (in principle ;-))
+                faustassert(0);
+                return 0;  // needed to avoid compiler warning
+            }
+        } else {
+            // Delay on a regular expression
+            Tree id;
+            if (!fDelayLineName.get(x, id)) {
+                // The delayed signal was never visited before
+                id = tree(unique("D"));     // we need a unique id for it
+                fDelayLineName.set(x, id);  // we save it for the next visit
+                fSplittedSignals.insert(sigDelayLineWrite(id, x, dmax, self(x)));
+            }
+            Tree w = self(y);
+            return sigDelayLineRead(id, x, int(i.lo), w);
+        }
     } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
         Tree r  = SignalIdentity::transformation(sig);
         Tree id = uniqueID("C", sig);
         fSplittedSignals.insert(sigControlWrite(id, sig, r));
         Tree inst = sigControlRead(id, sig);
         return inst;
-
     } else {
         return SignalIdentity::transformation(sig);
     }
