@@ -36,4 +36,12 @@ class RecRemover : public SignalIdentity {
     virtual Tree transformation(Tree sig);
 };
 
+/**
+ * @brief remove the useless recursions from a set of instructions
+ *
+ * @param instr a set of instructions
+ * @return set<Tree> the transformed set of instructions
+ */
+set<Tree> removeRecursion(const set<Tree>& instr);
+
 #endif

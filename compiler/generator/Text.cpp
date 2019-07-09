@@ -184,9 +184,11 @@ static string ensureFloat(const string& c)
  */
 string T(float n)
 {
-    stringstream num;
-    num << setprecision(numeric_limits<float>::max_digits10) << n;
-    return ensureFloat(num.str()) + inumix();
+    int p = 1;
+    char* endp = NULL;
+    char c[32];
+    do { snprintf(c, 30, "%.*g", p++, n); endp=NULL; } while (strtof(c, &endp) != n);
+    return ensureFloat(c) + "f";
 }
 
 /**
@@ -195,10 +197,29 @@ string T(float n)
  */
 string T(double n)
 {
-    stringstream num;
-    num << setprecision(numeric_limits<double>::max_digits10) << n;
-    return ensureFloat(num.str()) + inumix();
+    int p = 1;
+    char* endp = NULL;
+    char c[32];
+    do { snprintf(c, 30, "%.*g", p++, n); endp=NULL; } while (strtod(c, &endp) != n);
+    return ensureFloat(c);
 }
+
+/*
+
+char*   endp;
+    int     p = 1;
+
+    if (gGlobal->gFloatSize == 2) {
+    if (gGlobal->gFloatSize == 1) {
+        float v = (float)n;
+        do { snprintf(c, 32, "%.*g", p++, v); endp=0; } while (strtof(c, &endp) != v);
+    } else if (gGlobal->gFloatSize == 2) {
+        do { snprintf(c, 32, "%.*g", p++, n); endp=0; } while (strtod(c, &endp) != n);
+    } if (gGlobal->gFloatSize == 3) {
+
+
+
+ */
 
 /**
  * remove quotes from a string

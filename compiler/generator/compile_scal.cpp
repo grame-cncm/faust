@@ -162,7 +162,6 @@ Tree ScalarCompiler::prepare(Tree LS)
         L3d = cons(sigOutput(onum++, hd(l)), L3d);
     }
     L3d = reverse(L3d);
-
     recursivnessAnnotation(L3d);  // Annotate L3 with recursivness information
 
     startTiming("typeAnnotation");
@@ -182,21 +181,28 @@ Tree ScalarCompiler::prepare(Tree LS)
     SS.print(cerr);
     cerr << endl;
 
-    RecRemover    RR;
+    // set<Tree> INSTR;  ///< The instruction set
+
+    cerr << "Remove Recursions" << endl;
+
+    // RecRemover RR;
+
+    // for (auto s : SS.fSplittedSignals) {
+    //     Tree e = RR.self(s);
+    //     cerr << ppsig(e) << endl;
+    //     INSTR.insert(e);
+    // }
+
+    set<Tree> INSTR = removeRecursion(SS.fSplittedSignals);
+
+    cerr << "Build Dependency Graph" << endl;
+
     digraph<Tree> G;
     Dictionnary   Dic;
 
-    cerr << "Remove Recursions" << endl;
-    for (auto s : SS.fSplittedSignals) {
-        Tree e = RR.self(s);
-        cerr << ppsig(e) << "\n";
-        cerr << endl;
-
-        Type ty = getSimpleType(e);
-        cerr << "Its type : " << ty << "\n";
-        cerr << endl;
-        G.add(dependencyGraph(e));
-        Dic.add(e);
+    for (auto i : INSTR) {
+        G.add(dependencyGraph(i));
+        Dic.add(i);
     }
 
     cerr << "End Signal Splitter" << endl;

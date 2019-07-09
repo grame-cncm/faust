@@ -70,6 +70,8 @@ Tree SignalSplitter::transformation(Tree sig)
         // we use x (the delayed signal) has unique identifier for the delay-line
         if (dmax == 0) {
             cerr << "STRANGE CASE DMAX=0 FOR " << ppsig(sig) << endl;
+            cerr << "              RETURNING " << ppsig(v) << endl;
+            return v;
         }
         Tree id = uniqueID("D", x);
         fSplittedSignals.insert(sigDelayLineWrite(id, x, dmax, v));

@@ -56,3 +56,26 @@ Tree RecRemover::transformation(Tree sig)
         return SignalIdentity::transformation(sig);
     }
 }
+
+/**
+ * @brief remove the useless recursions from a set of instructions
+ *
+ * @param instr a set of instructions
+ * @return set<Tree> the transformed set of instructions
+ */
+set<Tree> removeRecursion(const set<Tree>& instr)
+{
+    RecRemover RR;
+    set<Tree>  result;
+
+    cerr << "START remove recursion" << endl;
+    int i = 0;
+    for (auto s : instr) {
+        Tree e = RR.self(s);
+        cerr << ++i << " : " << ppsig(s) << " -> " << ppsig(e) << endl;
+        result.insert(e);
+    }
+    cerr << "END remove recursion\n" << endl;
+
+    return result;
+}

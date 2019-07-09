@@ -200,7 +200,10 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isSigInt(sig, &i)) {
         fout << i;
     } else if (isSigReal(sig, &r)) {
-        fout << T(r);
+        if (gGlobal->gFloatSize == 1)
+            fout << T(float(r));
+        else
+            fout << T(r);
     } else if (isSigWaveform(sig)) {
         fout << "waveform{...}";
     } else if (isSigInput(sig, &i)) {
