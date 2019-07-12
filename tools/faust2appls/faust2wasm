@@ -206,8 +206,8 @@ EndOfCode
     	echo "{" > main.json
     	echo "\"name\": \"$name\"," >> main.json
     	echo "\"vendor\": \"Faust\"," >> main.json
-    	echo "\"version\": \"1.0\"," >> main.json
-    	echo "\"url\": \"$name.js\"," >> main.json
+    	echo "\"version\": \"1.01\"," >> main.json
+    	echo "\"url\": \"main.js\"," >> main.json
     	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
     	echo "\"thumbnail\": \"\"" >> main.json
     	echo "}" >> main.json
@@ -222,7 +222,9 @@ EndOfCode
     if [ $WORKLET = "true" ]; then
     	rm -f $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
     	if [ $WAP = "true" ]; then
-        	BINARIES="$BINARIES$name.js, $name-processor.js, $name.wasm, main.json, test$name.html"
+    		mv $name.js main.js
+    		mv test$name.html index.html
+        	BINARIES="$BINARIES main.js, $name.wasm, main.json, index.html"
         else
         	BINARIES="$BINARIES$name.js, $name-processor.js , $name.wasm"
         fi
