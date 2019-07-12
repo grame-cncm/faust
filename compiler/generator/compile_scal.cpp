@@ -90,6 +90,13 @@ string ScalarCompiler::getFreshID(const string& prefix)
  prepare
  *****************************************************************************/
 
+static bool canBeSimplified(Tree e)
+{
+    Tree id1, id2, origin1, origin2, sig, idx;
+    int  dmax, dmin;
+    return isSigDelayLineWrite(e, id1, origin1, &dmax, sig) && isSigDelayLineRead(sig, id2, origin2, &dmin, idx);
+}
+
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("ScalarCompiler::prepare");
@@ -175,7 +182,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup2->mark(L3d);  // annotate L3 with occurences analysis
 
     SignalSplitter SS(fOccMarkup2);
-    SS.trace(true, "Signal Splitter");
+    SS.trace(false, "Signal Splitter");
     Tree L3S = SS.mapself(L3d);
     cerr << "\n\nL3S = " << ppsig(L3S) << endl;
     SS.print(cerr);
@@ -193,7 +200,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     //     INSTR.insert(e);
     // }
 
-    set<Tree> INSTR = removeRecursion(SS.fSplittedSignals);
+    set<Tree> INSTR = SS.fSplittedSignals;  // removeRecursion(SS.fSplittedSignals);
 
     cerr << "Build Dependency Graph" << endl;
 
@@ -201,6 +208,9 @@ Tree ScalarCompiler::prepare(Tree LS)
     Dictionnary   Dic;
 
     for (auto i : INSTR) {
+        if (canBeSimplified(i)) {
+            cerr << "Can BE SIMPLIFIED " << ppsig(i) << endl;
+        }
         G.add(dependencyGraph(i));
         Dic.add(i);
     }
