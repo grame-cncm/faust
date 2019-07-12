@@ -838,7 +838,11 @@ let mydspProcessorString = `
 
     // Globals
     const NUM_FRAMES = 128;
-    registerProcessor('mydsp', mydspProcessor);
+    try {
+        registerProcessor('mydsp', mydspProcessor);
+    } catch (error) {
+        console.warn(error);
+    }
 `;
 
 // WAP factory or npm package module
