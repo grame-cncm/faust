@@ -207,7 +207,6 @@ EndOfCode
     	echo "\"name\": \"$name\"," >> main.json
     	echo "\"vendor\": \"Faust\"," >> main.json
     	echo "\"version\": \"1.01\"," >> main.json
-    	echo "\"url\": \"main.js\"," >> main.json
     	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
     	echo "\"thumbnail\": \"\"" >> main.json
     	echo "}" >> main.json
