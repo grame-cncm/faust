@@ -34,6 +34,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "delayLineSimplifier.hh"
 #include "floats.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
@@ -200,7 +201,8 @@ Tree ScalarCompiler::prepare(Tree LS)
     //     INSTR.insert(e);
     // }
 
-    set<Tree> INSTR = SS.fSplittedSignals;  // removeRecursion(SS.fSplittedSignals);
+    set<Tree> INSTR1 = SS.fSplittedSignals;
+    set<Tree> INSTR  = delayLineSimplifier(INSTR1);
 
     cerr << "Build Dependency Graph" << endl;
 
