@@ -36,6 +36,7 @@
 
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
+#include "faust/gui/MapUI.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -66,7 +67,8 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fBS = buffer_size;
     fDSP = new mydsp();
     fDSP->init(sample_rate);
-    fDSP->buildUserInterface(&fUI);
+    fUI = new MapUI();
+    fDSP->buildUserInterface(fUI);
     fHandle = NULL;
     
     i2s_pin_config_t pin_config;
@@ -104,6 +106,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 AudioFaust::~AudioFaust()
 {
     delete fDSP;
+    delete fUI;
     
     for (int i = 0; i < fDSP->getNumInputs(); i++) {
         delete[] fInChannel[i];
@@ -132,7 +135,7 @@ void AudioFaust::stop()
 
 void AudioFaust::setParamValue(const std::string& path, float value)
 {
-    fUI.setParamValue(path, value);
+    fUI->setParamValue(path, value);
 }
 
 void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t pin_config)
