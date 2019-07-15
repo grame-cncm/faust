@@ -172,7 +172,7 @@ void LLVMCodeContainer::generateGetJSON()
 
     JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
                                  FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
-                                 gGlobal->gImportDirList, to_string(fStructVisitor.getStructSize()), path_index_table);
+                                 gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
 

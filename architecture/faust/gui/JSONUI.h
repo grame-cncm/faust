@@ -58,7 +58,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         std::string fFileName;
         std::string fExpandedCode;
         std::string fSHAKey;
-        std::string fDSPSize;           // In bytes
+        int fDSPSize;                   // In bytes
         std::map<std::string, int> fPathTable;
     
         char fCloseUIPar;
@@ -106,14 +106,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             }
         }
     
-        std::string getAddressIndex(const std::string& path)
+        int getAddressIndex(const std::string& path)
         {
-            if (fPathTable.find(path) != fPathTable.end()) {
-                std::stringstream num; num << fPathTable[path];
-                return num.str();
-            } else {
-                return "-1";
-            }
+            return (fPathTable.find(path) != fPathTable.end()) ? fPathTable[path] : -1;
         }
       
      public:
@@ -129,7 +124,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& compile_options,
                   const std::vector<std::string>& library_list,
                   const std::vector<std::string>& include_pathnames,
-                  const std::string& size,
+                  int size,
                   const std::map<std::string, int>& path_table)
         {
             init(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table);
@@ -137,17 +132,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
 
         JSONUIAux(const std::string& name, const std::string& filename, int inputs, int outputs)
         {
-            init(name, filename, inputs, outputs, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
+            init(name, filename, inputs, outputs, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), -1, std::map<std::string, int>());
         }
 
         JSONUIAux(int inputs, int outputs)
         {
-            init("", "", inputs, outputs, -1, "", "","", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
+            init("", "", inputs, outputs, -1, "", "","", "", std::vector<std::string>(), std::vector<std::string>(), -1, std::map<std::string, int>());
         }
         
         JSONUIAux()
         {
-            init("", "", -1, -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
+            init("", "", -1, -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), -1, std::map<std::string, int>());
         }
  
         virtual ~JSONUIAux() {}
@@ -169,7 +164,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& compile_options,
                   const std::vector<std::string>& library_list,
                   const std::vector<std::string>& include_pathnames,
-                  const std::string& size,
+                  int size,
                   const std::map<std::string, int>& path_table)
         {
             fTab = 1;
@@ -254,7 +249,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
-                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ((fMetaAux.size() > 0) ? "," : "");
             } else {
                 tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
@@ -285,13 +280,13 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
+                tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
             }
             addMeta(fTab);
-            tab(fTab, fUI); fUI << "\"init\": \"" << init << "\",";
-            tab(fTab, fUI); fUI << "\"min\": \"" << min << "\",";
-            tab(fTab, fUI); fUI << "\"max\": \"" << max << "\",";
-            tab(fTab, fUI); fUI << "\"step\": \"" << step << "\"";
+            tab(fTab, fUI); fUI << "\"init\": " << init << ",";
+            tab(fTab, fUI); fUI << "\"min\": " << min << ",";
+            tab(fTab, fUI); fUI << "\"max\": " << max << ",";
+            tab(fTab, fUI); fUI << "\"step\": " << step;
             fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
@@ -325,11 +320,11 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
+                tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
             }
             addMeta(fTab);
-            tab(fTab, fUI); fUI << "\"min\": \"" << min << "\",";
-            tab(fTab, fUI); fUI << "\"max\": \"" << max << "\"";
+            tab(fTab, fUI); fUI << "\"min\": " << min << ",";
+            tab(fTab, fUI); fUI << "\"max\": " << max;
             fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
@@ -357,7 +352,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
             if (fPathTable.size() > 0) {
-                tab(fTab, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"";
+                tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path);
             }
             fTab -= 1;
             tab(fTab, fUI); fUI << "}";
@@ -411,12 +406,12 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 }
                 JSON << "],";
             }
-            if (fDSPSize != "") { tab(fTab, JSON); JSON << "\"size\": \"" << fDSPSize << "\","; }
+            if (fDSPSize != -1) { tab(fTab, JSON); JSON << "\"size\": " << fDSPSize << ","; }
             if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << fSHAKey << "\","; }
             if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << fExpandedCode << "\","; }
-            tab(fTab, JSON); JSON << "\"inputs\": \"" << fInputs << "\","; 
-            tab(fTab, JSON); JSON << "\"outputs\": \"" << fOutputs << "\",";
-            if (fSRIndex != -1) { tab(fTab, JSON); JSON << "\"sr_index\": \"" << fSRIndex << "\","; }
+            tab(fTab, JSON); JSON << "\"inputs\": " << fInputs << ",";
+            tab(fTab, JSON); JSON << "\"outputs\": " << fOutputs << ",";
+            if (fSRIndex != -1) { tab(fTab, JSON); JSON << "\"sr_index\": " << fSRIndex << ","; }
             tab(fTab, fMeta); fMeta << "],";
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
@@ -448,7 +443,7 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
                const std::string& compile_options,
                const std::vector<std::string>& library_list,
                const std::vector<std::string>& include_pathnames,
-               const std::string& size,
+               int size,
                const std::map<std::string, int>& path_table):
         JSONUIAux<FAUSTFLOAT>(name, filename,
                               inputs, outputs,
