@@ -71,8 +71,8 @@ if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     faust -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
-    cp $FAUSTARCH/esp32/drivers/WM8978.cpp $MODULENAME
-    cp $FAUSTARCH/esp32/drivers/WM8978.h $MODULENAME
+    cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+    cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
