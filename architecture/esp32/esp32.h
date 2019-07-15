@@ -28,23 +28,26 @@
 #include <string>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2s.h" 
+#include "driver/i2s.h"
 
-class ESP32Dsp;
+class dsp;
 
 class AudioFaust
 {
+    
 public:
-  AudioFaust(int,int);
-  ~AudioFaust();
-  bool start();
-  void stop();
-  void setParamValue(const std::string&, float);
+    AudioFaust(int,int);
+    ~AudioFaust();
+    bool start();
+    void stop();
+    void setParamValue(const std::string&, float);
 private:
-  void configureI2S(int,int,i2s_pin_config_t);
-  ESP32Dsp *esp32Dsp;
-  static void audioTask(void*);
-  TaskHandle_t xHandle;
+    void configureI2S(int, int, i2s_pin_config_t);
+    dsp* fDSP;
+    float **fInChannel, **fOutChannel;
+    int fBS;
+    static void audioTask(void*);
+    TaskHandle_t fHandle;
 };
 
 #endif
