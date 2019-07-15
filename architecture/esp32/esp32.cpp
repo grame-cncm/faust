@@ -34,7 +34,6 @@
 
 #include "esp32.h"
 
-#include "faust/gui/MapUI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 
@@ -88,15 +87,15 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 #endif
     configureI2S(sample_rate, buffer_size, pin_config);
     
-    if (getNumInputs() > 0) {
-        fInChannel = new float*[getNumInputs()];
-        for (int i = 0; i < getNumInputs(); i++) {
+    if (fDSP->getNumInputs() > 0) {
+        fInChannel = new float*[fDSP->getNumInputs()];
+        for (int i = 0; i < fDSP->getNumInputs(); i++) {
             fInChannel[i] = new float[fBS];
         }
     }
-    if (getNumOutputs() > 0) {
-        fOutChannel = new float*[getNumOutputs()];
-        for (int i = 0; i < getNumOutputs(); i++) {
+    if (fDSP->getNumOutputs() > 0) {
+        fOutChannel = new float*[fDSP->getNumOutputs()];
+        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
             fOutChannel[i] = new float[fBS];
         }
     }
@@ -106,12 +105,12 @@ AudioFaust::~AudioFaust()
 {
     delete fDSP;
     
-    for (int i = 0; i< getNumInputs(); i++) {
+    for (int i = 0; i < fDSP->getNumInputs(); i++) {
         delete[] fInChannel[i];
     }
     delete [] fInChannel;
     
-    for (int i = 0; i < getNumOutputs(); i++) {
+    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
         delete[] fOutChannel[i];
     }
     delete [] fOutChannel;
@@ -119,7 +118,7 @@ AudioFaust::~AudioFaust()
 
 bool AudioFaust::start()
 {
-    xTaskCreate(audioTask, "Faust DSP Task", 1024, (void*)fDSP, 5, &fHandle);
+    xTaskCreate(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 5, &fHandle);
     return true;
 }
 
@@ -155,19 +154,17 @@ void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t
     REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
 }
 
-void AudioFaust::audioTask(void* arg)
+void AudioFaust::audioTask()
 {
-    dsp* fDSP = (dsp*)arg;
     while (true) {
-        
         if (fDSP->getNumInputs() > 0) {
             
             // Read from the card
+            int32_t samples_data_in[2*fBS];
             size_t bytes_read = 0;
             i2s_read((i2s_port_t)0, &samples_data_in, 8*fBS, &bytes_read, portMAX_DELAY);
             
             // Convert and copy inputs
-            int32_t samples_data_in[2*fBS];
             if (fDSP->getNumInputs() == 2) { // if stereo
                 for (int i = 0; i < fBS; i++){
                     fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
@@ -181,7 +178,7 @@ void AudioFaust::audioTask(void* arg)
         }
         
         // Call DSP
-        fDSP->compute(fBS,fInChannel,fOutChannel);
+        fDSP->compute(fBS, fInChannel, fOutChannel);
         
         // Convert and copy outputs
         int32_t samples_data_out[2*fBS];
@@ -203,6 +200,12 @@ void AudioFaust::audioTask(void* arg)
         size_t bytes_writen = 0;
         i2s_write((i2s_port_t)0, &samples_data_out, 8*fBS, &bytes_writen, portMAX_DELAY);
     }
+}
+
+void AudioFaust::audioTaskHandler(void* arg)
+{
+    AudioFaust* audio = (AudioFaust*)arg;
+    audio->audioTask();
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

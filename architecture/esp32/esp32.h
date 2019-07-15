@@ -30,6 +30,8 @@
 #include "freertos/task.h"
 #include "driver/i2s.h"
 
+#include "faust/gui/MapUI.h"
+
 class dsp;
 
 class AudioFaust
@@ -44,9 +46,11 @@ public:
 private:
     void configureI2S(int, int, i2s_pin_config_t);
     dsp* fDSP;
+    MapUI fUI;
     float **fInChannel, **fOutChannel;
     int fBS;
-    static void audioTask(void*);
+    void audioTask();
+    static void audioTaskHandler(void*);
     TaskHandle_t fHandle;
 };
 
