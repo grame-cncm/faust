@@ -6,11 +6,11 @@ and on the NuovotonDuino project: https://github.com/DFRobot/NuvotonDuino.
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "WM8978.h"
-#include "sys/types.h"
 #include "driver/i2c.h"
 
-static u16 WM8978_REGVAL_TBL[58]=
+static uint16_t WM8978_REGVAL_TBL[58]=
 {
 	0X0000,0X0000,0X0000,0X0000,0X0050,0X0000,0X0140,0X0000,
 	0X0000,0X0000,0X0000,0X00FF,0X00FF,0X0000,0X0100,0X00FF,
@@ -23,10 +23,10 @@ static u16 WM8978_REGVAL_TBL[58]=
 }; 
 
 // WM8978 init
-u8 WM8978::init(void)
+uint8_t WM8978::init(void)
 {
 	initI2C();
-	u8 res;
+	uint8_t res;
 	res = writeReg(0,0);	// WM8978
 	if(res) return 1;
 	writeReg(1,0X1B);	// R1, MICEN (MIC), BIASEN, VMIDSEL[1:0]
@@ -62,9 +62,9 @@ void WM8978::initI2C(void)
 // WM8978 register write
 // reg: Register Address
 // val: Register value
-u8 WM8978::writeReg(u8 reg,u16 val)
+uint8_t WM8978::writeReg(uint8_t reg,uint16_t val)
 { 
-	byte buf[2];
+	unsigned char buf[2];
 	buf[0] = (reg<<1)|((val>>8)&0X01);
 	buf[1] = val&0XFF;
 	
@@ -84,7 +84,7 @@ u8 WM8978::writeReg(u8 reg,u16 val)
 // Reads the value of the local register buffer zone
 // reg: Register Address
 // Return Value: Register value
-u16 WM8978::readReg(u8 reg)
+uint16_t WM8978::readReg(uint8_t reg)
 {
   return WM8978_REGVAL_TBL[reg];	
 } 
@@ -92,9 +92,9 @@ u16 WM8978::readReg(u8 reg)
 // WM8978 DAC/ADC
 // adcen: adc 1/0
 // dacen: dac 1/0
-void WM8978::addaCfg(u8 dacen,u8 adcen)
+void WM8978::addaCfg(uint8_t dacen,uint8_t adcen)
 {
-	u16 regval;
+	uint16_t regval;
 	regval = readReg(3); // R3
 	if(dacen)regval |= 3<<0; // R3 DACR & DACL
 	else regval &= ~(3<<0); // R3 DACR & DACL
@@ -109,9 +109,9 @@ void WM8978::addaCfg(u8 dacen,u8 adcen)
 // micen: MIC 1/0
 // lineinen: Line In 1/0
 // auxen: aux 1/0
-void WM8978::inputCfg(u8 micen,u8 lineinen,u8 auxen)
+void WM8978::inputCfg(uint8_t micen,uint8_t lineinen,uint8_t auxen)
 {
-	u16 regval;  
+	uint16_t regval;  
 	regval = readReg(2); // R2
 	if(micen) regval|=3<<2; // INPPGAENR, INPPGAENL (MIC/PGA)
 	else regval&=~(3<<2);
@@ -131,9 +131,9 @@ void WM8978::inputCfg(u8 micen,u8 lineinen,u8 auxen)
 // WM8978
 // dacen: DAC 1/0 
 // bpsen: Bypass (MIC, LINE IN,AUX) 1/0
-void WM8978::outputCfg(u8 dacen,u8 bpsen)
+void WM8978::outputCfg(uint8_t dacen,uint8_t bpsen)
 {
-	u16 regval = 0;
+	uint16_t regval = 0;
 	if(dacen) regval|=1<<0; // DAC
 	if(bpsen)
 	{
@@ -146,7 +146,7 @@ void WM8978::outputCfg(u8 dacen,u8 bpsen)
 
 // WM8978 MIC (BOOST 20dB,MIC-->ADC)
 // gain: 0~63, -12dB~35.25dB, 0.75dB/Step
-void WM8978::micGain(u8 gain)
+void WM8978::micGain(uint8_t gain)
 {
 	gain &= 0X3F;
 	writeReg(45,gain); // R45,PGA
@@ -155,9 +155,9 @@ void WM8978::micGain(u8 gain)
 
 // WM8978 L2/R2 (Line In) (L2/R2-->ADC)
 // gain: 0~7, 0ֹ, 1~7, -12dB~6dB, 3dB/Step
-void WM8978::lineinGain(u8 gain)
+void WM8978::lineinGain(uint8_t gain)
 {
-	u16 regval;
+	uint16_t regval;
 	gain &= 0X07;
 	regval = readReg(47);	// R47
 	regval&=~(7<<4); 
@@ -169,9 +169,9 @@ void WM8978::lineinGain(u8 gain)
 
 // WM8978 AUXR, AUXL(PWM) (AUXR/L-->ADC)
 // gain:0~7, 0ֹ, 1~7, -12dB~6dB, 3dB/Step
-void WM8978::auxGain(u8 gain)
+void WM8978::auxGain(uint8_t gain)
 {
-	u16 regval;
+	uint16_t regval;
 	gain &= 0X07;
 	regval = readReg(47);	// R47
 	regval&=~(7<<0); 
@@ -184,7 +184,7 @@ void WM8978::auxGain(u8 gain)
 // I2S
 // fmt: 0, LSB; 1,MSB; 2, I2S; 3, PCM/DSP;
 // len:0,16λ;1,20λ;2,24λ;3,32λ;  
-void WM8978::i2sCfg(u8 fmt,u8 len)
+void WM8978::i2sCfg(uint8_t fmt,uint8_t len)
 {
 	fmt &= 0X03;
 	len &= 0X03;
@@ -194,7 +194,7 @@ void WM8978::i2sCfg(u8 fmt,u8 len)
 // Headphone Output Volume
 // voll: (0~63)
 // volr: (0~63)
-void WM8978::hpVolSet(u8 voll,u8 volr)
+void WM8978::hpVolSet(uint8_t voll,uint8_t volr)
 {
 	voll &= 0X3F;
 	volr &= 0X3F;
@@ -206,7 +206,7 @@ void WM8978::hpVolSet(u8 voll,u8 volr)
 
 // Speaker Volume
 // voll: (0~63) 
-void WM8978::spkVolSet(u8 volx)
+void WM8978::spkVolSet(uint8_t volx)
 { 
 	volx &= 0X3F;
 	if(volx==0) volx|=1<<6;
@@ -216,7 +216,7 @@ void WM8978::spkVolSet(u8 volx)
 
 // 3D Setup
 // depth: 0~15
-void WM8978::threeDSet(u8 depth)
+void WM8978::threeDSet(uint8_t depth)
 { 
 	depth &= 0XF;
  	writeReg(41,depth);	// R41
@@ -225,9 +225,9 @@ void WM8978::threeDSet(u8 depth)
 // EQ/3D
 // dir:0, ADC
 // 1,DAC
-void WM8978::eq3DDir(u8 dir)
+void WM8978::eq3DDir(uint8_t dir)
 {
-	u16 regval; 
+	uint16_t regval; 
 	regval = readReg(0X12);
 	if(dir) regval|=1<<8;
 	else regval&=~(1<<8); 
@@ -237,9 +237,9 @@ void WM8978::eq3DDir(u8 dir)
 // EQ1
 // cfreq: 0~3, 80/105/135/175Hz
 // gain: 0~24, -12~+12dB
-void WM8978::eq1Set(u8 cfreq,u8 gain)
+void WM8978::eq1Set(uint8_t cfreq,uint8_t gain)
 { 
-	u16 regval;
+	uint16_t regval;
 	cfreq &= 0X3; 
 	if(gain>24) gain = 24;
 	gain = 24-gain;
@@ -253,9 +253,9 @@ void WM8978::eq1Set(u8 cfreq,u8 gain)
 // EQ2
 // cfreq: 0~3, 230/300/385/500Hz
 // gain: 0~24, -12~+12dB
-void WM8978::eq2Set(u8 cfreq,u8 gain)
+void WM8978::eq2Set(uint8_t cfreq,uint8_t gain)
 { 
-	u16 regval = 0;
+	uint16_t regval = 0;
 	cfreq &= 0X3; 
 	if(gain>24) gain = 24;
 	gain = 24-gain; 
@@ -267,9 +267,9 @@ void WM8978::eq2Set(u8 cfreq,u8 gain)
 // EQ3
 // cfreq: 0~3, 650/850/1100/1400Hz
 // gain: 0~24, -12~+12dB
-void WM8978::eq3Set(u8 cfreq,u8 gain)
+void WM8978::eq3Set(uint8_t cfreq,uint8_t gain)
 { 
-	u16 regval = 0;
+	uint16_t regval = 0;
 	cfreq &= 0X3; 
 	if(gain>24) gain = 24;
 	gain = 24-gain; 
@@ -281,9 +281,9 @@ void WM8978::eq3Set(u8 cfreq,u8 gain)
 // EQ4
 // cfreq: 0~3, 1800/2400/3200/4100Hz
 // gain: 0~24, -12~+12dB
-void WM8978::eq4Set(u8 cfreq,u8 gain)
+void WM8978::eq4Set(uint8_t cfreq,uint8_t gain)
 { 
-	u16 regval = 0;
+	uint16_t regval = 0;
 	cfreq &= 0X3;
 	if(gain>24) gain = 24;
 	gain = 24-gain; 
@@ -295,9 +295,9 @@ void WM8978::eq4Set(u8 cfreq,u8 gain)
 // EQ5
 // cfreq: 0~3, 5300/6900/9000/11700Hz
 // gain: 0~24, -12~+12dB
-void WM8978::eq5Set(u8 cfreq,u8 gain)
+void WM8978::eq5Set(uint8_t cfreq,uint8_t gain)
 { 
-	u16 regval = 0;
+	uint16_t regval = 0;
 	cfreq &= 0X3;
 	if(gain>24) gain = 24;
 	gain = 24-gain; 
@@ -306,9 +306,9 @@ void WM8978::eq5Set(u8 cfreq,u8 gain)
  	writeReg(22,regval); // R22, EQ5 	
 }
 
-void WM8978::alcSet(u8 enable, u8 maxgain, u8 mingain)
+void WM8978::alcSet(uint8_t enable, uint8_t maxgain, uint8_t mingain)
 { 
-	u16 regval;
+	uint16_t regval;
 
 	if(maxgain>7) maxgain=7;
 	if(mingain>7) mingain=7;
@@ -321,9 +321,9 @@ void WM8978::alcSet(u8 enable, u8 maxgain, u8 mingain)
 }
 
 
-void WM8978::noiseSet(u8 enable,u8 gain)
+void WM8978::noiseSet(uint8_t enable,uint8_t gain)
 { 
-	u16 regval;
+	uint16_t regval;
 
 	if(gain>7) gain=7;
 

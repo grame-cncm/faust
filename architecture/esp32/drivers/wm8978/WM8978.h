@@ -2,11 +2,7 @@
 #define __WM8978_H
 
 #include <stdio.h>
-#include "sys/types.h"
-
-typedef uint16_t u16;
-typedef uint8_t u8;
-typedef unsigned char byte;
+#include <stdint.h>
 
 #define I2C_MASTER_NUM 1 /*!< I2C port number for master dev */
 #define I2C_MASTER_SCL_IO 18
@@ -48,28 +44,28 @@ typedef unsigned char byte;
 class WM8978
 {
   public:
-    u8 init(void);
+    uint8_t init(void);
     void initI2C(void);
-    void addaCfg(u8 dacen,u8 adcen);
-    void inputCfg(u8 micen,u8 lineinen,u8 auxen);
-    void outputCfg(u8 dacen,u8 bpsen);
-    void micGain(u8 gain);
-    void lineinGain(u8 gain);
-    void auxGain(u8 gain);
-    u8 writeReg(u8 reg,u16 val); 
-    u16 readReg(u8 reg);
-    void hpVolSet(u8 voll,u8 volr);
-    void spkVolSet(u8 volx);
-    void i2sCfg(u8 fmt,u8 len);
-    void threeDSet(u8 depth);
-    void eq3DDir(u8 dir); 
-    void eq1Set(u8 cfreq,u8 gain); 
-    void eq2Set(u8 cfreq,u8 gain);
-    void eq3Set(u8 cfreq,u8 gain);
-    void eq4Set(u8 cfreq,u8 gain);
-    void eq5Set(u8 cfreq,u8 gain);
-    void noiseSet(u8 enable,u8 gain);
-    void alcSet(u8 enable, u8 maxgain, u8 mingain);
+    void addaCfg(uint8_t dacen,uint8_t adcen);
+    void inputCfg(uint8_t micen,uint8_t lineinen,uint8_t auxen);
+    void outputCfg(uint8_t dacen,uint8_t bpsen);
+    void micGain(uint8_t gain);
+    void lineinGain(uint8_t gain);
+    void auxGain(uint8_t gain);
+    uint8_t writeReg(uint8_t reg,uint16_t val); 
+    uint16_t readReg(uint8_t reg);
+    void hpVolSet(uint8_t voll,uint8_t volr);
+    void spkVolSet(uint8_t volx);
+    void i2sCfg(uint8_t fmt,uint8_t len);
+    void threeDSet(uint8_t depth);
+    void eq3DDir(uint8_t dir); 
+    void eq1Set(uint8_t cfreq,uint8_t gain); 
+    void eq2Set(uint8_t cfreq,uint8_t gain);
+    void eq3Set(uint8_t cfreq,uint8_t gain);
+    void eq4Set(uint8_t cfreq,uint8_t gain);
+    void eq5Set(uint8_t cfreq,uint8_t gain);
+    void noiseSet(uint8_t enable,uint8_t gain);
+    void alcSet(uint8_t enable, uint8_t maxgain, uint8_t mingain);
 };
 
 #endif
