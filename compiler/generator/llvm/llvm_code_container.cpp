@@ -147,42 +147,6 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
     return PointerType::get(dsp_type, 0);
 }
 
-void LLVMCodeContainer::generateGetJSON()
-{
-    PointerType*  string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-    LLVMVecTypes  getJSON_args;
-    FunctionType* getJSON_type = FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
-    Function* getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
-
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options, false);
-
-    // JSON generation
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
-
-    map<string, int> path_index_table;
-    for (auto& it : json_visitor1.fPathTable) {
-        // Get field index
-        path_index_table[it.second] = fStructVisitor.getFieldOffset(it.first);
-    }
-
-    faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
-
-    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
-                                 FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
-                                 gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table);
-    generateUserInterface(&json_visitor);
-    generateMetaData(&json_visitor);
-
-    BasicBlock* return_block = BasicBlock::Create(*fContext, "return_block", getJSON);
-    ReturnInst::Create(*fContext, fCodeProducer->genStringConstant(json_visitor.JSON(true)), return_block);
-
-    verifyFunction(*getJSON);
-    fBuilder->ClearInsertionPoint();
-}
-
 void LLVMCodeContainer::generateFunMaps()
 {
     if (gGlobal->gFastMath) {
@@ -281,7 +245,12 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateAllocate("allocate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     generateDestroy("destroy" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
 
-    generateGetJSON();
+    // generateGetJSON generation
+    if (gGlobal->gFloatSize == 1) {
+        generateGetJSON<float>();
+    } else {
+        generateGetJSON<double>();
+    }
 
     // Compute
     generateCompute();

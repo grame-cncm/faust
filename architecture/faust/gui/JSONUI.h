@@ -29,6 +29,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 
@@ -42,7 +43,7 @@
  ******************************************************************************/
 
 template <typename REAL>
-class JSONUIAux : public PathBuilder, public Meta, public UI
+class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
 {
 
     protected:
@@ -168,6 +169,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::map<std::string, int>& path_table)
         {
             fTab = 1;
+            
+            fUI << std::setprecision(std::numeric_limits<REAL>::max_digits10);
+            fMeta << std::setprecision(std::numeric_limits<REAL>::max_digits10);
             
             // Start Meta generation
             fMeta.str("");
@@ -382,6 +386,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         {
             fTab = 0;
             std::stringstream JSON;
+            JSON << std::setprecision(std::numeric_limits<REAL>::max_digits10);
             JSON << "{";
             fTab += 1;
             tab(fTab, JSON); JSON << "\"name\": \"" << fName << "\",";
@@ -428,7 +433,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
 
 // Externally available class using FAUSTFLOAT
 
-class JSONUI : public JSONUIAux<FAUSTFLOAT>
+class JSONUI : public JSONUIAux<FAUSTFLOAT>, public UI
 {
     public :
     
@@ -463,6 +468,76 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
         
         JSONUI():JSONUIAux<FAUSTFLOAT>()
         {}
+    
+        virtual void openTabBox(const char* label)
+        {
+            JSONUIAux<FAUSTFLOAT>::openTabBox(label);
+        }
+        virtual void openHorizontalBox(const char* label)
+        {
+            JSONUIAux<FAUSTFLOAT>::openTabBox(label);
+        }
+        virtual void openVerticalBox(const char* label)
+        {
+            JSONUIAux<FAUSTFLOAT>::openVerticalBox(label);
+        }
+        virtual void closeBox()
+        {
+            JSONUIAux<FAUSTFLOAT>::closeBox();
+        }
+        
+        // -- active widgets
+        
+        virtual void addButton(const char* label, FAUSTFLOAT* zone)
+        {
+            JSONUIAux<FAUSTFLOAT>::addButton(label, zone);
+        }
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        {
+            JSONUIAux<FAUSTFLOAT>::addCheckButton(label, zone);
+        }
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            JSONUIAux<FAUSTFLOAT>::addVerticalSlider(label, zone, init, min, max, step);
+        }
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            JSONUIAux<FAUSTFLOAT>::addHorizontalSlider(label, zone, init, min, max, step);
+        }
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            JSONUIAux<FAUSTFLOAT>::addNumEntry(label, zone, init, min, max, step);
+        }
+        
+        // -- passive widgets
+        
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            JSONUIAux<FAUSTFLOAT>::addHorizontalBargraph(label, zone, min, max);
+        }
+        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            JSONUIAux<FAUSTFLOAT>::addVerticalBargraph(label, zone, min, max);
+        }
+        
+        // -- soundfiles
+        
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+        {
+            JSONUIAux<FAUSTFLOAT>::addSoundfile(label, filename, sf_zone);
+        }
+        
+        // -- metadata declarations
+        
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        {
+            JSONUIAux<FAUSTFLOAT>::declare(zone, key, val);
+        }
+    
+        virtual void declare(const char* key, const char* val)
+        {
+            JSONUIAux<FAUSTFLOAT>::declare(key, val);
+        }
     
         virtual ~JSONUI() {}
     

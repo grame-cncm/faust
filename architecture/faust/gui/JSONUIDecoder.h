@@ -92,9 +92,7 @@ struct JSONUIDecoderAux {
     };
 
     typedef std::vector<ExtZoneParam*> controlMap;
-    
-    REAL STR2REAL(const std::string& str) { return REAL(std::strtod(str.c_str(), nullptr)); }
- 
+  
     std::string fName;
     std::string fFileName;
     std::string fJSON;
@@ -110,7 +108,7 @@ struct JSONUIDecoderAux {
     Soundfile** fSoundfiles;
     
     int fNumInputs, fNumOutputs, fSRIndex;
-    int fInputItems, fOutputItems, fSoundfileItems;
+    int fSoundfileItems;
     int fDSPSize;
     
     controlMap fPathInputTable;     // [path, ZoneParam]
@@ -123,14 +121,14 @@ struct JSONUIDecoderAux {
     bool isOutput(const std::string& type) { return (type == "hbargraph" || type == "vbargraph"); }
     bool isSoundfile(const std::string& type) { return (type == "soundfile"); }
     
-    std::string getString(std::map<std::string, std::string >& map, const std::string& key)
+    std::string getString(std::map<std::string, std::pair<std::string, double> >& map, const std::string& key)
     {
-        return (map.find(key) != map.end()) ? map[key] : "";
+        return (map.find(key) != map.end()) ? map[key].first : "";
     }
     
-    int getInt(std::map<std::string, std::string >& map, const std::string& key)
+    int getInt(std::map<std::string, std::pair<std::string, double> >& map, const std::string& key)
     {
-        return (map.find(key) != map.end()) ? std::atoi(map[key].c_str()) : -1;
+        return (map.find(key) != map.end()) ? int(map[key].second) : -1;
     }
     
     void setReflectZoneFun(int index, ReflectFunction fun)
@@ -147,15 +145,15 @@ struct JSONUIDecoderAux {
     {
         fJSON = json;
         const char* p = fJSON.c_str();
-        std::map<std::string, std::string > meta_data0;
+        std::map<std::string, std::pair<std::string, double> > meta_data1;
         std::map<std::string, std::vector<std::string> > meta_data2;
-        parseJson(p, meta_data0, fMetadata, meta_data2, fUiItems);
+        parseJson(p, meta_data1, fMetadata, meta_data2, fUiItems);
         
-        // meta_data0 contains <name : val>, <inputs : val>, <ouputs : val> pairs etc...
-        fName = getString(meta_data0, "name");
-        fFileName = getString(meta_data0, "filename");
-        fVersion = getString(meta_data0, "version");
-        fCompileOptions = getString(meta_data0, "compile_options");
+        // meta_data1 contains <name : val>, <inputs : val>, <ouputs : val> pairs etc...
+        fName = getString(meta_data1, "name");
+        fFileName = getString(meta_data1, "filename");
+        fVersion = getString(meta_data1, "version");
+        fCompileOptions = getString(meta_data1, "compile_options");
         
         if (meta_data2.find("library_list") != meta_data2.end()) {
             fLibraryList = meta_data2["library_list"];
@@ -164,22 +162,15 @@ struct JSONUIDecoderAux {
             fIncludePathnames = meta_data2["include_pathnames"];
         }
         
-        fDSPSize = getInt(meta_data0, "size");
-        fNumInputs = getInt(meta_data0, "inputs");
-        fNumOutputs = getInt(meta_data0, "outputs");
-        fSRIndex = getInt(meta_data0, "sr_index");
+        fDSPSize = getInt(meta_data1, "size");
+        fNumInputs = getInt(meta_data1, "inputs");
+        fNumOutputs = getInt(meta_data1, "outputs");
+        fSRIndex = getInt(meta_data1, "sr_index");
        
-        fInputItems = 0;
-        fOutputItems = 0;
         fSoundfileItems = 0;
-        
         for (auto& it : fUiItems) {
             std::string type = it.type;
-            if (isInput(type)) {
-                fInputItems++;
-            } else if (isOutput(type)) {
-                fOutputItems++;          
-            } else if (isSoundfile(type)) {
+            if (isSoundfile(type)) {
                 fSoundfileItems++;
             }
         }
@@ -191,13 +182,13 @@ struct JSONUIDecoderAux {
             std::string type = it.type;
             // Meta data declaration for input items
             if (isInput(type)) {
-                ZoneParam* param = new ZoneParam(std::atoi(it.index.c_str()));
+                ZoneParam* param = new ZoneParam(it.index);
                 fPathInputTable.push_back(param);
-                param->fZone = STR2REAL(it.init);
+                param->fZone = it.init;
             }
             // Meta data declaration for output items
             else if (isOutput(type)) {
-                ZoneParam* param = new ZoneParam(std::atoi(it.index.c_str()));
+                ZoneParam* param = new ZoneParam(it.index);
                 fPathOutputTable.push_back(param);
                 param->fZone = REAL(0);
             }
@@ -228,7 +219,7 @@ struct JSONUIDecoderAux {
         int item = 0;
         for (auto& it : fUiItems) {
             if (isInput(it.type)) {
-                static_cast<ZoneParam*>(fPathInputTable[item++])->fZone = STR2REAL(it.init);
+                static_cast<ZoneParam*>(fPathInputTable[item++])->fZone = it.init;
             }
         }
     }
@@ -236,9 +227,9 @@ struct JSONUIDecoderAux {
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
         for (auto& it : fUiItems) {
-            int offset = std::atoi(it.index.c_str());
+            int offset = it.index;
             if (isInput(it.type)) {
-                *REAL_ADR(offset) = STR2REAL(it.init);
+                *REAL_ADR(offset) = it.init;
             } else if (isSoundfile(it.type)) {
                 if (*SOUNDFILE_ADR(offset) == nullptr) {
                     *SOUNDFILE_ADR(offset) = defaultsound;
@@ -265,10 +256,10 @@ struct JSONUIDecoderAux {
         for (auto& it : fUiItems) {
             
             std::string type = it.type;
-            REAL init = STR2REAL(it.init);
-            REAL min = STR2REAL(it.min);
-            REAL max = STR2REAL(it.max);
-            REAL step = STR2REAL(it.step);
+            REAL init = it.init;
+            REAL min = it.min;
+            REAL max = it.max;
+            REAL step = it.step;
             
             // Meta data declaration for input items
             if (isInput(type)) {
@@ -323,6 +314,7 @@ struct JSONUIDecoderAux {
                 countSound++;
             }
         }
+        
         setlocale(LC_ALL, tmp_local);
     }
     
@@ -332,16 +324,14 @@ struct JSONUIDecoderAux {
         char* tmp_local = setlocale(LC_ALL, nullptr);
         setlocale(LC_ALL, "C");
         
-        int countSound = 0;
-        
         for (auto& it : fUiItems) {
             
             std::string type = it.type;
-            int offset = std::atoi(it.index.c_str());
-            REAL init = STR2REAL(it.init);
-            REAL min = STR2REAL(it.min);
-            REAL max = STR2REAL(it.max);
-            REAL step = STR2REAL(it.step);
+            int offset = it.index;
+            REAL init = it.init;
+            REAL min = it.min;
+            REAL max = it.max;
+            REAL step = it.step;
             
             // Meta data declaration for input items
             if (isInput(type)) {
@@ -387,11 +377,8 @@ struct JSONUIDecoderAux {
             } else if (type == "close") {
                 REAL_UI(ui_interface)->closeBox();
             }
-            
-            if (isSoundfile(type)) {
-                countSound++;
-            }
         }
+        
         setlocale(LC_ALL, tmp_local);
     }
     

@@ -39,7 +39,8 @@ using namespace std;
  FIR visitor to prepare the JSON representation.
 */
 
-struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
+template <typename REAL>
+struct JSONInstVisitor : public DispatchVisitor, public JSONUIAux<REAL> {
     map<string, string> fPathTable; // Table : field_name, complete path
     set<string> fControlPathSet;    // Set of already used control paths
  
@@ -60,30 +61,30 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                     const std::string& compile_options, const std::vector<std::string>& library_list,
                     const std::vector<std::string>& include_pathnames, int size,
                     const std::map<std::string, int>& path_table)
-        : JSONUI(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
+        : JSONUIAux<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
                  include_pathnames, size, path_table)
     {
     }
 
-    JSONInstVisitor(int inputs, int outputs) : JSONUI(inputs, outputs) {}
+    JSONInstVisitor(int inputs, int outputs) : JSONUIAux<REAL>(inputs, outputs) {}
 
-    JSONInstVisitor() : JSONUI() {}
+    JSONInstVisitor() : JSONUIAux<REAL>() {}
 
     virtual ~JSONInstVisitor() {}
 
-    virtual void visit(AddMetaDeclareInst* inst) { declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
+    virtual void visit(AddMetaDeclareInst* inst) { this->declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
 
     virtual void visit(OpenboxInst* inst)
     {
         switch (inst->fOrient) {
             case 0:
-                openVerticalBox(inst->fName.c_str());
+                this->openVerticalBox(inst->fName.c_str());
                 break;
             case 1:
-                openHorizontalBox(inst->fName.c_str());
+                this->openHorizontalBox(inst->fName.c_str());
                 break;
             case 2:
-                openTabBox(inst->fName.c_str());
+                this->openTabBox(inst->fName.c_str());
                 break;
             default:
                 faustassert(false);
@@ -91,71 +92,71 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         }
     }
 
-    virtual void visit(CloseboxInst* inst) { closeBox(); }
+    virtual void visit(CloseboxInst* inst) { this->closeBox(); }
 
     virtual void visit(AddButtonInst* inst)
     {
         switch (inst->fType) {
             case AddButtonInst::kDefaultButton:
-                addButton(inst->fLabel.c_str(), nullptr);
+                this->addButton(inst->fLabel.c_str(), nullptr);
                 break;
             case AddButtonInst::kCheckButton:
-                addCheckButton(inst->fLabel.c_str(), nullptr);
+                this->addCheckButton(inst->fLabel.c_str(), nullptr);
                 break;
             default:
                 faustassert(false);
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSliderInst* inst)
     {
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kVertical:
-                addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kNumEntry:
-                addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             default:
                 faustassert(false);
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                addHorizontalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
+                this->addHorizontalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
                 break;
             case AddBargraphInst::kVertical:
-                addVerticalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
+                this->addVerticalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
                 break;
             default:
                 faustassert(false);
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
+        this->addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
         faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
-        fPathTable[inst->fSFZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
+        fPathTable[inst->fSFZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
-    void setInputs(int input) { fInputs = input; }
-    void setOutputs(int output) { fOutputs = output; }
+    void setInputs(int input) { this->fInputs = input; }
+    void setOutputs(int output) { this->fOutputs = output; }
 };
 
 #endif

@@ -191,12 +191,15 @@ void SOULCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     
     if (gGlobal->gOutputLang == "soul-dsp") {
-        JSONInstVisitor json_visitor;
-        generateUserInterface(&json_visitor);
-        generateMetaData(&json_visitor);
+        string json;
+        if (gGlobal->gFloatSize == 1) {
+            json = generateJSON<float>();
+        } else {
+            json = generateJSON<double>();
+        }
         *fOut << "// Event used to call additional methods";
         tab(n + 1, *fOut);
-        *fOut << "input event int eventbuildUserInterface [[json: \"" << flattenJSON(json_visitor.JSON(true)) << "\"]];";
+        *fOut << "input event int eventbuildUserInterface [[json: \"" << flattenJSON(json) << "\"]];";
         tab(n + 1, *fOut);
         *fOut << "input event int eventclassInit;";
         tab(n + 1, *fOut);

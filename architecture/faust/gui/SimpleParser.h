@@ -48,12 +48,15 @@ struct itemInfo {
     std::string label;
     std::string url;
     std::string address;
-    std::string index;
-    std::string init;
-    std::string min;
-    std::string max;
-    std::string step;
+    int index;
+    double init;
+    double min;
+    double max;
+    double step;
     std::vector<std::pair<std::string, std::string> > meta;
+    
+    itemInfo():index(0), init(0.), min(0.), max(0.), step(0.)
+    {}
 };
 
 // ---------------------------------------------------------------------
@@ -164,6 +167,7 @@ static bool parseDouble(const char*& p, double& x)
     } else {
         p = saved;
     }
+ 
     return valid;
 }
 
@@ -372,13 +376,13 @@ static bool parseItemMetaData(const char*& p, std::vector<std::pair<std::string,
 // "name" : "...", "inputs" : "...", "outputs" : "...", ...
 // and store the result as key/value
 /// ---------------------------------------------------------------------
-static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string, std::string>& metadatas, std::vector<std::string>& items)
+static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, double& dbl, std::map<std::string, std::string>& metadatas, std::vector<std::string>& items)
 {
     if (parseDQString(p, key)) {
         if (key == "meta") {
             return parseMetaData(p, metadatas);
         } else {
-            return parseChar(p, ':') && (parseDQString(p, value) || parseList(p, items));
+            return parseChar(p, ':') && (parseDQString(p, value) || parseList(p, items) || parseDouble(p, dbl));
         }
     } else {
         return false;
@@ -396,6 +400,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
    
         std::string label;
         std::string value;
+        double dbl = 0;
         
         do {
             if (parseDQString(p, label)) {
@@ -429,8 +434,8 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                 }
                 
                 else if (label == "index") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].index = value;
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].index = dbl;
                     }
                 }
                 
@@ -441,26 +446,26 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                 }
                 
                 else if (label == "init") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].init = value;
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].init = dbl;
                     }
                 }
                 
                 else if (label == "min") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].min = value;
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].min = dbl;
                     }
                 }
                 
                 else if (label == "max") {
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].max = value;
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].max = dbl;
                     }
                 }
                 
                 else if (label == "step"){
-                    if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].step = value;
+                    if (parseChar(p, ':') && parseDouble(p, dbl)) {
+                        uiItems[numItems].step = dbl;
                     }
                 }
                 
@@ -498,7 +503,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 /// ---------------------------------------------------------------------
 static bool parseJson(const char*& p,
-                      std::map<std::string, std::string>& metaDatas0,
+                      std::map<std::string, std::pair<std::string, double> >& metaDatas0,
                       std::map<std::string, std::string>& metaDatas1,
                       std::map<std::string, std::vector<std::string> >& metaDatas2,
                       std::vector<itemInfo>& uiItems)
@@ -508,15 +513,18 @@ static bool parseJson(const char*& p,
     do {
         std::string key;
         std::string value;
+        double dbl = 0;
         std::vector<std::string> items;
-        if (parseGlobalMetaData(p, key, value, metaDatas1, items)) {
+        if (parseGlobalMetaData(p, key, value, dbl, metaDatas1, items)) {
             if (key != "meta") {
                 // keep "name", "inputs", "outputs" key/value pairs
                 if (items.size() > 0) {
                     metaDatas2[key] = items;
                     items.clear();
+                } else if (value != "") {
+                    metaDatas0[key].first = value;
                 } else {
-                    metaDatas0[key] = value;
+                    metaDatas0[key].second = dbl;
                 }
             }
         } else if (key == "ui") {

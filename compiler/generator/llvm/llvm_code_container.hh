@@ -44,8 +44,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
     Module*      fModule;
     LLVMContext* fContext;
 
-    void generateGetJSON();
-
     // To be used for mathematical function mapping (-fm and exp10 on OSX)
     void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
     void generateFunMaps();
@@ -55,6 +53,44 @@ class LLVMCodeContainer : public virtual CodeContainer {
     // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer
     // classes
     virtual void generateCompute() = 0;
+    
+    template <typename REAL>
+    void generateGetJSON()
+    {
+        PointerType*  string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
+        LLVMVecTypes  getJSON_args;
+        FunctionType* getJSON_type = FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
+        Function* getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
+
+        // Prepare compilation options
+        stringstream compile_options;
+        gGlobal->printCompilationOptions(compile_options, false);
+
+        // JSON generation
+        JSONInstVisitor<REAL> json_visitor1;
+        generateUserInterface(&json_visitor1);
+
+        map<string, int> path_index_table;
+        for (auto& it : json_visitor1.fPathTable) {
+            // Get field index
+            path_index_table[it.second] = fStructVisitor.getFieldOffset(it.first);
+        }
+
+        faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
+
+        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
+        FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
+        gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table);
+        generateUserInterface(&json_visitor2);
+        generateMetaData(&json_visitor2);
+
+        BasicBlock* return_block = BasicBlock::Create(*fContext, "return_block", getJSON);
+        ReturnInst::Create(*fContext, fCodeProducer->genStringConstant(json_visitor2.JSON(true)), return_block);
+        
+        verifyFunction(*getJSON);
+        fBuilder->ClearInsertionPoint();
+    }
+ 
 
    public:
     LLVMCodeContainer(const string& name, int numInputs, int numOutputs);

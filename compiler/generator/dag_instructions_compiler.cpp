@@ -131,7 +131,11 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
     // Generate JSON
     if (gGlobal->gPrintJSONSwitch) {
-        fContainer->generateJSONFile();
+        if (gGlobal->gFloatSize == 1) {
+            fContainer->generateJSONFile<float>();
+        } else {
+            fContainer->generateJSONFile<double>();
+        }
     }
 }
 

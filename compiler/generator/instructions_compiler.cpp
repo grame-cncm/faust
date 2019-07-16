@@ -414,10 +414,14 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     // Generate JSON (which checks for non duplicated path)
     if (gGlobal->gPrintJSONSwitch) {
-        fContainer->generateJSONFile();
+        if (gGlobal->gFloatSize == 1) {
+            fContainer->generateJSONFile<float>();
+        } else {
+            fContainer->generateJSONFile<double>();
+        }
     } else {
         // Checks for non duplicated path
-        JSONInstVisitor path_checker;
+        JSONInstVisitor<float> path_checker;
         fContainer->generateUserInterface(&path_checker);
     }
 

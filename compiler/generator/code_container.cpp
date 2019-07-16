@@ -441,59 +441,6 @@ BlockInst* CodeContainer::flattenFIR(void)
     return global_block;
 }
 
-void CodeContainer::generateMetaData(JSONUI* json)
-{
-    // Add global metadata
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
-            stringstream str1, str2;
-            str1 << *(i->first);
-            str2 << **(i->second.begin());
-            string res1 = str1.str();
-            string res2 = unquote(str2.str());
-            json->declare(res1.c_str(), res2.c_str());
-        } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
-                    stringstream str1, str2;
-                    str1 << *(i->first);
-                    str2 << **j;
-                    string res1 = str1.str();
-                    string res2 = unquote(str2.str());
-                    json->declare(res1.c_str(), res2.c_str());
-                } else {
-                    stringstream str2;
-                    str2 << **j;
-                    string res2 = unquote(str2.str());
-                    json->declare("contributor", res2.c_str());
-                }
-            }
-        }
-    }
-}
-
-void CodeContainer::generateJSONFile()
-{
-    JSONInstVisitor json_visitor;
-    generateJSON(&json_visitor);
-    ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-    xout << json_visitor.JSON();
-}
-
-void CodeContainer::generateJSON(JSONInstVisitor* visitor)
-{
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
-
-    // "name", "filename" found in medata
-    visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
-
-    generateUserInterface(visitor);
-    generateMetaData(visitor);
-}
-
 BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation

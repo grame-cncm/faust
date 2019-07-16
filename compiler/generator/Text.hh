@@ -207,6 +207,7 @@ inline string flatten(const string& src)
     return dst;
 }
 
+// To be used for WASM or SOUL
 inline string flattenJSON(const string& src)
 {
     string dst;
@@ -215,6 +216,26 @@ inline string flattenJSON(const string& src)
             case '"':
                 dst += "\\\"";
                 break;
+            case '\\':
+                dst += "\\";
+                break;
+            case '\'':
+                dst += "\\'";
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
+// To be used for JavaScript
+inline string flattenJSON1(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
             case '\\':
                 dst += "\\";
                 break;

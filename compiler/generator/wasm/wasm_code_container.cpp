@@ -24,7 +24,6 @@
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "json_instructions.hh"
 #include "rn_base64.h"
 
 using namespace std;
@@ -333,33 +332,14 @@ void WASMCodeContainer::produceClass()
         generateUserInterface(gGlobal->gWASMVisitor);
     }
 
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
-
     // JSON generation
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
-
-    map<string, string>::iterator it;
-    std::map<std::string, int>    path_index_table;
-    map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
-    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-        faustassert(path_index_table.find((*it).second) == path_index_table.end());
-        // Get field index
-        MemoryDesc tmp                 = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
+    string json;
+    if (gGlobal->gFloatSize == 1) {
+        json = generateJSON<float>();
+    } else {
+        json = generateJSON<double>();
     }
-
-    // "name", "filename" found in metadata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                  gGlobal->gWASMVisitor->getStructSize(), path_index_table);
-    generateUserInterface(&json_visitor2);
-    generateMetaData(&json_visitor2);
-
-    string json = json_visitor2.JSON(true);
-
+  
     // Memory size can now be written
     if (fInternalMemory) {
         int memory_size = genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
@@ -389,11 +369,12 @@ void WASMCodeContainer::produceClass()
 
     // Generate JSON
     tab(n, fHelper);
+    string json2 = flattenJSON1(json);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return \"";
-    fHelper << flattenJSON(json);
-    fHelper << "\";";
+    fHelper << "return '";
+    fHelper << json2;
+    fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";

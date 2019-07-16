@@ -24,7 +24,6 @@
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "json_instructions.hh"
 
 using namespace std;
 
@@ -325,33 +324,13 @@ void WASTCodeContainer::produceClass()
     fOutAux << ")";
     tab(n, fOutAux);
 
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
-
     // JSON generation
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
-
-    map<string, string>::iterator it;
-    std::map<std::string, int>    path_index_table;
-    map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
-    
-    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-        faustassert(path_index_table.find((*it).second) == path_index_table.end());
-        // Get field index
-        MemoryDesc tmp                 = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
+    string json;
+    if (gGlobal->gFloatSize == 1) {
+        json = generateJSON<float>();
+    } else {
+        json = generateJSON<double>();
     }
-
-    // "name", "filename" found in medata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                  gGlobal->gWASTVisitor->getStructSize(), path_index_table);
-    generateUserInterface(&json_visitor2);
-    generateMetaData(&json_visitor2);
-
-    string json = flattenJSON(json_visitor2.JSON(true));
 
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();
@@ -362,9 +341,10 @@ void WASTCodeContainer::produceClass()
     *fOut << begin;
 
     // Insert memory generation
+    string json1 = flattenJSON(json);
     tab(n + 1, *fOut);
     if (fInternalMemory) {
-        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json1.size());
         *fOut << "(memory (export \"memory\") ";
         // Since JSON is written in data segment at offset 0, the memory size
         // must be computed taking account JSON size and DSP + audio buffer size
@@ -378,7 +358,7 @@ void WASTCodeContainer::produceClass()
 
     // Generate one data segment containing the JSON string starting at offset 0
     tab(n + 1, *fOut);
-    *fOut << "(data (i32.const 0) \"" << json << "\")";
+    *fOut << "(data (i32.const 0) \"" << json1 << "\")";
 
     // And write end of code stream on *fOut
     *fOut << end;
@@ -395,11 +375,12 @@ void WASTCodeContainer::produceClass()
 
     // Generate JSON
     tab(n, fHelper);
+    string json2 = flattenJSON1(json);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
-    fHelper << "return \"";
-    fHelper << json;
-    fHelper << "\";";
+    fHelper << "return '";
+    fHelper << json2;
+    fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
     fHelper << "}\n";

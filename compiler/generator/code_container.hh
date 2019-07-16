@@ -288,10 +288,71 @@ class CodeContainer : public virtual Garbageable {
                               TextInstVisitor* producer);
 
     void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
+    
+    template <typename REAL>
+    void generateMetaData(JSONUIAux<REAL>* json)
+    {
+        // Add global metadata
+        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+            if (i->first != tree("author")) {
+                stringstream str1, str2;
+                str1 << *(i->first);
+                str2 << **(i->second.begin());
+                string res1 = str1.str();
+                string res2 = unquote(str2.str());
+                json->declare(res1.c_str(), res2.c_str());
+            } else {
+                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                    if (j == i->second.begin()) {
+                        stringstream str1, str2;
+                        str1 << *(i->first);
+                        str2 << **j;
+                        string res1 = str1.str();
+                        string res2 = unquote(str2.str());
+                        json->declare(res1.c_str(), res2.c_str());
+                    } else {
+                        stringstream str2;
+                        str2 << **j;
+                        string res2 = unquote(str2.str());
+                        json->declare("contributor", res2.c_str());
+                    }
+                }
+            }
+        }
+    }
 
-    void generateJSONFile();
-    void generateMetaData(JSONUI* json);
-    void generateJSON(JSONInstVisitor* visitor);
+    template <typename REAL>
+    void generateJSONFile()
+    {
+        JSONInstVisitor<REAL> json_visitor;
+        generateJSON(&json_visitor);
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
+        xout << json_visitor.JSON();
+    }
+    
+    template <typename REAL>
+    void generateJSON(JSONInstVisitor<REAL>* visitor)
+    {
+        // Prepare compilation options
+        stringstream compile_options;
+        gGlobal->printCompilationOptions(compile_options);
+        
+        // "name", "filename" found in medata
+        visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+                      gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
+        
+        generateUserInterface(visitor);
+        generateMetaData(visitor);
+    }
+    
+    template <typename REAL>
+    string generateJSON()
+    {
+        JSONInstVisitor<REAL> json_visitor;
+        generateUserInterface(&json_visitor);
+        generateMetaData(&json_visitor);
+        return json_visitor.JSON(true);
+    }
 
     DeclareFunInst* generateCalloc();
     DeclareFunInst* generateFree();
