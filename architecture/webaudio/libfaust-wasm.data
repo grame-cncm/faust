@@ -2220,7 +2220,7 @@ declare version "0.1";
 
 //-------`(de.)delay`----------
 // Simple `d` samples delay where `n` is the maximum delay length as a number of
-// samples. Unlike the `@` delay operator, here the delay signal `d` is explicitely
+// samples. Unlike the `@` delay operator, here the delay signal `d` is explicitly
 // bounded to the interval [0..n]. The consequence is that delay will compile even
 // if the interval of d can't be computed by the compiler.
 // `delay` is a standard Faust function.
@@ -3669,11 +3669,43 @@ with{
 // Linux QT:
 //   faust2jaqt reverse_echo_demo.dsp
 //   ./reverse_echo_demo
+// Etc.
 // ```
 //-------------------------------------------------------------------
 reverse_echo_demo(nChans) =  ef.reverseEchoN(nChans,delMax) : ef.uniformPanToStereo(nChans) 
 with {
 	delMax = 2^int(nentry("Log2(Delay)",15,5,16,1)); // delay line length
+};
+
+//-----------------`(dm.)ssbf_demo(nChans)`----------------
+// Use Single-SideBand Filter ssbf to frequency-shift a sine tone.
+//
+// #### Usage
+//
+// ```
+// echo 'import("stdfaust.lib");' > ssbf_demo.dsp
+// echo 'N = 6; // Any integer > 0 should work here' >> ssbf_demo.dsp
+// echo 'process = dm.ssbf_demo(nChans);' >> ssbf_demo.dsp
+// Mac:
+//   faust2caqt ssbf_demo.dsp
+//   open ssbf_demo.app
+// Linux GTK:
+//   faust2jack ssbf_demo.dsp
+//   ./ssbf_demo
+// Linux QT:
+//   faust2jaqt ssbf_demo.dsp
+//   ./ssbf_demo
+// Etc.
+// ```
+//-------------------------------------------------------------------
+ssbf_demo(N) =  os.oscrs(fc) : fi.ssbf(N), smod : si.cmul with {
+  N=6;
+  fc = ma.SR/4.0; // original frequency
+  fsh = hslider("Frequency Shift (Multiplicative on SR/4)",0.01,0.001,2,0.001) : si.smooth(0.999);
+  fn = fc*fsh; // new freq
+  df = fn-fc; // delta freq
+  // smod(n) = exp(sqrt(-1) * 2 * ma.PI * df * n / ma.SR) // complex version
+  smod = os.oscrq(df) : si.cconj; // in-phase and quadrature outputs, CCW
 };
 
 // end jos section
@@ -6712,7 +6744,7 @@ with{
 // #### Usage
 //
 // ```
-// adsr(a,d,s,r,t) : _
+// adsr(at,dt,sl,rt,gate) : _
 // ```
 //
 // Where:
@@ -10319,6 +10351,64 @@ with { // octave script output:
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
 };
 
+//------------------------`(fi.)ssbf`---------------------------
+// Single-Side-Band Filter (or PositiveFrequencies-Pass Filter)
+//
+// #### Usage
+//
+// ```
+// _ : ssbf(N) : _,_
+// ```
+//
+// where
+//
+// * `N`: filter order
+//
+// #### Method
+// An easy way to make a single-sideband filter is to make any
+// half-band (or less) lowpass and modulate it up to the
+// positive-frequency range.  Equivalently, down-modulate the input
+// signal, lowpass it, and modulate back up.
+//
+// #### References
+// * <https://ccrma.stanford.edu/~jos/sasp/Bibliography.html#ReillyFrazerAndBoashash94>
+// * <https://ccrma.stanford.edu/~jos/sasp/Comparison_Optimal_Chebyshev_FIR_I.html>
+//------------------------------------------------------------
+
+ssbf(N) = unmodulate : lpf(fc), lpf(fc) : modulate with {
+  unmodulate = _ <: *(c),*(-s);
+  modulate(x,y) = c*x-s*y, c*y + s*x;
+  lpf = fi.lowpass(N); // or fi.lowpass6e, etc.
+  //lpf = fi.lowpass6e; // strongest lowpass filter in filters.lib as of this writing
+  guard = ma.SR/(2*N); // Guard-band to allow for filter roll-off
+  fc = ma.SR/4 - guard;
+  c = 1-1' : +~(*(-1):mem); // ||: 1, 0, -1, 0 :||
+  s = c';
+};
+
+//------------------------`(fi.)hilbert`---------------------------
+// Hilbert-transform filter
+//
+// #### Usage
+//
+// ```
+// _ : hilbert(N) : _
+// ```
+//
+// where
+//
+// * `N`: filter order
+//
+// #### Method
+// The Hilbert transform creates the imaginary part of an
+// "analytic signal" $x(n)+j y(n)$ from its real part $x(n)$.
+//
+// #### Reference
+// * <https://ccrma.stanford.edu/~jos/sasp/Hilbert_Transform.html>
+//------------------------------------------------------------
+hilbert = ssbf : !,_; // Imaginary output of single-sideband filter ssbf
+
+
 //=================Parametric Equalizers (Shelf, Peaking)=================================
 // Parametric Equalizers (Shelf, Peaking).
 //
@@ -11293,7 +11383,7 @@ bandPassH(resonance,radius) = fi.TF2(b0,b1,b2,a1,a2)
 jetTable(x) = x <: _*(_*_-1) : saturationPos : saturationNeg;
 
 //----------------------- NON LINEAR MODULATOR ----------------------------
-// nonLinearModulator adapts the function allpassnn from filter.lib for using it with waveguide instruments
+// nonLinearModulator adapts the function allpassnn from filter.lib for using it with waveguide instruments (see the corresponding DAFx paper: <https://ccrma.stanford.edu/~rmichon/publications/doc/DAFx11-Faust-STK.pdf> (Faust-STK: a Set of Linear and Nonlinear Physical Models for the Faust Programming Language) for more details).
 //
 // USAGE:
 //   _ : nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) : _
@@ -12835,6 +12925,63 @@ line (value, time) = state~(_,_):!,_
 			samples = time*ma.SR/1000.0;
 		};
 	};
+//############################# mi.lib #########################################
+// This ongoing work is the fruit of a collaboration between GRAME-CNCM and 
+// Gipsa-Lab at Grenoble INP.
+//
+// ## Sources
+//
+// All the algorithms implemented in this library are in the public domain 
+// and are disclosed in the following scientific publications:
+// * Claude Cadoz, Annie Luciani, Jean-Loup Florens, Curtis Roads and Françoise 
+// Chabade. Responsive Input Devices and Sound Synthesis by Stimulation of 
+// Instrumental Mechanisms: The Cordis System. Computer Music Journal, Vol 8. 
+// No. 3, 1984.
+// * Claude Cadoz, Annie Luciani and Jean Loup Florens. CORDIS-ANIMA: A Modeling 
+// and Simulation System for Sound and Image Synthesis: The General Formalism. 
+// Computer Music Journal. Vol. 17, No. 1, 1993.
+// * Alexandros Kontogeorgakopoulos and Claude Cadoz. Cordis Anima Physical 
+// Modeling and Simulation System Analysis. In Proceedings of the Sound and Music 
+// Computing Conference (SMC-07), Lefkada, Greece, 2007.
+// * Nicolas Castagne, Claude Cadoz, Ali Allaoui and Olivier Tache. G3: Genesis 
+// Software Environment Update. In Proceedings of the International Computer 
+// Music Conference (ICMC-09), Montreal, Canada, 2009.
+// * Nicolas Castagné and Claude Cadoz. Genesis 3: Plate-forme pour la création 
+// musicale à l'aide des modèles physiques Cordis-Anima. In Proceedings of the 
+// Journée de l'Informatique Musicale, Grenoble, France, 2009. 
+// * Edgar Berdahl and Julius O. Smith. An Introduction to the Synth-A-Modeler 
+// Compiler: Modular and Open-Source Sound Synthesis using Physical Models. In 
+// Proceedings of the Linux Audio Conference (LAC-12), Stanford, USA, 2012.
+// * James Leonard and Claude Cadoz. Physical Modelling Concepts for a Collection 
+// of Multisensory Virtual Musical Instruments. In Proceedings of the New 
+// Interfaces for Musical Expression (NIME-15) Conference, Baton Rouge, USA, 2015.
+//
+// ## License
+//
+// The MIT License (MIT)
+//
+// Copyright (c) <2019> <GRAME-CNCM (Lyon, France) and Gipsa-Lab (Grenoble, 
+// France)>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy 
+// of this software and associated documentation files (the "Software"), to deal 
+// in the Software without restriction, including without limitation the rights 
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+// copies of the Software, and to permit persons to whom the Software is 
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all 
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+// SOFTWARE.
+//##############################################################################
+
 ma = library("maths.lib");
 ba = library("basics.lib");
 
@@ -15231,7 +15378,7 @@ lf_saw(freq) = saw1(freq);
 //
 // Polynomial Transition Regions (PTR) (for aliasing suppression).
 //
-// ##### Reference
+// ##### References
 //
 // * Kleimola, J.; Valimaki, V., "Reducing Aliasing from Synthetic Audio
 // 	Signals Using Polynomial Transition Regions," in Signal Processing
@@ -15636,7 +15783,6 @@ oscs(f) =  (*(-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {
   wn = 2*ma.PI*f/ma.SR; // approximate
   // wn = 2*sin(PI*f/SR); // exact
-  sub(x,y) = y-x;
   sint(x) = *(x) : + ~ _ ; // frequency-scaled integrator
   sintp(x,y) = *(x) : +(y): + ~ _ ; // same + state input
 };
@@ -15954,6 +16100,37 @@ select2(fund<.5 , 2-(fund*2) , fund*2)*tmp*2-1 with {
 
 CZresTrap(fund, res) =
   (((1-fund)*2):min(1) *  sin(ma.decimal(fund*(res:max(1)))*2*ma.PI));
+
+//===============================Filter-Based Oscillators=================================
+
+//-----------------`(os.)quadosc`--------------------
+// Sinusoidal oscillator based on QuadOsc by Martin Vicanek
+//
+// #### Usage
+//
+// ```
+// quadosc(freq) : _
+// ```
+//
+// where
+//
+// * `freq`: frequency in Hz
+//
+// #### Reference
+// * <https://vicanek.de/articles/QuadOsc.pdf>
+//------------------------------------------------------------
+// Author: Dario Sanfilippo <sanfilippo.dario@gmail.com> (jos ed.)
+quadosc(f) = tick ~ (_ , _)
+with {
+  init = 1-1';
+  w = 2*ma.PI*f/ma.SR;
+      k1 = tan(.5*w);
+      k2 = 2*k1/(1+k1*k1);
+  tick(u, v) = omega-k1*(v+k2*omega) , v+k2*omega
+  with {
+    omega = (u+init)-k1*v;
+  };
+};
 
 // end further contributions section
 //########################################################################################
@@ -21119,6 +21296,24 @@ cbus(n) = par(i, n, (_,_));
 // - `(r2,i2)` = real and imaginary parts of signal 2
 //-----------------------------------------------------------------------------
 cmul(r1,i1,r2,i2) = (r1*r2 - i1*i2), (r1*i2 + r2*i1);
+
+//--------------------------------`(si.)cconj`-------------------------------------
+// complex conjugation of a (complex) signal.
+// `cconj` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// (r1,i1) : cconj : (_,_);
+// ```
+//
+// Where:
+//
+// * Each complex number is represented by two real signals as (real,imag), so
+// - `(r1,i1)` = real and imaginary parts of the input signal
+// - `(r1,-i1)` = real and imaginary parts of the output signal
+//-----------------------------------------------------------------------------
+cconj = _, *(-1);
 
 // end jos section
 /************************************************************************
