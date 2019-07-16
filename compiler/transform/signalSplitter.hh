@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,27 +23,20 @@
 #define __SIGNALSPLITTER__
 
 #include <iostream>
+#include <map>
 #include <set>
-#include <unordered_map>
-#include "old_occurences.hh"
-#include "property.hh"
-#include "sigIdentity.hh"
 
-// Make explicit automatic promotion to float
-class SignalSplitter : public SignalIdentity {
-    property<Tree> fDelayLineName;
-    old_OccMarkup* fOccMarkup;
+#include "signals.hh"
 
-   public:
-    std::set<Tree> fSplittedSignals;
+/**
+ * @brief Split a list of signals into a set of instructions
+ *
+ * @param conditionProperty
+ * @param LS the list of signals to split
+ * @return set<Tree> the set of instructions
+ */
 
-   public:
-    SignalSplitter(old_OccMarkup* om) : fOccMarkup(om) {}
-    virtual ostream& print(ostream& dst) const;
-
-   protected:
-    virtual Tree transformation(Tree sig);
-};
+set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS);
 
 set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS);
 

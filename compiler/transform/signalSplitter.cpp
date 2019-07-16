@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,32 +18,88 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+
+/************************************************************************
+ ************************************************************************
+ * Split a list of signals into a set of instruction
+ *
+ *  USAGE : set<Tree> I = splitSignalsToInstr(fConditionProperty, L);
+ *
+ ************************************************************************
+ ************************************************************************/
+
 #include "signalSplitter.hh"
 
-#include <stdlib.h>
-#include <cstdlib>
-#include <map>
-
-#include "digraph.hh"
-#include "digraphop.hh"
 #include "global.hh"
+#include "old_occurences.hh"
 #include "ppsig.hh"
 #include "property.hh"
-#include "signals.hh"
+#include "sigIdentity.hh"
 #include "sigtyperules.hh"
-#include "tlib.hh"
-#include "tree.hh"
-#include "xtended.hh"
 
-static Tree uniqueID(const char* prefix, Tree sig);
+/**
+ * @brief Transformation class used internally to split a signal
+ * into a set of instructions
+ *
+ */
+class SignalSplitter : public SignalIdentity {
+    property<Tree> fDelayLineName;
+    old_OccMarkup* fOccMarkup;
+
+   public:
+    std::set<Tree> fSplittedSignals;
+
+   public:
+    SignalSplitter(old_OccMarkup* om) : fOccMarkup(om) {}
+    virtual ostream& print(ostream& dst) const;
+
+   protected:
+    virtual Tree transformation(Tree sig);
+};
+
+/**
+ * @brief Split a list of signals into a set of instructions
+ *
+ * @param conditionProperty
+ * @param LS the list of signals to split
+ * @return set<Tree> the set of instructions
+ */
+set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS)
+{
+    old_OccMarkup* fOccMarkup = new old_OccMarkup(conditionProperty);
+    fOccMarkup->mark(LS);  // annotate L3 with occurrences analysis
+
+    SignalSplitter SS(fOccMarkup);
+    SS.trace(false, "Signal Splitter");
+    SS.mapself(LS);
+    return SS.fSplittedSignals;
+}
 
 /********************************************************************
-SignalSplitter: transforms a list of signals into a list of
-"instructions".
-
-
-Computes constant expressions
+                            IMPLEMENTATION
 **********************************************************************/
+
+/**
+ * @brief associates a unique ID to a signal
+ *
+ * @param prefix the prefix of the ID
+ * @param sig the signal that will be associated to the id
+ * @return Tree always the same unique ID
+ */
+static Tree uniqueID(const char* prefix, Tree sig)
+{
+    Tree ID;
+    Tree key = tree(symbol(prefix));
+    if (getProperty(sig, key, ID)) {
+        return ID;
+    } else {
+        ID = tree(unique(prefix));
+        setProperty(sig, key, ID);
+        return ID;
+    }
+}
+
+// Make explicit automatic promotion to float
 
 Tree SignalSplitter::transformation(Tree sig)
 {
@@ -121,46 +177,3 @@ ostream& SignalSplitter::print(ostream& dst) const
     }
     return dst << "\n}\n";
 }
-
-/**
- *
- */
-Tree uniqueID(const char* prefix, Tree sig)
-{
-    Tree ID;
-    Tree key = tree(symbol(prefix));
-    if (getProperty(sig, key, ID)) {
-        return ID;
-    } else {
-        ID = tree(unique(prefix));
-        setProperty(sig, key, ID);
-        return ID;
-    }
-}
-
-set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS)
-{
-    old_OccMarkup* fOccMarkup = new old_OccMarkup(conditionProperty);
-    fOccMarkup->mark(LS);  // annotate L3 with occurrences analysis
-
-    SignalSplitter SS(fOccMarkup);
-    SS.trace(false, "Signal Splitter");
-    SS.mapself(LS);
-    return SS.fSplittedSignals;
-}
-
-// cerr << "\n\nL3S = " << ppsig(L3S) << endl;
-// SS.print(cerr);
-// cerr << endl;
-
-// set<Tree> INSTR;  ///< The instruction set
-
-// cerr << "Remove Recursions" << endl;
-
-// RecRemover RR;
-
-// for (auto s : SS.fSplittedSignals) {
-//     Tree e = RR.self(s);
-//     cerr << ppsig(e) << endl;
-//     INSTR.insert(e);
-// }
