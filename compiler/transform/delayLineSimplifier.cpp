@@ -50,52 +50,57 @@
  */
 
 // Make explicit automatic promotion to float
+
+/**
+ * @brief Replace D1<dmin1>(dl1) occurrences
+ * with D2<dmin1+dmin2>(dl1+dl2), where D1<dmax1>(0):=D2<dmin2>(dl2)
+ *
+ */
 class ReplaceDelay : public SignalIdentity {
-    Tree fID1;
-    Tree fID2;
-    int  fDmin;
-    Tree fIdx;
+    Tree fID1;    // D1
+    int  fDmax1;  // <dmax1> :=
+    Tree fID2;    // D2
+    int  fDmin2;  // <dmin2>
+    Tree fDl2;    // (dl2)
 
    public:
-    ReplaceDelay(Tree ID1, Tree ID2, int dmin, Tree Idx) : fID1(ID1), fID2(ID2), fDmin(dmin), fIdx(Idx) {}
+    // based on definition D1<dmax1>(0) := D2<dmin2>(dl2)
+    ReplaceDelay(Tree ID1, int dmax1, Tree ID2, int dmin2, Tree dl2) 
+    : fID1(ID1), fDmax1(dmax1), fID2(ID2), fDmin2(dmin2), fDl2(dl2) {}
+
+    /**
+     * @brief Creates a ReplaceDelay
+     *
+     * @param instr the definition we want to replace
+     * @return ReplaceDelay*
+     */
+    static ReplaceDelay* replacement(map<Tree,int> M, Tree instr)
+    {
+        Tree D1, origin1, exp, D2, origin2, dl2;
+        int  dmax1, dmin2;
+        if (isSigDelayLineWrite(instr, D1, origin1, &dmax1, exp) && isSigDelayLineRead(exp, D2, origin2, &dmin2, dl2)) {
+            return new ReplaceDelay(D1, dmax1+M[D2], D2, dmin2, dl2);
+        } else {
+            return NULL;
+        }
+    }
 
    protected:
     virtual Tree transformation(Tree sig)
     {
-        Tree ID, origin, dl;
-        int  dmin;
-        if (isSigDelayLineRead(sig, ID, origin, &dmin, dl) && (ID == fID1)) {
-            return sigDelayLineRead(fID2, origin, dmin + fDmin, sigAdd(dl, fIdx));
+        Tree ID1, ID2, origin, dl1, def;
+        int  dmin1, dmax2;
+        
+        if (isSigDelayLineRead(sig, ID1, origin, &dmin1, dl1) && (ID1 == fID1)) {
+            // replace occurrences of ID1(dl)
+            return sigDelayLineRead(fID2, origin, dmin1 + fDmin2, sigAdd(dl1, fDl2));
+        } else if (isSigDelayLineWrite(sig, ID2, origin, &dmax2, def) && (ID2 == fID2)) {
+            // adjust definition of ID2 size
+            return sigDelayLineWrite(fID2, origin, std::max(fDmax1,dmax2), def);
         } else {
             return SignalIdentity::transformation(sig);
         }
     }
-};
-
-class substitution {
-    Tree          D1, D2, Idx;
-    int           dmax1, dmin2;
-    ReplaceDelay* fReplaceDelay;
-
-   public:
-    substitution(Tree instr)
-    {
-        Tree origin1, origin2, exp;
-        if (isSigDelayLineWrite(instr, D1, origin1, &dmax1, exp) && isSigDelayLineRead(exp, D2, origin2, &dmin2, Idx)) {
-            fReplaceDelay = new ReplaceDelay(D1, D2, dmin2, Idx);
-        } else {
-            cerr << "IMPOSSIBLE ERROR" << endl;
-            fReplaceDelay = NULL;
-        }
-    }
-    /**
-     * @brief  return a modified instruction where id1(f) occurrences are replaced by id2(f+idx)
-     *
-     * @param instr the instruction to modify
-     * @return Tree the modified instruction
-     */
-    Tree substitute(Tree instr) { return fReplaceDelay->self(instr); }
-    // and id2<M> := def; by id2<M+dmax> := def;
 };
 
 /**
@@ -105,7 +110,7 @@ class substitution {
  * @return true if instr is D1<N> := D2(E)
  * @return false otherwise
  */
-bool isSubstitution(Tree instr)
+static bool isSubstitution(Tree instr)
 {
     Tree id1, id2, origin1, origin2, exp, idx;
     int  dmax, dmin;
@@ -113,15 +118,35 @@ bool isSubstitution(Tree instr)
     return (isSigDelayLineWrite(instr, id1, origin1, &dmax, exp) && isSigDelayLineRead(exp, id2, origin2, &dmin, idx));
 }
 
+/**
+ * @brief Remove delay lines definitions of type D1<dmax1>(0) := D2<dmin2>(dl2)
+ * by replacing occurrences of D1(dl1) with D2(dl1+dl2) 
+ *
+ * @param I a set of instructions to simplify
+ * @return set<Tree> the simplified instructions
+ */
 set<Tree> delayLineSimplifier(const set<Tree>& I)
 {
-    // separate I into substitution instructions S and normal instructions N
-    vector<Tree> S;
-    vector<Tree> N;
+    vector<Tree> S; // substituable delaylines definitions
+    vector<Tree> N;     // Normal instructions
+    map<Tree,int> M;    // the size of all delay lines
+
+    // Collect into M the size of all delay lines
+    for (Tree instr : I) {
+        Tree id, origin, def;
+        int dmax;
+        if (isSigDelayLineWrite(instr, id, origin, &dmax, def)) {
+            M[id] = dmax;
+        }
+    }
+    
+    // Separate instructions I into substitutions S and normal instructions N
     for (Tree instr : I) {
         if (isSubstitution(instr)) {
+            cerr << "Substituable def : " << ppsig(instr) << endl;
             S.push_back(instr);
         } else {
+            cerr << "Normal definition: " << ppsig(instr) << endl;
             N.push_back(instr);
         }
     }
@@ -131,22 +156,25 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     int n = S.size();
     while (n > 0) {
         n = n - 1;
-        // we create a substitution rule s
-        substitution s(S[n]);
+        // we create a substitution rule 
+        ReplaceDelay* rule = ReplaceDelay::replacement(M,S[n]);
+
         // we update the remaining substitutions
         for (int i = 0; i < n; i++) {
-            S[i] = s.substitute(S[i]);
+            S[i] = rule->self(S[i]);
         }
         // we update the normal instructions
         for (int i = 0; i < m; i++) {
-            N[i] = s.substitute(N[i]);
+            N[i] = rule->self(N[i]);
         }
     }
 
     // All substitutions have been applied,
     // convert vector N into a set R
+    cerr << endl << "Applying substitutions: " << endl;
     set<Tree> R;
     for (int i = 0; i < m; i++) {
+        cerr << i << " : " << ppsig(N[i]) << endl;
         R.insert(N[i]);
     }
 
