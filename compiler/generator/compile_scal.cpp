@@ -179,29 +179,31 @@ Tree ScalarCompiler::prepare(Tree LS)
     sharingAnalysis(L3);  // annotate L3 with sharing count
 
     cerr << "Start Signal Splitter" << endl;
-    old_OccMarkup* fOccMarkup2 = new old_OccMarkup(fConditionProperty);
-    fOccMarkup2->mark(L3d);  // annotate L3 with occurences analysis
 
-    SignalSplitter SS(fOccMarkup2);
-    SS.trace(false, "Signal Splitter");
-    Tree L3S = SS.mapself(L3d);
-    cerr << "\n\nL3S = " << ppsig(L3S) << endl;
-    SS.print(cerr);
-    cerr << endl;
+    // old_OccMarkup* fOccMarkup2 = new old_OccMarkup(fConditionProperty);
+    // fOccMarkup2->mark(L3d);  // annotate L3 with occurences analysis
 
-    // set<Tree> INSTR;  ///< The instruction set
+    // SignalSplitter SS(fOccMarkup2);
+    // SS.trace(false, "Signal Splitter");
+    // Tree L3S = SS.mapself(L3d);
+    // // cerr << "\n\nL3S = " << ppsig(L3S) << endl;
+    // // SS.print(cerr);
+    // // cerr << endl;
 
-    cerr << "Remove Recursions" << endl;
+    // // set<Tree> INSTR;  ///< The instruction set
 
-    // RecRemover RR;
+    // // cerr << "Remove Recursions" << endl;
 
-    // for (auto s : SS.fSplittedSignals) {
-    //     Tree e = RR.self(s);
-    //     cerr << ppsig(e) << endl;
-    //     INSTR.insert(e);
-    // }
+    // // RecRemover RR;
 
-    set<Tree> INSTR1 = SS.fSplittedSignals;
+    // // for (auto s : SS.fSplittedSignals) {
+    // //     Tree e = RR.self(s);
+    // //     cerr << ppsig(e) << endl;
+    // //     INSTR.insert(e);
+    // // }
+
+    // set<Tree> INSTR1 = SS.fSplittedSignals;
+    set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3);
     set<Tree> INSTR  = delayLineSimplifier(INSTR1);
 
     cerr << "Build Dependency Graph" << endl;

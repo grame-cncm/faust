@@ -137,3 +137,30 @@ Tree uniqueID(const char* prefix, Tree sig)
         return ID;
     }
 }
+
+set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS)
+{
+    old_OccMarkup* fOccMarkup = new old_OccMarkup(conditionProperty);
+    fOccMarkup->mark(LS);  // annotate L3 with occurrences analysis
+
+    SignalSplitter SS(fOccMarkup);
+    SS.trace(false, "Signal Splitter");
+    SS.mapself(LS);
+    return SS.fSplittedSignals;
+}
+
+// cerr << "\n\nL3S = " << ppsig(L3S) << endl;
+// SS.print(cerr);
+// cerr << endl;
+
+// set<Tree> INSTR;  ///< The instruction set
+
+// cerr << "Remove Recursions" << endl;
+
+// RecRemover RR;
+
+// for (auto s : SS.fSplittedSignals) {
+//     Tree e = RR.self(s);
+//     cerr << ppsig(e) << endl;
+//     INSTR.insert(e);
+// }

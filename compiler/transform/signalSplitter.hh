@@ -45,4 +45,6 @@ class SignalSplitter : public SignalIdentity {
     virtual Tree transformation(Tree sig);
 };
 
+set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS);
+
 #endif
