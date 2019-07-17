@@ -92,7 +92,7 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cu
 ostream& ppsig::printout(ostream& fout, int i, Tree x) const
 {
     if (fPriority > 0) fout << "(";
-    fout << "OUT[" << i << "] := " << ppsig(x, fEnv, 0);
+    fout << "OUT" << i << " := " << ppsig(x, fEnv, 0);
     if (fPriority > 0) fout << ")";
     return fout;
 }
@@ -207,7 +207,7 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isSigWaveform(sig)) {
         fout << "waveform{...}";
     } else if (isSigInput(sig, &i)) {
-        fout << "IN[" << i << "]";
+        fout << "IN" << i;
     } else if (isSigOutput(sig, &i, x)) {
         printout(fout, i, x);
     }
@@ -301,7 +301,7 @@ ostream& ppsig::print(ostream& fout) const
         fout << *x << '[' << i << ']' << " := " << ppsig(y) << ";";
     } else if (isSigDelayLineRead(sig, x, c, &i, y)) {
         // fout << "sigDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
-        fout << *x /* << '<' << i << '>'*/ << "[" << ppsig(y) << "]";
+        fout << *x /* << '<' << i << '>'*/ << "@(" << ppsig(y) << ")";
     }
 
     else if (isSigControlWrite(sig, x, c, y)) {
