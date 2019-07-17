@@ -43,6 +43,12 @@
 
 using namespace std;
 
+/**
+ * @brief generates a dotfile graph of a set of instructions
+ *
+ * @param "filename.dot" the name of the file
+ * @param instr the set of instructions
+ */
 void signalGraph(const string& filename, const set<Tree>& I)
 {
     cerr << "Build Dependency Graph" << endl;

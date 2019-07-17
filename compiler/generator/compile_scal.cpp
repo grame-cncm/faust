@@ -44,6 +44,7 @@
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "signalDependencies.hh"
+#include "signalGraph.hh"
 #include "signalSplitter.hh"
 #include "signalVisitor.hh"
 #include "sigprint.hh"
@@ -204,7 +205,10 @@ Tree ScalarCompiler::prepare(Tree LS)
     // set<Tree> INSTR1 = SS.fSplittedSignals;
     // cerr << "L3d: " << ppsig(L3d) << endl;
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    set<Tree> INSTR  = delayLineSimplifier(INSTR1);
+    signalGraph("beforeSimplification.dot", INSTR1);
+
+    set<Tree> INSTR = delayLineSimplifier(INSTR1);
+    signalGraph("afterSimplification.dot", INSTR);
 
     cerr << "Build Dependency Graph" << endl;
 
