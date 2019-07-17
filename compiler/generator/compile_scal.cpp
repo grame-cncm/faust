@@ -39,7 +39,6 @@
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "privatise.hh"
-#include "recRemover.hh"
 #include "recursivness.hh"
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
