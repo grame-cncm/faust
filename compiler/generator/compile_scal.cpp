@@ -202,7 +202,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     // // }
 
     // set<Tree> INSTR1 = SS.fSplittedSignals;
-    cerr << "L3d: " << ppsig(L3d) << endl;
+    // cerr << "L3d: " << ppsig(L3d) << endl;
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
     set<Tree> INSTR  = delayLineSimplifier(INSTR1);
 

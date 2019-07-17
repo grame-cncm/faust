@@ -19,23 +19,44 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGNALSPLITTER__
-#define __SIGNALSPLITTER__
-
-#include <iostream>
-#include <map>
-#include <set>
-
-#include "signals.hh"
-
-/**
- * @brief Split a list of signals into a set of instructions
+/************************************************************************
+ ************************************************************************
+ * Split a list of signals into a set of instruction
  *
- * @param conditionProperty
- * @param LS the list of signals to split
- * @return set<Tree> the set of instructions
- */
+ *  USAGE : set<Tree> I = splitSignalsToInstr(fConditionProperty, L);
+ *
+ ************************************************************************
+ ************************************************************************/
 
-set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS);
+#include "signalGraph.hh"
 
-#endif
+#include <fstream>
+#include <ostream>
+
+#include "global.hh"
+#include "old_occurences.hh"
+#include "ppsig.hh"
+#include "property.hh"
+#include "sigIdentity.hh"
+#include "signalDependencies.hh"
+#include "sigtyperules.hh"
+
+using namespace std;
+
+void signalGraph(const string& filename, const set<Tree>& I)
+{
+    cerr << "Build Dependency Graph" << endl;
+
+    digraph<Tree> G;
+    Dictionnary   Dic;
+
+    for (auto i : I) {
+        G.add(dependencyGraph(i));
+        Dic.add(i);
+    }
+
+    ofstream f;
+    f.open(filename);
+    dotfile2(f, Dic, G);
+    f.close();
+}

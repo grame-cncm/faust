@@ -19,23 +19,18 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGNALSPLITTER__
-#define __SIGNALSPLITTER__
+#ifndef __SIGNALGRAPH__
+#define __SIGNALGRAPH__
 
 #include <iostream>
 #include <map>
 #include <set>
+#include <string>
 
 #include "signals.hh"
 
-/**
- * @brief Split a list of signals into a set of instructions
- *
- * @param conditionProperty
- * @param LS the list of signals to split
- * @return set<Tree> the set of instructions
- */
+using namespace std;
 
-set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS);
+void signalGraph(const string& filename, const set<Tree>& instr);
 
 #endif
