@@ -97,6 +97,22 @@ ostream& ppsig::printout(ostream& fout, int i, Tree x) const
     return fout;
 }
 
+string removeMetadata(const string& s)
+{
+    int    state = 0;  // outside metadata
+    string r;
+    for (char c : s) {
+        if (c == '[') {
+            state++;
+        } else if ((state > 0) & (c == ']')) {
+            state--;
+        } else if (state == 0) {
+            r += c;
+        }
+    }
+    return r;
+}
+
 ostream& ppsig::printlabel(ostream& fout, Tree pathname) const
 {
     fout << *hd(pathname);
