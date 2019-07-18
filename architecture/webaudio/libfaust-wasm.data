@@ -899,7 +899,7 @@ FAUST library file, GRAME section 2
 // * `n`: the starting point of the countdown
 // * `trig`: the trigger signal (1: start at `n`; 0: decrease until 0)
 //-----------------------------------------------------------------------------
-countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
+countdown(n, trig)	= \(c).(if(trig>0, n, max(0, c-1))) ~_;
 
 
 //----------------------------`(ba.)countup`--------------------------------
@@ -919,7 +919,7 @@ countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
 // * `n`: the maximum count value
 // * `trig`: the trigger signal (1: start at 0; 0: increase until `n`)
 //-----------------------------------------------------------------------------
-countup(count, trig) = \(c).(if(trig>0, 0, min(count, c+1))) ~_;
+countup(n, trig) = \(c).(if(trig>0, 0, min(n, c+1))) ~_;
 
 
 //--------------------`(ba.)sweep`--------------------------
@@ -1068,7 +1068,7 @@ beat(t) = pulse(tempo(t));
 // * `trig`: the trigger signal (1: start at next pulse; 0: reset to 0)
 //------------------------------------------------------------------------------
 //TODO: author "Vince"
-pulse_countup(t) =  + ~ _ * t;
+pulse_countup(trig) = + ~ _ * trig;
 
 
 //----------------------------`(ba.)pulse_countdown`---------------------------------
@@ -1086,7 +1086,7 @@ pulse_countup(t) =  + ~ _ * t;
 // * `trig`: the trigger signal (1: start at next pulse; 0: reset to 0)
 //------------------------------------------------------------------------------
 //TODO: author "Vince"
-pulse_countdown(t) =  - ~ _ * t;
+pulse_countdown(trig) = - ~ _ * trig;
 
 
 //----------------------------`(ba.)pulse_countup_loop`------------------------------
@@ -1106,9 +1106,9 @@ pulse_countdown(t) =  - ~ _ * t;
 // * `trig`: the trigger signal (1: start at next pulse; 0: reset to 0)
 //------------------------------------------------------------------------------
 //TODO: author "Vince"
-pulse_countup_loop(n, t) =  + ~ cond(n)*t
+pulse_countup_loop(n, trig) = + ~ cond(n)*trig
 with {
-  cond(n) =  _ <: _ * (_ <= n);
+  cond(n) = _ <: _ * (_ <= n);
 };
 
 
@@ -1148,9 +1148,9 @@ resetCtr(n,m) = _ <: (_,pulse_countup_loop(n-1,1)) : (_,(_==m)) : *;
 // * `trig`: the trigger signal (1: start at next pulse; 0: reset to 0)
 //------------------------------------------------------------------------------
 //TODO: author "Vince:
-pulse_countdown_loop(n, t) =  - ~ cond(n)*t
+pulse_countdown_loop(n, trig) = - ~ cond(n)*trig
 with {
-  cond(n) =  _ <: _ * (_ >= n);
+  cond(n) = _ <: _ * (_ >= n);
 };
 
 
@@ -1263,7 +1263,7 @@ if(cond,thn,els) = select2(cond,els,thn);
 //
 //-----------------------------------------------------------------------------
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
-cselector(i,n) = par(j, n, S(i, j))    with { S(i,i) = (_,_); S(i,j) = (!,!); }; // for complex numbers
+cselector(i,n) = par(j, n, S(i, j))   with { S(i,i) = (_,_); S(i,j) = (!,!); }; // for complex numbers
 
 
 //-----------------------------`(ba.)selectn`---------------------------------
@@ -1580,6 +1580,40 @@ bypass1to2(bpc,e) = _ <: ((inswitch:e),_,_) : ba.select2stereo(bpc)
     inswitch = select2(bpc,_,0);
   };
 
+
+//-------------------`(ba.)bypass_fade`-------------------------
+// Bypass an arbitrary (N x N) circuit with 'n' samples crossfade. Once bypassed the  
+// effect is replaced by par(i,N,_). Bypassed circuits can be chained.
+//
+// #### Usage
+//
+// ```
+// _ : bypass_fade(n,bpc,e) : _
+// or
+// _,_ : bypass_fade(n,bpc,e) : _,_ 
+// ```
+// * `n`: number of samples for the crossfade
+// * `bpc`: bypass switch (0/1)
+// * `e`: N x N circuit
+//
+// #### Examples
+//
+// ```
+// process = bypass_fade(ma.SR/10, checkbox("bypass echo"), echo);
+// process = bypass_fade(ma.SR/10, checkbox("bypass reverb"), freeverb);
+// ```
+
+bypass_fade(s, b, e) = par(i, inputs(e), _) 
+					<: (par(i, inputs(e), *(1-xb)) : e : par(i, outputs(e), *(1-xb)))
+					, par(i, inputs(e), *(xb))
+					:> par(i, outputs(e), _)
+with {
+	xb = ramp(s, b);
+	ramp(n) = \(y,x).(if (y+1.0/n < x, y+1.0/n, if(y-1.0/n > x, y-1.0/n, x))) ~ _;
+	if (c,t,e) = select2(c,e,t);
+};
+
+
 //----------------------------`(ba.)toggle`------------------------------------------
 // Triggered by the change of 0 to 1, it toggles the output value
 // between 0 and 1.
@@ -1646,7 +1680,7 @@ on_and_off(a, b) = (a : trig) : loop(b)
 // #### Example
 //
 // ```
-// process = 1 : selectoutn(3, sel) : par(i,3,bar) ;
+// process = 1 : selectoutn(3, sel) : par(i,3,bar);
 // sel = hslider("volume",0,0,2,1) : int;
 // bar = vbargraph("v.bargraph", 0, 1);
 // ```
@@ -1977,7 +2011,6 @@ slidingMeanN(n,maxn) = slidingSumN(n,maxn)/n;
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
 slidingRMSn(n,maxn) = pow(2):slidingMeanN(n,maxn) : sqrt;
-
 
 
 //////////////////////////////////Deprecated Functions////////////////////////////////////
@@ -3677,35 +3710,52 @@ with {
 	delMax = 2^int(nentry("Log2(Delay)",15,5,16,1)); // delay line length
 };
 
-//-----------------`(dm.)ssbf_demo(nChans)`----------------
-// Use Single-SideBand Filter ssbf to frequency-shift a sine tone.
+//------------------------`(dm.)pospass_demo`------------------------
+// Use Positive-Pass Filter pospass() to frequency-shift a sine tone.
+// First, a real sinusoid is converted to its analytic-signal form
+// using pospass() to filter out its negative frequency component.
+// Next, it is multiplied by a modulating complex sinusoid at the
+// shifting frequency to create the frequency-shifted result.
+// The real and imaginary parts are output to channels 1 & 2.
+// For a more interesting frequency-shifting example, check the
+// "Use Mic" checkbox to replace the input sinusoid by mic input.
+// Note that frequency shifting is not the same as frequency scaling.
+// A frequency-shifted harmonic signal is usually not harmonic.
+// Very small frequency shifts give interesting chirp effects when
+// there is feedback around the frequency shifter.
 //
 // #### Usage
 //
 // ```
-// echo 'import("stdfaust.lib");' > ssbf_demo.dsp
-// echo 'N = 6; // Any integer > 0 should work here' >> ssbf_demo.dsp
-// echo 'process = dm.ssbf_demo(nChans);' >> ssbf_demo.dsp
+// echo 'import("stdfaust.lib");' > pospass_demo.dsp
+// echo 'process = dm.pospass_demo;' >> pospass_demo.dsp
 // Mac:
-//   faust2caqt ssbf_demo.dsp
-//   open ssbf_demo.app
+//   faust2caqt pospass_demo.dsp
+//   open pospass_demo.app
 // Linux GTK:
-//   faust2jack ssbf_demo.dsp
-//   ./ssbf_demo
+//   faust2jack pospass_demo.dsp
+//   ./pospass_demo
 // Linux QT:
-//   faust2jaqt ssbf_demo.dsp
-//   ./ssbf_demo
+//   faust2jaqt pospass_demo.dsp
+//   ./pospass_demo
 // Etc.
 // ```
 //-------------------------------------------------------------------
-ssbf_demo(N) =  os.oscrs(fc) : fi.ssbf(N), smod : si.cmul with {
-  N=6;
-  fc = ma.SR/4.0; // original frequency
-  fsh = hslider("Frequency Shift (Multiplicative on SR/4)",0.01,0.001,2,0.001) : si.smooth(0.999);
-  fn = fc*fsh; // new freq
-  df = fn-fc; // delta freq
-  // smod(n) = exp(sqrt(-1) * 2 * ma.PI * df * n / ma.SR) // complex version
-  smod = os.oscrq(df) : si.cconj; // in-phase and quadrature outputs, CCW
+pospass_demo(x) =  analytic_signal, modulator : si.cmul with {
+  N=6; // pospass filter order
+  fc = ma.SR/(2*N); // guard-band for filter roll-off
+  octavesShift = hslider("Frequency Shift in octaves away from SR/16",
+		 -2,-7,3,0.001) : si.smooth(0.999);
+  in_select = checkbox("Use Mic");
+  sine_tone = os.oscrs(f0);
+  f0 = ma.SR/16.0;   // original frequency to be shifted
+  fn = f0 * 2.0^octavesShift; // modulated frequency
+  df = fn - f0; // frequency-shift as a difference
+  input = select2(in_select, sine_tone, x);
+  analytic_signal = input : fi.pospass6e(fc); // filter out neg freqs
+  //analytic_signal = os.oscrs(f0) : fi.pospass(N,fc); // Butterworth case
+  modulator = os.oscrq(df) : si.cconj; // complex modulation sinusoid
+  // modulator(n) = exp(sqrt(-1) * 2 * ma.PI * df * n / ma.SR) // if complex ok
 };
 
 // end jos section
@@ -8636,7 +8686,7 @@ filterbanki(O,lfreqs) = _ <: bsplit(nb) with
 // * Elliptic Bandpass Filters
 // * Parametric Equalizers (Shelf, Peaking)
 // * Mth-Octave Filter-Banks
-// * Arbritary-Crossover Filter-Banks and Spectrum Analyzers
+// * Arbitrary-Crossover Filter-Banks and Spectrum Analyzers
 //
 // For more information, see ../documentation/library.pdf
 //########################################################################################
@@ -9817,7 +9867,7 @@ with {
 // `w1` (set to HALF the desired passband width in rad/sec),
 // there is a desired center-frequency parameter wc (also in rad/s).
 // Thus, `tf2sb` implements a fourth-order digital bandpass filter section
-// specified by the coefficients of a second-order analog lowpass prototpe
+// specified by the coefficients of a second-order analog lowpass prototype
 // section.  Such sections can be combined in series for higher orders.
 // The order of mappings is (1) frequency scaling (to set lowpass cutoff w1),
 // (2) bandpass mapping to wc, then (3) the bilinear transform, with the
@@ -10271,8 +10321,8 @@ with {
   wu = 2*ma.PI*fu; // digital (z-plane) upper passband edge
 
   c = 2.0*ma.SR; // bilinear transform scaling used in tf2sb, tf1sb
-  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  wla = c*tan(wl/c); // analog (s-plane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-plane) upper cutoff
 
   wc = sqrt(wla*wua); // s-plane center frequency
   w1 = wua - wc^2/wua; // s-plane lowpass prototype cutoff
@@ -10306,8 +10356,8 @@ with {
   wu = 2*ma.PI*fu; // digital (z-plane) upper passband edge
 
   c = 2.0*ma.SR; // bilinear transform scaling used in tf2sb, tf1sb
-  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  wla = c*tan(wl/c); // analog (s-plane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-plane) upper cutoff
 
   wc = sqrt(wla*wua); // s-plane center frequency
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
@@ -10344,70 +10394,70 @@ with { // octave script output:
   wu = 2*ma.PI*fu; // digital (z-plane) upper passband edge
 
   c = 2.0*ma.SR; // bilinear transform scaling used in tf2sb, tf1sb
-  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  wla = c*tan(wl/c); // analog (s-plane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-plane) upper cutoff
 
   wc = sqrt(wla*wua); // s-plane center frequency
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
 };
 
-//------------------------`(fi.)ssbf`---------------------------
-// Single-Side-Band Filter (or PositiveFrequencies-Pass Filter)
+//------------------------`(fi.)pospass`---------------------------
+// Positive-Pass Filter (single-side-band filter)
 //
 // #### Usage
 //
 // ```
-// _ : ssbf(N) : _,_
+// _ : pospass(N,fc) : _,_
 // ```
 //
 // where
 //
-// * `N`: filter order
+// * `N`: filter order (Butterworth bandpass for positive frequencies).
+// * `fc`: lower bandpass cutoff frequency in Hz.
+//   - Highpass cutoff frequency at ma.SR/2 - fc Hz.
+//
+// #### Example
+//
+// * See dm.pospass_demo
+// * Look at frequency response:
 //
 // #### Method
-// An easy way to make a single-sideband filter is to make any
-// half-band (or less) lowpass and modulate it up to the
-// positive-frequency range.  Equivalently, down-modulate the input
-// signal, lowpass it, and modulate back up.
+//
+// A filter passing only positive frequencies can be made from a
+// half-band lowpass by modulating it up to the positive-frequency range.
+// Equivalently, down-modulate the input signal using a complex sinusoid at -SR/4 Hz,
+// lowpass it with a half-band filter, and modulate back up by SR/4 Hz.
+// In Faust/math notation:
+// pospass(N) = $\ast(e^{-j\frac{\pi}{2}n}) : \mbox{lowpass(N,SR/4)} : \ast(e^{j\frac{\pi}{2}n})$
+//
+// An approximation to the Hilbert transform is given by the
+// imaginary output signal:
+//
+// ```
+// hilbert(N) = pospass(N) : !,*(2);
+// ```
 //
 // #### References
-// * <https://ccrma.stanford.edu/~jos/sasp/Bibliography.html#ReillyFrazerAndBoashash94>
+// * <https://ccrma.stanford.edu/~jos/mdft/Analytic_Signals_Hilbert_Transform.html>
 // * <https://ccrma.stanford.edu/~jos/sasp/Comparison_Optimal_Chebyshev_FIR_I.html>
-//------------------------------------------------------------
-
-ssbf(N) = unmodulate : lpf(fc), lpf(fc) : modulate with {
-  unmodulate = _ <: *(c),*(-s);
-  modulate(x,y) = c*x-s*y, c*y + s*x;
-  lpf = fi.lowpass(N); // or fi.lowpass6e, etc.
-  //lpf = fi.lowpass6e; // strongest lowpass filter in filters.lib as of this writing
-  guard = ma.SR/(2*N); // Guard-band to allow for filter roll-off
-  fc = ma.SR/4 - guard;
-  c = 1-1' : +~(*(-1):mem); // ||: 1, 0, -1, 0 :||
-  s = c';
-};
-
-//------------------------`(fi.)hilbert`---------------------------
-// Hilbert-transform filter
-//
-// #### Usage
-//
-// ```
-// _ : hilbert(N) : _
-// ```
-//
-// where
-//
-// * `N`: filter order
-//
-// #### Method
-// The Hilbert transform creates the imaginary part of an
-// "analytic signal" $x(n)+j y(n)$ from its real part $x(n)$.
-//
-// #### Reference
 // * <https://ccrma.stanford.edu/~jos/sasp/Hilbert_Transform.html>
 //------------------------------------------------------------
-hilbert = ssbf : !,_; // Imaginary output of single-sideband filter ssbf
 
+pospass(N,fc) = fi.pospass0(lpf) with {
+  fcs = ma.SR/4 - fc; // Upper lowpass cutoff = (SR/2 - fc) - SR/4
+  lpf = fi.lowpass(N,fcs); // Butterworth lowpass
+};
+
+pospass6e(fc) = fi.pospass0(lpf) with {
+  lpf = fi.lowpass6e(ma.SR/4 - fc); // Elliptic lowpass, order 6
+};
+
+pospass0(lpf) = unmodulate : lpf, lpf : modulate with {
+  c = 1-1' : +~(*(-1):mem); // complex sinusoid rotating at SR/4
+  s = c'; // ||: 0, 1, 0, -1 :||
+  unmodulate = _ <: *(c),*(-s); // subtract SR/4 from all input frequencies
+  modulate(x,y) = c*x-s*y, c*y + s*x; // add SR/4 to all frequencies
+};
 
 //=================Parametric Equalizers (Shelf, Peaking)=================================
 // Parametric Equalizers (Shelf, Peaking).
@@ -10776,7 +10826,7 @@ mth_octave_filterbank5(M,ftop,N) = mth_octave_filterbank(5,M,ftop,N);
 mth_octave_filterbank_default = mth_octave_filterbank5;
 
 
-//===============Arbritary-Crossover Filter-Banks and Spectrum Analyzers==================
+//===============Arbitrary-Crossover Filter-Banks and Spectrum Analyzers==================
 // These are similar to the Mth-octave analyzers above, except that the
 // band-split frequencies are passed explicitly as arguments.
 //========================================================================================
@@ -16119,16 +16169,17 @@ CZresTrap(fund, res) =
 // #### Reference
 // * <https://vicanek.de/articles/QuadOsc.pdf>
 //------------------------------------------------------------
-// Author: Dario Sanfilippo <sanfilippo.dario@gmail.com> (jos ed.)
-quadosc(f) = tick ~ (_ , _)
-with {
-  init = 1-1';
-  w = 2*ma.PI*f/ma.SR;
-      k1 = tan(.5*w);
-      k2 = 2*k1/(1+k1*k1);
-  tick(u, v) = omega-k1*(v+k2*omega) , v+k2*omega
-  with {
-    omega = (u+init)-k1*v;
+// Authors:
+// Dario Sanfilippo <sanfilippo.dario@gmail.com>
+// and Oleg Nesterov (jos ed.)
+quadosc(f) = tick ~ (_,_) : mem+1,mem with {
+  k1 = tan(f * ma.PI/ma.SR);
+  k2 = 2*k1 / (1 + k1 * k1);
+
+  tick(u_0,v_0) = u_1,v_1 with {
+    tmp = u_0 - k1 *  v_0;
+    v_1 = v_0 + k2 * (tmp + 1);
+    u_1 = tmp - k1 *  v_1;
   };
 };
 
