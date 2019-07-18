@@ -36,9 +36,9 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
 {
     vsigs.clear();
 
-    int    i;
+    int    i, dmax, dmin;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin;
 
     if (getUserData(sig)) {
         for (int i = 0; i < sig->arity(); i++) {
@@ -218,7 +218,22 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;
-    } else if (isList(sig)) {
+    }
+
+    else if (isSigDelayLineWrite(sig, id, origin, &dmax, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigDelayLineRead(sig, id, origin, &dmin, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigControlWrite(sig, id, origin, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigControlRead(sig, id, origin)) {
+        return 0;
+    }
+
+    else if (isList(sig)) {
         vsigs.push_back(hd(sig));
         vsigs.push_back(tl(sig));
         return 2;
