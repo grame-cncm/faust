@@ -475,7 +475,7 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>, public UI
         }
         virtual void openHorizontalBox(const char* label)
         {
-            JSONUIAux<FAUSTFLOAT>::openTabBox(label);
+            JSONUIAux<FAUSTFLOAT>::openHorizontalBox(label);
         }
         virtual void openVerticalBox(const char* label)
         {
