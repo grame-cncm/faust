@@ -18,12 +18,13 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+#include <sstream>
 
-#include "ppsig.hh"
 #include "Text.hh"
 #include "binop.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "ppsig.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "xtended.hh"
@@ -115,13 +116,14 @@ string removeMetadata(const string& s)
 
 ostream& ppsig::printlabel(ostream& fout, Tree pathname) const
 {
-    fout << *hd(pathname);
+    stringstream label;
+    label << *hd(pathname);
     pathname = tl(pathname);
     while (!isNil(pathname)) {
-        fout << '/' << *tl(hd(pathname));
+        label << '/' << *tl(hd(pathname));
         pathname = tl(pathname);
     }
-    return fout;
+    return fout << removeMetadata(label.str());
 }
 
 ostream& ppsig::printlist(ostream& fout, Tree largs) const
