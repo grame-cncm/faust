@@ -362,7 +362,10 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         virtual void metadata(Meta* m) { decorator_dsp::metadata(m); }
     
         // Additional API
-        std::string getJSON() { return fJSON; }
+        std::string getJSON()
+        {
+            return fJSON;
+        }
     
         virtual void setParamValue(const std::string& path, FAUSTFLOAT value)
         {

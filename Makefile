@@ -1,4 +1,4 @@
-version := 2.18.0
+version := 2.18.1
 
 system	?= $(shell uname -s)
 
@@ -93,6 +93,14 @@ ioslib :
 
 wasm :
 	$(MAKE) -C $(BUILDLOCATION) wasmlib
+	$(MAKE) -C $(BUILDLOCATION) cmake WORKLET=on
+	$(MAKE) -C $(BUILDLOCATION) wasmglue
+	# Hack : be sure to use LIB_NAME define in build/wasmglue/CMakeLists.txt
+	echo "export default FaustModule;" >> $(BUILDLOCATION)/lib/libfaust-worklet-glue.js
+	# Fix for EMCC codegen bug
+	echo "var tempDouble, tempI64;" >> $(BUILDLOCATION)/lib/libfaust-worklet-glue.js
+	$(MAKE) -C $(BUILDLOCATION) cmake WORKLET=off
+	$(MAKE) -C $(BUILDLOCATION) wasmglue
 
 sound2faust :
 	$(MAKE) -C tools/sound2faust

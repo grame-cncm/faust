@@ -50,9 +50,7 @@ extern "C" EXPORT const char* getCLibFaustVersion()
  */
 
 #ifdef EMCC
-
 #include "exception.hh"
-#include "global.hh"
 
 const char* faustexception::gJSExceptionMsg = NULL;
 
@@ -60,6 +58,10 @@ extern "C" EXPORT const char* getErrorAfterException()
 {
     return faustexception::gJSExceptionMsg;
 }
+#endif
+
+#if defined(EMCC) && defined(FAUST_LIB)
+#include "global.hh"
 
 extern "C" EXPORT void cleanupAfterException()
 {

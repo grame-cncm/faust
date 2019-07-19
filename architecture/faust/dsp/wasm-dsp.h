@@ -263,14 +263,15 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
     class_<wasm_dsp_factory>("wasm_dsp_factory")
     .constructor()
     .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
+    .function("deleteDSPInstance", &wasm_dsp_factory::deleteDSPInstance, allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
                     allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
                     allow_raw_pointers())
-    .class_function("createAudioBuffers", &wasm_dsp_factory::createJSAudioBuffers, allow_raw_pointers())
-    .class_function("deleteAudioBuffers", &wasm_dsp_factory::deleteJSAudioBuffers, allow_raw_pointers())
-    .class_function("copyAudioBuffer", &wasm_dsp_factory::copyJSAudioBuffer, allow_raw_pointers())
-    .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage);
+    .class_function("createWasmDSPFactory", &wasm_dsp_factory::createWasmDSPFactory, allow_raw_pointers())
+    .class_function("deleteWasmDSPFactory", &wasm_dsp_factory::deleteWasmDSPFactory2, allow_raw_pointers())
+    .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
+    .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
@@ -287,7 +288,8 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
     .function("instanceClear", &wasm_dsp::instanceClear, allow_raw_pointers())
     .function("clone", &wasm_dsp::clone, allow_raw_pointers())
     .function("compute", &wasm_dsp::computeJS, allow_raw_pointers())
-    .function("computeJSTest", &wasm_dsp::computeJSTest, allow_raw_pointers());
+    .function("setParamValue", &wasm_dsp::setParamValue, allow_raw_pointers())
+    .function("getParamValue", &wasm_dsp::getParamValue, allow_raw_pointers());
 }
 
 #endif

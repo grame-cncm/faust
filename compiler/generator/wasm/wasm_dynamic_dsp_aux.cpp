@@ -34,7 +34,6 @@
 #ifdef EMCC
 #include <emscripten.h>
 #include <emscripten/bind.h>
-#include "faust/dsp/poly-wasm-dsp.h"
 using namespace emscripten;
 #endif
 
@@ -285,9 +284,6 @@ EXPORT void freeWasmCModule(WasmModule* module)
 #endif
 
 #ifdef EMCC
-
-list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
 
 vector<string> makeStringVector()
 {

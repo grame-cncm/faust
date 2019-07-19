@@ -16,9 +16,6 @@ set (WASM_EXTRA_EXPORTED "\"['cwrap', 'UTF8ToString', 'stringToUTF8', 'FS']\"")
 
 set (WASM_LINK_FLAGS "--bind -O3 --memory-init-file 0 -s LINKABLE=1 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-libraries@libraries -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=${WASM_EXPORTED} -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED}")
 
-# TODO : soundfile suport
-#libsndfile.a libogg.a libvorbis.a libvorbisenc.a libFLAC.a
- 
 ####################################
 # Add the different targets
 add_executable(wasmlib EXCLUDE_FROM_ALL ${SRC} ${HH})

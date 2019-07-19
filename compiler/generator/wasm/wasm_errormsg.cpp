@@ -19,15 +19,29 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __export__
-#define __export__
+#include <iostream>
+#include <sstream>
 
-#define FAUSTVERSION "2.18.1"
+#include "exception.hh"
+#include "export.hh"
+#include "faust/gui/GUI.h"
 
-#ifdef _WIN32
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT __attribute__((visibility("default")))
-#endif
+using namespace std;
+
+#if defined(EMCC) && !defined(FAUST_LIB)
+
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
+void faustassertaux(bool cond, const string& file, int line)
+{
+    if (!cond) {
+        stringstream str;
+        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
+        str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
+        str << "version: " << FAUSTVERSION;
+        throw faustexception(str.str());
+    }
+}
 
 #endif

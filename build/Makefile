@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.18.0
+VERSION := 2.18.1
 
 #===============================================================
 # current generator and backends
@@ -41,7 +41,12 @@ DESTDIR ?=
 
 MAKE ?= make
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
+WORKLET ?= no
+WORKLETOPT = "-DWORKLET=off"
+ifeq ($(WORKLET), on)
+WORKLETOPT = "-DWORKLET=on"
+endif
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
 BUILDOPT ?= --config Release
 
 #CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
@@ -103,6 +108,7 @@ help:
 	@echo
 	@echo "Targets excluded from all:"
 	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
+	@echo " 'wasmglue'   : builds the WebAssembly glue library."
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
@@ -111,7 +117,8 @@ help:
 	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
 	@echo "  BACKENDS=<backends file>    : see 'Backends' below"
 	@echo "  TARGETS=<targets file>      : see 'Targets' below"
-	@echo "  JOBS        : intended to set the number of tasks to run in parallel (default is $(JOBS))"
+	@echo "  JOBS    : intended to set the number of tasks to run in parallel (default is $(JOBS))"
+	@echo "  WORKLET : Compile wasm glue library for worklet (default is off)"
 	@echo
 	@echo "Backends:"
 	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
@@ -176,7 +183,7 @@ winpack:
 	cd $(FAUSTDIR) && cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
 	$(MAKE)
 	cd $(FAUSTDIR) && cpack -G NSIS64
-	mv  $(FAUSTDIR)/Faust-*.exe .
+	mv $(FAUSTDIR)/Faust-*.exe .
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
