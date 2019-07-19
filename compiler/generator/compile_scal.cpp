@@ -51,6 +51,7 @@
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
+#include "splitCommonSubexpr.hh"
 #include "timing.hh"
 #include "xtended.hh"
 
@@ -207,8 +208,11 @@ Tree ScalarCompiler::prepare(Tree LS)
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
     signalGraph("beforeSimplification.dot", INSTR1);
 
-    set<Tree> INSTR = delayLineSimplifier(INSTR1);
-    signalGraph("afterSimplification.dot", INSTR);
+    set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
+    signalGraph("afterSimplification.dot", INSTR2);
+
+    set<Tree> INSTR = splitCommonSubexpr(INSTR2);
+    signalGraph("afterCSE.dot", INSTR);
 
     cerr << "Build Dependency Graph" << endl;
 
