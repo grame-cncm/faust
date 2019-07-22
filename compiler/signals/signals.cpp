@@ -744,6 +744,39 @@ bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl)
 }
 
 /**
+ * @brief a shared write "instruction"
+ *
+ * @param id: unique identifier of the shared signal
+ * @param sig: the shared signal
+ * @return a shared write instruction
+ */
+Tree sigSharedWrite(Tree id, Tree origin, Tree sig)
+{
+    return tree(gGlobal->SIGSHAREDWRITE, id, origin, sig);
+}
+
+bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, Tree& sig)
+{
+    return isTree(s, gGlobal->SIGSHAREDWRITE, id, origin, sig);
+}
+
+/**
+ * @brief a control read "instruction"
+ *
+ * @param id: unique identifier of the control signal
+ * @return a control read instruction
+ */
+Tree sigSharedRead(Tree id, Tree origin)
+{
+    return tree(gGlobal->SIGSHAREDREAD, id, origin);
+}
+
+bool isSigSharedRead(Tree s, Tree& id, Tree& origin)
+{
+    return (isTree(s, gGlobal->SIGSHAREDREAD, id, origin));
+}
+
+/**
  * @brief a control write "instruction"
  *
  * @param id: unique identifier of the control signal

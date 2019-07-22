@@ -236,6 +236,14 @@ void SignalVisitor::visit(Tree sig)
     }
 
     // Read and Write
+    else if (isSigSharedRead(sig, id, x)) {  // x is used as an id, we don't go into it
+        return;
+    } else if (isSigSharedWrite(sig, id, x, y)) {  // x is used as an id, we don't go into it
+        self(y);
+        return;
+    }
+
+    // Read and Write
     else if (isSigControlRead(sig, id, x)) {  // x is used as an id, we don't go into it
         return;
     } else if (isSigControlWrite(sig, id, x, y)) {  // x is used as an id, we don't go into it

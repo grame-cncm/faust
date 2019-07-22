@@ -103,8 +103,7 @@ Tree old_Occurences::getExecCondition() const
 
 void old_OccMarkup::mark(Tree root)
 {
-    fRootTree = root;
-    fPropKey  = tree(unique("OCCURRENCES"));
+    // fRootTree = root;
 
     if (isList(root) || isNil(root)) {
         while (isList(root)) {

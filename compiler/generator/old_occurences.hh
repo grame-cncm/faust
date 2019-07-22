@@ -50,7 +50,6 @@ class old_Occurences {
  * second om.mark(root) then om.retrieve(subtree)
  */
 class old_OccMarkup {
-    Tree            fRootTree;    ///< occurences computed within this tree
     Tree            fPropKey;     ///< key used to store occurences property
     map<Tree, Tree> fConditions;  ///< condition associated to each tree
 
@@ -59,8 +58,8 @@ class old_OccMarkup {
     void            setOcc(Tree t, old_Occurences* occ);                     ///< set Occurences property of t
 
    public:
-    old_OccMarkup() {}
-    old_OccMarkup(map<Tree, Tree> conditions) : fConditions(conditions) {}
+    old_OccMarkup() : fPropKey(tree(unique("OCCURRENCES"))) {}
+    old_OccMarkup(map<Tree, Tree> conditions) : fConditions(conditions), fPropKey(tree(unique("OCCURRENCES"))) {}
 
     void            mark(Tree root);       ///< start markup of root tree with new unique key
     void            marksubexp(Tree exp);  ///< mark an additional expression with the same key

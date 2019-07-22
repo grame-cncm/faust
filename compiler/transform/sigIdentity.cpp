@@ -204,6 +204,13 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Read and Write
+    else if (isSigSharedRead(sig, x, u)) {  // x is used as an id, we don't go into it
+        return sig;
+    } else if (isSigSharedWrite(sig, x, u, y)) {  // x is used as an id, we don't go into it
+        return sigSharedWrite(x, u, self(y));
+    }
+
+    // Read and Write
     else if (isSigControlRead(sig, x, u)) {  // x is used as an id, we don't go into it
         return sig;
     } else if (isSigControlWrite(sig, x, u, y)) {  // x is used as an id, we don't go into it

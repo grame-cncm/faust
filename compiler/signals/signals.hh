@@ -356,12 +356,23 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 // create a tuple of signals
 Tree sigCartesianProd(Tree s1, Tree s2);
 
-// cache
+// Instructions (signals read and write into memory)
+
 Tree sigDelayLineWrite(Tree id, Tree origin, int dmax, Tree sig);
 bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* dmax, Tree& sig);
 
 Tree sigDelayLineRead(Tree id, Tree origin, int dmin, Tree dl);
 bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl);
+
+//
+
+Tree sigSharedWrite(Tree id, Tree origin, Tree sig);
+bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, Tree& sig);
+
+Tree sigSharedRead(Tree id, Tree origin);
+bool isSigSharedRead(Tree s, Tree& id, Tree& origin);
+
+//
 
 Tree sigControlWrite(Tree id, Tree origin, Tree sig);
 bool isSigControlWrite(Tree s, Tree& id, Tree& origin, Tree& sig);

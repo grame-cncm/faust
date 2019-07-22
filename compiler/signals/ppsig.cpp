@@ -322,6 +322,14 @@ ostream& ppsig::print(ostream& fout) const
         fout << *x /* << '<' << i << '>'*/ << "@(" << ppsig(y) << ")";
     }
 
+    else if (isSigSharedWrite(sig, x, c, y)) {
+        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+        fout << *x << " := " << ppsig(y) << ";";
+    } else if (isSigSharedRead(sig, x, c)) {
+        // fout << "sigControlRead(" << *x << ")";
+        fout << *x;
+    }
+
     else if (isSigControlWrite(sig, x, c, y)) {
         // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
         fout << *x << " := " << ppsig(y) << ";";

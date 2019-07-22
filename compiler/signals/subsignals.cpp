@@ -226,6 +226,11 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
     } else if (isSigDelayLineRead(sig, id, origin, &dmin, x)) {
         vsigs.push_back(x);
         return 1;
+    } else if (isSigSharedWrite(sig, id, origin, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigSharedRead(sig, id, origin)) {
+        return 0;
     } else if (isSigControlWrite(sig, id, origin, x)) {
         vsigs.push_back(x);
         return 1;

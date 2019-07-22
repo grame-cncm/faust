@@ -40,6 +40,25 @@
 #include "sigtyperules.hh"
 
 using namespace std;
+/**
+ * @brief associates a unique ID to a signal
+ *
+ * @param prefix the prefix of the ID
+ * @param sig the signal that will be associated to the id
+ * @return Tree always the same unique ID
+ */
+static Tree uniqueID(const char* prefix, Tree sig)
+{
+    Tree ID;
+    Tree key = tree(symbol(prefix));
+    if (getProperty(sig, key, ID)) {
+        return ID;
+    } else {
+        ID = tree(unique(prefix));
+        setProperty(sig, key, ID);
+        return ID;
+    }
+}
 
 /**
  * @brief Recursively visit expressions and count occurrences. We suppose expressions have been transformed into
@@ -78,6 +97,7 @@ class ExprOccurrences {
  *
  */
 class CommonSubexpr : public SignalIdentity {
+   private:
     ExprOccurrences& fOcc;
 
    public:
@@ -99,7 +119,11 @@ class CommonSubexpr : public SignalIdentity {
             !(isSigDelayLineRead(sig, id, origin, &dmin, dl))) {
             cerr << "Candidate for Sharing: "
                  << " --" << ppsig(sig) << endl;
-            return SignalIdentity::transformation(sig);
+            Tree r  = SignalIdentity::transformation(sig);
+            Tree id = uniqueID("V", sig);
+            fSplittedSignals.insert(sigSharedWrite(id, sig, r));
+            Tree inst = sigControlRead(id, sig);
+            return inst;
         } else {
             return SignalIdentity::transformation(sig);
         }
@@ -116,6 +140,15 @@ set<Tree> splitCommonSubexpr(const set<Tree>& I)
     for (Tree i : I) {
         R.insert(cs.self(i));
     }
+
+    // insert the additional shared instructions
+    for (Tree i : cs.fSplittedSignals) R.insert(i);
+
+    cerr << "BEGIN DEBUG content of R " << endl;
+    for (Tree i : R) {
+        cerr << *i << endl;
+    }
+    cerr << "END DEBUG content of R " << endl;
 
     return R;
 }
