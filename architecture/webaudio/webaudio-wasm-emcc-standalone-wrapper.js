@@ -76,7 +76,7 @@ class FaustWasm2ScriptProcessor {
     /**
     * Constructor of Monophonic Faust DSP
     *
-    * @param {WebAssembly.Instance} dspInstance - the wasm instance
+    * @param {WebAssembly.Instance} instance - the wasm instance
     * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
     * @param {number} bufferSize - the buffer_size in frames
     *

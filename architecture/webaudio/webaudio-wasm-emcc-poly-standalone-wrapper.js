@@ -79,10 +79,7 @@ class FaustWasm2ScriptProcessorPoly {
     /**
      * Constructor of Monophonic Faust DSP
      *
-     * @param {WebAssembly.Instance} mixerInstance - the wasm mixer instance
-     * @param {WebAssembly.Instance} dspInstance - the wasm instance
-     * @param {WebAssembly.Instance} effectInstance - the wasm DSP effect instance (can be null)
-     * @param {WebAssembly.Memory} memory - the wasm memory
+     * @param {WebAssembly.Instance} instance - the wasm instance
      * @param {AudioContext | webkitAudioContext} audioCtx - the Web Audio context
      * @param {number} bufferSize - the buffer_size in frames
      * @param {number} polyphony - the number of polyphonic voices
