@@ -81,6 +81,7 @@ class ReplaceDelay : public SignalIdentity {
         Tree D1, origin1, exp, D2, origin2, dl2;
         int  dmax1, dmin2;
         if (isSigDelayLineWrite(instr, D1, origin1, &dmax1, exp) && isSigDelayLineRead(exp, D2, origin2, &dmin2, dl2)) {
+            // cerr << "replacement rule for: " << ppsig(instr) << endl;
             return new ReplaceDelay(D1, dmax1 + M[D2], D2, dmin2, dl2);
         } else {
             return NULL;
@@ -95,10 +96,15 @@ class ReplaceDelay : public SignalIdentity {
 
         if (isSigDelayLineRead(sig, ID1, origin, &dmin1, dl1) && (ID1 == fID1)) {
             // replace occurrences of ID1(dl)
-            return sigDelayLineRead(fID2, origin, dmin1 + fDmin2, sigAdd(dl1, fDl2));
+            Tree r = sigDelayLineRead(fID2, origin, dmin1 + fDmin2, sigAdd(dl1, fDl2));
+            // cerr << "sigDelayLineRead: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
+            return r;
         } else if (isSigDelayLineWrite(sig, ID2, origin, &dmax2, def) && (ID2 == fID2)) {
             // adjust definition of ID2 size
-            return sigDelayLineWrite(fID2, origin, std::max(fDmax1, dmax2), def);
+            Tree tdef = self(def);
+            Tree r    = sigDelayLineWrite(fID2, origin, std::max(fDmax1, dmax2), tdef);
+            // cerr << "isSigDelayLineWrite: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
+            return r;
         } else {
             return SignalIdentity::transformation(sig);
         }
@@ -133,6 +139,7 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     vector<Tree>   N;  // Normal instructions
     map<Tree, int> M;  // the size of all delay lines
 
+    // cerr << "BEGIN Delay simplification " << endl;
     // Collect into M the size of all delay lines
     for (Tree instr : I) {
         Tree id, origin, def;
@@ -145,10 +152,10 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     // Separate instructions I into substitutions S and normal instructions N
     for (Tree instr : I) {
         if (isSubstitution(instr)) {
-            cerr << "Substituable def : " << ppsig(instr) << endl;
+            // cerr << "Substituable def : " << ppsig(instr) << endl;
             S.push_back(instr);
         } else {
-            cerr << "Normal definition: " << ppsig(instr) << endl;
+            // cerr << "Normal definition: " << ppsig(instr) << endl;
             N.push_back(instr);
         }
     }
@@ -173,10 +180,10 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
 
     // All substitutions have been applied,
     // convert vector N into a set R
-    cerr << endl << "Applying substitutions: " << endl;
+    // cerr << endl << "Applying substitutions: " << endl;
     set<Tree> R;
     for (int i = 0; i < m; i++) {
-        cerr << i << " : " << ppsig(N[i]) << endl;
+        // cerr << i << " : " << ppsig(N[i]) << endl;
         R.insert(N[i]);
     }
 
