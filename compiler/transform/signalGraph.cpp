@@ -51,7 +51,7 @@ using namespace std;
  */
 void signalGraph(const string& filename, const set<Tree>& I)
 {
-    cerr << "Build Dependency Graph" << endl;
+    // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
     digraph<Tree> G;
     Dictionnary   Dic;
@@ -63,6 +63,9 @@ void signalGraph(const string& filename, const set<Tree>& I)
 
     ofstream f;
     f.open(filename);
+    // cerr << "\n\nCreate dotfile: " << filename << endl;
+
     dotfile2(f, Dic, G);
     f.close();
+    // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
