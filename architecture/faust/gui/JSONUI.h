@@ -61,6 +61,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
         std::string fSHAKey;
         int fDSPSize;                   // In bytes
         std::map<std::string, int> fPathTable;
+        bool fExtended;
     
         char fCloseUIPar;
         char fCloseMetaPar;
@@ -166,12 +167,15 @@ class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
                   const std::vector<std::string>& library_list,
                   const std::vector<std::string>& include_pathnames,
                   int size,
-                  const std::map<std::string, int>& path_table)
+                  const std::map<std::string, int>& path_table,
+                  bool extended = false)
         {
             fTab = 1;
-            
-            fUI << std::setprecision(std::numeric_limits<REAL>::max_digits10);
-            fMeta << std::setprecision(std::numeric_limits<REAL>::max_digits10);
+            fExtended = extended;
+            if (fExtended) {
+                fUI << std::setprecision(std::numeric_limits<REAL>::max_digits10);
+                fMeta << std::setprecision(std::numeric_limits<REAL>::max_digits10);
+            }
             
             // Start Meta generation
             fMeta.str("");
@@ -386,7 +390,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
         {
             fTab = 0;
             std::stringstream JSON;
-            JSON << std::setprecision(std::numeric_limits<REAL>::max_digits10);
+            if (fExtended) {
+                JSON << std::setprecision(std::numeric_limits<REAL>::max_digits10);
+            }
             JSON << "{";
             fTab += 1;
             tab(fTab, JSON); JSON << "\"name\": \"" << fName << "\",";
