@@ -144,11 +144,11 @@ set<Tree> splitCommonSubexpr(const set<Tree>& I)
     // insert the additional shared instructions
     for (Tree i : cs.fSplittedSignals) R.insert(i);
 
-    cerr << "BEGIN DEBUG content of R " << endl;
-    for (Tree i : R) {
-        cerr << *i << endl;
-    }
-    cerr << "END DEBUG content of R " << endl;
+    // cerr << "BEGIN DEBUG content of R " << endl;
+    // for (Tree i : R) {
+    //     cerr << *i << endl;
+    // }
+    // cerr << "END DEBUG content of R " << endl;
 
     return R;
 }
