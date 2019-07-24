@@ -40,56 +40,9 @@
 #include "sigtyperules.hh"
 
 using namespace std;
-/**
- * @brief associates a unique ID to a signal
- *
- * @param prefix the prefix of the ID
- * @param sig the signal that will be associated to the id
- * @return Tree always the same unique ID
- */
-static Tree uniqueID(const char* prefix, Tree sig)
-{
-    Tree ID;
-    Tree key = tree(symbol(prefix));
-    if (getProperty(sig, key, ID)) {
-        return ID;
-    } else {
-        ID = tree(unique(prefix));
-        setProperty(sig, key, ID);
-        return ID;
-    }
-}
 
-/**
- * @brief Recursively visit expressions and count occurrences. We suppose expressions have been transformed into
- * instructions and no recursion remain.
- *
- */
-
-class ExprOccurrences {
-    map<Tree, int> fOccurrences;
-
-    void countOccurrences(Tree e)
-    {
-        int n = ++fOccurrences[e];
-        if (n == 1) {
-            // first occurrence of e, we visit its subexpressions
-            tvec S;
-            getSubSignals(e, S, false);
-            for (Tree f : S) {
-                countOccurrences(f);
-            }
-        }
-    }
-
-   public:
-    ExprOccurrences(const set<Tree>& I)
-    {
-        for (Tree i : I) countOccurrences(i);
-    }
-
-    int getOccurrences(Tree e) { return fOccurrences[e]; }
-};
+static Tree           uniqueID(const char* prefix, Tree sig);
+static map<Tree, int> countOccurrences(const set<Tree>& I);
 
 /**
  * @brief Transformation class used internally to split a signal
@@ -98,20 +51,20 @@ class ExprOccurrences {
  */
 class CommonSubexpr : public SignalIdentity {
    private:
-    ExprOccurrences& fOcc;
+    map<Tree, int> fOcc;
 
    public:
     set<Tree> fSplittedSignals;
 
    public:
-    CommonSubexpr(ExprOccurrences& occ) : fOcc(occ) {}
+    CommonSubexpr(const map<Tree, int>& occ) : fOcc(occ) {}
 
    protected:
     virtual Tree transformation(Tree sig)
     {
         faustassert(sig);
         Type t = getSimpleType(sig);
-        int  n = fOcc.getOccurrences(sig);
+        int  n = fOcc[sig];
         Tree id, origin, dl;
         int  i, dmin;
 
@@ -130,25 +83,74 @@ class CommonSubexpr : public SignalIdentity {
     }
 };
 
+/**
+ * @brief Split common subexpressions into instructions
+ *
+ * @param I the initial set of instructions
+ * @return set<Tree> the resulting set of instructions
+ */
 set<Tree> splitCommonSubexpr(const set<Tree>& I)
 {
-    ExprOccurrences occ(I);
-
-    CommonSubexpr cs(occ);
+    CommonSubexpr cs(countOccurrences(I));
 
     set<Tree> R;
-    for (Tree i : I) {
-        R.insert(cs.self(i));
-    }
+    for (Tree i : I) R.insert(cs.self(i));
 
     // insert the additional shared instructions
     for (Tree i : cs.fSplittedSignals) R.insert(i);
-
-    // cerr << "BEGIN DEBUG content of R " << endl;
-    // for (Tree i : R) {
-    //     cerr << *i << endl;
-    // }
-    // cerr << "END DEBUG content of R " << endl;
-
     return R;
+}
+
+/***************************************************************************************
+ *                                  IMPLEMENTATION
+ ***************************************************************************************/
+
+/**
+ * @brief add the occurrences of e and all its subexpressions
+ *
+ * @param O the occurrence count
+ * @param e the expression
+ */
+void addOccurrences(map<Tree, int>& O, Tree e)
+{
+    int n = ++O[e];
+    if (n == 1) {
+        // first occurrence of e, we visit its subexpressions
+        tvec S;
+        getSubSignals(e, S, false);
+        for (Tree f : S) addOccurrences(O, f);
+    }
+}
+
+/**
+ * @brief Count the occurrences of every expression in I
+ *
+ * @param I a set of instructions
+ * @return map<Tree,int> the occurrences
+ */
+map<Tree, int> countOccurrences(const set<Tree>& I)
+{
+    map<Tree, int> O;
+    for (Tree i : I) addOccurrences(O, i);
+    return O;
+}
+
+/**
+ * @brief associates a unique ID to a signal
+ *
+ * @param prefix the prefix of the ID
+ * @param sig the signal that will be associated to the id
+ * @return Tree always the same unique ID
+ */
+Tree uniqueID(const char* prefix, Tree sig)
+{
+    Tree ID;
+    Tree key = tree(symbol(prefix));
+    if (getProperty(sig, key, ID)) {
+        return ID;
+    } else {
+        ID = tree(unique(prefix));
+        setProperty(sig, key, ID);
+        return ID;
+    }
 }
