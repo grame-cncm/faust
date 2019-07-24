@@ -40,6 +40,7 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
+#include "scalarSCheduling.hh"
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
@@ -181,30 +182,6 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     cerr << "Start Signal Splitter" << endl;
 
-    // old_OccMarkup* fOccMarkup2 = new old_OccMarkup(fConditionProperty);
-    // fOccMarkup2->mark(L3d);  // annotate L3 with occurences analysis
-
-    // SignalSplitter SS(fOccMarkup2);
-    // SS.trace(false, "Signal Splitter");
-    // Tree L3S = SS.mapself(L3d);
-    // // cerr << "\n\nL3S = " << ppsig(L3S) << endl;
-    // // SS.print(cerr);
-    // // cerr << endl;
-
-    // // set<Tree> INSTR;  ///< The instruction set
-
-    // // cerr << "Remove Recursions" << endl;
-
-    // // RecRemover RR;
-
-    // // for (auto s : SS.fSplittedSignals) {
-    // //     Tree e = RR.self(s);
-    // //     cerr << ppsig(e) << endl;
-    // //     INSTR.insert(e);
-    // // }
-
-    // set<Tree> INSTR1 = SS.fSplittedSignals;
-    // cerr << "L3d: " << ppsig(L3d) << endl;
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
     signalGraph("beforeSimplification.dot", INSTR1);
 
@@ -213,6 +190,8 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     set<Tree> INSTR = splitCommonSubexpr(INSTR2);
     signalGraph("afterCSE.dot", INSTR);
+
+    scalarScheduling("scalarScheduling.txt", INSTR);
 
     cerr << "Build Dependency Graph" << endl;
 
