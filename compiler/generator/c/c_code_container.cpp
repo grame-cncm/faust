@@ -353,7 +353,7 @@ void CCodeContainer::produceClass()
 
     if (gGlobal->gOneSample) {
         tab(n, *fOut);
-        *fOut << "void control" << fKlassName << subst("(int* icontrol, $0* fcontrol) {", xfloat());
+        *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* icontrol, $0* fcontrol) {", xfloat());
         tab(n + 1, *fOut);
         fCodeProducer.Tab(n + 1);
         // Generates local variables declaration and setup
