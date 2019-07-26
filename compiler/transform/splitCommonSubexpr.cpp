@@ -70,8 +70,8 @@ class CommonSubexpr : public SignalIdentity {
 
         if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) && !(isSigControlRead(sig, id, origin)) &&
             !(isSigDelayLineRead(sig, id, origin, &dmin, dl))) {
-            cerr << "Candidate for Sharing: "
-                 << " --" << ppsig(sig) << endl;
+            // cerr << "Candidate for Sharing: "
+            //      << " --" << ppsig(sig) << endl;
             Tree r  = SignalIdentity::transformation(sig);
             Tree id = uniqueID("V", sig);
             fSplittedSignals.insert(sigSharedWrite(id, sig, r));

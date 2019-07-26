@@ -126,7 +126,7 @@ Tree SignalSplitter::transformation(Tree sig)
         if (isProj(x, &n, rec)) {
             if (isRec(rec, var, le)) {
                 if (dmax == 0) {
-                    cerr << "FALSE RECURSION " << endl;
+                    // cerr << "FALSE RECURSION " << endl;
                     return self(nth(le, n));
                 }
                 Tree id;
