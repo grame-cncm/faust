@@ -183,81 +183,26 @@ Tree ScalarCompiler::prepare(Tree LS)
     cerr << "Start Signal Splitter" << endl;
 
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    signalGraph("beforeSimplification.dot", INSTR1);
+    // signalGraph("beforeSimplification.dot", INSTR1);
 
+    cerr << "Start delayLineSimplifier" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    signalGraph("afterSimplification.dot", INSTR2);
+    // signalGraph("afterSimplification.dot", INSTR2);
 
+    cerr << "Start splitCommonSubexpr" << endl;
     set<Tree> INSTR = splitCommonSubexpr(INSTR2);
     signalGraph("afterCSE.dot", INSTR);
 
+    cerr << "Start scalarscheduling" << endl;
     scalarScheduling("scalarScheduling.txt", INSTR);
+
+    cerr << "Start parallelScheduling" << endl;
     parallelScheduling("parallelScheduling.txt", INSTR);
 
-    cerr << "Build Dependency Graph" << endl;
-
-    digraph<Tree> G;
-    Dictionnary   Dic;
-
-    for (auto i : INSTR) {
-        if (canBeSimplified(i)) {
-            cerr << "Can BE SIMPLIFIED " << ppsig(i) << endl;
-        }
-        G.add(dependencyGraph(i));
-        Dic.add(i);
-    }
-
-    cerr << "End Signal Splitter" << endl;
-
-    cerr << "Graph of dependencies" << endl;
-    {
-        ofstream f;
-        f.open("graph.dot");
-        dotfile2(f, Dic, G);
-        f.close();
-    }
-
-    cerr << "DAG of dependencies" << endl;
-    digraph<digraph<Tree>> DG = graph2dag(G);
-    {
-        ofstream f;
-        f.open("dag.dot");
-        dotfile(f, DG);
-        f.close();
-    }
-
-    cerr << "\nSERIALIZE\n";
-    auto V    = serialize(DG);
-    int  step = 0;
-    for (auto s : V) {
-        cerr << step++ << ": " << s << endl;
-    }
-    /*
-        cerr << "\nPARALLELIZE\n" ;
-        auto P = parallelize(DG);
-        step = 0;
-        for (auto v : P) {
-            ++ step;
-            int inst = 0;
-            for (auto s : v) {
-                for (auto u : s) {
-                    cerr << step << '.' << ++inst << ": " << u << endl;
-                }
-            }
-        }
-    */
     endTiming("Signal Splitter");
 
     //****************************************************************************************************
     //****************************************************************************************************
-
-    cerr << "\n\n\nTEST7:        G = " << G << endl;
-    cerr << "number of cycles: " << cycles(G) << endl;
-    cerr << "0-cycles        : " << cycles(cut(G, 1)) << endl;
-    auto H = graph2dag(G);
-    cerr << "graph2dag(G)    = " << H << endl;
-    cerr << "parallelize(H)  = " << parallelize(H) << endl;
-    cerr << "serialize(H)    = " << serialize(H) << endl;
 
     endTiming("ScalarCompiler::prepare");
 
@@ -1239,9 +1184,9 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     // generate delayline for each element of a recursive definition
     for (int i = 0; i < N; i++) {
         if (used[i]) {
-            if (delay[i] == 0) {
-                cerr << ">>>>>> NOT A REAL RECURSION (Not used delayed)" << *sigProj(i, sig) << endl;
-            }
+            // if (delay[i] == 0) {
+            //     cerr << ">>>>>> NOT A REAL RECURSION (Not used delayed)" << *sigProj(i, sig) << endl;
+            // }
             generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
         }
     }
