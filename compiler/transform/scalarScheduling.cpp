@@ -2,6 +2,7 @@
 #include <fstream>
 #include <ostream>
 #include "digraph.hh"
+#include "digraphop.hh"
 #include "ppsig.hh"
 #include "property.hh"
 #include "sigIdentity.hh"
@@ -9,6 +10,13 @@
 #include "sigtyperules.hh"
 
 using namespace std;
+
+static bool isControl(Tree i)
+{
+    Tree id, origin, exp;
+    bool r = isSigControlWrite(i, id, origin, exp);
+    return r;
+}
 
 /**
  * @brief generates a text file from a set of instructions
@@ -27,13 +35,25 @@ void scalarScheduling(const string& filename, set<Tree> I)
         Dic.add(i);
     }
 
+    // split in two graphs
+    digraph<Tree> L;  // the control graph
+    digraph<Tree> R;  // the signal graph
+
+    splitgraph<Tree>(G, [&Dic](Tree id) { return isControl(Dic[id]); }, L, R);
+
     // 2) create a vector of subgraphs
-    digraph<digraph<Tree>> DG = graph2dag(G);
+    digraph<digraph<Tree>> DG = graph2dag(R);
     vector<digraph<Tree>>  VG = serialize(DG);
 
     // 3) print each subgraph
     ofstream f;
     f.open(filename);
+
+    f << "// CONTROL SCHEDULING " << endl;
+    for (Tree i : serialize(L)) {
+        f << i << ":\t" << ppsig(Dic[i]) << endl;
+    }
+    f << endl;
 
     f << "// SCALAR SCHEDULING " << endl;
     for (digraph<Tree> g : VG) {
@@ -65,13 +85,25 @@ void parallelScheduling(const string& filename, set<Tree> I)
         Dic.add(i);
     }
 
+    // split in two graphs
+    digraph<Tree> L;  // the control graph
+    digraph<Tree> R;  // the signal graph
+
+    splitgraph<Tree>(G, [&Dic](Tree id) { return isControl(Dic[id]); }, L, R);
+
     // 2) create a vector of subgraphs
-    digraph<digraph<Tree>>        DG = graph2dag(G);
+    digraph<digraph<Tree>>        DG = graph2dag(R);
     vector<vector<digraph<Tree>>> PG = parallelize(DG);
 
     // 3) print each subgraph
     ofstream f;
     f.open(filename);
+
+    f << "// CONTROL SCHEDULING " << endl;
+    for (Tree i : serialize(L)) {
+        f << i << ":\t" << ppsig(Dic[i]) << endl;
+    }
+    f << endl;
 
     f << "// PARALLEL SCHEDULING " << endl;
     for (vector<digraph<Tree>> p : PG) {
