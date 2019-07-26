@@ -32,11 +32,19 @@
 using namespace std;
 
 /**
- * @brief generates a text file from a set of instructions
+ * @brief generates a scalar scheduling from a set of instructions
  *
  * @param "filename.txt" the name of the file
- * @param instr the set of instructions
+ * @param I the set of instructions
  */
 void scalarScheduling(const string& filename, set<Tree> I);
+
+/**
+ * @brief generates a parallel scheduling from a set of instructions
+ *
+ * @param "filename.txt" the name of the file
+ * @param I the set of instructions
+ */
+void parallelScheduling(const string& filename, set<Tree> I);
 
 #endif

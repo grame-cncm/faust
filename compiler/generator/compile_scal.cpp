@@ -40,7 +40,7 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
-#include "scalarSCheduling.hh"
+#include "scalarScheduling.hh"
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
@@ -192,6 +192,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     signalGraph("afterCSE.dot", INSTR);
 
     scalarScheduling("scalarScheduling.txt", INSTR);
+    parallelScheduling("parallelScheduling.txt", INSTR);
 
     cerr << "Build Dependency Graph" << endl;
 
