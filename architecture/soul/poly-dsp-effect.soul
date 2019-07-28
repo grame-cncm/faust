@@ -171,13 +171,13 @@ processor RoundRobinVoiceAllocator (int voiceCount)
 // Allocates voices, does dynamic voice management, connect to MIDI parser
 graph mydsp_poly_effect [[ main ]]
 {
-    input event int midiIn;
+    input event midi::Message midiIn;
     output stream float audioOut0;
     output stream float audioOut1;
     
     let
     {
-        midiParser = soul::NoteEvents::MPEParser;
+        midiParser = midi::MPEParser;
         voices = dsp_voice[NVOICES];
         voiceAllocator = RoundRobinVoiceAllocator (NVOICES);
     }
@@ -186,9 +186,9 @@ graph mydsp_poly_effect [[ main ]]
     {
         midiIn -> midiParser.parseMIDI;
 
-        midiParser.noteOn    -> voiceAllocator.noteOn;
-        midiParser.noteOff   -> voiceAllocator.noteOff;
-        midiParser.pitchBend -> voiceAllocator.pitchBend;
+        midiParser.eventOut -> voiceAllocator.noteOn, 
+                               voiceAllocator.noteOff,
+                               voiceAllocator.pitchBend;
 
         // Plumb the voice allocator to the voices array
         voiceAllocator.voiceNoteOn    -> voices.noteOn;

@@ -25,6 +25,7 @@ EFFECT=""
 NVOICES=-1
 OPTIONS=""
 PLAY="false"
+MIDI="false"
 
 while [ $1 ] 
 do
@@ -50,7 +51,8 @@ do
         shift
         EFFECT=$1
     elif [ $p = "-midi" ]; then
-    	echo "MIDI will be used"
+        MIDI="true"
+        echo "MIDI will be used"
     elif [ $p = "-play" ]; then
     	PLAY="true"
     elif [ ${p:0:1} = "-" ]; then
@@ -78,7 +80,11 @@ createSOULPatch()
     echo '"category": "synth",'
     echo '"manufacturer": "GRAME",'
     echo '"website": "https://faust.grame.fr",'
-    echo '"isInstrument": true,'
+    if [ $MIDI = "true" ]; then
+        echo '"isInstrument": true,'
+    else
+        echo '"isInstrument": false,'
+    fi
     echo "\"source\": \"$1.soul\""
     echo '}'
     echo '}'
