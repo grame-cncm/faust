@@ -220,6 +220,14 @@ inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, con
     Tree br[] = {a, b, c, d, e};
     return CTree::make(n, 5, br);
 }
+
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e,
+                 const Tree& f)
+{
+    Tree br[] = {a, b, c, d, e, f};
+    return CTree::make(n, 6, br);
+}
+
 inline Tree tree(const Node& n, const tvec& br)
 {
     return CTree::make(n, br);
@@ -241,6 +249,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e, Tree& f);
 
 // printing
 inline ostream& operator<<(ostream& s, const CTree& t)
