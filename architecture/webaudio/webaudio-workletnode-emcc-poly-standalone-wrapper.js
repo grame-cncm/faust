@@ -945,7 +945,11 @@ let mydspPolyProcessorString = `
             }
             
             // Compute
-            this.dsp.compute(NUM_FRAMES, this.ins, this.outs);
+            try {
+            	this.dsp.compute(NUM_FRAMES, this.ins, this.outs);
+            } catch(e) {
+            	console.log("ERROR in compute (" + e + ")");
+            }    
             
             // Update bargraph
             this.update_outputs();

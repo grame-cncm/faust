@@ -436,9 +436,6 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
     DeclareFunInst* int_max_fun = WASInst::generateIntMax();
     DeclareFunInst* int_min_fun = WASInst::generateIntMin();
 
-    // Remove unecessary cast
-    compute_block = CastRemover().getCode(compute_block);
-
     // Inline "max_i" call
     compute_block = FunctionCallInliner(int_max_fun).getCode(compute_block);
 
@@ -450,6 +447,9 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
+    
+    // Remove unecessary cast
+    block = CastRemover().getCode(block);
 
     block->accept(gGlobal->gWASTVisitor);
     tab(n + 1, fOutAux);

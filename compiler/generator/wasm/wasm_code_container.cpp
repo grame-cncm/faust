@@ -424,9 +424,6 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     DeclareFunInst* int_max_fun = WASInst::generateIntMax();
     DeclareFunInst* int_min_fun = WASInst::generateIntMin();
 
-    // Remove unecessary cast
-    compute_block = CastRemover().getCode(compute_block);
-
     // Inline "max_i" call
     compute_block = FunctionCallInliner(int_max_fun).getCode(compute_block);
 
@@ -438,7 +435,10 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-
+    
+    // Remove unecessary cast
+    block = CastRemover().getCode(block);
+    
     // Creates function and visit it
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
@@ -446,6 +446,7 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+    
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 

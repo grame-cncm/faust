@@ -818,8 +818,12 @@ let mydspProcessorString = `
                 this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
             }
             
-            // Compute
-            this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
+          	// Compute
+            try {
+                this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
+            } catch(e) {
+                console.log("ERROR in compute (" + e + ")");
+            }
             
             // Update bargraph
             this.update_outputs();

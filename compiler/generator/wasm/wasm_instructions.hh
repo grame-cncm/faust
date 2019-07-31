@@ -1304,7 +1304,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
             *fOut << int8_t(WasmOp::I64Ne);
         }
-        *fOut << int8_t(BinaryConsts::If) << int8_t(BinaryConsts::Empty);
+        *fOut << int8_t(BinaryConsts::If) << S32LEB(BinaryConsts::Empty);
         inst->fThen->accept(this);
         if (inst->fElse->fCode.size() > 0) {
             *fOut << int8_t(BinaryConsts::Else);

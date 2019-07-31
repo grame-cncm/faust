@@ -722,22 +722,26 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.mixer.clearOutput(mydspPolyProcessor.buffer_size, this.numOut, this.outs);
         
         // Compute all running voices
-        for (var i = 0; i < this.polyphony; i++) {
-            if (this.dsp_voices_state[i] != this.kFreeVoice) {
-                // Compute voice
-                this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
-                // Mix it in result
-                this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
-                // Check the level to possibly set the voice in kFreeVoice again
-                if ((this.dsp_voices_level[i] < 0.0005) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
-                    this.dsp_voices_state[i] = this.kFreeVoice;
+        try {
+            for (var i = 0; i < this.polyphony; i++) {
+                if (this.dsp_voices_state[i] != this.kFreeVoice) {
+                    // Compute voice
+                    this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
+                    // Mix it in result
+                    this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
+                    // Check the level to possibly set the voice in kFreeVoice again
+                    if ((this.dsp_voices_level[i] < 0.0005) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
+                        this.dsp_voices_state[i] = this.kFreeVoice;
+                    }
                 }
             }
-        }
-        
-        // Apply effect
-        if (this.effect) {
-            this.effect.compute(this.effect_start, mydspPolyProcessor.buffer_size, this.outs, this.outs);
+
+            // Apply effect
+            if (this.effect) {
+                this.effect.compute(this.effect_start, mydspPolyProcessor.buffer_size, this.outs, this.outs);
+            }
+        } catch(e) {
+        	console.log("ERROR in compute (" + e + ")");
         }
         
         // Update bargraph

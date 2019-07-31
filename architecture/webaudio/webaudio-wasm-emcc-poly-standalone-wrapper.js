@@ -152,7 +152,11 @@ class FaustWasm2ScriptProcessorPoly {
             // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
             if (sp.compute_handler) sp.compute_handler(bufferSize);
             // Compute
-            sp.instance.compute(bufferSize, sp.ins, sp.outs); 
+            try {
+            	sp.instance.compute(bufferSize, sp.ins, sp.outs); 
+            } catch(e) {
+            	console.log("ERROR in compute (" + e + ")");
+            }
             // Update bargraph
             sp.update_outputs();
             // Write outputs

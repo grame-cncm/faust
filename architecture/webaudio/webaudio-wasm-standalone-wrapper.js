@@ -141,7 +141,11 @@ class FaustWasm2ScriptProcessor {
             }
             // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
             if (sp.compute_handler) sp.compute_handler(bufferSize);
-            sp.factory.compute(sp.dsp, bufferSize, sp.ins, sp.outs); // Compute
+            try {
+                sp.factory.compute(sp.dsp, bufferSize, sp.ins, sp.outs); // Compute
+            } catch(e) {
+                console.log("ERROR in compute (" + e + ")");
+            }
             sp.update_outputs(); // Update bargraph
             for (let i = 0; i < sp.numOut; i++) { // Write outputs
                 const output = e.outputBuffer.getChannelData(i);

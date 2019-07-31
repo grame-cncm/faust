@@ -232,19 +232,27 @@ class FaustWasm2ScriptProcessorPoly {
                 const dspInput = sp.dspInChannnels[i];
                 dspInput.set(input);
             }
-            // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
-            if (sp.compute_handler) sp.compute_handler(bufferSize);
-            sp.mixer.clearOutput(bufferSize, sp.numOut, sp.outs); // First clear the outputs
-            for (let i = 0; i < polyphony; i++) { // Compute all running voices
-                if (sp.dsp_voices_state[i] === sp.kFreeVoice) continue;
-                sp.factory.compute(sp.dsp_voices[i], bufferSize, sp.ins, sp.mixing); // Compute voice
-                sp.dsp_voices_level[i] = sp.mixer.mixVoice(bufferSize, sp.numOut, sp.mixing, sp.outs); // Mix it in result
-                // Check the level to possibly set the voice in kFreeVoice again
-                if (sp.dsp_voices_level[i] < 0.0005 && sp.dsp_voices_state[i] === sp.kReleaseVoice) {
-                    sp.dsp_voices_state[i] = sp.kFreeVoice;
+            try {
+                sp.instance.compute(bufferSize, sp.ins, sp.outs);
+
+                // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
+                if (sp.compute_handler) sp.compute_handler(bufferSize);
+                sp.mixer.clearOutput(bufferSize, sp.numOut, sp.outs); // First clear the outputs
+                for (let i = 0; i < polyphony; i++) { // Compute all running voices
+                    if (sp.dsp_voices_state[i] === sp.kFreeVoice) continue;
+                    sp.factory.compute(sp.dsp_voices[i], bufferSize, sp.ins, sp.mixing); // Compute voice
+                    sp.dsp_voices_level[i] = sp.mixer.mixVoice(bufferSize, sp.numOut, sp.mixing, sp.outs); // Mix it in result
+                    // Check the level to possibly set the voice in kFreeVoice again
+                    if (sp.dsp_voices_level[i] < 0.0005 && sp.dsp_voices_state[i] === sp.kReleaseVoice) {
+                        sp.dsp_voices_state[i] = sp.kFreeVoice;
+                    }
                 }
+                
+                if (sp.effect) sp.effect.compute(sp.effect_start, bufferSize, sp.outs, sp.outs); // Apply effect
+            } catch(e) {
+                console.log("ERROR in compute (" + e + ")");
             }
-            if (sp.effect) sp.effect.compute(sp.effect_start, bufferSize, sp.outs, sp.outs); // Apply effect
+            
             sp.update_outputs(); // Update bargraph
             for (let i = 0; i < sp.numOut; i++) { // Write outputs
                 const output = e.outputBuffer.getChannelData(i);

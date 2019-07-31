@@ -299,7 +299,11 @@ class mydspProcessor extends AudioWorkletProcessor {
         }
         
         // Compute
-        this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
+        try {
+            this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
+        } catch(e) {
+            console.log("ERROR in compute (" + e + ")");
+        }
         
         // Update bargraph
         this.update_outputs();
