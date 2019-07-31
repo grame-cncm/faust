@@ -258,14 +258,28 @@ inline const Node mulNode(const Node& x, const Node& y)
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y))
-               ? Node(double(x) / double(y))
-               : (double(int(x) / int(y)) == double(x) / double(y)) ? Node(int(x) / int(y))
-                                                                    : Node(double(x) / double(y));
+    if (isDouble(x) || isDouble(y)) {
+        if (double(y) == 0) goto raise_exception;
+        return Node(double(x) / double(y));
+    } else {
+        if (int(y) == 0 || double(y) == 0) goto raise_exception;
+        return (double(int(x) / int(y)) == double(x) / double(y)) ? Node(int(x) / int(y)) : Node(double(x) / double(y));
+    }
+
+raise_exception:
+    stringstream error;
+    error << "ERROR : division by 0 in " << x << " / " << y << endl;
+    throw faustexception(error.str());
+    return {};
 }
 
 inline const Node remNode(const Node& x, const Node& y)
 {
+    if (int(y) == 0) {
+        stringstream error;
+        error << "ERROR : % by 0 in " << x << " % " << y << endl;
+        throw faustexception(error.str());
+    }
     return Node(int(x) % int(y));
 }
 
