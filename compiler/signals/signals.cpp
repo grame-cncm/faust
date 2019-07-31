@@ -721,7 +721,7 @@ bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* dmax, Tree& sig)
 /**
  * @brief A delayline read "instruction"
  *
- * @param id: unique indetifier of the delayline
+ * @param id: unique indentifier of the delayline
  * @param origin: the original signal (for its type)
  * @param dmin: the minimum reading delay
  * @param dl: the reading delay signal
@@ -736,6 +736,82 @@ bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl)
 {
     Tree tmin;
     if (isTree(s, gGlobal->SIGDELAYLINEREAD, id, origin, tmin, dl)) {
+        *dmin = tree2int(tmin);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief A table write instruction: T[tblsize]<init> ID[idx] = sig
+ *
+ * @param id: unique identifier of the table
+ * @param origin: the original signal (for its type)
+ * @param tblsize: the size fo the table
+ * @param init: the init signal
+ * @param idx: the write index
+ * @param sig: the write content;
+ * @return Tree: a table write instruction
+ */
+Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
+{
+    return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
+}
+
+/**
+ * @brief Test if a signal s is a sigWriteTable instruction
+ *
+ * @param s: the signal we want to test
+ * @param id: unique identifier of the table
+ * @param origin: the original signal (for its type)
+ * @param tblsize: the size fo the table
+ * @param init: the init signal
+ * @param idx: the write index
+ * @param sig: the write content;
+ * @return true if s is a sigWriteTable
+ * @return false otherwise
+ */
+bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig)
+{
+    Tree tsize;
+    if (isTree(s, gGlobal->SIGTABLEWRITE, id, origin, tsize, init, idx, sig)) {
+        *tblsize = tree2int(tsize);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param id
+ * @param origin
+ * @param dmin
+ * @param idx
+ * @return Tree
+ */
+Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx)
+{
+    return tree(gGlobal->SIGTABLEREAD, id, origin, tree(dmin), idx);
+}
+
+/**
+ * @brief
+ *
+ * @param s
+ * @param id
+ * @param origin
+ * @param dmin
+ * @param idx
+ * @return true
+ * @return false
+ */
+bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
+{
+    Tree tmin;
+    if (tree(gGlobal->SIGTABLEREAD, id, origin, tmin, idx)) {
         *dmin = tree2int(tmin);
         return true;
     } else {

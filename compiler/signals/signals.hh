@@ -380,6 +380,14 @@ bool isSigControlWrite(Tree s, Tree& id, Tree& origin, Tree& sig);
 Tree sigControlRead(Tree id, Tree origin);
 bool isSigControlRead(Tree s, Tree& id, Tree& origin);
 
+//
+
+Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
+bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig);
+
+Tree sigTableRead(Tree id, Tree origin, Tree idx);
+bool isSigTableRead(Tree s, Tree& id, Tree& origin, Tree& idx);
+
 /*****************************************************************************
                              FTZ wrapping
     Add FTZ wrapping to a signal

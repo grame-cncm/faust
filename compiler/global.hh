@@ -399,6 +399,9 @@ struct global {
     Sym SIGCONTROLWRITE;
     Sym SIGCONTROLREAD;
 
+    Sym SIGTABLEWRITE;
+    Sym SIGTABLEREAD;
+
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
 
