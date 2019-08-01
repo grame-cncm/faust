@@ -184,7 +184,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     cerr << "Start Signal Splitter" << endl;
 
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    // signalGraph("beforeSimplification.dot", INSTR1);
+    signalGraph("beforeSimplification.dot", INSTR1);
 
     cerr << "Start delayLineSimplifier" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
