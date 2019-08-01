@@ -199,6 +199,12 @@ Tree ScalarCompiler::prepare(Tree LS)
     cerr << "Start parallelScheduling" << endl;
     parallelScheduling("parallelScheduling.txt", INSTR);
 
+    cerr << "Test tables" << endl;
+    Tree t1 = sigTablelWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, 64, sigInt(0), sigInt(22), sigInt(-1));
+    cerr << "t1 = " << ppsig(t1) << endl;
+    Tree t2 = sigTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, 1, sigInt(7));
+    cerr << "t2 = " << ppsig(t2) << endl;
+
     endTiming("Signal Splitter");
 
     //****************************************************************************************************
