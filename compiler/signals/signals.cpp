@@ -811,7 +811,7 @@ Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx)
 bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
 {
     Tree tmin;
-    if (tree(gGlobal->SIGTABLEREAD, id, origin, tmin, idx)) {
+    if (isTree(s, gGlobal->SIGTABLEREAD, id, origin, tmin, idx)) {
         *dmin = tree2int(tmin);
         return true;
     } else {

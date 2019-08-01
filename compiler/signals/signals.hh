@@ -385,8 +385,8 @@ bool isSigControlRead(Tree s, Tree& id, Tree& origin);
 Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
 bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig);
 
-Tree sigTableRead(Tree id, Tree origin, Tree idx);
-bool isSigTableRead(Tree s, Tree& id, Tree& origin, Tree& idx);
+Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx);
+bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx);
 
 /*****************************************************************************
                              FTZ wrapping
