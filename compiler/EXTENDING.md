@@ -36,6 +36,35 @@ In `global.cpp` in the global() constructor, we initialize:
 
 ## Expression implementations
 
+    Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
+    {
+        return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
+    }
 
+    bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig)
+    {
+        Tree tsize;
+        if (isTree(s, gGlobal->SIGTABLEWRITE, id, origin, tsize, init, idx, sig)) {
+            *tblsize = tree2int(tsize);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx)
+    {
+        return tree(gGlobal->SIGTABLEREAD, id, origin, tree(dmin), idx);
+    }
+
+    bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
+    {
+        Tree tmin;
+        if (tree(gGlobal->SIGTABLEREAD, id, origin, tmin, idx)) {
+            *dmin = tree2int(tmin);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
