@@ -401,7 +401,11 @@ class mydsp {
         let parse_group = group => group.items ? parse_items(group.items) : null;
         let parse_items = items => items.forEach(item => parse_item(item));
         let parse_item = item => {
-            if (item.type === "soundfile") {
+            if (item.type === "vgroup"
+                || item.type === "hgroup"
+                || item.type === "tgroup") {
+                parse_items(item.items);
+            } else if (item.type === "soundfile") {
                 item.url.slice(1, -1).split(';').forEach(item => soundfiles_name.push(item));
             }
         }
@@ -410,6 +414,7 @@ class mydsp {
         // Load each file.
         await this.asyncForEach(soundfiles_name, async name_aux => {
                                 let name = name_aux.slice(1, -1);
+                                console.log(name);
                                 const soundfile = await fetch(name);
                                 const data = await soundfile.arrayBuffer();
                                 soundfiles.push({ name: name, data: data });
