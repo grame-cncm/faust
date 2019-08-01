@@ -171,3 +171,23 @@ ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
 
     return file << "}" << endl;
 }
+
+/**
+ * @brief associates a unique ID to a signal
+ *
+ * @param prefix the prefix of the ID
+ * @param sig the signal that will be associated to the id
+ * @return Tree always the same unique ID
+ */
+Tree uniqueID(const char* prefix, Tree sig)
+{
+    Tree ID;
+    Tree key = tree(symbol(prefix));
+    if (getProperty(sig, key, ID)) {
+        return ID;
+    } else {
+        ID = tree(unique(prefix));
+        setProperty(sig, key, ID);
+        return ID;
+    }
+}
