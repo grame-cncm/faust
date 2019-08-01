@@ -194,9 +194,10 @@ ostream& ppsig::printextended(ostream& fout, Tree sig) const
 
 ostream& ppsig::print(ostream& fout) const
 {
-    int    i;
+    int    i, tblsize;
     double r;
     Tree   c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   origin, init, idx, exp;
 
     if (isList(sig)) {
         printlist(fout, sig);
@@ -338,6 +339,13 @@ ostream& ppsig::print(ostream& fout) const
         fout << *x;
     }
 
+    else if (isSigTableWrite(sig, id, origin, &tblsize, init, idx, exp)) {
+        fout << "T[" << tblsize << "](" << ppsig(init) << ") " 
+             << *id << "[" << ppsig(idx) << "] := " << ppsig(exp) << ";";
+    } else if (isSigTableRead(sig, id, origin, &i, idx)) {
+        fout << *id << "[" << ppsig(idx) << "]";
+    }
+    
     else {
         cerr << "[[" << *sig << "]]";
     }
