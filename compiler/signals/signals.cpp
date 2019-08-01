@@ -754,7 +754,7 @@ bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl)
  * @param sig: the write content;
  * @return Tree: a table write instruction
  */
-Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
+Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
 {
     return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
 }
