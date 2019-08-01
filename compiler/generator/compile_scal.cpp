@@ -55,6 +55,7 @@
 #include "splitCommonSubexpr.hh"
 #include "timing.hh"
 #include "xtended.hh"
+#include "transformDelayToTable.hh"
 
 using namespace std;
 
@@ -187,10 +188,14 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     cerr << "Start delayLineSimplifier" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    // signalGraph("afterSimplification.dot", INSTR2);
+    signalGraph("afterSimplification.dot", INSTR2);
+
+    cerr << "Start delayLine2tables" << endl;
+    set<Tree> INSTR3 = transformDelayToTable(INSTR2);
+    signalGraph("afterTable.dot", INSTR3);
 
     cerr << "Start splitCommonSubexpr" << endl;
-    set<Tree> INSTR = splitCommonSubexpr(INSTR2);
+    set<Tree> INSTR = splitCommonSubexpr(INSTR3);
     signalGraph("afterCSE.dot", INSTR);
 
     cerr << "Start scalarscheduling" << endl;
@@ -200,7 +205,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     parallelScheduling("parallelScheduling.txt", INSTR);
 
     cerr << "Test tables" << endl;
-    Tree t1 = sigTablelWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, 64, sigInt(0), sigInt(22), sigInt(-1));
+    Tree t1 = sigTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, 64, sigInt(0), sigInt(22), sigInt(-1));
     cerr << "t1 = " << ppsig(t1) << endl;
     Tree t2 = sigTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, 1, sigInt(7));
     cerr << "t2 = " << ppsig(t2) << endl;

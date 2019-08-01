@@ -17,7 +17,7 @@ class SignalDependencies : public SignalVisitor {
    public:
     SignalDependencies(Tree sig)
     {
-        Tree id, origin, content;
+        Tree id, origin, content, init, idx, exp;
         int  dmax, i;
         // Analyzed signals are supposed to be "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
@@ -33,6 +33,12 @@ class SignalDependencies : public SignalVisitor {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
+        } else if (isSigTableWrite(sig, id, origin, &dmax, init, idx, exp)) {
+            fRoot = id;
+            fGraph.add(fRoot);
+            self(init);
+            self(idx);
+            self(exp);
         } else if (isSigOutput(sig, &i, content)) {
             fRoot = sig;
             fGraph.add(fRoot);
@@ -58,6 +64,9 @@ class SignalDependencies : public SignalVisitor {
         if (isSigDelayLineRead(t, id, origin, &dmin, dl)) {
             fGraph.add(fRoot, id, dmin);
             self(dl);
+        } else if (isSigTableRead(t, id, origin, &dmin, dl)) {
+            fGraph.add(fRoot, id, dmin);
+            self(dl);
         } else if (isSigSharedRead(t, id, origin)) {
             fGraph.add(fRoot, id);
         } else if (isSigControlRead(t, id, origin)) {
@@ -72,10 +81,10 @@ class SignalDependencies : public SignalVisitor {
 
 void Dictionnary::add(Tree sig)
 {
-    Tree id, origin, content;
+    Tree id, idx, init, origin, content;
     int  dmax, i;
     // Analyzed signals are supposed to be DelayLines, Controls or Outputs
-    if (isSigDelayLineWrite(sig, id, origin, &dmax, content) || isSigSharedWrite(sig, id, origin, content) ||
+    if (isSigDelayLineWrite(sig, id, origin, &dmax, content) || isSigTableWrite(sig, id, origin, &dmax, init, idx, content) || isSigSharedWrite(sig, id, origin, content) ||
         isSigControlWrite(sig, id, origin, content)) {
         // cerr << "Dictionnary::add " << id << "@" << *id << endl;  //" := " << ppsig(sig) << endl;
         fDefinitions[id] = sig;

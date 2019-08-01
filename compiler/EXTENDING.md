@@ -28,7 +28,7 @@ In `global.cpp` in the global() constructor, we initialize:
 
 ## Expression definitions
 
-    Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
+    Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
     bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig);
 
     Tree sigTableRead(Tree id, Tree origin, Tree idx);
@@ -36,7 +36,7 @@ In `global.cpp` in the global() constructor, we initialize:
 
 ## Expression implementations
 
-    Tree sigTablelWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
+    Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
     {
         return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
     }

@@ -53,9 +53,9 @@ void SignalIdentity::traceExit(Tree t, Tree r)
 
 Tree SignalIdentity::transformation(Tree sig)
 {
-    int    i;
+    int    dmin, dmax, i;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
         vector<Tree> newBranches;
@@ -216,6 +216,12 @@ Tree SignalIdentity::transformation(Tree sig)
     } else if (isSigControlWrite(sig, x, u, y)) {  // x is used as an id, we don't go into it
         return sigControlWrite(x, u, self(y));
     }
+    
+    else if (isSigTableWrite(sig, id, origin, &dmax, init, idx, exp)) {
+        return sigTableWrite(id, origin, dmax, self(init), self(idx), self(exp));
+    } else if (isSigTableRead(sig, id, origin, &dmin, idx)) {
+        return sigTableRead(id, origin, dmin, self(idx));
+    } 
 
     else {
         stringstream error;

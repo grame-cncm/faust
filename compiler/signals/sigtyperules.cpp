@@ -496,6 +496,14 @@ static Type infereSigType(Tree sig, Tree env)
         return getCertifiedSigType(u);
     }
 
+    else if (isSigTableWrite(sig, id, u, &i, x, y, z)) {
+        return T(z, env);
+    }
+
+    else if (isSigTableRead(sig, id, u, &i, x)) {
+        return getCertifiedSigType(u);
+    }
+
     else if (isSigSharedWrite(sig, id, u, x)) {
         return T(x, env);
     }

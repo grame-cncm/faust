@@ -53,9 +53,9 @@ void SignalVisitor::traceExit(Tree t)
 
 void SignalVisitor::visit(Tree sig)
 {
-    int    i;
+    int    i, dmax, dmin;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
@@ -242,6 +242,16 @@ void SignalVisitor::visit(Tree sig)
         self(y);
         return;
     }
+    
+    else if (isSigTableWrite(sig, id, origin, &dmax, init, idx, exp)) {
+        self(init);
+        self(idx); 
+        self(exp);
+        return;
+    } else if (isSigTableRead(sig, id, origin, &dmin, x)) {
+        self(x);
+        return;
+    } 
 
     // Read and Write
     else if (isSigControlRead(sig, id, x)) {  // x is used as an id, we don't go into it
