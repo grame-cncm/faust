@@ -101,7 +101,10 @@ class jack_midi_handler : public midi_handler {
             // MIDI output
             unsigned char* port_buf_out = (unsigned char*)port_buf_out_aux;
             if (reset) {
+                /*
+                // 08/03/2019: "jack_midi_reset_buffer" is not official in JACK, so we deactivate the code.
                 jack_midi_reset_buffer(port_buf_out);
+                */
             } else {
                 jack_midi_clear_buffer(port_buf_out);
             }
