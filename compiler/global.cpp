@@ -388,6 +388,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = sizeof(nullptr);
+#if defined(_WIN32) || defined(__i386) || defined(_M_IX86)
+    gMachinePtrSize *= 2;
+#endif
 
     gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
     gOutputLang          = "";
