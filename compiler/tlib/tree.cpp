@@ -398,6 +398,22 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tr
     }
 }
 
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e, Tree& f, Tree& g)
+{
+    if ((t->node() == n) && (t->arity() == 7)) {
+        a = t->branch(0);
+        b = t->branch(1);
+        c = t->branch(2);
+        d = t->branch(3);
+        e = t->branch(4);
+        f = t->branch(5);
+        g = t->branch(6);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 // July 2005, support for symbol user data
 
 void* getUserData(Tree t)

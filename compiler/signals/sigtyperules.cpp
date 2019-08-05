@@ -253,7 +253,7 @@ static void CheckPartInterval(Tree s, Type t)
 
 static Type infereSigType(Tree sig, Tree env)
 {
-    int    i;
+    int    i, nat, dmax, dmin;
     double r;
     Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
     Tree   label, cur, min, max, step;
@@ -488,35 +488,35 @@ static Type infereSigType(Tree sig, Tree env)
         return T(sel, env) | T(s1, env) | T(s2, env) | T(s3, env);
     }
 
-    else if (isSigDelayLineWrite(sig, id, u, &i, x)) {
+    else if (isSigDelayLineWrite(sig, id, u, &nat, &dmax, x)) {
         return T(x, env);
     }
 
-    else if (isSigDelayLineRead(sig, id, u, &i, x)) {
+    else if (isSigDelayLineRead(sig, id, u, &nat, &dmax, &dmin, x)) {
         return getCertifiedSigType(u);
     }
 
-    else if (isSigTableWrite(sig, id, u, &i, x, y, z)) {
+    else if (isSigTableWrite(sig, id, u, &nat, &i, x, y, z)) {
         return T(z, env);
     }
 
-    else if (isSigTableRead(sig, id, u, &i, x)) {
+    else if (isSigTableRead(sig, id, u, &nat, &i, x)) {
         return getCertifiedSigType(u);
     }
 
-    else if (isSigSharedWrite(sig, id, u, x)) {
+    else if (isSigSharedWrite(sig, id, u, &nat, x)) {
         return T(x, env);
     }
 
-    else if (isSigSharedRead(sig, id, u)) {
+    else if (isSigSharedRead(sig, id, u, &nat)) {
         return getCertifiedSigType(u);
     }
 
-    else if (isSigControlWrite(sig, id, u, x)) {
+    else if (isSigControlWrite(sig, id, u, &nat, x)) {
         return T(x, env);
     }
 
-    else if (isSigControlRead(sig, id, u)) {
+    else if (isSigControlRead(sig, id, u, &nat)) {
         return getCertifiedSigType(u);
     }
 

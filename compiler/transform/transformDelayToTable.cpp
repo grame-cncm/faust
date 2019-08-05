@@ -50,23 +50,40 @@ static map<Tree, int> countOccurrences(const set<Tree>& I);
  *
  */
 class TransformDelayToTable : public SignalIdentity {
-
    public:
     TransformDelayToTable() {}
 
    protected:
+    /**
+     * @brief compute the size 2^p of a delayline large enough for dmax+1 samples
+     *
+     * @param dmax the max delay
+     * @return int 2^p >= dmax+1
+     */
+    static int dmax2size(int dmax)
+    {
+        int x = dmax + 1;
+        int p = int(log2(x));
+        int v = 1 << p;
+        while (v < x) v = v << 1;
+        cerr << "dmax2size " << dmax << " -> " << v << endl;
+        assert(v >= x);
+        return v;
+    }
+
     virtual Tree transformation(Tree sig)
     {
         faustassert(sig);
-        
-        Tree id, origin, dl, exp, idx;
-        int  i, dmin, dmax;
 
-        if (isSigDelayLineWrite(sig, id, origin, &dmax, exp)) {
-            Tree tr = sigTableWrite(id, origin, dmax, sigInt(0),sigInt(0), exp);
+        Tree id, origin, dl, exp, idx;
+        int  nature, i, dmin, dmax;
+
+        if (isSigDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
+            int  size = dmax2size(dmax);
+            Tree tr   = sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigInt(0), sigInt(size - 1)), exp);
             return tr;
-        } else if (isSigDelayLineRead(sig, id, origin, &dmin, dl)) {
-            Tree tr = sigTableRead(id, origin, dmin, dl);
+        } else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
+            Tree tr = sigTableRead(id, origin, nature, dmin, dl);
             return tr;
         } else {
             return SignalIdentity::transformation(sig);
@@ -88,4 +105,3 @@ set<Tree> transformDelayToTable(const set<Tree>& I)
     for (Tree i : I) R.insert(d2t.self(i));
     return R;
 }
-

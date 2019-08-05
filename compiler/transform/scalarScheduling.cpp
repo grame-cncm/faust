@@ -14,7 +14,8 @@ using namespace std;
 static bool isControl(Tree i)
 {
     Tree id, origin, exp;
-    bool r = isSigControlWrite(i, id, origin, exp);
+    int  nat;
+    bool r = isSigControlWrite(i, id, origin, &nat, exp);
     return r;
 }
 

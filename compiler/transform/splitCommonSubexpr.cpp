@@ -66,16 +66,17 @@ class CommonSubexpr : public SignalIdentity {
         Type t = getSimpleType(sig);
         int  n = fOcc[sig];
         Tree id, origin, dl;
-        int  i, dmin;
+        int  nature, i, dmax, dmin;
 
-        if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) && !(isSigControlRead(sig, id, origin)) &&
-            !(isSigDelayLineRead(sig, id, origin, &dmin, dl))) {
+        if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) &&
+            !(isSigControlRead(sig, id, origin, &nature)) &&
+            !(isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl))) {
             // cerr << "Candidate for Sharing: "
             //      << " --" << ppsig(sig) << endl;
             Tree r  = SignalIdentity::transformation(sig);
             Tree id = uniqueID("V", sig);
-            fSplittedSignals.insert(sigSharedWrite(id, sig, r));
-            Tree inst = sigControlRead(id, sig);
+            fSplittedSignals.insert(sigSharedWrite(id, sig, t->nature(), r));
+            Tree inst = sigControlRead(id, sig, t->nature());
             return inst;
         } else {
             return SignalIdentity::transformation(sig);

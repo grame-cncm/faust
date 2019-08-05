@@ -53,7 +53,7 @@ void SignalIdentity::traceExit(Tree t, Tree r)
 
 Tree SignalIdentity::transformation(Tree sig)
 {
-    int    dmin, dmax, i;
+    int    nature, dmin, dmax, i, tblsize;
     double r;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
@@ -81,6 +81,8 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigPrefix(self(x), self(y));
     } else if (isSigIota(sig, x)) {
         return sigIota(self(x));
+    } else if (isSigTime(sig)) {
+        return sig;
     } else if (isSigBinOp(sig, &i, x, y)) {
         return sigBinOp(i, self(x), self(y));
     }
@@ -176,7 +178,7 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigHBargraph(label, self(x), self(y), self(z));
     }
 
-    // Sounfile length, rate, channels, buffer
+    // Soundfile length, rate, channels, buffer
     else if (isSigSoundfile(sig, label)) {
         return sig;
     } else if (isSigSoundfileLength(sig, sf, x)) {
@@ -196,32 +198,32 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigControl(self(x), self(y));
     }
 
-    // Read and Write
-    else if (isSigDelayLineRead(sig, x, u, &i, y)) {  // x is used as an id, we don't go into it
-        return sigDelayLineRead(x, u, i, self(y));
-    } else if (isSigDelayLineWrite(sig, x, u, &i, y)) {  // x is used as an id, we don't go into it
-        return sigDelayLineWrite(x, u, i, self(y));
+    // DelayLine Read and Write
+    else if (isSigDelayLineRead(sig, x, u, &nature, &dmax, &dmin, y)) {  // x is used as an id, we don't go into it
+        return sigDelayLineRead(x, u, nature, dmax, dmin, self(y));
+    } else if (isSigDelayLineWrite(sig, x, u, &nature, &dmax, y)) {  // x is used as an id, we don't go into it
+        return sigDelayLineWrite(x, u, nature, dmax, self(y));
     }
 
     // Read and Write
-    else if (isSigSharedRead(sig, x, u)) {  // x is used as an id, we don't go into it
+    else if (isSigSharedRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
         return sig;
-    } else if (isSigSharedWrite(sig, x, u, y)) {  // x is used as an id, we don't go into it
-        return sigSharedWrite(x, u, self(y));
+    } else if (isSigSharedWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
+        return sigSharedWrite(x, u, nature, self(y));
     }
 
     // Read and Write
-    else if (isSigControlRead(sig, x, u)) {  // x is used as an id, we don't go into it
+    else if (isSigControlRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
         return sig;
-    } else if (isSigControlWrite(sig, x, u, y)) {  // x is used as an id, we don't go into it
-        return sigControlWrite(x, u, self(y));
+    } else if (isSigControlWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
+        return sigControlWrite(x, u, nature, self(y));
     }
-    
-    else if (isSigTableWrite(sig, id, origin, &dmax, init, idx, exp)) {
-        return sigTableWrite(id, origin, dmax, self(init), self(idx), self(exp));
-    } else if (isSigTableRead(sig, id, origin, &dmin, idx)) {
-        return sigTableRead(id, origin, dmin, self(idx));
-    } 
+
+    else if (isSigTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
+        return sigTableWrite(id, origin, nature, dmax, self(init), self(idx), self(exp));
+    } else if (isSigTableRead(sig, id, origin, &nature, &tblsize, idx)) {
+        return sigTableRead(id, origin, nature, tblsize, self(idx));
+    }
 
     else {
         stringstream error;

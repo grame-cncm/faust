@@ -94,13 +94,6 @@ string ScalarCompiler::getFreshID(const string& prefix)
  prepare
  *****************************************************************************/
 
-static bool canBeSimplified(Tree e)
-{
-    Tree id1, id2, origin1, origin2, sig, idx;
-    int  dmax, dmin;
-    return isSigDelayLineWrite(e, id1, origin1, &dmax, sig) && isSigDelayLineRead(sig, id2, origin2, &dmin, idx);
-}
-
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("ScalarCompiler::prepare");
@@ -205,9 +198,9 @@ Tree ScalarCompiler::prepare(Tree LS)
     parallelScheduling("parallelScheduling.txt", INSTR);
 
     cerr << "Test tables" << endl;
-    Tree t1 = sigTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, 64, sigInt(0), sigInt(22), sigInt(-1));
+    Tree t1 = sigTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 64, sigInt(0), sigInt(22), sigInt(-1));
     cerr << "t1 = " << ppsig(t1) << endl;
-    Tree t2 = sigTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, 1, sigInt(7));
+    Tree t2 = sigTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 1, sigInt(7));
     cerr << "t2 = " << ppsig(t2) << endl;
 
     endTiming("Signal Splitter");

@@ -194,7 +194,7 @@ ostream& ppsig::printextended(ostream& fout, Tree sig) const
 
 ostream& ppsig::print(ostream& fout) const
 {
-    int    i, tblsize;
+    int    i, nat, dmax, dmin, tblsize;
     double r;
     Tree   c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
     Tree   origin, init, idx, exp;
@@ -241,6 +241,8 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "prefix", x, y);
     } else if (isSigIota(sig, x)) {
         printfun(fout, "iota", x);
+    } else if (isSigTime(sig)) {
+        fout << "time";
     } else if (isSigBinOp(sig, &i, x, y)) {
         printinfix(fout, gBinOpTable[i]->fName, gBinOpTable[i]->fPriority, x, y);
     } else if (isSigFFun(sig, ff, largs)) {
@@ -315,37 +317,41 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "control", x, y);
     }
 
-    else if (isSigDelayLineWrite(sig, x, c, &i, y)) {
+    else if (isSigDelayLineWrite(sig, x, c, &nat, &dmax, y)) {
         // fout << "sigDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
-        fout << *x << '[' << i << ']' << " := " << ppsig(y) << ";";
-    } else if (isSigDelayLineRead(sig, x, c, &i, y)) {
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << '[' << dmax << "] " << *x << " := " << ppsig(y) << ";";
+    } else if (isSigDelayLineRead(sig, x, c, &nat, &dmax, &dmin, y)) {
         // fout << "sigDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
-        fout << *x /* << '<' << i << '>'*/ << "@(" << ppsig(y) << ")";
+        fout << *x << "@(" << ppsig(y) << ")";
     }
 
-    else if (isSigSharedWrite(sig, x, c, y)) {
-        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
-        fout << *x << " := " << ppsig(y) << ";";
-    } else if (isSigSharedRead(sig, x, c)) {
-        // fout << "sigControlRead(" << *x << ")";
-        fout << *x;
-    }
-
-    else if (isSigControlWrite(sig, x, c, y)) {
-        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
-        fout << *x << " := " << ppsig(y) << ";";
-    } else if (isSigControlRead(sig, x, c)) {
-        // fout << "sigControlRead(" << *x << ")";
-        fout << *x;
-    }
-
-    else if (isSigTableWrite(sig, id, origin, &tblsize, init, idx, exp)) {
-        fout << "T[" << tblsize << "](" << ppsig(init) << ") " 
-             << *id << "[" << ppsig(idx) << "] := " << ppsig(exp) << ";";
-    } else if (isSigTableRead(sig, id, origin, &i, idx)) {
+    else if (isSigTableWrite(sig, id, origin, &nat, &tblsize, init, idx, exp)) {
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx)
+             << "] := " << ppsig(exp) << ";";
+    } else if (isSigTableRead(sig, id, origin, &nat, &dmin, idx)) {
         fout << *id << "[" << ppsig(idx) << "]";
     }
-    
+
+    else if (isSigSharedWrite(sig, x, c, &nat, y)) {
+        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << " " << *x << " := " << ppsig(y) << ";";
+    } else if (isSigSharedRead(sig, x, c, &nat)) {
+        // fout << "sigControlRead(" << *x << ")";
+        fout << *x;
+    }
+
+    else if (isSigControlWrite(sig, x, c, &nat, y)) {
+        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << " " << *x << " := " << ppsig(y) << ";";
+    } else if (isSigControlRead(sig, x, c, &nat)) {
+        // fout << "sigControlRead(" << *x << ")";
+        fout << *x;
+    }
+
     else {
         cerr << "[[" << *sig << "]]";
     }

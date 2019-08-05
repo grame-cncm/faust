@@ -351,6 +351,7 @@ struct global {
     Sym SIGFIXDELAY;
     Sym SIGPREFIX;
     Sym SIGIOTA;
+    Sym SIGTIME;
     Sym SIGRDTBL;
     Sym SIGWRTBL;
     Sym SIGTABLE;

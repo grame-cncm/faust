@@ -74,6 +74,9 @@ bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 Tree sigIota(Tree t0);
 bool isSigIota(Tree t, Tree& t0);
 
+Tree sigTime();
+bool isSigTime(Tree t);
+
 // Int and Double casting
 Tree sigIntCast(Tree t);
 Tree sigFloatCast(Tree t);
@@ -358,35 +361,35 @@ Tree sigCartesianProd(Tree s1, Tree s2);
 
 // Instructions (signals read and write into memory)
 
-Tree sigDelayLineWrite(Tree id, Tree origin, int dmax, Tree sig);
-bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* dmax, Tree& sig);
+Tree sigDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig);
+bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig);
 
-Tree sigDelayLineRead(Tree id, Tree origin, int dmin, Tree dl);
-bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl);
-
-//
-
-Tree sigSharedWrite(Tree id, Tree origin, Tree sig);
-bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, Tree& sig);
-
-Tree sigSharedRead(Tree id, Tree origin);
-bool isSigSharedRead(Tree s, Tree& id, Tree& origin);
+Tree sigDelayLineRead(Tree id, Tree origin, int nature, int dmax, int dmin, Tree dl);
+bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, int* dmin, Tree& dl);
 
 //
 
-Tree sigControlWrite(Tree id, Tree origin, Tree sig);
-bool isSigControlWrite(Tree s, Tree& id, Tree& origin, Tree& sig);
+Tree sigTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig);
+bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx, Tree& sig);
 
-Tree sigControlRead(Tree id, Tree origin);
-bool isSigControlRead(Tree s, Tree& id, Tree& origin);
+Tree sigTableRead(Tree id, Tree origin, int nature, int dmin, Tree idx);
+bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& idx);
 
 //
 
-Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
-bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig);
+Tree sigSharedWrite(Tree id, Tree origin, int nature, Tree sig);
+bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
 
-Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx);
-bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx);
+Tree sigSharedRead(Tree id, Tree origin, int nature);
+bool isSigSharedRead(Tree s, Tree& id, Tree& origin, int* nature);
+
+//
+
+Tree sigControlWrite(Tree id, Tree origin, int nature, Tree sig);
+bool isSigControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
+
+Tree sigControlRead(Tree id, Tree origin, int nature);
+bool isSigControlRead(Tree s, Tree& id, Tree& origin, int* nature);
 
 /*****************************************************************************
                              FTZ wrapping

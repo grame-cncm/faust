@@ -100,7 +100,7 @@ typedef vector<Tree>    tvec;
  *
  * Means are also provided to do maximal sharing on recursive trees. The idea is to start from
  * a deBruijn representation and progressively build a classical representation such that
- * alpha-equivalent recursive CTrees are necesseraly identical (and therefore shared).
+ * alpha-equivalent recursive CTrees are necessarily identical (and therefore shared).
  *
  * WARNING : in the current implementation CTrees are allocated but never deleted
  **/
@@ -123,7 +123,7 @@ class CTree : public virtual Garbageable {
     plist        fProperties;  ///< the properties list attached to the tree
     size_t       fHashKey;     ///< the hashtable key
     size_t       fSerial;      ///< the increasing serial number
-    int          fAperture;    ///< how "open" is a tree (synthezised field)
+    int          fAperture;    ///< how "open" is a tree (synthesized field)
     unsigned int fVisitTime;   ///< keep track of visits
     tvec         fBranch;      ///< the subtrees
 
@@ -228,6 +228,13 @@ inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, con
     return CTree::make(n, 6, br);
 }
 
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e,
+                 const Tree& f, const Tree& g)
+{
+    Tree br[] = {a, b, c, d, e, f, g};
+    return CTree::make(n, 7, br);
+}
+
 inline Tree tree(const Node& n, const tvec& br)
 {
     return CTree::make(n, br);
@@ -250,6 +257,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e, Tree& f);
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e, Tree& f, Tree& g);
 
 // printing
 inline ostream& operator<<(ostream& s, const CTree& t)

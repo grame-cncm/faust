@@ -53,7 +53,7 @@ void SignalVisitor::traceExit(Tree t)
 
 void SignalVisitor::visit(Tree sig)
 {
-    int    i, dmax, dmin;
+    int    i, nature, dmax, dmin;
     double r;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
@@ -86,6 +86,8 @@ void SignalVisitor::visit(Tree sig)
         return;
     } else if (isSigIota(sig, x)) {
         self(x);
+        return;
+    } else if (isSigTime(sig)) {
         return;
     } else if (isSigBinOp(sig, &i, x, y)) {
         self(x);
@@ -200,7 +202,7 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
-    // Sounfile length, rate, channels, buffer
+    // Soundfile length, rate, channels, buffer
     else if (isSigSoundfile(sig, label)) {
         return;
     } else if (isSigSoundfileLength(sig, sf, x)) {
@@ -227,36 +229,37 @@ void SignalVisitor::visit(Tree sig)
     }
 
     // Read and Write
-    else if (isSigDelayLineRead(sig, id, x, &i, y)) {  // x is used as an id, we don't go into it
+    else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin,
+                                y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
-    } else if (isSigDelayLineWrite(sig, id, x, &i, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigDelayLineWrite(sig, id, origin, &nature, &i, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }
 
     // Read and Write
-    else if (isSigSharedRead(sig, id, x)) {  // x is used as an id, we don't go into it
+    else if (isSigSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigSharedWrite(sig, id, x, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigSharedWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }
-    
-    else if (isSigTableWrite(sig, id, origin, &dmax, init, idx, exp)) {
+
+    else if (isSigTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
         self(init);
-        self(idx); 
+        self(idx);
         self(exp);
         return;
-    } else if (isSigTableRead(sig, id, origin, &dmin, x)) {
+    } else if (isSigTableRead(sig, id, origin, &nature, &dmin, x)) {
         self(x);
         return;
-    } 
+    }
 
     // Read and Write
-    else if (isSigControlRead(sig, id, x)) {  // x is used as an id, we don't go into it
+    else if (isSigControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigControlWrite(sig, id, x, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }

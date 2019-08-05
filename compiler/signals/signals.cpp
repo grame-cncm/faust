@@ -138,6 +138,15 @@ bool isSigIota(Tree t, Tree& t0)
     return isTree(t, gGlobal->SIGIOTA, t0);
 }
 
+Tree sigTime()
+{
+    return tree(gGlobal->SIGTIME);
+}
+bool isSigTime(Tree t)
+{
+    return isTree(t, gGlobal->SIGTIME);
+}
+
 // Read only and read write tables
 
 Tree sigRDTbl(Tree t, Tree i)
@@ -598,10 +607,10 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 }
 
 /*****************************************************************************
-                             Sounfiles
+                             Soundfiles
 *****************************************************************************/
 /*
- A boxSounfile(label,c) has 2 inputs and c+3 outputs:
+ A boxSoundfile(label,c) has 2 inputs and c+3 outputs:
  0   sigSoundfileLength(label, part):  the number of frames of the soundfile part (NK)
  1   sigSoundfileRate(label, part): the sampling rate encoded in the file (NK)
  2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
@@ -698,20 +707,22 @@ Tree sigCartesianProd(Tree s1, Tree s2)
  *
  * @param id: unique indetifier of the delayline
  * @param origin: the original signal (for its type)
+ * @param nature: kInt or kReal (type of samples)
  * @param dmax: maximun delay (ie size of the delayline)
  * @param sig: signal to write into the delay line
  * @return a delayline write instruction
  */
-Tree sigDelayLineWrite(Tree id, Tree origin, int dmax, Tree sig)
+Tree sigDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig)
 {
-    return tree(gGlobal->SIGDELAYLINEWRITE, id, origin, tree(dmax), sig);
+    return tree(gGlobal->SIGDELAYLINEWRITE, id, origin, tree(nature), tree(dmax), sig);
 }
 
-bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* dmax, Tree& sig)
+bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig)
 {
-    Tree tmax;
-    if (isTree(s, gGlobal->SIGDELAYLINEWRITE, id, origin, tmax, sig)) {
-        *dmax = tree2int(tmax);
+    Tree tnat, tmax;
+    if (isTree(s, gGlobal->SIGDELAYLINEWRITE, id, origin, tnat, tmax, sig)) {
+        *nature = tree2int(tnat);
+        *dmax   = tree2int(tmax);
         return true;
     } else {
         return false;
@@ -721,22 +732,26 @@ bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* dmax, Tree& sig)
 /**
  * @brief A delayline read "instruction"
  *
- * @param id: unique indentifier of the delayline
+ * @param id: unique identifier of the delayline
  * @param origin: the original signal (for its type)
+ * @param nature: kInt or kReal (type of samples)
+ * @param dmax: maximun delay (ie size of the delayline)
  * @param dmin: the minimum reading delay
  * @param dl: the reading delay signal
  * @return a delayline read instruction
  */
-Tree sigDelayLineRead(Tree id, Tree origin, int dmin, Tree dl)
+Tree sigDelayLineRead(Tree id, Tree origin, int nature, int dmax, int dmin, Tree dl)
 {
-    return tree(gGlobal->SIGDELAYLINEREAD, id, origin, tree(dmin), dl);
+    return tree(gGlobal->SIGDELAYLINEREAD, id, origin, tree(nature), tree(dmax), tree(dmin), dl);
 }
 
-bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl)
+bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, int* dmin, Tree& dl)
 {
-    Tree tmin;
-    if (isTree(s, gGlobal->SIGDELAYLINEREAD, id, origin, tmin, dl)) {
-        *dmin = tree2int(tmin);
+    Tree tnat, tmax, tmin;
+    if (isTree(s, gGlobal->SIGDELAYLINEREAD, id, origin, tnat, tmax, tmin, dl)) {
+        *nature = tree2int(tnat);
+        *dmax   = tree2int(tmax);
+        *dmin   = tree2int(tmin);
         return true;
     } else {
         return false;
@@ -748,15 +763,16 @@ bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& dl)
  *
  * @param id: unique identifier of the table
  * @param origin: the original signal (for its type)
+ * @param nature: kInt or kReal (type of samples)
  * @param tblsize: the size fo the table
  * @param init: the init signal
  * @param idx: the write index
  * @param sig: the write content;
  * @return Tree: a table write instruction
  */
-Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
+Tree sigTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig)
 {
-    return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
+    return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(nature), tree(tblsize), init, idx, sig);
 }
 
 /**
@@ -765,6 +781,7 @@ Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree 
  * @param s: the signal we want to test
  * @param id: unique identifier of the table
  * @param origin: the original signal (for its type)
+ * @param nature: kInt or kReal (type of samples)
  * @param tblsize: the size fo the table
  * @param init: the init signal
  * @param idx: the write index
@@ -772,10 +789,11 @@ Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree 
  * @return true if s is a sigWriteTable
  * @return false otherwise
  */
-bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig)
+bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx, Tree& sig)
 {
-    Tree tsize;
-    if (isTree(s, gGlobal->SIGTABLEWRITE, id, origin, tsize, init, idx, sig)) {
+    Tree tnat, tsize;
+    if (isTree(s, gGlobal->SIGTABLEWRITE, id, origin, tnat, tsize, init, idx, sig)) {
+        *nature  = tree2int(tnat);
         *tblsize = tree2int(tsize);
         return true;
     } else {
@@ -788,13 +806,14 @@ bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, T
  *
  * @param id
  * @param origin
+ * @param nature
  * @param dmin
  * @param idx
  * @return Tree
  */
-Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx)
+Tree sigTableRead(Tree id, Tree origin, int nature, int dmin, Tree idx)
 {
-    return tree(gGlobal->SIGTABLEREAD, id, origin, tree(dmin), idx);
+    return tree(gGlobal->SIGTABLEREAD, id, origin, tree(nature), tree(dmin), idx);
 }
 
 /**
@@ -808,11 +827,12 @@ Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx)
  * @return true
  * @return false
  */
-bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
+bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& idx)
 {
-    Tree tmin;
-    if (isTree(s, gGlobal->SIGTABLEREAD, id, origin, tmin, idx)) {
-        *dmin = tree2int(tmin);
+    Tree tnat, tmin;
+    if (isTree(s, gGlobal->SIGTABLEREAD, id, origin, tnat, tmin, idx)) {
+        *nature = tree2int(tnat);
+        *dmin   = tree2int(tmin);
         return true;
     } else {
         return false;
@@ -826,14 +846,20 @@ bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
  * @param sig: the shared signal
  * @return a shared write instruction
  */
-Tree sigSharedWrite(Tree id, Tree origin, Tree sig)
+Tree sigSharedWrite(Tree id, Tree origin, int nature, Tree sig)
 {
-    return tree(gGlobal->SIGSHAREDWRITE, id, origin, sig);
+    return tree(gGlobal->SIGSHAREDWRITE, id, origin, tree(nature), sig);
 }
 
-bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, Tree& sig)
+bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
 {
-    return isTree(s, gGlobal->SIGSHAREDWRITE, id, origin, sig);
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGSHAREDWRITE, id, origin, tnat, sig)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -842,14 +868,20 @@ bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, Tree& sig)
  * @param id: unique identifier of the control signal
  * @return a control read instruction
  */
-Tree sigSharedRead(Tree id, Tree origin)
+Tree sigSharedRead(Tree id, Tree origin, int nature)
 {
-    return tree(gGlobal->SIGSHAREDREAD, id, origin);
+    return tree(gGlobal->SIGSHAREDREAD, id, origin, tree(nature));
 }
 
-bool isSigSharedRead(Tree s, Tree& id, Tree& origin)
+bool isSigSharedRead(Tree s, Tree& id, Tree& origin, int* nature)
 {
-    return (isTree(s, gGlobal->SIGSHAREDREAD, id, origin));
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGSHAREDREAD, id, origin, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -859,30 +891,43 @@ bool isSigSharedRead(Tree s, Tree& id, Tree& origin)
  * @param sig: the control signal
  * @return a control write instruction
  */
-Tree sigControlWrite(Tree id, Tree origin, Tree sig)
+Tree sigControlWrite(Tree id, Tree origin, int nature, Tree sig)
 {
-    return tree(gGlobal->SIGCONTROLWRITE, id, origin, sig);
+    return tree(gGlobal->SIGCONTROLWRITE, id, origin, tree(nature), sig);
 }
 
-bool isSigControlWrite(Tree s, Tree& id, Tree& origin, Tree& sig)
+bool isSigControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
 {
-    return isTree(s, gGlobal->SIGCONTROLWRITE, id, origin, sig);
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGCONTROLWRITE, id, origin, tnat, sig)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
  * @brief a control read "instruction"
  *
  * @param id: unique identifier of the control signal
+ * @param nature: kInt or kReal (type of samples)
  * @return a control read instruction
  */
-Tree sigControlRead(Tree id, Tree origin)
+Tree sigControlRead(Tree id, Tree origin, int nature)
 {
-    return tree(gGlobal->SIGCONTROLREAD, id, origin);
+    return tree(gGlobal->SIGCONTROLREAD, id, origin, tree(nature));
 }
 
-bool isSigControlRead(Tree s, Tree& id, Tree& origin)
+bool isSigControlRead(Tree s, Tree& id, Tree& origin, int* nature)
 {
-    return (isTree(s, gGlobal->SIGCONTROLREAD, id, origin));
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGCONTROLREAD, id, origin, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**

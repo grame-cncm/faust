@@ -36,7 +36,7 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
 {
     vsigs.clear();
 
-    int    i, dmax, dmin;
+    int    i, dmax, dmin, nat;
     double r;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
@@ -79,6 +79,8 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
     } else if (isSigIota(sig, x)) {
         vsigs.push_back(x);
         return 1;
+    } else if (isSigTime(sig)) {
+        return 0;
     }
 
     else if (isSigBinOp(sig, &i, x, y)) {
@@ -220,33 +222,33 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 2;
     }
 
-    else if (isSigDelayLineWrite(sig, id, origin, &dmax, x)) {
+    else if (isSigDelayLineWrite(sig, id, origin, &nat, &dmax, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigDelayLineRead(sig, id, origin, &dmin, x)) {
+    } else if (isSigDelayLineRead(sig, id, origin, &nat, &dmax, &dmin, x)) {
         vsigs.push_back(x);
         return 1;
-    } 
-    
-    else if (isSigTableWrite(sig, id, origin, &dmax, init, idx, exp)) {
+    }
+
+    else if (isSigTableWrite(sig, id, origin, &nat, &dmax, init, idx, exp)) {
         vsigs.push_back(init);
-        vsigs.push_back(idx); 
+        vsigs.push_back(idx);
         vsigs.push_back(exp);
         return 3;
-    } else if (isSigTableRead(sig, id, origin, &dmin, x)) {
+    } else if (isSigTableRead(sig, id, origin, &nat, &dmin, x)) {
         vsigs.push_back(x);
         return 1;
-    } 
-    
-    else if (isSigSharedWrite(sig, id, origin, x)) {
+    }
+
+    else if (isSigSharedWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigSharedRead(sig, id, origin)) {
+    } else if (isSigSharedRead(sig, id, origin, &nat)) {
         return 0;
-    } else if (isSigControlWrite(sig, id, origin, x)) {
+    } else if (isSigControlWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigControlRead(sig, id, origin)) {
+    } else if (isSigControlRead(sig, id, origin, &nat)) {
         return 0;
     }
 

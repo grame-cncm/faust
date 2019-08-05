@@ -103,7 +103,7 @@ class AudioType : public virtual Garbageable {
     }                        ///< constructs an abstract audio type
     virtual ~AudioType() {}  ///< not really useful here, but make compiler happier
 
-    int nature() const { return fNature; }  ///< returns the kind of values (integre or floating point)
+    int nature() const { return fNature; }  ///< returns the kind of values (integer or floating point)
     int variability() const
     {
         return fVariability;
@@ -124,7 +124,7 @@ class AudioType : public virtual Garbageable {
     virtual AudioType* promoteVariability(int n)   = 0;  ///< promote the variability of a type
     virtual AudioType* promoteComputability(int n) = 0;  ///< promote the computability of a type
     virtual AudioType* promoteVectorability(int n) = 0;  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int n)       = 0;  ///< promote the booleanity of a type
+    virtual AudioType* promoteBoolean(int n)       = 0;  ///< promote the boolean-ity of a type
     // virtual AudioType* promoteInterval(const interval& i) = 0;		///< promote the interval of a type
 
     virtual ostream& print(ostream& dst) const = 0;  ///< print nicely a type
@@ -182,7 +182,7 @@ inline int mergevectorability(const vector<Type>& v)
 }
 
 /**
- * Return the booleanity of a vector of types.
+ * Return the boolean-ity of a vector of types.
  */
 inline int mergeboolean(const vector<Type>& v)
 {
@@ -258,7 +258,7 @@ class SimpleType : public AudioType {
     virtual AudioType* promoteBoolean(int b)
     {
         return makeSimpleType(fNature, fVariability, fComputability, fVectorability, b | fBoolean, fInterval);
-    }  ///< promote the booleanity of a type
+    }  ///< promote the boolean-ity of a type
        // 	virtual AudioType* promoteInterval(const interval& i)	{
        // 		cerr << "promote to Interval " << i  << endl;
        // 		cerr << "for type : " << *this << endl;
@@ -334,14 +334,14 @@ class TableType : public AudioType {
 
 	TableType(const Type& t, int n, int v, int c, int vec, int b) :
 		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and boolean-ity
 #endif
 
     TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i)
         : AudioType(t->nature() | n, kKonst | v, kInit | c, kVect | vec, t->boolean() | b, i), fContent(t)
     {
     }  ///< construct a TableType with a content of a type t, promoting nature, variability, computability,
-       ///< vectorability and booleanity
+       ///< vectorability and boolean-ity
 
     TableType(const Type& t, int n, int v, int c, int vec)
         : AudioType(t->nature() | n, kKonst | v, kInit | c, kVect | vec, t->boolean()), fContent(t)
@@ -372,7 +372,7 @@ class TableType : public AudioType {
     virtual AudioType* promoteBoolean(int b)
     {
         return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability, b | fBoolean, fInterval);
-    }  ///< promote the booleanity of a type
+    }  ///< promote the boolean-ity of a type
     // virtual AudioType* promoteInterval(const interval& i)	{ return makeTableType(fContent, fNature, fVariability,
     // fComputability, fVectorability, fBoolean, i); }			///< promote the interval of a type
 
@@ -433,7 +433,7 @@ class TupletType : public AudioType {
     {
         return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, b | fBoolean,
                               fInterval);
-    }  ///< promote the booleanity of a type
+    }  ///< promote the boolean-ity of a type
     // virtual AudioType* promoteInterval(const interval& i)	{ return new TupletType(fComponents, fNature,
     // fVariability, fComputability, fVectorability, fBoolean, i);  }			///< promote the interval of a type
 
@@ -497,7 +497,7 @@ inline bool operator>=(const Type& t1, const Type& t2)
 }
 
 //--------------------------------------------------
-// predicats-conversion de types
+// predicate-conversion de types
 
 SimpleType* isSimpleType(AudioType* t);
 TableType*  isTableType(AudioType* t);
@@ -514,13 +514,13 @@ ostream& operator<<(ostream& dst, const TupletType& t);
 //--------------------------------------------------
 // verification de type
 
-Type checkInt(Type t);    ///< verifie que t est entier
-Type checkKonst(Type t);  ///< verifie que t est constant
-Type checkInit(Type t);   ///< verifie que t est connu a l'initialisation
+Type checkInt(Type t);    ///< verify t is int
+Type checkKonst(Type t);  ///< verify t is constant
+Type checkInit(Type t);   ///< verify t is known at initialisation
 
-Type checkIntParam(Type t);  ///< verifie que t est connu a l'initialisation, constant et entier
+Type checkIntParam(Type t);  ///< verify que t est connu a l'initialisation, constant et entier
 
-Type checkWRTbl(Type tbl, Type wr);  ///< verifie que wr est compatible avec le contenu de tbl
+Type checkWRTbl(Type tbl, Type wr);  ///< verify que wr est compatible avec le contenu de tbl
 
 int checkDelayInterval(Type t);  ///< Check if the interval of t is appropriate for a delay
 
