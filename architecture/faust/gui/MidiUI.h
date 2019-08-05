@@ -354,7 +354,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->ctrlChange(((fChanFilter<0) ? 0 : fChanFilter), fCtrl, fConverter.faust2ui(v));
+            fMidiOut->ctrlChange( (((fChanFilter<0) || (fChanFilter>15)) ? 0 : fChanFilter), fCtrl, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
