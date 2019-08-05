@@ -76,10 +76,10 @@ process = os.sawtooth(freq);
 
 The `[midi:ctrl num chan]` metadata assigns MIDI CC (control change)
 to a specific UI element. The UI element receive and send MIDI CC
-values from/to the specified MIDI channel. When used in a slider
-or a bargraph, this metadata will map the UI element value to
-the {0, 127} range. When used with a button or a checkbox, 
-1 will be mapped to 127, 0 will be mapped to 0. 
+values from/to the specified MIDI channel in range {0, 15}.
+When used in a slider or a bargraph, this metadata will map the
+UI element value to the {0, 127} range. When used with a button
+or a checkbox, 1 will be mapped to 127, 0 will be mapped to 0. 
 
 **Usage**
 
@@ -90,7 +90,7 @@ toto = hslider("toto[midi:ctrl num chan]",...);
 Where:
 
 * `num`: the MIDI CC number
-* `chan`: the MIDI CC channel
+* `chan`: the MIDI CC channel (range {0,15})
 
 **Example**
 
