@@ -72,6 +72,42 @@ process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
 
+### `[midi:ctrl num chan]` Metadata
+
+The `[midi:ctrl num chan]` metadata assigns MIDI CC (control change)
+to a specific UI element. The UI element receive and send MIDI CC
+values from/to the specified MIDI channel. When used in a slider
+or a bargraph, this metadata will map the UI element value to
+the {0, 127} range. When used with a button or a checkbox, 
+1 will be mapped to 127, 0 will be mapped to 0. 
+
+**Usage**
+
+```
+toto = hslider("toto[midi:ctrl num chan]",...);
+```
+
+Where:
+
+* `num`: the MIDI CC number
+* `chan`: the MIDI CC channel
+
+**Example**
+
+In the following example, the frequency of a sawtooth wave oscillator is 
+controlled by MIDI CC 11. The UI element receive and send CC 11
+values on channel 2. When CC11=0, then the frequency is 200Hz, when 
+CC11=127, then the frequency is 1000Hz.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("frequency[midi:ctrl 11 2]",200,50,1000,0.01) : si.smoo;
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
+
+
 ### `[midi:keyon midikey]` Metadata
 
 The `[midi:keyon midikey]` metadata assigns the velocity value of a key-on MIDI 
