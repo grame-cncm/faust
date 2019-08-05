@@ -69,7 +69,7 @@ class CommonSubexpr : public SignalIdentity {
         int  nature, i, dmax, dmin;
 
         if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) &&
-            !(isSigControlRead(sig, id, origin, &nature)) &&
+            !(isSigControlRead(sig, id, origin, &nature)) && !(isSigTime(sig)) &&
             !(isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl))) {
             // cerr << "Candidate for Sharing: "
             //      << " --" << ppsig(sig) << endl;

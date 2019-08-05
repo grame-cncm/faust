@@ -80,10 +80,11 @@ class TransformDelayToTable : public SignalIdentity {
 
         if (isSigDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
             int  size = dmax2size(dmax);
-            Tree tr   = sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigInt(0), sigInt(size - 1)), exp);
+            Tree tr   = sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigTime(), sigInt(size - 1)), exp);
             return tr;
         } else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
-            Tree tr = sigTableRead(id, origin, nature, dmin, dl);
+            int  size = dmax2size(dmax);
+            Tree tr   = sigTableRead(id, origin, nature, dmin, sigAND(sigSub(sigTime(), dl), sigInt(size - 1)));
             return tr;
         } else {
             return SignalIdentity::transformation(sig);

@@ -273,6 +273,11 @@ static Type infereSigType(Tree sig, Tree env)
         /*sig->setType(t);*/ return t;
     }
 
+    else if (isSigTime(sig)) {
+        Type t = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval(0, 1 << 31));
+        return t;
+    }
+
     else if (isSigWaveform(sig)) {
         return infereWaveformType(sig, env);
     }
@@ -629,7 +634,7 @@ static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
                     ->promoteComputability(widx->computability() | wsig->computability())
                     ->promoteVectorability(kScal)      // difficult to tell, therefore kScal to be safe
                     ->promoteNature(wsig->nature())    // nature of the initial and written signal
-                    ->promoteBoolean(wsig->boolean())  // booleanity of the initial and written signal
+                    ->promoteBoolean(wsig->boolean())  // boolean-ity of the initial and written signal
         ;
     return temp;
 }

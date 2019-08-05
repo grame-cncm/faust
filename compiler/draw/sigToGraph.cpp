@@ -198,6 +198,8 @@ static string sigLabel(Tree sig)
         fout << "prefix";
     } else if (isSigIota(sig, x)) {
         fout << "iota";
+    } else if (isSigTime(sig)) {
+        fout << "time";
     } else if (isSigBinOp(sig, &i, x, y)) {
         fout << binopname[i];
     } else if (isSigFFun(sig, ff, largs)) {
