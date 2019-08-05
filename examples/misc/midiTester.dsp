@@ -6,7 +6,7 @@ declare reference   "www.sonejo.net";
 
 // FAUST MIDI TESTER
 
-process = _*0, (vgroup("FAUST MIDI TESTER", hgroup("[1]", controltester, noteontester, noteofftester, midiclocktester), hgroup("[2]", kattester, pctester, chattester, pitchwheeltester) :> _)) : attach;
+process = _*0, (vgroup("FAUST MIDI TESTER", hgroup("[1]", controltester, controlchantester, noteontester, noteofftester, midiclocktester), hgroup("[2]", kattester, pctester, chattester, pitchwheeltester) :> _)) : attach;
 
 ///////////////////////////
 
@@ -15,6 +15,12 @@ controltester = vgroup("CTRL IN/OUT", valuetest(50,51), booltest(100,101))
 with{
 valuetest(i,o) = hslider("Ctrl Value IN (Ctrl %i) [midi:ctrl %i]", 60, 0, 127, 1) : hbargraph("Ctrl Value OUT (Ctrl %o) [midi:ctrl %o]", 0, 127);
 booltest(i,o) = checkbox("Ctrl Bool IN (Ctrl %i) [midi:ctrl %i]") : hbargraph("Ctrl Bool OUT (Ctrl %o) [midi:ctrl %o]", 0, 1);
+};
+
+//Ctrl chan tester (ctrl chan): tester(midi in, midi out)
+controlchantester = vgroup("CTRL CHAN IN/OUT", valuetest(50,0,74,2))
+with{
+valuetest(i,ic,o,oc) = hslider("Ctrl Value IN (Ctrl %i Channel Value IN(Chan %ic) [midi:ctrl %i %ic]", 60, 0, 127, 1) : hbargraph("Ctrl Value OUT (Ctrl %o) Channel OUT(Chan %oc) [midi:ctrl %o %oc]", 0, 127);
 };
 
 //Note tester (keyon) : tester(midi in, midi out)

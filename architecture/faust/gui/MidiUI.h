@@ -332,14 +332,21 @@ class uiMidiCtrlChange : public uiMidiTimedItem
 {
     private:
     
-        int fCtrl;
-        LinearValueConverter fConverter;
+    int fCtrl;
+    int fChanFilter;
+    LinearValueConverter fConverter;
  
     public:
-    
-        uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
+
+        uiMidiCtrlChange(midi* midi_out, int ctrl, int chan, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
+        :uiMidiTimedItem(midi_out, ui, zone, input), fCtrl(ctrl), fChanFilter(chan), fConverter(0., 127., double(min), double(max))
         {}
+
+        uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
+
+        :uiMidiCtrlChange(midi_out, ctrl, -1, ui, zone, min, max, input)
+        {}
+
         virtual ~uiMidiCtrlChange()
         {}
         
@@ -347,7 +354,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->ctrlChange(0, fCtrl, fConverter.faust2ui(v));
+            fMidiOut->ctrlChange(((fChanFilter<0) ? 0 : fChanFilter), fCtrl, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -363,7 +370,11 @@ class uiMidiCtrlChange : public uiMidiTimedItem
                 uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fConverter.ui2faust(v)));
             }
         }
- 
+
+        int getChanFilter()
+        {
+            return fChanFilter;
+        }
 };
 
 class uiMidiPitchWheel : public uiMidiTimedItem
@@ -574,8 +585,11 @@ class MidiUI : public GUI, public midi
             if (fMetaAux.size() > 0) {
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     unsigned num;
+                    unsigned chan;
                     if (fMetaAux[i].first == "midi") {
-                        if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
+                        if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u %u", &num, &chan) == 2) {
+                            fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, chan, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
                             fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max, input));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
                             fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
@@ -607,7 +621,6 @@ class MidiUI : public GUI, public midi
             }
             fMetaAux.clear();
         }
-
     public:
     
         MidiUI():fMidiHandler(NULL), fDelete(false), fTimeStamp(false)
@@ -734,17 +747,25 @@ class MidiUI : public GUI, public midi
            
         void ctrlChange(double date, int channel, int ctrl, int value)
         {
+            
             if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
                 if (fTimeStamp) {
                     for (unsigned int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
-                        fCtrlChangeTable[ctrl][i]->modifyZone(date, FAUSTFLOAT(value));
+                        // ChanFilter == -1 -> Listen on all channels
+                        // ChanFilter == x -> Lister on channel x
+                        if (fCtrlChangeTable[ctrl][i]->getChanFilter() == -1 || channel == fCtrlChangeTable[ctrl][i]->getChanFilter()){
+                            fCtrlChangeTable[ctrl][i]->modifyZone(date, FAUSTFLOAT(value));
+                        }
                     }
                 } else {
                     for (unsigned int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
-                        fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
+                        if (fCtrlChangeTable[ctrl][i]->getChanFilter() == -1 || channel == fCtrlChangeTable[ctrl][i]->getChanFilter()){
+                            fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
+                        }
                     }
                 }
             }
+            
         }
         
         void progChange(double date, int channel, int pgm)
