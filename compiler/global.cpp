@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <limits.h>
+#include <cstdint>
 
 #include "absprim.hh"
 #include "acosprim.hh"
@@ -388,7 +389,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = sizeof(nullptr);
-#if defined(_WIN32) || defined(__i386) || defined(_M_IX86)
+#if defined(ANDROID) && INTPTR_MAX == INT32_MAX
+    // Hack for 32Bit Android Architectures ; sizeof(nullptr) == 4 but LLVM DataLayout.GetPointerSize() == 8
     gMachinePtrSize *= 2;
 #endif
 
