@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __TreeTraversal__
-#define __TreeTraversal__
+#pragma once
 
 #include <stdlib.h>
 #include <cstdlib>
@@ -47,7 +46,7 @@ class TreeTraversal {
     std::set<Tree> fVisited;    // avoid visiting a tree twice
 
    public:
-    TreeTraversal(string msg = "TreeTraversal") : fTraceFlag(false), fIndent(0), fMessage(msg) {}
+    explicit TreeTraversal(string msg = "TreeTraversal") : fTraceFlag(false), fIndent(0), fMessage(msg) {}
 
     void self(Tree t);
     void mapself(Tree lt);
@@ -64,5 +63,3 @@ class TreeTraversal {
     virtual void traceEnter(Tree t);  // called when entering a visit
     virtual void traceExit(Tree t);   // called when exiting a visit
 };
-
-#endif

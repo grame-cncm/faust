@@ -71,16 +71,17 @@ class TransformDelayToTable : public SignalIdentity {
         return v;
     }
 
-    virtual Tree transformation(Tree sig)
+    virtual Tree transformation(Tree sig) override
     {
         faustassert(sig);
 
-        Tree id, origin, dl, exp, idx;
-        int  nature, i, dmin, dmax;
+        Tree id, origin, dl, exp;
+        int  nature, dmin, dmax;
 
         if (isSigDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
             int  size = dmax2size(dmax);
-            Tree tr   = sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigTime(), sigInt(size - 1)), exp);
+            Tree tr =
+                sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigTime(), sigInt(size - 1)), self(exp));
             return tr;
         } else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
             int  size = dmax2size(dmax);
@@ -101,6 +102,7 @@ class TransformDelayToTable : public SignalIdentity {
 set<Tree> transformDelayToTable(const set<Tree>& I)
 {
     TransformDelayToTable d2t;
+    d2t.trace(true);
 
     set<Tree> R;
     for (Tree i : I) R.insert(d2t.self(i));

@@ -95,14 +95,14 @@ Tree SignalSplitter::transformation(Tree sig)
         return sig;
 
     } else if (isSigOutput(sig, &n, x)) {
-        Tree v = self(x);
-        fSplittedSignals.insert(sigOutput(n, v));
-        return sigOutput(n, v);
+        Tree r = self(x);
+        fSplittedSignals.insert(sigOutput(n, r));
+        return sigOutput(n, r);
 
     } else if (isSigFixDelay(sig, x, y)) {
         int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
-        Type     t    = getCertifiedSigType(y);
-        interval i    = t->getInterval();
+        Type     ty   = getCertifiedSigType(y);
+        interval i    = ty->getInterval();
         Tree     rec, var, le;
 
         if (isProj(x, &n, rec)) {
