@@ -44,7 +44,7 @@ envelop = en.adsre(volA,volD,volS,volR,midigate);
 // Out Amplitude
 vol = envelop * midigain ;
 
-WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0 ))-2) -1.;
+WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0))-2) -1.;
 
 // 4 WF maxi with this version:
 scanner(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)

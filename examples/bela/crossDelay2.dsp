@@ -48,4 +48,4 @@ pitchR = hslider("shiftR[BELA: ANALOG_7]", 0,-12,12,0.001):si.smoo;
 routeur(a,b,c,d) = ((a*CrossFeedb):fi.lowpass(2,crossLF):fi.highpass(2,crossHF))+((b*feedback):fi.lowpass(2,feedbLF):fi.highpass(2,feedbHF))+c,
 					((b*CrossFeedb):fi.lowpass(2,crossLF):fi.highpass(2,crossHF))+((a*feedback):fi.lowpass(2,feedbLF):fi.highpass(2,feedbHF))+d;
 
-process = (de.sdelay(65536, 512,preDelL),de.sdelay(65536, 512,preDelR)):(routeur : de.sdelay(65536, 512,delL) , de.sdelay(65536, 512,delR))~(ef.transpose(512, 256, pitchL) , ef.transpose(512, 256, pitchR));
+process = (de.sdelay(65536, 512,preDelL),de.sdelay(65536, 512,preDelR)):(routeur : de.sdelay(65536, 512,delL), de.sdelay(65536, 512,delR))~(ef.transpose(512, 256, pitchL), ef.transpose(512, 256, pitchR));

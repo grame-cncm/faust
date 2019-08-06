@@ -352,6 +352,7 @@ class soulpatch_dsp_factory : public dsp_factory {
             fPath = path;
             soul::patch::SOULPatchLibrary library("/usr/local/lib/SOUL_PatchLoader.dylib");
             if (!library.loadedSuccessfully()) {
+                std::cerr << "Cannot load SOUL_PatchLoader.dylib" << std::endl;
                 throw std::bad_alloc();
             }
             

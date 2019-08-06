@@ -51,7 +51,7 @@ process = vgroup("Granulator", environment {
     Pmax = 4096; // maximum P (for de.delay-line allocation)
 
     // PHASOR_BIN //////////////////////////////
-    phasor_bin (init) =  (+(float(speed)/float(ma.SR)) : fmod(_,1.0)) ~ *(init);
+    phasor_bin(init) = (+(float(speed)/float(ma.SR)) : fmod(_,1.0)) ~ *(init);
     gate = phasor_bin(1) :-(0.001):pulsar;
     gain = 1;
                             

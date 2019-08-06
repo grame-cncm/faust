@@ -536,7 +536,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
                 sprintf(dst, "(signal) : Unused Input");
             } else {
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-			}
+            }
         } else if (a < x->m_dsp->getNumInputs()) {
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
         }
@@ -556,10 +556,10 @@ void faust_mute(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 /*--------------------------------------------------------------------------*/
 void faust_free(t_faust* x)
 {
-	dsp_free((t_pxobject*)x);
-	delete x->m_dsp;
-	delete x->m_dspUI;
-	if (x->m_args) free(x->m_args);
+    dsp_free((t_pxobject*)x);
+    delete x->m_dsp;
+    delete x->m_dspUI;
+    if (x->m_args) free(x->m_args);
     if (x->m_json) free(x->m_json);
     systhread_mutex_free(x->m_mutex);
 #ifdef MIDICTRL
@@ -601,7 +601,7 @@ t_int* faust_perform(t_int* w)
              memset(outputs[i], 0, sizeof(float) * n);
         }
     }
-	return (w + (x->m_Inputs + x->m_Outputs) + 2 + 1);
+    return (w + (x->m_Inputs + x->m_Outputs) + 2 + 1);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -612,19 +612,19 @@ void faust_dsp(t_faust* x, t_signal** sp, short* count)
 	for (int i = 0; i < (x->m_dsp->getNumInputs() + x->m_dsp->getNumOutputs()); i++) {
 		x->m_args[i + 2] = sp[i]->s_vec;
     }
-	dsp_addv(faust_perform, (x->m_dsp->getNumInputs() + x->m_dsp->getNumOutputs()) + 2, x->m_args);
+    dsp_addv(faust_perform, (x->m_dsp->getNumInputs() + x->m_dsp->getNumOutputs()) + 2, x->m_args);
 }
 
 /*--------------------------------------------------------------------------*/
 extern "C" int main(void)
 {
-	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
-		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
+          (short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
-	dsp* tmp_dsp = new mydsp();
-	mspUI dspUI;
- 	tmp_dsp->buildUserInterface(&dspUI);
-   
+    dsp* tmp_dsp = new mydsp();
+    mspUI dspUI;
+    tmp_dsp->buildUserInterface(&dspUI);
+
     // 03/11/14 : use 'anything' to handle all parameter changes
     addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
     addmess((method)faust_polyphony, (char*)"polyphony", A_GIMME, 0);

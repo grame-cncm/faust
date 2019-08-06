@@ -549,7 +549,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
                 sprintf(dst, "(signal) : Unused Input");
             } else {
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-			}
+            }
         } else if (a < x->m_dsp->getNumInputs()) {
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
         }
@@ -569,10 +569,10 @@ void faust_mute(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 /*--------------------------------------------------------------------------*/
 void faust_free(t_faust* x)
 {
-	dsp_free((t_pxobject*)x);
-	delete x->m_dsp;
-	delete x->m_dspUI;
-	if (x->m_args) free(x->m_args);
+    dsp_free((t_pxobject*)x);
+    delete x->m_dsp;
+    delete x->m_dspUI;
+    if (x->m_args) free(x->m_args);
     if (x->m_json) free(x->m_json);
     systhread_mutex_free(x->m_mutex);
 #ifdef MIDICTRL
@@ -626,8 +626,8 @@ void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, l
 /*--------------------------------------------------------------------------*/
 extern "C" int main(void)
 {
-	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
-		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
+          (short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
     dsp* tmp_dsp = new mydsp();
     mspUI m_dspUI;
