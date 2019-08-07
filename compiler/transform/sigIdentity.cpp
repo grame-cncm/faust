@@ -134,24 +134,9 @@ Tree SignalIdentity::transformation(Tree sig)
     else if (isProj(sig, &i, x)) {
         return sigProj(i, self(x));
     } else if (isRec(sig, var, le)) {
-        if (isNil(le)) {
-            // we are already visiting this recursive group
-            return sig;
-        } else {
-            // first visit
-            rec(var, gGlobal->nil);  // to avoid infinite recursions
-            Tree lr = mapself(le);
-            rec(var, le);  // place back the recursive definitions
-            if (lr == le) {
-                // no reason to change variables
-                return sig;
-            } else {
-                // we made a real transformation
-                // we need a new rec id
-                Tree var2 = tree(Node(unique("rec_")));
-                return rec(var2, lr);
-            }
-        }
+        Tree var2 = tree(Node(unique("trec")));
+        fResult.set(sig, rec(var2, gGlobal->nil));
+        return rec(var2, mapself(le));
     }
 
     // Int and Float Cast
@@ -230,5 +215,4 @@ Tree SignalIdentity::transformation(Tree sig)
         error << "ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
-    return 0;
 }
