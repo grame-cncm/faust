@@ -471,7 +471,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                 
                 else if (label == "items") {
                     if (parseChar(p, ':') && parseChar(p, '[')) {
-                        do { 
+                        do {
                             if (!parseUI(p, uiItems, numItems)) {
                                 return false;
                             }
@@ -492,7 +492,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
         
         return parseChar(p, '}');
     } else {
-        return false;
+        return true; // "items": [] is valid
     }
 }
 

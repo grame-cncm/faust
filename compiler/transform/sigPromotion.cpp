@@ -33,7 +33,7 @@
 #include "xtended.hh"
 
 //-------------------------SignalPromotion-------------------------------
-// Adds explicite int or float cast when needed. This is needed prior
+// Adds explicit int or float cast when needed. This is needed prior
 // to any optimisations to avoid to scramble int and float expressions
 //----------------------------------------------------------------------
 
