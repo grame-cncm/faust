@@ -20,8 +20,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __LOOPDETECTOR__
-#define __LOOPDETECTOR__
+#pragma once
 
 /**
  * \file loopDetector.hh
@@ -64,5 +63,3 @@ class stackOverflowDetector {
 
     void detect();
 };
-
-#endif

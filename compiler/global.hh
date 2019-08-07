@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __FAUST_GLOBAL__
-#define __FAUST_GLOBAL__
+#pragma once
 
 #include <stdio.h>
 #include <string.h>
@@ -589,5 +588,3 @@ extern global* gGlobal;
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
 #define MAX_MACHINE_STACK_SIZE 65536
 #define MAX_SOUNDFILE_PARTS 256
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _BINOP_
-#define _BINOP_
+#pragma once
 
 #include "fbc_opcode.hh"
 #include "node.hh"
@@ -218,5 +217,3 @@ enum { kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, k
 bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);
 bool isCommutativeOpcode(int o);
-
-#endif

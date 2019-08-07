@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _OMP_CODE_CONTAINER_H
-#define _OMP_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 
@@ -37,5 +36,3 @@ class OpenMPCodeContainer : public virtual CodeContainer {
 
     OpenMPCodeContainer(int numInputs, int numOutputs) { initialize(numInputs, numOutputs); }
 };
-
-#endif

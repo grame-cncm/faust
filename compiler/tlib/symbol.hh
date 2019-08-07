@@ -36,8 +36,7 @@
  *
  */
 
-#ifndef __SYMBOL__
-#define __SYMBOL__
+#pragma once
 
 #include <map>
 #include <string>
@@ -125,5 +124,3 @@ inline ostream& operator<<(ostream& s, const Symbol& n)
 }
 
 typedef Symbol* Sym;
-
-#endif

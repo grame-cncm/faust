@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __GRAPHSORTING__
-#define __GRAPHSORTING__
+#pragma once
 
 #include <set>
 #include "loop.hh"
@@ -35,5 +34,3 @@ typedef vector<lset>  lgraph;
  * vector of sets of loops
  */
 void sortGraph(Loop* root, lgraph& V);
-
-#endif

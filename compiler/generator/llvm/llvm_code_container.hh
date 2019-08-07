@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _LLVM_CODE_CONTAINER_H
-#define _LLVM_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "llvm_instructions.hh"
@@ -122,5 +121,3 @@ class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeCo
     LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs);
     virtual ~LLVMWorkStealingCodeContainer();
 };
-
-#endif

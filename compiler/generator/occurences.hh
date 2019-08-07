@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OCCURENCES__
-#define __OCCURENCES__
+#pragma once
 
 #include "garbageable.hh"
 #include "tlib.hh"
@@ -59,5 +58,3 @@ class OccMarkup : public virtual Garbageable {
     void        mark(Tree root);   ///< start markup of root tree with new unique key
     Occurences* retrieve(Tree t);  ///< occurences of subtree t within root tree
 };
-
-#endif

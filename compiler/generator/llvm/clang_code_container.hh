@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _CLANG_CODE_CONTAINER_H
-#define _CLANG_CODE_CONTAINER_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -70,5 +69,3 @@ class ClangCodeContainer : public virtual CodeContainer {
 
     static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
 };
-
-#endif

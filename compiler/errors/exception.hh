@@ -17,8 +17,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ************************************************************************
 ************************************************************************/
 
-#ifndef _FAUST_EXCEPTION_
-#define _FAUST_EXCEPTION_
+#pragma once
 
 #include <iostream>
 #include <sstream>
@@ -69,5 +68,3 @@ inline void stacktrace(std::stringstream& str, int val)
 
 #define faustassert(cond) faustassertaux((cond), __FILE__, __LINE__)
 void faustassertaux(bool cond, const std::string& file, int line);
-
-#endif

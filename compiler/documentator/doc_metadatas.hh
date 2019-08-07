@@ -19,11 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _DOCMETADATAS_
-#define _DOCMETADATAS_
+#pragma once
 
 using namespace std;
 
 void initDocMetadatas();
-
-#endif

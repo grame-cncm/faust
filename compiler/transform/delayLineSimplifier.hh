@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __DELAYLINESIMPLIFIER__
-#define __DELAYLINESIMPLIFIER__
+#pragma once
 
 #include <set>
 #include "signals.hh"
@@ -32,5 +31,3 @@
  * @return set<Tree> the transformed set of instructions
  */
 set<Tree> delayLineSimplifier(const set<Tree>& instr);
-
-#endif

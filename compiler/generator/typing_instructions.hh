@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _TYPING_INSTRUCTIONS_H
-#define _TYPING_INSTRUCTIONS_H
+#pragma once
 
 #include "instructions.hh"
 
@@ -220,5 +219,3 @@ struct BasicTypingCloneVisitor : public BasicCloneVisitor {
         return BasicCloneVisitor::visit(inst);
     }
 };
-
-#endif

@@ -21,8 +21,8 @@
 
 */
 
-#ifndef __smartpointer__
-#define __smartpointer__
+
+#pragma once
 
 #include "exception.hh"
 
@@ -165,4 +165,4 @@ class SMARTP {
     }
 };
 
-#endif
+

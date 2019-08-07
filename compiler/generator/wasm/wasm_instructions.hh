@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WASM_INSTRUCTIONS_H
-#define _WASM_INSTRUCTIONS_H
+#pragma once
 
 #include <string.h>
 #include <cmath>
@@ -882,13 +881,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType        type = fTypingVisitor.fCurType;
-        Address::AccessType access = inst->fAddress->getAccess();
-        string                name = inst->fAddress->getName();
-        IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        Typed::VarType      type    = fTypingVisitor.fCurType;
+        Address::AccessType access  = inst->fAddress->getAccess();
+        string              name    = inst->fAddress->getName();
+        IndexedAddress*     indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
-            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -905,7 +903,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             }
             // Possibly used offset (if > 0)
             generateMemoryAccess(offset);
-    
+
         } else {
             faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
             LocalVarDesc local = fLocalVarTable[name];
@@ -1357,8 +1355,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        //throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
+        // throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
     }
 };
-
-#endif

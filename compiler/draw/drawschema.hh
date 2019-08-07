@@ -19,11 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __DRAWSCHEMA__
-#define __DRAWSCHEMA__
+#pragma once
 
 #include "boxes.hh"
 
 void drawSchema(Tree bd, const char* projname, const char* dev);
-
-#endif

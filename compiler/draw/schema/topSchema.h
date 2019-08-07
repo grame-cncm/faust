@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __TOPSCHEMA__
-#define __TOPSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -50,5 +49,3 @@ class topSchema : public schema {
    private:
     topSchema(schema* s1, double margin, const string& text, const string& link);
 };
-
-#endif

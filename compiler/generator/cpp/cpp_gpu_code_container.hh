@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _CPP_GPU_CODE_CONTAINER_H
-#define _CPP_GPU_CODE_CONTAINER_H
+#pragma once
 
 #include "cpp_code_container.hh"
 #include "global.hh"
@@ -495,5 +494,3 @@ class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
     void generateInstanceInitKernelGlue(int n);
     void generateComputeKernel(int n);
 };
-
-#endif

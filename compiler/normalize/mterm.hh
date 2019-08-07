@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __MTERM__
-#define __MTERM__
+#pragma once
 
 #include <stdio.h>
 #include <list>
@@ -89,5 +88,3 @@ inline ostream& operator<<(ostream& s, const mterm& m)
 {
     return m.print(s);
 }
-
-#endif

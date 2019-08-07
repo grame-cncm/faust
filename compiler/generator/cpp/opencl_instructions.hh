@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _OPENCL_INSTRUCTIONS_H
-#define _OPENCL_INSTRUCTIONS_H
+#pragma once
 
 using namespace std;
 
@@ -185,5 +184,3 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst) { generateFunCall(inst, inst->fName); }
 };
-
-#endif

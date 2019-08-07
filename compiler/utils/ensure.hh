@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _ENSURE_
-#define _ENSURE_
+#pragma once
 
 #include <cassert>
 
@@ -29,5 +28,3 @@
         bool success = EXPRESSION; \
         faustassert(success);      \
     } while (0);
-
-#endif

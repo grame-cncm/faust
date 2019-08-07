@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _PPSIG_H
-#define _PPSIG_H
+#pragma once
 
 /**********************************************************************
             - ppsig.h : pretty print signals expressions (projet FAUST) -
@@ -50,7 +49,7 @@ class ppsig : public virtual Garbageable {
     int  fPriority;       ///< priority context
     bool fHideRecursion;  ///<
    public:
-    ppsig(Tree s, bool hiderec=false);
+    ppsig(Tree s, bool hiderec = false);
     ostream& print(ostream& fout) const;
 
    private:
@@ -78,5 +77,3 @@ inline ostream& operator<<(ostream& file, const ppsig& pp)
 {
     return pp.print(file);
 }
-
-#endif

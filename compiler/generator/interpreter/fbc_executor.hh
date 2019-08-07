@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FBC_EXECUTOR_H
-#define _FBC_EXECUTOR_H
+#pragma once
 
 #include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
@@ -41,4 +40,3 @@ struct FBCExecutor {
     virtual void dumpMemory(FBCBlockInstruction<T>* block, const std::string& name, const std::string& filename) {}
 };
 
-#endif

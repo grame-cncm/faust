@@ -24,8 +24,7 @@
     22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
-#ifndef __CONTEXTOR__
-#define __CONTEXTOR__
+#pragma once
 
 #include <stdio.h>
 #include <iostream>
@@ -61,5 +60,3 @@ class contextor {
     void set(int n) { pile[top] = n; }
     int  get() { return pile[top]; }
 };
-
-#endif

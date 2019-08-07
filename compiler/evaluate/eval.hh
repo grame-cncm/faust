@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __EVALBOXES__
-#define __EVALBOXES__
+#pragma once
 
 /**
  * \file eval.hh
@@ -57,5 +56,3 @@ Tree pushValueDef(Tree id, Tree def, Tree lenv);
 
 /* numeric simplification of pattern arguments */
 Tree simplifyPattern(Tree pattern);
-
-#endif

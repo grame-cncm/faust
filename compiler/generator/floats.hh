@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FAUSTFLOATS_
-#define _FAUSTFLOATS_
+
+#pragma once
 
 #include <iostream>
 
@@ -47,4 +47,4 @@ void printfloatdef(std::ostream& fout, bool quad);
 
 typedef long double quad;
 
-#endif
+

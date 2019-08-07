@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _PROPAGATE_
-#define _PROPAGATE_
+#pragma once
 
 #include <vector>
 #include "boxes.hh"
@@ -43,5 +42,3 @@ typedef vector<Tree> siglist;
 siglist makeSigInputList(int n);
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
-
-#endif

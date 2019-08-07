@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INSTRUCTIONS_COMPLEXITY_H
-#define _INSTRUCTIONS_COMPLEXITY_H
+#pragma once
 
 using namespace std;
 
@@ -209,4 +208,3 @@ class InstComplexityVisitor : public DispatchVisitor {
     }
 };
 
-#endif

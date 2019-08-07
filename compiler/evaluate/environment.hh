@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef ENVIRONMENT_HH
-#define ENVIRONMENT_HH
+#pragma once
 
 #include "tlib.hh"
 
@@ -35,5 +34,3 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv);
 bool isEnvBarrier(Tree t);
 
 Tree pushEnvBarrier(Tree lenv);
-
-#endif  // ENVIRONMENT_HH

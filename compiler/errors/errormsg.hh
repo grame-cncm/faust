@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _ERRORMSG_
-#define _ERRORMSG_
+#pragma once
 
 #include "tlib.hh"
 
@@ -48,5 +47,3 @@ void evalerror(const char* filename, int linenum, const char* msg, Tree exp);
 void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp);
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp);
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp);
-
-#endif

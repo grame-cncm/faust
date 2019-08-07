@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _CODE_LOOP_H
-#define _CODE_LOOP_H
+#pragma once
 
 /**********************************************************************
     - code_gen.h : generic code generator (projet FAUST) -
@@ -193,5 +192,3 @@ class CodeLoop : public virtual Garbageable {
     static void computeUseCount(CodeLoop* l);
     static void groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited);
 };
-
-#endif

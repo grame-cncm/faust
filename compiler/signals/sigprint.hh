@@ -19,12 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SIGPRINT_
-#define _SIGPRINT_
+#pragma once
 
 #include "signals.hh"
 
 void printSigType(int n, int v, int c);
 void printSignal(Tree sig, FILE* out = stdout, int prec = 0);
-
-#endif

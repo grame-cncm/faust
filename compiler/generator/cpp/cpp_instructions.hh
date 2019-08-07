@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _CPP_INSTRUCTIONS_H
-#define _CPP_INSTRUCTIONS_H
+#pragma once
 
 using namespace std;
 
@@ -807,4 +806,3 @@ class MRCPPInstVisitor : public CPPInstVisitor {
 
 };
 */
-#endif

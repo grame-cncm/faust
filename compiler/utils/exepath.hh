@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __EXEPATH__
-#define __EXEPATH__
+#pragma once
 
 #include <string>
 
@@ -54,6 +53,4 @@ class exepath {
     // removes the last /xxxx part
     static std::string dirup(const std::string& path);
 };
-#endif
-
 #endif

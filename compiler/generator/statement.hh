@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef STATEMENT_H
-#define STATEMENT_H
+#pragma once
 
 // implements a code statement with an optional condition
 
@@ -44,5 +43,3 @@ class Statement {
     const string& condition() { return fCondition; }
     const string& code() { return fCode; }
 };
-
-#endif  // STATEMENT_H

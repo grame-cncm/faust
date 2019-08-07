@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WAS_INST_H
-#define _WAS_INST_H
+#pragma once
 
 #include <iomanip>
 
@@ -56,7 +55,6 @@ inline int pow2limit(int x)
     return n;
 }
 
-
 inline string flatten_json(const string& src)
 {
     string dst;
@@ -82,7 +80,11 @@ inline string flatten_json(const string& src)
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max<int>((pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
+    return std::max<int>(
+        (pow2limit(
+             std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) /
+         wasmBlockSize),
+        1);
 
     // Bigger memory block for soundfile test
     /*
@@ -159,20 +161,20 @@ struct WASInst {
         fMathLibTable["min_f"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
         fMathLibTable["powf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
         fMathLibTable["remainderf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kFloat, 2);
-        fMathLibTable["rintf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
-        fMathLibTable["roundf"]     = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
-        fMathLibTable["sinf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
-        fMathLibTable["sqrtf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
-        fMathLibTable["tanf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
-        
+        fMathLibTable["rintf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
+        fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
+        fMathLibTable["sinf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
+        fMathLibTable["sqrtf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
+        fMathLibTable["tanf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
+
         // Additional hyperbolic math functions
-        fMathLibTable["acoshf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
-        fMathLibTable["asinhf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kFloat, 1);
-        fMathLibTable["atanhf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kFloat, 1);
-        fMathLibTable["coshf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kFloat, 1);
-        fMathLibTable["sinhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kFloat, 1);
-        fMathLibTable["tanhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, 1);
-       
+        fMathLibTable["acoshf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
+        fMathLibTable["asinhf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kFloat, 1);
+        fMathLibTable["atanhf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kFloat, 1);
+        fMathLibTable["coshf"]  = MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kFloat, 1);
+        fMathLibTable["sinhf"]  = MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kFloat, 1);
+        fMathLibTable["tanhf"]  = MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, 1);
+
         // Double version
         fMathLibTable["fabs"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F64Abs, Typed::kDouble, 1);
         fMathLibTable["acos"]      = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", Typed::kDouble, 1);
@@ -196,15 +198,15 @@ struct WASInst {
         fMathLibTable["sin"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
         fMathLibTable["sqrt"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
         fMathLibTable["tan"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
-        
+
         // Additional hyperbolic math functions
-        fMathLibTable["acosh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kDouble, 1);
-        fMathLibTable["asinh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kDouble, 1);
-        fMathLibTable["atanh"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kDouble, 1);
-        fMathLibTable["cosh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kDouble, 1);
-        fMathLibTable["sinh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kDouble, 1);
-        fMathLibTable["tanh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kDouble, 1);
-   
+        fMathLibTable["acosh"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kDouble, 1);
+        fMathLibTable["asinh"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asinh", Typed::kDouble, 1);
+        fMathLibTable["atanh"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atanh", Typed::kDouble, 1);
+        fMathLibTable["cosh"]  = MathFunDesc(MathFunDesc::Gen::kExtMath, "cosh", Typed::kDouble, 1);
+        fMathLibTable["sinh"]  = MathFunDesc(MathFunDesc::Gen::kExtMath, "sinh", Typed::kDouble, 1);
+        fMathLibTable["tanh"]  = MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kDouble, 1);
+
         fStructOffset     = 0;
         fSubContainerType = -1;
         fFastMemory       = fast_memory;
@@ -227,11 +229,11 @@ struct WASInst {
         if (!fFastMemory || no_offset_opt) {
             return 0;
         }
-        
-        string name = address->getName();
+
+        string          name    = address->getName();
         NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
-        
+
         if (fFieldTable.find(name) != fFieldTable.end()) {
             MemoryDesc tmp = fFieldTable[name];
             if (named) {
@@ -243,12 +245,10 @@ struct WASInst {
                 }
             }
         }
-        
+
         return 0;
     }
 
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
 };
-
-#endif

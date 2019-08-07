@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_CODE_CHECKER_H
-#define _FIR_CODE_CHECKER_H
+#pragma once
 
 using namespace std;
 
@@ -381,4 +380,3 @@ struct ControlSpecializer : public DispatchVisitor {
     }
 };
 
-#endif

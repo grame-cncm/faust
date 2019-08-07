@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGNALGRAPH__
-#define __SIGNALGRAPH__
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -38,5 +37,3 @@ using namespace std;
  * @param instr the set of instructions
  */
 void signalGraph(const string& filename, const set<Tree>& instr);
-
-#endif

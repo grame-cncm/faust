@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INTERPRETER_INSTRUCTIONS_H
-#define _INTERPRETER_INSTRUCTIONS_H
+#pragma once
 
 #include <cstdlib>
 
@@ -96,14 +95,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sinf"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tanf"]       = FBCInstruction::kTanf;
-        
+
         // Hyperbolic
-        gMathLibTable["acoshf"]     = FBCInstruction::kAcoshf;
-        gMathLibTable["asinhf"]     = FBCInstruction::kAsinhf;
-        gMathLibTable["atanhf"]     = FBCInstruction::kAtanhf;
-        gMathLibTable["coshf"]      = FBCInstruction::kCoshf;
-        gMathLibTable["sinhf"]      = FBCInstruction::kSinhf;
-        gMathLibTable["tanhf"]      = FBCInstruction::kTanhf;
+        gMathLibTable["acoshf"] = FBCInstruction::kAcoshf;
+        gMathLibTable["asinhf"] = FBCInstruction::kAsinhf;
+        gMathLibTable["atanhf"] = FBCInstruction::kAtanhf;
+        gMathLibTable["coshf"]  = FBCInstruction::kCoshf;
+        gMathLibTable["sinhf"]  = FBCInstruction::kSinhf;
+        gMathLibTable["tanhf"]  = FBCInstruction::kTanhf;
 
         // Double version
         gMathLibTable["fabs"]      = FBCInstruction::kAbsf;
@@ -126,14 +125,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sin"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tan"]       = FBCInstruction::kTanf;
-        
+
         // Hyperbolic
-        gMathLibTable["acosh"]     = FBCInstruction::kAcoshf;
-        gMathLibTable["asinh"]     = FBCInstruction::kAsinhf;
-        gMathLibTable["atanh"]     = FBCInstruction::kAtanhf;
-        gMathLibTable["cosh"]      = FBCInstruction::kCoshf;
-        gMathLibTable["sinh"]      = FBCInstruction::kSinhf;
-        gMathLibTable["tanh"]      = FBCInstruction::kTanhf;
+        gMathLibTable["acosh"] = FBCInstruction::kAcoshf;
+        gMathLibTable["asinh"] = FBCInstruction::kAsinhf;
+        gMathLibTable["atanh"] = FBCInstruction::kAtanhf;
+        gMathLibTable["cosh"]  = FBCInstruction::kCoshf;
+        gMathLibTable["sinh"]  = FBCInstruction::kSinhf;
+        gMathLibTable["tanh"]  = FBCInstruction::kTanhf;
 
         // Min/max directly handled in FunCallInst
     }
@@ -674,4 +673,4 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     }
 };
 
-#endif
+

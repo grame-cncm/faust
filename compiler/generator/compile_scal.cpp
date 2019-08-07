@@ -54,8 +54,8 @@
 #include "simplify.hh"
 #include "splitCommonSubexpr.hh"
 #include "timing.hh"
-#include "xtended.hh"
 #include "transformDelayToTable.hh"
+#include "xtended.hh"
 
 using namespace std;
 
@@ -110,7 +110,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     startTiming("Cast and Promotion");
     SignalPromotion SP;
-    // SP.trace(true, "Cast");
+    SP.trace(true, "Cast");
     Tree L1b = SP.mapself(L1);
     endTiming("Cast and Promotion");
 

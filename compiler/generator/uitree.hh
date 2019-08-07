@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _UITREE_
-#define _UITREE_
+#pragma once
 
 #include <string>
 
@@ -44,5 +43,3 @@ Tree putSubFolder(Tree folder, Tree path, Tree item);
 
 std::string ptrToHex(Tree ptr);
 std::string checkNullLabel(Tree t, const std::string& label, bool bargraph = false);
-
-#endif

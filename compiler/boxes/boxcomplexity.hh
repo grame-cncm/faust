@@ -19,11 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __BOXECOMPLEXITY__
-#define __BOXECOMPLEXITY__
-
+#pragma once
 #include "boxes.hh"
 
 int boxComplexity(Tree box);
-
-#endif

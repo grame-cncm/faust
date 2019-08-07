@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SIGTYPERULES_
-#define _SIGTYPERULES_
+#pragma once
 
 #include "signals.hh"
 #include "sigtype.hh"
@@ -62,5 +61,3 @@ void annotationStatistics();
  *	Simple type inference for "instruction" signals
  */
 ::Type getSimpleType(Tree sig);
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef interpreter_dsp_aux_h
-#define interpreter_dsp_aux_h
+#pragma once
 
 #include <stdlib.h>
 #include <fstream>

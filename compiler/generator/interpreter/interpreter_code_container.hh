@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INTERPRETER_CODE_CONTAINER_H
-#define _INTERPRETER_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "fir_to_fir.hh"
@@ -94,4 +93,3 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
     }
 };
 
-#endif

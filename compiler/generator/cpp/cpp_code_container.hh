@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _CPP_CODE_CONTAINER_H
-#define _CPP_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "cpp_instructions.hh"
@@ -132,5 +131,3 @@ class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeCont
     void produceClass();
     void generateCompute(int tab);
 };
-
-#endif

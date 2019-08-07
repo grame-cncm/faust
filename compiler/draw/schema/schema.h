@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SCHEMA__
-#define __SCHEMA__
+#pragma once
 
 #include "device.h"
 #include "garbageable.hh"
@@ -174,5 +173,3 @@ schema* makeTopSchema(schema* s1, double margin, const string& text, const strin
 schema* makeDecorateSchema(schema* s1, double margin, const string& text);
 schema* makeConnectorSchema();
 schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const vector<int>& routes);
-
-#endif

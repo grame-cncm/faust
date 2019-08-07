@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef WASM_DYNAMIC_DSP_AUX_H
-#define WASM_DYNAMIC_DSP_AUX_H
+#pragma once
 
 #include <cstdlib>
 #include <string>
@@ -40,11 +39,9 @@ class EXPORT wasm_dynamic_dsp_factory : public wasm_dsp_factory {
                                                              const std::string&              dsp_content,
                                                              const std::vector<std::string>& argv,
                                                              bool                            internal_memory);
-    
-    static std::string generateWasmFromString2(const std::string&              name_app,
-                                                const std::string&              dsp_content,
-                                                const std::vector<std::string>& argv,
-                                                bool                            internal_memory);
+
+    static std::string generateWasmFromString2(const std::string& name_app, const std::string& dsp_content,
+                                               const std::vector<std::string>& argv, bool internal_memory);
 };
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
@@ -54,9 +51,8 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_
                                                         int argc, const char* argv[], std::string& error_msg,
                                                         bool internal_memory);
 
-EXPORT std::string generateWasmFromString(const std::string& name_app, const std::string& dsp_content,
-                                          int argc, const char* argv[], std::string& error_msg,
-                                          bool internal_memory);
+EXPORT std::string generateWasmFromString(const std::string& name_app, const std::string& dsp_content, int argc,
+                                          const char* argv[], std::string& error_msg, bool internal_memory);
 
 #ifdef __cplusplus
 extern "C" {
@@ -168,6 +164,4 @@ EXPORT void cleanupAfterException();
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

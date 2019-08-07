@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _DOC_COMPILE_SCAL_
-#define _DOC_COMPILE_SCAL_
+#pragma once
 
 #include <list>
 #include <map>
@@ -147,5 +146,3 @@ class DocCompiler : public virtual Garbageable {
     string prepareBinaryUI(const string& name, Tree pathname);
     string prepareIntervallicUI(const string& name, Tree path, Tree tcur, Tree tmin, Tree tmax);
 };
-
-#endif

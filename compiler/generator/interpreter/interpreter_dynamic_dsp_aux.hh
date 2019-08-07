@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef interpreter_dynamic_dsp_aux_h
-#define interpreter_dynamic_dsp_aux_h
+#pragma once
 
 #include "interpreter_dsp_aux.hh"
 
@@ -30,5 +29,3 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::s
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
                                                                       const std::string& dsp_content, int argc,
                                                                       const char* argv[], std::string& error_msg);
-
-#endif

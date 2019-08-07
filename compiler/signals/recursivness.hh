@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _RECURSIVNESS_
-#define _RECURSIVNESS_
+#pragma once
 
 #include "signals.hh"
 
@@ -28,5 +27,3 @@ void recursivnessAnnotation(Tree sig);
 int  getRecursivness(Tree t);
 
 Tree symlist(Tree sig);
-
-#endif

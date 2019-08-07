@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WAST_INSTRUCTIONS_H
-#define _WAST_INSTRUCTIONS_H
+#pragma once
 
 #include <ostream>
 
@@ -221,13 +220,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType        type = fTypingVisitor.fCurType;
-        Address::AccessType access = inst->fAddress->getAccess();
-        string                name = inst->fAddress->getName();
-        IndexedAddress*    indexed =  dynamic_cast<IndexedAddress*>(inst->fAddress);
+        Typed::VarType      type    = fTypingVisitor.fCurType;
+        Address::AccessType access  = inst->fAddress->getAccess();
+        string              name    = inst->fAddress->getName();
+        IndexedAddress*     indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
-            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -245,7 +243,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fAddress->accept(this);
                 *fOut << ")";
             }
-        
+
         } else {
             *fOut << "(local.get $" << name << ")";
         }
@@ -410,7 +408,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-  
+
     virtual void visit(LoadVarAddressInst* inst)
     {
         // Not implemented in WASM
@@ -694,8 +692,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        //throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
+        // throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
     }
 };
-
-#endif

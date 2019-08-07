@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WSS_CODE_CONTAINER_H
-#define _WSS_CODE_CONTAINER_H
+
+#pragma once
 
 #include "code_container.hh"
 
@@ -59,4 +59,3 @@ class WSSCodeContainer : public virtual CodeContainer {
     }
 };
 
-#endif

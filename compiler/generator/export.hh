@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __export__
-#define __export__
+#pragma once
 
 #define FAUSTVERSION "2.18.0"
 
@@ -28,6 +27,4 @@
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT __attribute__((visibility("default")))
-#endif
-
 #endif

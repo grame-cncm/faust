@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _COMPILE_SCAL_
-#define _COMPILE_SCAL_
+#pragma once
 
 #define _DNF_ 1
 
@@ -164,5 +163,3 @@ class ScalarCompiler : public Compiler {
     string dnf2code(Tree cc);
     string and2code(Tree oc);
 };
-
-#endif

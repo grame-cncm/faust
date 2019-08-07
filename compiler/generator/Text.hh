@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _Text_H
-#define _Text_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -207,5 +206,3 @@ inline string prepareURL(const string& url)
     // If unique file, create a list with it
     return (res[0] != '{') ? "{'" + res + "'}" : res;
 }
-
-#endif

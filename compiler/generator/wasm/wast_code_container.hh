@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WAST_CODE_CONTAINER_H
-#define _WAST_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "dsp_factory.hh"
@@ -85,5 +84,3 @@ class WASTVectorCodeContainer : public VectorCodeContainer, public WASTCodeConta
 
     void generateCompute(int tab);
 };
-
-#endif

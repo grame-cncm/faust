@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _LATEQ_H
-#define _LATEQ_H
+#pragma once
 
 /**********************************************************************
         - lateq.hh : the Lateq class definition (FAUST project) -
@@ -113,5 +112,3 @@ class Lateq : public virtual Garbageable {
 };
 
 void initDocMath();
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FBC_VEC_INTERPRETER_H
-#define _FBC_VEC_INTERPRETER_H
+#pragma once
 
 #include <string.h>
 #include <cmath>
@@ -2512,4 +2511,3 @@ class FBCVecInterpreter : public FBCExecutor<T> {
     virtual void setOutput(int offset, T* buffer) { fOutputs[offset] = buffer; }
 };
 
-#endif

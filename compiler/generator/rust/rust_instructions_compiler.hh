@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _RUST_INSTRUCTION_COMPILER_H
-#define _RUST_INSTRUCTION_COMPILER_H
+#pragma once
 
 #include "instructions_compiler.hh"
 
@@ -35,5 +34,3 @@ class RustInstructionsCompiler : public InstructionsCompiler {
 
     StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
 };
-
-#endif

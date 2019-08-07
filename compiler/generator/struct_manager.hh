@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _STRUCT_MANAGER_H
-#define _STRUCT_MANAGER_H
+#pragma once
 
 #include <string>
 #include <utility>
@@ -146,5 +145,3 @@ struct StructInstVisitor : public DispatchVisitor {
         }
     }
 };
-
-#endif

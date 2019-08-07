@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _COMPILE_
-#define _COMPILE_
+#pragma once
 
 #include <list>
 #include <map>
@@ -89,5 +88,3 @@ class Compiler {
 #define generateEquivRecGroup generateRecGroup
 
 void compileSignals(const string& name, const string& super, int numInputs, int numOutputs, Tree lsig);
-
-#endif

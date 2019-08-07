@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LLVM_DSP_AUX_H
-#define LLVM_DSP_AUX_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -67,8 +66,8 @@
 #ifdef _MSC_VER
 #define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
 #define POST_PACKED_STRUCTURE \
-;                         \
-__pragma(pack(pop))
+    ;                         \
+    __pragma(pack(pop))
 #else
 #define PRE_PACKED_STRUCTURE
 #define POST_PACKED_STRUCTURE __attribute__((__packed__))
@@ -77,36 +76,36 @@ __pragma(pack(pop))
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     LLVM_FAUSTFLOAT** fBuffers;
-    int* fLength;   // length of each part
-    int* fSR;       // sample rate of each part
-    int* fOffset;   // offset of each part in the global buffer
-    int fChannels;  // max number of channels of all concatenated files
- 
+    int*              fLength;    // length of each part
+    int*              fSR;        // sample rate of each part
+    int*              fOffset;    // offset of each part in the global buffer
+    int               fChannels;  // max number of channels of all concatenated files
+
     Soundfile(int max_chan)
     {
         fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
         fLength  = new int[MAX_SOUNDFILE_PARTS];
         fSR      = new int[MAX_SOUNDFILE_PARTS];
         fOffset  = new int[MAX_SOUNDFILE_PARTS];
-        
+
         for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
             fLength[part] = BUFFER_SIZE;
             fSR[part]     = SAMPLE_RATE;
             fOffset[part] = 0;
         }
-        
+
         // Allocate 1 channel
         fChannels   = 1;
         fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
         faustassert(fBuffers[0]);
         memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
-        
+
         // Share the same buffer for all other channels so that we have max_chan channels available
         for (int chan = fChannels; chan < max_chan; chan++) {
             fBuffers[chan] = fBuffers[0];
         }
     }
-    
+
     ~Soundfile()
     {
         // Free the real channels only
@@ -118,7 +117,7 @@ struct Soundfile {
         delete[] fSR;
         delete[] fOffset;
     }
-    
+
 } POST_PACKED_STRUCTURE;
 
 extern Soundfile* dynamic_defaultsound;
@@ -474,6 +473,4 @@ EXPORT void generateCSHA1(const char* data, char* key);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

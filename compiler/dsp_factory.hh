@@ -18,9 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
-#ifndef __dsp_factory_base__
-#define __dsp_factory_base__
+#pragma once
 
 #include <string.h>
 #include <ostream>
@@ -28,9 +26,9 @@
 
 #include "exception.hh"
 #include "export.hh"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
-#include "faust/dsp/dsp.h"
 
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
@@ -139,7 +137,7 @@ class dsp_factory_imp : public dsp_factory_base {
             faustassert(false);
         }
     }
-  
+
     virtual void metadata(Meta* meta) { faustassert(false); }
 
     virtual void write(std::ostream* out, bool binary = false, bool small = false) {}
@@ -174,5 +172,3 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 
 std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,
                       std::string& error_msg);
-
-#endif

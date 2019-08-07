@@ -21,8 +21,7 @@
 
 */
 
-#ifndef __TMutex__
-#define __TMutex__
+#pragma once
 
 #include <new>
 
@@ -112,5 +111,3 @@ class TLock {
         if (fObj) fObj->Unlock();
     }
 };
-
-#endif

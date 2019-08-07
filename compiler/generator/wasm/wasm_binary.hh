@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WASM_BINARY_H
-#define _WASM_BINARY_H
+#pragma once
 
 #include <string.h>
 #include <cmath>
@@ -275,5 +274,3 @@ enum MemoryAccess {
 };
 
 }  // namespace BinaryConsts
-
-#endif

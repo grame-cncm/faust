@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _COMPILE_VEC_
-#define _COMPILE_VEC_
+#pragma once
 
 #include "compile_scal.hh"
 #include "loop.hh"
@@ -61,5 +60,3 @@ class VectorCompiler : public ScalarCompiler {
 
     bool needSeparateLoop(Tree sig);
 };
-
-#endif

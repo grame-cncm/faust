@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __ROUTESCHEMA__
-#define __ROUTESCHEMA__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -68,5 +67,3 @@ class routeSchema : public schema {
     void collectInputWires(collector& c);
     void collectOutputWires(collector& c);
 };
-
-#endif

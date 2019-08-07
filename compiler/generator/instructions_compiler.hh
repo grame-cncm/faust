@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INSTRUCTION_COMPILER_H
-#define _INSTRUCTION_COMPILER_H
+#pragma once
 
 #include <list>
 #include <map>
@@ -214,5 +213,3 @@ class InstructionsCompiler : public virtual Garbageable {
 
     void declareWaveform(Tree sig, string& vname, int& size);
 };
-
-#endif

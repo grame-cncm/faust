@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _JAVA_CODE_CONTAINER_H
-#define _JAVA_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "dsp_factory.hh"
@@ -66,5 +65,3 @@ class JAVAScalarCodeContainer : public JAVACodeContainer {
 
     void generateCompute(int tab);
 };
-
-#endif

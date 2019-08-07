@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SignalDependencies_
-#define _SignalDependencies_
+#pragma once
 
 #include <cstdlib>
 #include <iostream>
@@ -51,5 +50,3 @@ ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g);
  * uniqueID(prefix,sig) -> ID
  */
 Tree uniqueID(const char* prefix, Tree sig);
-
-#endif

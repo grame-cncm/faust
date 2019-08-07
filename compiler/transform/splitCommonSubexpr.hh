@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SPLITCOMMONSUBEXPR__
-#define __SPLITCOMMONSUBEXPR__
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -35,5 +34,3 @@
  * @return set<Tree> the resulting set of instructions
  */
 set<Tree> splitCommonSubexpr(const set<Tree>& I);
-
-#endif

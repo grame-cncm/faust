@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SIGNALS_
-#define _SIGNALS_
+#pragma once
 
 #include <vector>
 
@@ -413,5 +412,3 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen = true);
 bool verySimple(Tree exp);
 
 bool sigList2vecInt(Tree ls, vector<int>& v);
-
-#endif

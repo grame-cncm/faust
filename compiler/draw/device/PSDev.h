@@ -21,8 +21,7 @@
 
 // PSDev.h: interface for the PSDev class.
 
-#if !defined PSDEV_H
-#define PSDEV_H
+#pragma once
 
 #include "device.h"
 
@@ -42,5 +41,3 @@ class PSDev : public device {
     void markSens(double, double, int);
     void Error(const char*, const char*, int, double, double, double);
 };
-
-#endif

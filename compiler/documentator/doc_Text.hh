@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _doc_stringFAUST_H
-#define _doc_stringFAUST_H
+#pragma once
 
 /**********************************************************************
             - string.h : Chaines de caractere -
@@ -54,5 +53,3 @@ string docT(double n);
 // add and remove quotes of a string
 // string unquote(const string& s);
 // string quote(const string& s);
-
-#endif

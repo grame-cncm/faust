@@ -156,8 +156,7 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 ******************************************************************************
 *****************************************************************************/
 
-#ifndef __TLIB__
-#define __TLIB__
+#pragma once
 
 #include "list.hh"
 #include "node.hh"
@@ -165,5 +164,3 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 #include "shlysis.hh"
 #include "symbol.hh"
 #include "tree.hh"
-
-#endif

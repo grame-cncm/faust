@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __PARSCHEMA__
-#define __PARSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -37,11 +36,9 @@ class parSchema : public schema {
    public:
     parSchema(schema* s1, schema* s2);
 
-    virtual void  place(double ox, double oy, int orientation);
-    virtual void  draw(device& dev);
-    virtual point inputPoint(unsigned int i) const;
-    virtual point outputPoint(unsigned int i) const;
-    virtual void  collectTraits(collector& c);
+    virtual void  place(double ox, double oy, int orientation) override;
+    virtual void  draw(device& dev) override;
+    virtual point inputPoint(unsigned int i) const override;
+    virtual point outputPoint(unsigned int i) const override;
+    virtual void  collectTraits(collector& c) override;
 };
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SEQSCHEMA__
-#define __SEQSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -49,5 +48,3 @@ class seqSchema : public schema {
     void drawInternalWires(device& dev);
     void collectInternalWires(collector& c);
 };
-
-#endif

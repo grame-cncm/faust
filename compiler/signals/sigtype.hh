@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SigType_
-#define _SigType_
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -531,5 +530,3 @@ int checkDelayInterval(Type t);  ///< Check if the interval of t is appropriate 
 string old_cType(Type t);
 
 Tree codeAudioType(AudioType* t);  ///< Code an audio type as a tree (memoization)
-
-#endif

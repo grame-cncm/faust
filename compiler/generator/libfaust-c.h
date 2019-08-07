@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LIBFAUST_C_H
-#define LIBFAUST_C_H
+#pragma once
 
 #include <string.h>
 
@@ -287,4 +286,3 @@ LIBEXPORT void freeCMemory(void* ptr);
 }
 #endif
 
-#endif

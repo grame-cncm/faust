@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_TO_FIR_H
-#define _FIR_TO_FIR_H
+#pragma once
 
 #include "code_container.hh"
 #include "fir_instructions.hh"
@@ -690,4 +689,4 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
-#endif
+

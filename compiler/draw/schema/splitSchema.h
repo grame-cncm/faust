@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SPLITSCHEMA__
-#define __SPLITSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -45,5 +44,3 @@ class splitSchema : public schema {
    private:
     splitSchema(schema* s1, schema* s2, double hgap);
 };
-
-#endif

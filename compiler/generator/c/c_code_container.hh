@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _C_CODE_CONTAINER_H
-#define _C_CODE_CONTAINER_H
+#pragma once
 
 #include "c_instructions.hh"
 #include "code_container.hh"
@@ -126,5 +125,3 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
 
     void generateCompute(int tab);
 };
-
-#endif

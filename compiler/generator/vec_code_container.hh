@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _VEC_CODE_CONTAINER_H
-#define _VEC_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 
@@ -47,5 +46,3 @@ class VectorCodeContainer : public virtual CodeContainer {
         fDAGBlock = InstBuilder::genBlockInst();
     }
 };
-
-#endif

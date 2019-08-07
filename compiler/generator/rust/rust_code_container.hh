@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _RUST_CODE_CONTAINER_H
-#define _RUST_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "dsp_factory.hh"
@@ -98,5 +97,3 @@ class RustWorkStealingCodeContainer : public WSSCodeContainer, public RustCodeCo
 
     void generateCompute(int tab);
 };
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGPROMOTION__
-#define __SIGPROMOTION__
+#pragma once
 
 #include "sigIdentity.hh"
 
@@ -38,5 +37,3 @@ class SignalPromotion : public SignalIdentity {
     Tree         smartIntCast(Type t, Tree sig);
     Tree         smartFloatCast(Type t, Tree sig);
 };
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SHLYSIS__
-#define __SHLYSIS__
+#pragma once
 /*****************************************************************************
 ******************************************************************************
                                 Tree Sharing Analysis
@@ -63,14 +62,3 @@ Tree shprkey(Tree t);
 // shcount : returns the sharing count of t within the tree T of key k
 
 int shcount(Tree key, Tree t);
-
-#if 0
-
-//------------------------------------------------------------------------------
-// shlysis : create a specific property key for the sharing count of subtrees of t
-
-Tree shlysis(Tree t);
-Tree shlysis(Tree t, barrier foo);
-
-#endif
-#endif

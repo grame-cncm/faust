@@ -19,13 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __TREETRANSFORM__
-#define __TREETRANSFORM__
+#pragma once
 
 #include <stdlib.h>
 #include <cstdlib>
+
 #include "property.hh"
-#include "sigtyperules.hh"
 #include "tree.hh"
 
 //------------------------------------------------------------------------------
@@ -47,6 +46,7 @@ class TreeTransform {
 
    public:
     TreeTransform() : fTraceFlag(false), fIndent(0), fMessage("TreeTransform") {}
+    virtual ~TreeTransform() {}
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
@@ -63,5 +63,3 @@ class TreeTransform {
     virtual void traceEnter(Tree t);         // called when entering a transformation
     virtual void traceExit(Tree t, Tree r);  // called when exiting a transformation
 };
-
-#endif

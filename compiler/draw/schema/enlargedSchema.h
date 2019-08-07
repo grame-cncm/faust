@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __ENLARGEDSCHEMA__
-#define __ENLARGEDSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -42,5 +41,3 @@ class enlargedSchema : public schema {
     virtual point outputPoint(unsigned int i) const;
     virtual void  collectTraits(collector& c);
 };
-
-#endif

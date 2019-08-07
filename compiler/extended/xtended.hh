@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __XTENDED__
-#define __XTENDED__
+#pragma once
 
 #include <vector>
 
@@ -49,7 +48,7 @@ class xtended : public virtual Garbageable {
     Tree box()
     {
         Tree b = tree(fSymbol);
-        faustassert(getUserData(b) != 0);
+        faustassert(getUserData(b) != nullptr);
         return b;
     }
 
@@ -103,5 +102,3 @@ inline ValueInst* cast2int(int type, ValueInst* val)
 {
     return (type == kInt) ? InstBuilder::genCastInt32Inst(val) : val;
 }
-
-#endif

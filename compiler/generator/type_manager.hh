@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _TYPE_MANAGER_H
-#define _TYPE_MANAGER_H
+#pragma once
 
 #include <list>
 #include <map>
@@ -305,5 +304,3 @@ class SOULStringTypeManager : public StringTypeManager {
         }
     }
 };
-
-#endif

@@ -19,18 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef WASM_DSP_AUX_H
-#define WASM_DSP_AUX_H
+#pragma once
 
 #include <cstdlib>
 #include <string>
 #include <vector>
 
-#include "faust/gui/MapUI.h"
-#include "faust/gui/JSONControl.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
+#include "faust/gui/JSONControl.h"
+#include "faust/gui/MapUI.h"
 #include "wasm_binary.hh"
 
 class wasm_dsp_factory;
@@ -55,7 +54,7 @@ struct WasmBinaryReader {
         data_segment_pos = -1;
         if (debug) std::cerr << "WasmBinaryReader size : " << size << std::endl;
     }
-    
+
     ~WasmBinaryReader() { free(input); }
 
     bool more() { return pos < size; }
@@ -266,7 +265,7 @@ struct WasmBinaryReader {
 class EXPORT wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
-    int               fDSP;       // Index of wasm DSP memory
+    int               fDSP;  // Index of wasm DSP memory
 
    public:
     wasm_dsp() : fFactory(nullptr), fDSP(-1) {}
@@ -298,11 +297,10 @@ class EXPORT wasm_dsp : public dsp, public JSONControl {
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
     virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs);
-    
-    virtual void setParamValue(const std::string& path, FAUSTFLOAT value);
-    
-    virtual FAUSTFLOAT getParamValue(const std::string& path);
 
+    virtual void setParamValue(const std::string& path, FAUSTFLOAT value);
+
+    virtual FAUSTFLOAT getParamValue(const std::string& path);
 };
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
@@ -311,18 +309,18 @@ class SoundUI;
 
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     friend class wasm_dsp;
+
    protected:
-    dsp_factory_base*        fFactory;
-    JSONUITemplatedDecoder*  fDecoder;
-    int                      fInstance; // Index of wasm DSP instance
-    MapUI                    fMapUI;
+    dsp_factory_base*       fFactory;
+    JSONUITemplatedDecoder* fDecoder;
+    int                     fInstance;  // Index of wasm DSP instance
+    MapUI                   fMapUI;
 #ifdef EMCC
-    SoundUI*                 fSoundUI;
+    SoundUI* fSoundUI;
 #endif
 
    public:
-    wasm_dsp_factory():fFactory(nullptr), fDecoder(nullptr), fInstance(0)
-    {}
+    wasm_dsp_factory() : fFactory(nullptr), fDecoder(nullptr), fInstance(0) {}
     wasm_dsp_factory(dsp_factory_base* factory);
     wasm_dsp_factory(int instance, const std::string& json);
 
@@ -343,8 +341,8 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     JSONUITemplatedDecoder* getDecoder() { return fDecoder; }
 
     wasm_dsp* createDSPInstance();
-    void deleteDSPInstance(wasm_dsp* dsp);
-  
+    void      deleteDSPInstance(wasm_dsp* dsp);
+
     void                setMemoryManager(dsp_memory_manager* manager);
     dsp_memory_manager* getMemoryManager();
 
@@ -356,13 +354,13 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path);
 
     static wasm_dsp_factory* readWasmDSPFactoryFromMachine2(const std::string& machine_code);
-    
+
     static wasm_dsp_factory* createWasmDSPFactory(int instance, const std::string& json);
-    
+
     static bool deleteWasmDSPFactory2(wasm_dsp_factory* factory);
-    
+
     static std::string extractJSON(const std::string& code);
-   
+
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
@@ -378,8 +376,7 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machin
 
 EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path,
+                                                           std::string&       error_msg);
 
 EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
-
-#endif

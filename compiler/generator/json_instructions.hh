@@ -19,15 +19,14 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _JSON_INSTRUCTIONS_H
-#define _JSON_INSTRUCTIONS_H
+#pragma once
 
-#include <string>
 #include <set>
+#include <string>
 
+#include "exception.hh"
 #include "faust/gui/JSONUI.h"
 #include "instructions.hh"
-#include "exception.hh"
 
 using namespace std;
 
@@ -40,11 +39,11 @@ using namespace std;
 */
 
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
-    map<string, string> fPathTable; // Table : field_name, complete path
-    set<string> fControlPathSet;    // Set of already used control paths
- 
+    map<string, string> fPathTable;       // Table : field_name, complete path
+    set<string>         fControlPathSet;  // Set of already used control paths
+
     using DispatchVisitor::visit;
-    
+
     const string& checkPath(set<string>& table, const string& path)
     {
         if (table.find(path) != table.end()) {
@@ -54,7 +53,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         }
         return path;
     }
-  
+
     JSONInstVisitor(const std::string& name, const std::string& filename, int inputs, int outputs, int sr_index,
                     const std::string& sha_key, const std::string& dsp_code, const std::string& version,
                     const std::string& compile_options, const std::vector<std::string>& library_list,
@@ -157,5 +156,3 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     void setInputs(int input) { fInputs = input; }
     void setOutputs(int output) { fOutputs = output; }
 };
-
-#endif

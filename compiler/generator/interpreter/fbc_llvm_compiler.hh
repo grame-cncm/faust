@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FBC_LLVM_COMPILER_H
-#define _FBC_LLVM_COMPILER_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -509,7 +508,7 @@ class FBCLLVMCompiler {
                     pushUnaryRealCall("acos");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kAcoshf:
                     pushUnaryRealCall("acosh");
                     it++;
@@ -519,7 +518,7 @@ class FBCLLVMCompiler {
                     pushUnaryRealCall("asin");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kAsinhf:
                     pushUnaryRealCall("asinh");
                     it++;
@@ -529,7 +528,7 @@ class FBCLLVMCompiler {
                     pushUnaryRealCall("atan");
                     it++;
                     break;
-                    
+
                 case FBCInstruction::kAtanhf:
                     pushUnaryRealCall("atanh");
                     it++;
@@ -915,4 +914,3 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
     }
 };
 
-#endif

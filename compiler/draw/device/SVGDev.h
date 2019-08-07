@@ -21,8 +21,7 @@
 
 // SVGDev.h
 
-#if !defined SVGDEV_H
-#define SVGDEV_H
+#pragma once
 
 #include "device.h"
 
@@ -42,5 +41,3 @@ class SVGDev : public device {
     void markSens(double x, double y, int sens);
     void Error(const char* message, const char* reason, int nb_error, double x, double y, double largeur);
 };
-
-#endif

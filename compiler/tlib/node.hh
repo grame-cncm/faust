@@ -47,8 +47,7 @@
 /******************************************************************************
 *****************************************************************************/
 
-#ifndef __NODE__
-#define __NODE__
+#pragma once
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -331,7 +330,7 @@ inline const Node leNode(const Node& x, const Node& y)
 {
     return (isDouble(x) || isDouble(y)) ? Node(double(x) <= double(y)) : Node(int(x) <= int(y));
 }
-#if 1
+
 inline const Node eqNode(const Node& x, const Node& y)
 {
     return (isDouble(x) || isDouble(y)) ? Node(double(x) == double(y)) : Node(int(x) == int(y));
@@ -341,6 +340,3 @@ inline const Node neNode(const Node& x, const Node& y)
 {
     return (isDouble(x) || isDouble(y)) ? Node(double(x) != double(y)) : Node(int(x) != int(y));
 }
-#endif
-
-#endif

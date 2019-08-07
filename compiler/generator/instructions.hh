@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INSTRUCTIONS_H
-#define _INSTRUCTIONS_H
+#pragma once
 
 #include <stdio.h>
 #include <algorithm>
@@ -491,7 +490,7 @@ struct StructTyped : public Typed {
         }
         return size;
     }
-    
+
     int getOffset(int field)
     {
         int offset = 0;
@@ -1159,9 +1158,9 @@ struct DeclareFunInst : public StatementInst {
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
     virtual ~DeclareFunInst() {}
-    
+
     Typed::VarType getResType() { return fType->fResult->getType(); }
-  
+
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -2469,8 +2468,6 @@ struct FIRIndex {
    private:
     ValueInst* fValue;
 };
-
-#endif
 
 /*
 

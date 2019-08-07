@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __NAMES__
-#define __NAMES__
+#pragma once
 
 #include <string>
 #include "propagate.hh"
@@ -67,4 +66,3 @@ Tree pushValueDef(Tree id, Tree def, Tree lenv);
 /* numeric simplification of pattern arguments */
 Tree simplifyPattern(Tree pattern);
 
-#endif

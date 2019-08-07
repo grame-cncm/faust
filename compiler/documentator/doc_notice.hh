@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _DOCNOTICE_
-#define _DOCNOTICE_
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -38,5 +37,3 @@ extern map<string, bool> gDocNoticeFlagMap;
 
 void initDocNotice();
 void printDocNotice(const string& faustversion, ostream& docout);
-
-#endif

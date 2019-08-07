@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _C_INSTRUCTIONS_H
-#define _C_INSTRUCTIONS_H
+#pragma once
 
 #include <string>
 #include "text_instructions.hh"
@@ -382,5 +381,3 @@ class CInstVisitor : public TextInstVisitor {
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
-
-#endif

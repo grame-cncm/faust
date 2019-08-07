@@ -78,10 +78,9 @@ bool getBoxType(Tree box, int* inum, int* onum)
     }
 }
 
-
 /**
  * Produces "1 output" or "n outputs" according to n
- * \param n: the number of outputs
+ * \param n the number of outputs
  * \return the corresponding string
  */
 
@@ -92,10 +91,9 @@ static string outputs(int n)
     return msg.str();
 }
 
-
 /**
  * Produces "1 input" or "n inputs" according to n
- * \param n: the number of inputs
+ * \param n the number of inputs
  * \return the corresponding string
  */
 
@@ -108,18 +106,18 @@ static string inputs(int n)
 
 /**
  * Compute a parametric type error message
- * \param a: the LHS expression
- * \param b: the RHS expression
- * \param o: the number of outputs of a
- * \param i: the number of inputs of b
- * \param opcode = the composition operation sign
- * \param opname = the full name of the composition operation
- * \param msg  = indication for the user (ie " must be equals to ")
+ * \param a the LHS expression
+ * \param b the RHS expression
+ * \param o the number of outputs of a
+ * \param i the number of inputs of b
+ * \param opcode the composition operation sign
+ * \param opname the full name of the composition operation
+ * \param msg indication for the user (ie " must be equals to ")
  * \return the error message as a string
  */
 
-static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string opcode, const string opname,
-                                      const string msg)
+static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname,
+                                      const string& msg)
 {
     stringstream error;
     string       aStr("A"), bStr("B");
@@ -135,15 +133,14 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
     return error.str();
 }
 
-
 /**
  * Compute a parametric type error message for recursions
- * \param a: the LHS expression
- * \param b: the RHS expression
- * \param u: the number of inputs of a
- * \param v: the number of outputs of a
- * \param x: the number of inputs of b
- * \param y: the number of outputs of b
+ * \param a : the LHS expression
+ * \param b : the RHS expression
+ * \param u : the number of inputs of a
+ * \param v : the number of outputs of a
+ * \param x : the number of inputs of b
+ * \param y : the number of outputs of b
  * \return the error message as a string
  */
 
@@ -156,14 +153,18 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
 
-    
     msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
-        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
+        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x
+            << "] of " << bStr << ". ";
     if (u < y)
-        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". ";
+        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y
+            << "] of " << bStr << ". ";
 
-    msg << endl << endl << "Here  " << aStr << " = " << boxpp(a) << "; has " << inputs(u) << " and " << outputs(v) << "," << endl << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(x) << " and " << outputs(y) << "." << endl;
+    msg << endl
+        << endl
+        << "Here  " << aStr << " = " << boxpp(a) << "; has " << inputs(u) << " and " << outputs(v) << "," << endl
+        << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(x) << " and " << outputs(y) << "." << endl;
     return msg.str();
 }
 

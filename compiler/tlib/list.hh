@@ -100,8 +100,7 @@ This file contains several extensions to the tree library :
 ******************************************************************************
 *****************************************************************************/
 
-#ifndef __LIST__
-#define __LIST__
+#pragma once
 
 #include <stdio.h>
 #include "symbol.hh"
@@ -201,5 +200,3 @@ Tree tmap(Tree k, tfun f, Tree t);
 
 // remplacement
 Tree substitute(Tree t, Tree id, Tree val);
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGVISITOR__
-#define __SIGVISITOR__
+#pragma once
 
 #include "signals.hh"
 
@@ -198,5 +197,3 @@ struct fullvisitor : sigvisitor {
         }
     }
 };
-
-#endif

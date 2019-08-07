@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _KLASS_H
-#define _KLASS_H
+#pragma once
 
 /**********************************************************************
             - klass.h : class C++ a remplir (projet FAUST) -
@@ -40,12 +39,12 @@ using namespace std;
 #include <set>
 #include <string>
 
+#include "graphSorting.hh"
+#include "loop.hh"
 #include "property.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
 #include "uitree.hh"
-#include "graphSorting.hh"
-#include "loop.hh"
 
 #define kMaxCategory 32
 
@@ -234,5 +233,3 @@ class SigFloatGenKlass : public Klass {
 
     virtual void println(int n, ostream& fout);
 };
-
-#endif

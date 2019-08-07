@@ -1,5 +1,4 @@
-#ifndef INVERTERSCHEMA_H
-#define INVERTERSCHEMA_H
+#pragma once
 
 #include "blockSchema.h"
 
@@ -16,5 +15,3 @@ class inverterSchema : public blockSchema {
    private:
     inverterSchema(const string& color);
 };
-
-#endif  // INVERTERSCHEMA_H

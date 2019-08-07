@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OCCURRENCES__
-#define __OCCURRENCES__
+#pragma once
 
 #include "garbageable.hh"
 #include "tlib.hh"
@@ -42,5 +41,3 @@ class Occurrences : public virtual Garbageable {
     void countOccurrences(Tree t);  // increment the occurrences of t and its subtrees
     void setCount(Tree t, int c);   // set the number of occurrences of t
 };
-
-#endif

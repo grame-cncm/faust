@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _CODE_CONTAINER_H
-#define _CODE_CONTAINER_H
+#pragma once
 
 #include <string>
 
@@ -573,5 +572,3 @@ inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
 {
     return S.find(l) != S.end();
 }
-
-#endif

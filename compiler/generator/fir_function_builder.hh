@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FUNCTION_BUILDER_H
-#define _FUNCTION_BUILDER_H
+#pragma once
 
 using namespace std;
 
@@ -380,4 +379,3 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     }
 };
 
-#endif

@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __DESCRIPTION__
-#define __DESCRIPTION__
+
+#pragma once
 
 //------------------------------------
 // generation of an xml description
@@ -141,4 +141,4 @@ class Description : public virtual Garbageable {
     }
 };
 
-#endif
+

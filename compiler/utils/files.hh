@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __FILES__
-#define __FILES__
+#pragma once
 
 #include <string>
 
@@ -28,5 +27,3 @@ int  cholddir();
 int  mkchdir(std::string dirname);
 int  makedir(std::string dirname);
 void getCurrentDir();
-
-#endif

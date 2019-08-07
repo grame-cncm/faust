@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LIBFAUST_H
-#define LIBFAUST_H
+#pragma once
 
 #include <string.h>
 
@@ -46,10 +45,10 @@
 
 typedef struct {
     uchar data[64];
-    uint1  datalen;
-    uint1  bitlen[2];
-    uint1  state[5];
-    uint1  k[4];
+    uint1 datalen;
+    uint1 bitlen[2];
+    uint1 state[5];
+    uint1 k[4];
 } SHA1_CTX;
 
 inline void sha1_transform(SHA1_CTX* ctx, uchar data[])
@@ -285,6 +284,4 @@ LIBEXPORT bool generateAuxFilesFromString(const std::string& name_app, const std
 extern "C" void freeCMemory(void* ptr);
 #else
 extern "C" LIBEXPORT void freeCMemory(void* ptr);
-#endif
-
 #endif

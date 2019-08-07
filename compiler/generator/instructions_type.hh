@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INSTRUCTIONS_TYPE_H
-#define _INSTRUCTIONS_TYPE_H
+#pragma once
 
 #include <string>
 #include "garbageable.hh"
@@ -243,5 +242,3 @@ struct Typed : public Printable {
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;
 };
-
-#endif

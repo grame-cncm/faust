@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __BLOCKSCHEMA__
-#define __BLOCKSCHEMA__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -67,5 +66,3 @@ class blockSchema : public schema {
     void collectInputWires(collector& c);
     void collectOutputWires(collector& c);
 };
-
-#endif

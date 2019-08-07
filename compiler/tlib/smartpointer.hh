@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SMARTPOINTER_H
-#define _SMARTPOINTER_H
+#pragma once
 
 #include <cstdio>
 #include <cstdlib>
@@ -78,5 +77,3 @@ class P {
         return operator=(dynamic_cast<T*>(p_));
     }
 };
-
-#endif

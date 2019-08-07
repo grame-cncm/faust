@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_INSTRUCTIONS_H
-#define _FIR_INSTRUCTIONS_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -585,4 +584,3 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     }
 };
 
-#endif

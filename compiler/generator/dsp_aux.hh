@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef DSP_AUX_H
-#define DSP_AUX_H
+#pragma once
 
 #include <string.h>
 #include <cassert>
@@ -313,4 +312,3 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
 }
 #endif
 
-#endif

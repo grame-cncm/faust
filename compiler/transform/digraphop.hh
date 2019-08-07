@@ -9,8 +9,7 @@
  *******************************************************************************
  ******************************************************************************/
 
-#ifndef digraphop_hh
-#define digraphop_hh
+#pragma once
 
 #include <functional>
 #include <iostream>
@@ -475,5 +474,3 @@ inline ostream& operator<<(ostream& file, const pair<N, M>& V)
 {
     return file << "pair {" << V.first << ", " << V.second << "}";
 }
-
-#endif /* digraphop_hpp */

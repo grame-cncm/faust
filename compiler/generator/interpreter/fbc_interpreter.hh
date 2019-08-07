@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FBC_INTERPRETER_H
-#define _FBC_INTERPRETER_H
+#pragma once
 
 #include <string.h>
 #include <cmath>
@@ -479,16 +478,15 @@ class FBCInterpreter : public FBCExecutor<T> {
             &&do_kGTRealValueInvert, &&do_kLTRealValueInvert, &&do_kGERealValueInvert, &&do_kLERealValueInvert,
 
             // Extended unary math
-            &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAcoshf, &&do_kAsinf, &&do_kAsinhf, &&do_kAtanf, &&do_kAtanhf, &&do_kCeilf,
-            &&do_kCosf, &&do_kCoshf,
-            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
-            &&do_kTanf, &&do_kTanhf,
+            &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAcoshf, &&do_kAsinf, &&do_kAsinhf, &&do_kAtanf, &&do_kAtanhf,
+            &&do_kCeilf, &&do_kCosf, &&do_kCoshf, &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRoundf,
+            &&do_kSinf, &&do_kSinhf, &&do_kSqrtf, &&do_kTanf, &&do_kTanhf,
 
             // Extended unary math (heap OP heap)
-            &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAcoshfHeap, &&do_kAsinfHeap, &&do_kAsinhfHeap, &&do_kAtanfHeap, &&do_kAtanhfHeap,
-            &&do_kCeilfHeap,
-            &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap,
-            &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
+            &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAcoshfHeap, &&do_kAsinfHeap, &&do_kAsinhfHeap,
+            &&do_kAtanfHeap, &&do_kAtanhfHeap, &&do_kCeilfHeap, &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap,
+            &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap, &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap,
+            &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
 
             // Extended binary math
             &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf,
@@ -1815,7 +1813,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::acos(v));
         dispatchNextScal();
     }
-        
+
     do_kAcoshf : {
         T v = popReal(it);
         pushReal(it, std::acosh(v));
@@ -1827,7 +1825,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::asin(v));
         dispatchNextScal();
     }
-        
+
     do_kAsinhf : {
         T v = popReal(it);
         pushReal(it, std::asinh(v));
@@ -1839,7 +1837,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::atan(v));
         dispatchNextScal();
     }
-        
+
     do_kAtanhf : {
         T v = popReal(it);
         pushReal(it, std::atanh(v));
@@ -1942,7 +1940,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::acos(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
-        
+
     do_kAcoshfHeap : {
         pushReal(it, std::acosh(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
@@ -1952,7 +1950,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::asin(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
-        
+
     do_kAsinhfHeap : {
         pushReal(it, std::asinh(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
@@ -1962,7 +1960,7 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::atan(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
-        
+
     do_kAtanhfHeap : {
         pushReal(it, std::atanh(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
@@ -2457,5 +2455,3 @@ class FBCInterpreter : public FBCExecutor<T> {
     virtual void setInput(int input, T* buffer) { fInputs[input] = buffer; }
     virtual void setOutput(int output, T* buffer) { fOutputs[output] = buffer; }
 };
-
-#endif

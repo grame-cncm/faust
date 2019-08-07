@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __connectorSchema__
-#define __connectorSchema__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -54,5 +53,3 @@ class connectorSchema : public schema {
     void collectInputWires(collector& c);
     void collectOutputWires(collector& c);
 };
-
-#endif

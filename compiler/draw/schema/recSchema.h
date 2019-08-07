@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __RECSCHEMA__
-#define __RECSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -50,5 +49,3 @@ class recSchema : public schema {
     void collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
     void collectFeedfront(collector& c, const point& src, const point& dst, double dx);
 };
-
-#endif

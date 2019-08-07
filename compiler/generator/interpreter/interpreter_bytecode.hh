@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_INTERPRETER_BYTECODE_H
-#define _FIR_INTERPRETER_BYTECODE_H
+#pragma once
 
 #include <math.h>
 #include <iostream>
@@ -573,4 +572,4 @@ struct FBCBlockInstruction : public FBCInstruction {
     bool isRealInst() { return isRealType(fInstructions.back()->fOpcode); }
 };
 
-#endif
+

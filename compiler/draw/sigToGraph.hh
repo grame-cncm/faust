@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef SIGTOGRAPH_HH
-#define SIGTOGRAPH_HH
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -34,5 +33,3 @@ using namespace std;
  * graphviz's dot language
  */
 void sigToGraph(Tree sig, ofstream& fout);
-
-#endif  // SIGTOGRAPH_HH

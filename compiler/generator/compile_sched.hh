@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _COMPILE_SCHED_
-#define _COMPILE_SCHED_
+#pragma once
 
 #include "compile_vect.hh"
 #include "loop.hh"
@@ -45,5 +44,3 @@ class SchedulerCompiler : public VectorCompiler {
     virtual void vectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
     virtual void dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs);
 };
-
-#endif

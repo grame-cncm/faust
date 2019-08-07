@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __MERGESCHEMA__
-#define __MERGESCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -45,5 +44,3 @@ class mergeSchema : public schema {
    private:
     mergeSchema(schema* s1, schema* s2, double hgap);
 };
-
-#endif

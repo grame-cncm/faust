@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#if !defined DEVICE_H
-#define DEVICE_H
+#pragma once
 
 #include <stdio.h>
 #include "garbageable.hh"
@@ -44,5 +43,3 @@ class device : public virtual Garbageable {
    protected:
     FILE* fic_repr;
 };
-
-#endif

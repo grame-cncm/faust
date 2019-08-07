@@ -69,8 +69,7 @@
 /*****************************************************************************
 ******************************************************************************/
 
-#ifndef __TREE__
-#define __TREE__
+#pragma once
 
 #include <map>
 #include <vector>
@@ -336,5 +335,3 @@ inline ostream& operator<<(ostream& s, Tabber& t)
 {
     return t.print(s);
 }
-
-#endif

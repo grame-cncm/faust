@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _JAVA_INSTRUCTIONS_H
-#define _JAVA_INSTRUCTIONS_H
+#pragma once
 
 using namespace std;
 
@@ -507,5 +506,3 @@ class JAVAInstVisitor : public TextInstVisitor {
         gMathLibTable.clear();
     }
 };
-
-#endif

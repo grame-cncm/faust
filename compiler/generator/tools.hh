@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #ifndef GET_CACHE_LINE_SIZE_H_INCLUDED
-#define GET_CACHE_LINE_SIZE_H_INCLUDED
+#pragma once_INCLUDED
 
 #include <stddef.h>
 #include <iostream>
@@ -39,4 +39,3 @@ void print_type(char const* name)
 
 size_t cache_line_size();
 
-#endif

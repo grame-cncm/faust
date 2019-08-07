@@ -19,9 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _PPBOX_H
-#define _PPBOX_H
-
+#pragma once
 /**********************************************************************
             - ppbox.h : pretty print box expressions (projet FAUST) -
 
@@ -85,5 +83,3 @@ inline ostream &operator<<(ostream &file, const envpp &epp)
 {
     return epp.print(file);
 }
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_CODE_CONTAINER_H
-#define _FIR_CODE_CONTAINER_H
+#pragma once
 
 #ifdef WIN32
 #pragma warning(disable : 4250)
@@ -118,5 +117,3 @@ class FIRWorkStealingCodeContainer : public WSSCodeContainer, public FIRCodeCont
     {
     }
 };
-
-#endif

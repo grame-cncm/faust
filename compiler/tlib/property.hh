@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __PROPERTY__
-#define __PROPERTY__
+#pragma once
 
 #include "garbageable.hh"
 #include "tree.hh"
@@ -38,7 +37,7 @@ class property : public virtual Garbageable {
    public:
     property() : fKey(tree(Node(unique("property_")))) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    explicit property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
     void set(Tree t, const P& data)
     {
@@ -78,7 +77,7 @@ class property<Tree> : public virtual Garbageable {
    public:
     property() : fKey(tree(Node(unique("property_")))) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    explicit property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
     void set(Tree t, Tree data) { t->setProperty(fKey, data); }
 
@@ -103,7 +102,7 @@ class property<int> : public virtual Garbageable {
    public:
     property() : fKey(tree(Node(unique("property_")))) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    explicit property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
     void set(Tree t, int i) { t->setProperty(fKey, tree(Node(i))); }
 
@@ -128,7 +127,7 @@ class property<double> : public virtual Garbageable {
    public:
     property() : fKey(tree(Node(unique("property_")))) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    explicit property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
     void set(Tree t, double x) { t->setProperty(fKey, tree(Node(x))); }
 
@@ -145,5 +144,3 @@ class property<double> : public virtual Garbageable {
 
     void clear(Tree t) { t->clearProperty(fKey); }
 };
-
-#endif

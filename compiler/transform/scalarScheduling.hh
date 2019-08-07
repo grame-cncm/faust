@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SCALARSCHEDULING__
-#define __SCALARSCHEDULING__
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -46,5 +45,3 @@ void scalarScheduling(const string& filename, set<Tree> I);
  * @param I the set of instructions
  */
 void parallelScheduling(const string& filename, set<Tree> I);
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __CUTSCHEMA__
-#define __CUTSCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -41,5 +40,3 @@ class cutSchema : public schema {
    private:
     cutSchema();
 };
-
-#endif

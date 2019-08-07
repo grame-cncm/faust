@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __FAUST_GARBAGE__
-#define __FAUST_GARBAGE__
+#pragma once
 
 #include <stdio.h>
 #include <new>
@@ -54,5 +53,3 @@ class GarbageablePtr : public virtual Garbageable {
 
     P* getPointer() { return fPtr; }
 };
-
-#endif

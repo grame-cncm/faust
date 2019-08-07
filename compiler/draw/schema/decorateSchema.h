@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __DECORATESCHEMA__
-#define __DECORATESCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -49,5 +48,3 @@ class decorateSchema : public schema {
    private:
     decorateSchema(schema* s1, double margin, const string& text);
 };
-
-#endif

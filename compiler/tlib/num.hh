@@ -45,8 +45,7 @@ this header file.
 ******************************************************************************
 *****************************************************************************/
 
-#ifndef __NUM__
-#define __NUM__
+#pragma once
 
 #include <math.h>
 
@@ -182,5 +181,3 @@ inline const num operator!=(const num& x, const num& y)
 {
     return (isfloat(x) | isfloat(y)) ? num(double(x) != double(y)) : num(int(x) != int(y));
 }
-
-#endif

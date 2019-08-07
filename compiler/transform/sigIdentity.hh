@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGIDENTITY__
-#define __SIGIDENTITY__
+#pragma once
 
 #include <stdlib.h>
 #include <cstdlib>
@@ -41,9 +40,7 @@ class SignalIdentity : public TreeTransform {
     SignalIdentity() : fVisitGen(false) {}
 
    protected:
-    virtual Tree transformation(Tree t);
-    virtual void traceEnter(Tree t);
-    virtual void traceExit(Tree t, Tree r);
+    virtual Tree transformation(Tree t) override;
+    virtual void traceEnter(Tree t) override;
+    virtual void traceExit(Tree t, Tree r) override;
 };
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FBC_CPP_COMPILER_H
-#define _FBC_CPP_COMPILER_H
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -933,4 +932,3 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
     }
 };
 
-#endif

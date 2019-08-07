@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __CABLESCHEMA__
-#define __CABLESCHEMA__
+#pragma once
 
 #include "schema.h"
 
@@ -45,5 +44,3 @@ class cableSchema : public schema {
    private:
     cableSchema(unsigned int n);
 };
-
-#endif

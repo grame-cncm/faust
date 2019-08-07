@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef DCOND_HH
-#define DCOND_HH
+#pragma once
 
 #include "list.hh"
 
@@ -43,5 +42,3 @@ Tree cnfCond(Tree c);
 Tree cnfAnd(Tree c1, Tree c2);
 Tree cnfOr(Tree c1, Tree c2);
 bool cnfLess(Tree c1, Tree c2);
-
-#endif  // DCOND_HH

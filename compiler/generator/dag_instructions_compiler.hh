@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _DAG_INSTRUCTION_COMPILER_H
-#define _DAG_INSTRUCTION_COMPILER_H
+#pragma once
 
 #include "instructions_compiler.hh"
 
@@ -60,4 +59,3 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     bool needSeparateLoop(Tree sig);
 };
 
-#endif

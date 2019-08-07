@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGNALSPLITTER__
-#define __SIGNALSPLITTER__
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -37,5 +36,3 @@
  */
 
 set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS);
-
-#endif

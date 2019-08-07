@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __signals_intervals__
-#define __signals_intervals__
+#pragma once
 
 #include <math.h>
 #include <iostream>
@@ -291,5 +290,3 @@ inline interval abs(const interval& x)
         return x;
     }
 }
-
-#endif

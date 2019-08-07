@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OLD_OCCURENCES__
-#define __OLD_OCCURENCES__
+#pragma once
 
 #include <map>
 #include "tlib.hh"
@@ -65,5 +64,3 @@ class old_OccMarkup {
     void            marksubexp(Tree exp);  ///< mark an additional expression with the same key
     old_Occurences* retrieve(Tree t);      ///< occurences of subtree t within root tree
 };
-
-#endif

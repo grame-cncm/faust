@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SignalVisitor__
-#define __SignalVisitor__
+#pragma once
 
 #include <stdlib.h>
 #include <cstdlib>
@@ -45,5 +44,3 @@ class SignalVisitor : public TreeTraversal {
     virtual void traceEnter(Tree t);
     virtual void traceExit(Tree t);
 };
-
-#endif

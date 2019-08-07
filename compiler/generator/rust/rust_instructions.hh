@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _RUST_INSTRUCTIONS_H
-#define _RUST_INSTRUCTIONS_H
+
+#pragma once
 
 #include "text_instructions.hh"
 
@@ -501,4 +501,4 @@ class RustInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-#endif
+

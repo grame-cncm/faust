@@ -19,14 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _TEXT_INSTRUCTIONS_H
-#define _TEXT_INSTRUCTIONS_H
+#pragma once
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
 
 #include "Text.hh"
 #include "fir_to_fir.hh"
@@ -201,8 +200,7 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg,
-                                     list<ValueInst*>::const_iterator end,
+    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
                                      size_t size)
     {
         list<ValueInst*>::const_iterator it = beg;
@@ -217,9 +215,9 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunDefArgs(DeclareFunInst* inst)
     {
         *fOut << "(";
-        
+
         list<NamedTyped*>::const_iterator it;
-        
+
         size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
             *fOut << fTypeManager->generateType((*it));
@@ -419,5 +417,3 @@ struct sortDeclareFunctions {
         return false;
     }
 };
-
-#endif

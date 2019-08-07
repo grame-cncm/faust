@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WASM_CODE_CONTAINER_H
-#define _WASM_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "dsp_factory.hh"
@@ -82,5 +81,3 @@ class WASMVectorCodeContainer : public VectorCodeContainer, public WASMCodeConta
 
     void generateCompute();
 };
-
-#endif

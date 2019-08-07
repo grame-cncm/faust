@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SOUL_CODE_CONTAINER_H
-#define _SOUL_CODE_CONTAINER_H
+#pragma once
 
 #include "code_container.hh"
 #include "omp_code_container.hh"
@@ -129,5 +128,3 @@ class SOULVectorCodeContainer : public VectorCodeContainer, public SOULCodeConta
 
     void generateCompute(int tab);
 };
-
-#endif

@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __transformDelayToTable__
-#define __transformDelayToTable__
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -35,5 +34,3 @@
  * @return set<Tree> the resulting set of instructions
  */
 set<Tree> transformDelayToTable(const set<Tree>& I);
-
-#endif

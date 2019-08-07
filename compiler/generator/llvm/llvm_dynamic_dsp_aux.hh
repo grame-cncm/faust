@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LLVM_DYNAMIC_DSP_AUX_H
-#define LLVM_DYNAMIC_DSP_AUX_H
+#pragma once
 
 #include "llvm_dsp_aux.hh"
 
@@ -128,6 +127,4 @@ EXPORT bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

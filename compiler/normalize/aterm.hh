@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __ATERM__
-#define __ATERM__
+#pragma once
 
 #include <stdio.h>
 #include <list>
@@ -67,5 +66,3 @@ inline ostream& operator<<(ostream& s, const aterm& a)
 {
     return a.print(s);
 }
-
-#endif

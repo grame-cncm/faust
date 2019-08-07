@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __COMPATIBILITY__
-#define __COMPATIBILITY__
+#pragma once
 
 unsigned faust_alarm(unsigned seconds);
 
@@ -123,4 +122,3 @@ double rint(double nr);
 void getFaustPathname(char* str, unsigned int size);
 
 #endif  // _WIN32
-#endif

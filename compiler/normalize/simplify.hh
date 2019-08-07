@@ -19,11 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SIMPLIFY_
-#define _SIMPLIFY_
+#pragma once
 
 Tree simplify(Tree sig);
 
 Tree docTableConvertion(Tree sig);
-
-#endif

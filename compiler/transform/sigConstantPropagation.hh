@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGCOMPUTECONSTANT__
-#define __SIGCOMPUTECONSTANT__
+#pragma once
 
 #include "sigIdentity.hh"
 
@@ -32,5 +31,3 @@ class SignalConstantPropagation : public SignalIdentity {
    protected:
     virtual Tree transformation(Tree sig);
 };
-
-#endif
