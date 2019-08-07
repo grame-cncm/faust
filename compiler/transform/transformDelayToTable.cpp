@@ -41,9 +41,6 @@
 
 using namespace std;
 
-static Tree           uniqueID(const char* prefix, Tree sig);
-static map<Tree, int> countOccurrences(const set<Tree>& I);
-
 /**
  * @brief Transformation class used internally to split a signal
  * into a set of instructions
@@ -84,9 +81,12 @@ class TransformDelayToTable : public SignalIdentity {
                 sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigTime(), sigInt(size - 1)), self(exp));
             return tr;
         } else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
-            int  size = dmax2size(dmax);
-            Tree tr   = sigTableRead(id, origin, nature, dmin, sigAND(sigSub(sigTime(), dl), sigInt(size - 1)));
-            return tr;
+            int size = dmax2size(dmax);
+            if (isZero(dl)) {
+                return sigTableRead(id, origin, nature, dmin, sigAND(sigTime(), sigInt(size - 1)));
+            } else {
+                return sigTableRead(id, origin, nature, dmin, sigAND(sigSub(sigTime(), dl), sigInt(size - 1)));
+            }
         } else {
             return SignalIdentity::transformation(sig);
         }
