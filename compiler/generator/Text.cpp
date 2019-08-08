@@ -20,15 +20,15 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <string.h>
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "Text.hh"
 #include "compatibility.hh"
@@ -184,10 +184,13 @@ static string ensureFloat(const string& c)
  */
 string T(float n)
 {
-    int p = 1;
+    int   p    = 1;
     char* endp = NULL;
-    char c[32];
-    do { snprintf(c, 30, "%.*g", p++, n); endp=NULL; } while (strtof(c, &endp) != n);
+    char  c[32];
+    do {
+        snprintf(c, 30, "%.*g", p++, n);
+        endp = NULL;
+    } while (strtof(c, &endp) != n);
     return ensureFloat(c) + "f";
 }
 
@@ -197,10 +200,13 @@ string T(float n)
  */
 string T(double n)
 {
-    int p = 1;
+    int   p    = 1;
     char* endp = NULL;
-    char c[32];
-    do { snprintf(c, 30, "%.*g", p++, n); endp=NULL; } while (strtod(c, &endp) != n);
+    char  c[32];
+    do {
+        snprintf(c, 30, "%.*g", p++, n);
+        endp = NULL;
+    } while (strtod(c, &endp) != n);
     return ensureFloat(c);
 }
 

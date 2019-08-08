@@ -58,4 +58,3 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     // private helper functions
     bool needSeparateLoop(Tree sig);
 };
-

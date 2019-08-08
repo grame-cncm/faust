@@ -46,8 +46,8 @@ unique to each sharing analysis must be generated.
 *****************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <cstdlib>
 
 #include "list.hh"
 

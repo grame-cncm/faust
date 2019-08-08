@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdlib>
 #include "property.hh"
 #include "sigtyperules.hh"

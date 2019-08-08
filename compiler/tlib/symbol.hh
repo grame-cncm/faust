@@ -65,7 +65,7 @@ class Symbol : public virtual Garbageable {
     // Constructors & destructors
     Symbol(const string&, unsigned int hsh,
            Symbol* nxt);  ///< Constructs a new symbol ready to be placed in the hash table
-    ~Symbol();            ///< The Destructor is never used
+    ~Symbol() override;            ///< The Destructor is never used
 
     // Others
     bool                equiv(unsigned int hash,

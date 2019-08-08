@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>

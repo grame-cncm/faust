@@ -55,7 +55,7 @@ class CCodeContainer : public virtual CodeContainer {
         }
 
         // For malloc/free
-        addIncludeFile("<stdlib.h>");
+        addIncludeFile("<cstdlib>");
     }
 
     virtual ~CCodeContainer() {}

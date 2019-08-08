@@ -672,5 +672,3 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fCurrentBlock = previous;
     }
 };
-
-

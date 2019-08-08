@@ -25,9 +25,9 @@
 #include "global.hh"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <cstdlib>
 #ifndef _WIN32
 #include <unistd.h>
 #endif

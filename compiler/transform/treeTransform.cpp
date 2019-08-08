@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #include "treeTransform.hh"
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdlib>
 #include <map>
 #include "Text.hh"

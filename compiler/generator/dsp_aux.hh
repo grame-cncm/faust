@@ -311,4 +311,3 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
 #ifdef __cplusplus
 }
 #endif
-

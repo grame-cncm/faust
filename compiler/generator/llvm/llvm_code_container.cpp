@@ -63,7 +63,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fContext   = new LLVMContext();
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
-    fModule = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *fContext);
+    fModule  = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *fContext);
     fBuilder = new IRBuilder<>(*fContext);
 
     // Check pointer size
@@ -142,7 +142,7 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
     generateDeclarations(&fStructVisitor);
 
     DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
-  
+
     LLVMType dsp_type = type_helper.convertFIRType(dec_type->fType);
     return PointerType::get(dsp_type, 0);
 }
@@ -216,8 +216,8 @@ void LLVMCodeContainer::generateFunMaps()
 void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body)
 {
     Typed::VarType type = itfloat();
-    string fun1 = fun1_aux + isuffix();
-    string fun2 = fun2_aux + isuffix();
+    string         fun1 = fun1_aux + isuffix();
+    string         fun2 = fun2_aux + isuffix();
 
     list<NamedTyped*> args1;
     list<ValueInst*>  args2;
@@ -242,7 +242,7 @@ void LLVMCodeContainer::produceInternal()
 {
     // Generate DSP structure
     llvm::PointerType* dsp_ptr = generateDspStruct();
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
+    fCodeProducer              = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
 
     /// Memory methods
     generateCalloc()->accept(fCodeProducer);
@@ -267,7 +267,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateSubContainers();
 
     llvm::PointerType* dsp_ptr = generateDspStruct();
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
+    fCodeProducer              = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
 
     generateFunMaps();
 

@@ -571,5 +571,3 @@ struct FBCBlockInstruction : public FBCInstruction {
 
     bool isRealInst() { return isRealType(fInstructions.back()->fOpcode); }
 };
-
-

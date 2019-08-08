@@ -583,4 +583,3 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
     }
 };
-

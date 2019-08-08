@@ -100,7 +100,7 @@ class AudioType : public virtual Garbageable {
         : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fCode(0)
     {
     }                        ///< constructs an abstract audio type
-    virtual ~AudioType() {}  ///< not really useful here, but make compiler happier
+    ~AudioType() override {}  ///< not really useful here, but make compiler happier
 
     int nature() const { return fNature; }  ///< returns the kind of values (integer or floating point)
     int variability() const
@@ -236,25 +236,25 @@ class SimpleType : public AudioType {
         // cerr << "new simple type " << i << " -> " << *this << endl;
     }  ///< constructs a SimpleType from a nature a variability and a computability
 
-    virtual ostream& print(ostream& dst) const;  ///< print a SimpleType
+    ostream& print(ostream& dst) const override;  ///< print a SimpleType
 
-    virtual AudioType* promoteNature(int n)
+    AudioType* promoteNature(int n) override
     {
         return makeSimpleType(n | fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval);
     }  ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int v)
+    AudioType* promoteVariability(int v) override
     {
         return makeSimpleType(fNature, v | fVariability, fComputability, fVectorability, fBoolean, fInterval);
     }  ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int c)
+    AudioType* promoteComputability(int c) override
     {
         return makeSimpleType(fNature, fVariability, c | fComputability, fVectorability, fBoolean, fInterval);
     }  ///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int vec)
+    AudioType* promoteVectorability(int vec) override
     {
         return makeSimpleType(fNature, fVariability, fComputability, vec | fVectorability, fBoolean, fInterval);
     }  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int b)
+    AudioType* promoteBoolean(int b) override
     {
         return makeSimpleType(fNature, fVariability, fComputability, fVectorability, b | fBoolean, fInterval);
     }  ///< promote the boolean-ity of a type
@@ -265,7 +265,7 @@ class SimpleType : public AudioType {
     // promote the interval of a type 		cerr << "gives type " << *t << endl; 		return t;
     // 	}
 
-    virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    bool isMaximal() const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
 inline Type intCast(Type t)
@@ -349,33 +349,33 @@ class TableType : public AudioType {
        ///< vectorability
 
     Type             content() const { return fContent; }  ///< return the type of data store in the table
-    virtual ostream& print(ostream& dst) const;            ///< print a TableType
+    ostream& print(ostream& dst) const override;            ///< print a TableType
 
-    virtual AudioType* promoteNature(int n)
+    AudioType* promoteNature(int n) override
     {
         return makeTableType(fContent, n | fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval);
     }  ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int v)
+    AudioType* promoteVariability(int v) override
     {
         return makeTableType(fContent, fNature, v | fVariability, fComputability, fVectorability, fBoolean, fInterval);
     }  ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int c)
+    AudioType* promoteComputability(int c) override
     {
         return makeTableType(fContent, fNature, fVariability, c | fComputability, fVectorability, fBoolean, fInterval);
     }  ///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int vec)
+    AudioType* promoteVectorability(int vec) override
     {
         return makeTableType(fContent, fNature, fVariability, fComputability, vec | fVectorability, fBoolean,
                              fInterval);
     }  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int b)
+    AudioType* promoteBoolean(int b) override
     {
         return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability, b | fBoolean, fInterval);
     }  ///< promote the boolean-ity of a type
     // virtual AudioType* promoteInterval(const interval& i)	{ return makeTableType(fContent, fNature, fVariability,
     // fComputability, fVectorability, fBoolean, i); }			///< promote the interval of a type
 
-    virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    bool isMaximal() const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
 /**
@@ -406,29 +406,29 @@ class TupletType : public AudioType {
 
     int              arity() const { return (int)fComponents.size(); }
     Type             operator[](unsigned int i) const { return fComponents[i]; }
-    virtual ostream& print(ostream& dst) const;
+    ostream& print(ostream& dst) const override;
 
-    virtual AudioType* promoteNature(int n)
+    AudioType* promoteNature(int n) override
     {
         return new TupletType(fComponents, n | fNature, fVariability, fComputability, fVectorability, fBoolean,
                               fInterval);
     }  ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int v)
+    AudioType* promoteVariability(int v) override
     {
         return new TupletType(fComponents, fNature, v | fVariability, fComputability, fVectorability, fBoolean,
                               fInterval);
     }  ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int c)
+    AudioType* promoteComputability(int c) override
     {
         return new TupletType(fComponents, fNature, fVariability, c | fComputability, fVectorability, fBoolean,
                               fInterval);
     }  ///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int vec)
+    AudioType* promoteVectorability(int vec) override
     {
         return new TupletType(fComponents, fNature, fVariability, fComputability, vec | fVectorability, fBoolean,
                               fInterval);
     }  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int b)
+    AudioType* promoteBoolean(int b) override
     {
         return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, b | fBoolean,
                               fInterval);
@@ -436,7 +436,7 @@ class TupletType : public AudioType {
     // virtual AudioType* promoteInterval(const interval& i)	{ return new TupletType(fComponents, fNature,
     // fVariability, fComputability, fVectorability, fBoolean, i);  }			///< promote the interval of a type
 
-    virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    bool isMaximal() const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
 //-------------------------------------------------

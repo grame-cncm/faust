@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #pragma once
 
 #include "text_instructions.hh"
@@ -500,5 +499,3 @@ class RustInstVisitor : public TextInstVisitor {
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
-
-

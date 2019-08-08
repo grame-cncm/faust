@@ -20,9 +20,9 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>

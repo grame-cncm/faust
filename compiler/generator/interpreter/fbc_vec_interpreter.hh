@@ -2510,4 +2510,3 @@ class FBCVecInterpreter : public FBCExecutor<T> {
     virtual void setInput(int offset, T* buffer) { fInputs[offset] = buffer; }
     virtual void setOutput(int offset, T* buffer) { fOutputs[offset] = buffer; }
 };
-

@@ -378,4 +378,3 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         }
     }
 };
-

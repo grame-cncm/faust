@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #include "sigConstantPropagation.hh"
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdlib>
 #include <map>
 #include "global.hh"

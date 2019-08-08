@@ -22,7 +22,7 @@
 #include "prim2.hh"
 #include "global.hh"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 Tree ffunction(Tree signature, Tree incfile, Tree libfile)
 {

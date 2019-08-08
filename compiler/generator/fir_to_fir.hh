@@ -688,5 +688,3 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
 
     BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
-
-

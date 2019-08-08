@@ -134,7 +134,7 @@ class CTree : public virtual Garbageable {
     static int    calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
 
    public:
-    virtual ~CTree();
+    ~CTree() override;
 
     static Tree make(const Node& n, int ar, Tree br[]);  ///< return a new tree or an existing equivalent one
     static Tree make(const Node& n, const tvec& br);     ///< return a new tree or an existing equivalent one

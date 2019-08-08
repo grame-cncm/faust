@@ -21,7 +21,6 @@
 
 #include "signalVisitor.hh"
 
-#include <stdlib.h>
 #include <cstdlib>
 #include <map>
 #include "Text.hh"

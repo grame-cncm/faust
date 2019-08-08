@@ -20,8 +20,8 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -30,8 +30,8 @@
 #include "compatibility.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "lock_api.hh"
 #include "libfaust.h"
+#include "lock_api.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -296,7 +296,7 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                       char* error_msg)
 {

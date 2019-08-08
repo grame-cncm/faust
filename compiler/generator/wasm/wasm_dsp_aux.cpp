@@ -51,10 +51,10 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
-    fFactory = nullptr;
+    fFactory  = nullptr;
     fInstance = instance;
-    fDecoder = createJSONUIDecoder(json);
-    fSoundUI = new SoundUI();
+    fDecoder  = createJSONUIDecoder(json);
+    fSoundUI  = new SoundUI();
 }
 
 wasm_dsp_factory::~wasm_dsp_factory()
@@ -74,9 +74,8 @@ wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std
 }
 
 // To keep 'wasmMemory' in the generated JS library
-EM_JS(void, connectMemory, (),
-{
-    faust_module.faust = faust_module.faust || {};
+EM_JS(void, connectMemory, (), {
+    faust_module.faust        = faust_module.faust || {};
     faust_module.faust.memory = faust_module.faust.memory || wasmMemory;
 });
 
@@ -104,24 +103,24 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine
 {
     ifstream infile;
     infile.open(machine_code_path, ifstream::in | ifstream::binary);
-    
+
     if (infile.is_open()) {
         // get length of file:
         infile.seekg(0, infile.end);
         int length = infile.tellg();
         infile.seekg(0, infile.beg);
-        
+
         // read code
         char* machine_code = new char[length];
         infile.read(machine_code, length);
-        
+
         // create factory
         wasm_dsp_factory* factory =
-        readWasmDSPFactoryFromMachine(string(machine_code, length), error_msg);  // Keep the binary string
-        
+            readWasmDSPFactoryFromMachine(string(machine_code, length), error_msg);  // Keep the binary string
+
         infile.close();
         delete[] machine_code;
-        
+
         return factory;
     } else {
         error_msg = "ERROR : cannot open '" + machine_code_path + "' file\n";
@@ -155,18 +154,20 @@ wasm_dsp::~wasm_dsp()
 {
     // Free the DSP memory
     EM_ASM({ faust_module._free($0); }, fDSP);
-    
+
     wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
 int wasm_dsp::getNumInputs()
 {
-    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].instance.exports.getNumInputs($1); }, fFactory->fInstance, fDSP);
+    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].instance.exports.getNumInputs($1); },
+                      fFactory->fInstance, fDSP);
 }
 
 int wasm_dsp::getNumOutputs()
 {
-    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].instance.exports.getNumOutputs($1); }, fFactory->fInstance, fDSP);
+    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].instance.exports.getNumOutputs($1); },
+                      fFactory->fInstance, fDSP);
 }
 
 void wasm_dsp::buildUserInterface(UI* ui_interface)
@@ -176,27 +177,32 @@ void wasm_dsp::buildUserInterface(UI* ui_interface)
 
 int wasm_dsp::getSampleRate()
 {
-    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].instance.exports.getSampleRate($1); }, fFactory->fInstance, fDSP);
+    return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].instance.exports.getSampleRate($1); },
+                      fFactory->fInstance, fDSP);
 }
 
 void wasm_dsp::init(int sample_rate)
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.init($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.init($1, $2); }, fFactory->fInstance, fDSP,
+           sample_rate);
 }
 
 void wasm_dsp::instanceInit(int sample_rate)
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP,
+           sample_rate);
 }
 
 void wasm_dsp::instanceConstants(int sample_rate)
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.instanceConstants($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.instanceConstants($1, $2); }, fFactory->fInstance,
+           fDSP, sample_rate);
 }
 
 void wasm_dsp::instanceResetUserInterface()
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.instanceResetUserInterface($1); }, fFactory->fInstance, fDSP);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.instanceResetUserInterface($1); },
+           fFactory->fInstance, fDSP);
 }
 
 void wasm_dsp::instanceClear()
@@ -216,14 +222,14 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); },
-           fFactory->fInstance, fDSP, count, inputs, outputs);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); }, fFactory->fInstance,
+           fDSP, count, inputs, outputs);
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
-    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count,
-           reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs));
+    EM_ASM({ faust_module.faust.wasm_instance[$0].instance.exports.compute($1, $2, $3, $4); }, fFactory->fInstance,
+           fDSP, count, reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs));
 }
 
 void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
@@ -239,44 +245,44 @@ FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory)
 {
     class_<wasm_dsp_factory>("wasm_dsp_factory")
-    .constructor()
-    .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
-    .function("deleteDSPInstance", &wasm_dsp_factory::deleteDSPInstance, allow_raw_pointers())
-    .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
-                    allow_raw_pointers())
-    .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
-                    allow_raw_pointers())
-    .class_function("createWasmDSPFactory", &wasm_dsp_factory::createWasmDSPFactory, allow_raw_pointers())
-    .class_function("deleteWasmDSPFactory", &wasm_dsp_factory::deleteWasmDSPFactory2, allow_raw_pointers())
-    .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
-    .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
+        .constructor()
+        .function("createDSPInstance", &wasm_dsp_factory::createDSPInstance, allow_raw_pointers())
+        .function("deleteDSPInstance", &wasm_dsp_factory::deleteDSPInstance, allow_raw_pointers())
+        .class_function("readWasmDSPFactoryFromMachineFile2", &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
+                        allow_raw_pointers())
+        .class_function("readWasmDSPFactoryFromMachine2", &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
+                        allow_raw_pointers())
+        .class_function("createWasmDSPFactory", &wasm_dsp_factory::createWasmDSPFactory, allow_raw_pointers())
+        .class_function("deleteWasmDSPFactory", &wasm_dsp_factory::deleteWasmDSPFactory2, allow_raw_pointers())
+        .class_function("getErrorMessage", &wasm_dsp_factory::getErrorMessage)
+        .class_function("extractJSON", &wasm_dsp_factory::extractJSON, allow_raw_pointers());
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
 {
     class_<wasm_dsp>("wasm_dsp")
-    .constructor()
-    .function("getNumInputs", &wasm_dsp::getNumInputs, allow_raw_pointers())
-    .function("getNumOutputs", &wasm_dsp::getNumOutputs, allow_raw_pointers())
-    .function("getSampleRate", &wasm_dsp::getSampleRate, allow_raw_pointers())
-    .function("init", &wasm_dsp::init, allow_raw_pointers())
-    .function("instanceInit", &wasm_dsp::instanceInit, allow_raw_pointers())
-    .function("instanceConstants", &wasm_dsp::instanceConstants, allow_raw_pointers())
-    .function("instanceResetUserInterface", &wasm_dsp::instanceResetUserInterface, allow_raw_pointers())
-    .function("instanceClear", &wasm_dsp::instanceClear, allow_raw_pointers())
-    .function("clone", &wasm_dsp::clone, allow_raw_pointers())
-    .function("compute", &wasm_dsp::computeJS, allow_raw_pointers())
-    .function("setParamValue", &wasm_dsp::setParamValue, allow_raw_pointers())
-    .function("getParamValue", &wasm_dsp::getParamValue, allow_raw_pointers());
+        .constructor()
+        .function("getNumInputs", &wasm_dsp::getNumInputs, allow_raw_pointers())
+        .function("getNumOutputs", &wasm_dsp::getNumOutputs, allow_raw_pointers())
+        .function("getSampleRate", &wasm_dsp::getSampleRate, allow_raw_pointers())
+        .function("init", &wasm_dsp::init, allow_raw_pointers())
+        .function("instanceInit", &wasm_dsp::instanceInit, allow_raw_pointers())
+        .function("instanceConstants", &wasm_dsp::instanceConstants, allow_raw_pointers())
+        .function("instanceResetUserInterface", &wasm_dsp::instanceResetUserInterface, allow_raw_pointers())
+        .function("instanceClear", &wasm_dsp::instanceClear, allow_raw_pointers())
+        .function("clone", &wasm_dsp::clone, allow_raw_pointers())
+        .function("compute", &wasm_dsp::computeJS, allow_raw_pointers())
+        .function("setParamValue", &wasm_dsp::setParamValue, allow_raw_pointers())
+        .function("getParamValue", &wasm_dsp::getParamValue, allow_raw_pointers());
 }
 
 #else
 
 wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
-    fFactory = nullptr;
+    fFactory  = nullptr;
     fInstance = instance;
-    fDecoder = createJSONUIDecoder(json);
+    fDecoder  = createJSONUIDecoder(json);
 }
 
 wasm_dsp_factory::~wasm_dsp_factory()
@@ -502,4 +508,3 @@ EXPORT void deleteAllWasmDSPFactories()
 {
     wasm_dsp_factory::gWasmFactoryTable.deleteAllDSPFactories();
 }
-

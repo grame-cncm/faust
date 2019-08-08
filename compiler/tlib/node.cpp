@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #include "node.hh"
-#include <stdlib.h>
+#include <cstdlib>
 #include "math.h"
 
 ostream& Node::print(ostream& fout) const  ///< print a node on a stream

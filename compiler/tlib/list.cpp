@@ -101,7 +101,6 @@ This file contains several extensions to the tree library :
 *****************************************************************************/
 
 #include "list.hh"
-#include <stdlib.h>
 #include <cstdlib>
 #include <map>
 #include "compatibility.hh"

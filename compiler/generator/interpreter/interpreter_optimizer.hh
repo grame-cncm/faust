@@ -1307,5 +1307,3 @@ struct FBCInstructionOptimizer {
         return block;
     }
 };
-
-

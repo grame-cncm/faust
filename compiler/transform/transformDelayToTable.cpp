@@ -63,8 +63,12 @@ class TransformDelayToTable : public SignalIdentity {
         int p = int(log2(x));
         int v = 1 << p;
         while (v < x) v = v << 1;
+<<<<<<< HEAD
         // cerr << "dmax2size " << dmax << " -> " << v << endl;
         // assert(v >= x);
+=======
+        cerr << "dmax2size " << dmax << " -> " << v << endl;
+>>>>>>> [FIX] cstdlib, override, format
         return v;
     }
 

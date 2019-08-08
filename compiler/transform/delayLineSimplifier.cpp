@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include "delayLineSimplifier.hh"
-#include <stdlib.h>
 #include <cstdlib>
 #include <map>
 #include <set>
@@ -76,17 +75,14 @@ class ReplaceDelay : public SignalIdentity {
      * @param instr the definition we want to replace
      * @return ReplaceDelay*
      */
-    static ReplaceDelay* replacement(map<Tree, int> M, Tree instr)
+    static ReplaceDelay replacement(map<Tree, int> M, Tree instr)
     {
         Tree D1, origin1, exp, D2, origin2, dl2;
         int  nature1, nature2, dmax1, dmax2, dmin2;
-        if (isSigDelayLineWrite(instr, D1, origin1, &nature1, &dmax1, exp) &&
-            isSigDelayLineRead(exp, D2, origin2, &nature2, &dmax2, &dmin2, dl2)) {
-            // cerr << "replacement rule for: " << ppsig(instr) << endl;
-            return new ReplaceDelay(D1, dmax1 + M[D2], D2, dmin2, dl2);
-        } else {
-            return NULL;
-        }
+        faustassert(isSigDelayLineWrite(instr, D1, origin1, &nature1, &dmax1, exp) &
+                    isSigDelayLineRead(exp, D2, origin2, &nature2, &dmax2, &dmin2, dl2));
+        // cerr << "replacement rule for: " << ppsig(instr) << endl;
+        return ReplaceDelay(D1, dmax1 + M[D2], D2, dmin2, dl2);
     }
 
    protected:
@@ -168,15 +164,15 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     while (n > 0) {
         n = n - 1;
         // we create a substitution rule
-        ReplaceDelay* rule = ReplaceDelay::replacement(M, S[n]);
+        ReplaceDelay rule = ReplaceDelay::replacement(M, S[n]);
 
         // we update the remaining substitutions
         for (int i = 0; i < n; i++) {
-            S[i] = rule->self(S[i]);
+            S[i] = rule.self(S[i]);
         }
         // we update the normal instructions
         for (int i = 0; i < m; i++) {
-            N[i] = rule->self(N[i]);
+            N[i] = rule.self(N[i]);
         }
     }
 

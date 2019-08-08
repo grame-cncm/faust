@@ -21,7 +21,7 @@
 
 #include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <set>
 
 #include "exception.hh"

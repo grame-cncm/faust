@@ -38,4 +38,3 @@ void print_type(char const* name)
 // Returns the cache line size (in bytes) of the processor, or 0 on failure
 
 size_t cache_line_size();
-

@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #include <stdint.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 
 #include "compatibility.hh"
@@ -259,8 +259,8 @@ double remainder(double x, double p)
 
 #else  // Linux
 
-#include <stdlib.h>
 #include <string.h>
+#include <cstdlib>
 void getFaustPathname(char* str, unsigned int size)
 {
     char* path = getenv("_");

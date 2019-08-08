@@ -224,7 +224,7 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
     WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
-    
+
     // getNumInputs/getNumOutputs
     generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
     generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
@@ -336,7 +336,7 @@ void WASTCodeContainer::produceClass()
     map<string, string>::iterator it;
     std::map<std::string, int>    path_index_table;
     map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
-    
+
     for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
         faustassert(path_index_table.find((*it).second) == path_index_table.end());
         // Get field index
@@ -364,12 +364,14 @@ void WASTCodeContainer::produceClass()
     // Insert memory generation
     tab(n + 1, *fOut);
     if (fInternalMemory) {
-        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        int memory_size =
+            genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
         *fOut << "(memory (export \"memory\") ";
         // Since JSON is written in data segment at offset 0, the memory size
         // must be computed taking account JSON size and DSP + audio buffer size
-        *fOut << memory_size // initial memory pages
-              << " " << (memory_size + 1000) << ")";  // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
+        *fOut << memory_size  // initial memory pages
+              << " " << (memory_size + 1000)
+              << ")";  // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
     } else {
         // Memory size set by JS code, so use a minimum value that contains
         // the data segment size (shoud be OK for any JSON)

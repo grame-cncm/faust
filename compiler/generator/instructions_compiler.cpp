@@ -1075,7 +1075,6 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
         pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache, InstBuilder::genLoadStructVar(varname)));
         pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(SFcache)));
     } else {
-        
         pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                            InstBuilder::genLoadStructVar(varname)));
         pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStackVar(SFcache)));
@@ -2073,7 +2072,8 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             const string&      key    = i.first;
             const set<string>& values = i.second;
             for (auto& j : values) {
-                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(j)));
+                pushUserInterfaceMethod(
+                    InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }
     }

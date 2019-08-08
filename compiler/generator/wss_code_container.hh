@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #pragma once
 
 #include "code_container.hh"
@@ -58,4 +57,3 @@ class WSSCodeContainer : public virtual CodeContainer {
         initialize(numInputs, numOutputs);
     }
 };
-

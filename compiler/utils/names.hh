@@ -65,4 +65,3 @@ Tree pushValueDef(Tree id, Tree def, Tree lenv);
 
 /* numeric simplification of pattern arguments */
 Tree simplifyPattern(Tree pattern);
-

@@ -49,7 +49,7 @@ class GarbageablePtr : public virtual Garbageable {
    public:
     GarbageablePtr(const P& data) { fPtr = new P(data); }
 
-    virtual ~GarbageablePtr() { delete (fPtr); }
+    ~GarbageablePtr() override { delete (fPtr); }
 
     P* getPointer() { return fPtr; }
 };

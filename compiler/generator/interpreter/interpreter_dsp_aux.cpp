@@ -55,7 +55,7 @@ EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
     LOCK_API
     return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory) : false;
- }
+}
 
 EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
 {
@@ -130,7 +130,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
 {
     try {
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        
+
         string sha_key = generateSHA1(bitcode);
 
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {

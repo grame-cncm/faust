@@ -44,11 +44,12 @@
 
 using namespace std;
 
+#include "garbageable.hh"
+
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
-#include "garbageable.hh"
 
 class Lateq : public virtual Garbageable {
    public:

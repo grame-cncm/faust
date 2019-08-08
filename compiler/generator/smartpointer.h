@@ -21,7 +21,6 @@
 
 */
 
-
 #pragma once
 
 #include "exception.hh"
@@ -164,5 +163,3 @@ class SMARTP {
         return operator=(dynamic_cast<T*>(p_));
     }
 };
-
-

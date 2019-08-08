@@ -318,7 +318,7 @@ void WASMCodeContainer::produceClass()
 
     // 13) min_i
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
-    
+
     // 14) setParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     gGlobal->gWASMVisitor->generateSetParamValue();
 
@@ -362,12 +362,13 @@ void WASMCodeContainer::produceClass()
 
     // Memory size can now be written
     if (fInternalMemory) {
-        int memory_size = genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        int memory_size =
+            genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
         // Since JSON is written in data segment at offset 0, the memory size
         // must be computed taking account JSON size and DSP + audio buffer size
         fBinaryOut.writeAt(begin_memory, U32LEB(memory_size));
         // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
-        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size+1000));
+        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size + 1000));
     }
 
     // Data segment contains the JSON string starting at offset 0,

@@ -285,4 +285,3 @@ LIBEXPORT void freeCMemory(void* ptr);
 #ifdef __cplusplus
 }
 #endif
-

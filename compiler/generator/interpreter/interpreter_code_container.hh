@@ -92,4 +92,3 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
     }
 };
-

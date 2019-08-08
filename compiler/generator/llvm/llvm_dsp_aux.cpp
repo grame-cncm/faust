@@ -37,15 +37,15 @@
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
-#include "rn_base64.h"
 #include "lock_api.hh"
+#include "rn_base64.h"
 
 #include <llvm-c/Core.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
 
 using namespace llvm;
 using namespace std;
@@ -127,11 +127,11 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
     if (--llvm_dsp_factory_aux::gInstance == 0) {
         // Remove the LLVM error handler
 #ifdef __APPLE__
-    #if defined(LLVM_90)
+#if defined(LLVM_90)
         LLVMResetFatalErrorHandler();
-    #else
-        #warning Crash on OSX before LLVM 9.0, so deactivated in this case
-    #endif
+#else
+#warning Crash on OSX before LLVM 9.0, so deactivated in this case
+#endif
 #else
         LLVMResetFatalErrorHandler();
 #endif
@@ -167,9 +167,9 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     setOptlevel(opt_level);
 
-    fModule  = module;
-    fContext = context;
-    fDecoder = nullptr;
+    fModule      = module;
+    fContext     = context;
+    fDecoder     = nullptr;
     fObjectCache = nullptr;
 }
 
@@ -230,7 +230,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
 
     // Restoring from machine code
     EngineBuilder builder((unique_ptr<Module>(fModule)));
-    string buider_error;
+    string        buider_error;
     builder.setErrorStr(&buider_error);
     TargetMachine* tm = builder.selectTarget();
     fJIT              = builder.create(tm);
@@ -258,7 +258,7 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
         fCompute           = (computeFun)loadOptimize("compute" + fClassName);
         fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
-        
+
         fDecoder = createJSONUIDecoder(fGetJSON());
         endTiming("initJIT");
         return true;
@@ -477,9 +477,9 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
         return fObjectCache->getMachineCode();
     } else {
         string old_target = getTarget();
-        if (crossCompile(target)) {     // Recompilation is required
+        if (crossCompile(target)) {  // Recompilation is required
             string machine_code = fObjectCache->getMachineCode();
-            crossCompile(old_target);   // Restore old target
+            crossCompile(old_target);  // Restore old target
             return machine_code;
         } else {
             return "";
@@ -509,7 +509,7 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
                                                                      string& error_msg)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
-    
+
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -545,7 +545,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
                                                        string& error_msg)
 {
     LOCK_API
-    
+
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : " + ec.message() + "\n";

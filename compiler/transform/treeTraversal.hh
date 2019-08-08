@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstdlib>
 #include <set>
 #include "property.hh"

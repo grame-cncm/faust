@@ -931,4 +931,3 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         tab(tabs, out);
     }
 };
-

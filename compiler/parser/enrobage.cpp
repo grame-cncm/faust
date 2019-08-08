@@ -22,12 +22,12 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
-#include <stdlib.h>
 #include <cctype>
 #include <climits>
+#include <cstdlib>
 
-#include "enrobage.hh"
 #include "compatibility.hh"
+#include "enrobage.hh"
 #include "exception.hh"
 #include "garbageable.hh"
 #include "global.hh"
@@ -99,15 +99,12 @@ static string& replaceClassName(string& str)
  * architecture files
  */
 class myparser {
-    
    private:
-    
     string str;
     size_t N;
     size_t p;
 
    public:
-    
     myparser(const string& s) : str(s), N(s.length()), p(0) {}
     bool skip()
     {
@@ -308,14 +305,14 @@ ifstream* openArchStream(const char* filename)
     char  buffer[FAUST_PATH_MAX];
     char* old = getcwd(buffer, FAUST_PATH_MAX);
     int   err;
-    
+
     TRY_OPEN(filename);
     for (string dirname : gGlobal->gArchitectureDirList) {
         if ((err = chdir(dirname.c_str())) == 0) {
             TRY_OPEN(filename);
         }
     }
-    
+
     return 0;
 }
 
@@ -335,7 +332,7 @@ FILE* fopenSearch(const char* filename, string& fullpath)
         gGlobal->gImportDirList.push_back(fileDirname(fullpath));
         return f;
     }
- 
+
     // otherwise search file in user supplied directories paths
     for (string dirname : gGlobal->gImportDirList) {
         if ((f = fopenAt(fullpath, dirname, filename))) {
@@ -422,7 +419,7 @@ string stripEnd(const string& name, const string& ext)
 bool checkURL(const char* filename)
 {
     char* fileBuf = 0;
-    
+
     // Tries to open as an URL for a local file
     if (strstr(filename, "file://") != 0) {
         // Tries to open as a regular file after removing 'file://'
@@ -453,25 +450,25 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 {
     string         line;
     vector<string> H;
-    
+
     // skip blank lines
     while (getline(src, line) && isBlank(line)) dst << line << endl;
-    
+
     // first non blank should start a comment
     if (line.find("/*") == string::npos) {
         dst << line << endl;
         return;
     }
-    
+
     // copy the header into H
     bool remove = false;
     H.push_back(line);
-    
+
     while (getline(src, line) && line.find("*/") == string::npos) {
         H.push_back(line);
         if (line.find(exceptiontag) != string::npos) remove = true;
     }
-    
+
     // copy the header unless explicitely granted to remove it
     if (!remove) {
         // copy the header

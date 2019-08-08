@@ -189,7 +189,7 @@ void SOULCodeContainer::produceClass()
     // Fields
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
-    
+
     if (gGlobal->gOutputLang == "soul-dsp") {
         *fOut << "// Event used to call additional methods";
         tab(n + 1, *fOut);
@@ -203,12 +203,12 @@ void SOULCodeContainer::produceClass()
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
     }
-    
+
     SOULInstUIVisitor ui_visitor(n + 1);
     generateUserInterface(&ui_visitor);
     *fOut << ui_visitor.fOut.str();
     generateDeclarations(&fCodeProducer);
-  
+
     // Control
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *fOut << "bool fUpdated; ";
@@ -237,7 +237,7 @@ void SOULCodeContainer::produceClass()
         fCodeProducer.Tab(n + 1);
         generateUserInterface(&fCodeProducer);
     }
-    
+
     if (gGlobal->gOutputLang == "soul-dsp") {
         tab(n + 1, *fOut);
         *fOut << "// Event handler used to call additional methods";
@@ -251,7 +251,7 @@ void SOULCodeContainer::produceClass()
         *fOut << "event eventinstanceClear (int dummy) { instanceClear(); }";
         tab(n + 1, *fOut);
     }
-  
+
     // Sub containers
     generateSubContainers();
 
