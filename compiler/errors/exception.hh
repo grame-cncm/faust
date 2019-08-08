@@ -19,9 +19,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #pragma once
 
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
 #ifndef WIN32
 #include <unistd.h>
 #else
