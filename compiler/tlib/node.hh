@@ -106,7 +106,7 @@ class Node : public virtual Garbageable {
         fData.p = x;
     }
 
-    Node(const Node& n) : fType(n.fType) { fData = n.fData; }
+    Node(const Node& n) : fType(n.fType), fData(n.fData) {}
 
     // predicats
     bool operator==(const Node& n) const { return fType == n.fType && fData.v == n.fData.v; }
@@ -277,7 +277,7 @@ inline const Node minusNode(const Node& x)
 
 inline const Node inverseNode(const Node& x)
 {
-    return divExtendedNode(1.0f, x);
+    return divExtendedNode(1.0, x);
 }
 
 // bit shifting operations

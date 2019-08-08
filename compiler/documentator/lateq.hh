@@ -67,7 +67,7 @@ class Lateq : public virtual Garbageable {
     void addSelectSigFormula(const string& str) { fSelectSigsFormulas.push_back(str); }
     void addPrefixSigFormula(const string& str) { fPrefixSigsFormulas.push_back(str); }
     void addOutputSigFormula(const string& str) { fOutputSigsFormulas.push_back(str); }
-    void addUISigFormula(const string& path, const string& str) { fUISigsFormulas.insert(make_pair(path, str)); };
+    void addUISigFormula(const string& path, const string& str) { fUISigsFormulas.insert(make_pair(path, str)); }
 
     /** Top-level method to print a whole set of compiled LaTeX formulas. */
     void println(ostream& docout);

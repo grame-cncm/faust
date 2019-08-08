@@ -61,7 +61,7 @@ static Type infereWaveformType(Tree lv, Tree env);
 
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
-// Uncomment to activate type inferrence tracing
+// Uncomment to activate type inference tracing
 //#define TRACE(x) x
 #define TRACE(x) \
     {            \
@@ -112,7 +112,7 @@ void typeAnnotation(Tree sig, bool causality)
     for (bool finished = false; !finished;) {
         // init recursive types
         CTree::startNewVisit();
-        for (int i = 0; i < n; i++) {
+        for (auto i = 0; i < n; i++) {
             setSigType(vrec[i], vtype[i]);
             vrec[i]->setVisited();
         }
@@ -194,14 +194,14 @@ static Type getSigType(Tree sig)
 
 /**************************************************************************
 
-                        Infered Type property
+                        Inferred Type property
 
 ***************************************************************************/
 
 /**
  * Shortcut to getOrInferType, retrieve or infere the type of a term according to its surrounding type environment
- * @param sig the signal to analyze
- * @param env the type environment
+ * @param term the signal to analyze
+ * @param ignoreenv the type environment
  * @return the type of sig according to environment env
  * @see getCertifiedSigType
  */
@@ -274,7 +274,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigTime(sig)) {
-        Type t = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval(0, 1 << 31));
+        Type t = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval(0, 1 << 30));
         return t;
     }
 
@@ -670,7 +670,7 @@ static Type initialRecType(Tree t)
 static Type infereRecType(Tree sig, Tree body, Tree env)
 {
     faustassert(false);  // we should not come here
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -777,9 +777,9 @@ static Type infereXType(Tree sig, Tree env)
 
 /**
  * Compute the resulting interval of an arithmetic operation
- * @param op code of the operation
- * @param s1 interval of the left operand
- * @param s2 interval of the right operand
+ * @param opcode code of the operation
+ * @param x interval of the left operand
+ * @param y interval of the right operand
  * @return the resulting interval
  */
 static interval arithmetic(int opcode, const interval& x, const interval& y)
@@ -822,6 +822,4 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
             error << "ERROR : unrecognized opcode : " << opcode << endl;
             throw faustexception(error.str());
     }
-
-    return interval();
 }

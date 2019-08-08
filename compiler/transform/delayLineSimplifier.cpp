@@ -52,12 +52,12 @@
 // Make explicit automatic promotion to float
 
 /**
- * @brief Replace D1<dmin1>(dl1) occurrences
- * with D2<dmin1+dmin2>(dl1+dl2), where D1<dmax1>(0):=D2<dmin2>(dl2)
- *
+ * @brief ReplaceDelay. When we have D1<dmax1>(0):=D2<dmin2>(dl2)
+ * we replace all occurrences of D1<dmin1>(dl1) with equivalent
+ * D2<dmin1+dmin2>(dl1+dl2)
  */
 class ReplaceDelay : public SignalIdentity {
-    Tree fID1;    // D1
+    Tree fID1;    // the ID of the delayline we want to replace
     int  fDmax1;  // <dmax1> :=
     Tree fID2;    // D2
     int  fDmin2;  // <dmin2>

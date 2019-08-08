@@ -27,7 +27,7 @@
 #include "exception.hh"
 #include "tlib.hh"
 
-using namespace std;
+// using namespace std;
 
 #if defined(WIN32) && !defined(__GNUC__)
 #pragma warning(disable : 4800)
@@ -401,7 +401,7 @@ Tree sigFTZ(Tree s);
                              access to sub signals of a signal
 *****************************************************************************/
 
-int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen = true);
+int getSubSignals(Tree sig, std::vector<Tree>& vsigs, bool visitgen = true);
 
 /**
  * Test if exp is very simple that is it
@@ -411,4 +411,4 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen = true);
  */
 bool verySimple(Tree exp);
 
-bool sigList2vecInt(Tree ls, vector<int>& v);
+bool sigList2vecInt(Tree ls, std::vector<int>& v);

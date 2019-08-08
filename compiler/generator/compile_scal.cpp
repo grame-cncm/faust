@@ -313,7 +313,7 @@ string ScalarCompiler::getConditionCode(Tree sig)
 /**
  * Test if a signal is already compiled
  * @param sig the signal expression to compile.
- * @param name the string representing the compiled expression.
+ * @param cexp the string representing the compiled expression.
  * @return true is already compiled
  */
 bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
