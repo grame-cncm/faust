@@ -33,8 +33,8 @@ struct Printable : public virtual Garbageable {
 
     int fTab;
 
-    Printable() {}
-    ~Printable() override {}
+    Printable() = default;
+    ~Printable() override = default;
 };
 
 // ========================
@@ -87,8 +87,8 @@ struct Typed : public Printable {
         kNoType
     };
 
-    Typed() {}
-    ~Typed() override {}
+    Typed() = default;
+    ~Typed() override = default;
 
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)

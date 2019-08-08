@@ -107,7 +107,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         gMathLibTable["tanh"]  = "java.lang.Math.tanh";
     }
 
-    virtual ~JAVAInstVisitor() {}
+    ~JAVAInstVisitor() override = default;
 
     string createVarAccess(string varname)
     {
@@ -140,14 +140,14 @@ class JAVAInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(AddMetaDeclareInst* inst)
+    void visit(AddMetaDeclareInst* inst) override
     {
         *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue
               << "\")";
         EndLine();
     }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         string name;
         switch (inst->fOrient) {
@@ -165,13 +165,13 @@ class JAVAInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(CloseboxInst* inst)
+    void visit(CloseboxInst* inst) override
     {
         *fOut << "ui_interface.closeBox();";
         tab(fTab, *fOut);
     }
 
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -183,7 +183,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -203,7 +203,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -219,15 +219,15 @@ class JAVAInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(LabelInst* inst) {}
+    void visit(LabelInst* inst) override {}
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
         }
 
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && array_typed->fSize > 1) {
             string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
@@ -248,7 +248,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         // Already generated
         if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
@@ -268,43 +268,43 @@ class JAVAInstVisitor : public TextInstVisitor {
         generateFunDefBody(inst);
     }
 
-    virtual void visit(LoadVarInst* inst)
+    void visit(LoadVarInst* inst) override
     {
         fTypingVisitor.visit(inst);
         TextInstVisitor::visit(inst);
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         // Not implemented in JAVA
         faustassert(false);
     }
 
-    virtual void visit(FloatNumInst* inst)
+    void visit(FloatNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         TextInstVisitor::visit(inst);
     }
 
-    virtual void visit(Int32NumInst* inst)
+    void visit(Int32NumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         TextInstVisitor::visit(inst);
     }
 
-    virtual void visit(BoolNumInst* inst)
+    void visit(BoolNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         TextInstVisitor::visit(inst);
     }
 
-    virtual void visit(DoubleNumInst* inst)
+    void visit(DoubleNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         TextInstVisitor::visit(inst);
     }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         if (isBoolOpcode(inst->fOpcode)) {
             *fOut << "(";
@@ -405,7 +405,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         fTypingVisitor.visit(inst);
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         inst->fInst->accept(&fTypingVisitor);
 
@@ -455,16 +455,16 @@ class JAVAInstVisitor : public TextInstVisitor {
         fTypingVisitor.visit(inst);
     }
 
-    virtual void visit(BitcastInst* inst) { faustassert(false); }
+    void visit(BitcastInst* inst) override { faustassert(false); }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         string fun_name =
             (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
         generateFunCall(inst, fun_name);
     }
 
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         inst->fCond->accept(&fTypingVisitor);
 

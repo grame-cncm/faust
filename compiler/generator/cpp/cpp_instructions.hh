@@ -196,9 +196,9 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["tanl"]       = "std::tan";
     }
 
-    virtual ~CPPInstVisitor() {}
+    ~CPPInstVisitor() override = default;
 
-    virtual void visit(AddMetaDeclareInst* inst)
+    void visit(AddMetaDeclareInst* inst) override
     {
         // Special case
         if (inst->fZone == "0") {
@@ -211,7 +211,7 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         string name;
         switch (inst->fOrient) {
@@ -229,13 +229,13 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(CloseboxInst* inst)
+    void visit(CloseboxInst* inst) override
     {
         *fOut << "ui_interface->closeBox();";
         tab(fTab, *fOut);
     }
 
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
             *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
@@ -245,7 +245,7 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -265,7 +265,7 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -281,14 +281,14 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddSoundfileInst* inst)
+    void visit(AddSoundfileInst* inst) override
     {
         *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
               << inst->fSFZone << ")";
         EndLine();
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         if (inst->fAddress->getAccess() & Address::kConst) {
             *fOut << "const ";
@@ -310,7 +310,7 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         // Already generated
         if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
@@ -343,13 +343,13 @@ class CPPInstVisitor : public TextInstVisitor {
         generateFunDefBody(inst);
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         *fOut << "&";
         inst->fAddress->accept(this);
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         string type = fTypeManager->generateType(inst->fType);
         if (endWith(type, "*")) {
@@ -363,7 +363,7 @@ class CPPInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(BitcastInst* inst)
+    void visit(BitcastInst* inst) override
     {
         switch (inst->fType->getType()) {
             case Typed::kInt32:
@@ -392,7 +392,7 @@ class CPPInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         string name = gGlobal->getMathFunction(inst->fName);
         if (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) {
@@ -402,7 +402,7 @@ class CPPInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;

@@ -355,7 +355,7 @@ struct FBCInstruction {
         kNop,
     };
 
-    virtual ~FBCInstruction() {}
+    virtual ~FBCInstruction() = default;
 
     virtual int size() { return 1; }
 

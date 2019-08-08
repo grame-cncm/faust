@@ -49,7 +49,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
     }
 
-    virtual ~FIRInstVisitor() {}
+    ~FIRInstVisitor() override = default;
 
     void Tab(int n) { fTab = n; }
 
@@ -60,14 +60,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual string generateType(Typed* type)
+    string generateType(Typed* type) override
     {
-        BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
-        NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
-        FunTyped*    fun_typed    = dynamic_cast<FunTyped*>(type);
-        ArrayTyped*  array_typed  = dynamic_cast<ArrayTyped*>(type);
-        VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-        StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
+        auto*  basic_typed  = dynamic_cast<BasicTyped*>(type);
+        auto*  named_typed  = dynamic_cast<NamedTyped*>(type);
+        auto*    fun_typed    = dynamic_cast<FunTyped*>(type);
+        auto*  array_typed  = dynamic_cast<ArrayTyped*>(type);
+        auto* vector_typed = dynamic_cast<VectorTyped*>(type);
+        auto* struct_typed = dynamic_cast<StructTyped*>(type);
 
         if (basic_typed) {
             faustassert(fTypeDirectTable.find(basic_typed->fType) != fTypeDirectTable.end());
@@ -77,9 +77,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            auto* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            auto* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            auto* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
             std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
@@ -119,14 +119,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual string generateType(Typed* type, const string& name)
+    string generateType(Typed* type, const string& name) override
     {
-        BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
-        NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
-        FunTyped*    fun_typed    = dynamic_cast<FunTyped*>(type);
-        ArrayTyped*  array_typed  = dynamic_cast<ArrayTyped*>(type);
-        VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-        StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
+        auto*  basic_typed  = dynamic_cast<BasicTyped*>(type);
+        auto*  named_typed  = dynamic_cast<NamedTyped*>(type);
+        auto*    fun_typed    = dynamic_cast<FunTyped*>(type);
+        auto*  array_typed  = dynamic_cast<ArrayTyped*>(type);
+        auto* vector_typed = dynamic_cast<VectorTyped*>(type);
+        auto* struct_typed = dynamic_cast<StructTyped*>(type);
 
         if (basic_typed) {
             return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
@@ -137,9 +137,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            auto* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            auto* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            auto* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
             std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 return (array_typed->fSize == 0)
@@ -177,14 +177,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(AddMetaDeclareInst* inst)
+    void visit(AddMetaDeclareInst* inst) override
     {
         *fOut << "AddMetaDeclareInst(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
               << ")";
         EndLine();
     }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         string name;
         switch (inst->fOrient) {
@@ -203,12 +203,12 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(CloseboxInst* inst)
+    void visit(CloseboxInst* inst) override
     {
         *fOut << "CloseboxInst";
         tab(fTab, *fOut);
     }
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
             *fOut << "AddButtonInst(" << quote(inst->fLabel) << inst->fZone;
@@ -219,7 +219,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -238,7 +238,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -254,19 +254,19 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(AddSoundfileInst* inst)
+    void visit(AddSoundfileInst* inst) override
     {
         *fOut << "AddSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &" << inst->fSFZone << ")";
         EndLine();
     }
 
-    virtual void visit(LabelInst* inst)
+    void visit(LabelInst* inst) override
     {
         *fOut << inst->fLabel;
         tab(fTab, *fOut);
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         *fOut << "DeclareVarInst(";
         *fOut << generateType(inst->fType, inst->fAddress->getName());
@@ -279,13 +279,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(DeclareStructTypeInst* inst)
+    void visit(DeclareStructTypeInst* inst) override
     {
         *fOut << "DeclareStructTypeInst(" << generateType(inst->fType) << ")";
         EndLine();
     }
 
-    virtual void visit(RetInst* inst)
+    void visit(RetInst* inst) override
     {
         if (inst->fResult) {
             *fOut << "RetInst(";
@@ -295,7 +295,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(DropInst* inst)
+    void visit(DropInst* inst) override
     {
         if (inst->fResult) {
             *fOut << "DropInst(";
@@ -305,7 +305,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         // Already generated
         if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
@@ -349,17 +349,17 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(NamedAddress* named)
+    void visit(NamedAddress* named) override
     {
         *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")";
     }
 
-    virtual void visit(IndexedAddress* indexed)
+    void visit(IndexedAddress* indexed) override
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            auto* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
@@ -368,21 +368,21 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual void visit(LoadVarInst* inst)
+    void visit(LoadVarInst* inst) override
     {
         *fOut << "LoadVarInst(";
         inst->fAddress->accept(this);
         *fOut << ")";
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         *fOut << "LoadVarAddressInst(";
         inst->fAddress->accept(this);
         *fOut << ")";
     }
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         *fOut << "StoreVarInst(";
         inst->fAddress->accept(this);
@@ -392,9 +392,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(FloatNumInst* inst) { *fOut << "Float(" << checkFloat(inst->fNum) << ")"; }
+    void visit(FloatNumInst* inst) override { *fOut << "Float(" << checkFloat(inst->fNum) << ")"; }
 
-    virtual void visit(FloatArrayNumInst* inst)
+    void visit(FloatArrayNumInst* inst) override
     {
         *fOut << "FloatArrayNumInst";
         char sep = '{';
@@ -405,11 +405,11 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << '}';
     }
 
-    virtual void visit(Int32NumInst* inst) { *fOut << "Int32(" << inst->fNum << ")"; }
+    void visit(Int32NumInst* inst) override { *fOut << "Int32(" << inst->fNum << ")"; }
 
-    virtual void visit(Int64NumInst* inst) { *fOut << "Int64(" << inst->fNum << ")"; }
+    void visit(Int64NumInst* inst) override { *fOut << "Int64(" << inst->fNum << ")"; }
 
-    virtual void visit(Int32ArrayNumInst* inst)
+    void visit(Int32ArrayNumInst* inst) override
     {
         *fOut << "Int32ArrayNumInst";
         char sep = '{';
@@ -420,11 +420,11 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << '}';
     }
 
-    virtual void visit(BoolNumInst* inst) { *fOut << "Bool(" << inst->fNum << ")"; }
+    void visit(BoolNumInst* inst) override { *fOut << "Bool(" << inst->fNum << ")"; }
 
-    virtual void visit(DoubleNumInst* inst) { *fOut << "Double(" << checkDouble(inst->fNum) << ")"; }
+    void visit(DoubleNumInst* inst) override { *fOut << "Double(" << checkDouble(inst->fNum) << ")"; }
 
-    virtual void visit(DoubleArrayNumInst* inst)
+    void visit(DoubleArrayNumInst* inst) override
     {
         *fOut << "DoubleArrayNumInst";
         char sep = '{';
@@ -435,7 +435,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << '}';
     }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         *fOut << "BinopInst(";
         *fOut << "\"";
@@ -450,7 +450,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << ")";
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         *fOut << "CastInst(";
         *fOut << generateType(inst->fType);
@@ -459,7 +459,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << ")";
     }
 
-    virtual void visit(BitcastInst* inst)
+    void visit(BitcastInst* inst) override
     {
         *fOut << "Bitcast(";
         *fOut << generateType(inst->fType);
@@ -468,7 +468,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << ")";
     }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
         *fOut << fun_name;
@@ -485,7 +485,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << ")";
     }
 
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         *fOut << "Select2Inst(";
         inst->fCond->accept(this);
@@ -496,7 +496,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << ")";
     }
 
-    virtual void visit(IfInst* inst)
+    void visit(IfInst* inst) override
     {
         *fOut << "IfInst ";
         fTab++;
@@ -515,7 +515,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         *fOut << "ForLoopInst ";
         fFinishLine = false;
@@ -534,7 +534,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(WhileLoopInst* inst)
+    void visit(WhileLoopInst* inst) override
     {
         *fOut << "WhileLoopInst ";
         inst->fCond->accept(this);
@@ -546,7 +546,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(BlockInst* inst)
+    void visit(BlockInst* inst) override
     {
         *fOut << "BlockInst ";
         fTab++;
@@ -559,7 +559,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(::SwitchInst* inst)
+    void visit(::SwitchInst* inst) override
     {
         *fOut << "SwitchInst ";
         inst->fCond->accept(this);

@@ -40,17 +40,17 @@ class JAVACodeContainer : public virtual CodeContainer {
         initialize(numInputs, numOutputs);
         fKlassName = name;
     }
-    virtual ~JAVACodeContainer() {}
+    ~JAVACodeContainer() override = default;
 
-    virtual void produceClass();
+    void produceClass() override;
     virtual void generateCompute(int tab) = 0;
-    void         produceInternal();
+    void         produceInternal() override;
 
-    virtual dsp_factory_base* produceFactory();
+    dsp_factory_base* produceFactory() override;
 
-    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
+    void printHeader() override { CodeContainer::printHeader(*fOut); }
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;
 
     static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs,
                                           ostream* dst = new stringstream());
@@ -61,7 +61,7 @@ class JAVAScalarCodeContainer : public JAVACodeContainer {
    public:
     JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type);
-    virtual ~JAVAScalarCodeContainer();
+    ~JAVAScalarCodeContainer() override;
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };

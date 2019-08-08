@@ -49,11 +49,11 @@ class FtzPrim : public xtended {
    public:
     FtzPrim() : xtended("ftz") {}
 
-    virtual unsigned int arity() { return 1; }
+    unsigned int arity() override { return 1; }
 
-    virtual bool needCache() { return true; }
+    bool needCache() override { return true; }
 
-    virtual Type infereSigType(const vector<Type>& types)
+    Type infereSigType(const vector<Type>& types) override
     {
         faustassert(types.size() == arity());
         return types[0];
@@ -61,13 +61,13 @@ class FtzPrim : public xtended {
 
     virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-    virtual int infereSigOrder(const vector<int>& args)
+    int infereSigOrder(const vector<int>& args) override
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    Tree computeSigOutput(const vector<Tree>& args) override
     {
         int    i;
         double r;
@@ -83,8 +83,8 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -155,7 +155,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -174,7 +174,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+    string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

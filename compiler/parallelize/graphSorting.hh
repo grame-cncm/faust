@@ -24,9 +24,9 @@
 #include <set>
 #include "loop.hh"
 
-typedef set<Loop*>    lset;
-typedef vector<Loop*> lvec;
-typedef vector<lset>  lgraph;
+using lset = set<Loop *>;
+using lvec = vector<Loop *>;
+using lgraph = vector<lset>;
 
 /**
  * Topological sort of an acyclic graph of loops starting

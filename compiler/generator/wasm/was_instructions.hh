@@ -105,7 +105,7 @@ struct WASInst {
             kExtWAS     // Manually implemented in JS
         };
 
-        MathFunDesc() {}
+        MathFunDesc() = default;
 
         MathFunDesc(Gen mode, const string& name, WasmOp op, Typed::VarType type, int args)
             : fMode(mode), fName(name), fWasmOp(op), fType(type), fArgs(args)
@@ -231,8 +231,8 @@ struct WASInst {
         }
 
         string          name    = address->getName();
-        NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
-        IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
+        auto*   named   = dynamic_cast<NamedAddress*>(address);
+        auto* indexed = dynamic_cast<IndexedAddress*>(address);
 
         if (fFieldTable.find(name) != fFieldTable.end()) {
             MemoryDesc tmp = fFieldTable[name];

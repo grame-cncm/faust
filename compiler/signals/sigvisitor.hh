@@ -30,7 +30,7 @@ struct sigvisitor {
     // Unrecognized signal (default handler)
     virtual void visitError(Tree sig);
 
-    virtual ~sigvisitor() {}
+    virtual ~sigvisitor() = default;
 
     //---------------abstract methods---------------
     // numbers
@@ -95,84 +95,84 @@ struct sigvisitor {
 
 struct fullvisitor : sigvisitor {
     // numbers
-    virtual void visitInt(Tree sig, int i) {}
-    virtual void visitReal(Tree sig, double r) {}
+    void visitInt(Tree sig, int i) override {}
+    void visitReal(Tree sig, double r) override {}
 
     // audio inputs-outputs
-    virtual void visitInput(Tree sig, int i) {}
-    virtual void visitOutput(Tree sig, int i, Tree s) { visit(s); }
+    void visitInput(Tree sig, int i) override {}
+    void visitOutput(Tree sig, int i, Tree s) override { visit(s); }
 
     // fixed size delays
-    virtual void visitDelay1(Tree sig, Tree s) { visit(s); }
-    virtual void visitPrefix(Tree sig, Tree s1, Tree s2)
+    void visitDelay1(Tree sig, Tree s) override { visit(s); }
+    void visitPrefix(Tree sig, Tree s1, Tree s2) override
     {
         visit(s1);
         visit(s2);
     }
-    virtual void visitFixDelay(Tree sig, Tree s1, Tree s2)
+    void visitFixDelay(Tree sig, Tree s1, Tree s2) override
     {
         visit(s1);
         visit(s2);
     }
 
     // numerical operations
-    virtual void visitIntCast(Tree sig, Tree s) { visit(s); }
-    virtual void visitFloatCast(Tree sig, Tree s) { visit(s); }
-    virtual void visitBinOp(Tree sig, int op, Tree s1, Tree s2)
+    void visitIntCast(Tree sig, Tree s) override { visit(s); }
+    void visitFloatCast(Tree sig, Tree s) override { visit(s); }
+    void visitBinOp(Tree sig, int op, Tree s1, Tree s2) override
     {
         visit(s1);
         visit(s2);
     }
-    virtual void visitFFun(Tree sig, Tree ff, Tree ls) { visit(ls); }
-    virtual void visitFConst(Tree sig, Tree type, Tree name, Tree file) {}
-    virtual void visitFVar(Tree sig, Tree type, Tree name, Tree file) {}
+    void visitFFun(Tree sig, Tree ff, Tree ls) override { visit(ls); }
+    void visitFConst(Tree sig, Tree type, Tree name, Tree file) override {}
+    void visitFVar(Tree sig, Tree type, Tree name, Tree file) override {}
 
     // user interface
-    virtual void visitButton(Tree sig, Tree label) {}
-    virtual void visitCheckbox(Tree sig, Tree label) {}
-    virtual void visitVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) {}
-    virtual void visitHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) {}
-    virtual void visitNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) {}
-    virtual void visitVBargraph(Tree sig, Tree label, Tree min, Tree max, Tree s) { visit(s); }
-    virtual void visitHBargraph(Tree sig, Tree label, Tree min, Tree max, Tree s) { visit(s); }
-    virtual void visitAttach(Tree sig, Tree s1, Tree s2)
+    void visitButton(Tree sig, Tree label) override {}
+    void visitCheckbox(Tree sig, Tree label) override {}
+    void visitVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) override {}
+    void visitHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) override {}
+    void visitNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) override {}
+    void visitVBargraph(Tree sig, Tree label, Tree min, Tree max, Tree s) override { visit(s); }
+    void visitHBargraph(Tree sig, Tree label, Tree min, Tree max, Tree s) override { visit(s); }
+    void visitAttach(Tree sig, Tree s1, Tree s2) override
     {
         visit(s1);
         visit(s2);
     }
 
     // recursive
-    virtual void visitRec(Tree sig, Tree var, Tree body) { visit(body); }
-    virtual void visitRef(Tree sig, Tree var) {}
-    virtual void visitProj(Tree sig, int i, Tree s) { visit(s); }
+    void visitRec(Tree sig, Tree var, Tree body) override { visit(body); }
+    void visitRef(Tree sig, Tree var) override {}
+    void visitProj(Tree sig, int i, Tree s) override { visit(s); }
 
     // Tables
-    virtual void visitTable(Tree sig, Tree id, Tree s1, Tree s2)
+    void visitTable(Tree sig, Tree id, Tree s1, Tree s2) override
     {
         visit(s1);
         visit(s2);
     }
-    virtual void visitWRTbl(Tree sig, Tree id, Tree s1, Tree s2, Tree s3)
+    void visitWRTbl(Tree sig, Tree id, Tree s1, Tree s2, Tree s3) override
     {
         visit(s1);
         visit(s2);
         visit(s3);
     }
-    virtual void visitRDTbl(Tree sig, Tree s1, Tree s2)
+    void visitRDTbl(Tree sig, Tree s1, Tree s2) override
     {
         visit(s1);
         visit(s2);
     }
-    virtual void visitGen(Tree sig, Tree s1) { visit(s1); }
+    void visitGen(Tree sig, Tree s1) override { visit(s1); }
 
     // Selectors
-    virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
+    void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2) override
     {
         visit(sel);
         visit(s1);
         visit(s2);
     }
-    virtual void visitSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
+    void visitSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3) override
     {
         visit(sel);
         visit(s1);
@@ -181,15 +181,15 @@ struct fullvisitor : sigvisitor {
     }
 
     // Tuples
-    virtual void visitTuple(Tree sig, int mod, Tree ls) { visit(ls); }
-    virtual void visitTupleAccess(Tree sig, Tree ts, Tree idx)
+    void visitTuple(Tree sig, int mod, Tree ls) override { visit(ls); }
+    void visitTupleAccess(Tree sig, Tree ts, Tree idx) override
     {
         visit(ts);
         visit(idx);
     }
 
     // List of signals
-    virtual void visitList(Tree lsig)
+    void visitList(Tree lsig) override
     {
         while (!isNil(lsig)) {
             visit(hd(lsig));

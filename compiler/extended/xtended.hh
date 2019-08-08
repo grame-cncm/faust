@@ -40,7 +40,7 @@ class xtended : public virtual Garbageable {
 
    public:
     xtended(const char* name) : fSymbol(::symbol(name)) { setUserData(fSymbol, (void*)this); }
-    virtual ~xtended() {}
+    ~xtended() override = default;
 
     Sym         symbol() { return fSymbol; }
     const char* name() { return ::name(fSymbol); }

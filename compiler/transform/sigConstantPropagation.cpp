@@ -44,7 +44,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
     int  opnum, i;
     Tree t1, t2, t3, t4, x, y;
 
-    xtended* xt = (xtended*)getUserData(sig);
+    auto* xt = (xtended*)getUserData(sig);
     // primitive elements
 
     if (xt) {

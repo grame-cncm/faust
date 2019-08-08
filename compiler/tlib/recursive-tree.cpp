@@ -123,8 +123,8 @@ int CTree::calcTreeAperture(const Node& n, const tvec& br)
     } else {
         // return max aperture of branches
         int                  rc = 0;
-        tvec::const_iterator b  = br.begin();
-        tvec::const_iterator z  = br.end();
+        auto b  = br.begin();
+        auto z  = br.end();
         while (b != z) {
             if ((*b)->aperture() > rc) rc = (*b)->aperture();
             ++b;

@@ -29,13 +29,13 @@
 
 // Describe a field memory location in the DSP structure
 struct MemoryDesc {
-    int fIndex;   // Field index
-    int fOffset;  // Field offset in bytes
-    int fSize;    // Field size in bytes
+    int fIndex{-1};   // Field index
+    int fOffset{-1};  // Field offset in bytes
+    int fSize{-1};    // Field size in bytes
 
-    Typed::VarType fType;
+    Typed::VarType fType{Typed::kNoType};
 
-    MemoryDesc() : fIndex(-1), fOffset(-1), fSize(-1), fType(Typed::kNoType) {}
+    MemoryDesc()  {}
 
     MemoryDesc(int index, int offset, int size, Typed::VarType type)
         : fIndex(index), fOffset(offset), fSize(size), fType(type)
@@ -56,15 +56,15 @@ struct MemoryDesc {
  Compute all fields info and the DSP size
  */
 struct StructInstVisitor : public DispatchVisitor {
-    int        fStructOffset;  // Keep the offset in bytes
-    int        fFieldIndex;    // Keep the field index
+    int        fStructOffset{0};  // Keep the offset in bytes
+    int        fFieldIndex{0};    // Keep the field index
     MemoryDesc fDefault;
 
     typedef vector<pair<string, MemoryDesc> > field_table_type;
 
     field_table_type fFieldTable;  // Table: field_name, { index, offset, size, type }
 
-    StructInstVisitor() : fStructOffset(0), fFieldIndex(0) {}
+    StructInstVisitor()  {}
 
     // Return the offset of a given field
     int getFieldOffset(const string& name)
@@ -115,14 +115,14 @@ struct StructInstVisitor : public DispatchVisitor {
     }
 
     // Declarations
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         // dump2FIR(inst);
         string              name   = inst->fAddress->getName();
         Address::AccessType access = inst->fAddress->getAccess();
 
         bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {

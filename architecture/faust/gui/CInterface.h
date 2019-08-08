@@ -43,29 +43,29 @@ struct Soundfile;
 
 // -- widget's layouts
 
-typedef void (* openTabBoxFun) (void* ui_interface, const char* label);
-typedef void (* openHorizontalBoxFun) (void* ui_interface, const char* label);
-typedef void (* openVerticalBoxFun) (void* ui_interface, const char* label);
-typedef void (*closeBoxFun) (void* ui_interface);
+using openTabBoxFun = void (*)(void *, const char *);
+using openHorizontalBoxFun = void (*)(void *, const char *);
+using openVerticalBoxFun = void (*)(void *, const char *);
+using closeBoxFun = void (*)(void *);
 
 // -- active widgets
 
-typedef void (* addButtonFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone);
-typedef void (* addCheckButtonFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone);
-typedef void (* addVerticalSliderFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-typedef void (* addHorizontalSliderFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-typedef void (* addNumEntryFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+using addButtonFun = void (*)(void *, const char *, float *);
+using addCheckButtonFun = void (*)(void *, const char *, float *);
+using addVerticalSliderFun = void (*)(void *, const char *, float *, float, float, float, float);
+using addHorizontalSliderFun = void (*)(void *, const char *, float *, float, float, float, float);
+using addNumEntryFun = void (*)(void *, const char *, float *, float, float, float, float);
 
 // -- passive widgets
 
-typedef void (* addHorizontalBargraphFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
-typedef void (* addVerticalBargraphFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
+using addHorizontalBargraphFun = void (*)(void *, const char *, float *, float, float);
+using addVerticalBargraphFun = void (*)(void *, const char *, float *, float, float);
 
 // -- soundfiles
     
-typedef void (* addSoundfileFun) (void* ui_interface, const char* label, const char* url, struct Soundfile** sf_zone);
+using addSoundfileFun = void (*)(void *, const char *, const char *, struct Soundfile **);
 
-typedef void (* declareFun) (void* ui_interface, FAUSTFLOAT* zone, const char* key, const char* value);
+using declareFun = void (*)(void *, float *, const char *, const char *);
 
 typedef struct {
 
@@ -87,7 +87,7 @@ typedef struct {
 
 } UIGlue;
 
-typedef void (* metaDeclareFun) (void* ui_interface, const char* key, const char* value);
+using metaDeclareFun = void (*)(void *, const char *, const char *);
 
 typedef struct {
 
@@ -101,29 +101,29 @@ typedef struct {
  *  Interface for the DSP object
  ***************************************/
 
-typedef char dsp_imp;
+using dsp_imp = char;
     
-typedef dsp_imp* (* newDspFun) ();
-typedef void (* deleteDspFun) (dsp_imp* dsp);
-typedef void (* allocateDspFun) (dsp_imp* dsp);
-typedef void (* destroyDspFun) (dsp_imp* dsp);
-typedef int (* getNumInputsFun) (dsp_imp* dsp);
-typedef int (* getNumOutputsFun) (dsp_imp* dsp);
-typedef void (* buildUserInterfaceFun) (dsp_imp* dsp, UIGlue* ui);
-typedef void (* initFun) (dsp_imp* dsp, int sample_rate);
-typedef void (* clearFun) (dsp_imp* dsp);
-typedef int (* getSampleRateFun) (dsp_imp* dsp);
-typedef void (* computeFun) (dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
-typedef void (* metadataFun) (MetaGlue* meta);
-typedef void (* classInitFun) (int sample_rate);
-typedef const char* (* getJSONFun) ();
+using newDspFun = dsp_imp *(*)();
+using deleteDspFun = void (*)(dsp_imp *);
+using allocateDspFun = void (*)(dsp_imp *);
+using destroyDspFun = void (*)(dsp_imp *);
+using getNumInputsFun = int (*)(dsp_imp *);
+using getNumOutputsFun = int (*)(dsp_imp *);
+using buildUserInterfaceFun = void (*)(dsp_imp *, UIGlue *);
+using initFun = void (*)(dsp_imp *, int);
+using clearFun = void (*)(dsp_imp *);
+using getSampleRateFun = int (*)(dsp_imp *);
+using computeFun = void (*)(dsp_imp *, int, float **, float **);
+using metadataFun = void (*)(MetaGlue *);
+using classInitFun = void (*)(int);
+using getJSONFun = const char *(*)();
     
 /***************************************
  * DSP memory manager functions
  ***************************************/
 
-typedef void* (* allocateFun) (void* manager_interface, size_t size);
-typedef void (* destroyFun) (void* manager_interface, void* ptr);
+using allocateFun = void *(*)(void *, size_t);
+using destroyFun = void (*)(void *, void *);
 
 typedef struct {
     

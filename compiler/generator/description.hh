@@ -48,11 +48,11 @@ class Description : public virtual Garbageable {
     map<string, set<string> > fMetadata;
 
     string       fClassName;
-    int          fInputs;
-    int          fOutputs;
-    int          fWidgetID;
-    int          fActiveWidgetCount;
-    int          fPassiveWidgetCount;
+    int          fInputs{0};
+    int          fOutputs{0};
+    int          fWidgetID{0};
+    int          fActiveWidgetCount{0};
+    int          fPassiveWidgetCount{0};
     list<string> fActiveLines;
     list<string> fPassiveLines;
     list<string> fLayoutLines;
@@ -60,17 +60,8 @@ class Description : public virtual Garbageable {
 
    public:
     Description()
-        : /*fName("Unknow"),
-          fAuthor("Unknow"),
-          fCopyright("Unknow"),
-          fLicense("Unknow"),
-          fVersion("Unknow"),*/
-
-          fInputs(0),
-          fOutputs(0),
-          fWidgetID(0),
-          fActiveWidgetCount(0),
-          fPassiveWidgetCount(0)
+        
+          
     {
     }
 

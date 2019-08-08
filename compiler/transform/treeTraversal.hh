@@ -40,13 +40,13 @@
 class TreeTraversal {
    protected:
     // used when tracing
-    bool           fTraceFlag;  // trace transformations when true
-    int            fIndent;     // current indentation during trace
+    bool           fTraceFlag{false};  // trace transformations when true
+    int            fIndent{0};     // current indentation during trace
     string         fMessage;    // trace message
     std::set<Tree> fVisited;    // avoid visiting a tree twice
 
    public:
-    explicit TreeTraversal(string msg = "TreeTraversal") : fTraceFlag(false), fIndent(0), fMessage(msg) {}
+    explicit TreeTraversal(string msg = "TreeTraversal") :  fMessage(msg) {}
 
     void self(Tree t);
     void mapself(Tree lt);

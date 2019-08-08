@@ -40,7 +40,7 @@ struct StringTypeManager {
         fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = float_macro_name + posfix + posfix;
     }
 
-    virtual ~StringTypeManager() {}
+    virtual ~StringTypeManager() = default;
 
     virtual std::string generateType(Typed* type)                          = 0;
     virtual std::string generateType(Typed* type, const std::string& name) = 0;
@@ -94,11 +94,11 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
     }
 
-    virtual std::string generateType(Typed* type)
+    std::string generateType(Typed* type) override
     {
-        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
-        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed = dynamic_cast<NamedTyped*>(type);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
@@ -112,11 +112,11 @@ class CStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    std::string generateType(Typed* type, const std::string& name) override
     {
-        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
-        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed = dynamic_cast<NamedTyped*>(type);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType] + " " + name;
@@ -178,11 +178,11 @@ class RustStringTypeManager : public StringTypeManager {
         // TODO : handling kUint_ptr
     }
 
-    virtual std::string generateType(Typed* type)
+    std::string generateType(Typed* type) override
     {
-        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
-        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed = dynamic_cast<NamedTyped*>(type);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
@@ -197,11 +197,11 @@ class RustStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    std::string generateType(Typed* type, const std::string& name) override
     {
-        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
-        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed = dynamic_cast<NamedTyped*>(type);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
             return name + ": " + fTypeDirectTable[basic_typed->fType];
@@ -264,11 +264,11 @@ class SOULStringTypeManager : public StringTypeManager {
         // TODO : handling kUint_ptr
     }
 
-    virtual std::string generateType(Typed* type)
+    std::string generateType(Typed* type) override
     {
-        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
-        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed = dynamic_cast<NamedTyped*>(type);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
@@ -282,11 +282,11 @@ class SOULStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    std::string generateType(Typed* type, const std::string& name) override
     {
-        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
-        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed = dynamic_cast<NamedTyped*>(type);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType] + " " + name;

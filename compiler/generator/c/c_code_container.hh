@@ -58,14 +58,14 @@ class CCodeContainer : public virtual CodeContainer {
         addIncludeFile("<cstdlib>");
     }
 
-    virtual ~CCodeContainer() {}
+    ~CCodeContainer() override = default;
 
-    virtual void              produceClass();
+    void              produceClass() override;
     virtual void              generateCompute(int tab) = 0;
-    void                      produceInternal();
-    virtual dsp_factory_base* produceFactory();
+    void                      produceInternal() override;
+    dsp_factory_base* produceFactory() override;
 
-    virtual void printHeader()
+    void printHeader() override
     {
         CodeContainer::printHeader(*fOut);
 
@@ -75,15 +75,15 @@ class CCodeContainer : public virtual CodeContainer {
         *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
     }
 
-    virtual void printFloatDef() { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
+    void printFloatDef() override { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
 
-    virtual void printFooter()
+    void printFooter() override
     {
         tab(0, *fOut);
         *fOut << "#endif" << std::endl;
     }
 
-    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type) override;
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
                                           std::ostream* dst = new std::stringstream());
@@ -94,34 +94,34 @@ class CScalarCodeContainer : public CCodeContainer {
    public:
     CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
                          int sub_container_type);
-    virtual ~CScalarCodeContainer();
+    ~CScalarCodeContainer() override;
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };
 
 class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
    protected:
    public:
     CVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CVectorCodeContainer();
+    ~CVectorCodeContainer() override;
 
-    void generateCompute(int n);
+    void generateCompute(int n) override;
 };
 
 class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
    protected:
    public:
     COpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~COpenMPCodeContainer();
+    ~COpenMPCodeContainer() override;
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };
 
 class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContainer {
    protected:
    public:
     CWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CWorkStealingCodeContainer();
+    ~CWorkStealingCodeContainer() override;
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };

@@ -41,7 +41,7 @@ struct Meta;
 
 struct dsp_memory_manager {
     
-    virtual ~dsp_memory_manager() {}
+    virtual ~dsp_memory_manager() = default;
     
     virtual void* allocate(size_t size) = 0;
     virtual void destroy(void* ptr) = 0;
@@ -56,8 +56,8 @@ class dsp {
 
     public:
 
-        dsp() {}
-        virtual ~dsp() {}
+        dsp() = default;
+        virtual ~dsp() = default;
 
         /* Return instance number of audio inputs */
         virtual int getNumInputs() = 0;
@@ -154,23 +154,23 @@ class decorator_dsp : public dsp {
 
     public:
 
-        decorator_dsp(dsp* dsp = 0):fDSP(dsp) {}
-        virtual ~decorator_dsp() { delete fDSP; }
+        decorator_dsp(dsp* dsp = nullptr):fDSP(dsp) {}
+        ~decorator_dsp() override { delete fDSP; }
 
-        virtual int getNumInputs() { return fDSP->getNumInputs(); }
-        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
-        virtual void buildUserInterface(UI* ui_interface) { fDSP->buildUserInterface(ui_interface); }
-        virtual int getSampleRate() { return fDSP->getSampleRate(); }
-        virtual void init(int sample_rate) { fDSP->init(sample_rate); }
-        virtual void instanceInit(int sample_rate) { fDSP->instanceInit(sample_rate); }
-        virtual void instanceConstants(int sample_rate) { fDSP->instanceConstants(sample_rate); }
-        virtual void instanceResetUserInterface() { fDSP->instanceResetUserInterface(); }
-        virtual void instanceClear() { fDSP->instanceClear(); }
-        virtual decorator_dsp* clone() { return new decorator_dsp(fDSP->clone()); }
-        virtual void metadata(Meta* m) { fDSP->metadata(m); }
+        int getNumInputs() override { return fDSP->getNumInputs(); }
+        int getNumOutputs() override { return fDSP->getNumOutputs(); }
+        void buildUserInterface(UI* ui_interface) override { fDSP->buildUserInterface(ui_interface); }
+        int getSampleRate() override { return fDSP->getSampleRate(); }
+        void init(int sample_rate) override { fDSP->init(sample_rate); }
+        void instanceInit(int sample_rate) override { fDSP->instanceInit(sample_rate); }
+        void instanceConstants(int sample_rate) override { fDSP->instanceConstants(sample_rate); }
+        void instanceResetUserInterface() override { fDSP->instanceResetUserInterface(); }
+        void instanceClear() override { fDSP->instanceClear(); }
+        decorator_dsp* clone() override { return new decorator_dsp(fDSP->clone()); }
+        void metadata(Meta* m) override { fDSP->metadata(m); }
         // Beware: subclasses usually have to overload the two 'compute' methods
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) override { fDSP->compute(count, inputs, outputs); }
+        void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) override { fDSP->compute(date_usec, count, inputs, outputs); }
     
 };
 
@@ -183,7 +183,7 @@ class dsp_factory {
     protected:
     
         // So that to force sub-classes to use deleteDSPFactory(dsp_factory* factory);
-        virtual ~dsp_factory() {}
+        virtual ~dsp_factory() = default;
     
     public:
     

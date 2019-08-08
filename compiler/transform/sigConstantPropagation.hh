@@ -26,8 +26,8 @@
 // Make explicit automatic promotion to float
 class SignalConstantPropagation : public SignalIdentity {
    public:
-    SignalConstantPropagation() {}
+    SignalConstantPropagation() = default;
 
    protected:
-    virtual Tree transformation(Tree sig);
+    Tree transformation(Tree sig) override;
 };

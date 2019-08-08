@@ -75,7 +75,7 @@ using namespace std;
 
 class AudioType;
 
-typedef P<AudioType> Type;
+using Type = P<AudioType>;
 
 /**
  * The Root class for all audio data types.
@@ -97,10 +97,10 @@ class AudioType : public virtual Garbageable {
 
    public:
     AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval())
-        : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fCode(0)
+        : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fCode(nullptr)
     {
     }                        ///< constructs an abstract audio type
-    ~AudioType() override {}  ///< not really useful here, but make compiler happier
+    ~AudioType() override = default;  ///< not really useful here, but make compiler happier
 
     int nature() const { return fNature; }  ///< returns the kind of values (integer or floating point)
     int variability() const

@@ -146,11 +146,11 @@ class CodeContainer : public virtual Garbageable {
         selectedKeys.insert(tree("version"));
 
         dst << "/* ------------------------------------------------------------" << endl;
-        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        for (auto i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
             if (selectedKeys.count(i->first)) {
                 dst << *(i->first);
                 const char* sep = ": ";
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+                for (auto j = i->second.begin(); j != i->second.end(); ++j) {
                     dst << sep << **j;
                     sep = ", ";
                 }
@@ -180,7 +180,7 @@ class CodeContainer : public virtual Garbageable {
    public:
     CodeContainer();
     void initialize(int numInputs, int numOutputs);
-    virtual ~CodeContainer();
+    ~CodeContainer() override;
 
     CodeLoop* getCurLoop() { return fCurLoop; }
 
@@ -188,13 +188,13 @@ class CodeContainer : public virtual Garbageable {
     CodeContainer* getParentContainer() { return fParentContainer; }
     CodeContainer* getTopParentContainer()
     {
-        return (fParentContainer != 0) ? fParentContainer->getTopParentContainer() : this;
+        return (fParentContainer != nullptr) ? fParentContainer->getTopParentContainer() : this;
     }
 
     // Returns the name of the class
     string getFullClassName()
     {
-        return (fParentContainer != 0) ? (fParentContainer->getFullClassName() + "::" + getClassName())
+        return (fParentContainer != nullptr) ? (fParentContainer->getFullClassName() + "::" + getClassName())
                                        : getClassName();
     }
 
@@ -561,7 +561,7 @@ class CodeContainer : public virtual Garbageable {
     virtual dsp_factory_base* produceFactory()
     {
         faustassert(false);
-        return 0;
+        return nullptr;
     }
 
     int fInt32ControlNum;  // number of 'int32' intermediate control values

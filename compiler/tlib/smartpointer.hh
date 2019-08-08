@@ -32,7 +32,7 @@ class P {
     T* p;
 
    public:
-    P() : p(0) {}
+    P() : p(nullptr) {}
     P(T* rawptr) : p(rawptr) {}
     P(const P& ptr) : p((T*)ptr) {}
 
@@ -41,7 +41,7 @@ class P {
     {
     }
 
-    ~P() {}
+    ~P() = default;
 
        operator T*() const { return p; }
     T& operator*() const
@@ -53,7 +53,7 @@ class P {
     }
     T* operator->() const
     {
-        if (p == 0) {
+        if (p == nullptr) {
             throw faustexception("ERROR : null dereference in P<?>::operator->() const \n");
         }
         return p;

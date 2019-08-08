@@ -27,31 +27,31 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
    public:
     DAGInstructionsCompiler(CodeContainer* container);
 
-    virtual void compileMultiSignal(Tree sig);
+    void compileMultiSignal(Tree sig) override;
 
    private:
     // reimplemented code generation methods
-    virtual ValueInst* CS(Tree sig);
-    virtual ValueInst* generateCode(Tree sig);
+    ValueInst* CS(Tree sig) override;
+    ValueInst* generateCode(Tree sig) override;
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
     virtual ValueInst* generateLoopCode(Tree sig);
 
-    virtual ValueInst* generateWaveform(Tree sig);
+    ValueInst* generateWaveform(Tree sig) override;
 
     void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp,
                             Address::AccessType& var_access);
     void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp,
                            Address::AccessType& var_access);
 
-    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateInput(Tree sig, int idx);
+    ValueInst* generateVariableStore(Tree sig, ValueInst* inst) override;
+    ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
+    ValueInst* generateInput(Tree sig, int idx) override;
 
-    virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                         Address::AccessType& var_access);
+    ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size) override;
+    ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd) override;
+    ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
+                                         Address::AccessType& var_access) override;
 
     StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
 

@@ -42,10 +42,10 @@
 #include "sourcereader.hh"
 
 class CTree;
-typedef CTree* Tree;
+using Tree = CTree *;
 
 class Symbol;
-typedef Symbol* Sym;
+using Sym = Symbol *;
 
 class xtended;
 class AudioType;
@@ -63,7 +63,7 @@ struct BasicTyped;
 
 class dsp_factory_base;
 
-typedef long double quad;
+using quad = long double;
 
 struct comp_str {
     bool operator()(Tree s1, Tree s2) const { return (strcmp(tree2str(s1), tree2str(s2)) < 0); }
@@ -483,7 +483,7 @@ struct global {
 
     // colorize
     map<Tree, int> gColorMap;
-    int            gNextFreeColor;
+    int            gNextFreeColor{1};
 
     // to keep track of already injected files
     set<string> gAlreadyIncluded;

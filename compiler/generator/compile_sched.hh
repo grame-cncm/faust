@@ -38,7 +38,7 @@ class SchedulerCompiler : public VectorCompiler {
     }
 
     SchedulerCompiler(Klass* k) : VectorCompiler(k) {}
-    virtual void compileMultiSignal(Tree L);
+    void compileMultiSignal(Tree L) override;
 
    protected:
     virtual void vectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);

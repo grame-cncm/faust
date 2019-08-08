@@ -55,7 +55,7 @@ class SignalDependencies : public SignalVisitor {
     }
 
    protected:
-    virtual void visit(Tree t)
+    void visit(Tree t) override
     {
         Tree id, origin, dl;
         int  nature, dmax, dmin;

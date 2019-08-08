@@ -57,7 +57,7 @@ class boxpp : public virtual Garbageable {
 
    public:
     boxpp(Tree b, int p = 0) : box(b), priority(p) {}
-    virtual ~boxpp() {}
+    ~boxpp() override = default;
     virtual ostream &print(ostream &fout) const;
 };
 

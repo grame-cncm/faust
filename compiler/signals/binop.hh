@@ -24,8 +24,8 @@
 #include "fbc_opcode.hh"
 #include "node.hh"
 
-typedef const Node (*comp)(const Node& a, const Node& b);
-typedef bool (*pred)(const Node& a);
+using comp = const Node (*)(const Node &, const Node &);
+using pred = bool (*)(const Node &);
 
 bool falsePredicate(Node const& a);
 

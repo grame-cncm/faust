@@ -119,19 +119,19 @@ extern const char* floatname[4];
 extern const char* castname[4];
 extern double      floatmin[4];
 
-static ifstream* injcode  = NULL;
-static ifstream* enrobage = NULL;
+static ifstream* injcode  = nullptr;
+static ifstream* enrobage = nullptr;
 
 #ifdef OCPP_BUILD
 // Old CPP compiler
-Compiler* old_comp = NULL;
+Compiler* old_comp = nullptr;
 #endif
 
 // FIR container
-InstructionsCompiler* new_comp  = NULL;
-CodeContainer*        container = NULL;
+InstructionsCompiler* new_comp  = nullptr;
+CodeContainer*        container = nullptr;
 
-typedef void* (*compile_fun)(void* arg);
+using compile_fun = void *(*)(void *);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
 
@@ -189,15 +189,15 @@ static void callFun(compile_fun fun)
 {
 #ifdef EMCC
     // No thread support in JS
-    fun(NULL);
+    fun(nullptr);
 #else
     pthread_t      thread;
     pthread_attr_t attr;
     faustassert(pthread_attr_init(&attr) == 0);
     faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
     faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
-    faustassert(pthread_create(&thread, &attr, fun, NULL) == 0);
-    pthread_join(thread, NULL);
+    faustassert(pthread_create(&thread, &attr, fun, nullptr) == 0);
+    pthread_join(thread, nullptr);
 #endif
 }
 #endif
@@ -212,7 +212,7 @@ static void* threadEvaluateBlockDiagram(void* arg)
     } catch (faustexception& e) {
         gGlobal->gErrorMessage = e.Message();
     }
-    return 0;
+    return nullptr;
 }
 
 static void* threadBoxPropagateSig(void* arg)
@@ -223,14 +223,14 @@ static void* threadBoxPropagateSig(void* arg)
     } catch (faustexception& e) {
         gGlobal->gErrorMessage = e.Message();
     }
-    return 0;
+    return nullptr;
 }
 
 /****************************************************************
                         Global context variable
 *****************************************************************/
 
-global* gGlobal = NULL;
+global* gGlobal = nullptr;
 
 // Timing can be used outside of the scope of 'gGlobal'
 extern bool gTimingSwitch;
@@ -551,37 +551,37 @@ static bool processCmdline(int argc, const char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
-            if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
-                gGlobal->gImportDirList.push_back(argv[i + 1]);
+            if ((strstr(argv[i + 1], "http://") != nullptr) || (strstr(argv[i + 1], "https://") != nullptr)) {
+                gGlobal->gImportDirList.emplace_back(argv[i + 1]);
             } else {
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
-                    gGlobal->gImportDirList.push_back(path);
+                    gGlobal->gImportDirList.emplace_back(path);
                 }
             }
             i += 2;
 
         } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i + 1 < argc)) {
-            if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
-                gGlobal->gArchitectureDirList.push_back(argv[i + 1]);
+            if ((strstr(argv[i + 1], "http://") != nullptr) || (strstr(argv[i + 1], "https://") != nullptr)) {
+                gGlobal->gArchitectureDirList.emplace_back(argv[i + 1]);
             } else {
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
-                    gGlobal->gArchitectureDirList.push_back(path);
+                    gGlobal->gArchitectureDirList.emplace_back(path);
                 }
             }
             i += 2;
 
         } else if (isCmd(argv[i], "-L", "--library") && (i + 1 < argc)) {
-            gGlobal->gLibraryList.push_back(argv[i + 1]);
+            gGlobal->gLibraryList.emplace_back(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-O", "--output-dir") && (i + 1 < argc)) {
             char  temp[PATH_MAX + 1];
             char* path = realpath(argv[i + 1], temp);
-            if (path == 0) {
+            if (path == nullptr) {
                 stringstream error;
                 error << "ERROR : invalid directory path " << argv[i + 1] << endl;
                 throw faustexception(error.str());
@@ -619,7 +619,7 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (argv[i][0] != '-') {
             const char* url = argv[i];
             if (checkURL(url)) {
-                gGlobal->gInputFiles.push_back(url);
+                gGlobal->gInputFiles.emplace_back(url);
             }
             i++;
 
@@ -909,7 +909,7 @@ static void printHelp()
 
 static void printDeclareHeader(ostream& dst)
 {
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (auto i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             dst << "declare ";
             stringstream key;
@@ -918,7 +918,7 @@ static void printDeclareHeader(ostream& dst)
             dst << replaceCharList(key.str(), to_replace, '_');
             dst << " " << **(i->second.begin()) << ";" << endl;
         } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+            for (auto j = i->second.begin(); j != i->second.end(); ++j) {
                 if (j == i->second.begin()) {
                     dst << "declare " << *(i->first) << " " << **j << ";" << endl;
                 } else {
@@ -946,11 +946,11 @@ static void printHeader(ostream& dst)
     selectedKeys.insert(tree("version"));
 
     dst << "//----------------------------------------------------------" << endl;
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (auto i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
             dst << "// " << *(i->first);
             const char* sep = ": ";
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+            for (auto j = i->second.begin(); j != i->second.end(); ++j) {
                 dst << sep << **j;
                 sep = ", ";
             }
@@ -1060,21 +1060,21 @@ static void initFaustDirectories(int argc, const char* argv[])
     // init gImportDirList : a list of path where to search .lib files
     //-------------------------------------------------------------------------------------
     if (char* envpath = getenv("FAUST_LIB_PATH")) {
-        gGlobal->gImportDirList.push_back(envpath);
+        gGlobal->gImportDirList.emplace_back(envpath);
     }
 #ifdef INSTALL_PREFIX
     gGlobal->gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
 #endif
 
     gGlobal->gImportDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/share/faust");
-    gGlobal->gImportDirList.push_back("/usr/local/share/faust");
-    gGlobal->gImportDirList.push_back("/usr/share/faust");
+    gGlobal->gImportDirList.emplace_back("/usr/local/share/faust");
+    gGlobal->gImportDirList.emplace_back("/usr/share/faust");
 
     //-------------------------------------------------------------------------------------
     // init gArchitectureDirList : a list of path where to search architectures files
     //-------------------------------------------------------------------------------------
     if (char* envpath = getenv("FAUST_ARCH_PATH")) {
-        gGlobal->gArchitectureDirList.push_back(envpath);
+        gGlobal->gArchitectureDirList.emplace_back(envpath);
     }
     gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustDirectory + "/architecture");
     gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperDirectory + "/architecture");
@@ -1085,10 +1085,10 @@ static void initFaustDirectories(int argc, const char* argv[])
 #endif
     gGlobal->gArchitectureDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/share/faust");
     gGlobal->gArchitectureDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/include");
-    gGlobal->gArchitectureDirList.push_back("/usr/local/share/faust");
-    gGlobal->gArchitectureDirList.push_back("/usr/share/faust");
-    gGlobal->gArchitectureDirList.push_back("/usr/local/include");
-    gGlobal->gArchitectureDirList.push_back("/usr/include");
+    gGlobal->gArchitectureDirList.emplace_back("/usr/local/share/faust");
+    gGlobal->gArchitectureDirList.emplace_back("/usr/share/faust");
+    gGlobal->gArchitectureDirList.emplace_back("/usr/local/include");
+    gGlobal->gArchitectureDirList.emplace_back("/usr/include");
 
     // for debugging purposes
     //    cerr << "gArchitectureDirList:\n";
@@ -1227,8 +1227,8 @@ static void injectCode(ifstream* enrobage, ostream* dst)
 
 static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
-    ostream* dst     = NULL;
-    ostream* helpers = NULL;
+    ostream* dst     = nullptr;
+    ostream* helpers = nullptr;
     string   outpath = "";
 
     // Finally output file
@@ -1239,7 +1239,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputFile != "") {
         outpath =
             (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        ofstream* fdst = new ofstream(outpath.c_str());
+        auto* fdst = new ofstream(outpath.c_str());
         if (!fdst->is_open()) {
             stringstream error;
             error << "ERROR : file '" << outpath << "' cannot be opened\n";
@@ -1769,7 +1769,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     *****************************************************************/
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
-        gGlobal->gInputFiles.push_back(name);
+        gGlobal->gInputFiles.emplace_back(name);
     }
     initDocumentNames();
     initFaustFloat();
@@ -1790,7 +1790,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
 
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-    for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
+    for (auto it = pathnames.begin(); it != pathnames.end(); it++) {
         out << "declare "
             << "library_path " << '"' << *it << "\";" << endl;
     }
@@ -1862,7 +1862,7 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     *****************************************************************/
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
-        gGlobal->gInputFiles.push_back(name);
+        gGlobal->gInputFiles.emplace_back(name);
     }
     initDocumentNames();
     initFaustFloat();
@@ -1884,14 +1884,14 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     if (gGlobal->gExportDSP) {
         string outpath =
             (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        ofstream* out = new ofstream(outpath.c_str());
+        auto* out = new ofstream(outpath.c_str());
 
         // Encode compilation options as a 'declare' : has to be located first in the string
         *out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
 
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
+        for (auto it = pathnames.begin(); it != pathnames.end(); it++) {
             *out << "declare "
                  << "library_path " << '"' << *it << "\";" << endl;
         }
@@ -1938,8 +1938,8 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
 dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
                                       string& error_msg, bool generate)
 {
-    gGlobal                   = NULL;
-    dsp_factory_base* factory = NULL;
+    gGlobal                   = nullptr;
+    dsp_factory_base* factory = nullptr;
 
     try {
         global::allocate();
@@ -1957,7 +1957,7 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 string expandDSP(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key,
                  string& error_msg)
 {
-    gGlobal    = NULL;
+    gGlobal    = nullptr;
     string res = "";
 
     try {

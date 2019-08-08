@@ -44,8 +44,8 @@ class UIReal
     
     public:
         
-        UIReal() {}
-        virtual ~UIReal() {}
+        UIReal() = default;
+        virtual ~UIReal() = default;
         
         // -- widget's layouts
         
@@ -81,8 +81,8 @@ class UI : public UIReal<FAUSTFLOAT>
 
     public:
 
-        UI() {}
-        virtual ~UI() {}
+        UI() = default;
+        ~UI() override = default;
 };
 
 #endif

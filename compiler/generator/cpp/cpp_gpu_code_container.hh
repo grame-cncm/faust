@@ -40,7 +40,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     struct UIInstVisitor : public CPPInstVisitor {
         UIInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
 
-        virtual void visit(AddMetaDeclareInst* inst)
+        void visit(AddMetaDeclareInst* inst) override
         {
             *fOut << "interface->declare("
                   << "&fHostControl->" << inst->fZone << ", "
@@ -51,7 +51,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             EndLine();
         }
 
-        virtual void visit(AddButtonInst* inst)
+        void visit(AddButtonInst* inst) override
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 *fOut << "interface->addButton("
@@ -68,7 +68,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
         }
 
-        virtual void visit(AddSliderInst* inst)
+        void visit(AddSliderInst* inst) override
         {
             string name;
             switch (inst->fType) {
@@ -90,7 +90,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             EndLine();
         }
 
-        virtual void visit(AddBargraphInst* inst)
+        void visit(AddBargraphInst* inst) override
         {
             string name;
             switch (inst->fType) {
@@ -114,7 +114,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     struct DSPInstVisitor : public CPPInstVisitor {
         DSPInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
 
-        virtual void visit(DeclareVarInst* inst)
+        void visit(DeclareVarInst* inst) override
         {
             if (!isControl(inst->fAddress->getName())) {
                 tab(fTab, *fOut);
@@ -127,7 +127,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     struct ControlInstVisitor : public CPPInstVisitor {
         ControlInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
 
-        virtual void visit(DeclareVarInst* inst)
+        void visit(DeclareVarInst* inst) override
         {
             if (isControl(inst->fAddress->getName())) {
                 tab(fTab, *fOut);
@@ -144,10 +144,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         map<string, string> fFunctionTable;
         KernelInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}
 
-        virtual void visit(LoadVarInst* inst)
+        void visit(LoadVarInst* inst) override
         {
-            NamedAddress*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            auto*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
+            auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             // Special treatment for "fSampleRate" variable
             if (named && named->getName() == "fSampleRate") {
@@ -171,10 +171,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
         }
 
-        virtual void visit(LoadVarAddressInst* inst)
+        void visit(LoadVarAddressInst* inst) override
         {
-            NamedAddress*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            auto*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
+            auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             // Special treatment for "fSampleRate" variable
             if (named && named->getName() == "fSampleRate") {
@@ -198,10 +198,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
         }
 
-        virtual void visit(StoreVarInst* inst)
+        void visit(StoreVarInst* inst) override
         {
-            NamedAddress*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            auto*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
+            auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             // Special treatment for "fSampleRate" variable
             if (named && named->getName() == "fSampleRate") {
@@ -227,7 +227,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             EndLine();
         }
 
-        virtual void visit(FunCallInst* inst)
+        void visit(FunCallInst* inst) override
         {
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
@@ -261,7 +261,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         }
 
         // C like cast
-        virtual void visit(CastInst* inst)
+        void visit(CastInst* inst) override
         {
             *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             inst->fInst->accept(this);
@@ -281,7 +281,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         fOutputRates.resize(numOutputs);
     }
 
-    virtual ~CPPGPUCodeContainer() {}
+    ~CPPGPUCodeContainer() override = default;
 };
 
 class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
@@ -360,7 +360,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
         BlockKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab) {}
 
-        virtual void visit(DeclareVarInst* inst)
+        void visit(DeclareVarInst* inst) override
         {
             /*
             if (inst->fAddress->getAccess() & Address::kGlobal) {
@@ -402,11 +402,11 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         fGPUOut             = new std::ostringstream();
         fKernelCodeProducer = new OpenCLKernelInstVisitor(fGPUOut, 0);
     }
-    virtual ~CPPOpenCLCodeContainer() { delete fGPUOut; }
+    ~CPPOpenCLCodeContainer() override { delete fGPUOut; }
 
-    void produceClass();
-    void produceInternal();
-    void generateCompute(int n);
+    void produceClass() override;
+    void produceInternal() override;
+    void generateCompute(int n) override;
 
     virtual void generateComputeKernel(int n);
 };
@@ -419,7 +419,7 @@ class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
     {
     }
 
-    void generateComputeKernel(int n);
+    void generateComputeKernel(int n) override;
 };
 
 class CPPCUDACodeContainer : public CPPGPUCodeContainer {
@@ -434,7 +434,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
         BlockKernelInstVisitor(std::ostream* out, int tab) : KernelInstVisitor(out, tab) {}
 
-        virtual void visit(DeclareVarInst* inst)
+        void visit(DeclareVarInst* inst) override
         {
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                 *fOut << "static ";
@@ -469,11 +469,11 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         fInputRates.resize(numInputs);
         fOutputRates.resize(numOutputs);
     }
-    virtual ~CPPCUDACodeContainer() { delete fGPUOut; }
+    ~CPPCUDACodeContainer() override { delete fGPUOut; }
 
-    void produceClass();
-    void generateCompute(int tab);
-    void produceInternal();
+    void produceClass() override;
+    void generateCompute(int tab) override;
+    void produceInternal() override;
 
     virtual void generateComputeKernelGlue(int n);
     virtual void generateInstanceInitKernelGlue(int n);
@@ -488,9 +488,9 @@ class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
         : CPPCUDACodeContainer(name, super, numInputs, numOutputs, out)
     {
     }
-    virtual ~CPPCUDAVectorCodeContainer() {}
+    ~CPPCUDAVectorCodeContainer() override = default;
 
-    void generateComputeKernelGlue(int n);
-    void generateInstanceInitKernelGlue(int n);
-    void generateComputeKernel(int n);
+    void generateComputeKernelGlue(int n) override;
+    void generateInstanceInitKernelGlue(int n) override;
+    void generateComputeKernel(int n) override;
 };

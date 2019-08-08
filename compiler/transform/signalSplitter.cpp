@@ -55,7 +55,7 @@ class SignalSplitter : public SignalIdentity {
     virtual ostream& print(ostream& dst) const;
 
    protected:
-    virtual Tree transformation(Tree sig);
+    Tree transformation(Tree sig) override;
 };
 
 /**
@@ -124,7 +124,7 @@ Tree SignalSplitter::transformation(Tree sig)
             } else {
                 // This case is impossible (in principle ;-))
                 faustassert(0);
-                return 0;  // needed to avoid compiler warning
+                return nullptr;  // needed to avoid compiler warning
             }
         } else {
             // Delay on a regular expression

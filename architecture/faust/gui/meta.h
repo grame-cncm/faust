@@ -27,7 +27,7 @@
 
 struct Meta
 {
-    virtual ~Meta() {};
+    virtual ~Meta() = default;;
     virtual void declare(const char* key, const char* value) = 0;
     
 };

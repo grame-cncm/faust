@@ -34,13 +34,13 @@
 //----------------------------------------------------------------------
 
 class SignalVisitor : public TreeTraversal {
-    bool fVisitGen;
+    bool fVisitGen{false};
 
    public:
-    SignalVisitor() : fVisitGen(false) {}
+    SignalVisitor()  {}
 
    protected:
-    virtual void visit(Tree t);
-    virtual void traceEnter(Tree t);
-    virtual void traceExit(Tree t);
+    void visit(Tree t) override;
+    void traceEnter(Tree t) override;
+    void traceExit(Tree t) override;
 };

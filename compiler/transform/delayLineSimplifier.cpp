@@ -86,7 +86,7 @@ class ReplaceDelay : public SignalIdentity {
     }
 
    protected:
-    virtual Tree transformation(Tree sig)
+    Tree transformation(Tree sig) override
     {
         Tree ID1, ID2, origin, dl1, def;
         int  nature, dmin1, dmax2;

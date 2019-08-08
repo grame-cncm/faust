@@ -203,8 +203,8 @@ Type operator*(const Type& t1, const Type& t2)
 {
     vector<Type> v;
 
-    TupletType* nt1 = dynamic_cast<TupletType*>((AudioType*)t1);
-    TupletType* nt2 = dynamic_cast<TupletType*>((AudioType*)t2);
+    auto* nt1 = dynamic_cast<TupletType*>((AudioType*)t1);
+    auto* nt2 = dynamic_cast<TupletType*>((AudioType*)t2);
 
     if (nt1) {
         for (int i = 0; i < nt1->arity(); i++) {
@@ -244,7 +244,7 @@ Type checkInt(Type t)
 {
     // verifie que t est entier
     SimpleType* st = isSimpleType(t);
-    if (st == 0 || st->nature() > kInt) {
+    if (st == nullptr || st->nature() > kInt) {
         stringstream error;
         error << "ERROR : checkInt failed for type " << t << endl;
         throw faustexception(error.str());

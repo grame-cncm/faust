@@ -59,7 +59,7 @@ this header file.
 
 class num : public virtual Garbageable {
    private:
-    int fType;
+    int fType{0};
     union {
         int    i;
         double f;
@@ -67,7 +67,7 @@ class num : public virtual Garbageable {
 
    public:
     // constructors
-    num(int x = 0) : fType(0) { fData.i = x; }
+    num(int x = 0)  { fData.i = x; }
     num(double x) : fType(1) { fData.f = x; }
     num(const num& n) : fType(n.fType) { fData.i = n.fData.i; }
 

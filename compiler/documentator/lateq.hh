@@ -55,7 +55,7 @@ class Lateq : public virtual Garbageable {
    public:
     Lateq(const int& numInputs, const int& numOutputs) : fNumInputs(numInputs), fNumOutputs(numOutputs) {}
 
-    ~Lateq() {}
+    ~Lateq() override = default;
 
     /** Add a line of a latex equation code corresponding to a signal. */
     void addInputSigFormula(const string& str) { fInputSigsFormulas.push_back(str); }

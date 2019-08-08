@@ -30,11 +30,11 @@ class MaxPrim : public xtended {
    public:
     MaxPrim() : xtended("max") {}
 
-    virtual unsigned int arity() { return 2; }
+    unsigned int arity() override { return 2; }
 
-    virtual bool needCache() { return true; }
+    bool needCache() override { return true; }
 
-    virtual ::Type infereSigType(const vector< ::Type>& types)
+    ::Type infereSigType(const vector< ::Type>& types) override
     {
         faustassert(types.size() == arity());
         interval i = types[0]->getInterval();
@@ -44,13 +44,13 @@ class MaxPrim : public xtended {
 
     virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-    virtual int infereSigOrder(const vector<int>& args)
+    int infereSigOrder(const vector<int>& args) override
     {
         faustassert(args.size() == arity());
         return max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    Tree computeSigOutput(const vector<Tree>& args) override
     {
         double f, g;
         int    i, j;
@@ -80,8 +80,8 @@ class MaxPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -106,7 +106,7 @@ class MaxPrim : public xtended {
             } else {
                 faustassert(n1 == kInt);  // second argument is not float, cast it to float
                 // prepare args values
-                list<ValueInst*>::const_iterator it2 = args.begin();
+                auto it2 = args.begin();
                 casted_args.push_back((*it2));
                 it2++;
                 casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
@@ -120,7 +120,7 @@ class MaxPrim : public xtended {
             arg_types.push_back(itfloat());
 
             // prepare args values
-            list<ValueInst*>::const_iterator it2 = args.begin();
+            auto it2 = args.begin();
             casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
             it2++;
             casted_args.push_back((*it2));
@@ -142,7 +142,7 @@ class MaxPrim : public xtended {
                 } else {
                     faustassert(b1 == kBool);  // second is boolean, cast to int
                     // prepare args values
-                    list<ValueInst*>::const_iterator it2 = args.begin();
+                    auto it2 = args.begin();
                     casted_args.push_back((*it2));
                     it2++;
                     casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
@@ -151,7 +151,7 @@ class MaxPrim : public xtended {
             } else if (b1 == kNum) {
                 faustassert(b0 == kBool);  // first is boolean, cast to int
                 // prepare args values
-                list<ValueInst*>::const_iterator it2 = args.begin();
+                auto it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 it2++;
                 casted_args.push_back((*it2));
@@ -161,7 +161,7 @@ class MaxPrim : public xtended {
                 // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);  // both are booleans, cast both
-                list<ValueInst*>::const_iterator it2 = args.begin();
+                auto it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 it2++;
                 casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
@@ -170,7 +170,7 @@ class MaxPrim : public xtended {
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -215,7 +215,7 @@ class MaxPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+    string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

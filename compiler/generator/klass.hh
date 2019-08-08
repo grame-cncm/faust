@@ -102,19 +102,19 @@ class Klass  //: public Target
 
    public:
     Klass(const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
-        : fParentKlass(0),
+        : fParentKlass(nullptr),
           fKlassName(name),
           fSuperKlassName(super),
           fNumInputs(numInputs),
           fNumOutputs(numOutputs),
           fNumActives(0),
           fNumPassives(0),
-          fTopLoop(new Loop(0, "count")),
+          fTopLoop(new Loop(nullptr, "count")),
           fVec(__vec)
     {
     }
 
-    virtual ~Klass() {}
+    virtual ~Klass() = default;
 
     void setParentKlass(Klass* parent)
     {
@@ -122,10 +122,10 @@ class Klass  //: public Target
         fParentKlass = parent;
     }
     Klass* getParentKlass() { return fParentKlass; }
-    Klass* getTopParentKlass() { return (fParentKlass != 0) ? fParentKlass->getTopParentKlass() : this; }
+    Klass* getTopParentKlass() { return (fParentKlass != nullptr) ? fParentKlass->getTopParentKlass() : this; }
     string getFullClassName()
     {
-        return (fParentKlass != 0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
+        return (fParentKlass != nullptr) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
     }  ///< Returns the name of the class
 
     void openLoop(const string& size);
@@ -224,12 +224,12 @@ class SigIntGenKlass : public Klass {
    public:
     SigIntGenKlass(Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
 
-    virtual void println(int n, ostream& fout);
+    void println(int n, ostream& fout) override;
 };
 
 class SigFloatGenKlass : public Klass {
    public:
     SigFloatGenKlass(Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
 
-    virtual void println(int n, ostream& fout);
+    void println(int n, ostream& fout) override;
 };

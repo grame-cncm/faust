@@ -43,8 +43,8 @@ class PathBuilder
        
     public:
     
-        PathBuilder() {}
-        virtual ~PathBuilder() {}
+        PathBuilder() = default;
+        virtual ~PathBuilder() = default;
     
         std::string buildPath(const std::string& label) 
         {

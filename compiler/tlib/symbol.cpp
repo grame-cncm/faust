@@ -87,7 +87,7 @@ bool Symbol::isnew(const char* str)
     Symbol*      item = gSymbolTable[bckt];
 
     while (item && !item->equiv(hsh, str)) item = item->fNext;
-    return item == 0;
+    return item == nullptr;
 }
 
 /**
@@ -150,12 +150,11 @@ Symbol::Symbol(const string& str, unsigned int hsh, Symbol* nxt)
     fName = str;
     fHash = hsh;
     fNext = nxt;
-    fData = 0;
+    fData = nullptr;
 }
 
 Symbol::~Symbol()
-{
-}
+= default;
 
 ostream& Symbol::print(ostream& fout) const  ///< print a symbol on a stream
 {

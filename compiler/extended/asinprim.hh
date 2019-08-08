@@ -29,11 +29,11 @@ class AsinPrim : public xtended {
    public:
     AsinPrim() : xtended("asin") {}
 
-    virtual unsigned int arity() { return 1; }
+    unsigned int arity() override { return 1; }
 
-    virtual bool needCache() { return true; }
+    bool needCache() override { return true; }
 
-    virtual ::Type infereSigType(const vector< ::Type>& args)
+    ::Type infereSigType(const vector< ::Type>& args) override
     {
         faustassert(args.size() == 1);
         return floatCast(args[0]);
@@ -41,9 +41,9 @@ class AsinPrim : public xtended {
 
     virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-    virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
+    int infereSigOrder(const vector<int>& args) override { return args[0]; }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    Tree computeSigOutput(const vector<Tree>& args) override
     {
         num n;
         if (isNum(args[0], n)) {
@@ -53,8 +53,8 @@ class AsinPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -67,7 +67,7 @@ class AsinPrim : public xtended {
         return container->pushFunction(subst("asin$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -75,7 +75,7 @@ class AsinPrim : public xtended {
         return subst("asin$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

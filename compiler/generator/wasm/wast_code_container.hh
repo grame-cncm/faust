@@ -44,22 +44,22 @@ class WASTCodeContainer : public virtual CodeContainer {
         block->accept(gGlobal->gWASTVisitor);
     }
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
 
     void generateComputeAux1(int n);
     void generateComputeAux2(BlockInst* compute_block, int n);
 
    public:
     WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-    virtual ~WASTCodeContainer() {}
+    ~WASTCodeContainer() override = default;
 
-    virtual void produceClass();
+    void produceClass() override;
     virtual void generateCompute(int tab) = 0;
 
-    void                      produceInternal();
-    virtual dsp_factory_base* produceFactory();
+    void                      produceInternal() override;
+    dsp_factory_base* produceFactory() override;
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;
     CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
 
     static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
@@ -71,16 +71,16 @@ class WASTScalarCodeContainer : public WASTCodeContainer {
    public:
     WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type, bool internal_memory);
-    virtual ~WASTScalarCodeContainer() {}
+    ~WASTScalarCodeContainer() override = default;
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };
 
 class WASTVectorCodeContainer : public VectorCodeContainer, public WASTCodeContainer {
    protected:
    public:
     WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-    virtual ~WASTVectorCodeContainer() {}
+    ~WASTVectorCodeContainer() override = default;
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };

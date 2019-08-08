@@ -56,9 +56,9 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         fMetaAux.clear();
     }
 
-    virtual void visit(AddMetaDeclareInst* inst) { fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue)); }
+    void visit(AddMetaDeclareInst* inst) override { fMetaAux.emplace_back(inst->fKey, inst->fValue); }
 
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
@@ -79,7 +79,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         tab(fTab, fOut);
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
@@ -101,7 +101,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         tab(fTab, fOut);
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
@@ -121,7 +121,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         tab(fTab, fOut);
     }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         switch (inst->fOrient) {
             case 0:
@@ -137,7 +137,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         fMetaAux.clear();
     }
 
-    virtual void visit(CloseboxInst* inst)
+    void visit(CloseboxInst* inst) override
     {
         popLabel();
         fMetaAux.clear();
@@ -232,9 +232,9 @@ class SOULInstVisitor : public TextInstVisitor {
         fIntAsBool = false;
     }
 
-    virtual ~SOULInstVisitor() {}
+    ~SOULInstVisitor() override = default;
 
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         *fOut << "// " << inst->fLabel;
         EndLine(' ');
@@ -250,7 +250,7 @@ class SOULInstVisitor : public TextInstVisitor {
         EndLine(' ');
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         *fOut << "// " << inst->fLabel << " [init = " << checkReal(inst->fInit) << ", min = " << checkReal(inst->fMin)
               << ", max = " << checkReal(inst->fMax) << ", step = " << checkReal(inst->fStep) << "]";
@@ -267,20 +267,20 @@ class SOULInstVisitor : public TextInstVisitor {
         EndLine(' ');
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         *fOut << "// " << inst->fLabel << " [min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
               << "]";
         EndLine(' ');
     }
 
-    virtual void visit(AddSoundfileInst* inst)
+    void visit(AddSoundfileInst* inst) override
     {
         // Not supported for now
         throw faustexception("ERROR : AddSoundfileInst not supported for SOUL\n");
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         string name = inst->fAddress->getName();
 
@@ -302,17 +302,17 @@ class SOULInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareFunInst* inst) {}
+    void visit(DeclareFunInst* inst) override {}
 
     /*
      Indexed adresses can actually be values in an array or fields in a struct type
      */
-    virtual void visit(IndexedAddress* indexed)
+    void visit(IndexedAddress* indexed) override
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            auto* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
             if (dynamic_cast<Int32NumInst*>(indexed->fIndex)) {
@@ -327,7 +327,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         // special case for 'output' considered as a 'stream'
         if (startWith(inst->fAddress->getName(), "output")) {
@@ -361,7 +361,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(FloatArrayNumInst* inst)
+    void visit(FloatArrayNumInst* inst) override
     {
         char sep = '(';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -371,7 +371,7 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ')';
     }
 
-    virtual void visit(Int32ArrayNumInst* inst)
+    void visit(Int32ArrayNumInst* inst) override
     {
         char sep = '(';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -381,7 +381,7 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ')';
     }
 
-    virtual void visit(DoubleArrayNumInst* inst)
+    void visit(DoubleArrayNumInst* inst) override
     {
         char sep = '(';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -391,7 +391,7 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ')';
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         string type = fTypeManager->generateType(inst->fType);
         *fOut << type << " (";
@@ -399,9 +399,9 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(BitcastInst* inst) { faustassert(false); }
+    void visit(BitcastInst* inst) override { faustassert(false); }
 
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         *fOut << "(bool (";
 
@@ -416,7 +416,7 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
             *fOut << "int (";
@@ -457,7 +457,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         string name;
         if (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) {
@@ -473,7 +473,7 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
@@ -510,7 +510,7 @@ class SOULSubContainerInstVisitor : public SOULInstVisitor {
    public:
     SOULSubContainerInstVisitor(std::ostream* out, int tab = 0) : SOULInstVisitor(out, tab) {}
 
-    virtual void visit(NamedAddress* named)
+    void visit(NamedAddress* named) override
     {
         if (named->getAccess() & Address::kStruct) {
             *fOut << "this.";

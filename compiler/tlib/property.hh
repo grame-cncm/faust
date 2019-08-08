@@ -31,7 +31,7 @@ class property : public virtual Garbageable {
     P* access(Tree t)
     {
         Tree d = t->getProperty(fKey);
-        return d ? (P*)(d->node().getPointer()) : 0;
+        return d ? (P*)(d->node().getPointer()) : nullptr;
     }
 
    public:

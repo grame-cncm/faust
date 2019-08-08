@@ -37,9 +37,9 @@ class OpenCLInstVisitor : public TextInstVisitor {
     {
     }
 
-    virtual ~OpenCLInstVisitor() {}
+    ~OpenCLInstVisitor() override = default;
 
-    virtual void visit(AddMetaDeclareInst* inst)
+    void visit(AddMetaDeclareInst* inst) override
     {
         *fOut << "interface->declare("
               << "&" << inst->fZone << ", "
@@ -50,7 +50,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         string name;
         switch (inst->fOrient) {
@@ -70,13 +70,13 @@ class OpenCLInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(CloseboxInst* inst)
+    void visit(CloseboxInst* inst) override
     {
         *fOut << "interface->closeBox();";
         tab(fTab, *fOut);
     }
 
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
             *fOut << "interface->addButton("
@@ -93,7 +93,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -115,7 +115,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -133,7 +133,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
@@ -151,7 +151,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         // Defined as macro in the architecture file...
         if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
@@ -168,13 +168,13 @@ class OpenCLInstVisitor : public TextInstVisitor {
         generateFunDefBody(inst);
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         *fOut << "&";
         inst->fAddress->accept(this);
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
         *fOut << "(";
@@ -182,5 +182,5 @@ class OpenCLInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(FunCallInst* inst) { generateFunCall(inst, inst->fName); }
+    void visit(FunCallInst* inst) override { generateFunCall(inst, inst->fName); }
 };

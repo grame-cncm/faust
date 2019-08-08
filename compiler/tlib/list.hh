@@ -108,7 +108,7 @@ This file contains several extensions to the tree library :
 
 // Basic List Operations implemented on trees
 
-typedef Tree (*tfun)(Tree);
+using tfun = Tree (*)(Tree);
 
 void print(Tree t, FILE* out = stdout);
 

@@ -36,27 +36,27 @@ class WASMCodeContainer : public virtual CodeContainer {
     std::stringstream      fHelper;
     int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateClassInit(const string& name);
-    DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
+    DeclareFunInst* generateClassInit(const string& name) override;
+    DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
+    DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
     DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
-                                                       bool isvirtual);
+                                                       bool isvirtual) override;
 
     void generateComputeAux(BlockInst* compute_block);
 
    public:
     WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                       bool internal_memory = true);
-    virtual ~WASMCodeContainer() {}
+    ~WASMCodeContainer() override = default;
 
-    virtual void produceClass();
+    void produceClass() override;
     virtual void generateCompute() = 0;
 
-    void                      produceInternal();
-    virtual dsp_factory_base* produceFactory();
+    void                      produceInternal() override;
+    dsp_factory_base* produceFactory() override;
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;
     CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
 
     static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
@@ -68,16 +68,16 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
    public:
     WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type, bool internal_memory);
-    virtual ~WASMScalarCodeContainer() {}
+    ~WASMScalarCodeContainer() override = default;
 
-    void generateCompute();
+    void generateCompute() override;
 };
 
 class WASMVectorCodeContainer : public VectorCodeContainer, public WASMCodeContainer {
    protected:
    public:
     WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-    virtual ~WASMVectorCodeContainer() {}
+    ~WASMVectorCodeContainer() override = default;
 
-    void generateCompute();
+    void generateCompute() override;
 };

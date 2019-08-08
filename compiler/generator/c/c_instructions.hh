@@ -113,9 +113,9 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["tanl"]       = true;
     }
 
-    virtual ~CInstVisitor() {}
+    ~CInstVisitor() override = default;
 
-    virtual void visit(AddMetaDeclareInst* inst)
+    void visit(AddMetaDeclareInst* inst) override
     {
         // Special case
         if (inst->fZone == "0") {
@@ -128,7 +128,7 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         string name;
         switch (inst->fOrient) {
@@ -146,12 +146,12 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(CloseboxInst* inst)
+    void visit(CloseboxInst* inst) override
     {
         *fOut << "ui_interface->closeBox(ui_interface->uiInterface);";
         tab(fTab, *fOut);
     }
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
@@ -163,7 +163,7 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -183,7 +183,7 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         string name;
         switch (inst->fType) {
@@ -199,14 +199,14 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(AddSoundfileInst* inst)
+    void visit(AddSoundfileInst* inst) override
     {
         *fOut << "ui_interface->addSoundfile(ui_interface->uiInterface, " << quote(inst->fLabel) << ", "
               << quote(inst->fURL) << ", &dsp->" << inst->fSFZone << ")";
         EndLine();
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
@@ -224,7 +224,7 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         // Already generated
         if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
@@ -252,7 +252,7 @@ class CInstVisitor : public TextInstVisitor {
         generateFunDefBody(inst);
     }
 
-    virtual void visit(NamedAddress* named)
+    void visit(NamedAddress* named) override
     {
         if (named->getAccess() & Address::kStruct) {
             *fOut << "dsp->";
@@ -260,20 +260,20 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << named->fName;
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         *fOut << "&";
         inst->fAddress->accept(this);
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
         inst->fInst->accept(this);
     }
 
     // TODO : does not work, put this code in a function
-    virtual void visit(BitcastInst* inst)
+    void visit(BitcastInst* inst) override
     {
         switch (inst->fType->getType()) {
             case Typed::kInt32:
@@ -303,7 +303,7 @@ class CInstVisitor : public TextInstVisitor {
     }
 
     // Generate standard funcall (not 'method' like funcall...)
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         // Integer and real min/max are mapped on polymorphic ones
         string name;
@@ -322,13 +322,13 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
 
-        DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-        StoreVarInst*   c99_init_inst    = NULL;
+        auto* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
+        StoreVarInst*   c99_init_inst    = nullptr;
 
         if (c99_declare_inst) {
             InstBuilder::genLabelInst("/* C99 loop */")->accept(this);

@@ -178,8 +178,8 @@ static void setSigType(Tree sig, Type t)
  */
 static Type getSigType(Tree sig)
 {
-    AudioType* ty = (AudioType*)sig->getType();
-    if (ty == 0)
+    auto* ty = (AudioType*)sig->getType();
+    if (ty == nullptr)
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " HAS NO TYPE YET" << endl;)
     else
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
@@ -225,8 +225,8 @@ static Type T(Tree term, Tree ignoreenv)
 
 Type getSimpleType(Tree sig)
 {
-    AudioType* ty = (AudioType*)sig->getType();
-    if (ty == 0) {
+    auto* ty = (AudioType*)sig->getType();
+    if (ty == nullptr) {
         ty = T(sig, gGlobal->NULLTYPEENV);
         sig->setType(ty);
     }
@@ -542,7 +542,7 @@ static Type infereSigType(Tree sig, Tree env)
 
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -551,7 +551,7 @@ static Type infereSigType(Tree sig, Tree env)
 static Type infereProjType(Type t, int i, int vec)
 {
     TupletType* tt = isTupletType(t);
-    if (tt == 0) {
+    if (tt == nullptr) {
         stringstream error;
         error << "ERROR inferring projection type, not a tuplet type : " << t << endl;
         throw faustexception(error.str());
@@ -576,13 +576,13 @@ static Type infereProjType(Type t, int i, int vec)
 static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 {
     TableType* tt = isTableType(tbl);
-    if (tt == 0) {
+    if (tt == nullptr) {
         stringstream error;
         error << "ERROR inferring write table type, wrong table type : " << tbl << endl;
         throw faustexception(error.str());
     }
     SimpleType* st = isSimpleType(wi);
-    if (st == 0 || st->nature() > kInt) {
+    if (st == nullptr || st->nature() > kInt) {
         stringstream error;
         error << "ERROR inferring write table type, wrong write index type : " << wi << endl;
         throw faustexception(error.str());
@@ -602,13 +602,13 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 static Type infereReadTableType(Type tbl, Type ri)
 {
     TableType* tt = isTableType(tbl);
-    if (tt == 0) {
+    if (tt == nullptr) {
         stringstream error;
         error << "ERROR inferring read table type, wrong table type : " << tbl << endl;
         throw faustexception(error.str());
     }
     SimpleType* st = isSimpleType(ri);
-    if (st == 0 || st->nature() > kInt) {
+    if (st == nullptr || st->nature() > kInt) {
         stringstream error;
         error << "ERROR inferring read table type, wrong write index type : " << ri << endl;
         throw faustexception(error.str());
@@ -768,7 +768,7 @@ static Type infereXType(Tree sig, Tree env)
 {
     // cerr << "infereXType :" << endl;
     // cerr << "infereXType of " << *sig << endl;
-    xtended*     p = (xtended*)getUserData(sig);
+    auto*     p = (xtended*)getUserData(sig);
     vector<Type> vt;
 
     for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));

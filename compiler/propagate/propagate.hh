@@ -37,7 +37,7 @@
 
 using namespace std;
 
-typedef vector<Tree> siglist;
+using siglist = vector<Tree>;
 
 siglist makeSigInputList(int n);
 

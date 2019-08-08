@@ -123,4 +123,4 @@ inline ostream& operator<<(ostream& s, const Symbol& n)
     return n.print(s);
 }
 
-typedef Symbol* Sym;
+using Sym = Symbol *;

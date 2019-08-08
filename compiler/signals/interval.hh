@@ -51,11 +51,11 @@ inline double max4(double a, double b, double c, double d)
 }
 
 struct interval : public virtual Garbageable {
-    bool   valid;  ///< true if it is a valid interval
+    bool   valid{false};  ///< true if it is a valid interval
     double lo;     ///< minimal value
     double hi;     ///< maximal value
 
-    interval() : valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) {}
+    interval() :  lo(-HUGE_VAL), hi(HUGE_VAL) {}
     interval(double n) : valid(true), lo(n), hi(n) {}
     interval(bool v, double n, double m) : valid(v), lo(n), hi(m) {}
     interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m)) {}

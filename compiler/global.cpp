@@ -90,7 +90,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
+global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE) 
 {
     CTree::init();
     Symbol::init();
@@ -98,9 +98,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     EVALPROPERTY   = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
 
-    gResult          = 0;
-    gResult2         = 0;
-    gExpandedDefList = 0;
+    gResult          = nullptr;
+    gResult2         = nullptr;
+    gExpandedDefList = nullptr;
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
@@ -146,9 +146,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gSuperClassName = "dsp";
     gProcessName    = "process";
 
-    gDSPFactory = 0;
+    gDSPFactory = nullptr;
 
-    gInputString = 0;
+    gInputString = nullptr;
 
     // Backend configuration : default values
     gGenerateSelectWithIf = true;
@@ -233,9 +233,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gLocalCausalityCheck = false;
     gCausality           = false;
 
-    gOccurrences = 0;
+    gOccurrences = nullptr;
     gFoldingFlag = false;
-    gDevSuffix   = 0;
+    gDevSuffix   = nullptr;
 
     gAbsPrim       = new AbsPrim();
     gAcosPrim      = new AcosPrim();
@@ -402,8 +402,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gOutputLang          = "";
 
 #ifdef WASM_BUILD
-    gWASMVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend
-    gWASTVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend
+    gWASMVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
+    gWASTVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
 #endif
 
 #ifdef INTERP_BUILD
@@ -411,7 +411,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #endif
 
 #ifdef SOUL_BUILD
-    gTableSizeVisitor = 0;  // Will be (possibly) allocated in SOUL backend
+    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -434,8 +434,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gTimeout = 120;  // Time out to abort compiler (in seconds)
 
     // Globals to transfer results in thread based evaluation
-    gProcessTree  = 0;
-    gLsignalsTree = 0;
+    gProcessTree  = nullptr;
+    gLsignalsTree = nullptr;
     gNumInputs    = 0;
     gNumOutputs   = 0;
     gErrorMessage = "";
@@ -510,13 +510,13 @@ void global::init()
 
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "";
-    yyin       = 0;
+    yyin       = nullptr;
 
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
-    gCurrentLocal = setlocale(LC_ALL, NULL);
-    if (gCurrentLocal != NULL) {
+    gCurrentLocal = setlocale(LC_ALL, nullptr);
+    if (gCurrentLocal != nullptr) {
         gCurrentLocal = strdup(gCurrentLocal);
     }
 
@@ -689,11 +689,11 @@ void global::destroy()
 #ifdef EMCC
     if (faustexception::gJSExceptionMsg) {
         free((void*)faustexception::gJSExceptionMsg);
-        faustexception::gJSExceptionMsg = NULL;
+        faustexception::gJSExceptionMsg = nullptr;
     }
 #endif
     delete gGlobal;
-    gGlobal = NULL;
+    gGlobal = nullptr;
 }
 
 string global::makeDrawPath()
@@ -731,12 +731,10 @@ string global::getFreshID(const string& prefix)
 }
 
 Garbageable::Garbageable()
-{
-}
+= default;
 
 Garbageable::~Garbageable()
-{
-}
+= default;
 
 void Garbageable::cleanup()
 {
@@ -762,7 +760,7 @@ void Garbageable::cleanup()
 void* Garbageable::operator new(size_t size)
 {
     // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    Garbageable* res = (Garbageable*)malloc(size + 16);
+    auto* res = (Garbageable*)malloc(size + 16);
     global::gObjectTable.push_front(res);
     return res;
 }
@@ -780,7 +778,7 @@ void Garbageable::operator delete(void* ptr)
 void* Garbageable::operator new[](size_t size)
 {
     // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    Garbageable* res = (Garbageable*)malloc(size + 16);
+    auto* res = (Garbageable*)malloc(size + 16);
     global::gObjectTable.push_front(res);
     return res;
 }

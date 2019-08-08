@@ -38,25 +38,25 @@ class VectorCompiler : public ScalarCompiler {
     }
 
     VectorCompiler(Klass* k) : ScalarCompiler(k) {}
-    virtual void compileMultiSignal(Tree L);
+    void compileMultiSignal(Tree L) override;
 
    protected:
-    virtual string CS(Tree sig);
-    virtual string generateCode(Tree sig);
+    string CS(Tree sig) override;
+    string generateCode(Tree sig) override;
     virtual void   generateCodeRecursions(Tree sig);
     virtual string generateCodeNonRec(Tree sig);
     virtual string generateLoopCode(Tree sig);
 
-    virtual string generateCacheCode(Tree sig, const string& exp);
-    virtual void   generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                     const string& ccs);
-    virtual string generateVariableStore(Tree sig, const string& exp);
-    virtual string generateFixDelay(Tree sig, Tree exp, Tree delay);
-    virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    string generateCacheCode(Tree sig, const string& exp) override;
+    void   generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
+                                     const string& ccs) override;
+    string generateVariableStore(Tree sig, const string& exp) override;
+    string generateFixDelay(Tree sig, Tree exp, Tree delay) override;
+    string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd) override;
     virtual void   generateVectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
     virtual void   generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
                                      const string& ccs);
-    virtual string generateWaveform(Tree sig);
+    string generateWaveform(Tree sig) override;
 
     bool needSeparateLoop(Tree sig);
 };

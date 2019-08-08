@@ -150,7 +150,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             init("", "", -1, -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
  
-        virtual ~JSONUIAux() {}
+        ~JSONUIAux() override = default;
         
         void setInputs(int inputs) { fInputs = inputs; }
         void setOutputs(int outputs) { fOutputs = outputs; }
@@ -216,22 +216,22 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fTab += 1;
         }
 
-        virtual void openTabBox(const char* label)
+        void openTabBox(const char* label) override
         {
             openGenericGroup(label, "tgroup");
         }
     
-        virtual void openHorizontalBox(const char* label)
+        void openHorizontalBox(const char* label) override
         {
             openGenericGroup(label, "hgroup");
         }
     
-        virtual void openVerticalBox(const char* label)
+        void openVerticalBox(const char* label) override
         {
             openGenericGroup(label, "vgroup");
         }
     
-        virtual void closeBox()
+        void closeBox() override
         {
             popLabel();
             fTab -= 1;
@@ -264,12 +264,12 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fCloseUIPar = ',';
         }
 
-        virtual void addButton(const char* label, REAL* zone)
+        void addButton(const char* label, REAL* zone) override
         {
             addGenericButton(label, "button");
         }
     
-        virtual void addCheckButton(const char* label, REAL* zone)
+        void addCheckButton(const char* label, REAL* zone) override
         {
             addGenericButton(label, "checkbox");
         }
@@ -297,17 +297,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fCloseUIPar = ',';
         }
     
-        virtual void addVerticalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
+        void addVerticalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step) override
         {
             addGenericEntry(label, "vslider", init, min, max, step);
         }
     
-        virtual void addHorizontalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
+        void addHorizontalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step) override
         {
             addGenericEntry(label, "hslider", init, min, max, step);
         }
     
-        virtual void addNumEntry(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
+        void addNumEntry(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step) override
         {
             addGenericEntry(label, "nentry", init, min, max, step);
         }
@@ -335,17 +335,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fCloseUIPar = ',';
         }
 
-        virtual void addHorizontalBargraph(const char* label, REAL* zone, REAL min, REAL max) 
+        void addHorizontalBargraph(const char* label, REAL* zone, REAL min, REAL max) override 
         {
             addGenericBargraph(label, "hbargraph", min, max);
         }
     
-        virtual void addVerticalBargraph(const char* label, REAL* zone, REAL min, REAL max)
+        void addVerticalBargraph(const char* label, REAL* zone, REAL min, REAL max) override
         {
             addGenericBargraph(label, "vbargraph", min, max);
         }
     
-        virtual void addSoundfile(const char* label, const char* url, Soundfile** zone)
+        void addSoundfile(const char* label, const char* url, Soundfile** zone) override
         {
             std::string path = buildPath(label);
             
@@ -366,13 +366,13 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
 
         // -- metadata declarations
 
-        virtual void declare(REAL* zone, const char* key, const char* val)
+        void declare(REAL* zone, const char* key, const char* val) override
         {
             fMetaAux.push_back(std::make_pair(key, val));
         }
     
         // Meta interface
-        virtual void declare(const char* key, const char* value)
+        void declare(const char* key, const char* value) override
         {
             fMeta << fCloseMetaPar;
             // fName found in metadata
@@ -469,7 +469,7 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
         JSONUI():JSONUIAux<FAUSTFLOAT>()
         {}
     
-        virtual ~JSONUI() {}
+        ~JSONUI() override = default;
     
 };
 

@@ -51,7 +51,7 @@ unique to each sharing analysis must be generated.
 
 #include "list.hh"
 
-typedef bool (*barrier)(const Tree& t);
+using barrier = bool (*)(const Tree &);
 
 //------------------------------------------------------------------------------
 // shprkey : Create a specific property key for the sharing count of subtrees of t

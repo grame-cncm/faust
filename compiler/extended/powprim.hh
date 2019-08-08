@@ -30,11 +30,11 @@ class PowPrim : public xtended {
    public:
     PowPrim() : xtended("pow") {}
 
-    virtual unsigned int arity() { return 2; }
+    unsigned int arity() override { return 2; }
 
-    virtual bool needCache() { return true; }
+    bool needCache() override { return true; }
 
-    virtual Type infereSigType(const vector<Type>& args)
+    Type infereSigType(const vector<Type>& args) override
     {
         faustassert(args.size() == arity());
 
@@ -45,13 +45,13 @@ class PowPrim : public xtended {
 
     virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-    virtual int infereSigOrder(const vector<int>& args)
+    int infereSigOrder(const vector<int>& args) override
     {
         faustassert(args.size() == arity());
         return max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    Tree computeSigOutput(const vector<Tree>& args) override
     {
         num n, m;
         faustassert(args.size() == arity());
@@ -65,8 +65,8 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -75,9 +75,9 @@ class PowPrim : public xtended {
         vector< ::Type>::const_iterator it1;
         Typed::VarType                  result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
 
-        list<ValueInst*>::const_iterator it = args.begin();
+        auto it = args.begin();
         it++;
-        Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
+        auto* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
         if (arg1 && (types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
             (types[1]->computability() == kComp) && (gGlobal->gNeedManualPow)) {
@@ -91,7 +91,7 @@ class PowPrim : public xtended {
             arg_types[1] = itfloat();
 
             list<ValueInst*>                 casted_args;
-            list<ValueInst*>::const_iterator it2 = args.begin();
+            auto it2 = args.begin();
 
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
                 casted_args.push_back(promote2real((*it1)->nature(), (*it2)));
@@ -102,7 +102,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -116,7 +116,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -126,5 +126,5 @@ class PowPrim : public xtended {
 
     // power is now used as an infix binary operator, we return true to
     // indicate that we want ^(n) to be equivalent to _^n
-    virtual bool isSpecialInfix() { return true; }
+    bool isSpecialInfix() override { return true; }
 };

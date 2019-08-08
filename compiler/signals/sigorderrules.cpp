@@ -84,7 +84,7 @@ static int infereSigOrder(Tree sig)
     double r;
     Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf;
 
-    xtended* xt = (xtended*)getUserData(sig);
+    auto* xt = (xtended*)getUserData(sig);
     // primitive elements
     if (xt) {
         // return 3;

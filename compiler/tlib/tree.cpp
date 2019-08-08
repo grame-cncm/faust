@@ -100,7 +100,7 @@ size_t       CTree::gSerialCounter = 0;
 // Constructor : add the tree to the hash table
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
     : fNode(n),
-      fType(0),
+      fType(nullptr),
       fHashKey(hk),
       fSerial(++gSerialCounter),
       fAperture(calcTreeAperture(n, br)),
@@ -123,7 +123,7 @@ CTree::~CTree()
     if (t == this) {
         gHashTable[i] = fNext;
     } else {
-        Tree p = NULL;
+        Tree p = nullptr;
         while (t != this) {
             p = t;
             t = t->fNext;
@@ -141,9 +141,9 @@ bool CTree::equiv(const Node& n, const tvec& br) const
 
 size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
-    size_t               hk = size_t(n.getPointer());
-    tvec::const_iterator b  = br.begin();
-    tvec::const_iterator z  = br.end();
+    auto               hk = size_t(n.getPointer());
+    auto b  = br.begin();
+    auto z  = br.end();
 
     while (b != z) {
         hk = (hk << 1) ^ (hk >> 20) ^ ((*b)->fHashKey);
@@ -422,7 +422,7 @@ void* getUserData(Tree t)
     if (isSym(t->node(), &s)) {
         return getUserData(s);
     } else {
-        return 0;
+        return nullptr;
     }
 }
 

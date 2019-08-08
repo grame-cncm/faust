@@ -162,7 +162,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         }
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         DispatchVisitor::visit(inst);
         Address::AccessType access = inst->fAddress->getAccess();
@@ -173,15 +173,15 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         }
     }
 
-    virtual void visit(LoadVarInst* inst)
+    void visit(LoadVarInst* inst) override
     {
         DispatchVisitor::visit(inst);
         createParameter(inst->fAddress);
     }
 
-    virtual void visit(LoadVarAddressInst* inst) {}
+    void visit(LoadVarAddressInst* inst) override {}
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         DispatchVisitor::visit(inst);
         createParameter(inst->fAddress);
@@ -198,7 +198,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
             LoopCloneVisitor(list<string>& table) : fAddedVarTable(table) {}
 
-            virtual Address* visit(NamedAddress* address)
+            Address* visit(NamedAddress* address) override
             {
                 if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) != fAddedVarTable.end()) {
                     return InstBuilder::genNamedAddress(address->fName, Address::kFunArgs);
@@ -210,7 +210,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
-        BlockInst*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
+        auto*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
 
         // Add a Ret (void) instruction (needed in LLVM backend)
         function_code->pushBackInst(InstBuilder::genRetInst());
@@ -243,17 +243,17 @@ Constant propagation :
 struct ConstantPropagationBuilder : public BasicCloneVisitor {
     map<string, ValueInst*> fValueTable;
 
-    virtual ValueInst* visit(BinopInst* inst)
+    ValueInst* visit(BinopInst* inst) override
     {
         ValueInst* val1 = inst->fInst1->clone(this);
         ValueInst* val2 = inst->fInst2->clone(this);
 
-        FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        FloatNumInst* float2 = dynamic_cast<FloatNumInst*>(val2);
+        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto* float2 = dynamic_cast<FloatNumInst*>(val2);
 
         // TODO
-        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
-        Int32NumInst* int2 = dynamic_cast<Int32NumInst*>(val2);
+        auto* int1 = dynamic_cast<Int32NumInst*>(val1);
+        auto* int2 = dynamic_cast<Int32NumInst*>(val2);
 
         // if (float1) float1->dump();
         // if (float2) float2->dump();
@@ -269,23 +269,23 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
                 case kDiv:
                     return InstBuilder::genFloatNumInst(float1->fNum / float2->fNum);
                 default:
-                    return 0;
+                    return nullptr;
             }
 
         } else if (int1 && int2) {
             faustassert(false);
-            return 0;
+            return nullptr;
             // return new Int32NumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
             return InstBuilder::genBinopInst(inst->fOpcode, val1, val2);
         }
     }
 
-    virtual ValueInst* visit(CastInst* inst)
+    ValueInst* visit(CastInst* inst) override
     {
         ValueInst*    val1   = inst->fInst->clone(this);
-        FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
+        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (inst->fType->getType() == Typed::kFloat) {
             return (float1) ? float1 : InstBuilder::genFloatNumInst(float(int1->fNum));
@@ -293,11 +293,11 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return (int1) ? int1 : InstBuilder::genInt32NumInst(int(float1->fNum));
         } else {
             faustassert(false);
-            return 0;
+            return nullptr;
         }
     }
 
-    virtual ValueInst* visit(FunCallInst* inst)
+    ValueInst* visit(FunCallInst* inst) override
     {
         list<ValueInst*>                 cloned;
         list<ValueInst*>::const_iterator it;
@@ -308,11 +308,11 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         return InstBuilder::genFunCallInst(inst->fName, cloned, inst->fMethod);
     }
 
-    virtual ValueInst* visit(Select2Inst* inst)
+    ValueInst* visit(Select2Inst* inst) override
     {
         ValueInst*    val1   = inst->fCond->clone(this);
-        FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
+        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (float1) {
             return (float1->fNum > 0.f) ? inst->fThen->clone(this) : inst->fElse->clone(this);
@@ -323,11 +323,11 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         }
     }
 
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         ValueInst*    val1   = inst->fValue->clone(this);
-        FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
+        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
         string        name   = inst->fAddress->getName();
 
         if (float1) {
@@ -345,7 +345,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         }
     }
 
-    virtual ValueInst* visit(LoadVarInst* inst)
+    ValueInst* visit(LoadVarInst* inst) override
     {
         string name = inst->fAddress->getName();
         if (fValueTable.find(name) != fValueTable.end()) {
@@ -356,11 +356,11 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         }
     }
 
-    virtual StatementInst* visit(StoreVarInst* inst)
+    StatementInst* visit(StoreVarInst* inst) override
     {
         ValueInst*    val1   = inst->fValue->clone(this);
-        FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
+        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
         string        name   = inst->fAddress->getName();
 
         if (float1) {

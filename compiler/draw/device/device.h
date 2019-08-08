@@ -26,7 +26,7 @@
 
 class device : public virtual Garbageable {
    public:
-    virtual ~device() {}
+    ~device() override = default;
     virtual void rect(double x, double y, double l, double h, const char* color, const char* link)                = 0;
     virtual void triangle(double x, double y, double l, double h, const char* color, const char* link,
                           bool leftright)                                                                         = 0;

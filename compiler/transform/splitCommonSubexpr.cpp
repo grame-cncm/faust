@@ -60,7 +60,7 @@ class CommonSubexpr : public SignalIdentity {
     explicit CommonSubexpr(const map<Tree, int>& occ) : fOcc(occ) {}
 
    protected:
-    virtual Tree transformation(Tree sig) override
+    Tree transformation(Tree sig) override
     {
         faustassert(sig);
         Type t = getSimpleType(sig);

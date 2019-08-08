@@ -40,13 +40,13 @@ class TreeTransform {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
-    bool   fTraceFlag;  // trace transformations when true
-    int    fIndent;     // current indentation during trace
+    bool   fTraceFlag{false};  // trace transformations when true
+    int    fIndent{0};     // current indentation during trace
     string fMessage;    // trace message
 
    public:
-    TreeTransform() : fTraceFlag(false), fIndent(0), fMessage("TreeTransform") {}
-    virtual ~TreeTransform() {}
+    TreeTransform() :  fMessage("TreeTransform") {}
+    virtual ~TreeTransform() = default;
 
     Tree self(Tree t);
     Tree mapself(Tree lt);

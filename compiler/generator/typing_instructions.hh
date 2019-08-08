@@ -30,25 +30,25 @@ using namespace std;
  */
 
 struct TypingVisitor : public InstVisitor {
-    Typed::VarType fCurType;
+    Typed::VarType fCurType{Typed::kNoType};
 
-    TypingVisitor() : fCurType(Typed::kNoType) {}
+    TypingVisitor()  {}
 
-    virtual ~TypingVisitor() {}
+    ~TypingVisitor() override = default;
 
-    virtual void visit(LoadVarInst* inst)
+    void visit(LoadVarInst* inst) override
     {
         // dump2FIR(inst);
 
         // Stack or struct variables
         if (gGlobal->hasVarType(inst->getName())) {
             fCurType                = gGlobal->getVarType(inst->getName());
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             if (indexed) {
                 // IndexedAddress is also used for struct type
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
-                    Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                    auto* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
                     fCurType                  = struct_type->fType->getType(field_index->fNum);
                 } else {
                     fCurType = Typed::getTypeFromPtr(fCurType);
@@ -62,7 +62,7 @@ struct TypingVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(TeeVarInst* inst)
+    void visit(TeeVarInst* inst) override
     {
         if (gGlobal->hasVarType(inst->getName())) {
             fCurType = gGlobal->getVarType(inst->getName());
@@ -71,23 +71,23 @@ struct TypingVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         // Not implemented
         faustassert(false);
     }
 
-    virtual void visit(FloatNumInst* inst) { fCurType = Typed::kFloat; }
+    void visit(FloatNumInst* inst) override { fCurType = Typed::kFloat; }
 
-    virtual void visit(Int32NumInst* inst) { fCurType = Typed::kInt32; }
+    void visit(Int32NumInst* inst) override { fCurType = Typed::kInt32; }
 
-    virtual void visit(Int64NumInst* inst) { fCurType = Typed::kInt64; }
+    void visit(Int64NumInst* inst) override { fCurType = Typed::kInt64; }
 
-    virtual void visit(BoolNumInst* inst) { fCurType = Typed::kBool; }
+    void visit(BoolNumInst* inst) override { fCurType = Typed::kBool; }
 
-    virtual void visit(DoubleNumInst* inst) { fCurType = Typed::kDouble; }
+    void visit(DoubleNumInst* inst) override { fCurType = Typed::kDouble; }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         if (isBoolOpcode(inst->fOpcode)) {
             fCurType = Typed::kBool;
@@ -115,23 +115,23 @@ struct TypingVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(::CastInst* inst) { fCurType = inst->fType->getType(); }
+    void visit(::CastInst* inst) override { fCurType = inst->fType->getType(); }
 
-    virtual void visit(BitcastInst* inst) { fCurType = inst->fType->getType(); }
+    void visit(BitcastInst* inst) override { fCurType = inst->fType->getType(); }
 
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         // Type in the one of 'then' or 'else'
         inst->fThen->accept(this);
     }
 
-    virtual void visit(IfInst* inst)
+    void visit(IfInst* inst) override
     {
         // Type in the one of 'then' or 'else'
         inst->fThen->accept(this);
     }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         if (gGlobal->hasVarType(inst->fName)) {
             fCurType = gGlobal->getVarType(inst->fName);
@@ -145,75 +145,75 @@ struct TypingVisitor : public InstVisitor {
 struct BasicTypingCloneVisitor : public BasicCloneVisitor {
     TypingVisitor fTypingVisitor;
 
-    BasicTypingCloneVisitor() {}
+    BasicTypingCloneVisitor() = default;
 
     // Memory
-    virtual ValueInst* visit(LoadVarInst* inst)
+    ValueInst* visit(LoadVarInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
 
     // Numbers
-    virtual ValueInst* visit(FloatNumInst* inst)
+    ValueInst* visit(FloatNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    virtual ValueInst* visit(Int32NumInst* inst)
+    ValueInst* visit(Int32NumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    virtual ValueInst* visit(Int64NumInst* inst)
+    ValueInst* visit(Int64NumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    virtual ValueInst* visit(BoolNumInst* inst)
+    ValueInst* visit(BoolNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    virtual ValueInst* visit(DoubleNumInst* inst)
+    ValueInst* visit(DoubleNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
 
     // Numerical computation
-    virtual ValueInst* visit(BinopInst* inst)
+    ValueInst* visit(BinopInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
 
     // Cast
-    virtual ValueInst* visit(::CastInst* inst)
+    ValueInst* visit(::CastInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    virtual ValueInst* visit(BitcastInst* inst)
+    ValueInst* visit(BitcastInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
 
     // Function call
-    virtual ValueInst* visit(FunCallInst* inst)
+    ValueInst* visit(FunCallInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
 
     // Conditionnal
-    virtual ValueInst* visit(Select2Inst* inst)
+    ValueInst* visit(Select2Inst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    virtual StatementInst* visit(IfInst* inst)
+    StatementInst* visit(IfInst* inst) override
     {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);

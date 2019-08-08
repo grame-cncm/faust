@@ -68,7 +68,7 @@ struct Stack2StructRewriter1 : public DispatchVisitor {
 
     using DispatchVisitor::visit;
 
-    void visit(NamedAddress* address)
+    void visit(NamedAddress* address) override
     {
         if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
             address->fAccess = Address::kStruct;
@@ -85,7 +85,7 @@ struct Stack2StructRewriter2 : public DispatchVisitor {
 
     using DispatchVisitor::visit;
 
-    void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         BasicCloneVisitor cloner;
         string            name = inst->fAddress->getName();
@@ -112,7 +112,7 @@ struct Stack2StructRewriter2 : public DispatchVisitor {
         DispatchVisitor::visit(inst);
     }
 
-    void visit(NamedAddress* address)
+    void visit(NamedAddress* address) override
     {
         if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
             address->fAccess = Address::kStruct;
@@ -138,7 +138,7 @@ struct VariableMover {
 // Remove all variable declarations marked as "Address::kLink"
 struct RemoverCloneVisitor : public BasicCloneVisitor {
     // Rewrite Declare as a no-op (DropInst)
-    StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         if (inst->fAddress->getAccess() == Address::kLink) {
             return InstBuilder::genDropInst();
@@ -156,10 +156,10 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
 */
 
 struct DspRenamer : public BasicCloneVisitor {
-    DspRenamer() {}
+    DspRenamer() = default;
 
     // Change access
-    virtual Address* visit(NamedAddress* named)
+    Address* visit(NamedAddress* named) override
     {
         if (startWith(named->getName(), "sig")) {
             return InstBuilder::genNamedAddress("dsp", named->fAccess);
@@ -169,7 +169,7 @@ struct DspRenamer : public BasicCloneVisitor {
     }
 
     // Remove allocation
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         if (startWith(inst->fAddress->getName(), "sig")) {
             return InstBuilder::genDropInst();
@@ -185,10 +185,10 @@ struct DspRenamer : public BasicCloneVisitor {
 struct MoveVariablesInFront2 : public BasicCloneVisitor {
     list<StatementInst*> fVarTable;
 
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         BasicCloneVisitor cloner;
-        ArrayTyped*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
@@ -202,7 +202,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
                     if (ctype == Typed::kInt32) {
-                        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
+                        auto* int_array = dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
                         if (int_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
@@ -214,7 +214,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                                                 inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
-                        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
+                        auto* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
                         if (float_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
@@ -226,7 +226,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                                                 inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kDouble) {
-                        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
+                        auto* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
                         if (double_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
@@ -261,7 +261,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
 
     BlockInst* getCode(BlockInst* src, bool local = false)
     {
-        BlockInst* dst = static_cast<BlockInst*>(src->clone(this));
+        auto* dst = static_cast<BlockInst*>(src->clone(this));
 
         if (local) {
             // Separate with a list of pure DeclareVarInst (with no value), followed by a list of StoreVarInst
@@ -269,9 +269,9 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             list<StatementInst*> dec;
             list<StatementInst*> store;
 
-            for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
-                DeclareVarInst* dec_inst   = dynamic_cast<DeclareVarInst*>(*it);
-                StoreVarInst*   store_inst = dynamic_cast<StoreVarInst*>(*it);
+            for (auto it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+                auto* dec_inst   = dynamic_cast<DeclareVarInst*>(*it);
+                auto*   store_inst = dynamic_cast<StoreVarInst*>(*it);
                 if (dec_inst) {
                     dec.push_back(InstBuilder::genDeclareVarInst(dec_inst->fAddress->clone(&cloner),
                                                                  dec_inst->fType->clone(&cloner)));
@@ -284,16 +284,16 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 }
             }
 
-            for (list<StatementInst*>::iterator it = store.begin(); it != store.end(); ++it) {
+            for (auto it = store.begin(); it != store.end(); ++it) {
                 dst->pushFrontInst(*it);
             }
 
-            for (list<StatementInst*>::iterator it = dec.begin(); it != dec.end(); ++it) {
+            for (auto it = dec.begin(); it != dec.end(); ++it) {
                 dst->pushFrontInst(*it);
             }
         } else {
             // Separate with a list of DeclareVarInst with a value, followed by a list of StoreVarInst
-            for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+            for (auto it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
                 dst->pushFrontInst(*it);
             }
         }
@@ -307,10 +307,10 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
     list<StatementInst*> fVarTableDeclaration;
     list<StatementInst*> fVarTableStore;
 
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         BasicCloneVisitor cloner;
-        ArrayTyped*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
@@ -327,7 +327,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
                     if (ctype == Typed::kInt32) {
-                        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
+                        auto* int_array = dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
                         if (int_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
@@ -339,7 +339,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                                                 inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
-                        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
+                        auto* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
                         if (float_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
@@ -351,7 +351,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                                                 inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kDouble) {
-                        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
+                        auto* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
                         if (double_array) {
                             for (int i = 0; i < array_typed->fSize; i++) {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
@@ -386,13 +386,13 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
 
     BlockInst* getCode(BlockInst* src)
     {
-        BlockInst* dst = static_cast<BlockInst*>(src->clone(this));
+        auto* dst = static_cast<BlockInst*>(src->clone(this));
         // Variable store moved in front of block
-        for (list<StatementInst*>::reverse_iterator it = fVarTableStore.rbegin(); it != fVarTableStore.rend(); ++it) {
+        for (auto it = fVarTableStore.rbegin(); it != fVarTableStore.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
         // Then pure declaration
-        for (list<StatementInst*>::reverse_iterator it = fVarTableDeclaration.rbegin();
+        for (auto it = fVarTableDeclaration.rbegin();
              it != fVarTableDeclaration.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
@@ -426,20 +426,20 @@ struct FunctionInliner {
                 return cloned_address;
             }
 
-            StatementInst* visit(DeclareVarInst* inst)
+            StatementInst* visit(DeclareVarInst* inst) override
             {
                 if (inst->fAddress->getAccess() == Address::kLoop) {
                     // Rename loop index with a fresh one
                     fInLoop = gGlobal->getFreshID("re_i");
                     return InstBuilder::genDeclareVarInst(renameAddress(inst->fAddress, fInLoop),
                                                           inst->fType->clone(this),
-                                                          (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                                                          (inst->fValue) ? inst->fValue->clone(this) : nullptr);
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }
             }
 
-            ValueInst* visit(LoadVarInst* inst)
+            ValueInst* visit(LoadVarInst* inst) override
             {
                 if (inst->fAddress->getAccess() == Address::kLoop) {
                     // Rename loop index
@@ -474,7 +474,7 @@ struct FunctionInliner {
                 }
             }
 
-            StatementInst* visit(StoreVarInst* inst)
+            StatementInst* visit(StoreVarInst* inst) override
             {
                 LoadVarInst* arg;
 
@@ -500,7 +500,7 @@ struct FunctionInliner {
 
             VariableLoadCounter(const string& name) : fName(name), fOccurence(0) {}
 
-            virtual void visit(LoadVarInst* inst)
+            void visit(LoadVarInst* inst) override
             {
                 if (inst->fAddress->getName() == fName) {
                     fOccurence++;
@@ -519,8 +519,8 @@ struct FunctionInliner {
     BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args,
                                        bool ismethod)
     {
-        list<NamedTyped*>::iterator it1 = args_type.begin();
-        list<ValueInst*>::iterator  it2 = args.begin();
+        auto it1 = args_type.begin();
+        auto  it2 = args.begin();
         if (ismethod) {
             it2++;
         }
@@ -541,7 +541,7 @@ struct FunctionCallInliner : public BasicCloneVisitor {
 
     FunctionCallInliner(DeclareFunInst* function) : fFunction(function) {}
 
-    virtual ValueInst* visit(FunCallInst* inst)
+    ValueInst* visit(FunCallInst* inst) override
     {
         FunCallInst* fun_call = inst;
         if (fun_call->fName == fFunction->fName) {
@@ -573,7 +573,7 @@ struct VariableSizeCounter : public DispatchVisitor {
         fAccess    = access;
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         DispatchVisitor::visit(inst);
 
@@ -585,7 +585,7 @@ struct VariableSizeCounter : public DispatchVisitor {
 
 // Remove unneeded cast
 struct CastRemover : public BasicTypingCloneVisitor {
-    virtual ValueInst* visit(::CastInst* inst)
+    ValueInst* visit(::CastInst* inst) override
     {
         inst->fInst->accept(&fTypingVisitor);
         Typed::VarType type = fTypingVisitor.fCurType;
@@ -620,9 +620,9 @@ struct CastRemover : public BasicTypingCloneVisitor {
 struct VarAddressRemover : public BasicCloneVisitor {
     std::map<string, LoadVarAddressInst*> fVariableMap;
 
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
-        LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
+        auto* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
         if (var_address) {
             fVariableMap[inst->fAddress->getName()] = var_address;
             return InstBuilder::genNullStatementInst();
@@ -631,9 +631,9 @@ struct VarAddressRemover : public BasicCloneVisitor {
         }
     }
 
-    virtual StatementInst* visit(StoreVarInst* inst)
+    StatementInst* visit(StoreVarInst* inst) override
     {
-        LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
+        auto* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
         if (var_address) {
             fVariableMap[inst->fAddress->getName()] = var_address;
             return InstBuilder::genNullStatementInst();
@@ -642,11 +642,11 @@ struct VarAddressRemover : public BasicCloneVisitor {
         }
     }
 
-    virtual Address* visit(IndexedAddress* address)
+    Address* visit(IndexedAddress* address) override
     {
         if (fVariableMap.find(address->getName()) != fVariableMap.end()) {
             IndexedAddress* id_add1 = dynamic_cast<IndexedAddress*>(fVariableMap[address->getName()]->fAddress);
-            IndexedAddress* id_add2 = dynamic_cast<IndexedAddress*>(address);
+            auto* id_add2 = dynamic_cast<IndexedAddress*>(address);
             faustassert(id_add2);
             faustassert(id_add1);
             ValueInst* id1 = id_add1->getIndex();
@@ -667,7 +667,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
 struct LoopVariableRenamer : public BasicCloneVisitor {
     std::map<std::string, std::stack<std::string> > fLoopIndexMap;
 
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         // Rename 'loop' variables
         if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->fAddress->getAccess() == Address::kLoop) {
@@ -677,7 +677,7 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
         return BasicCloneVisitor::visit(inst);
     }
 
-    virtual Address* visit(NamedAddress* address)
+    Address* visit(NamedAddress* address) override
     {
         if (address->fAccess == Address::kLoop) {
             return new NamedAddress(fLoopIndexMap[address->getName()].top(), address->fAccess);

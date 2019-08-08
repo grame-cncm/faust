@@ -67,7 +67,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void EndLine(char end_line = ';')
+    void EndLine(char end_line = ';') override
     {
         if (fFinishLine) {
             tab(fTab, *fOut);
@@ -91,13 +91,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
     }
 
-    virtual ~WASTInstVisitor() {}
+    ~WASTInstVisitor() override = default;
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         Address::AccessType access      = inst->fAddress->getAccess();
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
-        ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         string              name        = inst->fAddress->getName();
 
         // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
@@ -127,7 +127,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visitAux(RetInst* inst, bool gen_empty)
+    void visitAux(RetInst* inst, bool gen_empty) override
     {
         if (inst->fResult) {
             *fOut << "(return ";
@@ -138,7 +138,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void generateFunDefArgs(DeclareFunInst* inst)
+    void generateFunDefArgs(DeclareFunInst* inst) override
     {
         list<NamedTyped*>::const_iterator it;
         size_t                            size = inst->fType->fArgsTypes.size(), i = 0;
@@ -151,7 +151,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void generateFunDefBody(DeclareFunInst* inst)
+    void generateFunDefBody(DeclareFunInst* inst) override
     {
         fTab++;
         tab(fTab, *fOut);
@@ -162,7 +162,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
                                      int size)
     {
-        list<ValueInst*>::const_iterator it = beg;
+        auto it = beg;
         int                              i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
@@ -171,7 +171,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         // Already generated
         if (inst->fName != "min_i" &&
@@ -217,13 +217,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visit(LoadVarInst* inst)
+    void visit(LoadVarInst* inst) override
     {
         fTypingVisitor.visit(inst);
         Typed::VarType      type    = fTypingVisitor.fCurType;
         Address::AccessType access  = inst->fAddress->getAccess();
         string              name    = inst->fAddress->getName();
-        IndexedAddress*     indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        auto*     indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;
@@ -249,7 +249,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visit(TeeVarInst* inst)
+    void visit(TeeVarInst* inst) override
     {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
@@ -265,7 +265,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         inst->fValue->accept(&fTypingVisitor);
         Typed::VarType      type   = fTypingVisitor.fCurType;
@@ -303,7 +303,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         EndLine();
     }
 
-    virtual void visit(NamedAddress* named)
+    void visit(NamedAddress* named) override
     {
         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
             faustassert(fFieldTable.find(named->getName()) != fFieldTable.end());
@@ -318,14 +318,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visit(IndexedAddress* indexed)
+    void visit(IndexedAddress* indexed) override
     {
         // TO CHECK : size of memory ptr ?
 
         // HACK : completely adhoc code for inputs/outputs...
         if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
             // Since indexed->fIndex is always a known constant value, offset can be directly generated
-            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            auto* num = dynamic_cast<Int32NumInst*>(indexed->fIndex);
             faustassert(num);
             *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.const " << (num->fNum << 2) << "))";
             // HACK : completely adhoc code for input/output...
@@ -409,33 +409,33 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         // Not implemented in WASM
         faustassert(false);
     }
 
-    virtual void visit(FloatNumInst* inst)
+    void visit(FloatNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         *fOut << "(f32.const " << checkReal<float>(inst->fNum) << ")";
     }
 
-    virtual void visit(DoubleNumInst* inst)
+    void visit(DoubleNumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
 
-    virtual void visit(BoolNumInst* inst) { faustassert(false); }
+    void visit(BoolNumInst* inst) override { faustassert(false); }
 
-    virtual void visit(Int32NumInst* inst)
+    void visit(Int32NumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         *fOut << "(i32.const " << inst->fNum << ")";
     }
 
-    virtual void visit(Int64NumInst* inst)
+    void visit(Int64NumInst* inst) override
     {
         fTypingVisitor.visit(inst);
         *fOut << "(i64.const 0x" << hex << inst->fNum << ")";
@@ -476,7 +476,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         *fOut << ")";
     }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         inst->fInst1->accept(&fTypingVisitor);
         Typed::VarType type1 = fTypingVisitor.fCurType;
@@ -502,7 +502,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
     }
 
-    virtual void visit(::CastInst* inst)
+    void visit(::CastInst* inst) override
     {
         inst->fInst->accept(&fTypingVisitor);
         Typed::VarType type = fTypingVisitor.fCurType;
@@ -530,7 +530,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
     }
 
-    virtual void visit(BitcastInst* inst)
+    void visit(BitcastInst* inst) override
     {
         switch (inst->fType->getType()) {
             case Typed::kInt32:
@@ -576,7 +576,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     // Generate standard funcall (not 'method' like funcall...)
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
@@ -598,7 +598,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     // Conditional : select
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         *fOut << "(select ";
         inst->fThen->accept(this);
@@ -622,7 +622,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     // Conditional : if
-    virtual void visit(IfInst* inst)
+    void visit(IfInst* inst) override
     {
         *fOut << "(if ";
         inst->fCond->accept(&fTypingVisitor);
@@ -650,7 +650,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     // Loop : beware: compiled loop don't work with an index of 0
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
@@ -689,7 +689,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(AddSoundfileInst* inst)
+    void visit(AddSoundfileInst* inst) override
     {
         // Not supported for now
         // throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");

@@ -35,15 +35,15 @@
 struct TableSizeVisitor : public DispatchVisitor {
     map<string, int> fSizeTable;
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         if (startWith(inst->fName, "fill")) {
             list<ValueInst*>::const_iterator it = inst->fArgs.begin();
             it++;
-            Int32NumInst* size = dynamic_cast<Int32NumInst*>(*it);
+            auto* size = dynamic_cast<Int32NumInst*>(*it);
             faustassert(size);
             it++;
-            LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
+            auto* table = dynamic_cast<LoadVarInst*>(*it);
             faustassert(table);
             fSizeTable[inst->fName + "_" + to_string(size->fNum)] = size->fNum;
         }
@@ -52,15 +52,15 @@ struct TableSizeVisitor : public DispatchVisitor {
 
 // Look for the "fillXXX" function call and rename it
 struct TableSizeCloneVisitor : public BasicCloneVisitor {
-    virtual ValueInst* visit(FunCallInst* inst)
+    ValueInst* visit(FunCallInst* inst) override
     {
         if (startWith(inst->fName, "fill")) {
             list<ValueInst*>::const_iterator it = inst->fArgs.begin();
             it++;
-            Int32NumInst* size = dynamic_cast<Int32NumInst*>(*it);
+            auto* size = dynamic_cast<Int32NumInst*>(*it);
             faustassert(size);
             it++;
-            LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
+            auto* table = dynamic_cast<LoadVarInst*>(*it);
             faustassert(table);
             list<ValueInst*> cloned_args;
             for (auto& it : inst->fArgs) {
@@ -82,7 +82,7 @@ class SOULCodeContainer : public virtual CodeContainer {
 
     void produceInit(int tabs);
 
-    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
+    void printHeader() override { CodeContainer::printHeader(*fOut); }
 
    protected:
     SOULCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out) : fCodeProducer(out), fOut(out)
@@ -95,12 +95,12 @@ class SOULCodeContainer : public virtual CodeContainer {
         }
     }
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-    void           produceInternal();
-    void           produceClass();
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;
+    void           produceInternal() override;
+    void           produceClass() override;
     virtual void   generateCompute(int tab) = 0;
 
-    virtual dsp_factory_base* produceFactory();
+    dsp_factory_base* produceFactory() override;
 
    public:
     static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
@@ -115,7 +115,7 @@ class SOULScalarCodeContainer : public SOULCodeContainer {
         fSubContainerType = sub_container_type;
     }
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };
 
 class SOULVectorCodeContainer : public VectorCodeContainer, public SOULCodeContainer {
@@ -126,5 +126,5 @@ class SOULVectorCodeContainer : public VectorCodeContainer, public SOULCodeConta
     {
     }
 
-    void generateCompute(int tab);
+    void generateCompute(int tab) override;
 };

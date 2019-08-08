@@ -68,11 +68,11 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
 
     JSONInstVisitor() : JSONUI() {}
 
-    virtual ~JSONInstVisitor() {}
+    ~JSONInstVisitor() override = default;
 
-    virtual void visit(AddMetaDeclareInst* inst) { declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
+    void visit(AddMetaDeclareInst* inst) override { declare(nullptr, inst->fKey.c_str(), inst->fValue.c_str()); }
 
-    virtual void visit(OpenboxInst* inst)
+    void visit(OpenboxInst* inst) override
     {
         switch (inst->fOrient) {
             case 0:
@@ -90,9 +90,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         }
     }
 
-    virtual void visit(CloseboxInst* inst) { closeBox(); }
+    void visit(CloseboxInst* inst) override { closeBox(); }
 
-    virtual void visit(AddButtonInst* inst)
+    void visit(AddButtonInst* inst) override
     {
         switch (inst->fType) {
             case AddButtonInst::kDefaultButton:
@@ -109,7 +109,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
-    virtual void visit(AddSliderInst* inst)
+    void visit(AddSliderInst* inst) override
     {
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
@@ -129,7 +129,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
-    virtual void visit(AddBargraphInst* inst)
+    void visit(AddBargraphInst* inst) override
     {
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
@@ -146,7 +146,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         fPathTable[inst->fZone] = checkPath(fControlPathSet, buildPath(inst->fLabel));
     }
 
-    virtual void visit(AddSoundfileInst* inst)
+    void visit(AddSoundfileInst* inst) override
     {
         addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
         faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());

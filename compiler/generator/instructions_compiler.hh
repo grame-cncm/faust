@@ -37,7 +37,7 @@
 
 using namespace std;
 
-typedef ValueInst* InstType;
+using InstType = ValueInst *;
 
 class InstructionsCompiler : public virtual Garbageable {
    protected:
@@ -130,7 +130,7 @@ class InstructionsCompiler : public virtual Garbageable {
    public:
     InstructionsCompiler(CodeContainer* container);
 
-    virtual ~InstructionsCompiler() {}
+    ~InstructionsCompiler() override = default;
 
     virtual ValueInst* CS(Tree sig);
 

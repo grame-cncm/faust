@@ -41,7 +41,7 @@
 
 class dsp_factory_base {
    public:
-    virtual ~dsp_factory_base() {}
+    virtual ~dsp_factory_base() = default;
 
     virtual std::string getName()                        = 0;
     virtual void        setName(const std::string& name) = 0;
@@ -85,13 +85,13 @@ class dsp_factory_imp : public dsp_factory_base {
     {
     }
 
-    virtual ~dsp_factory_imp() {}
+    ~dsp_factory_imp() override = default;
 
-    std::string getName()
+    std::string getName() override
     {
         struct MyMeta : public Meta {
             std::string  name;
-            virtual void declare(const char* key, const char* value)
+            void declare(const char* key, const char* value) override
             {
                 if (strcmp(key, "name") == 0) name = value;
             }
@@ -102,24 +102,24 @@ class dsp_factory_imp : public dsp_factory_base {
         return (meta_data.name != "") ? meta_data.name : fName;
     }
 
-    void setName(const std::string& name) { fName = name; }
+    void setName(const std::string& name) override { fName = name; }
 
-    std::string getSHAKey() { return fSHAKey; }
-    void        setSHAKey(const std::string& sha_key) { fSHAKey = sha_key; }
+    std::string getSHAKey() override { return fSHAKey; }
+    void        setSHAKey(const std::string& sha_key) override { fSHAKey = sha_key; }
 
-    std::string getDSPCode() { return fExpandedDSP; }
-    void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
+    std::string getDSPCode() override { return fExpandedDSP; }
+    void        setDSPCode(const std::string& code) override { fExpandedDSP = code; }
 
-    virtual dsp* createDSPInstance(dsp_factory* factory)
+    dsp* createDSPInstance(dsp_factory* factory) override
     {
         faustassert(false);
         return nullptr;
     }
 
-    virtual void                setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }
-    virtual dsp_memory_manager* getMemoryManager() { return fManager; }
+    void                setMemoryManager(dsp_memory_manager* manager) override { fManager = manager; }
+    dsp_memory_manager* getMemoryManager() override { return fManager; }
 
-    virtual void* allocate(size_t size)
+    void* allocate(size_t size) override
     {
         if (fManager) {
             return fManager->allocate(size);
@@ -129,7 +129,7 @@ class dsp_factory_imp : public dsp_factory_base {
         }
     }
 
-    virtual void destroy(void* ptr)
+    void destroy(void* ptr) override
     {
         if (fManager) {
             fManager->destroy(ptr);
@@ -138,11 +138,11 @@ class dsp_factory_imp : public dsp_factory_base {
         }
     }
 
-    virtual void metadata(Meta* meta) { faustassert(false); }
+    void metadata(Meta* meta) override { faustassert(false); }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false) {}
+    void write(std::ostream* out, bool binary = false, bool small = false) override {}
 
-    virtual std::string getBinaryCode() { return ""; }
+    std::string getBinaryCode() override { return ""; }
 };
 
 /* To be used by textual backends */
@@ -158,11 +158,11 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     {
     }
 
-    virtual void write(std::ostream* out, bool binary = false, bool small = false) { *out << fCode; }
+    void write(std::ostream* out, bool binary = false, bool small = false) override { *out << fCode; }
 
-    virtual void writeAux(std::ostream* out, bool binary = false, bool small = false) { *out << fHelpers; }
+    void writeAux(std::ostream* out, bool binary = false, bool small = false) override { *out << fHelpers; }
 
-    virtual std::string getBinaryCode() { return fCode; }
+    std::string getBinaryCode() override { return fCode; }
 };
 
 // Backend API

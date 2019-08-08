@@ -30,10 +30,10 @@
 
 class SignalPromotion : public SignalIdentity {
    public:
-    SignalPromotion() {}
+    SignalPromotion() = default;
 
    protected:
-    virtual Tree transformation(Tree sig);
+    Tree transformation(Tree sig) override;
     Tree         smartIntCast(Type t, Tree sig);
     Tree         smartFloatCast(Type t, Tree sig);
 };

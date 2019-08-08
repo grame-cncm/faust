@@ -82,10 +82,10 @@
 //---------------------------------API---------------------------------------
 
 class CTree;
-typedef CTree* Tree;
+using Tree = CTree *;
 
 typedef map<Tree, Tree> plist;
-typedef vector<Tree>    tvec;
+using tvec = vector<Tree>;
 
 /**
  * A CTree = (Node x [CTree]) is a Node associated with a list of subtrees called branches.
@@ -176,9 +176,9 @@ class CTree : public virtual Garbageable {
 
     Tree getProperty(Tree key)
     {
-        plist::iterator i = fProperties.find(key);
+        auto i = fProperties.find(key);
         if (i == fProperties.end()) {
-            return 0;
+            return nullptr;
         } else {
             return i->second;
         }
@@ -305,10 +305,10 @@ Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic not
 
 class Tabber {
     int fIndent;
-    int fPostInc;
+    int fPostInc{0};
 
    public:
-    Tabber(int n = 0) : fIndent(n), fPostInc(0) {}
+    Tabber(int n = 0) : fIndent(n) {}
     Tabber& operator++()
     {
         fPostInc++;

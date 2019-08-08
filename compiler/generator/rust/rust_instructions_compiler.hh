@@ -28,9 +28,9 @@ class RustInstructionsCompiler : public InstructionsCompiler {
     RustInstructionsCompiler(CodeContainer* container);
 
    private:
-    StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
+    StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay) override;
 
-    StatementInst* generateShiftArray(const string& vname, int delay);
+    StatementInst* generateShiftArray(const string& vname, int delay) override;
 
-    StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
+    StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size) override;
 };

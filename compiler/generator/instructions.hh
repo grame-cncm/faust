@@ -166,8 +166,8 @@ DeclareStructTypeInst* isStructType(const string& name);
 // =========
 
 struct InstVisitor : public virtual Garbageable {
-    InstVisitor() {}
-    virtual ~InstVisitor() {}
+    InstVisitor() = default;
+    ~InstVisitor() override = default;
 
     // User interface
     virtual void visit(AddMetaDeclareInst* inst) {}
@@ -247,8 +247,8 @@ struct InstVisitor : public virtual Garbageable {
 // Clone a FIR expression
 
 struct CloneVisitor : public virtual Garbageable {
-    CloneVisitor() {}
-    virtual ~CloneVisitor() {}
+    CloneVisitor() = default;
+    ~CloneVisitor() override = default;
 
     virtual ValueInst*     visit(NullValueInst* inst)     = 0;
     virtual StatementInst* visit(NullStatementInst* inst) = 0;
@@ -344,7 +344,7 @@ struct ValueInst : public Printable {
 
     virtual ValueInst* clone(CloneVisitor* cloner) = 0;
 
-    ValueInst() {}
+    ValueInst() = default;
 
     virtual int size() { return 1; }
 
@@ -356,11 +356,11 @@ struct ValueInst : public Printable {
 // =======================
 
 struct NullValueInst : public ValueInst {
-    NullValueInst() {}
+    NullValueInst() = default;
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // ===========================
@@ -368,11 +368,11 @@ struct NullValueInst : public ValueInst {
 // ===========================
 
 struct NullStatementInst : public StatementInst {
-    NullStatementInst() {}
+    NullStatementInst() = default;
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // ==========================
@@ -390,13 +390,13 @@ struct BasicTyped : public Typed {
 
     BasicTyped(VarType type) : fType(type) {}
 
-    VarType getType() { return fType; }
+    VarType getType() override { return fType; }
 
-    int getSize();  // moved in "instructions.cpp"
+    int getSize() override;  // moved in "instructions.cpp"
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Typed* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct NamedTyped : public Typed {
@@ -405,15 +405,15 @@ struct NamedTyped : public Typed {
 
     NamedTyped(const string& name, Typed* type) : fName(name), fType(type) {}
 
-    virtual ~NamedTyped() {}
+    ~NamedTyped() override = default;
 
-    VarType getType() { return fType->getType(); }
+    VarType getType() override { return fType->getType(); }
 
-    int getSize() { return fType->getSize(); }
+    int getSize() override { return fType->getSize(); }
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Typed* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct FunTyped : public Typed {
@@ -428,7 +428,7 @@ struct FunTyped : public Typed {
     {
     }
 
-    VarType getType() { return fResult->getType(); }
+    VarType getType() override { return fResult->getType(); }
 
     Typed* getTyped() { return fResult; }
 
@@ -446,11 +446,11 @@ struct FunTyped : public Typed {
         return res;
     }
 
-    int getSize();  // moved in "instructions.cpp"
+    int getSize() override;  // moved in "instructions.cpp"
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Typed* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct ArrayTyped : public Typed {
@@ -460,15 +460,15 @@ struct ArrayTyped : public Typed {
 
     ArrayTyped(Typed* type, int size, bool is_ptr = false) : fType(type), fSize(size), fIsPtr(is_ptr) {}
 
-    virtual ~ArrayTyped() {}
+    ~ArrayTyped() override = default;
 
-    VarType getType() { return getPtrFromType(fType->getType()); }
+    VarType getType() override { return getPtrFromType(fType->getType()); }
 
-    int getSize();  // moved in "instructions.cpp"
+    int getSize() override;  // moved in "instructions.cpp"
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Typed* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct StructTyped : public Typed {
@@ -477,12 +477,12 @@ struct StructTyped : public Typed {
 
     StructTyped(const string& name, const vector<NamedTyped*>& fields) : fName(name), fFields(fields) {}
 
-    virtual ~StructTyped() {}
+    ~StructTyped() override = default;
 
-    VarType getType() { return kObj_ptr; }
+    VarType getType() override { return kObj_ptr; }
     VarType getType(int index) { return fFields[index]->getType(); }
 
-    int getSize()
+    int getSize() override
     {
         int size = 0;
         for (auto& it : fFields) {
@@ -502,9 +502,9 @@ struct StructTyped : public Typed {
 
     string getName(int index) { return fFields[index]->fName; }
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Typed* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct VectorTyped : public Typed {
@@ -513,15 +513,15 @@ struct VectorTyped : public Typed {
 
     VectorTyped(BasicTyped* type, int size) : fType(type), fSize(size) {}
 
-    virtual ~VectorTyped() {}
+    ~VectorTyped() override = default;
 
-    VarType getType() { return getVecFromType(fType->getType()); }
+    VarType getType() override { return getVecFromType(fType->getType()); }
 
-    int getSize() { return fType->getSize() * fSize; }
+    int getSize() override { return fType->getSize() * fSize; }
 
-    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Typed* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct NumValueInst {
@@ -546,7 +546,7 @@ struct Address : public Printable {
         kConst        = 0x400   // Const access
     };
 
-    Address() {}
+    Address() = default;
 
     virtual void                setAccess(Address::AccessType type) = 0;
     virtual Address::AccessType getAccess()                         = 0;
@@ -586,15 +586,15 @@ struct NamedAddress : public Address {
 
     NamedAddress(const string& name, AccessType access) : fName(name), fAccess(access) {}
 
-    void                setAccess(Address::AccessType type) { fAccess = type; }
-    Address::AccessType getAccess() { return fAccess; }
+    void                setAccess(Address::AccessType type) override { fAccess = type; }
+    Address::AccessType getAccess() override { return fAccess; }
 
-    void   setName(const string& name) { fName = name; }
-    string getName() { return fName; }
+    void   setName(const string& name) override { fName = name; }
+    string getName() override { return fName; }
 
-    Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Address* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 };
 
 struct IndexedAddress : public Address {
@@ -604,19 +604,19 @@ struct IndexedAddress : public Address {
 
     IndexedAddress(Address* address, ValueInst* index) : fAddress(address), fIndex(index) {}
 
-    virtual ~IndexedAddress() {}
+    ~IndexedAddress() override = default;
 
-    void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
-    Address::AccessType getAccess() { return fAddress->getAccess(); }
+    void                setAccess(Address::AccessType type) override { fAddress->setAccess(type); }
+    Address::AccessType getAccess() override { return fAddress->getAccess(); }
 
-    void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    void   setName(const string& name) override { fAddress->setName(name); }
+    string getName() override { return fAddress->getName(); }
 
     ValueInst* getIndex() { return fIndex; }
 
-    Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    Address* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 };
 
 // ===============
@@ -633,9 +633,9 @@ struct AddMetaDeclareInst : public StatementInst {
     {
     }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct OpenboxInst : public StatementInst {
@@ -644,17 +644,17 @@ struct OpenboxInst : public StatementInst {
 
     OpenboxInst(int orient, const string& name) : fOrient(orient), fName(name) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct CloseboxInst : public StatementInst {
-    CloseboxInst() {}
+    CloseboxInst() = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct AddButtonInst : public StatementInst {
@@ -666,9 +666,9 @@ struct AddButtonInst : public StatementInst {
 
     AddButtonInst(const string& label, const string& zone, ButtonType type) : fLabel(label), fZone(zone), fType(type) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct AddSliderInst : public StatementInst {
@@ -688,9 +688,9 @@ struct AddSliderInst : public StatementInst {
     {
     }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct AddBargraphInst : public StatementInst {
@@ -707,9 +707,9 @@ struct AddBargraphInst : public StatementInst {
     {
     }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct AddSoundfileInst : public StatementInst {
@@ -722,9 +722,9 @@ struct AddSoundfileInst : public StatementInst {
     {
     }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct LabelInst : public StatementInst {
@@ -732,9 +732,9 @@ struct LabelInst : public StatementInst {
 
     LabelInst(const string& label) : fLabel(label) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // =============
@@ -750,17 +750,17 @@ struct DeclareVarInst : public StatementInst {
 
     DeclareVarInst(Address* address, Typed* typed, ValueInst* value);
 
-    virtual ~DeclareVarInst() {}
+    ~DeclareVarInst() override = default;
 
     void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
     Address::AccessType getAccess() { return fAddress->getAccess(); }
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() override { return fAddress->getName(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
     struct StoreVarInst* store(ValueInst* val);
     struct LoadVarInst*  load();
@@ -773,13 +773,13 @@ struct DeclareVarInst : public StatementInst {
 struct DropInst : public StatementInst {
     ValueInst* fResult;
 
-    DropInst(ValueInst* result = NULL) : fResult(result) {}
+    DropInst(ValueInst* result = nullptr) : fResult(result) {}
 
-    virtual ~DropInst() {}
+    ~DropInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct LoadVarInst : public ValueInst {
@@ -787,16 +787,16 @@ struct LoadVarInst : public ValueInst {
 
     LoadVarInst(Address* address) : ValueInst(), fAddress(address) {}
 
-    virtual ~LoadVarInst() {}
+    ~LoadVarInst() override = default;
 
     void   setName(const string& name) { fAddress->setName(name); }
     string getName() { return fAddress->getName(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return dynamic_cast<NamedAddress*>(fAddress); }
+    bool isSimpleValue() override { return dynamic_cast<NamedAddress*>(fAddress); }
 };
 
 struct LoadVarAddressInst : public ValueInst {
@@ -804,16 +804,16 @@ struct LoadVarAddressInst : public ValueInst {
 
     LoadVarAddressInst(Address* address) : ValueInst(), fAddress(address) {}
 
-    virtual ~LoadVarAddressInst() {}
+    ~LoadVarAddressInst() override = default;
 
     void   setName(const string& name) { fAddress->setName(name); }
     string getName() { return fAddress->getName(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return dynamic_cast<NamedAddress*>(fAddress); }
+    bool isSimpleValue() override { return dynamic_cast<NamedAddress*>(fAddress); }
 };
 
 // Special for wast/wasm backend : combine a store and a load
@@ -823,14 +823,14 @@ struct TeeVarInst : public ValueInst {
 
     TeeVarInst(Address* address, ValueInst* value) : ValueInst(), fAddress(address), fValue(value) {}
 
-    virtual ~TeeVarInst() {}
+    ~TeeVarInst() override = default;
 
     void   setName(const string& name) { fAddress->setName(name); }
     string getName() { return fAddress->getName(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct StoreVarInst : public StatementInst {
@@ -839,14 +839,14 @@ struct StoreVarInst : public StatementInst {
 
     StoreVarInst(Address* address, ValueInst* value) : fAddress(address), fValue(value) {}
 
-    virtual ~StoreVarInst() {}
+    ~StoreVarInst() override = default;
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() override { return fAddress->getName(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct ShiftArrayVarInst : public StatementInst {
@@ -855,11 +855,11 @@ struct ShiftArrayVarInst : public StatementInst {
 
     ShiftArrayVarInst(Address* address, int delay) : fAddress(address), fDelay(delay) {}
 
-    virtual ~ShiftArrayVarInst() {}
+    ~ShiftArrayVarInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // ========
@@ -871,11 +871,11 @@ struct FloatNumInst : public ValueInst, public NumValueInst {
 
     FloatNumInst(float num) : ValueInst(), fNum(num) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    bool isSimpleValue() override { return true; }
 };
 
 template <class TYPE>
@@ -890,18 +890,18 @@ struct ArrayNumInst : public ValueInst {
     void addValue(TYPE num) { fNumTable.push_back(num); }
     TYPE getValue(int index) { return fNumTable[index]; }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    bool isSimpleValue() override { return true; }
 };
 
 struct FloatArrayNumInst : public ArrayNumInst<float> {
     FloatArrayNumInst(const vector<float>& nums) : ArrayNumInst<float>(nums) {}
     FloatArrayNumInst(int size) : ArrayNumInst<float>(size) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct DoubleNumInst : public ValueInst, public NumValueInst {
@@ -909,20 +909,20 @@ struct DoubleNumInst : public ValueInst, public NumValueInst {
 
     DoubleNumInst(double num) : ValueInst(), fNum(num) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    bool isSimpleValue() override { return true; }
 };
 
 struct DoubleArrayNumInst : public ArrayNumInst<double> {
     DoubleArrayNumInst(const vector<double>& nums) : ArrayNumInst<double>(nums) {}
     DoubleArrayNumInst(int size) : ArrayNumInst<double>(size) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct Int32NumInst : public ValueInst, public NumValueInst {
@@ -930,11 +930,11 @@ struct Int32NumInst : public ValueInst, public NumValueInst {
 
     Int32NumInst(int num) : ValueInst(), fNum(num) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    bool isSimpleValue() override { return true; }
 };
 
 struct Int64NumInst : public ValueInst, public NumValueInst {
@@ -942,20 +942,20 @@ struct Int64NumInst : public ValueInst, public NumValueInst {
 
     Int64NumInst(long long num) : ValueInst(), fNum(num) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    bool isSimpleValue() override { return true; }
 };
 
 struct Int32ArrayNumInst : public ArrayNumInst<int> {
     Int32ArrayNumInst(const vector<int>& nums) : ArrayNumInst<int>(nums) {}
     Int32ArrayNumInst(int size) : ArrayNumInst<int>(size) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct BoolNumInst : public ValueInst, public NumValueInst {
@@ -963,11 +963,11 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
 
     BoolNumInst(bool num) : ValueInst(), fNum(num) {}
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    bool isSimpleValue() override { return true; }
 };
 
 // ======================
@@ -984,13 +984,13 @@ struct BinopInst : public ValueInst {
     {
     }
 
-    virtual ~BinopInst() {}
+    ~BinopInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual int size() { return fInst1->size() + fInst2->size(); }
+    int size() override { return fInst1->size() + fInst2->size(); }
 };
 
 // =====
@@ -1003,13 +1003,13 @@ struct CastInst : public ValueInst {
 
     CastInst(ValueInst* inst, Typed* typed) : ValueInst(), fType(typed), fInst(inst) {}
 
-    virtual ~CastInst() {}
+    ~CastInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual int size() { return fInst->size(); }
+    int size() override { return fInst->size(); }
 };
 
 struct BitcastInst : public ValueInst {
@@ -1018,13 +1018,13 @@ struct BitcastInst : public ValueInst {
 
     BitcastInst(ValueInst* inst, Typed* typed) : ValueInst(), fType(typed), fInst(inst) {}
 
-    virtual ~BitcastInst() {}
+    ~BitcastInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual int size() { return fInst->size(); }
+    int size() override { return fInst->size(); }
 };
 
 // =============
@@ -1033,20 +1033,20 @@ struct BitcastInst : public ValueInst {
 
 struct BlockInst : public StatementInst {
     list<StatementInst*> fCode;
-    bool                 fIndent;
+    bool                 fIndent{false};
 
-    BlockInst(list<StatementInst*> code) : fCode(code), fIndent(false) {}
+    BlockInst(list<StatementInst*> code) : fCode(code) {}
 
-    BlockInst() : fIndent(false) {}
+    BlockInst()  = default;
 
-    virtual ~BlockInst() {}
+    ~BlockInst() override = default;
 
     void setIndent(bool indent) { fIndent = indent; }
     bool getIndent() { return fIndent; }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
     void pushFrontInst(StatementInst* inst) { fCode.push_front(inst); }
 
@@ -1076,13 +1076,13 @@ struct Select2Inst : public ValueInst {
     {
     }
 
-    virtual ~Select2Inst() {}
+    ~Select2Inst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 
-    virtual int size() { return std::max(fThen->size(), fElse->size()); }
+    int size() override { return std::max(fThen->size(), fElse->size()); }
 };
 
 struct IfInst : public StatementInst {
@@ -1097,11 +1097,11 @@ struct IfInst : public StatementInst {
 
     IfInst(ValueInst* cond_inst, BlockInst* then_inst) : fCond(cond_inst), fThen(then_inst), fElse(new BlockInst()) {}
 
-    virtual ~IfInst() {}
+    ~IfInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct SwitchInst : public StatementInst {
@@ -1112,25 +1112,25 @@ struct SwitchInst : public StatementInst {
 
     SwitchInst(ValueInst* cond) : fCond(cond) {}
 
-    virtual ~SwitchInst() {}
+    ~SwitchInst() override = default;
 
-    void addCase(int value, BlockInst* block) { fCode.push_back(make_pair(value, block)); }
+    void addCase(int value, BlockInst* block) { fCode.emplace_back(value, block); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct RetInst : public StatementInst {
     ValueInst* fResult;
 
-    RetInst(ValueInst* result = NULL) : fResult(result) {}
+    RetInst(ValueInst* result = nullptr) : fResult(result) {}
 
-    virtual ~RetInst() {}
+    ~RetInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct FunCallInst : public ValueInst {
@@ -1143,11 +1143,11 @@ struct FunCallInst : public ValueInst {
     {
     }
 
-    virtual ~FunCallInst() {}
+    ~FunCallInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    ValueInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct DeclareFunInst : public StatementInst {
@@ -1157,13 +1157,13 @@ struct DeclareFunInst : public StatementInst {
 
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
-    virtual ~DeclareFunInst() {}
+    ~DeclareFunInst() override = default;
 
     Typed::VarType getResType() { return fType->fResult->getType(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct DeclareStructTypeInst : public StatementInst {
@@ -1171,11 +1171,11 @@ struct DeclareStructTypeInst : public StatementInst {
 
     DeclareStructTypeInst(StructTyped* type) : fType(type) {}
 
-    virtual ~DeclareStructTypeInst() {}
+    ~DeclareStructTypeInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // ======
@@ -1194,17 +1194,17 @@ struct ForLoopInst : public StatementInst {
     {
     }
 
-    virtual ~ForLoopInst() {}
+    ~ForLoopInst() override = default;
 
     void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
 
     void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
 
-    string getName() { return fInit->getName(); }
+    string getName() override { return fInit->getName(); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // To be used for the 'rust' backend
@@ -1220,17 +1220,17 @@ struct SimpleForLoopInst : public StatementInst {
     {
     }
 
-    string getName() { return fName; }
+    string getName() override { return fName; }
 
-    virtual ~SimpleForLoopInst() {}
+    ~SimpleForLoopInst() override = default;
 
     void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
 
     void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 struct WhileLoopInst : public StatementInst {
@@ -1239,11 +1239,11 @@ struct WhileLoopInst : public StatementInst {
 
     WhileLoopInst(ValueInst* cond, BlockInst* code) : fCond(cond), fCode(code) {}
 
-    virtual ~WhileLoopInst() {}
+    ~WhileLoopInst() override = default;
 
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    StatementInst* clone(CloneVisitor* cloner) override { return cloner->visit(this); }
 };
 
 // ====================
@@ -1255,79 +1255,79 @@ class BasicCloneVisitor : public CloneVisitor {
     static std::stack<BlockInst*> fBlockStack;
 
    public:
-    BasicCloneVisitor() {}
+    BasicCloneVisitor() = default;
 
-    virtual NullValueInst*     visit(NullValueInst* inst) { return new NullValueInst(); }
-    virtual NullStatementInst* visit(NullStatementInst* inst) { return new NullStatementInst(); }
+    NullValueInst*     visit(NullValueInst* inst) override { return new NullValueInst(); }
+    NullStatementInst* visit(NullStatementInst* inst) override { return new NullStatementInst(); }
 
     // Declarations
-    virtual StatementInst* visit(DeclareVarInst* inst)
+    StatementInst* visit(DeclareVarInst* inst) override
     {
         return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this),
-                                  ((inst->fValue) ? inst->fValue->clone(this) : NULL));
+                                  ((inst->fValue) ? inst->fValue->clone(this) : nullptr));
     }
-    virtual StatementInst* visit(DeclareFunInst* inst)
+    StatementInst* visit(DeclareFunInst* inst) override
     {
         return new DeclareFunInst(inst->fName, static_cast<FunTyped*>(inst->fType->clone(this)),
                                   static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
-    virtual StatementInst* visit(DeclareStructTypeInst* inst)
+    StatementInst* visit(DeclareStructTypeInst* inst) override
     {
         return new DeclareStructTypeInst(static_cast<StructTyped*>(inst->fType->clone(this)));
     }
 
     // Memory
-    virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this)); }
-    virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
-    virtual ValueInst* visit(TeeVarInst* inst)
+    ValueInst* visit(LoadVarInst* inst) override { return new LoadVarInst(inst->fAddress->clone(this)); }
+    ValueInst* visit(LoadVarAddressInst* inst) override { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
+    ValueInst* visit(TeeVarInst* inst) override
     {
         return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
     }
-    virtual StatementInst* visit(StoreVarInst* inst)
+    StatementInst* visit(StoreVarInst* inst) override
     {
         return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
     }
-    virtual StatementInst* visit(ShiftArrayVarInst* inst)
+    StatementInst* visit(ShiftArrayVarInst* inst) override
     {
         return new ShiftArrayVarInst(inst->fAddress->clone(this), inst->fDelay);
     }
 
     // Addresses
-    virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, address->fAccess); }
-    virtual Address* visit(IndexedAddress* address)
+    Address* visit(NamedAddress* address) override { return new NamedAddress(address->fName, address->fAccess); }
+    Address* visit(IndexedAddress* address) override
     {
         return new IndexedAddress(address->fAddress->clone(this), address->fIndex->clone(this));
     }
 
     // Numbers
-    virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum); }
-    virtual ValueInst* visit(FloatArrayNumInst* inst) { return new FloatArrayNumInst(inst->fNumTable); }
-    virtual ValueInst* visit(Int32NumInst* inst) { return new Int32NumInst(inst->fNum); }
-    virtual ValueInst* visit(Int64NumInst* inst) { return new Int64NumInst(inst->fNum); }
-    virtual ValueInst* visit(Int32ArrayNumInst* inst) { return new Int32ArrayNumInst(inst->fNumTable); }
-    virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum); }
-    virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum); }
-    virtual ValueInst* visit(DoubleArrayNumInst* inst) { return new DoubleArrayNumInst(inst->fNumTable); }
+    ValueInst* visit(FloatNumInst* inst) override { return new FloatNumInst(inst->fNum); }
+    ValueInst* visit(FloatArrayNumInst* inst) override { return new FloatArrayNumInst(inst->fNumTable); }
+    ValueInst* visit(Int32NumInst* inst) override { return new Int32NumInst(inst->fNum); }
+    ValueInst* visit(Int64NumInst* inst) override { return new Int64NumInst(inst->fNum); }
+    ValueInst* visit(Int32ArrayNumInst* inst) override { return new Int32ArrayNumInst(inst->fNumTable); }
+    ValueInst* visit(BoolNumInst* inst) override { return new BoolNumInst(inst->fNum); }
+    ValueInst* visit(DoubleNumInst* inst) override { return new DoubleNumInst(inst->fNum); }
+    ValueInst* visit(DoubleArrayNumInst* inst) override { return new DoubleArrayNumInst(inst->fNumTable); }
 
     // Numerical computation
-    virtual ValueInst* visit(BinopInst* inst)
+    ValueInst* visit(BinopInst* inst) override
     {
         return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this));
     }
 
     // Cast
-    virtual ValueInst* visit(CastInst* inst)
+    ValueInst* visit(CastInst* inst) override
     {
         return new CastInst(inst->fInst->clone(this), inst->fType->clone(this));
     }
 
-    virtual ValueInst* visit(BitcastInst* inst)
+    ValueInst* visit(BitcastInst* inst) override
     {
         return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this));
     }
 
     // Function call
-    virtual ValueInst* visit(FunCallInst* inst)
+    ValueInst* visit(FunCallInst* inst) override
     {
         list<ValueInst*> cloned_args;
         for (auto& it : inst->fArgs) {
@@ -1336,17 +1336,17 @@ class BasicCloneVisitor : public CloneVisitor {
 
         return new FunCallInst(inst->fName, cloned_args, inst->fMethod);
     }
-    virtual StatementInst* visit(RetInst* inst)
+    StatementInst* visit(RetInst* inst) override
     {
-        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : NULL);
+        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
-    virtual StatementInst* visit(DropInst* inst)
+    StatementInst* visit(DropInst* inst) override
     {
-        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL);
+        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
 
     // Conditionnal
-    virtual ValueInst* visit(Select2Inst* inst)
+    ValueInst* visit(Select2Inst* inst) override
     {
         ValueInst* then_exp = inst->fThen->clone(this);
         ValueInst* else_exp = inst->fElse->clone(this);
@@ -1354,14 +1354,14 @@ class BasicCloneVisitor : public CloneVisitor {
         // cond_exp has to be evaluated last for FunctionInliner to correctly work in gHasTeeLocal mode
         return new Select2Inst(cond_exp, then_exp, else_exp);
     }
-    virtual StatementInst* visit(IfInst* inst)
+    StatementInst* visit(IfInst* inst) override
     {
         return new IfInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fThen->clone(this)),
                           static_cast<BlockInst*>(inst->fElse->clone(this)));
     }
-    virtual StatementInst* visit(SwitchInst* inst)
+    StatementInst* visit(SwitchInst* inst) override
     {
-        SwitchInst* cloned = new SwitchInst(inst->fCond->clone(this));
+        auto* cloned = new SwitchInst(inst->fCond->clone(this));
         for (auto& it : inst->fCode) {
             cloned->addCase(it.first, static_cast<BlockInst*>((it.second)->clone(this)));
         }
@@ -1369,28 +1369,28 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Loop
-    virtual StatementInst* visit(ForLoopInst* inst)
+    StatementInst* visit(ForLoopInst* inst) override
     {
         return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this),
                                static_cast<BlockInst*>(inst->fCode->clone(this)), inst->fIsRecursive);
     }
 
-    virtual StatementInst* visit(SimpleForLoopInst* inst)
+    StatementInst* visit(SimpleForLoopInst* inst) override
     {
         return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this),
                                      inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
-    virtual StatementInst* visit(WhileLoopInst* inst)
+    StatementInst* visit(WhileLoopInst* inst) override
     {
         return new WhileLoopInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     // Block
-    virtual StatementInst* visit(BlockInst* inst)
+    StatementInst* visit(BlockInst* inst) override
     {
         // fBlockStack is used when inlining functions
-        BlockInst* cloned = new BlockInst();
+        auto* cloned = new BlockInst();
         fBlockStack.push(cloned);
         for (auto& it : inst->fCode) {
             cloned->pushBackInst(it->clone(this));
@@ -1400,35 +1400,35 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // User interface
-    virtual StatementInst* visit(AddMetaDeclareInst* inst)
+    StatementInst* visit(AddMetaDeclareInst* inst) override
     {
         return new AddMetaDeclareInst(inst->fZone, inst->fKey, inst->fValue);
     }
-    virtual StatementInst* visit(OpenboxInst* inst) { return new OpenboxInst(inst->fOrient, inst->fName); }
-    virtual StatementInst* visit(CloseboxInst* inst) { return new CloseboxInst(); }
-    virtual StatementInst* visit(AddButtonInst* inst)
+    StatementInst* visit(OpenboxInst* inst) override { return new OpenboxInst(inst->fOrient, inst->fName); }
+    StatementInst* visit(CloseboxInst* inst) override { return new CloseboxInst(); }
+    StatementInst* visit(AddButtonInst* inst) override
     {
         return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType);
     }
-    virtual StatementInst* visit(AddSliderInst* inst)
+    StatementInst* visit(AddSliderInst* inst) override
     {
         return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep,
                                  inst->fType);
     }
-    virtual StatementInst* visit(AddBargraphInst* inst)
+    StatementInst* visit(AddBargraphInst* inst) override
     {
         return new AddBargraphInst(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, inst->fType);
     }
-    virtual StatementInst* visit(AddSoundfileInst* inst)
+    StatementInst* visit(AddSoundfileInst* inst) override
     {
         return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fSFZone);
     }
-    virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
+    StatementInst* visit(LabelInst* inst) override { return new LabelInst(inst->fLabel); }
 
     // Typed
-    virtual Typed* visit(BasicTyped* typed);  // Moved in instructions.cpp
-    virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
-    virtual Typed* visit(FunTyped* typed)
+    Typed* visit(BasicTyped* typed) override;  // Moved in instructions.cpp
+    Typed* visit(NamedTyped* typed) override { return new NamedTyped(typed->fName, typed->fType); }
+    Typed* visit(FunTyped* typed) override
     {
         list<NamedTyped*> cloned;
         for (auto& it : typed->fArgsTypes) {
@@ -1436,11 +1436,11 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
     }
-    virtual Typed* visit(ArrayTyped* typed)
+    Typed* visit(ArrayTyped* typed) override
     {
         return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr);
     }
-    virtual Typed* visit(StructTyped* typed)
+    Typed* visit(StructTyped* typed) override
     {
         vector<NamedTyped*> cloned;
         for (auto& it : typed->fFields) {
@@ -1449,7 +1449,7 @@ class BasicCloneVisitor : public CloneVisitor {
         return new StructTyped(typed->fName, cloned);
     }
 
-    virtual Typed* visit(VectorTyped* typed)
+    Typed* visit(VectorTyped* typed) override
     {
         return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize);
     }
@@ -1462,7 +1462,7 @@ class BasicCloneVisitor : public CloneVisitor {
 struct DispatchVisitor : public InstVisitor {
     using InstVisitor::visit;
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         inst->fAddress->accept(this);
         // No visitor on types
@@ -1471,80 +1471,80 @@ struct DispatchVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         if (inst->fCode) {
             inst->fCode->accept(this);
         }
     }
 
-    virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
-    virtual void visit(LoadVarAddressInst* inst) { inst->fAddress->accept(this); }
-    virtual void visit(TeeVarInst* inst)
+    void visit(LoadVarInst* inst) override { inst->fAddress->accept(this); }
+    void visit(LoadVarAddressInst* inst) override { inst->fAddress->accept(this); }
+    void visit(TeeVarInst* inst) override
     {
         inst->fAddress->accept(this);
         inst->fValue->accept(this);
     }
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         inst->fAddress->accept(this);
         inst->fValue->accept(this);
     }
 
-    virtual void visit(ShiftArrayVarInst* inst) { inst->fAddress->accept(this); }
+    void visit(ShiftArrayVarInst* inst) override { inst->fAddress->accept(this); }
 
-    virtual void visit(IndexedAddress* address)
+    void visit(IndexedAddress* address) override
     {
         address->fAddress->accept(this);
         address->fIndex->accept(this);
     }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         inst->fInst1->accept(this);
         inst->fInst2->accept(this);
     }
 
-    virtual void visit(CastInst* inst) { inst->fInst->accept(this); }
+    void visit(CastInst* inst) override { inst->fInst->accept(this); }
 
-    virtual void visit(BitcastInst* inst) { inst->fInst->accept(this); }
+    void visit(BitcastInst* inst) override { inst->fInst->accept(this); }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         for (auto& it : inst->fArgs) {
             it->accept(this);
         }
     }
 
-    virtual void visit(RetInst* inst)
+    void visit(RetInst* inst) override
     {
         if (inst->fResult) {
             inst->fResult->accept(this);
         }
     }
 
-    virtual void visit(DropInst* inst)
+    void visit(DropInst* inst) override
     {
         if (inst->fResult) {
             inst->fResult->accept(this);
         }
     }
 
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         inst->fCond->accept(this);
         inst->fThen->accept(this);
         inst->fElse->accept(this);
     }
 
-    virtual void visit(IfInst* inst)
+    void visit(IfInst* inst) override
     {
         inst->fCond->accept(this);
         inst->fThen->accept(this);
         inst->fElse->accept(this);
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         inst->fInit->accept(this);
         inst->fEnd->accept(this);
@@ -1552,19 +1552,19 @@ struct DispatchVisitor : public InstVisitor {
         inst->fCode->accept(this);
     }
 
-    virtual void visit(SimpleForLoopInst* inst)
+    void visit(SimpleForLoopInst* inst) override
     {
         inst->fUpperBound->accept(this);
         inst->fCode->accept(this);
     }
 
-    virtual void visit(WhileLoopInst* inst)
+    void visit(WhileLoopInst* inst) override
     {
         inst->fCond->accept(this);
         inst->fCode->accept(this);
     }
 
-    virtual void visit(SwitchInst* inst)
+    void visit(SwitchInst* inst) override
     {
         inst->fCond->accept(this);
         for (auto& it : inst->fCode) {
@@ -1572,7 +1572,7 @@ struct DispatchVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(BlockInst* inst)
+    void visit(BlockInst* inst) override
     {
         for (auto& it : inst->fCode) {
             it->accept(this);
@@ -1580,36 +1580,36 @@ struct DispatchVisitor : public InstVisitor {
     }
 
     // Typed
-    virtual void visit(FunTyped* typed)
+    void visit(FunTyped* typed) override
     {
         typed->fResult->accept(this);
         for (auto& it : typed->fArgsTypes) {
             it->accept(this);
         }
     }
-    virtual void visit(ArrayTyped* typed) { typed->fType->accept(this); }
-    virtual void visit(StructTyped* typed)
+    void visit(ArrayTyped* typed) override { typed->fType->accept(this); }
+    void visit(StructTyped* typed) override
     {
         for (auto& it : typed->fFields) {
             it->accept(this);
         }
     }
 
-    virtual void visit(VectorTyped* typed) { typed->fType->accept(this); }
+    void visit(VectorTyped* typed) override { typed->fType->accept(this); }
 };
 
 struct VariableScopeVisitor : public DispatchVisitor {
     stack<list<DeclareVarInst*> > fBlockVarTable;
 
-    VariableScopeVisitor() {}
+    VariableScopeVisitor() = default;
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         fBlockVarTable.top().push_back(inst);
         DispatchVisitor::visit(inst);
     }
 
-    virtual void visit(BlockInst* inst)
+    void visit(BlockInst* inst) override
     {
         list<DeclareVarInst*> variable_block;
         fBlockVarTable.push(variable_block);
@@ -1630,19 +1630,19 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
 
     ScalVecDispatcherVisitor(InstVisitor* scal, InstVisitor* vec) : fScalarVisitor(scal), fVectorVisitor(vec) {}
 
-    ~ScalVecDispatcherVisitor()
+    ~ScalVecDispatcherVisitor() override
     {
         delete fScalarVisitor;
         delete fVectorVisitor;
     }
 
-    virtual void visit(LoadVarInst* inst) { Dispatch2Visitor(inst); }
+    void visit(LoadVarInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(LoadVarAddressInst* inst) { Dispatch2Visitor(inst); }
+    void visit(LoadVarAddressInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(TeeVarInst* inst) { Dispatch2Visitor(inst); }
+    void visit(TeeVarInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         /*
         if (inst->fValue->fSize == 1) {
@@ -1655,31 +1655,31 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         fScalarVisitor->visit(inst);
     }
 
-    virtual void visit(ShiftArrayVarInst* inst) { fScalarVisitor->visit(inst); }
+    void visit(ShiftArrayVarInst* inst) override { fScalarVisitor->visit(inst); }
 
-    virtual void visit(FloatNumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(FloatNumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(FloatArrayNumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(FloatArrayNumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(Int32NumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(Int32NumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(Int64NumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(Int64NumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(BoolNumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(BoolNumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(DoubleNumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(DoubleNumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(DoubleArrayNumInst* inst) { Dispatch2Visitor(inst); }
+    void visit(DoubleArrayNumInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(BinopInst* inst) { Dispatch2Visitor(inst); }
+    void visit(BinopInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(CastInst* inst) { Dispatch2Visitor(inst); }
+    void visit(CastInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(BitcastInst* inst) { Dispatch2Visitor(inst); }
+    void visit(BitcastInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(FunCallInst* inst) { Dispatch2Visitor(inst); }
+    void visit(FunCallInst* inst) override { Dispatch2Visitor(inst); }
 
-    virtual void visit(Select2Inst* inst) { Dispatch2Visitor(inst); }
+    void visit(Select2Inst* inst) override { Dispatch2Visitor(inst); }
 };
 
 // ===================
@@ -1695,7 +1695,7 @@ class CombinerVisitor : public DispatchVisitor {
    public:
     CombinerVisitor(InstVisitor* v1, InstVisitor* v2) : fVisitor1(v1), fVisitor2(v2) { fCurVisitor = v1; }
 
-    virtual ~CombinerVisitor() {}
+    ~CombinerVisitor() override = default;
 };
 
 // ======================
@@ -1764,7 +1764,7 @@ struct InstBuilder {
     static NullStatementInst* genNullStatementInst() { return new NullStatementInst(); }
 
     // Declarations
-    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = NULL)
+    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = nullptr)
     {
         return new DeclareVarInst(address, typed, value);
     }
@@ -1821,7 +1821,7 @@ struct InstBuilder {
         } else {
             faustassert(false);
         }
-        return NULL;
+        return nullptr;
     }
 
     static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
@@ -1835,7 +1835,7 @@ struct InstBuilder {
         } else {
             faustassert(false);
         }
-        return NULL;
+        return nullptr;
     }
 
     static Int32NumInst* genInt32NumInst(int num) { return new Int32NumInst(num); }
@@ -1850,11 +1850,11 @@ struct InstBuilder {
 
     static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext)
     {
-        Int32NumInst*  int_num    = dynamic_cast<Int32NumInst*>(inst);
-        FloatNumInst*  float_num  = dynamic_cast<FloatNumInst*>(inst);
-        DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
-        BasicTyped*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
-        CastInst*      cast       = dynamic_cast<CastInst*>(inst);
+        auto*  int_num    = dynamic_cast<Int32NumInst*>(inst);
+        auto*  float_num  = dynamic_cast<FloatNumInst*>(inst);
+        auto* double_num = dynamic_cast<DoubleNumInst*>(inst);
+        auto*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
+        auto*      cast       = dynamic_cast<CastInst*>(inst);
 
         if (!typed) {
             // Default case
@@ -1914,8 +1914,8 @@ struct InstBuilder {
     static ValueInst* genCastInt32Inst(ValueInst* inst);
 
     // Control flow
-    static RetInst*  genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
-    static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
+    static RetInst*  genRetInst(ValueInst* result = nullptr) { return new RetInst(result); }
+    static DropInst* genDropInst(ValueInst* result = nullptr) { return new DropInst(result); }
 
     // Conditional
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
@@ -2037,12 +2037,12 @@ struct InstBuilder {
     }
 
     // Struct variable
-    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
     }
 
-    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
                                  type, exp);
@@ -2072,7 +2072,7 @@ struct InstBuilder {
     template <typename Iterator>
     static LoadVarInst* genLoadArrayStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
+        using Rit = reverse_iterator<Iterator>;
         Rit                                rbegin(indexEnd);
         Rit                                rend(indexBegin);
 
@@ -2116,7 +2116,7 @@ struct InstBuilder {
     static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
                                                 Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
+        using Rit = reverse_iterator<Iterator>;
         Rit                                rbegin(indexEnd);
         Rit                                rend(indexBegin);
 
@@ -2141,12 +2141,12 @@ struct InstBuilder {
     }
 
     // Static struct variable
-    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
     }
 
-    static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(
             genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct | Address::kConst)), type, exp);
@@ -2171,7 +2171,7 @@ struct InstBuilder {
     template <typename Iterator>
     static LoadVarInst* genLoadArrayStaticStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
+        using Rit = reverse_iterator<Iterator>;
         Rit                                rbegin(indexEnd);
         Rit                                rend(indexBegin);
 
@@ -2194,7 +2194,7 @@ struct InstBuilder {
     static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
                                                       Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
+        using Rit = reverse_iterator<Iterator>;
         Rit                                rbegin(indexEnd);
         Rit                                rend(indexBegin);
 
@@ -2214,7 +2214,7 @@ struct InstBuilder {
     }
 
     // Stack variable
-    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
     }
@@ -2255,7 +2255,7 @@ struct InstBuilder {
     }
 
     // Loop variable
-    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
     }
@@ -2287,12 +2287,12 @@ struct InstBuilder {
     }
 
     // Global variable
-    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
     }
 
-    static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kGlobal | Address::kConst)),
                                  type, exp);
@@ -2388,7 +2388,7 @@ struct FIRIndex {
 
     explicit FIRIndex(int i) : fValue(InstBuilder::genInt32NumInst(i)) {}
 
-    FIRIndex(FIRIndex const& rhs) : fValue(rhs.fValue) {}
+    FIRIndex(FIRIndex const& rhs)  = default;
 
     /* implicitly convert to ValueInst* in order to simplify the usage */
     operator ValueInst*(void)const { return fValue; }

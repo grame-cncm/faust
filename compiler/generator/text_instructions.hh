@@ -69,19 +69,19 @@ class TextInstVisitor : public InstVisitor {
     {
     }
 
-    virtual ~TextInstVisitor() { delete fTypeManager; }
+    ~TextInstVisitor() override { delete fTypeManager; }
 
     void Tab(int n) { fTab = n; }
 
-    virtual void visit(LabelInst* inst)
+    void visit(LabelInst* inst) override
     {
         *fOut << inst->fLabel;
         tab(fTab, *fOut);
     }
 
-    virtual void visit(DeclareVarInst* inst) { faustassert(false); }
+    void visit(DeclareVarInst* inst) override { faustassert(false); }
 
-    virtual void visit(RetInst* inst) { visitAux(inst, true); }
+    void visit(RetInst* inst) override { visitAux(inst, true); }
 
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
@@ -95,7 +95,7 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(DropInst* inst)
+    void visit(DropInst* inst) override
     {
         if (inst->fResult) {
             inst->fResult->accept(this);
@@ -103,19 +103,19 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(DeclareFunInst* inst) { faustassert(false); }
+    void visit(DeclareFunInst* inst) override { faustassert(false); }
 
-    virtual void visit(NamedAddress* named) { *fOut << named->fName; }
+    void visit(NamedAddress* named) override { *fOut << named->fName; }
 
     /*
      Indexed adresses can actually be values in an array or fields in a struct type
      */
-    virtual void visit(IndexedAddress* indexed)
+    void visit(IndexedAddress* indexed) override
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            auto* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
@@ -124,11 +124,11 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
+    void visit(LoadVarInst* inst) override { inst->fAddress->accept(this); }
 
-    virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
+    void visit(LoadVarAddressInst* inst) override { faustassert(false); }
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         inst->fAddress->accept(this);
         *fOut << " = ";
@@ -136,9 +136,9 @@ class TextInstVisitor : public InstVisitor {
         EndLine();
     }
 
-    virtual void visit(FloatNumInst* inst) { *fOut << checkFloat(inst->fNum); }
+    void visit(FloatNumInst* inst) override { *fOut << checkFloat(inst->fNum); }
 
-    virtual void visit(FloatArrayNumInst* inst)
+    void visit(FloatArrayNumInst* inst) override
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -148,11 +148,11 @@ class TextInstVisitor : public InstVisitor {
         *fOut << '}';
     }
 
-    virtual void visit(Int32NumInst* inst) { *fOut << inst->fNum; }
+    void visit(Int32NumInst* inst) override { *fOut << inst->fNum; }
 
-    virtual void visit(Int64NumInst* inst) { *fOut << inst->fNum; }
+    void visit(Int64NumInst* inst) override { *fOut << inst->fNum; }
 
-    virtual void visit(Int32ArrayNumInst* inst)
+    void visit(Int32ArrayNumInst* inst) override
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -162,11 +162,11 @@ class TextInstVisitor : public InstVisitor {
         *fOut << '}';
     }
 
-    virtual void visit(BoolNumInst* inst) { *fOut << ((inst->fNum) ? "true" : "false"); }
+    void visit(BoolNumInst* inst) override { *fOut << ((inst->fNum) ? "true" : "false"); }
 
-    virtual void visit(DoubleNumInst* inst) { *fOut << checkDouble(inst->fNum); }
+    void visit(DoubleNumInst* inst) override { *fOut << checkDouble(inst->fNum); }
 
-    virtual void visit(DoubleArrayNumInst* inst)
+    void visit(DoubleArrayNumInst* inst) override
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
@@ -176,7 +176,7 @@ class TextInstVisitor : public InstVisitor {
         *fOut << '}';
     }
 
-    virtual void visit(BinopInst* inst)
+    void visit(BinopInst* inst) override
     {
         *fOut << "(";
         inst->fInst1->accept(this);
@@ -187,7 +187,7 @@ class TextInstVisitor : public InstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(::CastInst* inst) { faustassert(false); }
+    void visit(::CastInst* inst) override { faustassert(false); }
 
     virtual std::string generateFunName(const std::string& name)
     {
@@ -203,7 +203,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
                                      size_t size)
     {
-        list<ValueInst*>::const_iterator it = beg;
+        auto it = beg;
         size_t                           i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
@@ -259,9 +259,9 @@ class TextInstVisitor : public InstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(FunCallInst* inst) { faustassert(false); }
+    void visit(FunCallInst* inst) override { faustassert(false); }
 
-    virtual void visit(Select2Inst* inst)
+    void visit(Select2Inst* inst) override
     {
         *fOut << "(";
         inst->fCond->accept(this);
@@ -272,7 +272,7 @@ class TextInstVisitor : public InstVisitor {
         *fOut << ")";
     }
 
-    virtual void visit(IfInst* inst)
+    void visit(IfInst* inst) override
     {
         *fOut << "if ";
         inst->fCond->accept(this);
@@ -296,7 +296,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
@@ -319,7 +319,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(WhileLoopInst* inst)
+    void visit(WhileLoopInst* inst) override
     {
         *fOut << "while (";
         inst->fCond->accept(this);
@@ -333,7 +333,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(BlockInst* inst)
+    void visit(BlockInst* inst) override
     {
         if (inst->fIndent) {
             *fOut << "{";
@@ -357,7 +357,7 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(::SwitchInst* inst)
+    void visit(::SwitchInst* inst) override
     {
         *fOut << "switch (";
         inst->fCond->accept(this);
@@ -400,8 +400,8 @@ struct sortDeclareFunctions {
 
     bool operator()(StatementInst* a, StatementInst* b)
     {
-        DeclareFunInst* inst1 = dynamic_cast<DeclareFunInst*>(a);
-        DeclareFunInst* inst2 = dynamic_cast<DeclareFunInst*>(b);
+        auto* inst1 = dynamic_cast<DeclareFunInst*>(a);
+        auto* inst2 = dynamic_cast<DeclareFunInst*>(b);
 
         if (inst1) {
             if (inst2) {
