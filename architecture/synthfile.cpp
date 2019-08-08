@@ -103,14 +103,15 @@ int main(int argc, char* argv[])
 	DSP.buildUserInterface(interface);
 	interface->process_command();
     
-    unsigned int nSamples = loptrm(&argc, argv, "--samples", "-s", 44100*5);
+    int num_samples = loptrm(&argc, argv, "--samples", "-s", kSampleRate*5);
+    int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);
+    int bit_depth = loptrm(&argc, argv, "--bith-depth (16|24|32)", "-bd", 16);
+    
+    int bd = (bit_depth == 16) ? SF_FORMAT_PCM_16 : ((bit_depth == 24) ? SF_FORMAT_PCM_24 : SF_FORMAT_PCM_32);
 		
 	// open output file
-	SNDFILE* out_sf;
-    SF_INFO	out_info = { nSamples, kSampleRate, DSP.getNumOutputs(),
-        SF_FORMAT_WAV|SF_FORMAT_PCM_16|SF_ENDIAN_LITTLE, 0, 0};
-    
-	out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
+    SF_INFO out_info = { num_samples, sample_rate, DSP.getNumOutputs(), SF_FORMAT_WAV|bd|SF_ENDIAN_LITTLE, 0, 0};
+ 	SNDFILE*out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
 	if (out_sf == NULL) { 
 		cerr << "Error: "; 
 		sf_perror(out_sf); 
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
 	interface->process_init();
 
 	// process all samples
-    int frames = nSamples;
+    int frames = num_samples;
  	int nbf = 0;
 	do {
         if (frames > kFrames) {

@@ -26,7 +26,6 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2sndfile <foo.dsp>"
-        echo "With the compiled program 'foo', you can add [-c samples] for the number of frames to append beyond the input file"
     fi
     
     if [ ${p:0:1} = "-" ]; then
@@ -52,9 +51,14 @@ for f in $FILES; do
 	NINPUTS=${LINPUTS//[^0-9]/}
 	if [ $NINPUTS -gt 0 ]; then
 		echo "Will process an input file to produce an output file"
+		echo "With the compiled program 'foo', you can add [-c samples] for the number of frames to append beyond the input file"
 		ARCHFILE=$FAUSTARCH/sndfile.cpp
 	else
 		echo "Will generate an output file"
+		echo "With the compiled program 'foo'you can add:"
+		echo "[-bd 16|24|32] to setup the the output file bith-deph (default: 16)"
+		echo "[-sr <num>] to setup the output file sample rate (default: 44100)"
+		echo "[-s <num>] to setup the output file length in frames (default: SR * 5)"
 		ARCHFILE=$FAUSTARCH/synthfile.cpp
 	fi
 

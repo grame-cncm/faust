@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     SF_INFO in_info;
     SF_INFO out_info;
 
-    unsigned int nAppend = loptrm(&argc, argv, "--continue", "-c", 0);
+    unsigned int num_samples = loptrm(&argc, argv, "--continue", "-c", 0);
     
     CMDUI* interface = new CMDUI(argc, argv, true);
     DSP.buildUserInterface(interface);
@@ -161,13 +161,13 @@ int main(int argc, char* argv[])
     sf_close(in_sf);
     
     // compute tail, if any
-    if (nAppend > 0) {
-        FAUSTFLOAT* input = (FAUSTFLOAT*)calloc(nAppend * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
+    if (num_samples > 0) {
+        FAUSTFLOAT* input = (FAUSTFLOAT*)calloc(num_samples * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
         FAUSTFLOAT* inputs[1] = { input };
-        Interleaver ailv(nAppend, DSP.getNumOutputs(), DSP.getNumOutputs());
-        DSP.compute(nAppend, inputs, ailv.inputs());
+        Interleaver ailv(num_samples, DSP.getNumOutputs(), DSP.getNumOutputs());
+        DSP.compute(num_samples, inputs, ailv.inputs());
         ailv.interleave();
-        WRITE_SAMPLE(out_sf, ailv.output(), nAppend);
+        WRITE_SAMPLE(out_sf, ailv.output(), num_samples);
     }
     
     sf_close(out_sf);

@@ -149,27 +149,27 @@ public:
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
-        addOption(label,zone,0,0,1);
+        addOption(label, zone, 0, 0, 1);
     }
     
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
-        addOption(label,zone,0,0,1);
+        addOption(label, zone, 0, 0, 1);
     }
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addOption(label,zone,init,min,max);
+        addOption(label, zone, init, min, max);
     }
     
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addOption(label,zone,init,min,max);
+        addOption(label, zone, init, min, max);
     }
     
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addOption(label,zone,init,min,max);
+        addOption(label, zone, init, min, max);
     }
     
     // -- passive widgets
@@ -241,6 +241,9 @@ public:
                         std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
                         printhelp_command();
                         exit(1);
+                    } else {
+                        // Argument with a value, so also ignore the value
+                        if ((i+1 < fArgc) && (fArgv[i+1][0] != '-')) i++;
                     }
                 } else {
                     char* end;
