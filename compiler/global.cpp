@@ -576,6 +576,8 @@ void global::printCompilationOptions(ostream& dst, bool backend)
 #endif
     }
     if (gInPlace) dst << "-inpl ";
+    if (gOneSample) dst << "-os ";
+    if (gLightMode) dst << "-light ";
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")

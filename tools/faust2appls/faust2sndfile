@@ -55,10 +55,10 @@ for f in $FILES; do
 		ARCHFILE=$FAUSTARCH/sndfile.cpp
 	else
 		echo "Will generate an output file"
-		echo "With the compiled program 'foo'you can add:"
+		echo "With the compiled program 'foo' you can add:"
 		echo "[-bd 16|24|32] to setup the the output file bith-deph (default: 16)"
 		echo "[-sr <num>] to setup the output file sample rate (default: 44100)"
-		echo "[-s <num>] to setup the output file length in frames (default: SR * 5)"
+		echo "[-s <num>] to setup the output file length in frames (default: SR*5)"
 		ARCHFILE=$FAUSTARCH/synthfile.cpp
 	fi
 
