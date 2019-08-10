@@ -63,8 +63,8 @@ class TransformDelayToTable : public SignalIdentity {
         int p = int(log2(x));
         int v = 1 << p;
         while (v < x) v = v << 1;
-        cerr << "dmax2size " << dmax << " -> " << v << endl;
-        assert(v >= x);
+        // cerr << "dmax2size " << dmax << " -> " << v << endl;
+        // assert(v >= x);
         return v;
     }
 
@@ -102,7 +102,7 @@ class TransformDelayToTable : public SignalIdentity {
 set<Tree> transformDelayToTable(const set<Tree>& I)
 {
     TransformDelayToTable d2t;
-    d2t.trace(true);
+    d2t.trace(false);
 
     set<Tree> R;
     for (Tree i : I) R.insert(d2t.self(i));

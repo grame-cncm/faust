@@ -24,13 +24,13 @@
     22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
+#include "compile_graph.hh"
 #include <math.h>
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
-
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
@@ -73,14 +73,50 @@ static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
         return C.getClass();
     }
 }
+static bool isInit(Tree i)
+{
+    Tree id, origin, exp;
+    int  nat;
+    bool r = isSigControlWrite(i, id, origin, &nat, exp);
+
+    if (r) {
+        Type t = getCertifiedSigType(origin);
+        // cerr << "-> " << *t << " -> " << ppsig(i) << endl;
+        if (t->variability() == kKonst) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Check if a control instruction
+ *
+ * @param i the instruction to test
+ * @return true if it is a control instruction
+ * @return false otherwise
+ */
+static bool isControl(Tree i)
+{
+    Tree id, origin, exp;
+    int  nat;
+    bool r = isSigControlWrite(i, id, origin, &nat, exp);
+#if 0
+    if (r) {
+        Type t = getCertifiedSigType(origin);
+        cerr << "-> " << *t << " -> " << ppsig(i) << endl;
+    }
+#endif
+    return r;
+}
 
 /*****************************************************************************
  getFreshID
  *****************************************************************************/
 
-map<string, int> ScalarCompiler::fIDCounters;
+map<string, int> GraphCompiler::fIDCounters;
 
-string ScalarCompiler::getFreshID(const string& prefix)
+string GraphCompiler::getFreshID(const string& prefix)
 {
     if (fIDCounters.find(prefix) == fIDCounters.end()) {
         fIDCounters[prefix] = 0;
@@ -94,9 +130,9 @@ string ScalarCompiler::getFreshID(const string& prefix)
  prepare
  *****************************************************************************/
 
-Tree ScalarCompiler::prepare(Tree LS)
+Tree GraphCompiler::prepare(Tree LS)
 {
-    startTiming("ScalarCompiler::prepare");
+    startTiming("GraphCompiler::prepare");
     //  startTiming("first simplification");
     //  LS = simplify(LS);
     //  endTiming("first simplification");
@@ -120,7 +156,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     startTiming("Constant propagation");
     SignalConstantPropagation SK;
-    // SK.trace(true, "ConstProp2");
+    SK.trace(false, "ConstProp2");
     Tree L2b = SK.mapself(L2);
     endTiming("Constant propagation");
 
@@ -149,16 +185,43 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup = new old_OccMarkup(fConditionProperty);
     fOccMarkup->mark(L3);  // annotate L3 with occurences analysis
 
-    //****************************************************************************************************
-    //****************************************************************************************************
-    // startTiming("Signal Visitor");
-    // SignalVisitor SV;
-    // SV.trace(true);
-    // SV.mapself(L3);
-    // endTiming("Signal Visitor)");
+    // sharingAnalysis(L3);  // annotate L3 with sharing count
 
-    startTiming("Signal Splitter");
+    if (gGlobal->gDrawSignals) {
+        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
+        // SL : 28/09/17 : deactivated for now
+        // sigToGraph(L3, dotfile);
+    }
 
+    return L3;
+}
+
+Tree GraphCompiler::prepare2(Tree L0)
+{
+    startTiming("GraphCompiler::prepare2");
+
+    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
+    sharingAnalysis(L0);         // annotate L0 with sharing count
+
+    if (fOccMarkup != 0) {
+        delete fOccMarkup;
+    }
+    fOccMarkup = new old_OccMarkup();
+    fOccMarkup->mark(L0);  // annotate L0 with occurences analysis
+
+    endTiming("GraphCompiler::prepare2");
+    return L0;
+}
+
+/**
+ * @brief decorate(): transfoms a list of signals expressions into a set of instructions
+ *
+ * @param L3
+ * @return set<Tree>
+ */
+set<Tree> GraphCompiler::decorate(Tree L3)
+{
     // Decorate output expressions
     Tree L3d  = gGlobal->nil;
     int  onum = 0;
@@ -172,76 +235,76 @@ Tree ScalarCompiler::prepare(Tree LS)
     typeAnnotation(L3d, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
 
-    sharingAnalysis(L3);  // annotate L3 with sharing count
-
-    cerr << "Start Signal Splitter" << endl;
-
+    startTiming("Transformation into Instructions");
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    signalGraph("beforeSimplification.dot", INSTR1);
+    // signalGraph("phase1-beforeSimplification.dot", INSTR1);
 
-    cerr << "Start delayLineSimplifier" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    signalGraph("afterSimplification.dot", INSTR2);
+    // signalGraph("phase2-afterSimplification.dot", INSTR2);
 
-    cerr << "Start delayLine2tables" << endl;
     set<Tree> INSTR3 = transformDelayToTable(INSTR2);
-    signalGraph("afterTable.dot", INSTR3);
+    // signalGraph("phase3-afterTable.dot", INSTR3);
 
-    cerr << "Start splitCommonSubexpr" << endl;
-    set<Tree> INSTR = splitCommonSubexpr(INSTR3);
-    signalGraph("afterCSE.dot", INSTR);
+    set<Tree> INSTR4 = splitCommonSubexpr(INSTR3);
+    // signalGraph("phase4-afterCSE.dot", INSTR4);
 
+#if 0
     cerr << "Start scalarscheduling" << endl;
-    scalarScheduling("scalarScheduling.txt", INSTR);
+    scalarScheduling("phase5-scalarScheduling.txt", INSTR4);
 
     cerr << "Start parallelScheduling" << endl;
-    parallelScheduling("parallelScheduling.txt", INSTR);
+    parallelScheduling("phase6-parallelScheduling.txt", INSTR4);
 
-    cerr << "Test tables" << endl;
-    Tree t1 = sigTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 64, sigInt(0), sigInt(22), sigInt(-1));
-    cerr << "t1 = " << ppsig(t1) << endl;
-    Tree t2 = sigTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 1, sigInt(7));
-    cerr << "t2 = " << ppsig(t2) << endl;
-
-    endTiming("Signal Splitter");
-
-    //****************************************************************************************************
-    //****************************************************************************************************
-
-    endTiming("ScalarCompiler::prepare");
-
-    if (gGlobal->gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        // SL : 28/09/17 : deactivated for now
-        // sigToGraph(L3, dotfile);
-    }
-
-    return L3;
+    endTiming("Transformation into Instructions");
+#endif
+    return INSTR4;
 }
 
-Tree ScalarCompiler::prepare2(Tree L0)
+Scheduling GraphCompiler::schedule(const set<Tree>& I)
 {
-    startTiming("ScalarCompiler::prepare2");
+    digraph<Tree> G;  // the signal graph
+    Scheduling    S;
 
-    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);    // Annotate L0 with type information
-    sharingAnalysis(L0);         // annotate L0 with sharing count
-
-    if (fOccMarkup != 0) {
-        delete fOccMarkup;
+    // 1) build the graph and the dictionnary
+    for (auto i : I) {
+        G.add(dependencyGraph(i));
+        S.fDic.add(i);
     }
-    fOccMarkup = new old_OccMarkup();
-    fOccMarkup->mark(L0);  // annotate L0 with occurences analysis
 
-    endTiming("ScalarCompiler::prepare2");
-    return L0;
+    digraph<Tree> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree> K;  // the subgraph of init-time instructions
+    digraph<Tree> B;  // the subgraph of block-time instructions
+    digraph<Tree> E;  // the subgraph at sample-time instructions
+
+    // 2) split in three sub-graphs: K, B, E
+
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+
+    // 3) fill the scheduling
+
+    // a) for the init and block level graph we know they are DACs
+    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
+    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
+
+    // b) for the sample level graph we have (probably) cycles
+    digraph<digraph<Tree>> DG = graph2dag(E);
+    vector<digraph<Tree>>  VG = serialize(DG);
+    for (digraph<Tree> g : VG) {
+        vector<Tree> v = serialize(cut(g, 1));
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+    }
+
+    return S;
 }
 
 /*****************************************************************************
  compileMultiSignal
  *****************************************************************************/
 
-string ScalarCompiler::dnf2code(Tree cc)
+string GraphCompiler::dnf2code(Tree cc)
 {
     if (cc == gGlobal->nil) return "";
     Tree c1 = hd(cc);
@@ -253,7 +316,7 @@ string ScalarCompiler::dnf2code(Tree cc)
     }
 }
 
-string ScalarCompiler::and2code(Tree cs)
+string GraphCompiler::and2code(Tree cs)
 {
     if (cs == gGlobal->nil) return "";
     Tree c1 = hd(cs);
@@ -265,7 +328,7 @@ string ScalarCompiler::and2code(Tree cs)
     }
 }
 
-string ScalarCompiler::cnf2code(Tree cs)
+string GraphCompiler::cnf2code(Tree cs)
 {
     if (cs == gGlobal->nil) return "";
     Tree c1 = hd(cs);
@@ -277,7 +340,7 @@ string ScalarCompiler::cnf2code(Tree cs)
     }
 }
 
-string ScalarCompiler::or2code(Tree cs)
+string GraphCompiler::or2code(Tree cs)
 {
     if (cs == gGlobal->nil) return "";
     Tree c1 = hd(cs);
@@ -296,7 +359,7 @@ string ScalarCompiler::or2code(Tree cs)
 #endif
 
 // temporary implementation for test purposes
-string ScalarCompiler::getConditionCode(Tree sig)
+string GraphCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
     if ((cc != 0) && (cc != gGlobal->nil)) {
@@ -316,7 +379,7 @@ string ScalarCompiler::getConditionCode(Tree sig)
  * @param cexp the string representing the compiled expression.
  * @return true is already compiled
  */
-bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
+bool GraphCompiler::getCompiledExpression(Tree sig, string& cexp)
 {
     return fCompileProperty.get(sig, cexp);
 }
@@ -327,9 +390,9 @@ bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
  * @param cexp the string representing the compiled expression.
  * @return the cexp (for commodity)
  */
-string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
+string GraphCompiler::setCompiledExpression(Tree sig, const string& cexp)
 {
-    // cerr << "ScalarCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
+    // cerr << "GraphCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
     string old;
     if (fCompileProperty.get(sig, old) && (old != cexp)) {
         // cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
@@ -350,7 +413,7 @@ string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
  * @param vecname the string representing the vector name.
  * @return true is already compiled
  */
-void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
+void GraphCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
     faustassert(vecname.size() > 0);
     fVectorProperty.set(sig, vecname);
@@ -364,7 +427,7 @@ void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
  * @return true if the signal has this property, false otherwise
  */
 
-bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
+bool GraphCompiler::getVectorNameProperty(Tree sig, string& vecname)
 {
     return fVectorProperty.get(sig, vecname);
 }
@@ -374,7 +437,7 @@ bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
  */
-string ScalarCompiler::CS(Tree sig)
+string GraphCompiler::CS(Tree sig)
 {
     // contextor contextRecursivness;
     string code;
@@ -395,11 +458,19 @@ string ScalarCompiler::CS(Tree sig)
 /*****************************************************************************
  compileMultiSignal
  *****************************************************************************/
+static string nature2ctype(int n)
+{
+    string ctype{(n == kInt) ? "int" : "float"};
+    return ctype;
+}
 
-void ScalarCompiler::compileMultiSignal(Tree L)
+void GraphCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
+    set<Tree>  INSTR{decorate(L)};
+    Scheduling S{schedule(INSTR)};
+    // S.print("partx-scheduling.txt");
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
@@ -411,10 +482,68 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
     }
 
-    for (int i = 0; isList(L); L = tl(L), i++) {
-        Tree sig = hd(L);
-        fClass->addExecCode(
-            Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+    generateTime();
+
+    // for (int i = 0; isList(L); L = tl(L), i++) {
+    //     Tree sig = hd(L);
+    //     fClass->addExecCode(
+    //         Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+    // }
+
+    for (Tree i : S.fInitLevel) {
+        // We compile
+        Tree sig = S.fDic[i];
+        Tree id, origin, content;
+        int  nature;
+
+        faustassert(isSigControlWrite(sig, id, origin, &nature, content));
+
+        string ctype{(nature == kInt) ? "int" : "float"};
+        string vname{tree2str(id)};
+
+        fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        fClass->addInitCode(subst("$0 = $1;", vname, CS(content)));
+    }
+
+    for (Tree i : S.fBlockLevel) {
+        // We compile
+        Tree sig = S.fDic[i];
+        Tree id, origin, content;
+        int  nature;
+
+        faustassert(isSigControlWrite(sig, id, origin, &nature, content));
+
+        string ctype{(nature == kInt) ? "int" : "float"};
+        string vname{tree2str(id)};
+
+        fClass->addFirstPrivateDecl(vname);
+        fClass->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+    }
+
+    for (Tree instr : S.fExecLevel) {
+        // We compile
+        Tree sig = S.fDic[instr];
+
+        Tree id, origin, content, init, idx;
+        int  i, nature, dmax, tblsize;
+
+        if (isSigSharedWrite(sig, id, origin, &nature, content)) {
+            string vname{tree2str(id)};
+            fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
+
+        } else if (isSigTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
+            string vname{tree2str(id)};
+            fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
+            fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));  // a changer !!!!!
+            fClass->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
+
+        } else if (isSigOutput(sig, &i, content)) {
+            fClass->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
+
+        } else {
+            std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
+            faustassert(false);
+        }
     }
 
     generateMetaData();
@@ -434,7 +563,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
  compileSingleSignal
  *****************************************************************************/
 
-void ScalarCompiler::compileSingleSignal(Tree sig)
+void GraphCompiler::compileSingleSignal(Tree sig)
 {
     // contextor recursivness(0);
     sig = prepare2(sig);  // optimize and annotate expression
@@ -446,6 +575,17 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
     }
 }
 
+/**
+ * @brief generate sigTime 'time' variable code
+ *
+ */
+void GraphCompiler::generateTime()
+{
+    fClass->addDeclCode("int \ttime;");
+    fClass->addClearCode("time = 0;");
+    fClass->addPostCode(Statement("", "++time;"));
+}
+
 /*****************************************************************************
  generateCode : dispatch according to signal
  *****************************************************************************/
@@ -455,7 +595,7 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
  * @return the C code translation of sig
  */
 
-string ScalarCompiler::generateCode(Tree sig)
+string GraphCompiler::generateCode(Tree sig)
 {
 #if 0
 	fprintf(stderr, "CALL generateCode(");
@@ -463,18 +603,28 @@ string ScalarCompiler::generateCode(Tree sig)
 	fprintf(stderr, ")\n");
 #endif
 
-    int    i;
+    int    i, nature, dmin;
     double r;
     Tree   c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    Tree   origin, idx;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
     if (getUserData(sig)) {
         return generateXtended(sig);
+    } else if (isSigTime(sig)) {
+        return "time";
+    } else if (isSigTableRead(sig, id, origin, &nature, &dmin, idx)) {
+        return subst("$0[$1]", tree2str(id), CS(idx));
+    } else if (isSigSharedRead(sig, id, origin, &nature)) {
+        return tree2str(id);
+    } else if (isSigControlRead(sig, id, origin, &nature)) {
+        return tree2str(id);
+
     } else if (isSigInt(sig, &i)) {
-        return generateNumber(sig, T(i));
+        return T(i);
     } else if (isSigReal(sig, &r)) {
-        return generateNumber(sig, T(r));
+        return T(r);
     } else if (isSigWaveform(sig)) {
         return generateWaveform(sig);
     } else if (isSigInput(sig, &i)) {
@@ -577,7 +727,7 @@ string ScalarCompiler::generateCode(Tree sig)
  NUMBERS
  *****************************************************************************/
 
-string ScalarCompiler::generateNumber(Tree sig, const string& exp)
+string GraphCompiler::generateNumber(Tree sig, const string& exp)
 {
     string          ctype, vname;
     old_Occurences* o = fOccMarkup->retrieve(sig);
@@ -594,7 +744,7 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
  FOREIGN CONSTANTS
  *****************************************************************************/
 
-string ScalarCompiler::generateFConst(Tree sig, const string& file, const string& exp_aux)
+string GraphCompiler::generateFConst(Tree sig, const string& file, const string& exp_aux)
 {
     // Special case for 02/25/19 renaming
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
@@ -615,7 +765,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
  FOREIGN VARIABLES
  *****************************************************************************/
 
-string ScalarCompiler::generateFVar(Tree sig, const string& file, const string& exp)
+string GraphCompiler::generateFVar(Tree sig, const string& file, const string& exp)
 {
     string ctype, vname;
 
@@ -627,7 +777,7 @@ string ScalarCompiler::generateFVar(Tree sig, const string& file, const string& 
  INPUTS - OUTPUTS
  *****************************************************************************/
 
-string ScalarCompiler::generateInput(Tree sig, const string& idx)
+string GraphCompiler::generateInput(Tree sig, const string& idx)
 {
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations
@@ -637,7 +787,7 @@ string ScalarCompiler::generateInput(Tree sig, const string& idx)
     }
 }
 
-string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string& arg)
+string GraphCompiler::generateOutput(Tree sig, const string& idx, const string& arg)
 {
     string dst = subst("output$0[i]", idx);
     fClass->addExecCode(Statement("", subst("$0 = $2$1;", dst, arg, xcast())));
@@ -648,12 +798,12 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
  BINARY OPERATION
  *****************************************************************************/
 
-string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
+string GraphCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     if (opcode == kDiv) {
         // special handling for division, we always want a float division
-        Type t1 = getCertifiedSigType(arg1);
-        Type t2 = getCertifiedSigType(arg2);
+        Type t1 = getSimpleType(arg1);
+        Type t2 = getSimpleType(arg2);
 
         interval j = t2->getInterval();
 
@@ -686,7 +836,7 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
  Primitive Operations
  *****************************************************************************/
 
-string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
+string GraphCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     addIncludeFile(ffincfile(ff));  // printf("inc file %s\n", ffincfile(ff));
     addLibrary(fflibfile(ff));      // printf("lib file %s\n", fflibfile(ff));
@@ -707,7 +857,7 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
  CACHE CODE
  *****************************************************************************/
 
-void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
+void GraphCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
     if (t->nature() == kInt) {
         ctype = "int";
@@ -718,46 +868,13 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
     }
 }
 
-string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
+string GraphCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-    string code;
-
-    // check reentrance
-    if (getCompiledExpression(sig, code)) {
-        return code;
-    }
-
-    string          vname, ctype;
-    int             sharing = getSharingCount(sig);
-    old_Occurences* o       = fOccMarkup->retrieve(sig);
-    faustassert(o);
-
-    // check for expression occuring in delays
-    if (o->getMaxDelay() > 0) {
-        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        if (sharing > 1) {
-            return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
-        } else {
-            return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-        }
-
-    } else if ((sharing > 1) || (o->hasMultiOccurences())) {
-        return generateVariableStore(sig, exp);
-
-    } else if (sharing == 1) {
-        return exp;
-
-    } else {
-        stringstream error;
-        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
-        throw faustexception(error.str());
-    }
-
-    return "Error in generateCacheCode";
+    return exp;
 }
 
 // like generateCacheCode but we force caching like if sharing was always > 1
-string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
+string GraphCompiler::forceCacheCode(Tree sig, const string& exp)
 {
     string code;
 
@@ -780,7 +897,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 }
 
-string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
+string GraphCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string vname, ctype;
     Type   t = getCertifiedSigType(sig);
@@ -813,12 +930,12 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
  CASTING
  *****************************************************************************/
 
-string ScalarCompiler::generateIntCast(Tree sig, Tree x)
+string GraphCompiler::generateIntCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, subst("int($0)", CS(x)));
 }
 
-string ScalarCompiler::generateFloatCast(Tree sig, Tree x)
+string GraphCompiler::generateFloatCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, subst("$1($0)", CS(x), ifloat()));
 }
@@ -827,7 +944,7 @@ string ScalarCompiler::generateFloatCast(Tree sig, Tree x)
  user interface elements
  *****************************************************************************/
 
-string ScalarCompiler::generateButton(Tree sig, Tree path)
+string GraphCompiler::generateButton(Tree sig, Tree path)
 {
     string varname = getFreshID("fbutton");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -838,7 +955,7 @@ string ScalarCompiler::generateButton(Tree sig, Tree path)
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
+string GraphCompiler::generateCheckbox(Tree sig, Tree path)
 {
     string varname = getFreshID("fcheckbox");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -849,7 +966,7 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string GraphCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -860,7 +977,7 @@ string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, 
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string GraphCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -871,7 +988,7 @@ string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, 
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string GraphCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -882,7 +999,7 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -907,7 +1024,7 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
     return generateCacheCode(sig, varname);
 }
 
-string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+string GraphCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -932,7 +1049,7 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
     return generateCacheCode(sig, varname);
 }
 
-string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
+string GraphCompiler::generateSoundfile(Tree sig, Tree path)
 {
     string varname = getFreshID("fSoundfile");
 
@@ -966,7 +1083,7 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
                         sigGen : initial table content
 ----------------------------------------------------------------------------*/
 
-string ScalarCompiler::generateSigGen(Tree sig, Tree content)
+string GraphCompiler::generateSigGen(Tree sig, Tree content)
 {
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
@@ -978,7 +1095,7 @@ string ScalarCompiler::generateSigGen(Tree sig, Tree content)
     return signame;
 }
 
-string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
+string GraphCompiler::generateStaticSigGen(Tree sig, Tree content)
 {
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
@@ -994,7 +1111,7 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
                         sigTable : table declaration
 ----------------------------------------------------------------------------*/
 
-string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
+string GraphCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
     if (!isSigInt(tsize, &size)) {
@@ -1041,7 +1158,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     return vname;
 }
 
-string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
+string GraphCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
     if (!isSigInt(tsize, &size)) {
@@ -1105,7 +1222,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
                         sigWRTable : table assignement
 ----------------------------------------------------------------------------*/
 
-string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
+string GraphCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     string tblName(CS(tbl));
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
@@ -1116,7 +1233,7 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
                         sigRDTable : table access
 ----------------------------------------------------------------------------*/
 
-string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
+string GraphCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 {
     // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
     // et donc le code était dupliqué (dans tester.dsp par exemple)
@@ -1143,7 +1260,7 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 /**
  * Generate code for a projection of a group of mutually recursive definitions
  */
-string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
+string GraphCompiler::generateRecProj(Tree sig, Tree r, int i)
 {
     string vname;
     Tree   var, le;
@@ -1159,7 +1276,7 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 /**
  * Generate code for a group of mutually recursive definitions
  */
-void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
+void GraphCompiler::generateRec(Tree sig, Tree var, Tree le)
 {
     int N = len(le);
 
@@ -1200,14 +1317,14 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
 
-string ScalarCompiler::generateEnable(Tree sig, Tree x, Tree y)
+string GraphCompiler::generateEnable(Tree sig, Tree x, Tree y)
 {
     CS(y);
     return generateCacheCode(x, CS(x));
     // return CS(x);
 }
 
-string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
+string GraphCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
     Type te = getCertifiedSigType(sig);  //, tEnv);
 
@@ -1234,7 +1351,7 @@ static bool isPowerOf2(int n)
     return !(n & (n - 1));
 }
 
-string ScalarCompiler::generateIota(Tree sig, Tree n)
+string GraphCompiler::generateIota(Tree sig, Tree n)
 {
     int size;
     if (!isSigInt(n, &size)) {
@@ -1258,7 +1375,7 @@ string ScalarCompiler::generateIota(Tree sig, Tree n)
  SELECT
  *****************************************************************************/
 
-string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
+string GraphCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
     return generateCacheCode(sig, subst("(($0)?$1:$2)", CS(sel), CS(s2), CS(s1)));
 }
@@ -1268,13 +1385,13 @@ string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
  * ((int n = sel==0)? s0 : ((sel==1)? s1 : s2))
  * int nn; ((nn=sel) ? ((nn==1)? s1 : s2) : s0);
  */
-string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
+string GraphCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
     return generateCacheCode(sig, subst("(($0==0)? $1 : (($0==1)?$2:$3) )", CS(sel), CS(s1), CS(s2), CS(s3)));
 }
 
 #if 0
-string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
+string GraphCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
     Type t = getCertifiedSigType(sig);
     Type t1 = getCertifiedSigType(s1);
@@ -1348,7 +1465,7 @@ string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tre
  EXTENDED
  *****************************************************************************/
 
-string ScalarCompiler::generateXtended(Tree sig)
+string GraphCompiler::generateXtended(Tree sig)
 {
     xtended*       p = (xtended*)getUserData(sig);
     vector<string> args;
@@ -1356,21 +1473,17 @@ string ScalarCompiler::generateXtended(Tree sig)
 
     for (int i = 0; i < sig->arity(); i++) {
         args.push_back(CS(sig->branch(i)));
-        types.push_back(getCertifiedSigType(sig->branch(i)));
+        types.push_back(getSimpleType(sig->branch(i)));
     }
 
-    if (p->needCache()) {
-        return generateCacheCode(sig, p->old_generateCode(fClass, args, types));
-    } else {
-        return p->old_generateCode(fClass, args, types);
-    }
+    return p->old_generateCode(fClass, args, types);
 }
 
 /**
  * Compute the minimal power of 2 greater than x
  */
 
-int ScalarCompiler::pow2limit(int x)
+int GraphCompiler::pow2limit(int x)
 {
     int n = 2;
     while (n < x) {
@@ -1405,11 +1518,11 @@ int ScalarCompiler::pow2limit(int x)
  * the maximum delay attached to exp and the gLessTempSwitch.
  */
 
-string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
+string GraphCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-    // cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
-    // cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
-    // cerr << "ScalarCompiler::generateFixDelay del = " << *delay << endl;
+    // cerr << "GraphCompiler::generateFixDelay sig = " << *sig << endl;
+    // cerr << "GraphCompiler::generateFixDelay exp = " << *exp << endl;
+    // cerr << "GraphCompiler::generateFixDelay del = " << *delay << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
     int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
@@ -1449,7 +1562,7 @@ string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
  * maximum delay attached to exp and the "less temporaries" switch
  */
 
-string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
+string GraphCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
     string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
     if (getCertifiedSigType(sig)->variability() < kSamp) {
@@ -1463,8 +1576,8 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd)
+string GraphCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
+                                             int mxd)
 {
     faustassert(mxd > 0);
 
@@ -1511,8 +1624,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
+void GraphCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
+                                      const string& ccs)
 {
     // faustassert(mxd > 0);
     if (mxd == 0) {
@@ -1557,7 +1670,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
  * Generate code for a unique IOTA variable increased at each sample
  * and used to index ring buffers.
  */
-void ScalarCompiler::ensureIotaCode()
+void GraphCompiler::ensureIotaCode()
 {
     if (!fHasIota) {
         fHasIota = true;
@@ -1575,7 +1688,7 @@ void ScalarCompiler::ensureIotaCode()
  * Generate code for a waveform. The waveform will be declared as a static field.
  * The name of the waveform is returned in vname and its size in size.
  */
-void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
+void GraphCompiler::declareWaveform(Tree sig, string& vname, int& size)
 {
     // computes C type and unique name for the waveform
     string ctype;
@@ -1601,7 +1714,7 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
         subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
 }
 
-string ScalarCompiler::generateWaveform(Tree sig)
+string GraphCompiler::generateWaveform(Tree sig)
 {
     string vname;
     int    size;
@@ -1609,4 +1722,181 @@ string ScalarCompiler::generateWaveform(Tree sig)
     declareWaveform(sig, vname, size);
     fClass->addPostCode(Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size))));
     return generateCacheCode(sig, subst("$0[idx$0]", vname));
+}
+
+//------------------------------------------------------------------------------
+// Create a specific property key for the sharing count of subtrees of t
+//------------------------------------------------------------------------------
+
+int GraphCompiler::getSharingCount(Tree sig)
+{
+    // cerr << "getSharingCount of : " << *sig << " = ";
+    Tree c;
+    if (getProperty(sig, fSharingKey, c)) {
+        // cerr << c->node().getInt() << endl;
+        return c->node().getInt();
+    } else {
+        // cerr << 0 << endl;
+        return 0;
+    }
+}
+
+void GraphCompiler::setSharingCount(Tree sig, int count)
+{
+    // cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
+    setProperty(sig, fSharingKey, tree(count));
+}
+
+//------------------------------------------------------------------------------
+// Create a specific property key for the sharing count of subtrees of t
+//------------------------------------------------------------------------------
+
+void GraphCompiler::sharingAnalysis(Tree t)
+{
+    fSharingKey = shprkey(t);
+    if (isList(t)) {
+        while (isList(t)) {
+            sharingAnnotation(kSamp, hd(t));
+            t = tl(t);
+        }
+    } else {
+        sharingAnnotation(kSamp, t);
+    }
+}
+
+//------------------------------------------------------------------------------
+// Create a specific property key for the sharing count of subtrees of t
+//------------------------------------------------------------------------------
+void GraphCompiler::sharingAnnotation(int vctxt, Tree sig)
+{
+    Tree c, x, y, z;
+
+    // cerr << "START sharing annotation of " << *sig << endl;
+    int count = getSharingCount(sig);
+
+    if (count > 0) {
+        // it is not our first visit
+        setSharingCount(sig, count + 1);
+
+    } else {
+        // it is our first visit,
+        int v = getCertifiedSigType(sig)->variability();
+
+        // check "time sharing" cases
+        if (v < vctxt) {
+            setSharingCount(sig, 2);  // time sharing occurence : slower expression in faster context
+        } else {
+            setSharingCount(sig, 1);  // regular occurence
+        }
+
+        if (isSigSelect3(sig, c, y, x, z)) {
+            // make a special case for select3 implemented with real if
+            // because the c expression will be used twice in the C++
+            // translation
+            sharingAnnotation(v, c);
+            sharingAnnotation(v, c);
+            sharingAnnotation(v, x);
+            sharingAnnotation(v, y);
+            sharingAnnotation(v, z);
+        } else {
+            // Annotate the sub signals
+            vector<Tree> subsig;
+            int          n = getSubSignals(sig, subsig);
+            if (n > 0 && !isSigGen(sig)) {
+                for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
+            }
+        }
+    }
+    // cerr << "END sharing annotation of " << *sig << endl;
+}
+
+//------------------------------------------------------------------------------
+// Condition annotation due to enabled expressions
+//------------------------------------------------------------------------------
+#if 0
+void GraphCompiler::conditionStatistics(Tree l)
+{
+    for (const auto& p : fConditionProperty) {
+        fConditionStatistics[p.second]++;
+    }
+    std::cout << "\nConditions statistics" << std::endl;
+    for (const auto& p : fConditionStatistics) {
+        std::cout << ppsig(p.first) << ":" << p.second << std::endl;
+
+    }
+}
+#endif
+
+void GraphCompiler::conditionStatistics(Tree l)
+{
+    map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    for (const auto& p : fConditionProperty) {
+        for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
+            fConditionStatistics[hd(lc)]++;
+        }
+    }
+    std::cout << "\nConditions statistics" << std::endl;
+    for (const auto& p : fConditionStatistics) {
+        std::cout << ppsig(p.first) << ":" << p.second << std::endl;
+    }
+}
+
+void GraphCompiler::conditionAnnotation(Tree l)
+{
+    while (isList(l)) {
+        conditionAnnotation(hd(l), gGlobal->nil);
+        l = tl(l);
+    }
+}
+#if _DNF_
+
+#define _OR_ dnfOr
+#define _AND_ dnfAnd
+#define _CND_ dnfCond
+
+#else
+
+#define _OR_ cnfOr
+#define _AND_ cnfAnd
+#define _CND_ cnfCond
+
+#endif
+
+void GraphCompiler::conditionAnnotation(Tree t, Tree nc)
+{
+    // Check if we need to annotate the tree with new conditions
+    auto p = fConditionProperty.find(t);
+    if (p != fConditionProperty.end()) {
+        Tree cc = p->second;
+        Tree xc = _OR_(cc, nc);
+        if (cc == xc) {
+            // Tree t already correctly annotated, nothing to change
+            return;
+        } else {
+            // we need to re-annotate the tree with a new condition
+            nc        = xc;
+            p->second = nc;
+        }
+    } else {
+        // first visit
+        fConditionProperty[t] = nc;
+    }
+
+    // Annotate the subtrees with the new condition nc
+    // which is either the nc passed as argument or nc <- (cc v nc)
+
+    Tree x, y;
+    if (isSigEnable(t, x, y)) {
+        // specific annotation case for sigEnable
+        conditionAnnotation(y, nc);
+        conditionAnnotation(x, _AND_(nc, _CND_(y)));
+    } else {
+        // general annotation case
+        // Annotate the sub signals with nc
+        vector<Tree> subsig;
+        int          n = getSubSignals(t, subsig);
+        if (n > 0 && !isSigGen(t)) {
+            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
+        }
+    }
 }

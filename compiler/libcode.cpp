@@ -34,7 +34,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
 #include "Text.hh"
 #include "compatibility.hh"
 #include "dag_instructions_compiler.hh"
@@ -93,6 +92,7 @@
 #endif
 
 #ifdef OCPP_BUILD
+#include "compile_graph.hh"
 #include "compile_scal.hh"
 #include "compile_sched.hh"
 #include "compile_vect.hh"
@@ -1374,7 +1374,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             else if (gGlobal->gVectorSwitch)
                 old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else
-                old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+                old_comp = new GraphCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
 
             if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
 
