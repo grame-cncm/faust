@@ -181,14 +181,14 @@ class MaxPrim : public xtended {
         if (n0 == kReal) {
             if (n1 == kReal) {
                 // both are floats, no need to cast
-                return subst("max($0, $1)", args[0], args[1]);
+                return subst("std::max($0, $1)", args[0], args[1]);
             } else {
                 faustassert(n1 == kInt);  // second argument is not float, cast it to float
-                return subst("max($0, $2$1)", args[0], args[1], icast());
+                return subst("std::max($0, $2$1)", args[0], args[1], icast());
             }
         } else if (n1 == kReal) {
             faustassert(n0 == kInt);  // first not float but second is, cast first to float
-            return subst("max($2$0, $1)", args[0], args[1], icast());
+            return subst("std::max($2$0, $1)", args[0], args[1], icast());
         } else {
             faustassert(n0 == kInt);
             faustassert(n1 == kInt);  // both are integers, check for booleans
@@ -197,20 +197,20 @@ class MaxPrim : public xtended {
             if (b0 == kNum) {
                 if (b1 == kNum) {
                     // both are integers, no need to cast
-                    return subst("max($0, $1)", args[0], args[1]);
+                    return subst("std::max($0, $1)", args[0], args[1]);
                 } else {
                     faustassert(b1 == kBool);  // second is boolean, cast to int
-                    return subst("max($0, (int)$1)", args[0], args[1]);
+                    return subst("std::max($0, (int)$1)", args[0], args[1]);
                 }
             } else if (b1 == kNum) {
                 faustassert(b0 == kBool);  // first is boolean, cast to int
-                return subst("max((int)$0, $1)", args[0], args[1], icast());
+                return subst("std::max((int)$0, $1)", args[0], args[1], icast());
             } else {
                 // both are booleans, theoretically no need to cast, but we still do it to be sure 'true' is actually
                 // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);
-                return subst("max((int)$0, (int)$1)", args[0], args[1]);
+                return subst("std::max((int)$0, (int)$1)", args[0], args[1]);
             }
         }
     }
