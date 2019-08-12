@@ -237,16 +237,16 @@ set<Tree> GraphCompiler::decorate(Tree L3)
 
     startTiming("Transformation into Instructions");
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    // signalGraph("phase1-beforeSimplification.dot", INSTR1);
+    signalGraph("phase1-beforeSimplification.dot", INSTR1);
 
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    // signalGraph("phase2-afterSimplification.dot", INSTR2);
+    signalGraph("phase2-afterSimplification.dot", INSTR2);
 
     set<Tree> INSTR3 = transformDelayToTable(INSTR2);
-    // signalGraph("phase3-afterTable.dot", INSTR3);
+    signalGraph("phase3-afterTable.dot", INSTR3);
 
     set<Tree> INSTR4 = splitCommonSubexpr(INSTR3);
-    // signalGraph("phase4-afterCSE.dot", INSTR4);
+    signalGraph("phase4-afterCSE.dot", INSTR4);
 
 #if 0
     cerr << "Start scalarscheduling" << endl;
@@ -460,7 +460,7 @@ string GraphCompiler::CS(Tree sig)
  *****************************************************************************/
 static string nature2ctype(int n)
 {
-    string ctype{(n == kInt) ? "int" : "float"};
+    string ctype{(n == kInt) ? "int" : ifloat()};
     return ctype;
 }
 
@@ -624,7 +624,7 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigInt(sig, &i)) {
         return T(i);
     } else if (isSigReal(sig, &r)) {
-        return T(r);
+        return T(r) + inumix();
     } else if (isSigWaveform(sig)) {
         return generateWaveform(sig);
     } else if (isSigInput(sig, &i)) {
