@@ -355,7 +355,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem
         }
         
         void modifyZone(FAUSTFLOAT v)
-        { 
+        {
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
             }
@@ -397,7 +397,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->pitchWheel(0, bend2wheel(v));
+            fMidiOut->pitchWheel( (((fChan<0) || (fChan>15)) ? 0 : fChan), bend2wheel(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -436,7 +436,7 @@ class uiMidiKeyOn : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyOn(0, fKeyOn, fConverter.faust2ui(v));
+            fMidiOut->keyOn( (((fChan<0) || (fChan>15)) ? 0 : fChan), fKeyOn, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -475,7 +475,7 @@ class uiMidiKeyOff : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyOff(0, fKeyOff, fConverter.faust2ui(v));
+            fMidiOut->keyOff( (((fChan<0) || (fChan>15)) ? 0 : fChan), fKeyOff, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -514,7 +514,7 @@ class uiMidiKeyPress : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyPress(0, fKey, fConverter.faust2ui(v));
+            fMidiOut->keyPress( (((fChan<0) || (fChan>15)) ? 0 : fChan), fKey, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
