@@ -290,8 +290,8 @@ class uiMidiProgChange : public uiMidiTimedItem
   
     public:
     
-        uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fPgm(pgm)
+        uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fPgm(pgm)
         {}
         virtual ~uiMidiProgChange()
         {}
@@ -301,7 +301,7 @@ class uiMidiProgChange : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->progChange(0, fPgm);
+                fMidiOut->progChange( (((fChan<0) || (fChan>15)) ? 0 : fChan), fPgm);
             }
         }
         
@@ -597,6 +597,8 @@ class MidiUI : public GUI, public midi
                             fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
                             fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u %u", &num, &chan) == 2) {
+                            fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
@@ -763,13 +765,13 @@ class MidiUI : public GUI, public midi
         void progChange(double date, int channel, int pgm)
         {
             if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fProgChangeTable[pgm].size(); i++) {
-                        fProgChangeTable[pgm][i]->modifyZone(date, FAUSTFLOAT(1));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fProgChangeTable[pgm].size(); i++) {
-                        fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
+                for (unsigned int i = 0; i < fProgChangeTable[pgm].size(); i++) {
+                    if (fProgChangeTable[pgm][i]->getChan() == -1 || channel == fProgChangeTable[pgm][i]->getChan()){
+                        if (fTimeStamp) {
+                            fProgChangeTable[pgm][i]->modifyZone(date, FAUSTFLOAT(1));
+                        } else {
+                            fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
+                        }
                     }
                 }
             }

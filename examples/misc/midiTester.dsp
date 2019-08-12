@@ -6,7 +6,7 @@ declare reference   "www.sonejo.net";
 
 // FAUST MIDI TESTER
 
-process = _*0, (vgroup("FAUST MIDI TESTER", hgroup("[1]", controltester, controlchantester, noteontester, noteonchantester, noteofftester, noteoffchantester, keypresschantester, midiclocktester), hgroup("[2]", kattester, pctester, chattester, pitchwheeltester, pitchwheelchantester) :> _)) : attach;
+process = _*0, (vgroup("FAUST MIDI TESTER", hgroup("[1]", controltester, controlchantester, noteontester, noteonchantester, noteofftester, noteoffchantester, keypresschantester, midiclocktester), hgroup("[2]", kattester, pctester, pcchantester, chattester, pitchwheeltester, pitchwheelchantester) :> _)) : attach;
 
 ///////////////////////////
 
@@ -73,10 +73,17 @@ booltest(i,o) = checkbox("Note KAT Bool IN (Note %i) [midi:keypress %i]") : hbar
 };
 
 //ProgramChange tester (pgm) : tester(midi in, midi out)
-pctester = vgroup("PROGRAM CHANGE (PC) IN/OUT",valuetest(50,51), booltest(100,101))
+pctester = vgroup("PROGRAM CHANGE (PC) IN/OUT",valuetest(1,2), booltest(1,2))
 with{
 valuetest(i,o) = hslider("ProgramChange Value IN (PC %i) [midi:pgm %i]", 60, 0, 127, 1) : hbargraph("ProgramChange Value OUT (PC %o) [midi:pgm %o]", 0, 127);
 booltest(i,o) = checkbox("ProgramChange Bool IN (PC %i) [midi:pgm %i]") : hbargraph("ProgramChange Bool OUT (PC %o) [midi:pgm %o]", 0, 1);
+};
+
+//ProgramChange Chan tester (pgm) : tester(midi in, midi out)
+pcchantester = vgroup("PROGRAM CHANGE CHAN (PC) IN/OUT",valuetest(1, 2, 2, 3), booltest(1, 2, 2, 3))
+with{
+valuetest(i,ic,o,oc) = hslider("ProgramChange Value IN (PC %i) (CHAN %ic) [midi:pgm %i %ic]", 60, 0, 127, 1) : hbargraph("ProgramChange Value OUT (PC %o) (CHAN %oc) [midi:pgm %o %oc]", 0, 127);
+booltest(i,ic,o,oc) = checkbox("ProgramChange Bool IN (PC %i) (CHAN %ic) [midi:pgm %i %ic]") : hbargraph("ProgramChange Bool OUT (PC %o) (CHAN %oc) [midi:pgm %o %oc]", 0, 1);
 };
 
 //Channel Aftertourch tester (chanpress) : tester(midi in, midi out)
