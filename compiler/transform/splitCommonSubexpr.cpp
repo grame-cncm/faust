@@ -73,9 +73,9 @@ class CommonSubexpr : public SignalIdentity {
             !(isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) &&
             !(isSigTableRead(sig, id, origin, &nature, &dmin, idx))) {
             Tree r = SignalIdentity::transformation(sig);
-            if (isSigTableRead(r, id, origin, &nature, &dmin, idx)) {
-                cerr << "SPECIAL RETURN CASE " << ppsig(r) << endl;
-            }
+            // if (isSigTableRead(r, id, origin, &nature, &dmin, idx)) {
+            //     cerr << "SPECIAL RETURN CASE " << ppsig(r) << endl;
+            // }
             Tree id = uniqueID("V", sig);
             fSplittedSignals.insert(sigSharedWrite(id, sig, t->nature(), r));
             Tree inst = sigControlRead(id, sig, t->nature());
