@@ -164,9 +164,8 @@ Where:
 **Example**
 
 In the following example, the frequency of a sawtooth wave oscillator is 
-controlled by the velocity value received on key 62 when a key-on message is
-sent. Therefore, the frequency will only be updated when receiving a MIDI key 62
-message from channel 3.
+controlled by the velocity values attached to `key-on 62` messages
+received on channel 3.
 
 <!-- faust-run -->
 ```
@@ -235,8 +234,8 @@ Where:
 **Example**
 
 In the following example, the frequency of a sawtooth wave oscillator is 
-controlled by the velocity value received on key 62 when a key-off message is
-sent on channel 3. (The frequency will only be updated when MIDI key 62 is 
+controlled by the velocity values attached to `key-off 62` messages
+received on channel 3. (The frequency will only be updated when MIDI key 62 is 
 released.)
 
 <!-- faust-run -->
@@ -306,9 +305,8 @@ Where:
 **Example**
 
 In the following example, the frequency of a sawtooth wave oscillator is 
-controlled by the velocity value received on key 62 when key-on and key-off 
-messages are sent. Therefore, the frequency will only be updated when MIDI key 
-62 is pressed and released.
+controlled by the velocity values attached to `key-on 62` and `key-off 62` messages 
+received on channel 3. (The frequency is updated when key 62 is pressed and released.)
 
 <!-- faust-run -->
 ```
