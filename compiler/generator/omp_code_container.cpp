@@ -29,7 +29,7 @@ using namespace std;
 struct StackVarAnalyser : public DispatchVisitor {
     list<string> fFirstPrivateTable;
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         DispatchVisitor::visit(inst);
         ArrayTyped* array_typed;
@@ -126,7 +126,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
             loop_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp sections"));
             omp_sections_block->setIndent(true);
         }
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto p = dag[l].begin(); p != dag[l].end(); p++) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) {  // Only one loop
                 if (!(*p)->isRecursive() && gGlobal->gOpenMPLoop) {

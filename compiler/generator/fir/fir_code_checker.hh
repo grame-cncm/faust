@@ -58,13 +58,13 @@ struct FIRCodeChecker : public DispatchVisitor {
     map<string, FunTyped*> fFunctionTable;
     vector<VarScope>       fStackVarsTable;
     VarScope               fCurVarScope;
-    int                    fError;
+    int                    fError{0};
 
-    FIRCodeChecker() : fError(0)
+    FIRCodeChecker()  
     {
         // cout << "CodeVerifier" << std::endl;
     }
-    virtual ~FIRCodeChecker() {}
+    ~FIRCodeChecker() override = default;
 
     void printScope(VarScope scope)
     {
@@ -130,7 +130,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         }
     }
 
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         string name              = inst->fAddress->getName();
         fCurVarScope[name].first = inst->fAddress->getAccess();
@@ -147,7 +147,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         }
     }
 
-    virtual void visit(LoadVarInst* inst)
+    void visit(LoadVarInst* inst) override
     {
         pair<Address::AccessType, bool> var_def;
         string                          name = inst->fAddress->getName();
@@ -171,7 +171,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         }
     }
 
-    virtual void visit(LoadVarAddressInst* inst)
+    void visit(LoadVarAddressInst* inst) override
     {
         pair<Address::AccessType, bool> var_def;
         string                          name = inst->fAddress->getName();
@@ -191,7 +191,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         }
     }
 
-    virtual void visit(StoreVarInst* inst)
+    void visit(StoreVarInst* inst) override
     {
         pair<Address::AccessType, bool> var_def;
         string                          name = inst->fAddress->getName();
@@ -213,7 +213,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         setVarName(name);
     }
 
-    virtual void visit(FunCallInst* inst)
+    void visit(FunCallInst* inst) override
     {
         if (fFunctionTable.find(inst->fName) == fFunctionTable.end()) {
             cout << "Error : function \"" << inst->fName << "\" not defined! " << std::endl;
@@ -227,7 +227,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         }
     }
 
-    virtual void visit(DeclareFunInst* inst)
+    void visit(DeclareFunInst* inst) override
     {
         fFunctionTable[inst->fName] = inst->fType;
 
@@ -241,7 +241,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         inst->fCode->accept(this);
     }
 
-    virtual void visit(ForLoopInst* inst)
+    void visit(ForLoopInst* inst) override
     {
         // cout << "visit(ForLoopInst* inst) " << endl;
         // printScope(fCurVarScope);
@@ -263,7 +263,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         fStackVarsTable.pop_back();
     }
 
-    virtual void visit(BlockInst* inst)
+    void visit(BlockInst* inst) override
     {
         // cout << "visit(BlockInst* inst) " << endl;
         // printScope(fCurVarScope);
@@ -287,7 +287,7 @@ struct FIRCodeChecker : public DispatchVisitor {
 struct StructVarAnalyser : public DispatchVisitor {
     map<string, ValueInst*> fSpecializedValueTable;
 
-    void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst) override
     {
         DispatchVisitor::visit(inst);
 
@@ -315,7 +315,7 @@ struct ControlSpecializer : public DispatchVisitor {
 
         VariableMarker(map<string, ValueInst*>& valuetable) : fSpecializedValueTable(valuetable) {}
 
-        void visit(StoreVarInst* inst)
+        void visit(StoreVarInst* inst) override
         {
             DispatchVisitor::visit(inst);
 
@@ -326,7 +326,7 @@ struct ControlSpecializer : public DispatchVisitor {
             }
         }
 
-        void visit(LoadVarInst* inst)
+        void visit(LoadVarInst* inst) override
         {
             DispatchVisitor::visit(inst);
 
@@ -345,7 +345,7 @@ struct ControlSpecializer : public DispatchVisitor {
         VariableSpecializer(map<string, ValueInst*>& valuetable) : fSpecializedValueTable(valuetable) {}
 
         // Rewrite Load as an access to kept ValueInst
-        ValueInst* visit(LoadVarInst* inst)
+        ValueInst* visit(LoadVarInst* inst) override
         {
             string name = inst->fAddress->getName();
             if (inst->fAddress->getAccess() == Address::kLink) {
@@ -357,7 +357,7 @@ struct ControlSpecializer : public DispatchVisitor {
         }
 
         // Rewrite Store as a no-op (DropInst)
-        StatementInst* visit(StoreVarInst* inst)
+        StatementInst* visit(StoreVarInst* inst) override
         {
             if (inst->fAddress->getAccess() == Address::kLink) {
                 faustassert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());

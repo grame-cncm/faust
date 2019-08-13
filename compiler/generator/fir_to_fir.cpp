@@ -31,14 +31,14 @@ using namespace std;
 
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
 {
-    DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
-    DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
+    auto* inst1 = dynamic_cast<DeclareVarInst*>(a);
+    auto* inst2 = dynamic_cast<DeclareVarInst*>(b);
 
     if (inst1) {
-        ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(inst1->fType);
+        auto* array_typed1 = dynamic_cast<ArrayTyped*>(inst1->fType);
         if (array_typed1) {
             if (inst2) {
-                ArrayTyped* array_typed2 = dynamic_cast<ArrayTyped*>(inst2->fType);
+                auto* array_typed2 = dynamic_cast<ArrayTyped*>(inst2->fType);
                 if (array_typed2) {
                     return (array_typed1->fSize == array_typed2->fSize)
                                ? (intptr_t)array_typed1 > (intptr_t)array_typed1
@@ -50,7 +50,7 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
             return false;
         }
     } else if (inst2) {
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst2->fType);
+        auto* array_typed = dynamic_cast<ArrayTyped*>(inst2->fType);
         return (array_typed) ? (array_typed->fSize > 0) : false;
     } else {
         return false;
@@ -63,8 +63,8 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
 
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
 {
-    DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
-    DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
+    auto* inst1 = dynamic_cast<DeclareVarInst*>(a);
+    auto* inst2 = dynamic_cast<DeclareVarInst*>(b);
 
     if (inst1 && inst2) {
         return (inst1->fType->getType() == Typed::kInt32) || (inst1->fType->getType() == Typed::kInt32_ptr);

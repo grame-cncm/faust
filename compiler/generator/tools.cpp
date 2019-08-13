@@ -75,7 +75,7 @@ size_t cache_line_size()
 #include <stdio.h>
 size_t cache_line_size()
 {
-    FILE* p        = 0;
+    FILE* p        = nullptr;
     p              = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
     unsigned int i = 0;
     if (p) {

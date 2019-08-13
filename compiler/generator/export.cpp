@@ -54,7 +54,7 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 #include "exception.hh"
 #include "global.hh"
 
-const char* faustexception::gJSExceptionMsg = NULL;
+const char* faustexception::gJSExceptionMsg = nullptr;
 
 extern "C" EXPORT const char* getErrorAfterException()
 {

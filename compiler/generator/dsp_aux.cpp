@@ -113,7 +113,7 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     }
 
     if (vectorize) {
-        newoptions.push_back("-vec");
+        newoptions.emplace_back("-vec");
     }
 
     //------STEP3 - Add options depending on -vec/-scal option
@@ -195,7 +195,7 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
 {
     vector<string> res1;
     for (int i = 0; i < argc; i++) {
-        res1.push_back(argv[i]);
+        res1.emplace_back(argv[i]);
     }
 
     vector<string> res2 = reorganizeCompilationOptionsAux(res1);

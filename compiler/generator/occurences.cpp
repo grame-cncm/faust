@@ -113,7 +113,7 @@ void OccMarkup::mark(Tree root)
 Occurences* OccMarkup::retrieve(Tree t)
 {
     Occurences* p = getOcc(t);
-    if (p == 0) {
+    if (p == nullptr) {
         // cerr << "No Occurences info attached to : " << *t << endl;
         // exit(1);
     }
@@ -129,7 +129,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
     // Check if we have already visited this tree
     Occurences* occ = getOcc(t);
 
-    if (occ == 0) {
+    if (occ == nullptr) {
         // 1) We build initial occurence information
         Type ty = getCertifiedSigType(t);
         int  v0 = ty->variability();
@@ -176,7 +176,7 @@ Occurences* OccMarkup::getOcc(Tree t)
     if (p) {
         return (Occurences*)tree2ptr(p);
     } else {
-        return 0;
+        return nullptr;
     }
 }
 

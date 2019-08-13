@@ -143,7 +143,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     sharingAnalysis(L3);  // annotate L3 with sharing count
 
-    if (fOccMarkup != 0) {
+    if (fOccMarkup != nullptr) {
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
@@ -227,7 +227,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
     typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // annotate L0 with sharing count
 
-    if (fOccMarkup != 0) {
+    if (fOccMarkup != nullptr) {
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup();
@@ -299,7 +299,7 @@ string ScalarCompiler::or2code(Tree cs)
 string ScalarCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
-    if ((cc != 0) && (cc != gGlobal->nil)) {
+    if ((cc != nullptr) && (cc != gGlobal->nil)) {
         return CND2CODE(cc);
     } else {
         return "";
@@ -1350,7 +1350,7 @@ string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tre
 
 string ScalarCompiler::generateXtended(Tree sig)
 {
-    xtended*       p = (xtended*)getUserData(sig);
+    auto*       p = (xtended*)getUserData(sig);
     vector<string> args;
     vector<Type>   types;
 

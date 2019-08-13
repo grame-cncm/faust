@@ -179,7 +179,7 @@ Tree GraphCompiler::prepare(Tree LS)
 
     sharingAnalysis(L3);  // annotate L3 with sharing count
 
-    if (fOccMarkup != 0) {
+    if (fOccMarkup != nullptr) {
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
@@ -204,7 +204,7 @@ Tree GraphCompiler::prepare2(Tree L0)
     typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // annotate L0 with sharing count
 
-    if (fOccMarkup != 0) {
+    if (fOccMarkup != nullptr) {
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup();
@@ -362,7 +362,7 @@ string GraphCompiler::or2code(Tree cs)
 string GraphCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
-    if ((cc != 0) && (cc != gGlobal->nil)) {
+    if ((cc != nullptr) && (cc != gGlobal->nil)) {
         return CND2CODE(cc);
     } else {
         return "";
@@ -1467,7 +1467,7 @@ string GraphCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree
 
 string GraphCompiler::generateXtended(Tree sig)
 {
-    xtended*       p = (xtended*)getUserData(sig);
+    auto*       p = (xtended*)getUserData(sig);
     vector<string> args;
     vector<Type>   types;
 

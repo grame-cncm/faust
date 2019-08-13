@@ -37,7 +37,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
         WSSCodeContainer* fContainer;
         string            fName;
 
-        void visit(DeclareVarInst* inst)
+        void visit(DeclareVarInst* inst) override
         {
             BasicCloneVisitor cloner;
             if (inst->fAddress->getAccess() == Address::kStack &&
@@ -104,7 +104,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code,
     // Compute init section
     gen_code->pushBackInst(InstBuilder::genLabelInst("/* Only initialize tasks with more than one input */"));
     for (int l = int(dag.size()) - 1; l >= 0; l--) {
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto p = dag[l].begin(); p != dag[l].end(); p++) {
             if ((*p)->getBackwardLoopDependencies().size() > 1) {  // Only initialize tasks with more than 1 input,
                                                                    // since tasks with one input are "directly"
                                                                    // activated.
@@ -329,7 +329,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     switch_block_code->pushBackInst(count_store);
 
     for (int l = int(dag.size()) - 1; l > 0; l--) {
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++, loop_num++) {
+        for (auto p = dag[l].begin(); p != dag[l].end(); p++, loop_num++) {
             // Generates a "case" block for each task
             BlockInst* case_block = InstBuilder::genBlockInst();
             generateDAGLoopAux(*p, case_block, count_dec, loop_num);
@@ -339,7 +339,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
             // One output only
             if ((*p)->getForwardLoopDependencies().size() == 1) {
                 case_block->pushBackInst(InstBuilder::genLabelInst("/* One output only */"));
-                lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin();
+                auto p1 = (*p)->getForwardLoopDependencies().begin();
                 if ((*p1)->getBackwardLoopDependencies().size() == 1) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst((*p1)->getIndex())));
@@ -353,10 +353,10 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                 }
 
             } else {
-                CodeLoop* keep = NULL;
+                CodeLoop* keep = nullptr;
 
                 // Find one output with only one backward dependencies
-                for (lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin();
+                for (auto p1 = (*p)->getForwardLoopDependencies().begin();
                      p1 != (*p)->getForwardLoopDependencies().end(); p1++) {
                     if ((*p1)->getBackwardLoopDependencies().size() == 1) {
                         keep = *p1;
@@ -364,12 +364,12 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                     }
                 }
 
-                if (keep == NULL) {
+                if (keep == nullptr) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
                 }
 
-                for (lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin();
+                for (auto p1 = (*p)->getForwardLoopDependencies().begin();
                      p1 != (*p)->getForwardLoopDependencies().end(); p1++) {
                     if ((*p1)->getBackwardLoopDependencies().size() == 1) {  // Task is the only input
                         if (*p1 != keep) {
@@ -380,7 +380,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                             case_block->pushBackInst(InstBuilder::genVoidFunCallInst("pushHead", fun_args));
                         }
                     } else {
-                        if (keep == NULL) {
+                        if (keep == nullptr) {
                             list<ValueInst*> fun_args;
                             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
@@ -397,7 +397,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                     }
                 }
 
-                if (keep != NULL) {
+                if (keep != nullptr) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(keep->getIndex())));
                 } else {
@@ -425,7 +425,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
         // Add the "case" block
         switch_block->addCase(loop_num, case_block);
     } else {
-        for (lclset::const_iterator p = level.begin(); p != level.end(); p++, loop_num++) {
+        for (auto p = level.begin(); p != level.end(); p++, loop_num++) {
             BlockInst* case_block = InstBuilder::genBlockInst();
             generateDAGLoopAux(*p, case_block, count_dec, loop_num);
 

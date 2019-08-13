@@ -285,7 +285,7 @@ void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visite
     visited.insert(l);
 
     // print the dependencies loops (that need to be computed before this one)
-    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+    for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
         printLoopDeepFirst(n, fout, *p, visited);
     }
     // the print the loop itself
@@ -302,7 +302,7 @@ static void computeUseCount(Loop* l)
 {
     l->fUseCount++;
     if (l->fUseCount == 1) {
-        for (lset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+        for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
             computeUseCount(*p);
         }
     }
@@ -328,7 +328,7 @@ static void groupSeqLoops(Loop* l, set<Loop*>& visited)
             }
             return;
         } else if (n > 1) {
-            for (lset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
+            for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
                  p++) {
                 groupSeqLoops(*p, visited);
             }
@@ -367,8 +367,8 @@ void Klass::buildTasksList()
 
     // Compute forward dependencies
     for (int l = (int)G.size() - 1; l >= 0; l--) {
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-            for (lset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin();
+        for (auto p = G[l].begin(); p != G[l].end(); p++) {
+            for (auto p1 = (*p)->fBackwardLoopDependencies.begin();
                  p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
             }
@@ -381,7 +381,7 @@ void Klass::buildTasksList()
     vector<int> task_num;
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         lset::const_iterator next;
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+        for (auto p = G[l].begin(); p != G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() == 0) {
                 task_num.push_back((*p)->fIndex);
             }
@@ -393,12 +393,12 @@ void Klass::buildTasksList()
 
         addZone3("if (cur_thread == 0) {");
 
-        Loop* keep = NULL;
+        Loop* keep = nullptr;
         for (int l = (int)G.size() - 1; l >= 0; l--) {
             lset::const_iterator next;
-            for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+            for (auto p = G[l].begin(); p != G[l].end(); p++) {
                 if ((*p)->fBackwardLoopDependencies.size() == 0) {
-                    if (keep == NULL) {
+                    if (keep == nullptr) {
                         keep = *p;
                     } else {
                         addZone3(subst("    taskqueue.PushHead($0);", T((*p)->fIndex)));
@@ -407,7 +407,7 @@ void Klass::buildTasksList()
             }
         }
 
-        if (keep != NULL) {
+        if (keep != nullptr) {
             addZone3(subst("    tasknum = $0;", T(keep->fIndex)));
         }
 
@@ -441,7 +441,7 @@ void Klass::buildTasksList()
     // Compute init section
     addZone2c("// Only initialize taks with more than one input");
     for (int l = (int)G.size() - 1; l >= 0; l--) {
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+        for (auto p = G[l].begin(); p != G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() > 1) {  // Only initialize taks with more than 1 input, since
                                                                // taks with one input are "directly" activated.
                 addZone2c(subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++),
@@ -489,7 +489,7 @@ void Klass::printLoopGraphVector(int n, ostream& fout)
             tab(n, fout);
             fout << "// Section : " << G.size() - l;
         }
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+        for (auto p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->println(n, fout);
         }
     }
@@ -557,12 +557,12 @@ void Klass::printGraphDotFormat(ostream& fout)
     // for each level of the graph
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         // for each task in the level
-        for (lset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
+        for (auto t = G[l].begin(); t != G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
             fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
                  << ">];" << endl;
             // for each source of the task
-            for (lset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
+            for (auto src = (*t)->fBackwardLoopDependencies.begin();
                  src != (*t)->fBackwardLoopDependencies.end(); src++) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
@@ -586,7 +586,7 @@ void Klass::printLoopGraphInternal(int n, ostream& fout)
             tab(n, fout);
             fout << "// Section : " << G.size() - l;
         }
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+        for (auto p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->printoneln(n, fout);
         }
     }
@@ -605,7 +605,7 @@ void Klass::printLoopGraphScalar(int n, ostream& fout)
  */
 static bool nonRecursiveLevel(const lset& L)
 {
-    for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+    for (auto p = L.begin(); p != L.end(); p++) {
         if ((*p)->fIsRecursive) return false;
     }
     return true;
@@ -618,7 +618,7 @@ static bool nonRecursiveLevel(const lset& L)
 void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
 {
     if (nonRecursiveLevel(L) && L.size() == 1) {
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+        for (auto p = L.begin(); p != L.end(); p++) {
             if ((*p)->isEmpty() == false) {
                 if (gGlobal->gOpenMPLoop) {
                     (*p)->printParLoopln(n, fout);
@@ -639,7 +639,7 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
         fout << "#pragma omp sections ";
         tab(n, fout);
         fout << "{ ";
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+        for (auto p = L.begin(); p != L.end(); p++) {
             tab(n + 1, fout);
             fout << "#pragma omp section ";
             tab(n + 1, fout);
@@ -655,7 +655,7 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
         fout << "#pragma omp single ";
         tab(n, fout);
         fout << "{ ";
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+        for (auto p = L.begin(); p != L.end(); p++) {
             (*p)->println(n + 1, fout);
         }
         tab(n, fout);
@@ -670,7 +670,7 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
 void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset& L, ostream& fout)
 {
     if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty()) {
-        lset::const_iterator p = L.begin();
+        auto p = L.begin();
         tab(n, fout);
         fout << "case " << gTaskCount++ << ": { ";
         (*p)->println(n + 1, fout);
@@ -682,7 +682,7 @@ void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset& L, ostream&
         fout << "} ";
 
     } else if (L.size() > 1) {
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+        for (auto p = L.begin(); p != L.end(); p++) {
             tab(n, fout);
             fout << "case " << gTaskCount++ << ": { ";
             (*p)->println(n + 1, fout);
@@ -695,7 +695,7 @@ void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset& L, ostream&
         }
 
     } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
-        lset::const_iterator p = L.begin();
+        auto p = L.begin();
         tab(n, fout);
         fout << "case " << gTaskCount++ << ": { ";
         (*p)->println(n + 1, fout);
@@ -716,7 +716,7 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
 
     // One output only
     if ((*p)->fForwardLoopDependencies.size() == 1) {
-        lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
+        auto p1 = (*p)->fForwardLoopDependencies.begin();
         if ((*p1)->fBackwardLoopDependencies.size() == 1) {
             tab(n + 1, fout);
             fout << subst("tasknum = $0;", T((*p1)->fIndex));
@@ -726,9 +726,9 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
         }
 
     } else {
-        Loop* keep = NULL;
+        Loop* keep = nullptr;
         // Find one output with only one backward dependencies
-        for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
+        for (auto p1 = (*p)->fForwardLoopDependencies.begin();
              p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
             if ((*p1)->fBackwardLoopDependencies.size() == 1) {
                 keep = *p1;
@@ -736,12 +736,12 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
             }
         }
 
-        if (keep == NULL) {
+        if (keep == nullptr) {
             tab(n + 1, fout);
             fout << "tasknum = WORK_STEALING_INDEX;";
         }
 
-        for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
+        for (auto p1 = (*p)->fForwardLoopDependencies.begin();
              p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
             if ((*p1)->fBackwardLoopDependencies.size() == 1) {  // Task is the only input
                 if (*p1 != keep) {
@@ -749,7 +749,7 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
                     fout << subst("taskqueue.PushHead($0);", T((*p1)->fIndex));
                 }
             } else {
-                if (keep == NULL) {
+                if (keep == nullptr) {
                     tab(n + 1, fout);
                     fout << subst("fGraph.ActivateOutputTask(taskqueue, $0, tasknum);", T((*p1)->fIndex));
                 } else {
@@ -759,7 +759,7 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
             }
         }
 
-        if (keep != NULL) {
+        if (keep != nullptr) {
             tab(n + 1, fout);
             fout << subst("tasknum = $0;", T(keep->fIndex));  // Last one
         } else {
@@ -784,7 +784,7 @@ void Klass::printLoopLevelScheduler(int n, int lnum, const lset& L, ostream& fou
     if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty()) {
         printOneLoopScheduler(L.begin(), n, fout);
     } else if (L.size() > 1) {
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+        for (auto p = L.begin(); p != L.end(); p++) {
             printOneLoopScheduler(p, n, fout);
         }
     } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {

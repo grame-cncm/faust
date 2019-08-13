@@ -92,13 +92,13 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
         // If named type, check their name and internal type
         NamedTyped* name_t1 = dynamic_cast<NamedTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
-        NamedTyped* name_t2 = dynamic_cast<NamedTyped*>(type);
+        auto* name_t2 = dynamic_cast<NamedTyped*>(type);
         if (name_t1 && name_t2) {
             faustassert(name_t1->fName == name_t2->fName && name_t1->fType == name_t2->fType);
         } else {
             // If array type, check their size and internal type
             ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
-            ArrayTyped* arry_t2  = dynamic_cast<ArrayTyped*>(type);
+            auto* arry_t2  = dynamic_cast<ArrayTyped*>(type);
             if (array_t1 && arry_t2) {
                 faustassert(array_t1->fSize == arry_t2->fSize && array_t1->fType == arry_t2->fType);
             } else {
@@ -115,7 +115,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[name] = type;
     } else {
-        FunTyped* fun_type = static_cast<FunTyped*>(gGlobal->gVarTypeTable[name]);
+        auto* fun_type = static_cast<FunTyped*>(gGlobal->gVarTypeTable[name]);
         // If same result type
         if (fun_type->getTyped() == type->getTyped()) {
             if ((gGlobal->gOutputLang == "llvm") && (fun_type->getPrototype() != type->getPrototype())) {
@@ -218,7 +218,7 @@ ValueInst* BlockInst::getReturnValue()
 {
     list<StatementInst*>::const_iterator it = fCode.end();
     it--;
-    RetInst* ret = dynamic_cast<RetInst*>(*it);
+    auto* ret = dynamic_cast<RetInst*>(*it);
     if (ret) {
         fCode.pop_back();
         return ret->fResult;

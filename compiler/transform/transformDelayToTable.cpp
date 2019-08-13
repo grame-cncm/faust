@@ -48,7 +48,7 @@ using namespace std;
  */
 class TransformDelayToTable : public SignalIdentity {
    public:
-    TransformDelayToTable() {}
+    TransformDelayToTable() = default;
 
    protected:
     /**
@@ -68,7 +68,7 @@ class TransformDelayToTable : public SignalIdentity {
         return v;
     }
 
-    virtual Tree transformation(Tree sig) override
+    Tree transformation(Tree sig) override
     {
         faustassert(sig);
 

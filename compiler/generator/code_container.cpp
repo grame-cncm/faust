@@ -41,11 +41,7 @@ void CodeContainer::initialize(int numInputs, int numOutputs)
 }
 
 CodeContainer::CodeContainer()
-    : fParentContainer(0),
-      fNumInputs(-1),
-      fNumOutputs(-1),
-      fNumActives(0),
-      fNumPassives(0),
+    : 
       fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fDeclarationInstructions(InstBuilder::genBlockInst()),
@@ -61,25 +57,21 @@ CodeContainer::CodeContainer()
       fComputeBlockInstructions(InstBuilder::genBlockInst()),
       fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
       fComputeFunctions(InstBuilder::genBlockInst()),
-      fUserInterfaceInstructions(InstBuilder::genBlockInst()),
-      fSubContainerType(kInt),
-      fGeneratedSR(false),
-      fInt32ControlNum(0),
-      fRealControlNum(0)
+      fUserInterfaceInstructions(InstBuilder::genBlockInst())
+      
 {
-    fCurLoop = new CodeLoop(0, "i");
+    fCurLoop = new CodeLoop(nullptr, "i");
 }
 
 CodeContainer::~CodeContainer()
-{
-}
+= default;
 
 void CodeContainer::transformDAG(DispatchVisitor* visitor)
 {
     lclgraph G;
     CodeLoop::sortGraph(fCurLoop, G);
     for (int l = int(G.size() - 1); l >= 0; l--) {
-        for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+        for (auto p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->transform(visitor);
         }
     }
@@ -202,12 +194,12 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
     // for each level of the graph
     for (int l = int(G.size() - 1); l >= 0; l--) {
         // for each task in the level
-        for (lclset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
+        for (auto t = G[l].begin(); t != G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
             fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
                  << ">];" << endl;
             // for each source of the task
-            for (lclset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
+            for (auto src = (*t)->fBackwardLoopDependencies.begin();
                  src != (*t)->fBackwardLoopDependencies.end(); src++) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
@@ -227,9 +219,9 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
     int loop_index = START_TASK_MAX;  // First index to be used for remaining tasks
 
     for (int l = int(dag.size() - 1); l >= 0; l--) {
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto p = dag[l].begin(); p != dag[l].end(); p++) {
             // Setup forward dependancy
-            for (lclset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin();
+            for (auto p1 = (*p)->fBackwardLoopDependencies.begin();
                  p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
             }
@@ -252,7 +244,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
                                        const list<ValueInst*>& args)
 {
     BasicTyped*                      result_type = InstBuilder::genBasicTyped(result);
-    list<ValueInst*>::const_iterator it          = args.begin();
+    auto it          = args.begin();
 
     // Special case for "faustpower", generates sequence of multiplication
     if (name == getFaustPowerName()) {
@@ -260,7 +252,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         BlockInst* block = InstBuilder::genBlockInst();
 
         it++;
-        Int32NumInst* arg1             = dynamic_cast<Int32NumInst*>(*it);
+        auto* arg1             = dynamic_cast<Int32NumInst*>(*it);
         string        faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
 
         list<NamedTyped*> named_args;
@@ -303,7 +295,7 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     visited.insert(l);
 
     // Compute the dependencies loops (that need to be computed before this one)
-    for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
+    for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
          p++) {
         sortDeepFirstDAG(*p, visited, result);
     }
@@ -374,7 +366,7 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
         for (int l = int(G.size() - 1); l >= 0; l--) {
-            for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+            for (auto p = G[l].begin(); p != G[l].end(); p++) {
                 generateDAGLoopAux(*p, block, count, loop_num++);
             }
         }
@@ -444,7 +436,7 @@ BlockInst* CodeContainer::flattenFIR(void)
 void CodeContainer::generateMetaData(JSONUI* json)
 {
     // Add global metadata
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (auto i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             stringstream str1, str2;
             str1 << *(i->first);
@@ -453,7 +445,7 @@ void CodeContainer::generateMetaData(JSONUI* json)
             string res2 = unquote(str2.str());
             json->declare(res1.c_str(), res2.c_str());
         } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+            for (auto j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
                     stringstream str1, str2;
                     str1 << *(i->first);

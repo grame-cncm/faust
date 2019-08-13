@@ -46,7 +46,7 @@ class P {
        operator T*() const { return p; }
     T& operator*() const
     {
-        if (p == 0) {
+        if (p == nullptr) {
             throw faustexception("ERROR : null dereference in P<?>::operator*() const \n");
         }
         return *p;

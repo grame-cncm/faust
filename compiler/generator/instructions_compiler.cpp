@@ -53,9 +53,9 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
     : fContainer(container),
-      fSharingKey(NULL),
+      fSharingKey(nullptr),
       fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)),
-      fDescription(0),
+      fDescription(nullptr),
       fLoadedIota(false)
 {
 }
@@ -1085,7 +1085,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
 
 ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* x)
 {
-    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    auto* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 
     Typed* type = InstBuilder::genBasicTyped(Typed::kInt32_ptr);
@@ -1108,7 +1108,7 @@ ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf
 
 ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, ValueInst* x)
 {
-    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    auto* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 
     Typed* type = InstBuilder::genBasicTyped(Typed::kInt32_ptr);
@@ -1132,7 +1132,7 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, 
 ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
                                                          ValueInst* z)
 {
-    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    auto* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 
     Typed* type1 = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr);
@@ -1362,7 +1362,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     ValueInst*   tblname    = CS(tbl);
-    LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
+    auto* load_value = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value);
 
     // Check types and possibly cast written value
@@ -1398,7 +1398,7 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
         tblname = CS(tbl);
     }
 
-    LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
+    auto* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value1);
 
     LoadVarInst* load_value2 = InstBuilder::genLoadArrayVar(load_value1->fAddress->getName(), access, CS(idx));
@@ -1503,7 +1503,7 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
 {
     int N = len(le);
 
-    ValueInst*             res = NULL;
+    ValueInst*             res = nullptr;
     vector<bool>           used(N);
     vector<int>            delay(N);
     vector<string>         vname(N);
@@ -1678,7 +1678,7 @@ ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tr
 
 ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 {
-    xtended*         p = (xtended*)getUserData(sig);
+    auto*         p = (xtended*)getUserData(sig);
     list<ValueInst*> args;
     vector< ::Type>  arg_types;
 
@@ -1907,7 +1907,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     int    i;
 
     if (ctype == Typed::kInt32) {
-        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
+        auto* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
         faustassert(int_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
@@ -1917,7 +1917,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
             }
         }
     } else if (ctype == Typed::kFloat) {
-        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+        auto* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
         faustassert(float_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
@@ -1927,7 +1927,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
             }
         }
     } else if (ctype == Typed::kDouble) {
-        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+        auto* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
         faustassert(double_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {

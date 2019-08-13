@@ -185,11 +185,11 @@ static string ensureFloat(const string& c)
 string T(float n)
 {
     int   p    = 1;
-    char* endp = NULL;
+    char* endp = nullptr;
     char  c[32];
     do {
         snprintf(c, 30, "%.*g", p++, n);
-        endp = NULL;
+        endp = nullptr;
     } while (strtof(c, &endp) != n);
     return ensureFloat(c) + "f";
 }
@@ -201,11 +201,11 @@ string T(float n)
 string T(double n)
 {
     int   p    = 1;
-    char* endp = NULL;
+    char* endp = nullptr;
     char  c[32];
     do {
         snprintf(c, 30, "%.*g", p++, n);
-        endp = NULL;
+        endp = nullptr;
     } while (strtod(c, &endp) != n);
     return ensureFloat(c);
 }
@@ -319,8 +319,8 @@ string replaceChar(string str, char src, char dst)
 
 string replaceCharList(string str, const vector<char>& ch1, char ch2)
 {
-    vector<char>::const_iterator beg = ch1.begin();
-    vector<char>::const_iterator end = ch1.end();
+    auto beg = ch1.begin();
+    auto end = ch1.end();
     for (size_t i = 0; i < str.length(); ++i) {
         if (find(beg, end, str[i]) != end) {
             str[i] = ch2;

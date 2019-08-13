@@ -36,7 +36,7 @@ class SignalIdentity : public TreeTransform {
     bool fVisitGen{false};
 
    public:
-    SignalIdentity() {}
+    SignalIdentity() = default;
 
    protected:
     Tree transformation(Tree t) override;

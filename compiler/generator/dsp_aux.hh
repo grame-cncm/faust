@@ -45,7 +45,7 @@
  */
 class faust_smartable {
    private:
-    unsigned refCount;
+    unsigned refCount{0};
 
    public:
     //! gives the reference count of the object
@@ -63,7 +63,7 @@ class faust_smartable {
     }
 
    protected:
-    faust_smartable() : refCount(0) {}
+    faust_smartable()  {}
     faust_smartable(const faust_smartable&) : refCount(0) {}
     //! destructor checks for non-zero refCount
     virtual ~faust_smartable() { faustassert(refCount == 0); }
@@ -179,8 +179,8 @@ template <class T>
 struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
     typedef typename std::map<T, std::list<dsp*> >::iterator factory_iterator;
 
-    dsp_factory_table() {}
-    virtual ~dsp_factory_table() {}
+    dsp_factory_table() = default;
+    virtual ~dsp_factory_table() = default;
 
     bool getFactory(const std::string& sha_key, factory_iterator& res)
     {
@@ -249,7 +249,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
             return sfactory;
         } else {
             std::cerr << "WARNING : getDSPFactoryFromSHAKey factory not found!" << std::endl;
-            return 0;
+            return nullptr;
         }
     }
 

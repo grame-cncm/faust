@@ -126,7 +126,7 @@ void old_OccMarkup::marksubexp(Tree root)
 old_Occurences* old_OccMarkup::retrieve(Tree t)
 {
     old_Occurences* p = getOcc(t);
-    if (p == 0) {
+    if (p == nullptr) {
         // cerr << "No Occurences info attached to : " << *t << endl;
         // exit(1);
     }
@@ -143,7 +143,7 @@ void old_OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
     // Check if we have already visited this tree
     old_Occurences* occ = getOcc(t);
 
-    if (occ == 0) {
+    if (occ == nullptr) {
         // 1) We build initial occurence information
         Type ty = getCertifiedSigType(t);
         int  v0 = ty->variability();
@@ -190,7 +190,7 @@ old_Occurences* old_OccMarkup::getOcc(Tree t)
     if (p) {
         return (old_Occurences*)tree2ptr(p);
     } else {
-        return 0;
+        return nullptr;
     }
 }
 

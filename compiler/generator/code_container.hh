@@ -50,16 +50,16 @@ class TextInstVisitor;
 class CodeContainer : public virtual Garbageable {
    protected:
     list<CodeContainer*> fSubContainers;
-    CodeContainer* fParentContainer;  ///< Container in which this Container is embedded, null if toplevel Container
+    CodeContainer* fParentContainer{0};  ///< Container in which this Container is embedded, null if toplevel Container
 
-    int fNumInputs;
-    int fNumOutputs;
+    int fNumInputs{-1};
+    int fNumOutputs{-1};
 
-    int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
-    int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    int fNumActives{0};   ///< number of active controls in the UI (sliders, buttons, etc.)
+    int fNumPassives{0};  ///< number of passive widgets in the UI (bargraphs, etc.)
 
-    int  fSubContainerType;
-    bool fGeneratedSR;
+    int  fSubContainerType{kInt};
+    bool fGeneratedSR{false};
 
     string fKlassName;
 
@@ -564,8 +564,8 @@ class CodeContainer : public virtual Garbageable {
         return nullptr;
     }
 
-    int fInt32ControlNum;  // number of 'int32' intermediate control values
-    int fRealControlNum;   // number of 'real' intermediate control values
+    int fInt32ControlNum{0};  // number of 'int32' intermediate control values
+    int fRealControlNum{0};   // number of 'real' intermediate control values
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
