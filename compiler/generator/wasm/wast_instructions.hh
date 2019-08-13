@@ -97,7 +97,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         Address::AccessType access      = inst->fAddress->getAccess();
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
-        auto*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto*               array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         string              name        = inst->fAddress->getName();
 
         // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
@@ -163,7 +163,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                                      int size)
     {
         auto it = beg;
-        int                              i  = 0;
+        int  i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
@@ -223,7 +223,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         Typed::VarType      type    = fTypingVisitor.fCurType;
         Address::AccessType access  = inst->fAddress->getAccess();
         string              name    = inst->fAddress->getName();
-        auto*     indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        auto*               indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;

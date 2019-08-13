@@ -21,7 +21,6 @@
 
 #include "treeTransform.hh"
 #include <cstdlib>
-#include <cstdlib>
 #include <map>
 #include "Text.hh"
 #include "global.hh"

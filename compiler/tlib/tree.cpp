@@ -75,7 +75,6 @@ storage of trees.
 
 #include <limits.h>
 #include <stdio.h>
-#include <cstdlib>
 #include <string.h>
 #include <cstdlib>
 #include <fstream>
@@ -141,7 +140,7 @@ bool CTree::equiv(const Node& n, const tvec& br) const
 
 size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
-    auto               hk = size_t(n.getPointer());
+    auto hk = size_t(n.getPointer());
     auto b  = br.begin();
     auto z  = br.end();
 

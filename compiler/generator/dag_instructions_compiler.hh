@@ -31,8 +31,8 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
    private:
     // reimplemented code generation methods
-    ValueInst* CS(Tree sig) override;
-    ValueInst* generateCode(Tree sig) override;
+    ValueInst*         CS(Tree sig) override;
+    ValueInst*         generateCode(Tree sig) override;
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
     virtual ValueInst* generateLoopCode(Tree sig);
@@ -51,7 +51,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size) override;
     ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd) override;
     ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                         Address::AccessType& var_access) override;
+                                 Address::AccessType& var_access) override;
 
     StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
 

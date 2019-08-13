@@ -42,10 +42,10 @@
 #include "sourcereader.hh"
 
 class CTree;
-using Tree = CTree *;
+using Tree = CTree*;
 
 class Symbol;
-using Sym = Symbol *;
+using Sym = Symbol*;
 
 class xtended;
 class AudioType;

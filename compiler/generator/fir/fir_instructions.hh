@@ -62,10 +62,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     string generateType(Typed* type) override
     {
-        auto*  basic_typed  = dynamic_cast<BasicTyped*>(type);
-        auto*  named_typed  = dynamic_cast<NamedTyped*>(type);
-        auto*    fun_typed    = dynamic_cast<FunTyped*>(type);
-        auto*  array_typed  = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed  = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed  = dynamic_cast<NamedTyped*>(type);
+        auto* fun_typed    = dynamic_cast<FunTyped*>(type);
+        auto* array_typed  = dynamic_cast<ArrayTyped*>(type);
         auto* vector_typed = dynamic_cast<VectorTyped*>(type);
         auto* struct_typed = dynamic_cast<StructTyped*>(type);
 
@@ -77,9 +77,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            auto* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            auto* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            auto* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            auto*       basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            auto*       array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            auto*       named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
             std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
@@ -121,10 +121,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     string generateType(Typed* type, const string& name) override
     {
-        auto*  basic_typed  = dynamic_cast<BasicTyped*>(type);
-        auto*  named_typed  = dynamic_cast<NamedTyped*>(type);
-        auto*    fun_typed    = dynamic_cast<FunTyped*>(type);
-        auto*  array_typed  = dynamic_cast<ArrayTyped*>(type);
+        auto* basic_typed  = dynamic_cast<BasicTyped*>(type);
+        auto* named_typed  = dynamic_cast<NamedTyped*>(type);
+        auto* fun_typed    = dynamic_cast<FunTyped*>(type);
+        auto* array_typed  = dynamic_cast<ArrayTyped*>(type);
         auto* vector_typed = dynamic_cast<VectorTyped*>(type);
         auto* struct_typed = dynamic_cast<StructTyped*>(type);
 
@@ -137,9 +137,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            auto* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            auto* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            auto* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            auto*       basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            auto*       array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            auto*       named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
             std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 return (array_typed->fSize == 0)

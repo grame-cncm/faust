@@ -81,7 +81,7 @@ class TLockAble {
     TMutex fMutex;
 
    public:
-    TLockAble() = default;
+    TLockAble()          = default;
     virtual ~TLockAble() = default;
 
     bool Lock() { return fMutex.Lock(); }

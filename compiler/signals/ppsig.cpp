@@ -180,8 +180,8 @@ ostream& ppsig::printrec(ostream& fout, Tree lexp, bool hide) const
 
 ostream& ppsig::printextended(ostream& fout, Tree sig) const
 {
-    string   sep = "";
-    auto* p   = (xtended*)getUserData(sig);
+    string sep = "";
+    auto*  p   = (xtended*)getUserData(sig);
 
     fout << p->name() << '(';
     for (int i = 0; i < sig->arity(); i++) {

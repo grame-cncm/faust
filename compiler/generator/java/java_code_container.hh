@@ -42,7 +42,7 @@ class JAVACodeContainer : public virtual CodeContainer {
     }
     ~JAVACodeContainer() override = default;
 
-    void produceClass() override;
+    void         produceClass() override;
     virtual void generateCompute(int tab) = 0;
     void         produceInternal() override;
 

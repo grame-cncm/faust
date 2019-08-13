@@ -40,7 +40,7 @@ struct point : public virtual Garbageable {
     double x{0.0};
     double y{0.0};
 
-    point()  {}
+    point() {}
     point(double u, double v) : x(u), y(v) {}
     point(const point& p) : x(p.x), y(p.y) {}
 

@@ -98,7 +98,7 @@ struct LEB {
             bool last    = !(byte & 128);
             T    payload = byte & 127;
 
-            using mask_type = typename std::make_unsigned<T>::type;
+            using mask_type          = typename std::make_unsigned<T>::type;
             auto shift_mask          = 0 == shift ? ~mask_type(0) : ((mask_type(1) << (sizeof(T) * 8 - shift)) - 1u);
             T    significant_payload = payload & shift_mask;
             if (significant_payload != payload) {

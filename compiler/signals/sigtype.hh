@@ -99,7 +99,7 @@ class AudioType : public virtual Garbageable {
     AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval())
         : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fCode(nullptr)
     {
-    }                        ///< constructs an abstract audio type
+    }                                 ///< constructs an abstract audio type
     ~AudioType() override = default;  ///< not really useful here, but make compiler happier
 
     int nature() const { return fNature; }  ///< returns the kind of values (integer or floating point)
@@ -265,7 +265,8 @@ class SimpleType : public AudioType {
     // promote the interval of a type 		cerr << "gives type " << *t << endl; 		return t;
     // 	}
 
-    bool isMaximal() const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    bool isMaximal()
+        const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
 inline Type intCast(Type t)
@@ -348,8 +349,8 @@ class TableType : public AudioType {
     }  ///< construct a TableType with a content of a type t, promoting nature, variability, computability and
        ///< vectorability
 
-    Type             content() const { return fContent; }  ///< return the type of data store in the table
-    ostream& print(ostream& dst) const override;            ///< print a TableType
+    Type     content() const { return fContent; }  ///< return the type of data store in the table
+    ostream& print(ostream& dst) const override;   ///< print a TableType
 
     AudioType* promoteNature(int n) override
     {
@@ -375,7 +376,8 @@ class TableType : public AudioType {
     // virtual AudioType* promoteInterval(const interval& i)	{ return makeTableType(fContent, fNature, fVariability,
     // fComputability, fVectorability, fBoolean, i); }			///< promote the interval of a type
 
-    bool isMaximal() const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    bool isMaximal()
+        const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
 /**
@@ -404,8 +406,8 @@ class TupletType : public AudioType {
     {
     }
 
-    int              arity() const { return (int)fComponents.size(); }
-    Type             operator[](unsigned int i) const { return fComponents[i]; }
+    int      arity() const { return (int)fComponents.size(); }
+    Type     operator[](unsigned int i) const { return fComponents[i]; }
     ostream& print(ostream& dst) const override;
 
     AudioType* promoteNature(int n) override
@@ -436,7 +438,8 @@ class TupletType : public AudioType {
     // virtual AudioType* promoteInterval(const interval& i)	{ return new TupletType(fComponents, fNature,
     // fVariability, fComputability, fVectorability, fBoolean, i);  }			///< promote the interval of a type
 
-    bool isMaximal() const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+    bool isMaximal()
+        const override;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
 //-------------------------------------------------

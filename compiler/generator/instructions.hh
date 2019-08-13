@@ -166,7 +166,7 @@ DeclareStructTypeInst* isStructType(const string& name);
 // =========
 
 struct InstVisitor : public virtual Garbageable {
-    InstVisitor() = default;
+    InstVisitor()           = default;
     ~InstVisitor() override = default;
 
     // User interface
@@ -247,7 +247,7 @@ struct InstVisitor : public virtual Garbageable {
 // Clone a FIR expression
 
 struct CloneVisitor : public virtual Garbageable {
-    CloneVisitor() = default;
+    CloneVisitor()           = default;
     ~CloneVisitor() override = default;
 
     virtual ValueInst*     visit(NullValueInst* inst)     = 0;
@@ -1037,7 +1037,7 @@ struct BlockInst : public StatementInst {
 
     BlockInst(list<StatementInst*> code) : fCode(code) {}
 
-    BlockInst()  = default;
+    BlockInst() = default;
 
     ~BlockInst() override = default;
 
@@ -1850,11 +1850,11 @@ struct InstBuilder {
 
     static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext)
     {
-        auto*  int_num    = dynamic_cast<Int32NumInst*>(inst);
-        auto*  float_num  = dynamic_cast<FloatNumInst*>(inst);
+        auto* int_num    = dynamic_cast<Int32NumInst*>(inst);
+        auto* float_num  = dynamic_cast<FloatNumInst*>(inst);
         auto* double_num = dynamic_cast<DoubleNumInst*>(inst);
-        auto*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
-        auto*      cast       = dynamic_cast<CastInst*>(inst);
+        auto* typed      = dynamic_cast<BasicTyped*>(typed_ext);
+        auto* cast       = dynamic_cast<CastInst*>(inst);
 
         if (!typed) {
             // Default case
@@ -2073,8 +2073,8 @@ struct InstBuilder {
     static LoadVarInst* genLoadArrayStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
         using Rit = reverse_iterator<Iterator>;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
+        Rit rbegin(indexEnd);
+        Rit rend(indexBegin);
 
         Address* address = genNamedAddress(vname, Address::kStruct);
         for (Rit it = rbegin; it != rend; ++it) {
@@ -2117,8 +2117,8 @@ struct InstBuilder {
                                                 Iterator indexEnd)
     {
         using Rit = reverse_iterator<Iterator>;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
+        Rit rbegin(indexEnd);
+        Rit rend(indexBegin);
 
         Address* address = genNamedAddress(vname, Address::kStruct);
         for (Rit it = rbegin; it != rend; ++it) {
@@ -2172,8 +2172,8 @@ struct InstBuilder {
     static LoadVarInst* genLoadArrayStaticStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
         using Rit = reverse_iterator<Iterator>;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
+        Rit rbegin(indexEnd);
+        Rit rend(indexBegin);
 
         Address* address = genNamedAddress(vname, Address::kStaticStruct);
         for (Rit it = rbegin; it != rend; ++it) {
@@ -2195,8 +2195,8 @@ struct InstBuilder {
                                                       Iterator indexEnd)
     {
         using Rit = reverse_iterator<Iterator>;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
+        Rit rbegin(indexEnd);
+        Rit rend(indexBegin);
 
         Address* address = genNamedAddress(vname, Address::kStaticStruct);
         for (Rit it = rbegin; it != rend; ++it) {
@@ -2388,7 +2388,7 @@ struct FIRIndex {
 
     explicit FIRIndex(int i) : fValue(InstBuilder::genInt32NumInst(i)) {}
 
-    FIRIndex(FIRIndex const& rhs)  = default;
+    FIRIndex(FIRIndex const& rhs) = default;
 
     /* implicitly convert to ValueInst* in order to simplify the usage */
     operator ValueInst*(void)const { return fValue; }

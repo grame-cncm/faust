@@ -122,7 +122,7 @@ int CTree::calcTreeAperture(const Node& n, const tvec& br)
 
     } else {
         // return max aperture of branches
-        int                  rc = 0;
+        int  rc = 0;
         auto b  = br.begin();
         auto z  = br.end();
         while (b != z) {

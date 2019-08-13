@@ -22,7 +22,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <cstdlib>
 #include <set>
 #include "property.hh"
 #include "sigtyperules.hh"
@@ -41,12 +40,12 @@ class TreeTraversal {
    protected:
     // used when tracing
     bool           fTraceFlag{false};  // trace transformations when true
-    int            fIndent{0};     // current indentation during trace
-    string         fMessage;    // trace message
-    std::set<Tree> fVisited;    // avoid visiting a tree twice
+    int            fIndent{0};         // current indentation during trace
+    string         fMessage;           // trace message
+    std::set<Tree> fVisited;           // avoid visiting a tree twice
 
    public:
-    explicit TreeTraversal(string msg = "TreeTraversal") :  fMessage(msg) {}
+    explicit TreeTraversal(string msg = "TreeTraversal") : fMessage(msg) {}
 
     void self(Tree t);
     void mapself(Tree lt);

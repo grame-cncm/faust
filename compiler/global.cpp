@@ -90,7 +90,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE) 
+global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE)
 {
     CTree::init();
     Symbol::init();
@@ -730,11 +730,9 @@ string global::getFreshID(const string& prefix)
     return subst("$0$1", prefix, T(n));
 }
 
-Garbageable::Garbageable()
-= default;
+Garbageable::Garbageable() = default;
 
-Garbageable::~Garbageable()
-= default;
+Garbageable::~Garbageable() = default;
 
 void Garbageable::cleanup()
 {

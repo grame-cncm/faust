@@ -153,8 +153,7 @@ Symbol::Symbol(const string& str, unsigned int hsh, Symbol* nxt)
     fData = nullptr;
 }
 
-Symbol::~Symbol()
-= default;
+Symbol::~Symbol() = default;
 
 ostream& Symbol::print(ostream& fout) const  ///< print a symbol on a stream
 {

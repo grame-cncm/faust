@@ -35,7 +35,7 @@ struct MemoryDesc {
 
     Typed::VarType fType{Typed::kNoType};
 
-    MemoryDesc()  {}
+    MemoryDesc() {}
 
     MemoryDesc(int index, int offset, int size, Typed::VarType type)
         : fIndex(index), fOffset(offset), fSize(size), fType(type)
@@ -64,7 +64,7 @@ struct StructInstVisitor : public DispatchVisitor {
 
     field_table_type fFieldTable;  // Table: field_name, { index, offset, size, type }
 
-    StructInstVisitor()  {}
+    StructInstVisitor() {}
 
     // Return the offset of a given field
     int getFieldOffset(const string& name)
@@ -121,7 +121,7 @@ struct StructInstVisitor : public DispatchVisitor {
         string              name   = inst->fAddress->getName();
         Address::AccessType access = inst->fAddress->getAccess();
 
-        bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        bool  is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
         auto* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (array_typed && array_typed->fSize > 1) {

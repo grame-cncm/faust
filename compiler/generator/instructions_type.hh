@@ -33,7 +33,7 @@ struct Printable : public virtual Garbageable {
 
     int fTab;
 
-    Printable() = default;
+    Printable()           = default;
     ~Printable() override = default;
 };
 
@@ -87,7 +87,7 @@ struct Typed : public Printable {
         kNoType
     };
 
-    Typed() = default;
+    Typed()           = default;
     ~Typed() override = default;
 
     // Returns the pointer type version of a primitive type

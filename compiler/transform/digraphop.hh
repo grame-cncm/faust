@@ -181,7 +181,7 @@ inline vector<vector<N>> parallelize(const digraph<N>& g)
     //		level(n -> {})			= 0
     //		level(n -> {m1,m2,...})	= 1 + max(level(mi))
     //-----------------------------------------------------------
-    using Levelfun = function<int (const digraph<N> &, const N &, map<N, int> &)>;
+    using Levelfun = function<int(const digraph<N>&, const N&, map<N, int>&)>;
 
     Levelfun level = [&level](const digraph<N>& g, const N& n1, map<N, int>& levelcache) -> int {
         auto p = levelcache.find(n1);
@@ -230,7 +230,7 @@ inline vector<N> serialize(const digraph<N>& g)
     // V : set of already visited nodes
     // S : serialized vector of nodes
     //------------------------------------------------------------------------
-    using Visitfun = function<void (const digraph<N> &, const N &, set<N> &, vector<N> &)>;
+    using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, vector<N>&)>;
     Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);

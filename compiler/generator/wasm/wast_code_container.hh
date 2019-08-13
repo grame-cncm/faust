@@ -44,7 +44,8 @@ class WASTCodeContainer : public virtual CodeContainer {
         block->accept(gGlobal->gWASTVisitor);
     }
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
+                                            bool isvirtual) override;
 
     void generateComputeAux1(int n);
     void generateComputeAux2(BlockInst* compute_block, int n);
@@ -53,10 +54,10 @@ class WASTCodeContainer : public virtual CodeContainer {
     WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
     ~WASTCodeContainer() override = default;
 
-    void produceClass() override;
+    void         produceClass() override;
     virtual void generateCompute(int tab) = 0;
 
-    void                      produceInternal() override;
+    void              produceInternal() override;
     dsp_factory_base* produceFactory() override;
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;

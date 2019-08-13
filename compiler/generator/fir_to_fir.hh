@@ -188,7 +188,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
     StatementInst* visit(DeclareVarInst* inst) override
     {
         BasicCloneVisitor cloner;
-        auto*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto*             array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
@@ -271,7 +271,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
 
             for (auto it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
                 auto* dec_inst   = dynamic_cast<DeclareVarInst*>(*it);
-                auto*   store_inst = dynamic_cast<StoreVarInst*>(*it);
+                auto* store_inst = dynamic_cast<StoreVarInst*>(*it);
                 if (dec_inst) {
                     dec.push_back(InstBuilder::genDeclareVarInst(dec_inst->fAddress->clone(&cloner),
                                                                  dec_inst->fType->clone(&cloner)));
@@ -310,7 +310,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
     StatementInst* visit(DeclareVarInst* inst) override
     {
         BasicCloneVisitor cloner;
-        auto*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        auto*             array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
 
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
@@ -392,8 +392,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
             dst->pushFrontInst(*it);
         }
         // Then pure declaration
-        for (auto it = fVarTableDeclaration.rbegin();
-             it != fVarTableDeclaration.rend(); ++it) {
+        for (auto it = fVarTableDeclaration.rbegin(); it != fVarTableDeclaration.rend(); ++it) {
             dst->pushFrontInst(*it);
         }
         return dst;
@@ -520,7 +519,7 @@ struct FunctionInliner {
                                        bool ismethod)
     {
         auto it1 = args_type.begin();
-        auto  it2 = args.begin();
+        auto it2 = args.begin();
         if (ismethod) {
             it2++;
         }
@@ -646,7 +645,7 @@ struct VarAddressRemover : public BasicCloneVisitor {
     {
         if (fVariableMap.find(address->getName()) != fVariableMap.end()) {
             IndexedAddress* id_add1 = dynamic_cast<IndexedAddress*>(fVariableMap[address->getName()]->fAddress);
-            auto* id_add2 = dynamic_cast<IndexedAddress*>(address);
+            auto*           id_add2 = dynamic_cast<IndexedAddress*>(address);
             faustassert(id_add2);
             faustassert(id_add1);
             ValueInst* id1 = id_add1->getIndex();

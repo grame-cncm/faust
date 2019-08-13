@@ -66,7 +66,7 @@ class PowPrim : public xtended {
     }
 
     ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types) override
+                            vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -90,8 +90,8 @@ class PowPrim : public xtended {
             arg_types[0] = itfloat();
             arg_types[1] = itfloat();
 
-            list<ValueInst*>                 casted_args;
-            auto it2 = args.begin();
+            list<ValueInst*> casted_args;
+            auto             it2 = args.begin();
 
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
                 casted_args.push_back(promote2real((*it1)->nature(), (*it2)));

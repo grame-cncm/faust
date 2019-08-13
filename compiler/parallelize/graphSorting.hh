@@ -24,8 +24,8 @@
 #include <set>
 #include "loop.hh"
 
-using lset = set<Loop *>;
-using lvec = vector<Loop *>;
+using lset   = set<Loop*>;
+using lvec   = vector<Loop*>;
 using lgraph = vector<lset>;
 
 /**

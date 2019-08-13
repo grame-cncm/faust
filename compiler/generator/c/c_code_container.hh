@@ -61,8 +61,8 @@ class CCodeContainer : public virtual CodeContainer {
     ~CCodeContainer() override = default;
 
     void              produceClass() override;
-    virtual void              generateCompute(int tab) = 0;
-    void                      produceInternal() override;
+    virtual void      generateCompute(int tab) = 0;
+    void              produceInternal() override;
     dsp_factory_base* produceFactory() override;
 
     void printHeader() override

@@ -286,7 +286,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 
     map<string, LocalVarDesc> fLocalVarTable;
 
-    LocalVariableCounter()  {}
+    LocalVariableCounter() {}
 
     void visit(DeclareVarInst* inst) override
     {
@@ -456,8 +456,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
-        auto* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string      name        = inst->fAddress->getName();
+        auto*  array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string name        = inst->fAddress->getName();
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -815,8 +815,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
-        auto* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string      name        = inst->fAddress->getName();
+        auto*  array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string name        = inst->fAddress->getName();
 
         // std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fFieldTable.find(name) == fFieldTable.end());
@@ -884,7 +884,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         Typed::VarType      type    = fTypingVisitor.fCurType;
         Address::AccessType access  = inst->fAddress->getAccess();
         string              name    = inst->fAddress->getName();
-        auto*     indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        auto*               indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;

@@ -131,7 +131,7 @@ Compiler* old_comp = nullptr;
 InstructionsCompiler* new_comp  = nullptr;
 CodeContainer*        container = nullptr;
 
-using compile_fun = void *(*)(void *);
+using compile_fun = void* (*)(void*);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
 

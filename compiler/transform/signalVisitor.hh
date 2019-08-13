@@ -22,7 +22,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <cstdlib>
 #include "property.hh"
 #include "sigtyperules.hh"
 #include "tree.hh"
@@ -37,7 +36,7 @@ class SignalVisitor : public TreeTraversal {
     bool fVisitGen{false};
 
    public:
-    SignalVisitor()  {}
+    SignalVisitor() {}
 
    protected:
     void visit(Tree t) override;

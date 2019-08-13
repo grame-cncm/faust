@@ -22,7 +22,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <cstdlib>
 
 #include "property.hh"
 #include "tree.hh"
@@ -41,11 +40,11 @@ class TreeTransform {
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
     bool   fTraceFlag{false};  // trace transformations when true
-    int    fIndent{0};     // current indentation during trace
-    string fMessage;    // trace message
+    int    fIndent{0};         // current indentation during trace
+    string fMessage;           // trace message
 
    public:
-    TreeTransform() :  fMessage("TreeTransform") {}
+    TreeTransform() : fMessage("TreeTransform") {}
     virtual ~TreeTransform() = default;
 
     Tree self(Tree t);

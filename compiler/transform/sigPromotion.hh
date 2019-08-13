@@ -34,6 +34,6 @@ class SignalPromotion : public SignalIdentity {
 
    protected:
     Tree transformation(Tree sig) override;
-    Tree         smartIntCast(Type t, Tree sig);
-    Tree         smartFloatCast(Type t, Tree sig);
+    Tree smartIntCast(Type t, Tree sig);
+    Tree smartFloatCast(Type t, Tree sig);
 };

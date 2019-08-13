@@ -37,7 +37,7 @@
 
 using namespace std;
 
-using InstType = ValueInst *;
+using InstType = ValueInst*;
 
 class InstructionsCompiler : public virtual Garbageable {
    protected:

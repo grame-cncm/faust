@@ -82,7 +82,7 @@
 //---------------------------------API---------------------------------------
 
 class CTree;
-using Tree = CTree *;
+using Tree = CTree*;
 
 typedef map<Tree, Tree> plist;
 using tvec = vector<Tree>;

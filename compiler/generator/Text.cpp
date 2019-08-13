@@ -20,9 +20,9 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <cstdlib>
 #include <string.h>
 #include <algorithm>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <limits>

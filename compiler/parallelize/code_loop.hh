@@ -63,7 +63,7 @@ Scalarisation d'une boucle:
 
 class CodeLoop;
 
-using lclset = set<CodeLoop *>;
+using lclset   = set<CodeLoop*>;
 using lclgraph = vector<lclset>;
 
 class CodeLoop : public virtual Garbageable {

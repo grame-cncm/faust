@@ -36,10 +36,13 @@ class WASMCodeContainer : public virtual CodeContainer {
     std::stringstream      fHelper;
     int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
+                                            bool isvirtual) override;
     DeclareFunInst* generateClassInit(const string& name) override;
-    DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
-    DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
+    DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod,
+                                          bool isvirtual) override;
+    DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod,
+                                              bool isvirtual) override;
     DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                        bool isvirtual) override;
 
@@ -50,10 +53,10 @@ class WASMCodeContainer : public virtual CodeContainer {
                       bool internal_memory = true);
     ~WASMCodeContainer() override = default;
 
-    void produceClass() override;
+    void         produceClass() override;
     virtual void generateCompute() = 0;
 
-    void                      produceInternal() override;
+    void              produceInternal() override;
     dsp_factory_base* produceFactory() override;
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;

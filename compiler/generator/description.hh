@@ -59,11 +59,7 @@ class Description : public virtual Garbageable {
     list<int>    fLayoutTabs;
 
    public:
-    Description()
-        
-          
-    {
-    }
+    Description() {}
 
     Description* name(const string& s)
     {

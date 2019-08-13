@@ -90,8 +90,8 @@ class dsp_factory_imp : public dsp_factory_base {
     std::string getName() override
     {
         struct MyMeta : public Meta {
-            std::string  name;
-            void declare(const char* key, const char* value) override
+            std::string name;
+            void        declare(const char* key, const char* value) override
             {
                 if (strcmp(key, "name") == 0) name = value;
             }

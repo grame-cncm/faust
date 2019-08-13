@@ -63,9 +63,9 @@ class CPPCodeContainer : public virtual CodeContainer {
 
     ~CPPCodeContainer() override = default;
 
-    void produceClass() override;
+    void         produceClass() override;
     virtual void generateCompute(int tab) = 0;
-    void produceInternal() override;
+    void         produceInternal() override;
 
     dsp_factory_base* produceFactory() override;
 

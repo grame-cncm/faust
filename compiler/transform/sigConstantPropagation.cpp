@@ -21,7 +21,6 @@
 
 #include "sigConstantPropagation.hh"
 #include <cstdlib>
-#include <cstdlib>
 #include <map>
 #include "global.hh"
 #include "ppsig.hh"

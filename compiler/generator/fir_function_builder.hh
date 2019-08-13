@@ -210,7 +210,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
-        auto*       function_code = static_cast<BlockInst*>(block->clone(&cloner));
+        auto*            function_code = static_cast<BlockInst*>(block->clone(&cloner));
 
         // Add a Ret (void) instruction (needed in LLVM backend)
         function_code->pushBackInst(InstBuilder::genRetInst());
@@ -283,9 +283,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     ValueInst* visit(CastInst* inst) override
     {
-        ValueInst*    val1   = inst->fInst->clone(this);
-        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
-        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
+        ValueInst* val1   = inst->fInst->clone(this);
+        auto*      float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto*      int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (inst->fType->getType() == Typed::kFloat) {
             return (float1) ? float1 : InstBuilder::genFloatNumInst(float(int1->fNum));
@@ -310,9 +310,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     ValueInst* visit(Select2Inst* inst) override
     {
-        ValueInst*    val1   = inst->fCond->clone(this);
-        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
-        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
+        ValueInst* val1   = inst->fCond->clone(this);
+        auto*      float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto*      int1   = dynamic_cast<Int32NumInst*>(val1);
 
         if (float1) {
             return (float1->fNum > 0.f) ? inst->fThen->clone(this) : inst->fElse->clone(this);
@@ -325,10 +325,10 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     StatementInst* visit(DeclareVarInst* inst) override
     {
-        ValueInst*    val1   = inst->fValue->clone(this);
-        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
-        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
-        string        name   = inst->fAddress->getName();
+        ValueInst* val1   = inst->fValue->clone(this);
+        auto*      float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto*      int1   = dynamic_cast<Int32NumInst*>(val1);
+        string     name   = inst->fAddress->getName();
 
         if (float1) {
             // float1->dump();
@@ -358,10 +358,10 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     StatementInst* visit(StoreVarInst* inst) override
     {
-        ValueInst*    val1   = inst->fValue->clone(this);
-        auto* float1 = dynamic_cast<FloatNumInst*>(val1);
-        auto* int1   = dynamic_cast<Int32NumInst*>(val1);
-        string        name   = inst->fAddress->getName();
+        ValueInst* val1   = inst->fValue->clone(this);
+        auto*      float1 = dynamic_cast<FloatNumInst*>(val1);
+        auto*      int1   = dynamic_cast<Int32NumInst*>(val1);
+        string     name   = inst->fAddress->getName();
 
         if (float1) {
             // float1->dump();

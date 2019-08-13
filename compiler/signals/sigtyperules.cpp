@@ -768,7 +768,7 @@ static Type infereXType(Tree sig, Tree env)
 {
     // cerr << "infereXType :" << endl;
     // cerr << "infereXType of " << *sig << endl;
-    auto*     p = (xtended*)getUserData(sig);
+    auto*        p = (xtended*)getUserData(sig);
     vector<Type> vt;
 
     for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));

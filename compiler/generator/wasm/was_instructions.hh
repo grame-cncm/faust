@@ -230,9 +230,9 @@ struct WASInst {
             return 0;
         }
 
-        string          name    = address->getName();
-        auto*   named   = dynamic_cast<NamedAddress*>(address);
-        auto* indexed = dynamic_cast<IndexedAddress*>(address);
+        string name    = address->getName();
+        auto*  named   = dynamic_cast<NamedAddress*>(address);
+        auto*  indexed = dynamic_cast<IndexedAddress*>(address);
 
         if (fFieldTable.find(name) != fFieldTable.end()) {
             MemoryDesc tmp = fFieldTable[name];

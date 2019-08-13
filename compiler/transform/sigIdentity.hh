@@ -22,7 +22,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <cstdlib>
 #include "property.hh"
 #include "sigtyperules.hh"
 #include "tree.hh"
@@ -37,7 +36,7 @@ class SignalIdentity : public TreeTransform {
     bool fVisitGen{false};
 
    public:
-    SignalIdentity()  {}
+    SignalIdentity() {}
 
    protected:
     Tree transformation(Tree t) override;

@@ -146,7 +146,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         void visit(LoadVarInst* inst) override
         {
-            auto*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
+            auto* named   = dynamic_cast<NamedAddress*>(inst->fAddress);
             auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             // Special treatment for "fSampleRate" variable
@@ -173,7 +173,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         void visit(LoadVarAddressInst* inst) override
         {
-            auto*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
+            auto* named   = dynamic_cast<NamedAddress*>(inst->fAddress);
             auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             // Special treatment for "fSampleRate" variable
@@ -200,7 +200,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         void visit(StoreVarInst* inst) override
         {
-            auto*   named   = dynamic_cast<NamedAddress*>(inst->fAddress);
+            auto* named   = dynamic_cast<NamedAddress*>(inst->fAddress);
             auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             // Special treatment for "fSampleRate" variable

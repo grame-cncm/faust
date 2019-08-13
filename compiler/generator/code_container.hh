@@ -195,7 +195,7 @@ class CodeContainer : public virtual Garbageable {
     string getFullClassName()
     {
         return (fParentContainer != nullptr) ? (fParentContainer->getFullClassName() + "::" + getClassName())
-                                       : getClassName();
+                                             : getClassName();
     }
 
     void setGeneratedSR() { fGeneratedSR = true; }

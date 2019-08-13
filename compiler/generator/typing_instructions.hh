@@ -32,7 +32,7 @@ using namespace std;
 struct TypingVisitor : public InstVisitor {
     Typed::VarType fCurType{Typed::kNoType};
 
-    TypingVisitor()  {}
+    TypingVisitor() {}
 
     ~TypingVisitor() override = default;
 
@@ -42,14 +42,14 @@ struct TypingVisitor : public InstVisitor {
 
         // Stack or struct variables
         if (gGlobal->hasVarType(inst->getName())) {
-            fCurType                = gGlobal->getVarType(inst->getName());
+            fCurType      = gGlobal->getVarType(inst->getName());
             auto* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             if (indexed) {
                 // IndexedAddress is also used for struct type
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
                     auto* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
-                    fCurType                  = struct_type->fType->getType(field_index->fNum);
+                    fCurType          = struct_type->fType->getType(field_index->fNum);
                 } else {
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
