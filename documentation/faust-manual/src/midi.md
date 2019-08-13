@@ -95,8 +95,8 @@ Where:
 **Example**
 
 In the following example, the frequency of a sawtooth wave oscillator is 
-controlled by MIDI CC 11. The UI element receive and send CC 11
-values on channel 2. When CC11=0, then the frequency is 200Hz, when 
+controlled by values attached to `Control change 11` messages received
+on channel 2. When CC11=0, then the frequency is 200Hz, when 
 CC11=127, then the frequency is 1000Hz.
 
 <!-- faust-run -->
