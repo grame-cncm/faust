@@ -315,8 +315,8 @@ class uiMidiChanPress : public uiMidiTimedItem
   
     public:
     
-        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fPress(press)
+        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fPress(press)
         {}
         virtual ~uiMidiChanPress()
         {}
@@ -326,7 +326,7 @@ class uiMidiChanPress : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->chanPress(0, fPress);
+                fMidiOut->chanPress( (((fChan<0) || (fChan>15)) ? 0 : fChan), fPress);
             }
         }
         
@@ -601,6 +601,8 @@ class MidiUI : public GUI, public midi
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u %u", &num, &chan) == 2) {
+                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
                         } else if ((gsscanf(fMetaAux[i].second.c_str(), "pitchwheel %u", &chan) == 1) || (gsscanf(fMetaAux[i].second.c_str(), "pitchbend %u", &chan) == 1)) {
@@ -809,10 +811,12 @@ class MidiUI : public GUI, public midi
         {
             if (fChanPressTable.find(press) != fChanPressTable.end()) {
                 for (unsigned int i = 0; i < fChanPressTable[press].size(); i++) {
-                    if (fTimeStamp) {
-                        fChanPressTable[press][i]->modifyZone(date, FAUSTFLOAT(1));
-                    } else {
-                        fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
+                    if (fKeyPressTable[pitch][i]->getChan() == -1 || channel == fKeyPressTable[pitch][i]->getChan()) {
+                        if (fTimeStamp) {
+                            fChanPressTable[press][i]->modifyZone(date, FAUSTFLOAT(1));
+                        } else {
+                            fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
+                        }
                     }
                 }
             }
