@@ -6,7 +6,7 @@ declare reference   "www.sonejo.net";
 
 // FAUST MIDI TESTER
 
-process = _*0, (vgroup("FAUST MIDI TESTER", hgroup("[1]", controltester, controlchantester, noteontester, noteonchantester, noteofftester, noteoffchantester, keypresschantester, midiclocktester), hgroup("[2]", kattester, pctester, pcchantester, chattester, pitchwheeltester, pitchwheelchantester) :> _)) : attach;
+process = _*0, (vgroup("FAUST MIDI TESTER", hgroup("[1]", controltester, controlchantester, noteontester, noteonchantester, noteofftester, noteoffchantester, keypresschantester, midiclocktester), hgroup("[2]", kattester, katchantester, pctester, pcchantester, chattester, chatchantester, pitchwheeltester, pitchwheelchantester) :> _)) : attach;
 
 ///////////////////////////
 
@@ -72,6 +72,13 @@ valuetest(i,o) = hslider("Note KAT Value IN (Note %i) [midi:keypress %i]", 60, 0
 booltest(i,o) = checkbox("Note KAT Bool IN (Note %i) [midi:keypress %i]") : hbargraph("Note KAT Bool OUT (Note %o) [midi:keypress %o]", 0, 1);
 };
 
+//Key Aftertouch tester (keypress) : tester(midi in, midi out)
+katchantester = vgroup("KEY AFTERTOUCH CHAN (KAT) IN/OUT",valuetest(50,2,51,3), booltest(100,2,101,3))
+with{
+valuetest(i,ic,o,oc) = hslider("Note KAT Value IN (Note %i) (Chan %ic) [midi:keypress %i %ic]", 60, 0, 127, 1) : hbargraph("Note KAT Value OUT (Note %o) (Chan %oc) [midi:keypress %o %oc]", 0, 127);
+booltest(i,ic,o,oc) = checkbox("Note KAT Bool IN (Note %i) (Chan %ic) [midi:keypress %i %ic]") : hbargraph("Note KAT Bool OUT (Note %o) (Chan %oc)[midi:keypress %o %oc]", 0, 1);
+};
+
 //ProgramChange tester (pgm) : tester(midi in, midi out)
 pctester = vgroup("PROGRAM CHANGE (PC) IN/OUT",valuetest(1,2), booltest(1,2))
 with{
@@ -91,6 +98,13 @@ chattester = vgroup("CHANNEL AFTERTOUCH (CHAT) IN/OUT",valuetest(50,51), booltes
 with{
 valuetest(i,o) = hslider("Note CHAT Value IN (Note %i) [midi:chanpress %i]", 60, 0, 127, 1) : hbargraph("Note CHAT Value OUT (Note %o) [midi:chanpress %o]", 0, 127);
 booltest(i,o) = checkbox("Note CHAT Bool IN (Note %i) [midi:chanpress %i]") : hbargraph("Note CHAT Bool OUT (Note %o) [midi:chanpress %o]", 0, 1);
+};
+
+//Channel Aftertourch tester (chanpress) : tester(midi in, midi out)
+chatchantester = vgroup("CHANNEL AFTERTOUCH CHAN (CHAT) IN/OUT",valuetest(50,2,51,3), booltest(100,2,101,3))
+with{
+valuetest(i,ic,o,oc) = hslider("Note CHAT Chan Value IN (Note %i) (Chan %ic) [midi:chanpress %i %ic]", 60, 0, 127, 1) : hbargraph("Note CHAT Value OUT (Note %o) (Chan %oc) [midi:chanpress %o %oc]", 0, 127);
+booltest(i,ic,o,oc) = checkbox("Note CHAT Bool IN (Note %i) (Chan %ic) [midi:chanpress %i %ic]") : hbargraph("Note CHAT Bool OUT (Note %o) (Chan %oc) [midi:chanpress %o %oc]", 0, 1);
 };
 
 //Pitchwheel tester (pitchwheel) : tester(midi in, midi out)
