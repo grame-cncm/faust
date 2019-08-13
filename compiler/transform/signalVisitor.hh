@@ -36,7 +36,7 @@ class SignalVisitor : public TreeTraversal {
     bool fVisitGen{false};
 
    public:
-    SignalVisitor() {}
+    SignalVisitor() = default;
 
    protected:
     void visit(Tree t) override;

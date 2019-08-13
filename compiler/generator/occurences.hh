@@ -46,15 +46,15 @@ class Occurences : public virtual Garbageable {
  * second om.mark(root) then om.retrieve(subtree)
  */
 class OccMarkup : public virtual Garbageable {
-    Tree fRootTree;  ///< occurences computed within this tree
-    Tree fPropKey;   ///< key used to store occurences property
+    Tree fRootTree{nullptr};  ///< occurences computed within this tree
+    Tree fPropKey{nullptr};   ///< key used to store occurences property
 
     void        incOcc(Tree env, int v, int r, int d, Tree t);  ///< inc the occurence of t in context v,r
     Occurences* getOcc(Tree t);                                 ///< get Occurences property of t or null
     void        setOcc(Tree t, Occurences* occ);                ///< set Occurences property of t
 
    public:
-    OccMarkup() : fRootTree(nullptr), fPropKey(nullptr) {}
+    OccMarkup()  {}
     void        mark(Tree root);   ///< start markup of root tree with new unique key
     Occurences* retrieve(Tree t);  ///< occurences of subtree t within root tree
 };

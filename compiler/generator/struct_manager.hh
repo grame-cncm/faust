@@ -35,7 +35,7 @@ struct MemoryDesc {
 
     Typed::VarType fType{Typed::kNoType};
 
-    MemoryDesc() {}
+    MemoryDesc() = default;
 
     MemoryDesc(int index, int offset, int size, Typed::VarType type)
         : fIndex(index), fOffset(offset), fSize(size), fType(type)
@@ -64,7 +64,7 @@ struct StructInstVisitor : public DispatchVisitor {
 
     field_table_type fFieldTable;  // Table: field_name, { index, offset, size, type }
 
-    StructInstVisitor() {}
+    StructInstVisitor() = default;
 
     // Return the offset of a given field
     int getFieldOffset(const string& name)

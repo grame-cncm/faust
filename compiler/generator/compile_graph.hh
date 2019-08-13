@@ -90,14 +90,14 @@ class GraphCompiler : public Compiler {
 
    public:
     GraphCompiler(const string& name, const string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(0), fHasIota(false)
+        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(nullptr), fHasIota(false)
     {
     }
 
-    GraphCompiler(Klass* k) : Compiler(k), fOccMarkup(0), fHasIota(false) {}
+    GraphCompiler(Klass* k) : Compiler(k), fOccMarkup(nullptr), fHasIota(false) {}
 
-    virtual void compileMultiSignal(Tree lsig);
-    virtual void compileSingleSignal(Tree lsig);
+    void compileMultiSignal(Tree lsig) override;
+    void compileSingleSignal(Tree lsig) override;
 
    protected:
     virtual string CS(Tree sig);
@@ -109,8 +109,8 @@ class GraphCompiler : public Compiler {
     string getFreshID(const string& prefix);
 
     void       compilePreparedSignalList(Tree lsig);
-    Tree       prepare(Tree L0);
-    Tree       prepare2(Tree L0);
+    Tree       prepare(Tree L0) override;
+    Tree       prepare2(Tree L0) override;
     set<Tree>  decorate(Tree L3);
     Scheduling schedule(const set<Tree>& Instr);
 

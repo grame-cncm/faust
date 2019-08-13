@@ -286,7 +286,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 
     map<string, LocalVarDesc> fLocalVarTable;
 
-    LocalVariableCounter() {}
+    LocalVariableCounter() = default;
 
     void visit(DeclareVarInst* inst) override
     {

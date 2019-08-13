@@ -32,7 +32,7 @@ using namespace std;
 struct TypingVisitor : public InstVisitor {
     Typed::VarType fCurType{Typed::kNoType};
 
-    TypingVisitor() {}
+    TypingVisitor() = default;
 
     ~TypingVisitor() override = default;
 
