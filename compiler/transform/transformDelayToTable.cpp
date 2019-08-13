@@ -25,7 +25,7 @@
  *
  *  USAGE : set<Tree> I = splitSignalsToInstr(fConditionProperty, L);
  *
- ************************************************************************
+ ********************************************f****************************
  ************************************************************************/
 
 #include "transformDelayToTable.hh"
@@ -48,7 +48,7 @@ using namespace std;
  */
 class TransformDelayToTable : public SignalIdentity {
    public:
-    TransformDelayToTable() = default;
+    TransformDelayToTable() {}
 
    protected:
     /**
@@ -63,16 +63,12 @@ class TransformDelayToTable : public SignalIdentity {
         int p = int(log2(x));
         int v = 1 << p;
         while (v < x) v = v << 1;
-<<<<<<< HEAD
         // cerr << "dmax2size " << dmax << " -> " << v << endl;
         // assert(v >= x);
-=======
-        cerr << "dmax2size " << dmax << " -> " << v << endl;
->>>>>>> [FIX] cstdlib, override, format
         return v;
     }
 
-    Tree transformation(Tree sig) override
+    virtual Tree transformation(Tree sig) override
     {
         faustassert(sig);
 
