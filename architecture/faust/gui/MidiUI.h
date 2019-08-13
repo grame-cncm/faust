@@ -811,7 +811,7 @@ class MidiUI : public GUI, public midi
         {
             if (fChanPressTable.find(press) != fChanPressTable.end()) {
                 for (unsigned int i = 0; i < fChanPressTable[press].size(); i++) {
-                    if (fKeyPressTable[pitch][i]->getChan() == -1 || channel == fKeyPressTable[pitch][i]->getChan()) {
+                    if (fChanPressTable[press][i]->getChan() == -1 || channel == fChanPressTable[press][i]->getChan()) {
                         if (fTimeStamp) {
                             fChanPressTable[press][i]->modifyZone(date, FAUSTFLOAT(1));
                         } else {
