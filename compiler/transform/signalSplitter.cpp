@@ -87,7 +87,7 @@ Tree SignalSplitter::transformation(Tree sig)
     faustassert(sig);
     int             n;
     double          v;
-    Tree            x, y;
+    Tree            id, x, y, tbl, tblsize, idx, widx, wsig;
     Type            t   = getCertifiedSigType(sig);
     old_Occurences* occ = fOccMarkup->retrieve(sig);
 
@@ -138,6 +138,24 @@ Tree SignalSplitter::transformation(Tree sig)
             Tree w = self(y);
             return sigDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
         }
+    } else if (isSigRDTbl(sig, tbl, idx)) {
+        cerr << " A sigRDTbl : " << ppsig(sig) << endl;
+        Tree r = SignalIdentity::transformation(sig);
+        cerr << "transformed into : " << ppsig(r) << endl;
+        return r;
+
+    } else if (isSigWRTbl(sig, id, tbl, widx, wsig)) {
+        cerr << " A sigWRTbl : " << ppsig(sig) << endl;
+        Tree r = SignalIdentity::transformation(sig);
+        cerr << "transformed into : " << ppsig(r) << endl;
+        return r;
+
+    } else if (isSigTable(sig, id, tblsize, wsig)) {
+        cerr << " A sigTable : " << ppsig(sig) << endl;
+        Tree r = SignalIdentity::transformation(sig);
+        cerr << "transformed into : " << ppsig(r) << endl;
+        return r;
+
     } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
         Tree r  = SignalIdentity::transformation(sig);
         Tree id = uniqueID("C", sig);
