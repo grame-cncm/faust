@@ -10,41 +10,41 @@ The concerned files are:
 
 Additionnaly: `signalSplitter.cpp`, `signalDependencies.cpp`, `delaySimplifier.cpp`  and `compile_scal.cpp` are concerned.
 
-As an example we detail the addition of `sigTableWrite` and `sigTableRead` expressions.
+As an example we detail the addition of `sigInstructionTableWrite` and `sigInstructionTableRead` expressions.
 
 ## Symbol definitions
 
 In `global.hh` we add
 
-    Sym SIGTABLEWRITE;
-    Sym SIGTABLEREAD;
+    Sym SIGINSTRUCTIONTABLEWRITE;
+    Sym SIGINSTRUCTIONTABLEREAD;
 
 to the declaration of struct global, 
 
 In `global.cpp` in the global() constructor, we initialize:
 
-    SIGTABLEREAD       = symbol("SigTableRead");
-    SIGTABLEWRITE      = symbol("SigTableWrite");
+    SIGINSTRUCTIONTABLEREAD       = symbol("SigTableRead");
+    SIGINSTRUCTIONTABLEWRITE      = symbol("SigTableWrite");
 
 ## Expression definitions
 
-    Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
-    bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig);
+    Tree sigInstructionTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig);
+    bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig);
 
-    Tree sigTableRead(Tree id, Tree origin, Tree idx);
-    bool isSigTableRead(Tree s, Tree& id, Tree& origin, Tree& idx);
+    Tree sigInstructionTableRead(Tree id, Tree origin, Tree idx);
+    bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, Tree& idx);
 
 ## Expression implementations
 
-    Tree sigTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
+    Tree sigInstructionTableWrite(Tree id, Tree origin, int tblsize, Tree init, Tree idx, Tree sig)
     {
-        return tree(gGlobal->SIGTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
+        return tree(gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tree(tblsize), init, idx, sig);
     }
 
-    bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig)
+    bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* tblsize, Tree& init, Tree& idx, Tree& sig)
     {
         Tree tsize;
-        if (isTree(s, gGlobal->SIGTABLEWRITE, id, origin, tsize, init, idx, sig)) {
+        if (isTree(s, gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tsize, init, idx, sig)) {
             *tblsize = tree2int(tsize);
             return true;
         } else {
@@ -52,15 +52,15 @@ In `global.cpp` in the global() constructor, we initialize:
         }
     }
 
-    Tree sigTableRead(Tree id, Tree origin, int dmin, Tree idx)
+    Tree sigInstructionTableRead(Tree id, Tree origin, int dmin, Tree idx)
     {
-        return tree(gGlobal->SIGTABLEREAD, id, origin, tree(dmin), idx);
+        return tree(gGlobal->SIGINSTRUCTIONTABLEREAD, id, origin, tree(dmin), idx);
     }
 
-    bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
+    bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* dmin, Tree& idx)
     {
         Tree tmin;
-        if (tree(gGlobal->SIGTABLEREAD, id, origin, tmin, idx)) {
+        if (tree(gGlobal->SIGINSTRUCTIONTABLEREAD, id, origin, tmin, idx)) {
             *dmin = tree2int(tmin);
             return true;
         } else {

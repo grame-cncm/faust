@@ -222,28 +222,28 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 2;
     }
 
-    else if (isSigDelayLineWrite(sig, id, origin, &nat, &dmax, x)) {
+    else if (isSigInstructionDelayLineWrite(sig, id, origin, &nat, &dmax, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigDelayLineRead(sig, id, origin, &nat, &dmax, &dmin, x)) {
+    } else if (isSigInstructionDelayLineRead(sig, id, origin, &nat, &dmax, &dmin, x)) {
         vsigs.push_back(x);
         return 1;
     }
 
-    else if (isSigTableWrite(sig, id, origin, &nat, &dmax, init, idx, exp)) {
+    else if (isSigInstructionTableWrite(sig, id, origin, &nat, &dmax, init, idx, exp)) {
         vsigs.push_back(init);
         vsigs.push_back(idx);
         vsigs.push_back(exp);
         return 3;
-    } else if (isSigTableRead(sig, id, origin, &nat, &dmin, x)) {
+    } else if (isSigInstructionTableRead(sig, id, origin, &nat, &dmin, x)) {
         vsigs.push_back(x);
         return 1;
     }
 
-    else if (isSigSharedWrite(sig, id, origin, &nat, x)) {
+    else if (isSigInstructionSharedWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigSharedRead(sig, id, origin, &nat)) {
+    } else if (isSigInstructionSharedRead(sig, id, origin, &nat)) {
         return 0;
     } else if (isSigControlWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);

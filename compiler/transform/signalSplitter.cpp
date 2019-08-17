@@ -116,10 +116,10 @@ Tree SignalSplitter::transformation(Tree sig)
                     // Never visited before, it is the first time for this branch
                     id = tree(unique("R"));     // we need a unique id for the recursive delay line
                     fDelayLineName.set(x, id);  // we save it for the next visit
-                    fSplittedSignals.insert(sigDelayLineWrite(id, x, t->nature(), dmax, self(nth(le, n))));
+                    fSplittedSignals.insert(sigInstructionDelayLineWrite(id, x, t->nature(), dmax, self(nth(le, n))));
                 }
                 Tree w = self(y);
-                return sigDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
+                return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
 
             } else {
                 // This case is impossible (in principle ;-))
@@ -133,10 +133,10 @@ Tree SignalSplitter::transformation(Tree sig)
                 // The delayed signal was never visited before
                 id = tree(unique("D"));     // we need a unique id for it
                 fDelayLineName.set(x, id);  // we save it for the next visit
-                fSplittedSignals.insert(sigDelayLineWrite(id, x, t->nature(), dmax, self(x)));
+                fSplittedSignals.insert(sigInstructionDelayLineWrite(id, x, t->nature(), dmax, self(x)));
             }
             Tree w = self(y);
-            return sigDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
+            return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
         }
     } else if (isSigRDTbl(sig, tbl, idx)) {
         cerr << " A sigRDTbl : " << ppsig(sig) << endl;

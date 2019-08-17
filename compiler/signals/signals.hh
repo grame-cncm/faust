@@ -360,27 +360,28 @@ Tree sigCartesianProd(Tree s1, Tree s2);
 
 // Instructions (signals read and write into memory)
 
-Tree sigDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig);
-bool isSigDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig);
+Tree sigInstructionDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig);
+bool isSigInstructionDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig);
 
-Tree sigDelayLineRead(Tree id, Tree origin, int nature, int dmax, int dmin, Tree dl);
-bool isSigDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, int* dmin, Tree& dl);
-
-//
-
-Tree sigTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig);
-bool isSigTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx, Tree& sig);
-
-Tree sigTableRead(Tree id, Tree origin, int nature, int dmin, Tree idx);
-bool isSigTableRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& idx);
+Tree sigInstructionDelayLineRead(Tree id, Tree origin, int nature, int dmax, int dmin, Tree dl);
+bool isSigInstructionDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, int* dmin, Tree& dl);
 
 //
 
-Tree sigSharedWrite(Tree id, Tree origin, int nature, Tree sig);
-bool isSigSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
+Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig);
+bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx,
+                                Tree& sig);
 
-Tree sigSharedRead(Tree id, Tree origin, int nature);
-bool isSigSharedRead(Tree s, Tree& id, Tree& origin, int* nature);
+Tree sigInstructionTableRead(Tree id, Tree origin, int nature, int dmin, Tree idx);
+bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& idx);
+
+//
+
+Tree sigInstructionSharedWrite(Tree id, Tree origin, int nature, Tree sig);
+bool isSigInstructionSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
+
+Tree sigInstructionSharedRead(Tree id, Tree origin, int nature);
+bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature);
 
 //
 

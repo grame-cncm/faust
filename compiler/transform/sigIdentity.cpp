@@ -183,17 +183,19 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // DelayLine Read and Write
-    else if (isSigDelayLineRead(sig, x, u, &nature, &dmax, &dmin, y)) {  // x is used as an id, we don't go into it
-        return sigDelayLineRead(x, u, nature, dmax, dmin, self(y));
-    } else if (isSigDelayLineWrite(sig, x, u, &nature, &dmax, y)) {  // x is used as an id, we don't go into it
-        return sigDelayLineWrite(x, u, nature, dmax, self(y));
+    else if (isSigInstructionDelayLineRead(sig, x, u, &nature, &dmax, &dmin,
+                                           y)) {  // x is used as an id, we don't go into it
+        return sigInstructionDelayLineRead(x, u, nature, dmax, dmin, self(y));
+    } else if (isSigInstructionDelayLineWrite(sig, x, u, &nature, &dmax,
+                                              y)) {  // x is used as an id, we don't go into it
+        return sigInstructionDelayLineWrite(x, u, nature, dmax, self(y));
     }
 
     // Read and Write
-    else if (isSigSharedRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
+    else if (isSigInstructionSharedRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
         return sig;
-    } else if (isSigSharedWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
-        return sigSharedWrite(x, u, nature, self(y));
+    } else if (isSigInstructionSharedWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
+        return sigInstructionSharedWrite(x, u, nature, self(y));
     }
 
     // Read and Write
@@ -203,10 +205,10 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigControlWrite(x, u, nature, self(y));
     }
 
-    else if (isSigTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
-        return sigTableWrite(id, origin, nature, dmax, self(init), self(idx), self(exp));
-    } else if (isSigTableRead(sig, id, origin, &nature, &tblsize, idx)) {
-        return sigTableRead(id, origin, nature, tblsize, self(idx));
+    else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
+        return sigInstructionTableWrite(id, origin, nature, dmax, self(init), self(idx), self(exp));
+    } else if (isSigInstructionTableRead(sig, id, origin, &nature, &tblsize, idx)) {
+        return sigInstructionTableRead(id, origin, nature, tblsize, self(idx));
     }
 
     else {

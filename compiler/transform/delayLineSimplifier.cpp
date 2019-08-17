@@ -79,8 +79,8 @@ class ReplaceDelay : public SignalIdentity {
     {
         Tree D1, origin1, exp, D2, origin2, dl2;
         int  nature1, nature2, dmax1, dmax2, dmin2;
-        faustassert(isSigDelayLineWrite(instr, D1, origin1, &nature1, &dmax1, exp) &
-                    isSigDelayLineRead(exp, D2, origin2, &nature2, &dmax2, &dmin2, dl2));
+        faustassert(isSigInstructionDelayLineWrite(instr, D1, origin1, &nature1, &dmax1, exp) &
+                    isSigInstructionDelayLineRead(exp, D2, origin2, &nature2, &dmax2, &dmin2, dl2));
         // cerr << "replacement rule for: " << ppsig(instr) << endl;
         return ReplaceDelay(D1, dmax1 + M[D2], D2, dmin2, dl2);
     }
@@ -91,16 +91,17 @@ class ReplaceDelay : public SignalIdentity {
         Tree ID1, ID2, origin, dl1, def;
         int  nature, dmin1, dmax2;
 
-        if (isSigDelayLineRead(sig, ID1, origin, &nature, &dmax2, &dmin1, dl1) && (ID1 == fID1)) {
+        if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax2, &dmin1, dl1) && (ID1 == fID1)) {
             // replace occurrences of ID1(dl)
-            Tree r = sigDelayLineRead(fID2, origin, nature, dmax2, dmin1 + fDmin2, sigAdd(dl1, fDl2));
-            // cerr << "sigDelayLineRead: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
+            Tree r = sigInstructionDelayLineRead(fID2, origin, nature, dmax2, dmin1 + fDmin2, sigAdd(dl1, fDl2));
+            // cerr << "sigInstructionDelayLineRead: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
             return r;
-        } else if (isSigDelayLineWrite(sig, ID2, origin, &nature, &dmax2, def) && (ID2 == fID2)) {
+        } else if (isSigInstructionDelayLineWrite(sig, ID2, origin, &nature, &dmax2, def) && (ID2 == fID2)) {
             // adjust definition of ID2 size
             Tree tdef = self(def);
-            Tree r    = sigDelayLineWrite(fID2, origin, nature, std::max(fDmax1, dmax2), tdef);
-            // cerr << "isSigDelayLineWrite: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
+            Tree r    = sigInstructionDelayLineWrite(fID2, origin, nature, std::max(fDmax1, dmax2), tdef);
+            // cerr << "isSigInstructionDelayLineWrite: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) <<
+            // endl;
             return r;
         } else {
             return SignalIdentity::transformation(sig);
@@ -120,8 +121,8 @@ static bool isSubstitution(Tree instr)
     Tree id1, id2, origin1, origin2, exp, idx;
     int  nature, dmax, dmin;
 
-    return (isSigDelayLineWrite(instr, id1, origin1, &nature, &dmax, exp) &&
-            isSigDelayLineRead(exp, id2, origin2, &nature, &dmax, &dmin, idx));
+    return (isSigInstructionDelayLineWrite(instr, id1, origin1, &nature, &dmax, exp) &&
+            isSigInstructionDelayLineRead(exp, id2, origin2, &nature, &dmax, &dmin, idx));
 }
 
 /**
@@ -142,7 +143,7 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     for (Tree instr : I) {
         Tree id, origin, def;
         int  nature, dmax;
-        if (isSigDelayLineWrite(instr, id, origin, &nature, &dmax, def)) {
+        if (isSigInstructionDelayLineWrite(instr, id, origin, &nature, &dmax, def)) {
             M[id] = dmax;
         }
     }

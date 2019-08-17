@@ -198,9 +198,10 @@ Tree ScalarCompiler::prepare(Tree LS)
     parallelScheduling("parallelScheduling.txt", INSTR);
 
     cerr << "Test tables" << endl;
-    Tree t1 = sigTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 64, sigInt(0), sigInt(22), sigInt(-1));
+    Tree t1 = sigInstructionTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 64, sigInt(0), sigInt(22),
+                                       sigInt(-1));
     cerr << "t1 = " << ppsig(t1) << endl;
-    Tree t2 = sigTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 1, sigInt(7));
+    Tree t2 = sigInstructionTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 1, sigInt(7));
     cerr << "t2 = " << ppsig(t2) << endl;
 
     endTiming("Signal Splitter");
@@ -1350,7 +1351,7 @@ string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tre
 
 string ScalarCompiler::generateXtended(Tree sig)
 {
-    auto*       p = (xtended*)getUserData(sig);
+    auto*          p = (xtended*)getUserData(sig);
     vector<string> args;
     vector<Type>   types;
 

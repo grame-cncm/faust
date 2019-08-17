@@ -21,11 +21,11 @@ class SignalDependencies : public SignalVisitor {
         int  i, nature, dmax, tblsize;
         // Analyzed signals are supposed to be "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
-        if (isSigDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
+        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
-        } else if (isSigSharedWrite(sig, id, origin, &nature, content)) {
+        } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
@@ -33,7 +33,7 @@ class SignalDependencies : public SignalVisitor {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
-        } else if (isSigTableWrite(sig, id, origin, &nature, &tblsize, init, idx, exp)) {
+        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, exp)) {
             fRoot = id;
             fGraph.add(fRoot);
             self(init);
@@ -61,13 +61,13 @@ class SignalDependencies : public SignalVisitor {
         int  nature, dmax, dmin;
 
         // the dependencies are DelayLines, shared expressions or Control signals
-        if (isSigDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
+        if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
             fGraph.add(fRoot, id, dmin);
             self(dl);
-        } else if (isSigTableRead(t, id, origin, &nature, &dmin, dl)) {
+        } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
             fGraph.add(fRoot, id, dmin);
             self(dl);
-        } else if (isSigSharedRead(t, id, origin, &nature)) {
+        } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
         } else if (isSigControlRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
@@ -84,9 +84,10 @@ void Dictionnary::add(Tree sig)
     Tree id, idx, init, origin, content;
     int  nature, dmax, i;
     // Analyzed signals are supposed to be DelayLines, Controls or Outputs
-    if (isSigDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
-        isSigTableWrite(sig, id, origin, &nature, &dmax, init, idx, content) ||
-        isSigSharedWrite(sig, id, origin, &nature, content) || isSigControlWrite(sig, id, origin, &nature, content)) {
+    if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
+        isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, content) ||
+        isSigInstructionSharedWrite(sig, id, origin, &nature, content) ||
+        isSigControlWrite(sig, id, origin, &nature, content)) {
         // cerr << "Dictionnary::add " << id << "@" << *id << endl;  //" := " << ppsig(sig) << endl;
         fDefinitions[id] = sig;
     } else if (isSigOutput(sig, &i, content)) {
@@ -107,7 +108,7 @@ Tree Dictionnary::operator[](Tree id)
 
 //================================================================
 // signalDependencies(sig) : Compute the dependencies of a signal
-// of type: sigDelayLineWrite() | sigControlWrite() | sigOutput()
+// of type: sigInstructionDelayLineWrite() | sigControlWrite() | sigOutput()
 // returns the dependency graph
 //================================================================
 

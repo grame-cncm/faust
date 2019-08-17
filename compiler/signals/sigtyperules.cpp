@@ -493,27 +493,27 @@ static Type infereSigType(Tree sig, Tree env)
         return T(sel, env) | T(s1, env) | T(s2, env) | T(s3, env);
     }
 
-    else if (isSigDelayLineWrite(sig, id, u, &nat, &dmax, x)) {
+    else if (isSigInstructionDelayLineWrite(sig, id, u, &nat, &dmax, x)) {
         return T(x, env);
     }
 
-    else if (isSigDelayLineRead(sig, id, u, &nat, &dmax, &dmin, x)) {
+    else if (isSigInstructionDelayLineRead(sig, id, u, &nat, &dmax, &dmin, x)) {
         return getCertifiedSigType(u);
     }
 
-    else if (isSigTableWrite(sig, id, u, &nat, &i, x, y, z)) {
+    else if (isSigInstructionTableWrite(sig, id, u, &nat, &i, x, y, z)) {
         return T(z, env);
     }
 
-    else if (isSigTableRead(sig, id, u, &nat, &i, x)) {
+    else if (isSigInstructionTableRead(sig, id, u, &nat, &i, x)) {
         return getCertifiedSigType(u);
     }
 
-    else if (isSigSharedWrite(sig, id, u, &nat, x)) {
+    else if (isSigInstructionSharedWrite(sig, id, u, &nat, x)) {
         return T(x, env);
     }
 
-    else if (isSigSharedRead(sig, id, u, &nat)) {
+    else if (isSigInstructionSharedRead(sig, id, u, &nat)) {
         return getCertifiedSigType(u);
     }
 

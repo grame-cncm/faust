@@ -317,28 +317,28 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "control", x, y);
     }
 
-    else if (isSigDelayLineWrite(sig, x, c, &nat, &dmax, y)) {
-        // fout << "sigDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
+    else if (isSigInstructionDelayLineWrite(sig, x, c, &nat, &dmax, y)) {
+        // fout << "sigInstructionDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << '[' << dmax << "] " << *x << " := " << ppsig(y) << ";";
-    } else if (isSigDelayLineRead(sig, x, c, &nat, &dmax, &dmin, y)) {
-        // fout << "sigDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
+    } else if (isSigInstructionDelayLineRead(sig, x, c, &nat, &dmax, &dmin, y)) {
+        // fout << "sigInstructionDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
         fout << *x << "@(" << ppsig(y) << ")";
     }
 
-    else if (isSigTableWrite(sig, id, origin, &nat, &tblsize, init, idx, exp)) {
+    else if (isSigInstructionTableWrite(sig, id, origin, &nat, &tblsize, init, idx, exp)) {
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx)
              << "] := " << ppsig(exp) << ";";
-    } else if (isSigTableRead(sig, id, origin, &nat, &dmin, idx)) {
+    } else if (isSigInstructionTableRead(sig, id, origin, &nat, &dmin, idx)) {
         fout << *id << "[" << ppsig(idx) << "]";
     }
 
-    else if (isSigSharedWrite(sig, x, c, &nat, y)) {
+    else if (isSigInstructionSharedWrite(sig, x, c, &nat, y)) {
         // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << " " << *x << " := " << ppsig(y) << ";";
-    } else if (isSigSharedRead(sig, x, c, &nat)) {
+    } else if (isSigInstructionSharedRead(sig, x, c, &nat)) {
         // fout << "sigControlRead(" << *x << ")";
         fout << *x;
     }

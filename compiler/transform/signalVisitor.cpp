@@ -228,29 +228,30 @@ void SignalVisitor::visit(Tree sig)
     }
 
     // Read and Write
-    else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin,
-                                y)) {  // x is used as an id, we don't go into it
+    else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin,
+                                           y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
-    } else if (isSigDelayLineWrite(sig, id, origin, &nature, &i, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &i,
+                                              y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }
 
     // Read and Write
-    else if (isSigSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+    else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigSharedWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }
 
-    else if (isSigTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
+    else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
         self(init);
         self(idx);
         self(exp);
         return;
-    } else if (isSigTableRead(sig, id, origin, &nature, &dmin, x)) {
+    } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, x)) {
         self(x);
         return;
     }

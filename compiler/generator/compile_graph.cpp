@@ -527,11 +527,11 @@ void GraphCompiler::compileMultiSignal(Tree L)
         Tree id, origin, content, init, idx;
         int  i, nature, dmax, tblsize;
 
-        if (isSigSharedWrite(sig, id, origin, &nature, content)) {
+        if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
             string vname{tree2str(id)};
             fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
 
-        } else if (isSigTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
+        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             string vname{tree2str(id)};
             fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
             fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));  // a changer !!!!!
@@ -614,9 +614,9 @@ string GraphCompiler::generateCode(Tree sig)
         return generateXtended(sig);
     } else if (isSigTime(sig)) {
         return "time";
-    } else if (isSigTableRead(sig, id, origin, &nature, &dmin, idx)) {
+    } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) {
         return subst("$0[$1]", tree2str(id), CS(idx));
-    } else if (isSigSharedRead(sig, id, origin, &nature)) {
+    } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {
         return tree2str(id);
     } else if (isSigControlRead(sig, id, origin, &nature)) {
         return tree2str(id);
@@ -1467,7 +1467,7 @@ string GraphCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree
 
 string GraphCompiler::generateXtended(Tree sig)
 {
-    auto*       p = (xtended*)getUserData(sig);
+    auto*          p = (xtended*)getUserData(sig);
     vector<string> args;
     vector<Type>   types;
 

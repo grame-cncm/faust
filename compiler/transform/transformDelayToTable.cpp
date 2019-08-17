@@ -75,17 +75,18 @@ class TransformDelayToTable : public SignalIdentity {
         Tree id, origin, dl, exp;
         int  nature, dmin, dmax;
 
-        if (isSigDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
+        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
             int  size = dmax2size(dmax);
-            Tree tr =
-                sigTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigTime(), sigInt(size - 1)), self(exp));
+            Tree tr = sigInstructionTableWrite(id, origin, nature, size, sigInt(0), sigAND(sigTime(), sigInt(size - 1)),
+                                               self(exp));
             return tr;
-        } else if (isSigDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
+        } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
             int size = dmax2size(dmax);
             if (isZero(dl)) {
-                return sigTableRead(id, origin, nature, dmin, sigAND(sigTime(), sigInt(size - 1)));
+                return sigInstructionTableRead(id, origin, nature, dmin, sigAND(sigTime(), sigInt(size - 1)));
             } else {
-                return sigTableRead(id, origin, nature, dmin, sigAND(sigSub(sigTime(), dl), sigInt(size - 1)));
+                return sigInstructionTableRead(id, origin, nature, dmin,
+                                               sigAND(sigSub(sigTime(), dl), sigInt(size - 1)));
             }
         } else {
             return SignalIdentity::transformation(sig);
