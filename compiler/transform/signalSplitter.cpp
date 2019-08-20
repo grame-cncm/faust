@@ -87,7 +87,7 @@ Tree SignalSplitter::transformation(Tree sig)
     faustassert(sig);
     int             n;
     double          v;
-    Tree            id, x, y, tbl, tblsize, idx, widx, wsig;
+    Tree            id, x, y, tbl, tblsize, idx, ridx, wtbl, widx, wsig, itbl, init, gexp;
     Type            t   = getCertifiedSigType(sig);
     old_Occurences* occ = fOccMarkup->retrieve(sig);
 
@@ -138,6 +138,25 @@ Tree SignalSplitter::transformation(Tree sig)
             Tree w = self(y);
             return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
         }
+        // } else if (isSigRDTbl(sig, wtbl, ridx)) {
+        //     cerr << "TRANFORMATION " << ppsig(sig) << endl;
+        //     if (isSigWRTbl(wtbl, id, itbl, widx, wsig)) {
+        //         faustassert(isSigTable(itbl, id, tblsize, init));
+        //         faustassert(isSigGen(init, gexp));
+        //         cerr << "We have a read-write table to tranform: " << ppsig(sig) << endl;
+        //     } else {
+        //         faustassert(isSigTable(wtbl, id, tblsize, init));
+        //         faustassert(isSigGen(init, gexp));
+        //         Tree tid   = uniqueID("T", wtbl);
+        //         int  tsize = tree2int(tblsize);
+        //         cerr << "We have a read-only table to tranform: " << ppsig(sig) << endl;
+        //         fSplittedSignals.insert(sigInstructionTableWrite(tid, wtbl, t->nature(), tree2int(tblsize),
+        //         self(gexp),
+        //                                                          gGlobal->nil, gGlobal->nil));
+        //         return sigInstructionTableRead(tid, sig, t->nature(), 0, self(ridx));
+        //     }
+        //     return SignalIdentity::transformation(sig);
+
     } else if (isSigRDTbl(sig, tbl, idx)) {
         cerr << " A sigRDTbl : " << ppsig(sig) << endl;
         Tree r = SignalIdentity::transformation(sig);
@@ -155,8 +174,7 @@ Tree SignalSplitter::transformation(Tree sig)
         Tree r = SignalIdentity::transformation(sig);
         cerr << "transformed into : " << ppsig(r) << endl;
         return r;
-
-    } else if (occ->hasMultiOccurences() && (t->variability() < kSamp)) {
+    } else if ((occ != nullptr) && (occ->hasMultiOccurences()) && (t->variability() < kSamp)) {
         Tree r  = SignalIdentity::transformation(sig);
         Tree id = uniqueID("C", sig);
         fSplittedSignals.insert(sigControlWrite(id, sig, t->nature(), r));

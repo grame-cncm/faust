@@ -254,13 +254,13 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigTable(sig, id, x, y)) {
-        printfun(fout, "TABLE", x, y);
+        printfun(fout, "sigTable", x, y);
     } else if (isSigWRTbl(sig, id, x, y, z)) {
-        printfun(fout, "write", x, y, z);
+        printfun(fout, "sigWRTbl", x, y, z);
     } else if (isSigRDTbl(sig, x, y)) {
-        printfun(fout, "read", x, y);
+        printfun(fout, "sigRDTbl", x, y);
     } else if (isSigGen(sig, x)) {
-        fout << ppsig(x, fEnv, fPriority);
+        printfun(fout, "sigGen", x);
     }
 
     else if (isSigDocConstantTbl(sig, x, y)) {

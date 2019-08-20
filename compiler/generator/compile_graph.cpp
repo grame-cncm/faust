@@ -55,6 +55,7 @@
 #include "splitCommonSubexpr.hh"
 #include "timing.hh"
 #include "transformDelayToTable.hh"
+#include "transformTables.hh"
 #include "xtended.hh"
 
 using namespace std;
@@ -215,12 +216,12 @@ Tree GraphCompiler::prepare2(Tree L0)
 }
 
 /**
- * @brief decorate(): transfoms a list of signals expressions into a set of instructions
+ * @brief transformIntoInstructions(): transfoms a list of signals expressions into a set of instructions
  *
  * @param L3
  * @return set<Tree>
  */
-set<Tree> GraphCompiler::decorate(Tree L3)
+set<Tree> GraphCompiler::transformIntoInstructions(Tree L3)
 {
     // Decorate output expressions
     Tree L3d  = gGlobal->nil;
@@ -245,8 +246,11 @@ set<Tree> GraphCompiler::decorate(Tree L3)
     set<Tree> INSTR3 = transformDelayToTable(INSTR2);
     signalGraph("phase3-afterTable.dot", INSTR3);
 
-    set<Tree> INSTR4 = splitCommonSubexpr(INSTR3);
-    signalGraph("phase4-afterCSE.dot", INSTR4);
+    set<Tree> INSTR4 = transformTables(INSTR3);
+    signalGraph("phase4-afterTableTransform.dot", INSTR4);
+
+    set<Tree> INSTR5 = splitCommonSubexpr(INSTR4);
+    signalGraph("phase5-afterCSE.dot", INSTR5);
 
 #if 0
     cerr << "Start scalarscheduling" << endl;
@@ -468,7 +472,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
-    set<Tree>  INSTR{decorate(L)};
+    set<Tree>  INSTR{transformIntoInstructions(L)};
     Scheduling S{schedule(INSTR)};
     // S.print("partx-scheduling.txt");
 

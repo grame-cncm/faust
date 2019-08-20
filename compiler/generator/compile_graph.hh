@@ -111,7 +111,7 @@ class GraphCompiler : public Compiler {
     void       compilePreparedSignalList(Tree lsig);
     Tree       prepare(Tree L0) override;
     Tree       prepare2(Tree L0) override;
-    set<Tree>  decorate(Tree L3);
+    set<Tree>  transformIntoInstructions(Tree L3);
     Scheduling schedule(const set<Tree>& Instr);
 
     void   generateTime();
