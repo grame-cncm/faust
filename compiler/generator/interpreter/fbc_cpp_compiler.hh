@@ -446,6 +446,11 @@ class FBCCPPCompiler {
                     pushUnaryCall("std::log10");
                     it++;
                     break;
+                    
+                case FBCInstruction::kRintf:
+                    pushUnaryCall("std::rint");
+                    it++;
+                    break;
 
                 case FBCInstruction::kRoundf:
                     pushUnaryCall("std::round");

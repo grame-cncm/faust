@@ -993,6 +993,9 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
             case FBCInstruction::kLog10f:
                 return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::log10(inst1->fRealValue));
                 
+            case FBCInstruction::kRintf:
+                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::rint(inst1->fRealValue));
+                
             case FBCInstruction::kRoundf:
                 return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::round(inst1->fRealValue));
                 

@@ -569,6 +569,11 @@ class FBCLLVMCompiler {
                     pushUnaryRealCall("log10");
                     it++;
                     break;
+                    
+                case FBCInstruction::kRintf:
+                    pushUnaryRealCall("rint");
+                    it++;
+                    break;
 
                 case FBCInstruction::kRoundf:
                     pushUnaryRealCall("round");

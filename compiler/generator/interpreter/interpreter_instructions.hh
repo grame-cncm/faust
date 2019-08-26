@@ -92,6 +92,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["max_f"]      = FBCInstruction::kMaxf;
         gMathLibTable["powf"]       = FBCInstruction::kPowf;
         gMathLibTable["remainderf"] = FBCInstruction::kRemReal;
+        gMathLibTable["rintf"]      = FBCInstruction::kRintf;
         gMathLibTable["roundf"]     = FBCInstruction::kRoundf;
         gMathLibTable["sinf"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
@@ -122,6 +123,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["max_"]      = FBCInstruction::kMaxf;
         gMathLibTable["pow"]       = FBCInstruction::kPowf;
         gMathLibTable["remainder"] = FBCInstruction::kRemReal;
+        gMathLibTable["rint"]      = FBCInstruction::kRintf;
         gMathLibTable["round"]     = FBCInstruction::kRoundf;
         gMathLibTable["sin"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
