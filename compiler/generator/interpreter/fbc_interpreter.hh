@@ -698,7 +698,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kLoadIndexedReal : {
         int offset = popInt();
         if (TRACE > 0) {
-            assertIndex(it, offset, (*it)->fOffset2);
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
             pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
         } else {
             pushReal(it, fRealHeap[(*it)->fOffset1 + offset]);
@@ -709,7 +710,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kLoadIndexedInt : {
         int offset = popInt();
         if (TRACE > 0) {
-            assertIndex(it, offset, (*it)->fOffset2);
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
             pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
         } else {
             pushInt(fIntHeap[(*it)->fOffset1 + offset]);
@@ -720,7 +722,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kStoreIndexedReal : {
         int offset = popInt();
         if (TRACE > 0) {
-            assertIndex(it, offset, (*it)->fOffset2);
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
             fRealHeap[assertRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popReal(it);
         } else {
             fRealHeap[(*it)->fOffset1 + offset] = popReal(it);
@@ -731,7 +734,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kStoreIndexedInt : {
         int offset = popInt();
         if (TRACE > 0) {
-            assertIndex(it, offset, (*it)->fOffset2);
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
             fIntHeap[assertIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popInt();
         } else {
             fIntHeap[(*it)->fOffset1 + offset] = popInt();
