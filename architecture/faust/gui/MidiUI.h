@@ -60,11 +60,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
     
     const std::string get(const char* key, const char* def)
     {
-        if (this->find(key) != this->end()) {
-            return (*this)[key];
-        } else {
-            return def;
-        }
+        return (this->find(key) != this->end()) ? (*this)[key] : def;
     }
     
     static void analyse(dsp* mono_dsp, bool& midi_sync, int& nvoices)
@@ -131,18 +127,23 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
 
 class uiMidi {
     
+    friend class MidiUI;
+    
     protected:
         
         midi* fMidiOut;
         bool fInputCtrl;
-        
+        int fChan;
+    
+        int rangeChan() { return (((fChan < 0) || (fChan > 15)) ? 0 : fChan); }
+    
     public:
         
-        uiMidi(midi* midi_out, bool input):fMidiOut(midi_out), fInputCtrl(input)
+        uiMidi(midi* midi_out, bool input, int chan = -1):fMidiOut(midi_out), fInputCtrl(input), fChan(chan)
         {}
         virtual ~uiMidi()
         {}
-    
+
 };
 
 /*****************************************************************************
@@ -153,8 +154,8 @@ class uiMidiItem : public uiMidi, public uiItem {
     
     public:
         
-        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidi(midi_out, input), uiItem(ui, zone)
+        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidi(midi_out, input, chan), uiItem(ui, zone)
         {}
         virtual ~uiMidiItem()
         {}
@@ -171,8 +172,8 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
     public:
         
-        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidi(midi_out, input), uiTimedItem(ui, zone)
+        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidi(midi_out, input, chan), uiTimedItem(ui, zone)
         {}
         virtual ~uiMidiTimedItem()
         {}
@@ -181,9 +182,9 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
 };
 
-//-------------
+//-----------
 // MIDI sync
-//-------------
+//-----------
 
 class uiMidiStart : public uiMidiTimedItem
 {
@@ -286,8 +287,8 @@ class uiMidiProgChange : public uiMidiTimedItem
   
     public:
     
-        uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fPgm(pgm)
+        uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fPgm(pgm)
         {}
         virtual ~uiMidiProgChange()
         {}
@@ -297,7 +298,7 @@ class uiMidiProgChange : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->progChange(0, fPgm);
+                fMidiOut->progChange(rangeChan(), fPgm);
             }
         }
         
@@ -311,8 +312,8 @@ class uiMidiChanPress : public uiMidiTimedItem
   
     public:
     
-        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fPress(press)
+        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fPress(press)
         {}
         virtual ~uiMidiChanPress()
         {}
@@ -322,7 +323,7 @@ class uiMidiChanPress : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->chanPress(0, fPress);
+                fMidiOut->chanPress(rangeChan(), fPress);
             }
         }
         
@@ -336,9 +337,9 @@ class uiMidiCtrlChange : public uiMidiTimedItem
         LinearValueConverter fConverter;
  
     public:
-    
-        uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
+
+        uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiCtrlChange()
         {}
@@ -347,11 +348,11 @@ class uiMidiCtrlChange : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->ctrlChange(0, fCtrl, fConverter.faust2ui(v));
+            fMidiOut->ctrlChange(rangeChan(), fCtrl, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
-        { 
+        {
             if (fInputCtrl) {
                 uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
             }
@@ -363,7 +364,6 @@ class uiMidiCtrlChange : public uiMidiTimedItem
                 uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fConverter.ui2faust(v)));
             }
         }
- 
 };
 
 class uiMidiPitchWheel : public uiMidiTimedItem
@@ -374,7 +374,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem
 		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
         FAUSTFLOAT wheel2bend(float v)
         {
-            return std::pow(2.0,(v/16383.0*4-2)/12);
+            return std::pow(2.0, (v/16383.0*4-2)/12);
         }
 
         int bend2wheel(float v)
@@ -384,8 +384,8 @@ class uiMidiPitchWheel : public uiMidiTimedItem
  
     public:
     
-        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input)
+        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan)
         {}
         virtual ~uiMidiPitchWheel()
         {}
@@ -394,7 +394,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->pitchWheel(0, bend2wheel(v));
+            fMidiOut->pitchWheel(rangeChan(), bend2wheel(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -423,8 +423,8 @@ class uiMidiKeyOn : public uiMidiTimedItem
   
     public:
     
-        uiMidiKeyOn(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+        uiMidiKeyOn(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fKeyOn(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyOn()
         {}
@@ -433,7 +433,7 @@ class uiMidiKeyOn : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyOn(0, fKeyOn, fConverter.faust2ui(v));
+            fMidiOut->keyOn(rangeChan(), fKeyOn, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -462,8 +462,8 @@ class uiMidiKeyOff : public uiMidiTimedItem
   
     public:
     
-        uiMidiKeyOff(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fKeyOff(key), fConverter(0., 127., double(min), double(max))
+        uiMidiKeyOff(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fKeyOff(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyOff()
         {}
@@ -472,7 +472,7 @@ class uiMidiKeyOff : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyOff(0, fKeyOff, fConverter.faust2ui(v));
+            fMidiOut->keyOff(rangeChan(), fKeyOff, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -501,8 +501,8 @@ class uiMidiKeyPress : public uiMidiTimedItem
   
     public:
     
-        uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiTimedItem(midi_out, ui, zone, input), fKey(key), fConverter(0., 127., double(min), double(max))
+        uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true, int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fKey(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyPress()
         {}
@@ -511,7 +511,7 @@ class uiMidiKeyPress : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyPress(0, fKey, fConverter.faust2ui(v));
+            fMidiOut->keyPress(rangeChan(), fKey, fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -574,22 +574,39 @@ class MidiUI : public GUI, public midi
             if (fMetaAux.size() > 0) {
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     unsigned num;
+                    unsigned chan;
                     if (fMetaAux[i].first == "midi") {
-                        if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
+                        if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u %u", &num, &chan) == 2) {
+                            fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max, input, chan));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
                             fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keyon %u %u", &num, &chan) == 2) {
+                            fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
                             fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keyoff %u %u", &num, &chan) == 2) {
+                            fKeyOffTable[num].push_back(new uiMidiKeyOff(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "keyoff %u", &num) == 1) {
                             fKeyOffTable[num].push_back(new uiMidiKeyOff(fMidiHandler, num, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "key %u %u", &num, &chan) == 1) {
+                            fKeyTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "key %u", &num) == 1) {
                             fKeyTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keypress %u %u", &num, &chan) == 2) {
+                            fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
                             fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u %u", &num, &chan) == 2) {
+                            fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u %u", &num, &chan) == 2) {
+                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
-                        } else if (fMetaAux[i].second == "pitchwheel" || fMetaAux[i].second == "pitchbend") {
+                        } else if ((gsscanf(fMetaAux[i].second.c_str(), "pitchwheel %u", &chan) == 1) || (gsscanf(fMetaAux[i].second.c_str(), "pitchbend %u", &chan) == 1)) {
+                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, input, chan));
+                        } else if ((fMetaAux[i].second == "pitchwheel") || (fMetaAux[i].second == "pitchbend")) {
                             fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, input));
                         // MIDI sync
                         } else if (fMetaAux[i].second == "start") {
@@ -607,7 +624,7 @@ class MidiUI : public GUI, public midi
             }
             fMetaAux.clear();
         }
-
+    
     public:
     
         MidiUI():fMidiHandler(NULL), fDelete(false), fTimeStamp(false)
@@ -675,73 +692,72 @@ class MidiUI : public GUI, public midi
             fMetaAux.push_back(std::make_pair(key, val));
         }
         
-        // -- MIDI API 
-        
+        // -- MIDI API
+    
+        void key(double date, int channel, int note, int velocity)
+        {
+            if (fKeyTable.find(note) != fKeyTable.end()) {
+                for (size_t i = 0; i < fKeyTable[note].size(); i++) {
+                    int channel_aux = fKeyTable[note][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fKeyTable[note][i]->modifyZone(date, 0);
+                        } else {
+                            fKeyTable[note][i]->modifyZone(0);
+                        }
+                    }
+                }
+            }
+        }
+    
         MapUI* keyOn(double date, int channel, int note, int velocity)
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fKeyOnTable[note].size(); i++) {
-                        fKeyOnTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fKeyOnTable[note].size(); i++) {
-                        fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
+                for (size_t i = 0; i < fKeyOnTable[note].size(); i++) {
+                    int channel_aux = fKeyOnTable[note][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fKeyOnTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
+                        } else {
+                            fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
+                        }
                     }
                 }
             }
             // If note is in fKeyTable, handle it as a keyOn
-            if (fKeyTable.find(note) != fKeyTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fKeyTable[note].size(); i++) {
-                        fKeyTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fKeyTable[note].size(); i++) {
-                        fKeyTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
-                    }
-                }
-            }
+            key(date, channel, note, velocity);
             return 0;
         }
         
         void keyOff(double date, int channel, int note, int velocity)
         {
             if (fKeyOffTable.find(note) != fKeyOffTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fKeyOffTable[note].size(); i++) {
-                        fKeyOffTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fKeyOffTable[note].size(); i++) {
-                        fKeyOffTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
+                for (size_t i = 0; i < fKeyOffTable[note].size(); i++) {
+                    int channel_aux = fKeyOffTable[note][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fKeyOffTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
+                        } else {
+                            fKeyOffTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
+                        }
                     }
                 }
             }
             // If note is in fKeyTable, handle it as a keyOff with a 0 velocity
-            if (fKeyTable.find(note) != fKeyTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fKeyTable[note].size(); i++) {
-                        fKeyTable[note][i]->modifyZone(date, 0);
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fKeyTable[note].size(); i++) {
-                        fKeyTable[note][i]->modifyZone(0);
-                    }
-                }
-            }
+            key(date, channel, note, 0);
         }
-           
+        
         void ctrlChange(double date, int channel, int ctrl, int value)
         {
             if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
-                        fCtrlChangeTable[ctrl][i]->modifyZone(date, FAUSTFLOAT(value));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
-                        fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
+                for (size_t i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
+                    int channel_aux = fCtrlChangeTable[ctrl][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fCtrlChangeTable[ctrl][i]->modifyZone(date, FAUSTFLOAT(value));
+                        } else {
+                            fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
+                        }
                     }
                 }
             }
@@ -750,13 +766,14 @@ class MidiUI : public GUI, public midi
         void progChange(double date, int channel, int pgm)
         {
             if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fProgChangeTable[pgm].size(); i++) {
-                        fProgChangeTable[pgm][i]->modifyZone(date, FAUSTFLOAT(1));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fProgChangeTable[pgm].size(); i++) {
-                        fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
+                for (size_t i = 0; i < fProgChangeTable[pgm].size(); i++) {
+                    int channel_aux = fProgChangeTable[pgm][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fProgChangeTable[pgm][i]->modifyZone(date, FAUSTFLOAT(1));
+                        } else {
+                            fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
+                        }
                     }
                 }
             }
@@ -764,13 +781,14 @@ class MidiUI : public GUI, public midi
         
         void pitchWheel(double date, int channel, int wheel) 
         {
-            if (fTimeStamp) {
-                for (unsigned int i = 0; i < fPitchWheelTable.size(); i++) {
-                    fPitchWheelTable[i]->modifyZone(date, FAUSTFLOAT(wheel));
-                }
-            } else {
-                for (unsigned int i = 0; i < fPitchWheelTable.size(); i++) {
-                    fPitchWheelTable[i]->modifyZone(FAUSTFLOAT(wheel));
+            for (size_t i = 0; i < fPitchWheelTable.size(); i++) {
+                int channel_aux = fPitchWheelTable[i]->fChan;
+                if (channel_aux == -1 || channel == channel_aux) {
+                    if (fTimeStamp) {
+                        fPitchWheelTable[i]->modifyZone(date, FAUSTFLOAT(wheel));
+                    } else {
+                        fPitchWheelTable[i]->modifyZone(FAUSTFLOAT(wheel));
+                    }
                 }
             }
         }
@@ -778,13 +796,14 @@ class MidiUI : public GUI, public midi
         void keyPress(double date, int channel, int pitch, int press) 
         {
             if (fKeyPressTable.find(pitch) != fKeyPressTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fKeyPressTable[pitch].size(); i++) {
-                        fKeyPressTable[pitch][i]->modifyZone(date, FAUSTFLOAT(press));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fKeyPressTable[pitch].size(); i++) {
-                        fKeyPressTable[pitch][i]->modifyZone(FAUSTFLOAT(press));
+                for (size_t i = 0; i < fKeyPressTable[pitch].size(); i++) {
+                    int channel_aux = fKeyPressTable[pitch][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fKeyPressTable[pitch][i]->modifyZone(date, FAUSTFLOAT(press));
+                        } else {
+                            fKeyPressTable[pitch][i]->modifyZone(FAUSTFLOAT(press));
+                        }
                     }
                 }
             }
@@ -793,16 +812,17 @@ class MidiUI : public GUI, public midi
         void chanPress(double date, int channel, int press)
         {
             if (fChanPressTable.find(press) != fChanPressTable.end()) {
-                if (fTimeStamp) {
-                    for (unsigned int i = 0; i < fChanPressTable[press].size(); i++) {
-                        fChanPressTable[press][i]->modifyZone(date, FAUSTFLOAT(1));
-                    }
-                } else {
-                    for (unsigned int i = 0; i < fChanPressTable[press].size(); i++) {
-                        fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
+                for (size_t i = 0; i < fChanPressTable[press].size(); i++) {
+                    int channel_aux = fChanPressTable[press][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            fChanPressTable[press][i]->modifyZone(date, FAUSTFLOAT(1));
+                        } else {
+                            fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
+                        }
                     }
                 }
-            } 
+            }
         }
         
         void ctrlChange14bits(double date, int channel, int ctrl, int value) {}
@@ -811,21 +831,21 @@ class MidiUI : public GUI, public midi
         
         void startSync(double date)
         {
-            for (unsigned int i = 0; i < fStartTable.size(); i++) {
+            for (size_t i = 0; i < fStartTable.size(); i++) {
                 fStartTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
         
         void stopSync(double date)
         {
-            for (unsigned int i = 0; i < fStopTable.size(); i++) {
+            for (size_t i = 0; i < fStopTable.size(); i++) {
                 fStopTable[i]->modifyZone(date, FAUSTFLOAT(0));
             }
         }
         
         void clock(double date)
         {
-            for (unsigned int i = 0; i < fClockTable.size(); i++) {
+            for (size_t i = 0; i < fClockTable.size(); i++) {
                 fClockTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
