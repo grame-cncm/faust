@@ -15,7 +15,7 @@
 # the preferred path comes *last*.
 sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst* $VSTSDK"
 # This should hopefully work on *BSD, Linux and Mac OSX.
-[ -z "$SDK" ] && SDK=$(ls -f -d $sdkpaths 2>/dev/null | tail -n 1)
+[ -z "$SDK" ] && SDK=$(echo $sdkpaths | xargs ls -f -d 2>/dev/null | tail -n 1)
 [ -z "$SDK" ] && SDK=/usr/local/src/vstsdk
 
 # SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
