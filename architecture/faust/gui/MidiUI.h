@@ -370,8 +370,8 @@ class uiMidiPitchWheel : public uiMidiTimedItem
 {
 
     private:
-    	
-		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
+    
+        // currently, the range is of pitchwheel if fixed (-2/2 semitones)
         FAUSTFLOAT wheel2bend(float v)
         {
             return std::pow(2.0, (v/16383.0*4-2)/12);

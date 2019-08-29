@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 		
 	// open output file
     SF_INFO out_info = { num_samples, sample_rate, DSP.getNumOutputs(), SF_FORMAT_WAV|bd|SF_ENDIAN_LITTLE, 0, 0};
- 	SNDFILE*out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
+ 	SNDFILE* out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
 	if (out_sf == NULL) { 
 		cerr << "Error: "; 
 		sf_perror(out_sf); 

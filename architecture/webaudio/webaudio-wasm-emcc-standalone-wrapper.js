@@ -46,9 +46,9 @@ class FaustWasm2ScriptProcessor {
     
     async loadAudioFiles(json) {
 
-		// Get filenames in JSON
+        // Get filenames in JSON
         let json_object = JSON.parse(json);
-	    let soundfiles = [];
+        let soundfiles = [];
         let parse_ui = ui => ui.forEach(group => parse_group(group));
         let parse_group = group => group.items ? parse_items(group.items) : null;
         let parse_items = items => items.forEach(item => parse_item(item));
@@ -62,8 +62,8 @@ class FaustWasm2ScriptProcessor {
             }
         }
         parse_ui(json_object.ui);
- 
- 		// Load each file and save it in EMCC local FS 
+
+        // Load each file and save it in EMCC local FS 
         await this.asyncForEach(soundfiles, async name_aux => {
             let name = name_aux.slice(1, -1);
             console.log(name);
@@ -142,7 +142,7 @@ class FaustWasm2ScriptProcessor {
         };
 
         sp.compute = e => {
-        	// Read inputs
+            // Read inputs
             for (let i = 0; i < sp.numIn; i++) { 
                 const input = e.inputBuffer.getChannelData(i);
                 const dspInput = sp.dspInChannnels[i];
@@ -376,12 +376,12 @@ class FaustWasm2ScriptProcessor {
         try {
         	   
             faust_module.faust = faust_module.faust || {};
-   			faust_module.faust.wasm_instance = faust_module.faust.wasm_instance || [];
-   		  
+            faust_module.faust.wasm_instance = faust_module.faust.wasm_instance || [];
+
             const wasm_file = await fetch(this.name + ".wasm");
             const wasm_buffer = await wasm_file.arrayBuffer();
             const json = faust_module.wasm_dsp_factory.extractJSON(wasm_buffer);
-            
+
             await this.loadAudioFiles(json);
               
             const importObject = {
@@ -452,8 +452,8 @@ class FaustWasm2ScriptProcessor {
             };
              
             const wasm_instance = await WebAssembly.instantiate(wasm_buffer, importObject);
-          	faust_module.faust.wasm_instance.push(wasm_instance.instance);
-   		 	
+            faust_module.faust.wasm_instance.push(wasm_instance.instance);
+
             const factory = faust_module.wasm_dsp_factory.createWasmDSPFactory(0, json);
             return this.getNode(factory.createDSPInstance(), audioCtx, bufferSize, json);
         } catch (e) {

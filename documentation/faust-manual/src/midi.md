@@ -42,7 +42,7 @@ configure of the MIDI behavior of a Faust program.
 value (127) maps to 1 ("on") while its minimum value (0) maps to 0 ("off").
 
 > Note that all handlers have a version with an explicit MIDI channel in range {0, 15}, 
-and a version without any MIDI channel (so receiving/sending from/to any MIDI channel).
+and a version without any MIDI channel (so receiving from any MIDI channel and sending back to channel 0).
 
 ### `[midi:ctrl num]` Metadata
 
