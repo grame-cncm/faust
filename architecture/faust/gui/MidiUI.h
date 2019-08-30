@@ -588,7 +588,7 @@ class MidiUI : public GUI, public midi
                             fKeyOffTable[num].push_back(new uiMidiKeyOff(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "keyoff %u", &num) == 1) {
                             fKeyOffTable[num].push_back(new uiMidiKeyOff(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (gsscanf(fMetaAux[i].second.c_str(), "key %u %u", &num, &chan) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "key %u %u", &num, &chan) == 2) {
                             fKeyTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input, chan));
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "key %u", &num) == 1) {
                             fKeyTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
@@ -701,9 +701,9 @@ class MidiUI : public GUI, public midi
                     int channel_aux = fKeyTable[note][i]->fChan;
                     if (channel_aux == -1 || channel == channel_aux) {
                         if (fTimeStamp) {
-                            fKeyTable[note][i]->modifyZone(date, 0);
+                            fKeyTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
                         } else {
-                            fKeyTable[note][i]->modifyZone(0);
+                            fKeyTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
                         }
                     }
                 }
