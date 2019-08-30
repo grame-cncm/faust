@@ -9,4 +9,4 @@ switch = checkbox("Saw/Noise");
 
 inputSignal = (no.noise *switch) , (os.sawtooth(100)*(1-switch)) :> _ ; 
 
-process = inputSignal : fi.sallenKeyOnePoleLPF(normFreq) <:_,_;
+process = inputSignal : ve.sallenKeyOnePoleLPF(normFreq) <:_,_;

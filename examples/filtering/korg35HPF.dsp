@@ -10,4 +10,4 @@ switch = checkbox("Saw/Noise");
 
 inputSignal = (no.noise *switch) , (os.sawtooth(100)*(1-switch)) :> _ ; 
 
-process = inputSignal : fi.korg35HPF(normFreq,Q) <:_,_;
+process = inputSignal : ve.korg35HPF(normFreq,Q) <:_,_;

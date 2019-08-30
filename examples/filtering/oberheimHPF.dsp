@@ -10,4 +10,4 @@ switch = checkbox("Saw/Noise");
 
 inputSignal = (no.noise *switch) , (os.sawtooth(100)*(1-switch)) :> _ ; 
 
-process = inputSignal : fi.oberheimHPF(normFreq,Q) <:_,_;
+process = inputSignal : ve.oberheimHPF(normFreq,Q) <:_,_;

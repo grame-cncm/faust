@@ -9,4 +9,4 @@ normFreq = hslider("freq",0.1,0,1,0.001):si.smoo;
 switch = checkbox("Saw/Noise");
 inputSignal = (no.noise *switch) , (os.sawtooth(100)*(1-switch)) :> _ ; 
 
-process = inputSignal : fi.diodeLadder(normFreq,Q) <:_,_;
+process = inputSignal : ve.diodeLadder(normFreq,Q) <:_,_;

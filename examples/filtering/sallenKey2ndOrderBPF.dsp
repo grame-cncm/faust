@@ -10,4 +10,4 @@ switch = checkbox("Saw/Noise");
 
 inputSignal = (no.noise *switch) , (os.sawtooth(100)*(1-switch)) :> _ ; 
 
-process = inputSignal : fi.sallenKey2ndOrderBPF(normFreq,Q) <:_,_;
+process = inputSignal : ve.sallenKey2ndOrderBPF(normFreq,Q) <:_,_;
