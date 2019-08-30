@@ -207,7 +207,7 @@ released.
 <!-- faust-run -->
 ```
 import("stdfaust.lib");
-freq = hslider("frequency[midi:keyon 62]",200,50,1000,0.01) : si.smoo;
+freq = hslider("frequency[midi:keyoff 62]",200,50,1000,0.01) : si.smoo;
 process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
@@ -244,7 +244,7 @@ released.)
 <!-- faust-run -->
 ```
 import("stdfaust.lib");
-freq = hslider("frequency[midi:keyon 62 3]",200,50,1000,0.01) : si.smoo;
+freq = hslider("frequency[midi:keyoff 62 3]",200,50,1000,0.01) : si.smoo;
 process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
