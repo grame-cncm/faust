@@ -38,6 +38,7 @@
 #include <CoreServices/CoreServices.h>
 
 #include "faust/audio/audio.h"
+#include "faust/audio/fpe.h"
 #include "faust/dsp/dsp.h"
 
 /******************************************************************************
@@ -964,7 +965,9 @@ class TCoreAudioRenderer
                 for (int i = 0; i < fDevNumOutChans; i++) {
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
+                TRY_FPE
                 fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
+                CATCH_FPE
                 fAudio->runControlCallbacks();
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
