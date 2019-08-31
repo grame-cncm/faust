@@ -548,20 +548,28 @@ class MapUI;
 class MidiUI : public GUI, public midi
 {
 
+    typedef std::map <int, std::vector<uiMidiCtrlChange*> > TCtrlChangeTable;
+    typedef std::map <int, std::vector<uiMidiProgChange*> > TProgChangeTable;
+    typedef std::map <int, std::vector<uiMidiChanPress*> >  TChanPressTable;
+    typedef std::map <int, std::vector<uiMidiKeyOn*> >      TKeyOnTable;
+    typedef std::map <int, std::vector<uiMidiKeyOff*> >     TKeyOffTable;
+    typedef std::map <int, std::vector<uiMidiKeyPress*> >   TKeyPressTable;
+    typedef std::vector<uiMidiPitchWheel*>                  TPitchWheelTable;
+    
     protected:
     
-        std::map <int, std::vector<uiMidiCtrlChange*> > fCtrlChangeTable;
-        std::map <int, std::vector<uiMidiProgChange*> > fProgChangeTable;
-        std::map <int, std::vector<uiMidiChanPress*> >  fChanPressTable;
-        std::map <int, std::vector<uiMidiKeyOn*> >      fKeyOnTable;
-        std::map <int, std::vector<uiMidiKeyOff*> >     fKeyOffTable;
-        std::map <int, std::vector<uiMidiKeyOn*> >      fKeyTable;
-        std::map <int, std::vector<uiMidiKeyPress*> >   fKeyPressTable;
-        std::vector<uiMidiPitchWheel*>                  fPitchWheelTable;
+        TCtrlChangeTable fCtrlChangeTable;
+        TProgChangeTable fProgChangeTable;
+        TChanPressTable  fChanPressTable;
+        TKeyOnTable      fKeyOnTable;
+        TKeyOffTable     fKeyOffTable;
+        TKeyOnTable      fKeyTable;
+        TKeyPressTable   fKeyPressTable;
+        TPitchWheelTable fPitchWheelTable;
         
-        std::vector<uiMidiStart*>   fStartTable;
-        std::vector<uiMidiStop*>    fStopTable;
-        std::vector<uiMidiClock*>   fClockTable;
+        std::vector<uiMidiStart*> fStartTable;
+        std::vector<uiMidiStop*>  fStopTable;
+        std::vector<uiMidiClock*> fClockTable;
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
@@ -623,6 +631,38 @@ class MidiUI : public GUI, public midi
                 }
             }
             fMetaAux.clear();
+        }
+    
+        template <typename T>
+        void updateTable1(T& table, double date, int channel, int val1)
+        {
+            for (size_t i = 0; i < table.size(); i++) {
+                int channel_aux = table[i]->fChan;
+                if (channel_aux == -1 || channel == channel_aux) {
+                    if (fTimeStamp) {
+                        table[i]->modifyZone(date, FAUSTFLOAT(val1));
+                    } else {
+                        table[i]->modifyZone(FAUSTFLOAT(val1));
+                    }
+                }
+            }
+        }
+        
+        template <typename T>
+        void updateTable2(T& table, double date, int channel, int val1, int val2)
+        {
+            if (table.find(val1) != table.end()) {
+                for (size_t i = 0; i < table[val1].size(); i++) {
+                    int channel_aux = table[val1][i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        if (fTimeStamp) {
+                            table[val1][i]->modifyZone(date, FAUSTFLOAT(val2));
+                        } else {
+                            table[val1][i]->modifyZone(FAUSTFLOAT(val2));
+                        }
+                    }
+                }
+            }
         }
     
     public:
@@ -696,133 +736,47 @@ class MidiUI : public GUI, public midi
     
         void key(double date, int channel, int note, int velocity)
         {
-            if (fKeyTable.find(note) != fKeyTable.end()) {
-                for (size_t i = 0; i < fKeyTable[note].size(); i++) {
-                    int channel_aux = fKeyTable[note][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fKeyTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
-                        } else {
-                            fKeyTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
-                        }
-                    }
-                }
-            }
+            updateTable2<TKeyOnTable>(fKeyTable, date, channel, note, velocity);
         }
     
         MapUI* keyOn(double date, int channel, int note, int velocity)
         {
-            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                for (size_t i = 0; i < fKeyOnTable[note].size(); i++) {
-                    int channel_aux = fKeyOnTable[note][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fKeyOnTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
-                        } else {
-                            fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
-                        }
-                    }
-                }
-            }
+            updateTable2<TKeyOnTable>(fKeyOnTable, date, channel, note, velocity);
             // If note is in fKeyTable, handle it as a keyOn
             key(date, channel, note, velocity);
-            return 0;
+            return nullptr;
         }
         
         void keyOff(double date, int channel, int note, int velocity)
         {
-            if (fKeyOffTable.find(note) != fKeyOffTable.end()) {
-                for (size_t i = 0; i < fKeyOffTable[note].size(); i++) {
-                    int channel_aux = fKeyOffTable[note][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fKeyOffTable[note][i]->modifyZone(date, FAUSTFLOAT(velocity));
-                        } else {
-                            fKeyOffTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
-                        }
-                    }
-                }
-            }
+            updateTable2<TKeyOffTable>(fKeyOffTable, date, channel, note, velocity);
             // If note is in fKeyTable, handle it as a keyOff with a 0 velocity
             key(date, channel, note, 0);
         }
         
         void ctrlChange(double date, int channel, int ctrl, int value)
         {
-            if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
-                for (size_t i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
-                    int channel_aux = fCtrlChangeTable[ctrl][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fCtrlChangeTable[ctrl][i]->modifyZone(date, FAUSTFLOAT(value));
-                        } else {
-                            fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
-                        }
-                    }
-                }
-            }
+            updateTable2<TCtrlChangeTable>(fCtrlChangeTable, date, channel, ctrl, value);
         }
         
         void progChange(double date, int channel, int pgm)
         {
-            if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
-                for (size_t i = 0; i < fProgChangeTable[pgm].size(); i++) {
-                    int channel_aux = fProgChangeTable[pgm][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fProgChangeTable[pgm][i]->modifyZone(date, FAUSTFLOAT(1));
-                        } else {
-                            fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
-                        }
-                    }
-                }
-            }
+            updateTable2<TProgChangeTable>(fProgChangeTable, date, channel, pgm, FAUSTFLOAT(1));
         }
         
         void pitchWheel(double date, int channel, int wheel) 
         {
-            for (size_t i = 0; i < fPitchWheelTable.size(); i++) {
-                int channel_aux = fPitchWheelTable[i]->fChan;
-                if (channel_aux == -1 || channel == channel_aux) {
-                    if (fTimeStamp) {
-                        fPitchWheelTable[i]->modifyZone(date, FAUSTFLOAT(wheel));
-                    } else {
-                        fPitchWheelTable[i]->modifyZone(FAUSTFLOAT(wheel));
-                    }
-                }
-            }
+            updateTable1<TPitchWheelTable>(fPitchWheelTable, date, channel, wheel);
         }
         
         void keyPress(double date, int channel, int pitch, int press) 
         {
-            if (fKeyPressTable.find(pitch) != fKeyPressTable.end()) {
-                for (size_t i = 0; i < fKeyPressTable[pitch].size(); i++) {
-                    int channel_aux = fKeyPressTable[pitch][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fKeyPressTable[pitch][i]->modifyZone(date, FAUSTFLOAT(press));
-                        } else {
-                            fKeyPressTable[pitch][i]->modifyZone(FAUSTFLOAT(press));
-                        }
-                    }
-                }
-            }
+            updateTable2<TKeyPressTable>(fKeyPressTable, date, channel, pitch, press);
         }
         
         void chanPress(double date, int channel, int press)
         {
-            if (fChanPressTable.find(press) != fChanPressTable.end()) {
-                for (size_t i = 0; i < fChanPressTable[press].size(); i++) {
-                    int channel_aux = fChanPressTable[press][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
-                        if (fTimeStamp) {
-                            fChanPressTable[press][i]->modifyZone(date, FAUSTFLOAT(1));
-                        } else {
-                            fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
-                        }
-                    }
-                }
-            }
+            updateTable2<TChanPressTable>(fChanPressTable, date, channel, press, FAUSTFLOAT(1));
         }
         
         void ctrlChange14bits(double date, int channel, int ctrl, int value) {}

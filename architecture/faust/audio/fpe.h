@@ -100,6 +100,8 @@ inline int fedisableexcept(unsigned int excepts)
 #endif
 #endif
 
+// https://en.cppreference.com/w/c/numeric/fenv/FE_exceptions
+
 static void fPEHandler(int sig, siginfo_t* sip, ucontext_t* scp)
 {
     int fe_code = sip->si_code;
@@ -114,8 +116,8 @@ static void fPEHandler(int sig, siginfo_t* sip, ucontext_t* scp)
         case FPE_FLTUND: throw std::runtime_error("FE_UNDERFLOW"); break;   // underflow
         case FPE_FLTRES: throw std::runtime_error("FE_INEXACT"); break;     // inexact
         case FPE_FLTSUB: throw std::runtime_error("FE_INVALID"); break;     // invalid
-        case FPE_INTDIV: throw std::runtime_error("FE_UNDERFLOW"); break;   // overflow
-        case FPE_INTOVF: throw std::runtime_error("FE_OVERFLOW"); break;    // underflow
+        case FPE_INTDIV: throw std::runtime_error("INT_DIVBYZERO"); break;  // divideByZero
+        case FPE_INTOVF: throw std::runtime_error("INT_OVERFLOW"); break;   // overflow
         default: throw std::runtime_error("FE_NOOP"); break;
     }
 }
@@ -124,13 +126,12 @@ static bool gSetFPEHandler = false;
 static void setFPEHandler()
 {
     feclearexcept(FE_ALL_EXCEPT);
-    feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW|FE_UNDERFLOW);
+    feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
     
     if (!gSetFPEHandler) {
         gSetFPEHandler = true;
         
         struct sigaction act;
-        
         act.sa_sigaction = (void(*)(int, struct __siginfo*, void*))fPEHandler;
         sigemptyset (&act.sa_mask);
         act.sa_flags = SA_SIGINFO;
@@ -154,7 +155,7 @@ try {               \
 
 #define CATCH_FPE                   \
 } catch (std::runtime_error e) {    \
-    std::cerr << "Floating Point exception: " << e.what() << std::endl;  \
+    std::cerr << "Math exception : " << e.what() << std::endl;  \
     exit(-1);                       \
 }                                   \
 

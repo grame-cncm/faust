@@ -965,9 +965,13 @@ class TCoreAudioRenderer
                 for (int i = 0; i < fDevNumOutChans; i++) {
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
+            #ifdef HAS_MATH_EXCEPTION
                 TRY_FPE
+            #endif
                 fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
+            #ifdef HAS_MATH_EXCEPTION
                 CATCH_FPE
+            #endif
                 fAudio->runControlCallbacks();
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);

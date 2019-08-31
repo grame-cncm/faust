@@ -42,7 +42,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-nodeploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-me] [-debug] [-nodeploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-httpd' to activate HTTP control"
@@ -56,6 +56,7 @@ do
         echo "Use '-osc' to activate OSC control"
         echo "Use '-preset <directory>' to add a preset manager on top of GUI and save the preset files in a given directory"
         echo "Use '-preset auto' to add a preset manager on top of GUI and save the preset files in a system temporary directory"
+        echo "Use '-me' to catch math computation exception (Floating point exception and integer div-by-zero of overflow)"
         echo "Use '-debug' to print all the build steps"
         echo "Use '-nodeploy' to not create a self-contained application using 'macdeployqt'"
         exit
@@ -68,8 +69,10 @@ do
         OPT=$1
     elif [ $p = "-nodeploy" ]; then
     	DEPLOY="no"
-    elif [ "$p" = -icc ]; then
+    elif [ "$p" = "-icc" ]; then
         ignore=" "
+    elif [ "$p" = "-me" ]; then
+    	MATHDEFS="DEFINES += HAS_MATH_EXCEPTION"
     elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
@@ -194,7 +197,7 @@ EndOfCode
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null || exit
