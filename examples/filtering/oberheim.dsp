@@ -1,6 +1,6 @@
-declare name "oberheimHPF";
-declare description "Demonstration of the Oberheim High-Pass Filter";
-declare author "Eric Tarr";
+declare name "oberheimBSF";
+declare description "Demonstration of the Oberheim generic multi-outputs Filter";
+declare author "Eric Tarr, GRAME";
 
 import("stdfaust.lib");
 
@@ -10,4 +10,4 @@ switch = checkbox("Saw/Noise");
 
 inputSignal = (no.noise *switch) , (os.sawtooth(100)*(1-switch)) :> _; 
 
-process = inputSignal : ve.oberheimHPF(normFreq,Q) <:_,_;
+process = inputSignal : ve.oberheim(normFreq,Q);
