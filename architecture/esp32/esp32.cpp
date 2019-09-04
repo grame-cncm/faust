@@ -115,9 +115,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 
 AudioFaust::~AudioFaust()
 {
-    delete fDSP;
-    delete fUI;
-    
+
     for (int i = 0; i < fDSP->getNumInputs(); i++) {
         delete[] fInChannel[i];
     }
@@ -127,6 +125,10 @@ AudioFaust::~AudioFaust()
         delete[] fOutChannel[i];
     }
     delete [] fOutChannel;
+    
+    delete fDSP;
+    delete fUI;
+    
 }
 
 bool AudioFaust::start()
