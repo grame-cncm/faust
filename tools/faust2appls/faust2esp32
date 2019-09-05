@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#          SmartKeyboard App Generator for iOS and Android          #
+#                        Faust2ESP32 generator                      #
 #               (c) Romain Michon CCRMA and Grame, 2016             #
 #                                                                   #
 #####################################################################
@@ -21,10 +21,14 @@ LIB="0"
 echoHelp ()
 {
     echo "FAUST2ESP32 HELP"
-    echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects that can be integrated into any ESP32 project. Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
+    echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects that can be integrated into any ESP32 project. "
+    echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
     echo "USAGE:"
-    echo "faust2esp32 -lib faustFile.dsp: Generates a package containing an object compatible with the Teensy audio library."
+    echo "faust2esp32 -lib faustFile.dsp: Generates a package containing an object compatible with any ESP32 project."
+    echo ""
+    echo "Optional: -wm8978 or -ac101 to choose codec driver."
+    echo ""
     # TODO option for board type
 }
 
@@ -71,8 +75,16 @@ if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     faust -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
-    cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
-    cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+    if [ $OPTIONS = "-wm8978" ] || [ $OPTIONS = "-WM8978" ]; then
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+    elif [ $OPTIONS = "-ac101" ] || [ $OPTIONS = "-AC101" ]; then
+    		cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
+    		cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME 
+    else
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+    fi
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)

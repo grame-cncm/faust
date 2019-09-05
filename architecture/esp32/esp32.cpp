@@ -59,6 +59,8 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+//#define A1S_BOARD true                  //uncomment for Ai-thinker A1S board
+
 #define MULT_S32 2147483647
 #define DIV_S32 4.6566129e-10
 #define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
@@ -79,6 +81,13 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
         .ws_io_num = 25,
         .data_out_num = 26,
         .data_in_num = 27
+    };
+#elif A1S_BOARD
+    pin_config = {
+        .bck_io_num = 27,
+        .ws_io_num = 26,
+        .data_out_num = 25,
+        .data_in_num = 35
     };
 #else // Default
     pin_config = {
@@ -106,9 +115,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 
 AudioFaust::~AudioFaust()
 {
-    delete fDSP;
-    delete fUI;
-    
+
     for (int i = 0; i < fDSP->getNumInputs(); i++) {
         delete[] fInChannel[i];
     }
@@ -118,6 +125,10 @@ AudioFaust::~AudioFaust()
         delete[] fOutChannel[i];
     }
     delete [] fOutChannel;
+    
+    delete fDSP;
+    delete fUI;
+    
 }
 
 bool AudioFaust::start()
@@ -141,7 +152,20 @@ void AudioFaust::setParamValue(const std::string& path, float value)
 
 void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t pin_config)
 {
+    #if A1S_BOARD
     i2s_config_t i2s_config = {
+        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
+        .sample_rate = sample_rate,
+        .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+        .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+        .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
+        .dma_buf_count = 3,
+        .dma_buf_len = buffer_size,
+        .use_apll = true
+    };
+    #else // default
+        i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
         .sample_rate = sample_rate,
         .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
@@ -152,6 +176,7 @@ void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t
         .dma_buf_len = buffer_size,
         .use_apll = false
     };
+    #endif
     i2s_driver_install((i2s_port_t)0, &i2s_config, 0, NULL);
     i2s_set_pin((i2s_port_t)0, &pin_config);
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
