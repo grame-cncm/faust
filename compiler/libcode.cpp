@@ -654,6 +654,10 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gOneSample && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
     }
+    
+    if (gGlobal->gFTZMode == 2 &&  gGlobal->gOutputLang == "soul") {
+        throw faustexception("ERROR : '-ftz 2' option cannot only be used in 'soul' backend\n");
+    }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
         stringstream error;
