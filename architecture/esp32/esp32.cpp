@@ -115,7 +115,6 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 
 AudioFaust::~AudioFaust()
 {
-
     for (int i = 0; i < fDSP->getNumInputs(); i++) {
         delete[] fInChannel[i];
     }
@@ -128,7 +127,6 @@ AudioFaust::~AudioFaust()
     
     delete fDSP;
     delete fUI;
-    
 }
 
 bool AudioFaust::start()
@@ -195,12 +193,12 @@ void AudioFaust::audioTask()
             
             // Convert and copy inputs
             if (fDSP->getNumInputs() == 2) { // if stereo
-                for (int i = 0; i < fBS; i++){
+                for (int i = 0; i < fBS; i++) {
                     fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
                     fInChannel[1][i] = (float)samples_data_in[i*2+1]*DIV_S32;
                 }
             } else {
-                for (int i = 0; i < fBS; i++){
+                for (int i = 0; i < fBS; i++) {
                     fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
                 }
             }

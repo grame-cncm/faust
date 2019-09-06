@@ -132,7 +132,7 @@ static void setFPEHandler()
         gSetFPEHandler = true;
         
         struct sigaction act;
-        act.sa_sigaction = (void(*)(int, struct __siginfo*, void*))fPEHandler;
+        act.sa_sigaction = (void(*)(int, siginfo_t*, void*))fPEHandler;
         sigemptyset(&act.sa_mask);
         act.sa_flags = SA_SIGINFO;
         int res = sigaction(SIGFPE, &act, (struct sigaction*)0);
