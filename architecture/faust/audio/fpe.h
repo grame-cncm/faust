@@ -133,7 +133,7 @@ static void setFPEHandler()
         
         struct sigaction act;
         act.sa_sigaction = (void(*)(int, struct __siginfo*, void*))fPEHandler;
-        sigemptyset (&act.sa_mask);
+        sigemptyset(&act.sa_mask);
         act.sa_flags = SA_SIGINFO;
         int res = sigaction(SIGFPE, &act, (struct sigaction*)0);
     }

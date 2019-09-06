@@ -50,17 +50,18 @@ help:
 	@echo " 'all' (default): call all the targets below"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
-	@echo " 'ocpp'   : check float and double outputs with the ocpp backend in scalar mode"
-	@echo " 'cpp1'   : check float and double outputs with the cpp backend in scalar one-sample mode"
+	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar one-sample mode"
+	@echo " 'ocpp'   : check double outputs with the ocpp backend in scalar mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'c1'     : check float and double outputs with the c backend in scalar one-sample mode"
 	@echo " 'mute'   : check double output with mute"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
 	@echo " 'wast'   : check double output with wast backend and various options"
 	@echo " 'llvm'   : check double output with llvm backend and various options"
-	@echo " 'llvm1'  : check double output with llvm backend in object mode and various options"
+	@echo " 'llvm1'  : check double output with llvm backend in object code mode and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
 	@echo " 'interp1' : check double output with interpreter/LLVM backend and various options"
+	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
@@ -95,19 +96,22 @@ cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -lv 1 -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/vs16   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -lv 1 -vs 16"
 	$(MAKE) -f Make.gcc outdir=cpp/double/sched     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch"
-	$(MAKE) -f Make.gcc outdir=cpp/double/sched/fun     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch -fun"
+	$(MAKE) -f Make.gcc outdir=cpp/double/sched/fun lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/double/omp       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
-	$(MAKE) -f Make.gcc outdir=cpp/double/omp/fun       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp -fun"
+	$(MAKE) -f Make.gcc outdir=cpp/double/omp/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/float            lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single"
 	$(MAKE) -f Make.gcc outdir=cpp/float/vec        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -vec"
 	$(MAKE) -f Make.gcc outdir=cpp/float/sched      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -sch"
 	$(MAKE) -f Make.gcc outdir=cpp/float/omp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -omp"
 
 cpp1:
-	$(MAKE) -f Make.gcc outdir=cpp1/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -os"
+	$(MAKE) -f Make.gcc outdir=cpp1/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -os"
 
 ocpp:
-	$(MAKE) -f Make.gcc outdir=ocpp/double           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
+	$(MAKE) -f Make.gcc outdir=ocpp/double         lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
+
+me:
+	$(MAKE) -f Make.gcc outdir=me/double           lang=cpp arch=impulsearch3.cpp FAUSTOPTIONS="-double"
 
 c:
 	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"
@@ -118,9 +122,9 @@ c:
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -vec -lv 1 -fun"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/vs16     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -vec -lv 1 -vs 16"
 	$(MAKE) -f Make.gcc outdir=c/double/sched       lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -sch"
-	$(MAKE) -f Make.gcc outdir=c/double/sched/fun       lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -sch -fun"
+	$(MAKE) -f Make.gcc outdir=c/double/sched/fun   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -sch -fun"
 	$(MAKE) -f Make.gcc outdir=c/double/omp         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -omp"
-	$(MAKE) -f Make.gcc outdir=c/double/omp/fun         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -omp -fun"
+	$(MAKE) -f Make.gcc outdir=c/double/omp/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -omp -fun"
 	$(MAKE) -f Make.gcc outdir=c/float              lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single"
 	$(MAKE) -f Make.gcc outdir=c/float/vec          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -vec"
 	$(MAKE) -f Make.gcc outdir=c/float/sched        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -sch"

@@ -655,7 +655,7 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
     }
     
-    if (gGlobal->gFTZMode == 2 &&  gGlobal->gOutputLang == "soul") {
+    if (gGlobal->gFTZMode == 2 && gGlobal->gOutputLang == "soul") {
         throw faustexception("ERROR : '-ftz 2' option cannot only be used in 'soul' backend\n");
     }
 
@@ -918,7 +918,7 @@ static void printDeclareHeader(ostream& dst)
             dst << "declare ";
             stringstream key;
             key << *(i->first);
-            std::vector<char> to_replace{'.', ':', '/'};
+            vector<char> to_replace{'.', ':', '/'};
             dst << replaceCharList(key.str(), to_replace, '_');
             dst << " " << **(i->second.begin()) << ";" << endl;
         } else {
@@ -1680,9 +1680,9 @@ static void generateOutputFiles()
             set<Tree>::const_iterator   it2;
 
             for (it1 = mds.begin(); it1 != mds.end(); ++it1) {
-                const std::string key = tree2str(it1->first);
+                const string key = tree2str(it1->first);
                 for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
-                    const std::string value = tree2str(*it2);
+                    const string value = tree2str(*it2);
                     if (key == "name")
                         D->name(value);
                     else if (key == "author")
