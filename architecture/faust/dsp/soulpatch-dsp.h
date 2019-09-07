@@ -107,6 +107,7 @@ class soulpatch_dsp : public dsp {
     
     public:
 
+        // Implemented later on
         soulpatch_dsp(soulpatch_dsp_factory* factory);
     
         virtual ~soulpatch_dsp()
@@ -228,6 +229,7 @@ class soulpatch_dsp : public dsp {
             if (fClassInit) fClassInit->setValue(0);
         }
     
+        // Implemented later on
         virtual void init(int sample_rate);
   
         virtual void instanceInit(int sample_rate)
@@ -252,6 +254,7 @@ class soulpatch_dsp : public dsp {
             if (fInstanceClear) fInstanceClear->setValue(0);
         }
  
+        // Implemented later on
         virtual soulpatch_dsp* clone();
     
         virtual void metadata(Meta* m) {}

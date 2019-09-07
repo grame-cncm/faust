@@ -66,6 +66,7 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10f"]     = true;
         gFunctionSymbolTable["powf"]       = true;
         gFunctionSymbolTable["remainderf"] = true;
+        gFunctionSymbolTable["rintf"]      = true;
         gFunctionSymbolTable["roundf"]     = true;
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
@@ -87,6 +88,7 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10"]     = true;
         gFunctionSymbolTable["pow"]       = true;
         gFunctionSymbolTable["remainder"] = true;
+        gFunctionSymbolTable["rint"]      = true;
         gFunctionSymbolTable["round"]     = true;
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
@@ -108,6 +110,7 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10l"]     = true;
         gFunctionSymbolTable["powl"]       = true;
         gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["rintl"]      = true;
         gFunctionSymbolTable["roundl"]     = true;
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;

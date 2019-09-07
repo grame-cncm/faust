@@ -29,8 +29,9 @@ all:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp 	FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=c 	lang=c   ext=c 		FAUSTOPTIONS=" -a ./min.c"
-	$(MAKE) -f Make.lang outdir=wasm lang=wast/wasm ext=wasm FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=java lang=java ext=java FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=wasm lang=wasm ext=wasm FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=wast lang=wast ext=wast FAUSTOPTIONS=""
+	#$(MAKE) -f Make.lang outdir=java lang=java ext=java FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
@@ -44,7 +45,7 @@ soul:
 # interp lang has a special status since the corresponding backend may not
 # be available due to gcc specific extensions
 interp:
-	$(MAKE) -f Make.lang outdir=interp lang=interp ext=itp FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=interp lang=interp ext=fbc FAUSTOPTIONS=""
 
 help:
 	@echo "-------- FAUST compilation tests --------"
@@ -55,6 +56,7 @@ help:
 	@echo "              Output is located in a folder named using faust version ($(version))"
 	@echo "Specific targets:"
 	@echo " 'gcc'        : compiles the C and C++ output of the 'cpp', 'ocpp' and 'c' backends"
+	@echo " 'soul'       : compiles using the SOUL backend"
 	@echo " 'interp'     : compiles using the interpreter backend"
 	
 gcc: $(gccobj)

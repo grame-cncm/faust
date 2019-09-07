@@ -1,4 +1,4 @@
-% man(1) Version 2.18.4 (26-August-2019) | Faust man page
+% man(1) Version 2.18.5 (07-September-2019) | Faust man page
 
 NAME
 ====
@@ -39,7 +39,7 @@ Output options:
 
   **-o** \<file>                               the output file.
 
-  **-e**        **--export-dsp**                  export expanded DSP (all included libraries).
+  **-e**        **--export-dsp**                  export expanded DSP (with all included libraries).
 
   **-uim**      **--user-interface-macros**       add user interface macro definitions to the output code.
 
@@ -142,6 +142,7 @@ Block diagram options:
   **-f** \<n>     **--fold** \<n>                   threshold to activate folding mode during block-diagram generation (default 25 elements).
 
   **-fc** \<n>    **--fold-complexity** \<n>       complexity threshold to fold an expression in folding mode (default 2)
+
   **-mns** \<n>   **--max-name-size** \<n>          threshold during block-diagram generation (default 40 char).
 
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.

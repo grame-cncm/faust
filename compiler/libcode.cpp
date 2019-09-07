@@ -762,7 +762,7 @@ static void printHelp()
 
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
-    cout << tab << "-e        --export-dsp                  export expanded DSP (all included libraries)." << endl;
+    cout << tab << "-e        --export-dsp                  export expanded DSP (with all included libraries)." << endl;
     cout << tab << "-uim      --user-interface-macros       add user interface macro definitions to the output code."
          << endl;
     cout << tab << "-xml                                    generate an XML description file." << endl;

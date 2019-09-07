@@ -259,7 +259,7 @@ initialize the static shared state.
 | `-I <dir>` | `--import-dir <dir>` | Add the directory `<dir>` to the import search path |
 | `-L <file>` | `--library <file>` | Link with the LLVM module `<file>` |
 | `-O <dir>` | `--output-dir <dir>` | Specify the relative directory of the generated output code, and the output directory of additional generated files (SVG, XML, etc.) |
-| `-e` | `--export-dsp` | Export expanded DSP (all included libraries) |
+| `-e` | `--export-dsp` | Export expanded DSP (with all included libraries) |
 | `-inpl` | `--in-place generates` | Code working when input and output buffers are the same (in scalar mode only) | 
 | `-inj <f>` | `--inject <f>` | inject source file `<f>` into architecture file instead of compile a dsp file |
 | `-ftz` | `--flush-to-zero` | Flush to zero the code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)] |
