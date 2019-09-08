@@ -36,10 +36,10 @@
 
 #include "API/soul_patch.h"
 
-class soulpatch_dsp_factory;
+class soul_dsp_factory;
 
 /**
-* Faust wrapped SOUL DSP.
+* Faust wrapped SOUL DSP
 */
 
 class soulpatch_dsp : public dsp {
@@ -86,7 +86,7 @@ class soulpatch_dsp : public dsp {
             
         };
     
-        soulpatch_dsp_factory* fFactory;
+        soul_dsp_factory* fFactory;
     
         std::vector<ZoneParam*> fInputsControl;
         std::vector<ZoneParam*> fOutputsControl;
@@ -108,7 +108,7 @@ class soulpatch_dsp : public dsp {
     public:
 
         // Implemented later on
-        soulpatch_dsp(soulpatch_dsp_factory* factory);
+        soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg);
     
         virtual ~soulpatch_dsp()
         {
@@ -304,7 +304,7 @@ class soulpatch_dsp : public dsp {
  * Faust wrapped SOUL patches factory
  */
 
-class soulpatch_dsp_factory : public dsp_factory {
+class soul_dsp_factory : public dsp_factory {
     
     protected:
     
@@ -346,16 +346,16 @@ class soulpatch_dsp_factory : public dsp_factory {
         FaustSourceFilePreprocessor::Ptr fProcessor;
     
         // So that to force sub-classes to use deleteDSPFactory(dsp_factory* factory);
-        virtual ~soulpatch_dsp_factory() {}
+        virtual ~soul_dsp_factory() {}
     
     public:
     
-        soulpatch_dsp_factory(const std::string& path)
+        soul_dsp_factory(const std::string& path, std::string& error_msg)
         {
             fPath = path;
             soul::patch::SOULPatchLibrary library("/usr/local/lib/SOUL_PatchLoader.dylib");
             if (!library.loadedSuccessfully()) {
-                std::cerr << "Cannot load SOUL_PatchLoader.dylib" << std::endl;
+                error_msg = "cannot load SOUL_PatchLoader.dylib\n";
                 throw std::bad_alloc();
             }
             
@@ -372,7 +372,8 @@ class soulpatch_dsp_factory : public dsp_factory {
     
         virtual soulpatch_dsp* createDSPInstance()
         {
-            return new soulpatch_dsp(this);
+            std::string error_msg;
+            return new soulpatch_dsp(this, error_msg);
         }
     
         virtual void setMemoryManager(dsp_memory_manager* manager) {}
@@ -380,7 +381,7 @@ class soulpatch_dsp_factory : public dsp_factory {
     
 };
 
-soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
+soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
 {
     fFactory = factory;
     fDecoder = nullptr;
@@ -391,7 +392,7 @@ soulpatch_dsp::soulpatch_dsp(soulpatch_dsp_factory* factory)
     fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
     soul::patch::String::Ptr error = fPlayer->getCompileError();
     if (error) {
-        std::cerr << "getCompileError " << error->getCharPointer() << std::endl;
+        error_msg = "getCompileError " + std::string(error->getCharPointer()) + "\n";
         throw std::bad_alloc();
     }
     
@@ -432,9 +433,42 @@ void soulpatch_dsp::init(int sample_rate)
     instanceInit(sample_rate);
 }
 
+// External API
+
 soulpatch_dsp* soulpatch_dsp::clone()
 {
     return fFactory->createDSPInstance();
+}
+
+soul_dsp_factory* getSoulDSPFactoryFromSHAKey(const std::string& sha_key)
+{
+    return nullptr;
+}
+
+soul_dsp_factory* createSoulDSPFactoryFromFile(const std::string& filename,
+                                               int argc, const char* argv[],
+                                               std::string& error_msg)
+{
+    try {
+        soul_dsp_factory* factory = new soul_dsp_factory(filename, error_msg);
+        soulpatch_dsp dummy(factory, error_msg);
+        return factory;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+soul_dsp_factory* createSoulDSPFactoryFromString(const std::string& name_app,
+                                                const std::string& dsp_content,
+                                                int argc, const char* argv[],
+                                                std::string& error_msg)
+{
+    return nullptr;
+}
+
+bool deleteSoulDSPFactory(soul_dsp_factory* factory)
+{
+    return false;
 }
 
 #endif
