@@ -47,9 +47,9 @@
 #include <vector>
 
 #include "faust/dsp/dsp.h"
-#include "faust/GUI/ControlUI.h"
+#include "faust/gui/ControlUI.h"
 #include "faust/gui/console.h"
-#include "faust/GUI/meta.h"
+#include "faust/gui/meta.h"
 #include "faust/dsp/dsp-tools.h"
 
 using namespace std;
