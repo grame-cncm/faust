@@ -64,9 +64,11 @@ with {
         m = vslider("[3] Middle [style:knob]",0.5,0,1,0.01);
         l = vslider("[4] Bass [style:knob]",0.5,0,1,0.01);
     };
-    
-    /* TODO: dynamically select between several 'tstack'
-    tstack = ba.selectmulti((tjcm2000, tjtm45, tjcm800), nentry("tstack", 0, 0, 2, 1))
+   
+    /*
+    // Dynamically choose between several 'tstack'
+    tstack = ba.selectmulti((tjcm2000, tjtm45, tjcm800), 
+    nentry("tstack [style:menu{'tjcm2000':0;'tjtm45':1;'tjcm800':2}]", 0, 0, 2, 1))
     with {
     	tjcm2000 = jcm2000(t, m, l);
     	tjtm45 = jtm45(t, m, l);
