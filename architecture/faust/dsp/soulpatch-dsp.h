@@ -26,15 +26,19 @@
 #define __soulpatch_dsp__
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <vector>
 #include <string>
+#include <map>
 #include <algorithm>
 
 #include "faust/dsp/dsp.h"
 #include "faust/GUI/UI.h"
 #include "faust/GUI/JSONUIDecoder.h"
+#include "faust/dsp/libfaust.h"
 
-#include "API/soul_patch.h"
+#include "soul/API/soul_patch.h"
 
 class soul_dsp_factory;
 
@@ -440,12 +444,12 @@ soulpatch_dsp* soulpatch_dsp::clone()
     return fFactory->createDSPInstance();
 }
 
-soul_dsp_factory* getSoulDSPFactoryFromSHAKey(const std::string& sha_key)
+soul_dsp_factory* getSOULDSPFactoryFromSHAKey(const std::string& sha_key)
 {
     return nullptr;
 }
 
-soul_dsp_factory* createSoulDSPFactoryFromFile(const std::string& filename,
+soul_dsp_factory* createSOULDSPFactoryFromFile(const std::string& filename,
                                                int argc, const char* argv[],
                                                std::string& error_msg)
 {
@@ -458,7 +462,7 @@ soul_dsp_factory* createSoulDSPFactoryFromFile(const std::string& filename,
     }
 }
 
-soul_dsp_factory* createSoulDSPFactoryFromString(const std::string& name_app,
+soul_dsp_factory* createSOULDSPFactoryFromString(const std::string& name_app,
                                                 const std::string& dsp_content,
                                                 int argc, const char* argv[],
                                                 std::string& error_msg)
@@ -466,10 +470,130 @@ soul_dsp_factory* createSoulDSPFactoryFromString(const std::string& name_app,
     return nullptr;
 }
 
-bool deleteSoulDSPFactory(soul_dsp_factory* factory)
+bool deleteSOULDSPFactory(soul_dsp_factory* factory)
 {
     return false;
 }
+
+/**
+ * Faust/SOUL hybrid file parser
+ */
+
+class faust_soul_parser  {
+    
+    private:
+        
+        std::map <std::string, std::string> extractFaustBlocks(std::istream* in, std::stringstream& res_file)
+        {
+            std::string line;
+            std::stringstream faust_block;
+            bool is_faust_block = false;
+            int brackets = 0;
+            std::map <std::string, std::string> faust_blocks;     // name, code
+            std::map <std::string, std::string>::iterator cur_faust_block;
+            
+            while (getline(*in, line)) {
+                
+                std::stringstream line_reader(line);
+                std::string token1, token2, token3;
+                
+                line_reader >> token1;
+                line_reader >> token2;
+                line_reader >> token3;
+                
+                if (is_faust_block) {
+                    // End of block
+                    if ((token1 == "}") && (--brackets == 0)) {
+                        is_faust_block = false;
+                        cur_faust_block->second = faust_block.str();
+                        faust_block.str("");
+                        // Start of block (or could be on the previous line)
+                    } else if (token1 == "{") {
+                        brackets++;
+                        continue;
+                    } else {
+                        faust_block << line;
+                    }
+                    continue;
+                } else {
+                    is_faust_block = (token1 == "faust" && token2 != "");
+                    if (is_faust_block) {
+                        if (token3 == "{") brackets++;
+                        faust_blocks[token2] = "";
+                        cur_faust_block = faust_blocks.find(token2);
+                    }
+                }
+                
+                // Keep the lines of SOUL file
+                if (!is_faust_block) res_file << line << std::endl;
+            }
+            
+            return faust_blocks;
+        }
+        
+        std::string generateSOULBlock(const std::string& name, const std::string& code)
+        {
+            int argc = 0;
+            const char* argv[16];
+            argv[argc++] = "-lang";
+            argv[argc++] = "soul";
+            argv[argc++] = "-cn";
+            argv[argc++] = name.c_str();
+            argv[argc++] = "-o";
+            argv[argc++] = "/var/tmp/exp.soul";
+            argv[argc] = nullptr;  // NULL terminated argv
+            
+            std::string error_msg;
+            bool res = generateAuxFilesFromString("FaustDSP", code, argc, argv, error_msg);
+            
+            if (res) {
+                std::ifstream soul_file("/var/tmp/exp.soul");
+                std::string soul_string((std::istreambuf_iterator<char>(soul_file)),
+                                    std::istreambuf_iterator<char>());
+                return soul_string;
+            } else {
+                std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg << std::endl;
+                return "";
+            }
+        }
+
+    public:
+    
+        faust_soul_parser()
+        {}
+    
+        bool parse(const std::string& inputfile, const std::string& outputfile)
+        {
+            std::ifstream reader(inputfile.c_str());
+            if (reader.is_open()) {
+                
+                // Open SOUL output file
+                std::ofstream output_file(outputfile);
+          
+                // Extract the Faust blocks and returns the input file without them
+                std::stringstream soul_file;
+                std::map <std::string, std::string> faust_blocks = extractFaustBlocks(&reader, soul_file);
+                
+                // Write all Faust blocks translated to SOUL
+                for (auto& it : faust_blocks) {
+                    output_file << generateSOULBlock(it.first, it.second);
+                }
+                
+                // Write the SOUL part
+                output_file << soul_file.str();
+                output_file.close();
+                
+                return true;
+            } else {
+                return false;
+            }
+        }
+    
+        virtual ~faust_soul_parser()
+        {}
+    
+};
+
 
 #endif
 /**************************  END  soulpatch-dsp.h **************************/
