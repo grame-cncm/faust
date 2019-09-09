@@ -40,9 +40,9 @@ vol	= hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MID
 drive = hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
 
 // Flanger
-curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb      = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
+curdel = hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
+fb = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw = hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);

@@ -120,7 +120,7 @@ help :
 	@echo 
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
-	@echo " 'wasm'          : builds the Faust WebAssembly library"
+	@echo " 'wasm'          : builds the Faust WebAssembly libraries"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
 	@echo " 'remote'        : builds the libfaustremote.a library and the Faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"

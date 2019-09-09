@@ -39,6 +39,9 @@ struct JSONControl {
 
     virtual FAUSTFLOAT getParamValue(const std::string& path) { return 0; }
     
+    virtual ~JSONControl()
+    {}
+    
 };
 
 #endif

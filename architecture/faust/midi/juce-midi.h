@@ -171,8 +171,8 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
 
     private:
     
-        MidiInput* fMidiIn;
-        MidiOutput* fMidiOut;
+        std::unique_ptr<MidiInput> fMidiIn;
+        std::unique_ptr<MidiOutput> fMidiOut;
     
         void handleIncomingMidiMessage(MidiInput*, const MidiMessage& message)
         {
@@ -201,8 +201,6 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
         void stopMidi()
         { 
             fMidiIn->stop();
-            delete fMidiIn;
-            delete fMidiOut;
         }
     
         // MIDI output API

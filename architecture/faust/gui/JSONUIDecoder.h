@@ -60,6 +60,9 @@ struct ExtZoneParam {
     virtual void setReflectZoneFun(ReflectFunction reflect) = 0;
     virtual void setModifyZoneFun(ModifyFunction modify) = 0;
     
+    virtual ~ExtZoneParam()
+    {}
+    
 };
 
 template <typename REAL>

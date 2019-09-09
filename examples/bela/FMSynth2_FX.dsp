@@ -94,7 +94,7 @@ volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to M
 drive = hslider("drive[midi:ctrl 92]",0.3,0,1,0.001);
 
 // Flanger
-curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
+curdel = hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
 fb = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
 fldw = hslider("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
 flanger = efx

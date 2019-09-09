@@ -450,7 +450,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
     
         void mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
         {
-            FAUSTFLOAT level = 0;
             for (int i = 0; i < getNumOutputs(); i++) {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
