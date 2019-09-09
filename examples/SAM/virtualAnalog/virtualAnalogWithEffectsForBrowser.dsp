@@ -178,7 +178,7 @@ envelopeAmp = select2(oscModEnable, envelopeAmpNoAM,
 ampL = volg(vslider("[1] gain [style:knob] [tooltip: Amplitude]",0.2,0,1.0,0.001));
 amp = ampL : si.smoo; // envelopeAmp is multiplied once on entire signal sum
 //elecGuitar.dsp values used:
-bend = wg(hslider("[0] bend [style:knob] [midi:pitchwheel]",1,0.001,10,0.01)) : si.polySmooth(gate,0.999,1);
+bend = wg(ba.semi2ratio(hslider("[0] bend [style:knob] [midi:pitchwheel]",0,-2,2,0.01))) : si.polySmooth(gate,0.999,1);
 //Previous guess:
 modWheel = wg(vslider("[1] mod [midi:ctrl 1] [style:knob] [tooltip: PitchModulation amplitude in octaves]",
 	       0,0,1.0,0.01)) : si.polySmooth(gate,0.999,1);

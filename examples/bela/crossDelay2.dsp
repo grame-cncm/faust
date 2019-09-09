@@ -20,7 +20,7 @@ import("stdfaust.lib");
 // ANALOG 6	: Pitchshifter L
 // ANALOG 7	: Pitchshifter R
 //
-// Available by OSC :  (see BELA console for precise adress)
+// Available by OSC : (see BELA console for precise adress)
 // Feedback filter:
 // crossLF : Crossfeedback Lowpass
 // crossHF : Crossfeedback Highpass

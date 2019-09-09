@@ -19,7 +19,7 @@ import("all.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GENERAL, Keyboard
-midigate = button ("gate");
+midigate = button("gate");
 midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain = nentry("gain", 1, 0, 1, 0.01);
 
@@ -28,9 +28,9 @@ feedb = (gFreq-1) * (hslider("feedb[midi:ctrl 1]", 0, 0, 1, 0.001) : si.smoo);
 modFreqRatio = hslider("ratio[midi:ctrl 14]",2,0,20,0.01) : si.smoo;
 
 // pitchwheel
-pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
 
-gFreq = midifreq * pitchwheel;
+gFreq = midifreq * bend;
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
@@ -47,7 +47,7 @@ modFreq = gFreq*modFreqRatio;
 // modulation index
 FMdepth = envelop * 1000 * midigain;
 
-// Out Amplitude
+// Out amplitude
 vol = envelop;
 
 //============================================ DSP =======================================

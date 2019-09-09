@@ -41,90 +41,65 @@ class bela_midi : public midi_handler {
         static void midiCallback(MidiChannelMessage message, void* arg)
         {
             bela_midi* midi = static_cast<bela_midi*>(arg);
+            int type = message.getType()        // which MIDI message, 128-255
+            int channel = message.getChannel(); // which MIDI channel, 1-16
+            double time = 0.;
             
-            switch (message.getType()) {
+            switch (type) {
                 case kmmNoteOff:
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
-                    }
+                    handleKeyOff(time, channel, message.getDataByte(0), message.getDataByte(1));
                     break;
                 case kmmNoteOn:
-                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        if (message.getDataByte(1) != 0) {
-                            midi->fMidiInputs[i]->keyOn(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
-                        } else {
-                            midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
-                        }
-                    }
+                    handleKeyOn(time, channel, message.getDataByte(0), message.getDataByte(1));
                     break;
                 case kmmPolyphonicKeyPressure:
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyPress(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
-                    }
+                    handlePolyAfterTouch(time, channel, message.getDataByte(0), message.getDataByte(1));
                     break;
                 case kmmControlChange:
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
-                    }
+                    handleCtrlChange(time, channel, message.getDataByte(0), message.getDataByte(1));
                     break;
                 case kmmProgramChange:
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(0, message.getChannel(), message.getDataByte(0));
-                    }
+                    handleProgChange(time, channel, message.getDataByte(0));
                     break;
                 case kmmChannelPressure:
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->chanPress(0, message.getChannel(), message.getDataByte(0));
-                    }
+                    handleAfterTouch(time, channel, message.getDataByte(0));
                     break;
                 case kmmPitchBend:
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte(1) << 7) + message.getDataByte(0)));
-                    }
+                    handlePitchWheel(time, channel, message.getDataByte(0), message.getDataByte(1));
+                    break;
                 case kmmSystem:
                     {
                         // We have to re-build the MIDI message:
-                        int channel = message.getChannel();
                         int status = message.getStatusByte();
                         int systemRealtimeByte = channel | status;
 
                         switch (systemRealtimeByte)
                         {
                             case MIDI_CLOCK:
-                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                                    midi->fMidiInputs[i]->clock(0);
-                                }
+                                handleClock(time);
                                 break;
                             case MIDI_START:
-                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                                    midi->fMidiInputs[i]->startSync(0);
-                                }
+                                handleStart(time);
                                 break;
                             case MIDI_CONT:
                                 // We can consider start and continue as identical messages.
-                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                                    midi->fMidiInputs[i]->startSync(0);
-                                }
+                                handleStart(time);
                                 break;
                             case MIDI_STOP:
-                                for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                                    midi->fMidiInputs[i]->stopSync(0);
-                                }
+                                handleStop(0);
                                 break;
                             case MIDI_SYSEX_START:
-#if 0 // this is not implemented on Bela yet
+                        #if 0 // this is not implemented on Bela yet
                                 std::vector<unsigned char> sysex;
                                 for (unsigned int j = 0; j < message.getNumDataBytes(); j++) {
                                     sysex.push_back(message.getDataByte(j));
                                 }
-                    
                                 // Would be nice to do this:
                                 // std::vector<unsigned char> sysex(message.getData(), message.getData() + message.getNumDataBytes());
-                                
                                 for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                                     midi->fMidiInputs[i]->sysEx(sysex);
                                 }
-#endif
+                        #endif
                                 break;
                             default:
                                 break;

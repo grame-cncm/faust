@@ -7,8 +7,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // ANALOG IN:
-// ANALOG 0	: Population: 0=almost nothing. 1=Full grain
-// ANALOG 1	: Depth of each grin, in ms.
+// ANALOG 0	: Population: 0 = almost nothing. 1 = Full grain
+// ANALOG 1	: Depth of each grain, in ms.
 // ANALOG 2	: Position in the table = delay 
 // ANALOG 3	: Speed = pitch change of the grains
 // ANALOG 4	: Feedback
@@ -20,9 +20,9 @@ import("all.lib");
 // FOR 4 grains - MONO
 
 // UI //////////////////////////////////////////
-popul = 1 - hslider("population[BELA: ANALOG_0]", 1, 0, 1, 0.001);	// Coef 1= maximum; 0 = almost nothing (0.95)
-taille = hslider("taille[BELA: ANALOG_1]", 100, 4, 200, 0.001 );		// Size in millisecondes
-decal = 1 - hslider("decal[BELA: ANALOG_2]",0,0,1,0.001);				// read position compared to table srite position
+popul = 1 - hslider("population[BELA: ANALOG_0]", 1, 0, 1, 0.001);	// Coef 1 = maximum; 0 = almost nothing (0.95)
+taille = hslider("taille[BELA: ANALOG_1]", 100, 4, 200, 0.001 );	// Size in milliseconds
+decal = 1 - hslider("decal[BELA: ANALOG_2]",0,0,1,0.001);			// Read position compared to table write position
 
 speed = hslider("speed[BELA: ANALOG_3]", 1, 0.125, 4, 0.001);
 
@@ -33,8 +33,8 @@ tmpTaille = taille*ma.SR/ 1000;
 clocSize = int(tmpTaille + (tmpTaille*popul*10)); // duration between 2 clicks
 
 // CLK GENERAL /////////////////////////////////
-// 4 clicks vers 4 generateurs de grains.
-// (idem clk freq/4 et un compteur...)
+// 4 clicks for 4 grains generators.
+// (idem clk freq/4 and a counter...)
 detect1(x) = select2 (x < 10, 0, 1);
 detect2(x) = select2 (x > clocSize*1/3, 0, 1) : select2 (x < (clocSize*1/3)+10, 0, _);
 detect3(x) = select2 (x > clocSize*2/3, 0, 1) : select2 (x < (clocSize*2/3)+10, 0, _);
@@ -59,7 +59,7 @@ rampe2(speed, t) = delta : (+ : select2(t,_,delta<0) : max(0)) ~ _
 	};
 
 // RWTable //////////////////////////////////////
-unGrain(input, clk) = (linrwtable( wf , rindex) : *(0.2 * EnvGrain))
+unGrain(input, clk) = (linrwtable(wf , rindex) : *(0.2 * EnvGrain))
 	with {
         SR = 44100;
         buffer_sec = 1;
@@ -77,7 +77,7 @@ unGrain(input, clk) = (linrwtable( wf , rindex) : *(0.2 * EnvGrain))
 
 // LINEAR_INTERPOLATION_RWTABLE //////////////////////////////////
 // read rwtable with linear interpolation
-// wf : waveform to read ( wf is defined by (size_buffer,init, windex, input ))
+// wf : waveform to read (wf is defined by (size_buffer,init, windex, input))
 // x  : position to read (0 <= x < size(wf)) and float
 // nota: rwtable(size, init, windex, input, rindex)
 
@@ -92,7 +92,7 @@ linrwtable(wf,x) = linterpolation(y0,y1,d)
     };
 
 // FINALISATION /////////////////////////////////////////////////////////////////////////////////////
-routeur (a, b, c, d, e) = a, b, a, c, a, d, a, e;
+routeur(a, b, c, d, e) = a, b, a, c, a, d, a, e;
 
-processus = _ , cloc : routeur : (unGrain, unGrain, unGrain, unGrain) :> fi.dcblockerat(20);
+processus = _, cloc : routeur : (unGrain, unGrain, unGrain, unGrain) :> fi.dcblockerat(20);
 process = _,_: ((+(_,_) :processus) ~(*(feedback))),((+(_,_) :processus) ~(*(feedback)));

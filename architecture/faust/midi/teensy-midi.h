@@ -38,68 +38,40 @@ class teensy_midi : public midi_handler {
         {
             while (usbMIDI.read()) {
                 
-                byte type, channel, data1, data2, cable;
-                type = usbMIDI.getType();       // which MIDI message, 128-255
-                channel = usbMIDI.getChannel(); // which MIDI channel, 1-16
-                data1 = usbMIDI.getData1();     // first data byte of message, 0-127
-                data2 = usbMIDI.getData2();     // second data byte of message, 0-127
-                cable = usbMIDI.getCable();     // which virtual cable with MIDIx8, 0-7
+                int type = usbMIDI.getType();       // which MIDI message, 128-255
+                int channel = usbMIDI.getChannel(); // which MIDI channel, 0-15
                 double time = (double)usbMIDI.Clock;
                 
                 switch(type) {
                     case usbMIDI.Clock:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->clock(time);
-                        }
+                        handleClock(time);
                         break;
                     case usbMIDI.Start:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->startSync(time);
-                        }
+                        handleStart(time);
                         break;
                     case usbMIDI.Stop:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->stopSync(time);
-                        }
+                        handleStop(time);
                         break;
                     case usbMIDI.ProgramChange:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->progChange(time, channel, data1);
-                        }
+                        handleProgChange(time, channel, usbMIDI.getData1());
                         break;
                     case usbMIDI.AfterTouchChannel:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->chanPress(time, channel, data1);
-                        }
+                        handleAfterTouch(time, channel, usbMIDI.getData1());
                         break;
                     case usbMIDI.NoteOff:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->keyOff(time, channel, data1, data2);
-                        }
+                        handleKeyOff(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
                         break;
                     case usbMIDI.NoteOn:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            if (data2 == 0) {
-                                fMidiInputs[i]->keyOff(time, channel, data1, data2);
-                            } else {
-                                fMidiInputs[i]->keyOn(time, channel, data1, data2);
-                            }
-                        }
+                        handleKeyOn(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
                         break;
                     case usbMIDI.ControlChange:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
-                        }
+                        handleCtrlChange(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
                         break;
                     case usbMIDI.PitchBend:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->pitchWheel(time, channel, (data2 << 7) + data1);
-                        }
+                        handlePitchWheel(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
                         break;
                     case usbMIDI.AfterTouchPoly:
-                        for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                            fMidiInputs[i]->keyPress(time, channel, data1, data2);
-                        }
+                        handlePolyAfterTouch(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
                         break;
                 }
             }

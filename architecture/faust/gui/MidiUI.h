@@ -371,22 +371,15 @@ class uiMidiPitchWheel : public uiMidiTimedItem
 
     private:
     
-        // currently, the range is of pitchwheel if fixed (-2/2 semitones)
-        FAUSTFLOAT wheel2bend(float v)
-        {
-            return std::pow(2.0, (v/16383.0*4-2)/12);
-        }
-
-        int bend2wheel(float v)
-        {
-            return (int)((12*std::log(v)/std::log(2.0)+2)/4*16383);
-        }
- 
+        LinearValueConverter2 fConverter;
+    
     public:
     
-        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
-            :uiMidiTimedItem(midi_out, ui, zone, input, chan)
+        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true, int chan = -1)
+        :uiMidiTimedItem(midi_out, ui, zone, input, chan), fConverter(0., 8191., 16383., double(min), 0., double(max))
         {}
+    
+    
         virtual ~uiMidiPitchWheel()
         {}
         
@@ -394,21 +387,27 @@ class uiMidiPitchWheel : public uiMidiTimedItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->pitchWheel(rangeChan(), bend2wheel(v));
+            fMidiOut->pitchWheel(rangeChan(), fConverter.faust2ui(v));
         }
         
         void modifyZone(FAUSTFLOAT v)
         { 
             if (fInputCtrl) {
-                uiItem::modifyZone(wheel2bend(v));
+                uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
             }
         }
     
         void modifyZone(double date, FAUSTFLOAT v)
         {
             if (fInputCtrl) {
-                uiMidiTimedItem::modifyZone(date, wheel2bend(v));
+                uiMidiTimedItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
             }
+        }
+    
+        void setRange(int val)
+        {
+            double semi = (val / 128) + ((val % 128) / 100.);
+            fConverter.setMappingValues(0., 8191., 16383., -semi, 0., semi);
         }
  
 };
@@ -613,9 +612,9 @@ class MidiUI : public GUI, public midi
                         } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
                         } else if ((gsscanf(fMetaAux[i].second.c_str(), "pitchwheel %u", &chan) == 1) || (gsscanf(fMetaAux[i].second.c_str(), "pitchbend %u", &chan) == 1)) {
-                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, input, chan));
+                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max, input, chan));
                         } else if ((fMetaAux[i].second == "pitchwheel") || (fMetaAux[i].second == "pitchbend")) {
-                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, input));
+                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max, input));
                         // MIDI sync
                         } else if (fMetaAux[i].second == "start") {
                             fStartTable.push_back(new uiMidiStart(fMidiHandler, this, zone, input));
@@ -758,7 +757,19 @@ class MidiUI : public GUI, public midi
         {
             updateTable2<TCtrlChangeTable>(fCtrlChangeTable, date, channel, ctrl, value);
         }
-        
+    
+        void rpn(double date, int channel, int ctrl, int value)
+        {
+            if (ctrl == midi::PITCH_BEND_RANGE) {
+                for (size_t i = 0; i < fPitchWheelTable.size(); i++) {
+                    int channel_aux = fPitchWheelTable[i]->fChan;
+                    if (channel_aux == -1 || channel == channel_aux) {
+                        fPitchWheelTable[i]->setRange(value);
+                    }
+                }
+            }
+        }
+    
         void progChange(double date, int channel, int pgm)
         {
             updateTable2<TProgChangeTable>(fProgChangeTable, date, channel, pgm, FAUSTFLOAT(1));
