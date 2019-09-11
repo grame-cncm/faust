@@ -35,11 +35,12 @@
 #include "ppsig.hh"
 #include "property.hh"
 #include "sigIdentity.hh"
+#include "signalDependencies.hh"
 #include "sigtyperules.hh"
 
 using namespace std;
 
-static Tree           uniqueID(const char* prefix, Tree sig);
+// static Tree           uniqueID(const char* prefix, Tree sig);
 static map<Tree, int> countOccurrences(const set<Tree>& I);
 
 /**
@@ -60,18 +61,29 @@ class TransformTables : public SignalIdentity {
         Tree tbl, ridx, id, itbl, widx, wsig, tblsize, init, gexp;
 
         if (isSigRDTbl(sig, tbl, ridx)) {
+            Type t   = getSimpleType(sig);
+            int  nat = t->nature();
+            Tree id2, instr;
             cerr << "TRANFORMATION " << ppsig(sig) << endl;
             if (isSigWRTbl(tbl, id, itbl, widx, wsig)) {
                 faustassert(isSigTable(itbl, id, tblsize, init));
                 faustassert(isSigGen(init, gexp));
                 cerr << "We have a read-write table to tranform: " << ppsig(sig) << endl;
+                id2   = uniqueID("RWT", tbl);
+                instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, self(widx), self(wsig));
+
             } else {
                 faustassert(isSigTable(tbl, id, tblsize, init));
                 faustassert(isSigGen(init, gexp));
                 cerr << "We have a read-only table to tranform: " << ppsig(sig) << endl;
+                id2   = uniqueID("RDT", tbl);
+                instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, gGlobal->nil, gGlobal->nil);
             }
+            fSplittedSignals.insert(instr);
+            return sigInstructionTableRead(id2, sig, nat, 0, self(ridx));
+        } else {
+            return SignalIdentity::transformation(sig);
         }
-        return SignalIdentity::transformation(sig);
     }
 };
 

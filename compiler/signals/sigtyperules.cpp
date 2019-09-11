@@ -502,7 +502,11 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionTableWrite(sig, id, u, &nat, &i, x, y, z)) {
-        return T(z, env);
+        if (isNil(z)) {
+            return T(x, env);
+        } else {
+            return T(x, env) | T(z, env);
+        }
     }
 
     else if (isSigInstructionTableRead(sig, id, u, &nat, &i, x)) {

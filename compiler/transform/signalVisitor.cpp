@@ -262,9 +262,10 @@ void SignalVisitor::visit(Tree sig)
     } else if (isSigControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
-    }
-
-    else {
+    } else if (isNil(sig)) {
+        // now nil can appear in table write instructions
+        return;
+    } else {
         stringstream error;
         error << "ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());

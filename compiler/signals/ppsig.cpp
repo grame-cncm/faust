@@ -328,8 +328,14 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigInstructionTableWrite(sig, id, origin, &nat, &tblsize, init, idx, exp)) {
         const char* tname = (nat == kInt) ? "int" : "float";
-        fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx)
-             << "] := " << ppsig(exp) << ";";
+        if (isNil(idx)) {
+            fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "["
+                 << "NIL"
+                 << "] := NIL;";
+        } else {
+            fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx)
+                 << "] := " << ppsig(exp) << ";";
+        }
     } else if (isSigInstructionTableRead(sig, id, origin, &nat, &dmin, idx)) {
         fout << *id << "[" << ppsig(idx) << "]";
     }

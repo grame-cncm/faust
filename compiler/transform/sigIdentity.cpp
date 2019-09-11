@@ -211,7 +211,10 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigInstructionTableRead(id, origin, nature, tblsize, self(idx));
     }
 
-    else {
+    else if (isNil(sig)) {
+        // now nil can appear in table write instructions
+        return sig;
+    } else {
         stringstream error;
         error << "ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());

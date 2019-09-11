@@ -157,24 +157,25 @@ Tree SignalSplitter::transformation(Tree sig)
         //     }
         //     return SignalIdentity::transformation(sig);
 
-    } else if (isSigRDTbl(sig, tbl, idx)) {
-        cerr << " A sigRDTbl : " << ppsig(sig) << endl;
-        Tree r = SignalIdentity::transformation(sig);
-        cerr << "transformed into : " << ppsig(r) << endl;
-        return r;
+        // } else if (isSigRDTbl(sig, tbl, idx)) {
+        //     cerr << " A sigRDTbl : " << ppsig(sig) << endl;
+        //     Tree r = SignalIdentity::transformation(sig);
+        //     cerr << "transformed into : " << ppsig(r) << endl;
+        //     return r;
 
-    } else if (isSigWRTbl(sig, id, tbl, widx, wsig)) {
-        cerr << " A sigWRTbl : " << ppsig(sig) << endl;
-        Tree r = SignalIdentity::transformation(sig);
-        cerr << "transformed into : " << ppsig(r) << endl;
-        return r;
+        // } else if (isSigWRTbl(sig, id, tbl, widx, wsig)) {
+        //     cerr << " A sigWRTbl : " << ppsig(sig) << endl;
+        //     Tree r = SignalIdentity::transformation(sig);
+        //     cerr << "transformed into : " << ppsig(r) << endl;
+        //     return r;
 
-    } else if (isSigTable(sig, id, tblsize, wsig)) {
-        cerr << " A sigTable : " << ppsig(sig) << endl;
-        Tree r = SignalIdentity::transformation(sig);
-        cerr << "transformed into : " << ppsig(r) << endl;
-        return r;
-    } else if ((occ != nullptr) && (occ->hasMultiOccurences()) && (t->variability() < kSamp)) {
+        // } else if (isSigTable(sig, id, tblsize, wsig)) {
+        //     cerr << " A sigTable : " << ppsig(sig) << endl;
+        //     Tree r = SignalIdentity::transformation(sig);
+        //     cerr << "transformed into : " << ppsig(r) << endl;
+        //     return r;
+    } else if ((occ != nullptr) && (occ->hasMultiOccurences()) && (t->variability() < kSamp) &&
+               !(isSigTable(sig, id, tblsize, wsig))) {
         Tree r  = SignalIdentity::transformation(sig);
         Tree id = uniqueID("C", sig);
         fSplittedSignals.insert(sigControlWrite(id, sig, t->nature(), r));

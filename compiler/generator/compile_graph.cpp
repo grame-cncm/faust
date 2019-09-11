@@ -261,7 +261,7 @@ set<Tree> GraphCompiler::transformIntoInstructions(Tree L3)
 
     endTiming("Transformation into Instructions");
 #endif
-    return INSTR4;
+    return INSTR5;
 }
 
 Scheduling GraphCompiler::schedule(const set<Tree>& I)
@@ -282,8 +282,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -468,12 +470,31 @@ static string nature2ctype(int n)
     return ctype;
 }
 
+map<Tree, Tree> tableInitializations(const set<Tree>& I)
+{
+    map<Tree, Tree> M;
+    set<Tree>       E;
+    for (Tree i : I) {
+        int  nature, tblsize;
+        Tree id, origin, init, widx, exp, gexp;
+        if (isSigInstructionTableWrite(i, id, origin, &nature, &tblsize, init, widx, exp)) {
+            if (isSigGen(init, gexp)) {
+                M[id] = gexp;
+                E.insert(gexp);
+                cerr << "ID:" << *id << " <- " << ppsig(gexp) << endl;
+            }
+        }
+    }
+    return M;
+}
+
 void GraphCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
-    L = prepare(L);  // optimize, share and annotate expression
-    set<Tree>  INSTR{transformIntoInstructions(L)};
-    Scheduling S{schedule(INSTR)};
+    L = prepare(L);  // optimize, share and annotate expressions
+    set<Tree>       INSTR{transformIntoInstructions(L)};
+    map<Tree, Tree> INIT{tableInitializations(INSTR)};
+    Scheduling      S{schedule(INSTR)};
     // S.print("partx-scheduling.txt");
 
     for (int i = 0; i < fClass->inputs(); i++) {
@@ -539,7 +560,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
             string vname{tree2str(id)};
             fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
             fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));  // a changer !!!!!
-            fClass->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
+            if (!isNil(idx)) fClass->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
         } else if (isSigOutput(sig, &i, content)) {
             fClass->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
