@@ -89,7 +89,6 @@ class unitypolydsp : public decorator_dsp
         
         float getParamMax(int pnum) { return fUI.getParamMax(pnum); }
     
-    
         void keyOn(int channel, int pitch, int velocity)
         {
             static_cast<mydsp_poly*>(fDSP)->keyOn(channel, pitch, velocity);

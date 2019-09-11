@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         
-        // Create "soulpatch"
+        // Generate "soulpatch" file
         std::ofstream patch_file(HYBRID_PATH_FILE);
         patch_file << "{";
         patch_file << "\"soulPatchV1\":" << endl;
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
         
         // Cleanup
         delete DSP;
-        //delete factory;
+        delete factory;
     } catch (...) {
         cerr << "ERROR : cannot allocate soulpatch_dsp\n";
         exit(-1);

@@ -84,10 +84,10 @@ with {
 /****************************************************************************************
  * 1-dimensional function tables for nonlinear interpolation
 ****************************************************************************************/
-nonlininterpolation(table, low, high, step, size, x) = ts9(low, step, size, table, x) , inverse(x) : ccopysign;
+nonlininterpolation(table, low, high, step, size, x) = ts9(low, step, size, table, x),inverse(x) : ccopysign;
 
 //-- Interpolate value from table
-ts9 (low, step, size, table, x) = interpolation(table, getCoef(low, step, size, x), 
+ts9(low, step, size, table, x) = interpolation(table, getCoef(low, step, size, x), 
 										nonlinindex(low, step, x) : boundIndex(size));
 
 //-- Calculate non linear index

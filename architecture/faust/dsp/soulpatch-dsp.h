@@ -349,9 +349,6 @@ class soul_dsp_factory : public dsp_factory {
         soul::patch::Description fDescription;
         FaustSourceFilePreprocessor::Ptr fProcessor;
     
-        // So that to force sub-classes to use deleteDSPFactory(dsp_factory* factory);
-        virtual ~soul_dsp_factory() {}
-    
     public:
     
         soul_dsp_factory(const std::string& path, std::string& error_msg)
@@ -367,6 +364,8 @@ class soul_dsp_factory : public dsp_factory {
             fDescription = fPatch->getDescription();
         }
     
+        virtual ~soul_dsp_factory() {}
+        
         virtual std::string getName() { return fDescription.name; }
         virtual std::string getSHAKey() { return ""; }
         virtual std::string getDSPCode() { return ""; }
@@ -548,8 +547,7 @@ class faust_soul_parser  {
             
             if (res) {
                 std::ifstream soul_file("/var/tmp/exp.soul");
-                std::string soul_string((std::istreambuf_iterator<char>(soul_file)),
-                                    std::istreambuf_iterator<char>());
+                std::string soul_string((std::istreambuf_iterator<char>(soul_file)), std::istreambuf_iterator<char>());
                 return soul_string;
             } else {
                 std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg << std::endl;

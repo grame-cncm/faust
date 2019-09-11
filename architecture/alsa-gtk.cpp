@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(oscinterface);
 #endif
 
-    alsaaudio audio (argc, argv, DSP);
+    alsaaudio audio(argc, argv, DSP);
     audio.init(name, DSP);
     finterface->recallState(rcfilename);	
     audio.start();
