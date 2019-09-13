@@ -393,9 +393,14 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
     fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
-    soul::patch::String::Ptr error = fPlayer->getCompileError();
-    if (error) {
-        error_msg = "getCompileError " + std::string(error->getCharPointer()) + "\n";
+    if (!fPlayer->isPlayable()) {
+        soul::patch::Span<soul::patch::CompilationMessage> errors = fPlayer->getCompileMessages();
+        error_msg = "getCompileError";
+        for (int i = 0; i < errors.size(); i++) {
+            error_msg += " ";
+            error_msg += std::string(errors[i].fullMessage->getCharPointer());
+        }
+        error_msg += "\n";
         throw std::bad_alloc();
     }
     
