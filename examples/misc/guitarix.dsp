@@ -67,7 +67,7 @@ with {
    
     /*
     // Dynamically choose between several 'tstack'
-    tstack = ba.selectmulti((tjcm2000, tjtm45, tjcm800), 
+    tstack = ba.selectmulti(ma.SR/100, (tjcm2000, tjtm45, tjcm800), 
     nentry("tstack [style:menu{'tjcm2000':0;'tjtm45':1;'tjcm800':2}]", 0, 0, 2, 1))
     with {
     	tjcm2000 = jcm2000(t, m, l);
