@@ -30,7 +30,7 @@ Here are the available options:
 
 So for instance:
 
-- `faust2soul clarinetMIDI.dsp` to produce two clarinetMIDI.soul and clarinetMIDI.soulpatch files
+- `faust2soul clarinetMIDI.dsp` to produce two `clarinetMIDI.soul` and `clarinetMIDI.soulpatch` files
 - `soul-faust-player clarinetMIDI.soulpatch` to run the clarinetMIDI.soulpatch
 
 Or:

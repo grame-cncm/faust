@@ -322,6 +322,8 @@ class mydspProcessor extends AudioWorkletProcessor {
 
 // Globals
 const NUM_FRAMES = 128;
-registerProcessor('mydsp', mydspProcessor);
-
-
+try {
+    registerProcessor('mydsp', mydspProcessor);
+} catch (error) {
+    console.warn(error);
+}

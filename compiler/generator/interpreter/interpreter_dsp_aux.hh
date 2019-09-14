@@ -722,12 +722,22 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void classInit(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "classInit " << sample_rate << std::endl;
+        }
+        
         // Execute static init instructions
         fFBCExecutor->ExecuteBlock(fFactory->fStaticInitBlock);
     }
 
     virtual void instanceConstants(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceConstants " << sample_rate << std::endl;
+        }
+        
         // Store sample_rate in 'fSampleRate' variable at correct offset in fIntHeap
         fFBCExecutor->setIntValue(fFactory->fSROffset, sample_rate);
 
@@ -737,18 +747,33 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void instanceResetUserInterface()
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceResetUserInterface " << std::endl;
+        }
+        
         // Execute reset UI instructions
         fFBCExecutor->ExecuteBlock(fFactory->fResetUIBlock);
     }
 
     virtual void instanceClear()
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceClear " << std::endl;
+        }
+        
         // Execute clear instructions
         fFBCExecutor->ExecuteBlock(fFactory->fClearBlock);
     }
 
     virtual void instanceInit(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceInit " << sample_rate << std::endl;
+        }
+        
         instanceConstants(sample_rate);
         instanceResetUserInterface();
         instanceClear();
@@ -756,6 +781,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void init(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "init " << sample_rate << std::endl;
+        }
+        
         fInitialized = true;
         classInit(sample_rate);
         instanceInit(sample_rate);
@@ -805,6 +835,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         if (TRACE > 0 && !fInitialized) {
             std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else {
+            
+            if (TRACE > 0) {
+                std::cout << "------------------------" << std::endl;
+                std::cout << "compute " << count << std::endl;
+            }
+            
             fCycle++;
 
             // std::cout << "compute " << count << std::endl;
