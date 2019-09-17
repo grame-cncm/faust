@@ -376,9 +376,15 @@ class uiMidiPitchWheel : public uiMidiTimedItem
     public:
     
         uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true, int chan = -1)
-        :uiMidiTimedItem(midi_out, ui, zone, input, chan), fConverter(0., 8191., 16383., double(min), 0., double(max))
-        {}
-    
+        :uiMidiTimedItem(midi_out, ui, zone, input, chan)
+        {
+            if (min <= 0 && max >= 0) {
+                fConverter = LinearValueConverter2(0., 8191., 16383., double(min), 0., double(max));
+            } else {
+                // Degenerated case...
+                fConverter = LinearValueConverter2(0., 8191., 16383., double(min),double(min + (max - min)/FAUSTFLOAT(2)), double(max));
+            }
+        }
     
         virtual ~uiMidiPitchWheel()
         {}
