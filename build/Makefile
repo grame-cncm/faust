@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.18.5
+VERSION := 2.18.6
 
 #===============================================================
 # current generator and backends
@@ -107,7 +107,7 @@ help:
 	@echo " 'distclean'  : removes the 'FAUSTDIR' folder ($(FAUSTDIR)) but preserves the bin and lib folders"
 	@echo
 	@echo "Targets excluded from all:"
-	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
+	@echo " 'wasmlib'    : builds libfaust as a WebAssembly library"
 	@echo " 'wasmglue'   : builds the WebAssembly glue library."
 	@echo
 	@echo "Available options:"

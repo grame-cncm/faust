@@ -441,7 +441,8 @@ class SOULInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
-        if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
+        bool int_as_bool = fIntAsBool;
+        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
             *fOut << "int (";
         }
         *fOut << "(";
@@ -475,7 +476,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
 
         *fOut << ")";
-        if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
+        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
             *fOut << ")";
         }
     }
