@@ -37,6 +37,12 @@
 
 using namespace std;
 
+static bool endWith(const string& str, const string& suffix)
+{
+    size_t i = str.rfind(suffix);
+    return (i != string::npos) && (i == (str.length() - suffix.length()));
+}
+
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
@@ -46,20 +52,19 @@ ztimedmap GUI::gTimedZoneMap;
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-player [-hybrid] foo.soul" << endl;
-        cout << "Use '-hybrid' to load and execute an hybrid Faust/SOUL file\n";
+        cout << "soul-faust-player foo.soulpatch (pure SOUL patch) or foo.soul (pure SOUL code or Faust/SOUL hybrid)" << endl;
         exit(-1);
     }
     
+    char* filename = argv[argc-1];
     string real_file;
-    bool is_hybrid = isopt(argv, "-hybrid");
     
-    if (is_hybrid) {
+    if (endWith(filename, ".soul")) {
         
-        // Parse te Faust/SOUL file to create a SOUL one
+        // We have a pure SOUL file or a Faust/SOUL file. Parse it, compile the Faust part to SOUL, generate the SOUL result
         faust_soul_parser parser;
-        if (!parser.parse(argv[argc-1], HYBRID_FILE)) {
-            cerr << "ERROR : file '" << argv[1] << "' cannot be opened!\n";
+        if (!parser.parse(filename, HYBRID_FILE)) {
+            cerr << "ERROR : file '" << filename << "' cannot be opened!\n";
             exit(-1);
         }
         
@@ -67,23 +72,23 @@ int main(int argc, char* argv[])
         std::ofstream patch_file(HYBRID_PATH_FILE);
         patch_file << "{";
         patch_file << "\"soulPatchV1\":" << endl;
-            patch_file << "{" << endl;
-            patch_file << "\"ID\": \"grame.soul.hybrid\"," << endl;
-            patch_file << "\"version\": \"1.0\"," << endl;
-            patch_file << "\"name\": \"hybrid\"," << endl;
-            patch_file << "\"description\": \"SOUL example\"," << endl;
-            patch_file << "\"category\": \"synth\"," << endl;
-            patch_file << "\"manufacturer\": \"GRAME\"," << endl;
-            patch_file << "\"website\": \"https://faust.grame.fr\"," << endl;
-            patch_file << "\"isInstrument\": true," << endl;
-            patch_file << "\"source\": "; patch_file << "\"" << HYBRID_FILE << "\"" << endl;
-            patch_file << "}" << endl;
+            patch_file << "\t{" << endl;
+                patch_file << "\t\t\"ID\": \"grame.soul.hybrid\"," << endl;
+                patch_file << "\t\t\"version\": \"1.0\"," << endl;
+                patch_file << "\t\t\"name\": \"hybrid\"," << endl;
+                patch_file << "\t\t\"description\": \"SOUL example\"," << endl;
+                patch_file << "\t\t\"category\": \"synth\"," << endl;
+                patch_file << "\t\t\"manufacturer\": \"GRAME\"," << endl;
+                patch_file << "\t\t\"website\": \"https://faust.grame.fr\"," << endl;
+                patch_file << "\t\t\"isInstrument\": true," << endl;
+                patch_file << "\t\t\"source\": "; patch_file << "\"" << HYBRID_FILE << "\"" << endl;
+            patch_file << "\t}" << endl;
         patch_file << "}";
         patch_file.close();
         
         real_file = HYBRID_PATH_FILE;
     } else {
-        real_file = argv[argc-1];
+        real_file = filename;
     }
     
     try {
@@ -99,14 +104,14 @@ int main(int argc, char* argv[])
         cout << "getNumOutputs " << DSP->getNumOutputs() << endl;
         
         jackaudio audio;
-        audio.init(argv[1], DSP);
+        audio.init(filename, DSP);
         
         // Has to be done after init
-        GTKUI interface(argv[1], &argc, &argv);
+        GTKUI interface(filename, &argc, &argv);
         DSP->buildUserInterface(&interface);
         
         // MIDI handling
-        rt_midi midi_handler(argv[1], false, true);
+        rt_midi midi_handler(filename, false, true);
         DSP->setMidiHandler(&midi_handler);
         
         midi_handler.startMidi();

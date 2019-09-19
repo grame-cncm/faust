@@ -24,16 +24,16 @@ So for instance:
 
 **soul-faust-player** tool loads a SOUL patch or an hybrid Faust/SOUL code file, wraps it as a Faust DSP object, and runs it in the Faust runtime audio/control machinery. 
 
-Here are the available options:
-
-- `-hybrid to load and execute an hybrid Faust/SOUL file`
-
 So for instance:
 
-- `faust2soul clarinetMIDI.dsp` to produce two `clarinetMIDI.soul` and `clarinetMIDI.soulpatch` files
-- `soul-faust-player clarinetMIDI.soulpatch` to run the clarinetMIDI.soulpatch
+- `faust2soul clarinetMIDI.dsp` to produce the two `clarinetMIDI.soul` and `clarinetMIDI.soulpatch` files
+
+Then:
+
+- `soul-faust-player clarinetMIDI.soulpatch` to run the `clarinetMIDI.soulpatch` file
+- `soul-faust-player clarinetMIDI.soul` to run the `clarinetMIDI.soul` file (only containing the SOUL code)
 
 Or:
 
-- `soul-faust-player -hybrid hybrid-test1.soul` to run an hybrid `hybrid-test1.soul` file containing both Faust and SOUL sections. Two `hybrid.soul` (containing the original SOUL sections and the Faust => SOUL generated sections) and an `hybrid.soulpatch` files will be generated in the process.
+- `soul-faust-player hybrid-test1.soul` to run an hybrid `hybrid-test1.soul` file containing both Faust and SOUL sections. Two `hybrid.soul` (containing the original SOUL sections and the Faust => SOUL generated sections) and an `hybrid.soulpatch` files will be generated in the process.
 
