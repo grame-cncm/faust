@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,33 +21,16 @@
 
 #pragma once
 
-#include <cstdlib>
 #include <iostream>
 #include <map>
+#include <set>
 
-#include "digraph.hh"
-#include "digraphop.hh"
-#include "property.hh"
-#include "signalVisitor.hh"
-#include "sigtyperules.hh"
-#include "tree.hh"
-
-using namespace std;
-
-digraph<Tree> dependencyGraph(Tree sig);
-set<Tree>     listTableDependencies(Tree sig);
-
-class Dictionnary {
-    map<Tree, Tree> fDefinitions;
-
-   public:
-    void add(Tree sig);
-    Tree operator[](Tree id);
-};
-ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g);
+#include "signals.hh"
 
 /**
- * A bijective function that returns a unique ID, that starts with prefix, associated to sig
- * uniqueID(prefix,sig) -> ID
+ * @brief Transform delaylines into tables
+ *
+ * @param I set of instructions to transforms
+ * @return set<Tree> the resulting set of instructions
  */
-Tree uniqueID(const char* prefix, Tree sig);
+set<Tree> transformTableToTable(const set<Tree>& I);

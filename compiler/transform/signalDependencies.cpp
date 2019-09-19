@@ -1,11 +1,46 @@
 #include <functional>
 #include <iostream>
+#include <set>
 #include <sstream>
 
 #include "ppsig.hh"
 #include "signalDependencies.hh"
 #include "symbol.hh"
 
+using namespace std;
+
+class XYTableDependencies : public SignalVisitor {
+   protected:
+    set<Tree> fTables;
+    void      visit(Tree t) override
+    {
+        Tree id, origin, dl;
+        int  nature, dmax, dmin;
+
+        // the dependencies are DelayLines, shared expressions or Control signals
+        if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
+            fTables.insert(id);
+            self(dl);
+        } else {
+            SignalVisitor::visit(t);
+        }
+    }
+
+   public:
+    XYTableDependencies() {}
+    const set<Tree>& tables() const
+    {
+        // std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
+        return fTables;
+    }
+};
+
+set<Tree> listTableDependencies(Tree t)
+{
+    XYTableDependencies D;
+    D.self(t);
+    return D.tables();
+}
 /**
  * @brief Compute the dependency graph of a signal
  *

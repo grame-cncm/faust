@@ -282,10 +282,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -472,19 +470,33 @@ static string nature2ctype(int n)
 
 map<Tree, Tree> tableInitializations(const set<Tree>& I)
 {
-    map<Tree, Tree> M;
-    set<Tree>       E;
+    map<Tree, Tree> M;  // mapping between table IDs and initialization expressions
+    set<Tree>       E;  // set of initialization expressions
     for (Tree i : I) {
         int  nature, tblsize;
         Tree id, origin, init, widx, exp, gexp;
         if (isSigInstructionTableWrite(i, id, origin, &nature, &tblsize, init, widx, exp)) {
             if (isSigGen(init, gexp)) {
+                // we ignore zero initialisations
+                // handled directly
                 M[id] = gexp;
                 E.insert(gexp);
                 cerr << "ID:" << *id << " <- " << ppsig(gexp) << endl;
             }
         }
     }
+
+    // compute the dependecy graph between tables (cycles are not allowed)
+    digraph<Tree> G;
+    for (auto p : M) {
+        Tree src = p.first;
+        G.add(src);
+        for (Tree dst : listTableDependencies(p.second)) {
+            G.add(src, dst);
+        }
+    }
+    cerr << "Graph of Table dependencies: " << G << endl;
+
     return M;
 }
 
@@ -559,7 +571,11 @@ void GraphCompiler::compileMultiSignal(Tree L)
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             string vname{tree2str(id)};
             fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
-            fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));  // a changer !!!!!
+            if (isZero(init)) {
+                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+            } else {
+                cerr << "Table init needed here" << endl;
+            }
             if (!isNil(idx)) fClass->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
         } else if (isSigOutput(sig, &i, content)) {
