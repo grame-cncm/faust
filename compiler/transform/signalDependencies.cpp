@@ -64,7 +64,7 @@ class SignalDependencies : public SignalVisitor {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
-        } else if (isSigControlWrite(sig, id, origin, &nature, content)) {
+        } else if (isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
@@ -104,7 +104,7 @@ class SignalDependencies : public SignalVisitor {
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
-        } else if (isSigControlRead(t, id, origin, &nature)) {
+        } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
         } else {
             SignalVisitor::visit(t);
@@ -122,7 +122,7 @@ void Dictionnary::add(Tree sig)
     if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
         isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, content) ||
         isSigInstructionSharedWrite(sig, id, origin, &nature, content) ||
-        isSigControlWrite(sig, id, origin, &nature, content)) {
+        isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
         // cerr << "Dictionnary::add " << id << "@" << *id << endl;  //" := " << ppsig(sig) << endl;
         fDefinitions[id] = sig;
     } else if (isSigOutput(sig, &i, content)) {
@@ -143,7 +143,7 @@ Tree Dictionnary::operator[](Tree id)
 
 //================================================================
 // signalDependencies(sig) : Compute the dependencies of a signal
-// of type: sigInstructionDelayLineWrite() | sigControlWrite() | sigOutput()
+// of type: sigInstructionDelayLineWrite() | sigInstructionControlWrite() | sigOutput()
 // returns the dependency graph
 //================================================================
 

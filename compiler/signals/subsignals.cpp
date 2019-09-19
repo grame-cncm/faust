@@ -245,10 +245,10 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 1;
     } else if (isSigInstructionSharedRead(sig, id, origin, &nat)) {
         return 0;
-    } else if (isSigControlWrite(sig, id, origin, &nat, x)) {
+    } else if (isSigInstructionControlWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigControlRead(sig, id, origin, &nat)) {
+    } else if (isSigInstructionControlRead(sig, id, origin, &nat)) {
         return 0;
     }
 

@@ -341,20 +341,20 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigInstructionSharedWrite(sig, x, c, &nat, y)) {
-        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+        // fout << "sigInstructionControlWrite(" << *x << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << " " << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionSharedRead(sig, x, c, &nat)) {
-        // fout << "sigControlRead(" << *x << ")";
+        // fout << "sigInstructionControlRead(" << *x << ")";
         fout << *x;
     }
 
-    else if (isSigControlWrite(sig, x, c, &nat, y)) {
-        // fout << "sigControlWrite(" << *x << " := " << ppsig(y) << ")";
+    else if (isSigInstructionControlWrite(sig, x, c, &nat, y)) {
+        // fout << "sigInstructionControlWrite(" << *x << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << " " << *x << " := " << ppsig(y) << ";";
-    } else if (isSigControlRead(sig, x, c, &nat)) {
-        // fout << "sigControlRead(" << *x << ")";
+    } else if (isSigInstructionControlRead(sig, x, c, &nat)) {
+        // fout << "sigInstructionControlRead(" << *x << ")";
         fout << *x;
     }
 

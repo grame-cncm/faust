@@ -22,7 +22,7 @@ static bool isInit(Tree i)
 {
     Tree id, origin, exp;
     int  nat;
-    bool r = isSigControlWrite(i, id, origin, &nat, exp);
+    bool r = isSigInstructionControlWrite(i, id, origin, &nat, exp);
 
     if (r) {
         Type t = getCertifiedSigType(origin);
@@ -45,7 +45,7 @@ static bool isControl(Tree i)
 {
     Tree id, origin, exp;
     int  nat;
-    bool r = isSigControlWrite(i, id, origin, &nat, exp);
+    bool r = isSigInstructionControlWrite(i, id, origin, &nat, exp);
 
     if (r) {
         Type t = getCertifiedSigType(origin);
@@ -77,8 +77,10 @@ void scalarScheduling(const string& filename, set<Tree> I)
     digraph<Tree> B;  // the subgraph of block-time instructions
     digraph<Tree> E;  // the subgraph at sample-time instructions
 
-    splitgraph<Tree>(G, [&Dic](Tree id) { return isControl(Dic[id]); }, T, E);
-    splitgraph<Tree>(T, [&Dic](Tree id) { return isInit(Dic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&Dic](Tree id) { return isControl(Dic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&Dic](Tree id) { return isInit(Dic[id]); }, K, B);
 
     // 3) print each subgraph
     ofstream f;
@@ -133,7 +135,8 @@ void parallelScheduling(const string& filename, set<Tree> I)
     digraph<Tree> L;  // the control graph
     digraph<Tree> R;  // the signal graph
 
-    splitgraph<Tree>(G, [&Dic](Tree id) { return isControl(Dic[id]); }, L, R);
+    splitgraph<Tree>(
+        G, [&Dic](Tree id) { return isControl(Dic[id]); }, L, R);
 
     // 2) create a vector of subgraphs
     digraph<digraph<Tree>>        DG = graph2dag(R);

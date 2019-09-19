@@ -15,6 +15,7 @@ compile.sh
 *.mxo
 *.bak
 *.app
+*.dot
 .DS_Store
 *tmp*
 *dir*

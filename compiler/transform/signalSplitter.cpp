@@ -178,8 +178,8 @@ Tree SignalSplitter::transformation(Tree sig)
                !(isSigTable(sig, id, tblsize, wsig))) {
         Tree r  = SignalIdentity::transformation(sig);
         Tree id = uniqueID("C", sig);
-        fSplittedSignals.insert(sigControlWrite(id, sig, t->nature(), r));
-        Tree inst = sigControlRead(id, sig, t->nature());
+        fSplittedSignals.insert(sigInstructionControlWrite(id, sig, t->nature(), r));
+        Tree inst = sigInstructionControlRead(id, sig, t->nature());
         return inst;
     } else {
         return SignalIdentity::transformation(sig);

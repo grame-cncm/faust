@@ -78,7 +78,7 @@ static bool isInit(Tree i)
 {
     Tree id, origin, exp;
     int  nat;
-    bool r = isSigControlWrite(i, id, origin, &nat, exp);
+    bool r = isSigInstructionControlWrite(i, id, origin, &nat, exp);
 
     if (r) {
         Type t = getCertifiedSigType(origin);
@@ -101,7 +101,7 @@ static bool isControl(Tree i)
 {
     Tree id, origin, exp;
     int  nat;
-    bool r = isSigControlWrite(i, id, origin, &nat, exp);
+    bool r = isSigInstructionControlWrite(i, id, origin, &nat, exp);
 #if 0
     if (r) {
         Type t = getCertifiedSigType(origin);
@@ -282,8 +282,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -533,7 +535,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
         Tree id, origin, content;
         int  nature;
 
-        faustassert(isSigControlWrite(sig, id, origin, &nature, content));
+        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
 
         string ctype{(nature == kInt) ? "int" : "float"};
         string vname{tree2str(id)};
@@ -548,7 +550,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
         Tree id, origin, content;
         int  nature;
 
-        faustassert(isSigControlWrite(sig, id, origin, &nature, content));
+        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
 
         string ctype{(nature == kInt) ? "int" : "float"};
         string vname{tree2str(id)};
@@ -659,7 +661,7 @@ string GraphCompiler::generateCode(Tree sig)
         return subst("$0[$1]", tree2str(id), CS(idx));
     } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {
         return tree2str(id);
-    } else if (isSigControlRead(sig, id, origin, &nature)) {
+    } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {
         return tree2str(id);
 
     } else if (isSigInt(sig, &i)) {

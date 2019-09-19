@@ -521,11 +521,11 @@ static Type infereSigType(Tree sig, Tree env)
         return getCertifiedSigType(u);
     }
 
-    else if (isSigControlWrite(sig, id, u, &nat, x)) {
+    else if (isSigInstructionControlWrite(sig, id, u, &nat, x)) {
         return T(x, env);
     }
 
-    else if (isSigControlRead(sig, id, u, &nat)) {
+    else if (isSigInstructionControlRead(sig, id, u, &nat)) {
         return getCertifiedSigType(u);
     }
 

@@ -892,12 +892,12 @@ bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature)
  * @param sig: the control signal
  * @return a control write instruction
  */
-Tree sigControlWrite(Tree id, Tree origin, int nature, Tree sig)
+Tree sigInstructionControlWrite(Tree id, Tree origin, int nature, Tree sig)
 {
     return tree(gGlobal->SIGINSTRUCTIONCONTROLWRITE, id, origin, tree(nature), sig);
 }
 
-bool isSigControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
+bool isSigInstructionControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
 {
     Tree tnat;
     if (isTree(s, gGlobal->SIGINSTRUCTIONCONTROLWRITE, id, origin, tnat, sig)) {
@@ -915,12 +915,12 @@ bool isSigControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
  * @param nature: kInt or kReal (type of samples)
  * @return a control read instruction
  */
-Tree sigControlRead(Tree id, Tree origin, int nature)
+Tree sigInstructionControlRead(Tree id, Tree origin, int nature)
 {
     return tree(gGlobal->SIGINSTRUCTIONCONTROLREAD, id, origin, tree(nature));
 }
 
-bool isSigControlRead(Tree s, Tree& id, Tree& origin, int* nature)
+bool isSigInstructionControlRead(Tree s, Tree& id, Tree& origin, int* nature)
 {
     Tree tnat;
     if (isTree(s, gGlobal->SIGINSTRUCTIONCONTROLREAD, id, origin, tnat)) {

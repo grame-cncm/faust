@@ -69,7 +69,7 @@ class CommonSubexpr : public SignalIdentity {
         int  nature, i, dmax, dmin;
 
         if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) &&
-            !(isSigControlRead(sig, id, origin, &nature)) && !(isSigTime(sig)) &&
+            !(isSigInstructionControlRead(sig, id, origin, &nature)) && !(isSigTime(sig)) &&
             !(isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) &&
             !(isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx))) {
             Tree r = SignalIdentity::transformation(sig);
@@ -78,7 +78,7 @@ class CommonSubexpr : public SignalIdentity {
             // }
             Tree id = uniqueID("V", sig);
             fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, t->nature(), r));
-            Tree inst = sigControlRead(id, sig, t->nature());
+            Tree inst = sigInstructionControlRead(id, sig, t->nature());
             return inst;
         } else {
             return SignalIdentity::transformation(sig);

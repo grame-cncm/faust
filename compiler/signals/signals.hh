@@ -385,11 +385,11 @@ bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature);
 
 //
 
-Tree sigControlWrite(Tree id, Tree origin, int nature, Tree sig);
-bool isSigControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
+Tree sigInstructionControlWrite(Tree id, Tree origin, int nature, Tree sig);
+bool isSigInstructionControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
 
-Tree sigControlRead(Tree id, Tree origin, int nature);
-bool isSigControlRead(Tree s, Tree& id, Tree& origin, int* nature);
+Tree sigInstructionControlRead(Tree id, Tree origin, int nature);
+bool isSigInstructionControlRead(Tree s, Tree& id, Tree& origin, int* nature);
 
 /*****************************************************************************
                              FTZ wrapping

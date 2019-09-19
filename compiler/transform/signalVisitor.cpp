@@ -257,9 +257,9 @@ void SignalVisitor::visit(Tree sig)
     }
 
     // Read and Write
-    else if (isSigControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+    else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
+    } else if (isSigInstructionControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     } else if (isNil(sig)) {

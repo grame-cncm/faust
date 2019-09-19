@@ -199,10 +199,10 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Read and Write
-    else if (isSigControlRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
+    else if (isSigInstructionControlRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
         return sig;
-    } else if (isSigControlWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
-        return sigControlWrite(x, u, nature, self(y));
+    } else if (isSigInstructionControlWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
+        return sigInstructionControlWrite(x, u, nature, self(y));
     }
 
     else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
