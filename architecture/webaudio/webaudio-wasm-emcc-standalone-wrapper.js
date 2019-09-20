@@ -329,7 +329,7 @@ class FaustWasm2ScriptProcessor {
          */
         sp.pitchWheel = (channel, wheel) => {
             sp.fPitchwheelLabel.forEach(pw => {
-           		sp.setParamValue(pw.path, sp.remap(wheel, 0, 16383, pw.min, pw.max));
+                sp.setParamValue(pw.path, sp.remap(wheel, 0, 16383, pw.min, pw.max));
                 if (sp.output_handler) sp.output_handler(pw.path, sp.getParamValue(pw.path));
             })
         }

@@ -340,7 +340,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
         handler.handleData2(0, midi::MidiStatus::MIDI_POLY_AFTERTOUCH, 0, i, 75);
         handler.handleData2(0, midi::MidiStatus::MIDI_NOTE_ON, 0, i, 75);
         handler.handleData2(0, midi::MidiStatus::MIDI_NOTE_OFF, 0, i, 75);
-        handler.handleData2(0, midi::MidiStatus::MIDI_PITCH_BEND, 0, i, 1000);
+        handler.handleData2(0, midi::MidiStatus::MIDI_PITCH_BEND, 0, i, 4000);
     }
     handler.handleData1(0, midi::MidiStatus::MIDI_PROGRAM_CHANGE, 0, 10);
     handler.handleData1(0, midi::MidiStatus::MIDI_AFTERTOUCH, 0, 10);
