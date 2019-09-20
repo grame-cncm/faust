@@ -18,7 +18,7 @@
         else if (cmd === 8 || (cmd === 9 && data2 === 0)) dspNode.keyOff(channel, data1, data2);
         else if (cmd === 9) dspNode.keyOn(channel, data1, data2);
         else if (cmd === 11) dspNode.ctrlChange(channel, data1, data2);
-        else if (cmd === 14) dspNode.pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+        else if (cmd === 14) dspNode.pitchWheel(channel, (data2 * 128.0 + data1));
     }
     const activateMIDIInput = () => {
         console.log("activateMIDIInput");

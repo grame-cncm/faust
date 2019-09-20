@@ -118,7 +118,7 @@ class FaustWasm2ScriptProcessorPoly {
         sp.dspOutChannnels = [];
     
         sp.fPitchwheelLabel = [];
-        sp.fCtrlLabel = new Array(128).fill(null).map(() => []),
+        sp.fCtrlLabel = new Array(128).fill(null).map(() => []);
 
         sp.numIn = inputs;
         sp.numOut = outputs;
@@ -142,7 +142,7 @@ class FaustWasm2ScriptProcessorPoly {
         sp.update_outputs = () => {
             if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
                 sp.outputs_timer = 5;
-                sp.outputs_items.forEach(item => sp.output_handler(item, sp.factory.getParamValue(sp.dsp, sp.pathTable[item])));
+                sp.outputs_items.forEach(item => sp.output_handler(item, sp.instance.getParamValue(sp.pathTable[item])));
             }
         };
 
@@ -191,7 +191,11 @@ class FaustWasm2ScriptProcessorPoly {
                     if (!midi) return;
                     const strMidi = midi.trim();
                     if (strMidi === "pitchwheel") {
-                        sp.fPitchwheelLabel.push(item.address);
+                        sp.fPitchwheelLabel.push({
+                            path: item.address,
+                            min: parseFloat(item.min),
+                            max: parseFloat(item.max)
+                        });
                     } else {
                         const matched = strMidi.match(/^ctrl\s(\d+)/);
                         if (!matched) return;
@@ -341,7 +345,7 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {string} path - the path to the wanted control (retrieved using 'getParams' method)
          * @param {number} val - the float value for the wanted parameter
          */
-        sp.setParamValue = (path, val) => sp.instance.setParamValue(path, parseFloat(val));
+        sp.setParamValue = (path, val) => { sp.instance.setParamValue(path, parseFloat(val)); }
         /**
          * Get control value.
          *

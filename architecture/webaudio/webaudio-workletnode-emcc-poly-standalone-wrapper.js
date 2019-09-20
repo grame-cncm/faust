@@ -631,7 +631,9 @@ let mydspPolyProcessorString = `
                     for (var i = 0; i < item.meta.length; i++) {
                         if (item.meta[i].midi !== undefined) {
                             if (item.meta[i].midi.trim() === "pitchwheel") {
-                                obj.fPitchwheelLabel.push(item.address);
+                                obj.fPitchwheelLabel.push({ path: item.address,
+                            								min: parseFloat(item.min),
+                           									max: parseFloat(item.max) });
                             } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                                 obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
                                 .push({ path:item.address,
@@ -909,7 +911,7 @@ let mydspPolyProcessorString = `
             } else if (cmd === 11) {
                 this.ctrlChange(channel, data1, data2);
             } else if (cmd === 14) {
-                this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+                this.pitchWheel(channel, (data2 * 128.0 + data1));
             }
         }
         

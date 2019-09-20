@@ -263,10 +263,16 @@ struct WasmBinaryReader {
 
 // The C++ side version of compiled wasm code
 
+class SoundUI;
+class MidiUI;
+
 class EXPORT wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
     int               fDSP;       // Index of wasm DSP memory
+#ifdef EMCC
+    MidiUI*  fMIDIUI;
+#endif
 
    public:
     wasm_dsp() : fFactory(nullptr), fDSP(-1) {}
@@ -307,8 +313,6 @@ class EXPORT wasm_dsp : public dsp, public JSONControl {
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
-class SoundUI;
-
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     friend class wasm_dsp;
    protected:
@@ -317,7 +321,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     int                      fInstance; // Index of wasm DSP instance
     MapUI                    fMapUI;
 #ifdef EMCC
-    SoundUI*                 fSoundUI;
+    SoundUI* fSoundUI;
 #endif
 
    public:

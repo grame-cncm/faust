@@ -1027,7 +1027,9 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
                     for (var i = 0; i < item.meta.length; i++) {
                         if (item.meta[i].midi !== undefined) {
                             if (item.meta[i].midi.trim() === "pitchwheel") {
-                                sp.fPitchwheelLabel.push(item.address);
+                                sp.fPitchwheelLabel.push({ path:item.address,
+                                            min:parseFloat(item.min),
+                                            max:parseFloat(item.max) });
                             } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                                 sp.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
                                     .push({ path:item.address,
@@ -1211,10 +1213,10 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
       	sp.pitchWheel = function (channel, wheel)
         {
            	for (var i = 0; i < sp.fPitchwheelLabel.length; i++) {
-           		var path = sp.fPitchwheelLabel[i];
-           		sp.setParamValue(path, Math.pow(2.0, wheel/12.0));
-                if (sp.output_handler) {
-                    sp.output_handler(path, sp.getParamValue(path));
+           		var pw = sp.fPitchwheelLabel[i];
+           		sp.setParamValue(pw.path, faust.remap(wheel, 0, 16383, pw.min, pw.max));
+           	    if (sp.output_handler) {
+                    sp.output_handler(pw.path, sp.getParamValue(pw.path));
                 }
           	}
         }
@@ -1723,7 +1725,9 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
                     for (var i = 0; i < item.meta.length; i++) {
                         if (item.meta[i].midi !== undefined) {
                             if (item.meta[i].midi.trim() === "pitchwheel") {
-                                obj.fPitchwheelLabel.push(item.address);
+                                obj.fPitchwheelLabel.push({ path:item.address,
+                                      min:parseFloat(item.min),
+                                      max:parseFloat(item.max) });
                             } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                                 obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
                                 .push({ path:item.address,
@@ -1803,10 +1807,10 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     audio_node.pitchWheel = function(channel, wheel)
     {
         for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
-            var path = this.fPitchwheelLabel[i];
-            this.setParamValue(path, Math.pow(2.0, wheel/12.0));
+            var pw = this.fPitchwheelLabel[i];
+            this.setParamValue(pw.path, audio_node.remap(wheel, 0, 16383, pw.min, pw.max));
             if (this.output_handler) {
-                this.output_handler(path, this.getParamValue(path));
+                this.output_handler(pw.path, this.getParamValue(pw.path));
             }
         }
     }
@@ -1823,7 +1827,7 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
         } else if (cmd === 11) {
             this.ctrlChange(channel, data1, data2);
         } else if (cmd === 14) {
-            this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+            this.pitchWheel(channel, (data2 * 128.0 + data1));
         }
     }
     
@@ -2269,7 +2273,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
                 for (var i = 0; i < item.meta.length; i++) {
                     if (item.meta[i].midi !== undefined) {
                         if (item.meta[i].midi.trim() === "pitchwheel") {
-                            sp.fPitchwheelLabel.push(item.address);
+                            sp.fPitchwheelLabel.push({ path:item.address,
+                                  min:parseFloat(item.min),
+                                  max:parseFloat(item.max) });
                         } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                             sp.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
                             .push({ path:item.address,
@@ -2556,10 +2562,10 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.pitchWheel = function (channel, wheel)
     {
         for (var i = 0; i < sp.fPitchwheelLabel.length; i++) {
-            var path = sp.fPitchwheelLabel[i];
-            sp.setParamValue(path, Math.pow(2.0, wheel/12.0));
+            var pw = sp.fPitchwheelLabel[i];
+            sp.setParamValue(pw.path, faust.remap(wheel, 0, 16383, pw.min, pw.max));
             if (sp.output_handler) {
-                sp.output_handler(path, sp.getParamValue(path));
+                sp.output_handler(pw.path, sp.getParamValue(pw.path));
             }
         }
     }
@@ -2868,7 +2874,9 @@ var mydspPolyProcessorString = `
                     for (var i = 0; i < item.meta.length; i++) {
                         if (item.meta[i].midi !== undefined) {
                             if (item.meta[i].midi.trim() === "pitchwheel") {
-                                obj.fPitchwheelLabel.push(item.address);
+                                obj.fPitchwheelLabel.push({ path:item.address,
+                                      min:parseFloat(item.min),
+                                      max:parseFloat(item.max) });
                             } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                                 obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
                                 .push({ path:item.address,
@@ -3410,10 +3418,10 @@ var mydspPolyProcessorString = `
             this.pitchWheel = function (channel, wheel)
             {
                 for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
-                    var path = this.fPitchwheelLabel[i];
-                    this.setParamValue(path, Math.pow(2.0, wheel/12.0));
+                    var pw = this.fPitchwheelLabel[i];
+                    this.setParamValue(path, mydspPolyProcessor.remap(wheel, 0, 16383, pw.min, pw.max));
                     if (this.output_handler) {
-                        this.output_handler(path, this.getParamValue(path));
+                        this.output_handler(pw.path, this.getParamValue(pw.path));
                     }
                 }
             }
@@ -3479,7 +3487,7 @@ var mydspPolyProcessorString = `
             } else if (cmd === 11) {
                 this.ctrlChange(channel, data1, data2);
             } else if (cmd === 14) {
-                this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+                this.pitchWheel(channel, (data2 * 128.0 + data1));
             }
         }
 

@@ -51,6 +51,7 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 #include "faust/dsp/poly-wasm-dsp.h"
 #endif
 #include "faust/gui/SoundUI.h"
+#include "faust/gui/MidiUI.h"
 
 wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
@@ -171,7 +172,9 @@ wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
     if (fFactory->fMapUI.getParamsCount() == 0) {
         buildUserInterface(&fFactory->fMapUI);
     }
+    fMIDIUI = new MidiUI();
     buildUserInterface(factory->fSoundUI);
+    buildUserInterface(fMIDIUI);
 }
 
 wasm_dsp::~wasm_dsp()
@@ -183,6 +186,7 @@ wasm_dsp::~wasm_dsp()
     EM_ASM({ faust_module._free($0); }, fDSP);
 #endif
     wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
+    delete fMIDIUI;
 }
 
 int wasm_dsp::getNumInputs()

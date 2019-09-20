@@ -75,7 +75,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 for (var i = 0; i < item.meta.length; i++) {
                     if (item.meta[i].midi !== undefined) {
                         if (item.meta[i].midi.trim() === "pitchwheel") {
-                            obj.fPitchwheelLabel.push(item.address);
+                            obj.fPitchwheelLabel.push({ path:item.address,
+                                  min:parseFloat(item.min),
+                                  max:parseFloat(item.max) });
                         } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                             obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
                             .push({ path:item.address,
@@ -617,10 +619,10 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.pitchWheel = function (channel, wheel)
         {
             for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
-                var path = this.fPitchwheelLabel[i];
-                this.setParamValue(path, Math.pow(2.0, wheel/12.0));
+                var pw = this.fPitchwheelLabel[i];
+                this.setParamValue(pw.path, mydspPolyProcessor.remap(wheel, 0, 16383, pw.min, pw.max));
                 if (this.output_handler) {
-                   	this.output_handler(path, this.getParamValue(path));
+                   	this.output_handler(pw.path, this.getParamValue(pw.path));
                 }
             }
         }
@@ -685,7 +687,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         } else if (cmd === 11) {
             this.ctrlChange(channel, data1, data2);
         } else if (cmd === 14) {
-            this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+            this.pitchWheel(channel, (data2 * 128.0 + data1));
         }
     }
     

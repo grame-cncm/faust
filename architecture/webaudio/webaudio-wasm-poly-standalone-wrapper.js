@@ -83,8 +83,10 @@ class FaustWasm2ScriptProcessorPoly {
         sp.fDate = 0;
     
         sp.fPitchwheelLabel = [];
-        sp.fCtrlLabel = new Array(128).fill(null).map(() => []),
-
+        sp.fCtrlLabel = new Array(128).fill(null).map(() => []);
+        
+        sp.remap = (v, mn0, mx0, mn1, mx1) => (v - mn0) / (mx0 - mn0) * (mx1 - mn1) + mn1;
+    
         sp.numIn = inputs;
         sp.numOut = outputs;
     
@@ -233,8 +235,7 @@ class FaustWasm2ScriptProcessorPoly {
                 dspInput.set(input);
             }
             try {
-                sp.instance.compute(bufferSize, sp.ins, sp.outs);
-
+          
                 // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
                 if (sp.compute_handler) sp.compute_handler(bufferSize);
                 sp.mixer.clearOutput(bufferSize, sp.numOut, sp.outs); // First clear the outputs
@@ -285,7 +286,11 @@ class FaustWasm2ScriptProcessorPoly {
                     if (!midi) return;
                     const strMidi = midi.trim();
                     if (strMidi === "pitchwheel") {
-                        sp.fPitchwheelLabel.push(item.address);
+                        sp.fPitchwheelLabel.push({
+                            path: item.address,
+                            min: parseFloat(item.min),
+                            max: parseFloat(item.max)
+                        });
                     } else {
                         const matched = strMidi.match(/^ctrl\s(\d+)/);
                         if (!matched) return;
@@ -474,10 +479,9 @@ class FaustWasm2ScriptProcessorPoly {
         sp.ctrlChange = (channel, ctrl, value) => {
             if (ctrl === 123 || ctrl === 120) sp.allNotesOff();
             if (!sp.fCtrlLabel[ctrl].length) return;
-            const remap = (v, mn0, mx0, mn1, mx1) => (v - mn0) / (mx0 - mn0) * (mx1 - mn1) + mn1;
-            sp.fCtrlLabel[ctrl].forEach(ctrl => {
+             sp.fCtrlLabel[ctrl].forEach(ctrl => {
                 const path = ctrl.path;
-                sp.setParamValue(path, remap(value, 0, 127, ctrl.min, ctrl.max));
+                sp.setParamValue(path, sp.remap(value, 0, 127, ctrl.min, ctrl.max));
                 if (sp.output_handler) sp.output_handler(path, sp.getParamValue(path));
             })
         }
@@ -488,10 +492,10 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} value - the MIDI controller value (-1..1)
          */
         sp.pitchWheel = (channel, wheel) => {
-            sp.fPitchwheelLabel.forEach(path => {
-                sp.setParamValue(path, Math.pow(2, wheel / 12));
-                if (sp.output_handler) sp.output_handler(path, sp.getParamValue(path));
-            })
+            sp.fPitchwheelLabel.forEach(pw => {
+                sp.setParamValue(pw.path, sp.remap(wheel, 0, 16383, pw.min, pw.max));
+                if (sp.output_handler) sp.output_handler(pw.path, sp.getParamValue(pw.path));
+            });
         }
         const findPath = (o, p) => {
             if (typeof o !== "object") return false;

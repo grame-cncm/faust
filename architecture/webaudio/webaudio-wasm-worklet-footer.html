@@ -47,7 +47,7 @@ function midiMessageReceived(ev)
     } else if (cmd === 11) {
         ctrlChange(channel, data1, data2);
     } else if (cmd === 14) {
-        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        pitchWheel(channel, (data2 * 128.0 + data1));
     }
 }
 
