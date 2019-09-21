@@ -80,6 +80,7 @@ class GraphCompiler : public Compiler {
     property<string>                fVectorProperty;
     property<pair<string, string> > fStaticInitProperty;    // property added to solve 20101208 kjetil bug
     property<pair<string, string> > fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
+    property<Tree>                  fTableInitProperty;     // init expression associated with each table ID
 
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
@@ -108,11 +109,14 @@ class GraphCompiler : public Compiler {
 
     string getFreshID(const string& prefix);
 
-    void       compilePreparedSignalList(Tree lsig);
-    Tree       prepare(Tree L0) override;
-    Tree       prepare2(Tree L0) override;
-    set<Tree>  transformIntoInstructions(Tree L3);
-    Scheduling schedule(const set<Tree>& Instr);
+    void          compilePreparedSignalList(Tree lsig);
+    Tree          prepare(Tree L0) override;
+    Tree          prepare2(Tree L0) override;
+    Tree          prepare3(Tree L0);
+    set<Tree>     transformIntoInstructions(Tree L3);
+    set<Tree>     expression2Instructions(Tree L3);
+    Scheduling    schedule(const set<Tree>& Instr);
+    digraph<Tree> tableDependenciesGraph(const set<Tree>& I);
 
     void   generateTime();
     bool   getCompiledExpression(Tree sig, string& name);
@@ -121,10 +125,11 @@ class GraphCompiler : public Compiler {
     void setVectorNameProperty(Tree sig, const string& vecname);
     bool getVectorNameProperty(Tree sig, string& vecname);
 
-    int  getSharingCount(Tree t);
-    void setSharingCount(Tree t, int count);
-    void sharingAnalysis(Tree t);
-    void sharingAnnotation(int vctxt, Tree t);
+    int       getSharingCount(Tree t);
+    void      setSharingCount(Tree t, int count);
+    void      sharingAnalysis(Tree t);
+    void      sharingAnnotation(int vctxt, Tree t);
+    set<Tree> collectTableIDs(const set<Tree> I);
 
     void   conditionAnnotation(Tree l);
     void   conditionAnnotation(Tree t, Tree nc);

@@ -216,6 +216,68 @@ Tree GraphCompiler::prepare2(Tree L0)
 }
 
 /**
+ * @brief prepare3(L): prepare a list of expressions to be ready to be translated into a set of instructions
+ *
+ * @param L1
+ * @return Tree
+ */
+Tree GraphCompiler::prepare3(Tree L1)
+{
+    recursivnessAnnotation(L1);  // Annotate L0 with recursivness information
+    typeAnnotation(L1, true);    // Annotate L0 with type information
+
+    SignalPromotion SP;
+    Tree            L1b = SP.mapself(L1);
+
+    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
+
+    SignalConstantPropagation SK;
+    Tree                      L2b = SK.mapself(L2);
+
+    // Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
+
+    return L2b;
+}
+
+/**
+ * @brief expression2Instructions() : transform an expression into instructions
+ * @param exp
+ * @return set<Tree>
+ */
+set<Tree> GraphCompiler::expression2Instructions(Tree exp)
+{
+    Tree L = cons(exp, gGlobal->nil);
+    Tree P = prepare3(L);
+    return transformIntoInstructions(P);
+}
+
+/**
+ * @brief collect the IDS of all the table used in a set of instructions
+ *
+ * @param I
+ * @return set<Tree>
+ */
+set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
+{
+    set<Tree> IDs;
+    for (Tree i : I) {
+        Tree id, origin, init, widx, wsig;
+        int  nature, tblsize;
+        if (isSigInstructionTableWrite(i, id, origin, &nature, &tblsize, init, widx, wsig)) {
+            int    n;
+            double r;
+            if (isSigInt(init, &n) || isSigReal(init, &r)) {
+                // trivial init
+            } else {
+                IDs.insert(id);
+                fTableInitProperty.set(id, init);
+            }
+        }
+    }
+    return IDs;
+}
+
+/**
  * @brief transformIntoInstructions(): transfoms a list of signals expressions into a set of instructions
  *
  * @param L3
@@ -282,10 +344,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -470,46 +530,40 @@ static string nature2ctype(int n)
     return ctype;
 }
 
-map<Tree, Tree> tableInitializations(const set<Tree>& I)
+digraph<Tree> GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
-    map<Tree, Tree> M;  // mapping between table IDs and initialization expressions
-    set<Tree>       E;  // set of initialization expressions
-    for (Tree i : I) {
-        int  nature, tblsize;
-        Tree id, origin, init, widx, exp, gexp;
-        if (isSigInstructionTableWrite(i, id, origin, &nature, &tblsize, init, widx, exp)) {
-            if (isSigGen(init, gexp)) {
-                // we ignore zero initialisations
-                // handled directly
-                M[id] = gexp;
-                E.insert(gexp);
-                cerr << "ID:" << *id << " <- " << ppsig(gexp) << endl;
+    digraph<Tree> G;                       // Graph of table IDs
+    set<Tree>     T;                       // Treated IDs so far
+    set<Tree>     R = collectTableIDs(I);  // Remaining to be treated
+    while (!R.empty()) {
+        set<Tree> N;  // Set of unseen IDs
+        for (Tree id : R) {
+            G.add(id);
+            T.insert(id);
+            Tree exp;
+            faustassert(fTableInitProperty.get(id, exp));
+            set<Tree> J = expression2Instructions(exp);
+            set<Tree> D = collectTableIDs(J);
+            for (Tree dst : D) {
+                G.add(id, dst);
+                if ((T.count(dst) == 0) || (R.count(dst) == 0)) {
+                    N.insert(dst);  // dst is unseen
+                }
             }
         }
+        R = N;  // Unseen are remaining to treat
     }
-
-    // compute the dependecy graph between tables (cycles are not allowed)
-    digraph<Tree> G;
-    for (auto p : M) {
-        Tree src = p.first;
-        G.add(src);
-        for (Tree dst : listTableDependencies(p.second)) {
-            G.add(src, dst);
-        }
-    }
-    cerr << "Graph of Table dependencies: " << G << endl;
-
-    return M;
+    cerr << "Table graph : " << G << endl;
+    return G;
 }
 
 void GraphCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
-    L = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>       INSTR{transformIntoInstructions(L)};
-    map<Tree, Tree> INIT{tableInitializations(INSTR)};
-    Scheduling      S{schedule(INSTR)};
-    // S.print("partx-scheduling.txt");
+    L                   = prepare(L);  // optimize, share and annotate expressions
+    set<Tree>     INSTR = transformIntoInstructions(L);
+    digraph<Tree> G     = tableDependenciesGraph(INSTR);
+    Scheduling    S     = schedule(INSTR);
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
