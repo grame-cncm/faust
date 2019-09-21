@@ -320,6 +320,7 @@ struct dsp_voice_group {
 
 #ifdef EMCC
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/MidiUI.h"
 #endif
 
 class dsp_poly : public decorator_dsp, public midi, public JSONControl {
@@ -329,6 +330,7 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
     #ifdef EMCC
         MapUI fMapUI;
         std::string fJSON;
+        MidiUI fMIDIUI;
     #endif
     
     public:
@@ -342,6 +344,7 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
             buildUserInterface(&jsonui);
             fJSON = jsonui.JSON(true);
             buildUserInterface(&fMapUI);
+            buildUserInterface(&fMIDIUI);
         #endif
         }
     
@@ -381,15 +384,15 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         }
     #endif
     
-        virtual  MapUI* keyOn(int channel, int pitch, int velocity)
+        virtual MapUI* keyOn(int channel, int pitch, int velocity)
         {
             return midi::keyOn(channel, pitch, velocity);
         }
-        virtual  void keyOff(int channel, int pitch, int velocity)
+        virtual void keyOff(int channel, int pitch, int velocity)
         {
             midi::keyOff(channel, pitch, velocity);
         }
-        virtual  void keyPress(int channel, int pitch, int press)
+        virtual void keyPress(int channel, int pitch, int press)
         {
             midi::keyPress(channel, pitch, press);
         }
@@ -407,7 +410,12 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         }
         virtual void pitchWheel(int channel, int wheel)
         {
+        #ifdef EMCC
+            fMIDIUI.pitchWheel(0., channel, wheel);
+            GUI::updateAllGuis();
+        #else
             midi::pitchWheel(channel, wheel);
+        #endif
         }
         virtual void progChange(int channel, int pgm)
         {
@@ -733,6 +741,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Group API
         void setGroup(bool group) { fGroupControl = group; }
         bool getGroup() { return fGroupControl; }
 
@@ -760,27 +769,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
-        void pitchWheel(int channel, int wheel)
-        {}
-
         void ctrlChange(int channel, int ctrl, int value)
         {
             if (ctrl == ALL_NOTES_OFF || ctrl == ALL_SOUND_OFF) {
                 allNotesOff();
             }
         }
-
-        void progChange(int channel, int pgm)
-        {}
-
-        void keyPress(int channel, int pitch, int press)
-        {}
-
-        void chanPress(int channel, int press)
-        {}
-
-        void ctrlChange14bits(int channel, int ctrl, int value)
-        {}
 
 };
 

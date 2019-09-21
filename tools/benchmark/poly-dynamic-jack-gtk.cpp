@@ -224,6 +224,8 @@ int main(int argc, char* argv[])
         cout << "Running in double..." << endl;
     }
     
+    cout << DSP->getJSON();
+    
     /*
     JSONUI json(DSP->getNumInputs(), DSP->getNumOutputs());
     DSP->buildUserInterface(&json);
@@ -286,16 +288,20 @@ int main(int argc, char* argv[])
     }
     
     /*
+    // Test setParamValue API
+    DSP->setParamValue("/Polyphonic/Voices/clarinet/otherParams/bellOpening", 0.35);
+    DSP->setParamValue("/Polyphonic/Voices/clarinet/midi/bend", 1.5);
+    
     // Test MIDI API
     DSP->keyOn(0, 60, 100);
     DSP->keyOn(0, 64, 100);
-    DSP->keyOn(0, 57, 100);
+    DSP->keyOn(0, 67, 100);
     
     usleep(1000000);
     
     DSP->keyOff(0, 60, 100);
     DSP->keyOff(0, 64, 100);
-    DSP->keyOff(0, 57, 100);
+    DSP->keyOff(0, 67, 100);
     */
     
     interface->run();

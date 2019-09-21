@@ -270,9 +270,6 @@ class EXPORT wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
     int               fDSP;       // Index of wasm DSP memory
-#ifdef EMCC
-    MidiUI*  fMIDIUI;
-#endif
 
    public:
     wasm_dsp() : fFactory(nullptr), fDSP(-1) {}
