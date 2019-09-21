@@ -672,9 +672,6 @@ class MidiUI : public GUI, public midi
     
     public:
     
-        MidiUI():fMidiHandler(NULL), fDelete(false), fTimeStamp(false)
-        {}
-
         MidiUI(midi_handler* midi_handler, bool delete_handler = false)
         {
             fMidiHandler = midi_handler;

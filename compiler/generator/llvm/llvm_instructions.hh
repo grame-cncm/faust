@@ -316,6 +316,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         gMathLibTable.push_back("logf");
         gMathLibTable.push_back("log10f");
         gMathLibTable.push_back("powf");
+        gMathLibTable.push_back("rintf");
         gMathLibTable.push_back("roundf");
         gMathLibTable.push_back("sinf");
         gMathLibTable.push_back("sqrtf");
@@ -344,6 +345,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         gMathLibTable.push_back("log");
         gMathLibTable.push_back("log10");
         gMathLibTable.push_back("pow");
+        gMathLibTable.push_back("rint");
         gMathLibTable.push_back("round");
         gMathLibTable.push_back("sin");
         gMathLibTable.push_back("sqrt");
