@@ -261,16 +261,19 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
 {
     set<Tree> IDs;
     for (Tree i : I) {
-        Tree id, origin, init, widx, wsig;
+        Tree id, origin, ginit, init, widx, wsig;
         int  nature, tblsize;
-        if (isSigInstructionTableWrite(i, id, origin, &nature, &tblsize, init, widx, wsig)) {
+        if (isSigInstructionTableWrite(i, id, origin, &nature, &tblsize, ginit, widx, wsig)) {
             int    n;
             double r;
-            if (isSigInt(init, &n) || isSigReal(init, &r)) {
-                // trivial init
-            } else {
-                IDs.insert(id);
-                fTableInitProperty.set(id, init);
+            if (isSigGen(ginit, init)) {
+                if (isSigInt(init, &n) || isSigReal(init, &r)) {
+                    // trivial init
+                } else {
+                    IDs.insert(id);
+                    fTableInitProperty.set(id, init);
+                    cerr << "collectTableIDs: " << *id << " with init " << ppsig(init) << endl;
+                }
             }
         }
     }
@@ -540,9 +543,12 @@ digraph<Tree> GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         for (Tree id : R) {
             G.add(id);
             T.insert(id);
-            Tree exp;
-            faustassert(fTableInitProperty.get(id, exp));
-            set<Tree> J = expression2Instructions(exp);
+            Tree init;
+            faustassert(fTableInitProperty.get(id, init));
+            set<Tree> J = expression2Instructions(init);
+            cerr << "tableDependenciesGraph: " << *id << " as instructions {";
+            for (Tree i : J) cerr << ppsig(i) << endl;
+            cerr << "}" << endl;
             set<Tree> D = collectTableIDs(J);
             for (Tree dst : D) {
                 G.add(id, dst);
