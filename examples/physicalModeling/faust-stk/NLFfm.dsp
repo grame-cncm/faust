@@ -59,10 +59,10 @@ NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
-//vibrato gain is controled by envVibrato (declared in instruments.lib)
+//vibrato gain is controlled by envVibrato (declared in instruments.lib)
 vibrato = os.osc(vibratoFreq)*vibratoGain*envVibrato(0.1*2*vibratoAttack,0.9*2*vibratoAttack,100,vibratoRelease,gate);
 
-//output gain is controled by an adsr envelope
+//output gain is controlled by an adsr envelope
 envelope = en.adsr(envelopeAttack,envelopeDecay,0.9,envelopeRelease,gate)*gain;
 breath = envelope + envelope*vibrato;
 
