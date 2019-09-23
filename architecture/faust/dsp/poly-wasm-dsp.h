@@ -225,7 +225,7 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_poly_factory) {
 EMSCRIPTEN_BINDINGS(CLASS_dsp_poly)
 {
     class_<dsp_poly>("dsp_poly")
-    .constructor()
+    .constructor<dsp*>()
     // DSP API
     .function("getNumInputs", &dsp_poly::getNumInputs, allow_raw_pointers())
     .function("getNumOutputs", &dsp_poly::getNumOutputs, allow_raw_pointers())
