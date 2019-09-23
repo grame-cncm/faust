@@ -23,7 +23,9 @@
 
 #define _DNF_ 1
 
+#include <iostream>
 #include <map>
+#include <sstream>
 #include <utility>
 
 #include "compile.hh"
@@ -46,11 +48,8 @@ struct Scheduling {
     vector<Tree> fBlockLevel;
     vector<Tree> fExecLevel;
 
-    void print(const string& filename)
+    void print(ostream& f)
     {
-        ofstream f;
-        f.open(filename);
-
         f << "// INIT SCHEDULING " << endl;
         for (Tree i : fInitLevel) {
             f << i << ":\t" << ppsig(fDic[i]) << endl;
@@ -68,19 +67,34 @@ struct Scheduling {
             f << i << ":\t" << ppsig(fDic[i]) << endl;
         }
         f << endl;
+    }
 
+    void print(const string& filename)
+    {
+        ofstream f;
+        f.open(filename);
+        this->print(f);
         f.close();
+    }
+
+    friend ostream& operator<<(ostream& file, Scheduling& S)
+    {
+        S.print(file);
+        return file;
     }
 };
 
 class GraphCompiler : public Compiler {
    protected:
-    property<string>                fCompileProperty;
-    property<string>                fSoundfileVariableProperty;  // variable associated to a soundfile
-    property<string>                fVectorProperty;
-    property<pair<string, string> > fStaticInitProperty;    // property added to solve 20101208 kjetil bug
-    property<pair<string, string> > fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
-    property<Tree>                  fTableInitProperty;     // init expression associated with each table ID
+    property<string>               fCompileProperty;
+    property<string>               fSoundfileVariableProperty;  // variable associated to a soundfile
+    property<string>               fVectorProperty;
+    property<pair<string, string>> fStaticInitProperty;        // property added to solve 20101208 kjetil bug
+    property<pair<string, string>> fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
+    property<Tree>                 fTableInitExpression;       // init expression associated with each table ID
+    property<set<Tree>>            fTableInitInstructions;     // init expression associated with each table ID
+    property<Scheduling>           fTableInitScheduling;       // instruction scheduling for each init expression
+    digraph<Tree>                  fTableInitialisationGraph;  // Graph of table IDs
 
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
@@ -109,14 +123,14 @@ class GraphCompiler : public Compiler {
 
     string getFreshID(const string& prefix);
 
-    void          compilePreparedSignalList(Tree lsig);
-    Tree          prepare(Tree L0) override;
-    Tree          prepare2(Tree L0) override;
-    Tree          prepare3(Tree L0);
-    set<Tree>     transformIntoInstructions(Tree L3);
-    set<Tree>     expression2Instructions(Tree L3);
-    Scheduling    schedule(const set<Tree>& Instr);
-    digraph<Tree> tableDependenciesGraph(const set<Tree>& I);
+    void       compilePreparedSignalList(Tree lsig);
+    Tree       prepare(Tree L0) override;
+    Tree       prepare2(Tree L0) override;
+    Tree       prepare3(Tree L0);
+    set<Tree>  transformIntoInstructions(Tree L3);
+    set<Tree>  expression2Instructions(Tree L3);
+    Scheduling schedule(const set<Tree>& Instr);
+    void       tableDependenciesGraph(const set<Tree>& I);
 
     void   generateTime();
     bool   getCompiledExpression(Tree sig, string& name);

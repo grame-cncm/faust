@@ -44,8 +44,7 @@ using namespace std;
 static map<Tree, int> countOccurrences(const set<Tree>& I);
 
 /**
- * @brief Transformation class used internally to split a signal
- * into a set of instructions
+ * @brief Transforms old rd/rw tables into sigInstructionTableRead/Write pairs
  *
  */
 class TransformTables : public SignalIdentity {
@@ -88,7 +87,7 @@ class TransformTables : public SignalIdentity {
 };
 
 /**
- * @brief transform rd/rw tables into table instructions
+ * @brief transform old rd/rw tables into sigInstructionTableRead/Write pairs
  *
  * @param I the initial set of instructions
  * @return set<Tree> the resulting set of instructions

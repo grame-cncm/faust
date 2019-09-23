@@ -30,8 +30,7 @@ using namespace std;
 //===========================================================
 
 template <typename N>
-class Tarjan
-{
+class Tarjan {
     // Additional information associated to each node
     // during the visit
     struct tarjanAux {
@@ -88,7 +87,9 @@ class Tarjan
                 finished = (w == v);
             } while (!finished);
             fPartition.insert(cycle);
-            if ((cycle.size() > 1) || fGraph.areConnected(v, v)) { fCycleCount++; }
+            if ((cycle.size() > 1) || fGraph.areConnected(v, v)) {
+                fCycleCount++;
+            }
         }
         // cout << "end (first) visit of " << v << endl;
     }
@@ -97,19 +98,15 @@ class Tarjan
     explicit Tarjan(const digraph<N>& g) : fGraph(g), fGroup(0), fCycleCount(0)
     {
         for (const auto& n : fGraph.nodes()) {
-            if (fAux.find(n) == fAux.end()) { visit(n); }
+            if (fAux.find(n) == fAux.end()) {
+                visit(n);
+            }
         }
     }
 
-    const set<set<N>>& partition() const
-    {
-        return fPartition;
-    }
+    const set<set<N>>& partition() const { return fPartition; }
 
-    int cycles() const
-    {
-        return fCycleCount;
-    }
+    int cycles() const { return fCycleCount; }
 };
 
 //===========================================================
@@ -193,7 +190,9 @@ inline vector<vector<N>> parallelize(const digraph<N>& g)
             return p->second;
         } else {
             int l = -1;
-            for (const auto& e : g.connections(n1)) { l = max(l, level(g, e.first, levelcache)); }
+            for (const auto& e : g.connections(n1)) {
+                l = max(l, level(g, e.first, levelcache));
+            }
             return levelcache[n1] = l + 1;
         }
     };
@@ -201,12 +200,16 @@ inline vector<vector<N>> parallelize(const digraph<N>& g)
     map<N, int> levelcache;
     // compute the level of each node in the graph
     int l = -1;
-    for (const N& n : g.nodes()) { l = max(l, level(g, n, levelcache)); }
+    for (const N& n : g.nodes()) {
+        l = max(l, level(g, n, levelcache));
+    }
     // create a graph for each level and place
     // each node in the appropriate level
     vector<vector<N>> v;
     v.resize(l + 1);
-    for (const N& n : g.nodes()) { v[levelcache[n]].push_back(n); }
+    for (const N& n : g.nodes()) {
+        v[levelcache[n]].push_back(n);
+    }
 
     return v;
 }
@@ -232,14 +235,18 @@ inline vector<N> serialize(const digraph<N>& g)
     Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
-            for (const auto& p : g.connections(n)) { visit(g, p.first, V, S); }
+            for (const auto& p : g.connections(n)) {
+                visit(g, p.first, V, S);
+            }
             S.push_back(n);
         }
     };
 
     vector<N> S;
     set<N>    V;
-    for (const N& n : g.nodes()) { visit(g, n, V, S); }
+    for (const N& n : g.nodes()) {
+        visit(g, n, V, S);
+    }
     return S;
 }
 
@@ -264,7 +271,9 @@ inline digraph<M> mapnodes(const digraph<N>& g, function<M(const N&)> foo)
 
     // copy the connections
     for (const auto& n : g.nodes()) {
-        for (const auto& cnx : g.connections(n)) { r.add(cache[n], cache[cnx.first], cnx.second); }
+        for (const auto& cnx : g.connections(n)) {
+            r.add(cache[n], cache[cnx.first], cnx.second);
+        }
     }
     return r;
 }
@@ -285,7 +294,9 @@ inline digraph<N> mapconnections(const digraph<N>& G, function<bool(const N&, co
     for (const N& n : G.nodes()) {
         R.add(n);
         for (const auto& c : G.connections(n)) {
-            if (keep(n, c.first, c.second)) { R.add(n, c.first, c.second); }
+            if (keep(n, c.first, c.second)) {
+                R.add(n, c.first, c.second);
+            }
         }
     }
     return R;
@@ -313,12 +324,16 @@ void splitgraph(const digraph<N>& G, function<bool(const N&)> left, digraph<N>& 
         if (left(n)) {
             L.add(n);
             for (const auto& c : G.connections(n)) {
-                if (left(c.first)) { L.add(n, c.first, c.second); }
+                if (left(c.first)) {
+                    L.add(n, c.first, c.second);
+                }
             }
         } else {
             R.add(n);
             for (const auto& c : G.connections(n)) {
-                if (!left(c.first)) { R.add(n, c.first, c.second); }
+                if (!left(c.first)) {
+                    R.add(n, c.first, c.second);
+                }
             }
         }
     }
@@ -407,7 +422,9 @@ inline ostream& operator<<(ostream& file, const digraph<N>& g)
             }
             sep = ", ";
         }
-        if (!hascnx) { file << sep << n; }
+        if (!hascnx) {
+            file << sep << n;
+        }
         sep = ", ";
     }
 
@@ -435,11 +452,12 @@ inline ostream& dotfile(ostream& file, const digraph<N>& g)
             if (c.second == 0) {
                 file << "\t" << sn.str() << "->" << sm.str() << ";" << endl;
             } else {
-                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];"
-                     << endl;
+                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];" << endl;
             }
         }
-        if (!hascnx) { file << "\t" << sn.str() << ";" << endl; }
+        if (!hascnx) {
+            file << "\t" << sn.str() << ";" << endl;
+        }
     }
 
     return file << "}" << endl;

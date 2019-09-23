@@ -271,8 +271,8 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
                     // trivial init
                 } else {
                     IDs.insert(id);
-                    fTableInitProperty.set(id, init);
-                    cerr << "collectTableIDs: " << *id << " with init " << ppsig(init) << endl;
+                    fTableInitExpression.set(id, init);
+                    cerr << "\ncollectTableIDs: " << id << "@" << *id << " with init " << ppsig(init) << endl;
                 }
             }
         }
@@ -533,25 +533,29 @@ static string nature2ctype(int n)
     return ctype;
 }
 
-digraph<Tree> GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
+void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
-    digraph<Tree> G;                       // Graph of table IDs
-    set<Tree>     T;                       // Treated IDs so far
-    set<Tree>     R = collectTableIDs(I);  // Remaining to be treated
+    set<Tree> T;                       // Treated IDs so far
+    set<Tree> R = collectTableIDs(I);  // Remaining to be treated
     while (!R.empty()) {
         set<Tree> N;  // Set of unseen IDs
         for (Tree id : R) {
-            G.add(id);
+            fTableInitialisationGraph.add(id);
             T.insert(id);
             Tree init;
-            faustassert(fTableInitProperty.get(id, init));
-            set<Tree> J = expression2Instructions(init);
-            cerr << "tableDependenciesGraph: " << *id << " as instructions {";
-            for (Tree i : J) cerr << ppsig(i) << endl;
-            cerr << "}" << endl;
+            faustassert(fTableInitExpression.get(id, init));
+
+            // convert init expressions into instruction sets and scheduling
+            set<Tree> J;
+            if (!fTableInitInstructions.get(init, J)) {
+                J = expression2Instructions(init);
+                fTableInitInstructions.set(init, J);
+                fTableInitScheduling.set(init, schedule(J));
+            }
+
             set<Tree> D = collectTableIDs(J);
             for (Tree dst : D) {
-                G.add(id, dst);
+                fTableInitialisationGraph.add(id, dst);
                 if ((T.count(dst) == 0) || (R.count(dst) == 0)) {
                     N.insert(dst);  // dst is unseen
                 }
@@ -559,17 +563,16 @@ digraph<Tree> GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         }
         R = N;  // Unseen are remaining to treat
     }
-    cerr << "Table graph : " << G << endl;
-    return G;
 }
 
 void GraphCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
-    L                   = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>     INSTR = transformIntoInstructions(L);
-    digraph<Tree> G     = tableDependenciesGraph(INSTR);
-    Scheduling    S     = schedule(INSTR);
+    L                = prepare(L);  // optimize, share and annotate expressions
+    set<Tree>  INSTR = transformIntoInstructions(L);
+    Scheduling S     = schedule(INSTR);
+
+    tableDependenciesGraph(INSTR);
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
