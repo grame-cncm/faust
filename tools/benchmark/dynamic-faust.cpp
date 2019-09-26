@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         cout << "Use '-o foo.ll' to generate an LLVM IR textual file\n";
         cout << "Use '-o foo.bc' to generate an LLVM bitcode file\n";
         cout << "Use '-o foo.mc' to generate an LLVM machine code file\n";
-        cout << "Use '-o foo.o' to generate an LLVM object code file\n";
+        cout << "Use '-o foo.o' to generate an object code file\n";
         return 0;
     }
     

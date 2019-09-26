@@ -12,10 +12,10 @@ Here are the available options:
 
 - `-target xxx to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')`
 - `-opt (native|generic) to discover and compile with the best compilation parameters`
-- `-o foo.ll to generate a LLVM IR textual file`
-- `-o foo.bc to generate a LLVM bitcode file`
-- `-o foo.mc to generate a LLVM machine code file`
-- `-o foo.o to generate a LLVM object code file`
+- `-o foo.ll to generate an LLVM IR textual file`
+- `-o foo.bc to generate an LLVM bitcode file`
+- `-o foo.mc to generate an LLVM machine code file`
+- `-o foo.o to generate an object code file`
 
 ## dynamic-jack-gtk
 
@@ -133,6 +133,17 @@ Here is the available options:
 - `-html to generate a ready to use HTML test page`
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
 - `-jsmem to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
+
+## faust-tester
+
+The **faust-tester** tool allows to test a Faust effect DSP with test input signals, like dirac impulse or periodic pulses.
+
+`faust-tester [-imp] [-pulse] foo.dsp` 
+
+Here is the available options:
+
+- `-imp to test with an dirac impulse`
+- `-pulse to test with a periodic pulse`
 
 ## faust-osc-controller
 
