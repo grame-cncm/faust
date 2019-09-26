@@ -261,16 +261,23 @@ void CPPCodeContainer::produceClass()
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS " << fKlassName << endl;
     *fOut << "#endif" << endl;
+    tab(n, *fOut);
 
     *fOut << "#ifdef __APPLE__ " << endl;
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
+    tab(n, *fOut);
 
     if (gGlobal->gOneSample) {
+        *fOut << "#define FAUST_INPUTS " << fNumInputs << endl;
+        *fOut << "#define FAUST_OUTPUTS  " << fNumOutputs << endl;
+        *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
+        *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum;
+        tab(n, *fOut);
         fSuperKlassName = "one_sample_dsp";
     }
-
+   
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
@@ -380,12 +387,16 @@ void CPPCodeContainer::produceClass()
         list<CodeContainer*>::const_iterator it;
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
             DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
-    false); InlineVoidFunctionCall inliner1(inst_init_fun); res1 = inliner1.getCode(res1); DeclareFunInst* fill_fun =
-    (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); InlineVoidFunctionCall inliner2(fill_fun); res1
-    = inliner2.getCode(res1);
+            false);
+            InlineVoidFunctionCall inliner1(inst_init_fun); 
+            res1 = inliner1.getCode(res1); 
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); 
+            InlineVoidFunctionCall inliner2(fill_fun); 
+            res1 = inliner2.getCode(res1);
         }
 
-        tab(n+1, *fOut); *fOut << "static void classInit(int sample_rate) {";
+        tab(n+1, *fOut); 
+        *fOut << "static void classInit(int sample_rate) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             res1->accept(&fCodeProducer);
@@ -432,13 +443,18 @@ void CPPCodeContainer::produceClass()
 
         list<CodeContainer*>::const_iterator it;
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
-    false); InlineVoidFunctionCall inliner1(inst_init_fun); res1 = inliner1.getCode(res1); res2 =
-    inliner1.getCode(res2); DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true,
-    false); InlineVoidFunctionCall inliner2(fill_fun); res1 = inliner2.getCode(res1); res2 = inliner2.getCode(res2);
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,false);
+            InlineVoidFunctionCall inliner1(inst_init_fun);
+            res1 = inliner1.getCode(res1);
+            res2 = inliner1.getCode(res2);
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner2(fill_fun);
+            res1 = inliner2.getCode(res1);
+            res2 = inliner2.getCode(res2);
         }
 
-        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int sample_rate) {";
+        tab(n+1, *fOut); 
+        *fOut << "virtual void instanceInit(int sample_rate) {";
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         res1->accept(&fCodeProducer);
