@@ -35,9 +35,9 @@
 #include "tlib.hh"
 
 #if 0
-static void countAddTerm (map<Tree,Tree>& M, Tree t, bool invflag);
-static void incTermCount (map<Tree,int>& M, Tree t, bool invflag);
-static Tree buildPowTerm (Tree f, int q);
+static void countAddTerm(map<Tree,Tree>& M, Tree t, bool invflag);
+static void incTermCount(map<Tree,int>& M, Tree t, bool invflag);
+static Tree buildPowTerm(Tree f, int q);
 static Tree simplifyingReorganizingMul(Tree t1, Tree t2);
 static Tree reorganizingMul(Tree k, Tree t);
 static void factorizeAddTerm(map<Tree,Tree>& M);

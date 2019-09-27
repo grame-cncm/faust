@@ -147,16 +147,16 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     gGlobal->gDevSuffix   = dev;
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
 
-    mkchdir(projname);  // create a directory to store files
+    mkchDir(projname);      // create a directory to store files
 
-    scheduleDrawing(bd);  // schedule the initial drawing
+    scheduleDrawing(bd);    // schedule the initial drawing
 
     Tree t;
     while (pendingDrawing(t)) {
-        writeSchemaFile(t);  // generate all the pending drawing
+        writeSchemaFile(t); // generate all the pending drawing
     }
 
-    cholddir();  // return to current directory
+    choldDir();  // return to current directory
 }
 
 /************************************************************************

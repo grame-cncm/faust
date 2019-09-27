@@ -41,10 +41,10 @@ using namespace std;
  *Switch back to the previously stored current directory
  */
 
-int cholddir()
+void choldDir()
 {
     if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
-        return 0;
+        return;
     } else {
         stringstream error;
         error << "ERROR : cholddir : " << strerror(errno) << std::endl;
@@ -57,14 +57,14 @@ int cholddir()
  * The current directory is saved to be later restored.
  */
 
-int mkchdir(string dirname)
+void mkchDir(const string& dirname)
 {
     getCurrentDir();
     if (gGlobal->gCurrentDir != "") {
         int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if (status == 0 || errno == EEXIST) {
             if (chdir(dirname.c_str()) == 0) {
-                return 0;
+                return;
             }
         }
     }
@@ -74,13 +74,13 @@ int mkchdir(string dirname)
     throw faustexception(error.str());
 }
 
-int makedir(string dirname)
+void makeDir(const string& dirname)
 {
     getCurrentDir();
     if (gGlobal->gCurrentDir != "") {
         int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         if (status == 0 || errno == EEXIST) {
-            return 0;
+            return;
         }
     }
 

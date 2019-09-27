@@ -1147,8 +1147,7 @@ static void parseSourceFiles()
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
-    // cout << "expandedDefList " << *expandedDefList << endl;
-
+ 
     Tree process = evalprocess(expandedDefList);
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
@@ -1160,7 +1159,13 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     if (gGlobal->gDetailsSwitch) {
         cout << "process = " << boxpp(process) << ";\n";
     }
-
+    
+    if (!getBoxType(process, &numInputs, &numOutputs)) {
+        stringstream error;
+        error << "ERROR during the evaluation of process : " << boxpp(process) << endl;
+        throw faustexception(error.str());
+    }
+    
     if (gGlobal->gDrawPSSwitch || gGlobal->gDrawSVGSwitch) {
         string projname = gGlobal->makeDrawPathNoExt();
         if (gGlobal->gDrawPSSwitch) {
@@ -1170,13 +1175,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
             drawSchema(process, subst("$0-svg", projname).c_str(), "svg");
         }
     }
-
-    if (!getBoxType(process, &numInputs, &numOutputs)) {
-        stringstream error;
-        error << "ERROR during the evaluation of process : " << boxpp(process) << endl;
-        throw faustexception(error.str());
-    }
-
+    
     if (gGlobal->gDetailsSwitch) {
         cout << "process has " << numInputs << " inputs, and " << numOutputs << " outputs" << endl;
     }
