@@ -7,10 +7,10 @@
 #                                                                   #
 #####################################################################
 
-set -e
-
 . faustpath
 . faustoptflags
+
+set -euo pipefail
 
 CXXFLAGS=("$MYGCCFLAGS")
 
@@ -34,8 +34,14 @@ QMAKE=$(command -v qmake-qt5 || command -v qmake)
 
 OSCINC=""
 QTDEFS=""
-OSCLIB=""
+OSCLIBS=""
+OSCDEFS=""
+HTTPLIBS=""
+HTTPDEFS=""
 POLY="POLY"
+QRDEFS=""
+POLYDEFS=""
+MIDIDEFS=""
 DEPLOY=""
 NVOICES=-1
 SOUNDFILE="0"
@@ -47,9 +53,9 @@ SPEC=""
 FILES=()
 OPTIONS=()
 
-while [ "$1" ]
+while [ "${1:-}" ]
 do
-    p=$1
+    p="${1:-}"
 
     if [ "$p" = "-help" ] || [ "$p" = "-h" ]; then
         echo "faust2jaqt [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
@@ -195,7 +201,11 @@ EndOfCode
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    "$QMAKE" -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=${CXXFLAGS[*]} -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
+      if [ -n "${FAUSTTOOLSFLAGS:-}" ]; then
+	      "$QMAKE" -project "QT += widgets printsupport network" "CONFIG+=warn_off" "${CLANGOPT:-}" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=${CXXFLAGS[*]} -Wno-unused-parameter ${FAUSTTOOLSFLAGS:-}" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
+      else
+	      "$QMAKE" -project "QT += widgets printsupport network" "CONFIG+=warn_off" "${CLANGOPT:-}" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=${CXXFLAGS[*]} -Wno-unused-parameter" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
+      fi
       if [ -n "$SPEC" ]; then
         "$QMAKE" "$SPEC" QMAKE_CFLAGS_ISYSTEM=-I
       else
