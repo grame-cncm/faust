@@ -42,11 +42,11 @@ SOUNDFILELIBS=""
 SAMPLERATEDEFS=""
 SAMPLERATELIBS=""
 
-while [ $1 ]
+while [ "$1" ]
 do
     p=$1
 
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ "$p" = "-help" ] || [ "$p" = "-h" ]; then
         echo "faust2jaqt [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
@@ -70,30 +70,30 @@ do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
-    elif [ $p = "-deploy" ]; then
+    elif [ "$p" = "-deploy" ]; then
         DEPLOY="yes"
-    elif [ $p = "-nvoices" ]; then
+    elif [ "$p" = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
         NVOICES=$1
-        if [ $NVOICES -ge 0 ]; then
+        if [ "$NVOICES" -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
-    elif [ $p = "-effect" ]; then
+    elif [ "$p" = "-effect" ]; then
         POLYDEFS="DEFINES += POLY2"
         POLY="POLY2"
         shift
         EFFECT=$1
-    elif [ $p = "-midi" ]; then
+    elif [ "$p" = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
-    elif [ $p = "-soundfile" ]; then
+    elif [ "$p" = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="DEFINES += SOUNDFILE"
-        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
-    elif [ $p = "-resample" ]; then
+        SOUNDFILELIBS=$(pkg-config --cflags --static --libs sndfile)
+    elif [ "$p" = "-resample" ]; then
         SAMPLERATEDEFS="DEFINES += SAMPLERATE"
-        SAMPLERATELIBS=`pkg-config --cflags --static --libs samplerate`
-    elif [ $p = "-osc" ]; then
+        SAMPLERATELIBS=$(pkg-config --cflags --static --libs samplerate)
+    elif [ "$p" = "-osc" ]; then
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then
@@ -101,7 +101,7 @@ do
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
-    elif [ ${p:0:1} = "-" ]; then
+    elif [ "${p:0:1}" = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
@@ -120,7 +120,7 @@ if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
     HTTPLIBS="-L/opt/local/lib $HTTPLIBS"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
-	if [ $SYS_VERSION -ge 13 ]
+	if [ "$SYS_VERSION" -ge 13 ]
 	then
 	    SPEC="-spec macx-clang"
 	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
@@ -155,8 +155,8 @@ for p in $FILES; do
 
     # compile faust to c++
     if [ $POLY = "POLY2" ]; then
-        if [ $EFFECT = "auto" ]; then
-            cat > $TMP/effect.dsp << EndOfCode
+        if [ "$EFFECT" = "auto" ]; then
+            cat > "$TMP/effect.dsp" << EndOfCode
             adapt(1,1) = _;
             adapt(2,2) = _,_;
             adapt(1,2) = _ <: _,_;
@@ -164,15 +164,15 @@ for p in $FILES; do
             adaptor(F,G) = adapt(outputs(F),inputs(G));
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
             rm "$TMP/effect.dsp"
         else
-            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
         fi
     else
-        faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+        faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
     fi
 
     # compile c++ to binary
@@ -186,7 +186,7 @@ EndOfCode
     if [[ $(uname) == Darwin ]]; then
         if [ "$SOUNDFILE" = "1" ]; then
             # get all soundfiles from the JSON file
-            cat $p.json | awk '
+            cat "$p.json" | awk '
                             BEGIN { FS=":"; SOFI=0; }
                                 /"soundfile"/ { SOFI=1; }
                                 /"url"/ {
@@ -197,27 +197,27 @@ EndOfCode
                                     SOFI=0;
                                 }
                             }
-            ' > $p-tmp.txt
+            ' > "$p-tmp.txt"
             # copy found soundfiles in the final binary
-            for snd in $(cat $p-tmp.txt); do
-                if [ -f $snd ]; then
-                    if [ ${snd:0:1} = "/" ]; then 
+            for snd in $(cat "$p-tmp.txt"); do
+                if [ -f "$snd" ]; then
+                    if [ "${snd:0:1}" = "/" ]; then 
                         echo "Warning: soundfile with absolute path is not copied !"
                     else
                         #create destination path and possibly create directory
-                        sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
-                        if ! [ -d $sfpath ]; then
+                        sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname "$snd")/"
+                        if ! [ -d "$sfpath" ]; then
                             echo "Create $sfpath"
-                            mkdir $sfpath
+                            mkdir "$sfpath"
                         fi
                         echo "Copy $snd in ${f%.dsp}$EXT"
-                        cp $snd $sfpath
+                        cp "$snd" "$sfpath"
                     fi
                 else
                     echo "Error: file $snd not found !"
                 fi
             done
-            rm $p-tmp.txt
+            rm "$p-tmp.txt"
         fi
     fi
 
@@ -229,15 +229,15 @@ EndOfCode
     fi
 
     #remove tempory files
-    rm -rf "$SRCDIR/${f%.dsp}$EXT"
+    rm -rf "${SRCDIR:?}/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
-    rm -f $p.json
+    rm -f "$p.json"
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
 done
 
-echo $BINARIES
+echo "$BINARIES"
 
 
