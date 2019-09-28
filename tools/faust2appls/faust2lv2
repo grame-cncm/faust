@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-#set -x
+set -eou pipefail
 
 # Default qmake setup (for GUI compilation). This requires Qt5. If qmake-qt5 or
 # qmake can not be located in PATH, you can also set the QMAKE environment
 # variable explicitly, or use the -qt5 option below.
-[ -z "$QMAKE" ] && QMAKE=$(command -v qmake-qt5 || command -v qmake)
+[ -z "${QMAKE:-}" ] && QMAKE=$(command -v qmake-qt5 || command -v qmake)
 
 # Where the Faust includes live. We assume that this is under the prefix of
 # whatever Faust binary 'which' locates. You can also specify this explicitly
 # by setting the FAUSTINC environment variable accordingly.
-[ -z "$FAUSTINC" ] && FAUSTINC=$(command -v faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
+[ -z "${FAUSTINC:-}" ] && FAUSTINC=$(command -v faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
 
 # Where our own Faust library files are. This may be under a different prefix
 # or not installed anywhere. We try 'ls' on lv2ui.cpp in some common locations
@@ -18,8 +18,8 @@
 # that you can run the script from the faust-lv2 source directory. You can
 # also specify this explicitly by setting the FAUSTLIB environment variable
 # accordingly.
-[ -z "$FAUSTLIB" ] && FAUSTLIB="$(dirname "$((ls -f /usr/share/faust/lv2ui.cpp /usr/local/share/faust/lv2ui.cpp /opt/local/share/faust/lv2ui.cpp "$PWD/lv2ui.cpp" 2>/dev/null) | tail -1)")"
-[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
+[ -z "${FAUSTLIB:-}" ] && FAUSTLIB="$(dirname "$((ls -f /usr/share/faust/lv2ui.cpp /usr/local/share/faust/lv2ui.cpp /opt/local/share/faust/lv2ui.cpp "$PWD/lv2ui.cpp" 2>/dev/null) | tail -1)")"
+[ -z "${FAUSTLIB:-}" ] && FAUSTLIB="$PWD"
 
 # defaults (these can be changed with the options listed below)
 URI_PREFIX=https://faustlv2.bitbucket.io
@@ -149,7 +149,6 @@ if [ ! -f "$FAUSTLIB/lv2ui.cpp" ]; then echo "$0: faust-lv2 library files not fo
 arch=lv2.cpp
 archui=lv2ui.cpp
 dspname="${FILES[0]}"
-echo "dspname: $dspname"
 SRCDIR=$(dirname "$dspname")
 ABSDIR=$(cd "$SRCDIR" && pwd)
 CURDIR=$(pwd)
@@ -186,13 +185,13 @@ else
   faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" "$dspname" -o "$tmpdir/$cppname" || exit 1
 fi
 
-if [ -n "$FAUSTTOOLSFLAGS" ]; then
-  "$CXX" -shared "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
+if [ -n "${FAUSTTOOLSFLAGS:-}" ]; then
+  "$CXX" -shared "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "${FAUSTTOOLSFLAGS:-}" "$PROCARCH" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
 else
   "$CXX" -shared "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "$PROCARCH" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
 fi
 
-if [ -n "$plugin_gui" ]; then
+if [ -n "${plugin_gui:-}" ]; then
 # Compile the UI module.
 mkdir -p "$uitmpdir"
   if [ "${#OPTIONS[@]}" -gt 0 ]; then
@@ -210,9 +209,9 @@ mkdir -p "$uitmpdir"
 fi
 # Generate the manifest. There are four different variations of the manifest,
 # depending on whether dynamic manifests and the plugin gui is enabled or not.
-if [ -n "$dyn_manifest" ]; then
+if [ -n "${dyn_manifest:-}" ]; then
 # Use a dynamic manifest.
-if [ -n "$plugin_gui" ]; then
+if [ -n "${plugin_gui:-}" ]; then
 sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?$dllext?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
 
 ########## @uri@ ##########
@@ -288,7 +287,7 @@ EOF
 fi
 else
 # Use a static manifest.
-if [ -n "$plugin_gui" ]; then
+if [ -n "${plugin_gui:-}" ]; then
 sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?$dllext?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
 
 ########## @uri@ ##########
@@ -366,8 +365,8 @@ EOF
 fi
 # This compiles the plugin to an executable which is run to generate the
 # plugin-specific part of the manifest.
-if [ -n "$FAUSTTOOLSFLAGS" ]; then
-  "$CXX" "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "$FAUSTTOOLSFLAGS" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
+if [ -n "${FAUSTTOOLSFLAGS:-}" ]; then
+  "$CXX" "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "${FAUSTTOOLSFLAGS:-}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
 else
   "$CXX" "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
 fi
