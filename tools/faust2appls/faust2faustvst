@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-#set -x
 
 . faustpath
 . faustoptflags
+
+set -eou > /dev/null
 
 # Check for some common locations of the VST SDK files. This falls back to
 # /usr/local/src/vstsdk if none of these are found. In that case, or if make
@@ -15,20 +16,20 @@
 # the preferred path comes *last*.
 sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst* $VSTSDK"
 # This should hopefully work on *BSD, Linux and Mac OSX.
-[ -z "$SDK" ] && SDK=$(echo "$sdkpaths" | xargs ls -f -d 2>/dev/null | tail -n 1)
-[ -z "$SDK" ] && SDK=/usr/local/src/vstsdk
+[ -z "${SDK:-}" ] && SDK=$(echo "$sdkpaths" | xargs ls -f -d 2>/dev/null | tail -n 1)
+[ -z "${SDK:-}" ] && SDK=/usr/local/src/vstsdk
 
 # SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
 # Usually these are either directly under $SDK or in the
 # public.sdk/source/vst2.x subdirectory.
-[ -z "$SDKSRC" ] && [ -f "$SDK/vstplugmain.cpp" ] && SDKSRC="$SDK"
-[ -z "$SDKSRC" ] && [ -f "$SDK/public.sdk/source/vst2.x/vstplugmain.cpp" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
-[ -z "$SDKSRC" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
+[ -z "${SDKSRC:-}" ] && [ -f "$SDK/vstplugmain.cpp" ] && SDKSRC="$SDK"
+[ -z "${SDKSRC:-}" ] && [ -f "$SDK/public.sdk/source/vst2.x/vstplugmain.cpp" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
+[ -z "${SDKSRC:-}" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
 
 # Default qmake setup (for GUI compilation). This requires Qt5. If qmake-qt5 or
 # qmake can not be found in PATH, you can set the QMAKE environment variable
 # explicitly, or use the -qt5 option below.
-[ -z "$QMAKE" ] && QMAKE=$(command -v qmake-qt5 || command -v qmake)
+[ -z "${QMAKE:-}" ] && QMAKE=$(command -v qmake-qt5 || command -v qmake)
 
 # Where the Faust includes live. We assume that this is under the prefix of
 # whatever Faust binary 'which' locates. You can also specify this explicitly
@@ -68,7 +69,7 @@ CXXFLAGS=("-O3" "-std=c++11" "-march=native" "-mfpmath=sse" "-msse" "-msse2" "-m
 
 # Darwin-specific
 #ARCH="-arch i386 -arch x86_64"
-if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+if [[ $(uname) == Darwin || ${CROSSTARGET:-} == Darwin ]]; then
     CXXFLAGS=("-O3" "-std=c++11" "$ARCH" "-mfpmath=sse" "-msse" "-msse2" "-msse3" "-ffast-math" "-ftree-vectorize" "-I/opt/local/include")
     dllext=".vst"
 fi
@@ -168,8 +169,8 @@ fi
 
 # Check to see whether the required include and library files are where we
 # expect them, and bail out with an error message otherwise.
-if [ ! -f "$FAUSTINC/faust/gui/QTUI.h" ]; then echo "$0: faust include files not found" >&2; exit 1; fi
-if [ ! -f "$FAUSTARCH/faustvstqt.h" ]; then echo "$0: faust-vst library files not found" >&2; exit 1; fi
+if [ ! -f "${FAUSTINC:-}/faust/gui/QTUI.h" ]; then echo "$0: faust include files not found" >&2; exit 1; fi
+if [ ! -f "${FAUSTARCH:-}/faustvstqt.h" ]; then echo "$0: faust-vst library files not found" >&2; exit 1; fi
 
 arch=faustvst.cpp
 dspname=${FILES[0]}
@@ -216,7 +217,7 @@ if [ "${#OPTIONS[@]}" ]; then
 else
   faust -i -a "$FAUSTARCH/$arch" "$dspname" -o "$tmpdir/$cppname" || exit 1
 fi
-if [ -n "$plugin_gui" ]; then
+if [ -n "${plugin_gui:-}" ]; then
 # We have to use qmake here.
 # XXXTODO: OSX support
 (
@@ -226,7 +227,7 @@ if [ -n "$plugin_gui" ]; then
     make
 ) > /dev/null || exit 1
 else
-if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+if [[ $(uname) == Darwin || ${CROSSTARGET:-} == Darwin ]]; then
     mkdir -p "$tmpdir/$soname/Contents/MacOS"
     printf '%s' 'BNDL????' > "$tmpdir/$soname/Contents/PkgInfo"
     sed -e "s?@name@?$clsname?g;s?@version@?1.0.0?g" > "$tmpdir/$soname/Contents/Info.plist" <<EOF
@@ -256,14 +257,14 @@ if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
 </dict>
 </plist>
 EOF
-    if [ -n "$FAUSTTOOLSFLAGS" ]; then
-      $CXX -bundle "${CXXFLAGS[@]}" "$FAUSTTOOLSFLAGS" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    if [ -n "${FAUSTTOOLSFLAGS:-}" ]; then
+      $CXX -bundle "${CXXFLAGS[@]}" "${FAUSTTOOLSFLAGS:-}" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
     else
       $CXX -bundle "${CXXFLAGS[@]}" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
     fi
 else
-    if [ -n "$FAUSTTOOLSFLAGS" ]; then
-      $CXX -shared "${CXXFLAGS[@]}" "$FAUSTTOOLSFLAGS" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+    if [ -n "${FAUSTTOOLSFLAGS:-}" ]; then
+      $CXX -shared "${CXXFLAGS[@]}" "${FAUSTTOOLSFLAGS:-}" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
     else
       $CXX -shared "${CXXFLAGS[@]}" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
     fi
