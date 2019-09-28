@@ -59,14 +59,17 @@ NVOICES=-1
 KEEP="no"
 STYLE=""
 
-PROCARCH="-fPIC"
+FILES=()
+OPTIONS=()
+
+PROCARCH=("-fPIC")
 dllext=".so"
-CXXFLAGS="-O3 -std=c++11 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+CXXFLAGS=("-O3" "-std=c++11" "-march=native" "-mfpmath=sse" "-msse" "-msse2" "-msse3" "-ffast-math" "-ftree-vectorize")
 
 # Darwin-specific
 #ARCH="-arch i386 -arch x86_64"
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-    CXXFLAGS="-O3 -std=c++11 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+    CXXFLAGS=("-O3" "-std=c++11" "$ARCH" "-mfpmath=sse" "-msse" "-msse2" "-msse3" "-ffast-math" "-ftree-vectorize" "-I/opt/local/include")
     dllext=".vst"
 fi
 
@@ -87,7 +90,7 @@ Options:
 -novoicectrls: no extra polyphony/tuning controls on GUI (instruments only)
 -nvoices N: number of synth voices (instruments only; arg must be an integer)
 -osc: activate OSC control
--qt4, -qt5: select the GUI toolkit (requires Qt4/5; implies -gui)
+-qt5: select the GUI toolkit (requires Qt5; implies -gui)
 -style S: select the stylesheet (arg must be Default, Blue, Grey or Salmon)
 
 Environment variables:
@@ -107,7 +110,7 @@ EOF
 	: ignore
     elif [ $p = "-icc" ]; then
 	CXX=icpc
-	CXXFLAGS="-O3 -std=c++11 -xHost -ftz -fno-alias -fp-model fast=2"
+  CXXFLAGS=("-O3" "-std=c++11" "-xHost" "-ftz" "-fno-alias" "-fp-model" "fast=2")
     elif [ $p = "-osc" ]; then
 	OSCDEFS="DEFINES += OSCCTRL"
 	OSCLIBS="-lOSCFaust"
@@ -135,11 +138,11 @@ EOF
 	(( i++ ))
 	NVOICES=${!i}
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+  PROCARCH=("-m32" "-L/usr/lib32")
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64 -fPIC"
+  PROCARCH=("-m64" "-fPIC")
     elif [ $p = "-osx" ]; then
-	CXXFLAGS="-O3 -std=c++11 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+  CXXFLAGS=("-O3" "-std=c++11" "$ARCH" "-mfpmath=sse" "-msse" "-msse2" "-msse3" "-ffast-math" "-ftree-vectorize" "-I/opt/local/include")
 	dllext=".vst"
     elif [ $p = "-keep" ]; then
 	KEEP="yes"
@@ -147,15 +150,14 @@ EOF
 	(( i++ ))
 	STYLE=${!i}
     elif [ ${p:0:1} = "-" ]; then
-	OPTIONS="$OPTIONS $p"
+  OPTIONS+=("$p")
     elif [[ -f "$p" ]]; then
-	FILES="$FILES $p"
+  FILES+=("$p")
     else
-	OPTIONS="$OPTIONS $p"
+  OPTIONS+=("$p")
     fi
 done
 
-FILES=( "$FILES" )
 if [ ${#FILES[@]} = 0 ]; then
     echo "$0: no filename specified" >&2
     exit 1
@@ -168,14 +170,6 @@ fi
 # expect them, and bail out with an error message otherwise.
 if [ ! -f "$FAUSTINC/faust/gui/QTUI.h" ]; then echo "$0: faust include files not found" >&2; exit 1; fi
 if [ ! -f "$FAUSTARCH/faustvstqt.h" ]; then echo "$0: faust-vst library files not found" >&2; exit 1; fi
-
-# Determine the Qt version so that we can pick the needed compilation options.
-QTVERSION=$($QMAKE -v 2>/dev/null | tail -1 | sed 's/.*Qt version \([0-9]\).*/\1/')
-
-QTEXTRA=
-if [[ "$QTVERSION" == 5 ]]; then
-  QTEXTRA=x11extras
-fi
 
 arch=faustvst.cpp
 dspname=${FILES[0]}
@@ -197,9 +191,9 @@ fi
 
 # now set in faustoptflags
 #CXX=g++
-CPPFLAGS="-DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS -I$SDK -I$SDKSRC -D__cdecl="
+CPPFLAGS=("-DFAUST_META=$FAUST_META" "-DFAUST_MIDICC=$FAUST_MIDICC" "-DFAUST_MTS=$FAUST_MTS" "-DFAUST_UI=$FAUST_UI" "-DVOICE_CTRLS=$VOICE_CTRLS" "-I$SDK" "-I$SDKSRC" "-D__cdecl=")
 if [ $NVOICES -ge 0 ]; then
-CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
+CPPFLAGS+=("-DNVOICES=$NVOICES")
 fi
 
 # Extra SDK modules needed to build a working plugin.
@@ -217,13 +211,17 @@ sdksrc="$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx"
 mkdir -p "$tmpdir"
 #trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
 # Compile the Faust module.
-faust -i -a "$FAUSTARCH/$arch" "$OPTIONS" "$dspname" -o "$tmpdir/$cppname" || exit 1
+if [ "${#OPTIONS[@]}" ]; then
+  faust -i -a "$FAUSTARCH/$arch" "${OPTIONS[@]}" "$dspname" -o "$tmpdir/$cppname" || exit 1
+else
+  faust -i -a "$FAUSTARCH/$arch" "$dspname" -o "$tmpdir/$cppname" || exit 1
+fi
 if [ -n "$plugin_gui" ]; then
 # We have to use qmake here.
 # XXXTODO: OSX support
 (
     cd "$tmpdir"
-    $QMAKE -project -t lib -o "${clsname}.pro" "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $CPPFLAGS" "$STYLE_CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" "$RESOURCES" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE -project -t lib -o "${clsname}.pro" "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network x11extras" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 ${CPPFLAGS[*]}" "$STYLE_CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" "$RESOURCES" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
     $QMAKE ./*.pro
     make
 ) > /dev/null || exit 1
@@ -258,9 +256,17 @@ if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
 </dict>
 </plist>
 EOF
-    $CXX -bundle "$CXXFLAGS" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "$CPPFLAGS" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    if [ -n "$FAUSTTOOLSFLAGS" ]; then
+      $CXX -bundle "${CXXFLAGS[@]}" "$FAUSTTOOLSFLAGS" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    else
+      $CXX -bundle "${CXXFLAGS[@]}" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    fi
 else
-    $CXX -shared "$CXXFLAGS" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "$CPPFLAGS" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+    if [ -n "$FAUSTTOOLSFLAGS" ]; then
+      $CXX -shared "${CXXFLAGS[@]}" "$FAUSTTOOLSFLAGS" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+    else
+      $CXX -shared "${CXXFLAGS[@]}" "${PROCARCH[@]}" -I"$ABSDIR" "${CPPFLAGS[@]}" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+    fi
 fi
 fi
 #trap - EXIT
