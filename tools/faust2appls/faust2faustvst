@@ -15,14 +15,14 @@
 # the preferred path comes *last*.
 sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst* $VSTSDK"
 # This should hopefully work on *BSD, Linux and Mac OSX.
-[ -z "$SDK" ] && SDK=$(echo $sdkpaths | xargs ls -f -d 2>/dev/null | tail -n 1)
+[ -z "$SDK" ] && SDK=$(echo "$sdkpaths" | xargs ls -f -d 2>/dev/null | tail -n 1)
 [ -z "$SDK" ] && SDK=/usr/local/src/vstsdk
 
 # SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
 # Usually these are either directly under $SDK or in the
 # public.sdk/source/vst2.x subdirectory.
-[ -z "$SDKSRC" -a -f "$SDK/vstplugmain.cpp" ] && SDKSRC="$SDK"
-[ -z "$SDKSRC" -a -f "$SDK/public.sdk/source/vst2.x/vstplugmain.cpp" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
+[ -z "$SDKSRC" ] && [ -f "$SDK/vstplugmain.cpp" ] && SDKSRC="$SDK"
+[ -z "$SDKSRC" ] && [ -f "$SDK/public.sdk/source/vst2.x/vstplugmain.cpp" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
 [ -z "$SDKSRC" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
 
 # Default qmake setup (for GUI compilation). This requires Qt5. If qmake-qt5 or
@@ -155,7 +155,7 @@ EOF
     fi
 done
 
-FILES=( $FILES )
+FILES=( "$FILES" )
 if [ ${#FILES[@]} = 0 ]; then
     echo "$0: no filename specified" >&2
     exit 1
@@ -173,20 +173,20 @@ if [ ! -f "$FAUSTARCH/faustvstqt.h" ]; then echo "$0: faust-vst library files no
 QTVERSION=$($QMAKE -v 2>/dev/null | tail -1 | sed 's/.*Qt version \([0-9]\).*/\1/')
 
 QTEXTRA=
-if [ $QTVERSION = 5 ]; then
-QTEXTRA=x11extras
+if [[ "$QTVERSION" == 5 ]]; then
+  QTEXTRA=x11extras
 fi
 
 arch=faustvst.cpp
 dspname=${FILES[0]}
 SRCDIR=$(dirname "$dspname")
-ABSDIR=$(cd $SRCDIR && pwd)
+ABSDIR=$(cd "$SRCDIR" && pwd)
 CURDIR=$(pwd)
 
-clsname=`basename "$dspname" .dsp`
+clsname=$(basename "$dspname" .dsp)
 cppname="$clsname.cpp"
 soname="$clsname$dllext"
-tmpdir=`mktemp -d /tmp/faust2faustvst.XXXXXX`
+tmpdir=$(mktemp -d /tmp/faust2faustvst.XXXXXX)
 
 RESOURCES=
 STYLE_CXXFLAGS=
@@ -214,24 +214,24 @@ sdksrc="$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx"
 #OPTIONS="$OPTIONS -cn \"$clsname\""
 
 # Create the temp directory.
-mkdir -p $tmpdir
+mkdir -p "$tmpdir"
 #trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
 # Compile the Faust module.
-faust -i -a "$FAUSTARCH/$arch" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
+faust -i -a "$FAUSTARCH/$arch" "$OPTIONS" "$dspname" -o "$tmpdir/$cppname" || exit 1
 if [ -n "$plugin_gui" ]; then
 # We have to use qmake here.
 # XXXTODO: OSX support
 (
     cd "$tmpdir"
-    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
-    $QMAKE *.pro
+    $QMAKE -project -t lib -o "${clsname}.pro" "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $CPPFLAGS" "$STYLE_CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" "$RESOURCES" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE ./*.pro
     make
 ) > /dev/null || exit 1
 else
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-    mkdir -p $tmpdir/$soname/Contents/MacOS
-    printf '%s' 'BNDL????' > $tmpdir/$soname/Contents/PkgInfo
-    sed -e "s?@name@?$clsname?g;s?@version@?1.0.0?g" > $tmpdir/$soname/Contents/Info.plist <<EOF
+    mkdir -p "$tmpdir/$soname/Contents/MacOS"
+    printf '%s' 'BNDL????' > "$tmpdir/$soname/Contents/PkgInfo"
+    sed -e "s?@name@?$clsname?g;s?@version@?1.0.0?g" > "$tmpdir/$soname/Contents/Info.plist" <<EOF
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -258,23 +258,23 @@ if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
 </dict>
 </plist>
 EOF
-    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    $CXX -bundle "$CXXFLAGS" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "$CPPFLAGS" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
 else
-    $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+    $CXX -shared "$CXXFLAGS" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "$CPPFLAGS" "$sdksrc" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
 fi
 fi
 #trap - EXIT
 
 # copy down the plugin (bundle on OS X)
-rm -rf "$SRCDIR/$soname"
+rm -rf "${SRCDIR:?}/$soname"
 cp -r "$tmpdir/$soname" "$SRCDIR"
 if [[ $KEEP == yes ]]; then
     # keep the build directory
-    rm -rf "$SRCDIR/$clsname"
-    mv $tmpdir "$SRCDIR/$clsname"
+    rm -rf "${SRCDIR:?}/$clsname"
+    mv "$tmpdir" "$SRCDIR/$clsname"
 else
     # Clean up.
-    rm -rf $tmpdir
+    rm -rf "$tmpdir"
 fi
 # Print the name of the generated plugin.
 echo "$SRCDIR/$soname;"
