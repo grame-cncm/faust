@@ -10,9 +10,9 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS="$MYGCCFLAGS"
 
-ARCHFILE=$FAUSTARCH/jack-qt.cpp
+ARCHFILE="$FAUSTARCH/jack-qt.cpp"
 
 if [[ $(uname -s) != Darwin ]]; then
 	LFLAGS+="-no-pie"
@@ -21,12 +21,12 @@ fi
 #-------------------------------------------------------------------
 # Set Faust include path
 
-ARCHLIB="`pkg-config --cflags --libs jack`"
+ARCHLIB="$(pkg-config --cflags --libs jack)"
 
 #-------------------------------------------------------------------------------
-# Search for qmake or qmake-qt4
+# Search for qmake-qt5 or qmake
 
-QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
+QMAKE=$(command -v qmake-qt5 || command -v qmake)
 
 #PHASE 2 : dispatch command arguments
 
@@ -178,8 +178,8 @@ EndOfCode
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
-	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
+	    "$QMAKE" -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
+	    "$QMAKE" "$SPEC" QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
 
