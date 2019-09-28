@@ -1,6 +1,6 @@
-#!/usr/bin/env python2
-
-#---------------------- faust2md -----------------------
+#!/usr/bin/env python3
+#
+# ---------------------- faust2md ----------------------
 # Usage: `faust2md [-t 4] [-c] [-f] foo.dsp > foo.md`
 #
 # Ultra simple automatic documentation system for Faust.
@@ -12,190 +12,195 @@
 # matter with the name of the file and the date.
 #
 # The format of a title is :
-#	//############# Title Name #################
-#	//  markdown text....
-#	//  markdown text....
-#	//##########################################
+#       //############# Title Name #################
+#       //  markdown text....
+#       //  markdown text....
+#       //##########################################
 #
 # The format of a section is :
-#	//============== Section Name ==============
-#	//  markdown text....
-#	//  markdown text....
-#	//==========================================
+#       //============== Section Name ==============
+#       //  markdown text....
+#       //  markdown text....
+#       //==========================================
 #
 # The format of a comment is :
-#	//-------------- foo(x,y) ------------------
-#	//  markdown text....
-#	//  markdown text....
-#	//------------------------------------------
+#       //-------------- foo(x,y) ------------------
+#       //  markdown text....
+#       //  markdown text....
+#       //------------------------------------------
 # everything else is considered Faust code.
 # The translation is the following:
 #   ## foo(x,y)
-#	markdown text....
-#	markdown text....
-#--------------------------------------------------------
+#       markdown text....
+#       markdown text....
+# ------------------------------------------------------
 
-import sys, re, datetime, string, getopt
+import sys
+import re
+import datetime
+import getopt
+
 
 # Outdent a comment line by n characters in
 # order to remove the prefix "//   "
 def outdent(line, n):
-	if len(line) <= n:
-		return "\n"
-	else:
-		return line[n:]
+    if len(line) <= n:
+        return "\n"
+    else:
+        return line[n:]
+
 
 # Match the first line of a title
 # of type "//**** Title ****"
 # at least 3 * are needed
 def matchBeginTitle(line):
-	return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+    return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+
 
 # Match the last line of a title
 # of type "//********"
 # or a blank line
 def matchEndTitle(line):
-	return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+    return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+
 
 # Match the first line of a section
 # of type "//==== Section ===="
 # at least 3 = are needed
 def matchBeginSection(line):
-	return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+    return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+
 
 # Match the last line of a section
 # of type "//======="
 # or a blank line
 def matchEndSection(line):
-	return re.search(r'^\s*((//={3,})|(\s*))$', line)
+    return re.search(r'^\s*((//={3,})|(\s*))$', line)
+
 
 # Match the first line of a comment
 # of type "//--- foo(x,y) ----"
 # at least 3 - are needed
 def matchBeginComment(line):
-	return re.search(r'^\s*//-{3,}\s*([^-]+)-{3,}', line)
+    return re.search(r'^\s*//-{3,}\s*([^-]+)-{3,}', line)
+
 
 # Match the last line of a comment
 # of type "//-----------------"
 # or a blank line
 def matchEndComment(line):
-	return re.search(r'^\s*((//-{3,})|(\s*))$', line)
+    return re.search(r'^\s*((//-{3,})|(\s*))$', line)
+
 
 # Compute the indentation of a line,
 # that is the position of the first word character
 # after "//   "
 def indentation(line):
-	matchComment = re.search(r'(^\s*//\s*\w)', line)
-	if matchComment:
-		return len(matchComment.group(1))-1
-	else:
-		return 0
+    matchComment = re.search(r'(^\s*//\s*\w)', line)
+    if matchComment:
+        return len(matchComment.group(1))-1
+    else:
+        return 0
+
 
 # Indicates if a line is a comment
 def isComment(line):
-	matchComment = re.search(r'^\s*//', line)
-	if matchComment:
-		return 1
-	else:
-		return 0
+    matchComment = re.search(r'^\s*//', line)
+    if matchComment:
+        return 1
+    else:
+        return 0
 
-# Measure the indentation of a md-comment line
-# that is the len of the prefix '//   '
-def indentation(line):
-	matchComment = re.search(r'(^\s*//\s*\w)', line)
-	if matchComment:
-		return len(matchComment.group(1))-1
-	else:
-		return 0
 
 # Print the front matter of the file
 def frontMatter(file):
-	print('---')
-	print('file: %s' % (file,))
-	print('date: %s' % (datetime.date.today(),))
-	print('---')
-	print('')
+    print('---')
+    print('file: %s' % (file,))
+    print('date: %s' % (datetime.date.today(),))
+    print('---')
+    print('')
+
 
 #
 # THE PROGRAM STARTS HERE
 #
-
-tabsize 	= 4		# tabsize used for expanding tabs
-codeflag	= 0		# 0: no source code; 1: print also source code
-frontflag	= 0		# 0: no front matter; 1: print front matter
-mode 		= 0		# 0: in code; 1: in md-comment
-idt 		= 0		# indentation retained to outdent comment lines
+tabsize = 4             # tabsize used for expanding tabs
+codeflag = 0             # 0: no source code; 1: print also source code
+frontflag = 0             # 0: no front matter; 1: print front matter
+mode = 0             # 0: in code; 1: in md-comment
+idt = 0             # indentation retained to outdent comment lines
 
 # Analyze command line arguments
 try:
-	opts, args = getopt.getopt(sys.argv[1:], "t:cf")
-	if not args:
-		raise getopt.error, "At least one file argument required"
-except getopt.error, msg:
-	print(msg)
-	print("usage: %s [-t tabsize] [-c] [-f] file ..." % (sys.argv[0],))
-	sys.exit(1)
-
+    opts, args = getopt.getopt(sys.argv[1:], "t:cf")
+    if not args:
+        raise getopt.error("At least one file argument required")
+except getopt.error as e:
+    print(e.msg)
+    print("usage: %s [-t tabsize] [-c] [-f] file ..." % (sys.argv[0],))
+    sys.exit(1)
 for optname, optvalue in opts:
-	if optname == '-t':
-		tabsize = int(optvalue)
-	if optname == '-c':
-		codeflag = 1
-	if optname == '-f':
-		frontflag = 1
+    if optname == '-t':
+        tabsize = int(optvalue)
+    if optname == '-c':
+        codeflag = 1
+    if optname == '-f':
+        frontflag = 1
+
 
 # Process all the files and print the documentation on the standard output
 for file in args:
-	with open(file) as f:
-		if frontflag: frontMatter(file)
-		for text in f:
-			line = string.expandtabs(text, tabsize)
-			if isComment(line)==0:
-				if mode==1:
-					# we are closing a md-comment
-					print('')
-					mode = 0
-				if codeflag:
-					print('\t%s' % line,)
-			else:
-				if mode==0:	# we are in code
-					matchComment = matchBeginComment(line)
-					matchSection = matchBeginSection(line)
-					matchTitle = matchBeginTitle(line)
-					if matchComment:
-						print('')
-						print("### %s" % (matchComment.group(1),))
-					elif matchSection:
-						print('')
-						print("## %s" % (matchSection.group(1),))
-					elif matchTitle:
-						print('')
-						print("# %s" % (matchTitle.group(1),))
-					if matchComment or matchSection or matchTitle:
-						mode=1	# we just started a md-comment
-						idt = 0	# we have to measure the indentation
-					else:
-						# it is a comment but not a md-comment
-						# therefore it is part of the code
-						if codeflag:
-							print('\t%s' % (line,))
-				else:
-					# we are in a md-comment
-					if idt==0:
-						# we have to measure the indentation
-						idt = indentation(line)
-					# check end of md-comment
-					matchComment = matchEndComment(line)
-					matchSection = matchEndSection(line)
-					matchTitle = matchEndTitle(line)
-					if matchComment:
-						print('')
-						print("---")
-						print('')
-					if matchComment or matchSection or matchTitle:
-						# end of md-comment switch back to mode O
-						mode = 0
-					else:
-						# lien of content of md-comment
-						# we print it unindented
-						print(outdent(line,idt)),
+    with open(file) as f:
+        if frontflag:
+            frontMatter(file)
+        for text in f:
+            line = text.expandtabs(tabsize)
+            if isComment(line) == 0:
+                if mode == 1:
+                    # we are closing a md-comment
+                    print('')
+                    mode = 0
+                if codeflag:
+                    print('\t%s' % line,)
+            else:
+                if mode == 0:     # we are in code
+                    matchComment = matchBeginComment(line)
+                    matchSection = matchBeginSection(line)
+                    matchTitle = matchBeginTitle(line)
+                    if matchComment:
+                        print('')
+                        print("### %s" % (matchComment.group(1),))
+                    elif matchSection:
+                        print('')
+                        print("## %s" % (matchSection.group(1),))
+                    elif matchTitle:
+                        print('')
+                        print("# %s" % (matchTitle.group(1),))
+                    if matchComment or matchSection or matchTitle:
+                        mode = 1  # we just started a md-comment
+                        idt = 0  # we have to measure the indentation
+                    else:
+                        # it is a comment but not a md-comment
+                        # therefore it is part of the code
+                        if codeflag:
+                            print('\t%s' % (line,))
+                else:
+                    # we are in a md-comment
+                    if idt == 0:
+                        # we have to measure the indentation
+                        idt = indentation(line)
+                    # check end of md-comment
+                    matchComment = matchEndComment(line)
+                    matchSection = matchEndSection(line)
+                    matchTitle = matchEndTitle(line)
+                    if matchComment:
+                        print('')
+                        print("---")
+                        print('')
+                    if matchComment or matchSection or matchTitle:
+                        # end of md-comment switch back to mode O
+                        mode = 0
+                    else:
+                        # lien of content of md-comment
+                        # we print it unindented
+                        print(outdent(line, idt)),
