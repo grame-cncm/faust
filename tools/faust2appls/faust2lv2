@@ -33,6 +33,9 @@ NVOICES=-1
 KEEP="no"
 STYLE=""
 
+FILES=( )
+OPTIONS=( )
+
 PROCARCH="-fPIC"
 dllext=".so"
 CXXFLAGS=("-O3" "-std=c++11" "-mfpmath=sse" "-msse" "-msse2" "-msse3" "-ffast-math" "-ftree-vectorize")
@@ -122,15 +125,14 @@ EOF
 	(( i++ ))
 	STYLE=${!i}
     elif [ ${p:0:1} = "-" ]; then
-	OPTIONS="$OPTIONS $p"
+  OPTIONS+=("$p")
     elif [[ -f "$p" ]]; then
-	FILES="$FILES $p"
+  FILES+=("$p")
     else
-	OPTIONS="$OPTIONS $p"
+  OPTIONS+=("$p")
     fi
 done
 
-FILES=( $FILES )
 if [ ${#FILES[@]} = 0 ]; then
     echo "$0: no filename specified" >&2
     exit 1
@@ -169,40 +171,38 @@ if [ -n "$STYLE" ]; then
 fi
 
 CXX=$(command -v g++)
-# CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS"
 CPPFLAGS=("-DPLUGIN_URI=\"$URI_PREFIX/$clsname\"" "-DFAUST_META=$FAUST_META" "-DFAUST_MIDICC=$FAUST_MIDICC" "-DFAUST_MTS=$FAUST_MTS" "-DFAUST_UI=$FAUST_UI" "-DVOICE_CTRLS=$VOICE_CTRLS")
 if [ $NVOICES -ge 0 ]; then
-# CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
-CPPFLAGS=( "$CPPFLAGS" "-DNVOICES=$NVOICES" )
+  CPPFLAGS+=("-DNVOICES=$NVOICES")
 fi
 
 # Create the temp directory and the bundle directory inside it.
 mkdir -p "$tmpdir/$lv2name"
 #trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
 # Compile the Faust module.
-if [ -n "$OPTIONS" ]; then
-  faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" "$OPTIONS" "$dspname" -o "$tmpdir/$cppname" || exit 1
+if [ "${#OPTIONS[@]}" -gt 0 ]; then
+  faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" "${OPTIONS[@]}" "$dspname" -o "$tmpdir/$cppname" || exit 1
 else
   faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" "$dspname" -o "$tmpdir/$cppname" || exit 1
 fi
 
 if [ -n "$FAUSTTOOLSFLAGS" ]; then
-  "$CXX" -shared "$CXXFLAGS" -DDLLEXT="\"$dllext\"" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "$CPPFLAGS" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
+  "$CXX" -shared "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "$FAUSTTOOLSFLAGS" "$PROCARCH" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
 else
-  "$CXX" -shared "$CXXFLAGS" -DDLLEXT="\"$dllext\"" "$PROCARCH" -I"$ABSDIR" "$CPPFLAGS" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
+  "$CXX" -shared "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "$PROCARCH" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
 fi
 
 if [ -n "$plugin_gui" ]; then
 # Compile the UI module.
 mkdir -p "$uitmpdir"
-  if [ -n "$OPTIONS" ]; then
-    faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" "$OPTIONS" "$dspname" -o "$uitmpdir/$uicppname" || exit 1
+  if [ "${#OPTIONS[@]}" -gt 0 ]; then
+    faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" "${OPTIONS[@]}" "$dspname" -o "$uitmpdir/$uicppname" || exit 1
   else
     faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" "$dspname" -o "$uitmpdir/$uicppname" || exit 1
   fi
   (
       cd "$uitmpdir"
-      "$QMAKE" -project -t lib -o "${clsname}ui.pro" "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $(echo "$CPPFLAGS"|sed -e 's/"/\\\\\\"/g')" "$STYLE_CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTLIB/lv2qtgui.h $FAUSTINC/gui/QTUI.h" "$RESOURCES" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+      "$QMAKE" -project -t lib -o "${clsname}ui.pro" "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $(echo "${CPPFLAGS[@]}"|sed -e 's/"/\\\\\\"/g')" "$STYLE_CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTLIB/lv2qtgui.h $FAUSTINC/gui/QTUI.h" "$RESOURCES" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
       "$QMAKE" ./*.pro
       make || exit 1
       mv "$uisoname" "$tmpdir/$lv2name"
@@ -367,9 +367,9 @@ fi
 # This compiles the plugin to an executable which is run to generate the
 # plugin-specific part of the manifest.
 if [ -n "$FAUSTTOOLSFLAGS" ]; then
-  "$CXX" "$CXXFLAGS" -DDLLEXT="\"$dllext\"" "$FAUSTTOOLSFLAGS" -I"$ABSDIR" "$CPPFLAGS" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
+  "$CXX" "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" "$FAUSTTOOLSFLAGS" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
 else
-  "$CXX" "$CXXFLAGS" -DDLLEXT="\"$dllext\"" -I"$ABSDIR" "$CPPFLAGS" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
+  "$CXX" "${CXXFLAGS[@]}" -DDLLEXT="\"$dllext\"" -I"$ABSDIR" "${CPPFLAGS[@]}" "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
 fi
 "$tmpdir/$clsname" > "$tmpdir/$lv2name/$clsname.ttl"
 rm -f "$tmpdir/$clsname"
