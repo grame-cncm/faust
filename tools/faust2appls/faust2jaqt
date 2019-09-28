@@ -43,6 +43,7 @@ SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 SAMPLERATEDEFS=""
 SAMPLERATELIBS=""
+SPEC=""
 
 while [ "$1" ]
 do
@@ -166,23 +167,39 @@ for p in $FILES; do
             adaptor(F,G) = adapt(outputs(F),inputs(G));
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            if [ -n "$OPTIONS" ]; then
+              faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            else
+              faust -i -json -a "$ARCHFILE" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+            fi
             faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
             rm "$TMP/effect.dsp"
         else
+          if [ -n "$OPTIONS" ]; then
             faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+          else
+            faust -i -json -a "$ARCHFILE" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+          fi
             faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
         fi
     else
-        faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+        if [ -n "$OPTIONS" ]; then
+          faust -i -json -a "$ARCHFILE" "$OPTIONS" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+        else
+          faust -i -json -a "$ARCHFILE" "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
+        fi
     fi
 
     # compile c++ to binary
     (
 	    cd "$TMP"
 	    "$QMAKE" -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
-	    "$QMAKE" "$SPEC" QMAKE_CFLAGS_ISYSTEM=-I
-        make
+      if [ -n "$SPEC" ]; then
+        "$QMAKE" "$SPEC" QMAKE_CFLAGS_ISYSTEM=-I
+      else
+        "$QMAKE" QMAKE_CFLAGS_ISYSTEM=-I
+      fi
+      make
     ) > /dev/null || exit
 
     if [[ $(uname) == Darwin ]]; then
