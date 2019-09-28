@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-#---------------------- faust2atomsnippets -----------------------
+# ---------------------- faust2atomsnippets -----------------------
 # Usage: `faust2atomsnippets *.lib > faust-library.cson`
 #
 # Creates an atom snippets for each function in a library
@@ -8,191 +8,193 @@
 #
 # The generated snippets file as the following structure:
 #
-#'.source.faust':
-#	'noise':
-#		'prefix': 'noise'
-#		'body': 'no.noise'
-#	...
+# '.source.faust':
+#       'noise':
+#               'prefix': 'noise'
+#               'body': 'no.noise'
+#       ...
 #
 # The format of a title is :
-#	//############# Title Name #################
-#	//  markdown text....
-#	//  markdown text....
-#	//##########################################
+#       //############# Title Name #################
+#       //  markdown text....
+#       //  markdown text....
+#       //##########################################
 #
 # The format of a section is :
-#	//============== Section Name ==============
-#	//  markdown text....
-#	//  markdown text....
-#	//==========================================
+#       //============== Section Name ==============
+#       //  markdown text....
+#       //  markdown text....
+#       //==========================================
 #
 # The format of a comment is :
-#	//-------------- foo(x,y) ------------------
-#	//  markdown text....
-#	//  markdown text....
-#	//------------------------------------------
+#       //-------------- foo(x,y) ------------------
+#       //  markdown text....
+#       //  markdown text....
+#       //------------------------------------------
 # everything else is considered faust code.
 # The translation is the following:
 #   ## foo(x,y)
-#	markdown text....
-#	markdown text....
-#--------------------------------------------------------
+#       markdown text....
+#       markdown text....
+# --------------------------------------------------------
 
 
-import sys, re, datetime, string, getopt
+import sys
+import re
+import getopt
 
 
 # Outdent a comment line by n characters in
 # order to remove the prefix "//   "
 def outdent(line, n):
-	if len(line) <= n:
-		return "\n"
-	else:
-		return line[n:]
+    if len(line) <= n:
+        return "\n"
+    else:
+        return line[n:]
+
 
 # Match the 2-characters prefix of a library.
 # We want to extract "no" from "...prefix is `no`..."
 def matchPrefixName(line):
-	return re.search(r'^.*prefix is .(..).*', line)
+    return re.search(r'^.*prefix is .(..).*', line)
 
 
 # Match the first line of a title
 # of type "//#### Title ####
 # at least 3 * are needed
 def matchBeginTitle(line):
-	return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+    return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+
 
 # Match the last line of a title
 # of type "//#######"
 # or a blank line
 def matchEndTitle(line):
-	return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+    return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+
 
 # Match the first line of a section
 # of type "//==== Section ===="
 # at least 3 = are needed
 def matchBeginSection(line):
-	return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+    return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+
 
 # Match the last line of a section
 # of type "//======="
 # or a blank line
 def matchEndSection(line):
-	return re.search(r'^\s*((//={3,})|(\s*))$', line)
+    return re.search(r'^\s*((//={3,})|(\s*))$', line)
+
 
 # Match the first line of a comment
 # of type "//--- foo(x,y) ----"
 # at least 3 - are needed
 def matchBeginComment(line):
-	return re.search(r'^\s*//-{3,}\s*`([^-`]+)`-{3,}', line)
+    return re.search(r'^\s*//-{3,}\s*`([^-`]+)`-{3,}', line)
+
 
 # Match the last line of a comment
 # of type "//-----------------"
 # or a blank line
 def matchEndComment(line):
-	return re.search(r'^\s*((//-{3,})|(\s*))$', line)
+    return re.search(r'^\s*((//-{3,})|(\s*))$', line)
+
 
 # Compute the indentation of a line,
 # that is the position of the first word character
 # after "//   "
 def indentation(line):
-	matchComment = re.search(r'(^\s*//\s*\w)', line)
-	if matchComment:
-		return len(matchComment.group(1))-1
-	else:
-		return 0
+    matchComment = re.search(r'(^\s*//\s*\w)', line)
+    if matchComment:
+        return len(matchComment.group(1))-1
+    else:
+        return 0
+
 
 # Indicates if a line is a comment
 def isComment(line):
-	matchComment = re.search(r'^\s*//', line)
-	if matchComment:
-		return 1
-	else:
-		return 0
+    matchComment = re.search(r'^\s*//', line)
+    if matchComment:
+        return 1
+    else:
+        return 0
 
-# Measure the indentation of a md-comment line
-# that is the len of the prefix '//   '
-def indentation(line):
-	matchComment = re.search(r'(^\s*//\s*\w)', line)
-	if matchComment:
-		return len(matchComment.group(1))-1
-	else:
-		return 0
 
 #
 # THE PROGRAM STARTS HERE
 #
+tabsize = 4             # tabsize used for expanding tabs
+mode = 0             # 0: in code; 1: in md-comment
+idt = 0             # indentation retained to outdent comment lines
+simplified = 0         # 0: full mode; 1: body only
+libprefix = "xx"  #
 
-tabsize 	= 4		# tabsize used for expanding tabs
-mode 		= 0		# 0: in code; 1: in md-comment
-idt 		= 0		# indentation retained to outdent comment lines
-simplified  = 0		# 0: full mode; 1: body only
-libprefix	= "xx"	#
 
 # Analyze command line arguments
 try:
-	opts, args = getopt.getopt(sys.argv[1:], "st:cf")
-	if not args:
-		raise getopt.error, "At least one file argument required"
-except getopt.error, msg:
-	print(msg)
-	print("usage: %s [-s][-t tabsize] file ..." % (sys.argv[0],))
-	sys.exit(1)
-
+    opts, args = getopt.getopt(sys.argv[1:], "st:cf")
+    if not args:
+        raise getopt.error("At least one file argument required")
+except getopt.error as e:
+    print(e.msg)
+    print("usage: %s [-s][-t tabsize] file ..." % (sys.argv[0],))
+    sys.exit(1)
 for optname, optvalue in opts:
-	if optname == '-t':
-		tabsize = int(optvalue)
-	if optname == '-s':
-		simplified = 1
+    if optname == '-t':
+        tabsize = int(optvalue)
+    if optname == '-s':
+        simplified = 1
 
 # Process all the files and print the documentation on the standard output
 if simplified:
-	sys.stdout.write("let gFaustLibSnippets = ")
-	sep = '['
+    sys.stdout.write("let gFaustLibSnippets = ")
+    sep = '['
 else:
-	print("'.source.faust':")
+    print("'.source.faust':")
 
 for file in args:
-	with open(file) as f:
-		for text in f:
-			line = string.expandtabs(text, tabsize)
-			matchPrefix = matchPrefixName(line)
-			if matchPrefix:
-				libprefix = matchPrefix.group(1)
-			if isComment(line)==0:
-				if mode==1:
-					# we are closing a md-comment
-					mode = 0
-			else:
-				if mode==0:	# we are in code
-					matchComment = matchBeginComment(line)
-					matchSection = matchBeginSection(line)
-					matchTitle = matchBeginTitle(line)
-					if matchComment:
-						foo = matchComment.group(1)
-						if simplified:
-							sys.stdout.write("%s '%s.%s'" % (sep, libprefix, foo))
-							sep = ','
-						else:
-							print("\t'%s':" % (foo,))
-							print("\t\t'prefix': '%s'" % (foo,))
-							print("\t\t'body': '%s.%s'" % (libprefix, foo))
-					if matchComment or matchSection or matchTitle:
-						mode=1	# we just started a md-comment
-						idt = 0	# we have to measure the indentation
-				else:
-					# we are in a md-comment
-					if idt==0:
-						# we have to measure the indentation
-						idt = indentation(line)
-					# check end of md-comment
-					matchComment = matchEndComment(line)
-					matchSection = matchEndSection(line)
-					matchTitle = matchEndTitle(line)
-					if matchComment or matchSection or matchTitle:
-						# end of md-comment switch back to mode O
-						mode = 0
+    with open(file) as f:
+        for text in f:
+            line = text.expandtabs(tabsize)
+            matchPrefix = matchPrefixName(line)
+            if matchPrefix:
+                libprefix = matchPrefix.group(1)
+            if isComment(line) == 0:
+                if mode == 1:
+                    # we are closing a md-comment
+                    mode = 0
+            else:
+                if mode == 0:     # we are in code
+                    matchComment = matchBeginComment(line)
+                    matchSection = matchBeginSection(line)
+                    matchTitle = matchBeginTitle(line)
+                    if matchComment:
+                        foo = matchComment.group(1)
+                        if simplified:
+                            sys.stdout.write("%s '%s.%s'" % (sep,
+                                                             libprefix,
+                                                             foo))
+                            sep = ','
+                        else:
+                            print("\t'%s':" % (foo,))
+                            print("\t\t'prefix': '%s'" % (foo,))
+                            print("\t\t'body': '%s.%s'" % (libprefix, foo))
+                    if matchComment or matchSection or matchTitle:
+                        mode = 1  # we just started a md-comment
+                        idt = 0  # we have to measure the indentation
+                else:
+                    # we are in a md-comment
+                    if idt == 0:
+                        # we have to measure the indentation
+                        idt = indentation(line)
+                    # check end of md-comment
+                    matchComment = matchEndComment(line)
+                    matchSection = matchEndSection(line)
+                    matchTitle = matchEndTitle(line)
+                    if matchComment or matchSection or matchTitle:
+                        # end of md-comment switch back to mode O
+                        mode = 0
 
 if simplified:
-	print(" ];")
-
+    print(" ];")
