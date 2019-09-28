@@ -24,8 +24,8 @@ sound2file : sound2file.cpp
 
 static:
 
-	$(CXX) -O3 sound2faust.cpp -I../../architecture $(shell pkg-config --cflags  sndfile)  /usr/local/lib/libsndfile.a -o sound2faust
-	$(CXX) -O3 sound2file.cpp -I../../architecture $(shell pkg-config --cflags  sndfile)  /usr/local/lib/libsndfile.a -o sound2file
+	$(CXX) -O3 $(LDFLAGS) sound2faust.cpp -I../../architecture $(shell pkg-config --cflags  sndfile)  /usr/local/lib/libsndfile.a -o sound2faust
+	$(CXX) -O3 $(LDFLAGS) sound2file.cpp -I../../architecture $(shell pkg-config --cflags  sndfile)  /usr/local/lib/libsndfile.a -o sound2file
 
 install :
 
