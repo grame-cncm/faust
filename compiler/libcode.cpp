@@ -552,12 +552,14 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
-                gGlobal->gImportDirList.push_back(argv[i + 1]);
+                // We want to search user given directories *before* the standard ones, so insert at the beginning
+                gGlobal->gImportDirList.insert(gGlobal->gImportDirList.begin(), argv[i + 1]);
             } else {
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
-                    gGlobal->gImportDirList.push_back(path);
+                    // We want to search user given directories *before* the standard ones, so insert at the beginning
+                    gGlobal->gImportDirList.insert(gGlobal->gImportDirList.begin(), path);
                 }
             }
             i += 2;

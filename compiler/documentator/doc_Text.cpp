@@ -222,7 +222,6 @@ const string positiveSymbolicNumber(double n)
     faustassert(n > 0);
 
     // Try to find a symbolic representation
-
     for (int i = 1; i < 10; i++) {
         for (int j = 1; j < 10; j++) {
             if (isSymbolicPower(i * n / j, s)) {
@@ -233,7 +232,6 @@ const string positiveSymbolicNumber(double n)
 
     // No symbolic representation,
     // Then numerical representation x.10^k
-
     char              tmp[64];
     string            entree = " * 10^{";
     char              sortie = '}';

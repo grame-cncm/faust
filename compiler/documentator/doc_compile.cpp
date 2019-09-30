@@ -808,7 +808,6 @@ string DocCompiler::generateDocConstantTbl(Tree /*tbl*/, Tree size, Tree isig)
 static bool isSeparator(char c)
 {
     bool w = (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')));
-
     return !w;
 }
 

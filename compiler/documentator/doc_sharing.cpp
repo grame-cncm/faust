@@ -36,15 +36,10 @@ Compile a list of FAUST signals into a LaTeX equation.
 
 #include <stdio.h>
 
-//#include "compile_vect.hh"
-//#include "compile_scal.hh"
-//#include "doc_compile_vect.hh"
 #include "doc_compile.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
-
-//#include "doc_sharing.hh"
 
 /*****************************************************************************
 ******************************************************************************
@@ -59,23 +54,17 @@ Compile a list of FAUST signals into a LaTeX equation.
 //------------------------------------------------------------------------------
 
 int DocCompiler::getSharingCount(Tree sig)
-// int getSharingCount(Tree sig, int count)
 {
-    // cerr << "getSharingCount of : " << *sig << " = ";
     Tree c;
     if (getProperty(sig, fSharingKey, c)) {
-        // cerr << c->node().getInt() << endl;
         return c->node().getInt();
     } else {
-        // cerr << 0 << endl;
         return 0;
     }
 }
 
 void DocCompiler::setSharingCount(Tree sig, int count)
-// void setSharingCount(Tree sig, int count)
 {
-    // cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
     setProperty(sig, fSharingKey, tree(count));
 }
 
@@ -84,7 +73,6 @@ void DocCompiler::setSharingCount(Tree sig, int count)
 //------------------------------------------------------------------------------
 
 void DocCompiler::sharingAnalysis(Tree t)
-// void sharingAnalysis(Tree t)
 {
     fSharingKey = shprkey(t);
     if (isList(t)) {
@@ -102,7 +90,6 @@ void DocCompiler::sharingAnalysis(Tree t)
 //------------------------------------------------------------------------------
 
 void DocCompiler::sharingAnnotation(int vctxt, Tree sig)
-// void sharingAnnotation(int vctxt, Tree sig)
 {
     // cerr << "START sharing annotation of " << *sig << endl;
     int count = getSharingCount(sig);

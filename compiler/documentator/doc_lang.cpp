@@ -175,8 +175,9 @@ static void printStringMapContent(map<string, string>& m, const string& name)
         cout << name << ".size() = " << m.size() << endl;
         map<string, string>::iterator it;
         int                           i = 1;
-        for (it = m.begin(); it != m.end(); ++it)
+        for (it = m.begin(); it != m.end(); ++it) {
             cout << i++ << ".\t" << name << "[" << it->first << "] \t= '" << it->second << "'" << endl;
+        }
     }
 }
 
@@ -187,11 +188,9 @@ static void printStringMapContent(map<string, string>& m, const string& name)
  */
 static istream* openArchFile(const string& filename)
 {
-    istream* file;
     getCurrentDir();  // Save the current directory.
-    if ((file = openArchStream(filename.c_str()))) {
-        // cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
-    } else {
+    istream* file = openArchStream(filename.c_str());
+    if (!file) {
         stringstream error;
         error << "ERROR : can't open architecture file " << filename << endl;
         throw faustexception(error.str());

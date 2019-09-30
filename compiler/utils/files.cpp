@@ -47,7 +47,7 @@ void choldDir()
         return;
     } else {
         stringstream error;
-        error << "ERROR : cholddir : " << strerror(errno) << std::endl;
+        error << "ERROR : choldDir : " << strerror(errno) << std::endl;
         throw faustexception(error.str());
     }
 }
@@ -70,7 +70,7 @@ void mkchDir(const string& dirname)
     }
 
     stringstream error;
-    error << "ERROR : mkchdir : " << strerror(errno) << std::endl;
+    error << "ERROR : mkchDir : " << strerror(errno) << std::endl;
     throw faustexception(error.str());
 }
 
@@ -85,7 +85,7 @@ void makeDir(const string& dirname)
     }
 
     stringstream error;
-    error << "ERROR : makedir : " << strerror(errno) << std::endl;
+    error << "ERROR : makeDir : " << strerror(errno) << std::endl;
     throw faustexception(error.str());
 }
 
@@ -95,3 +95,5 @@ void getCurrentDir()
     char* current_dir    = getcwd(buffer, FAUST_PATH_MAX);
     gGlobal->gCurrentDir = (current_dir) ? current_dir : "";
 }
+
+

@@ -247,7 +247,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
               << "' : " << strerror(errno) << endl;
         throw faustexception(error.str());
     }
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -316,7 +316,7 @@ ifstream* openArchStream(const char* filename)
         }
     }
     
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -342,7 +342,7 @@ FILE* fopenSearch(const char* filename, string& fullpath)
             return f;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -421,7 +421,7 @@ string stripEnd(const string& name, const string& ext)
 
 bool checkURL(const char* filename)
 {
-    char* fileBuf = 0;
+    char* fileBuf = nullptr;
     
     // Tries to open as an URL for a local file
     if (strstr(filename, "file://") != 0) {
