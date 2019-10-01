@@ -35,7 +35,7 @@
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
 
-int faustgen_factory::gFaustCounter = NULL;
+int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
 
@@ -92,8 +92,10 @@ static string getSerialNumber()
                                         kCFAllocatorDefault, 0);
         if (serialNumberAsCFString) {
             char serial_name[256];
-            CFStringGetCString((CFStringRef)serialNumberAsCFString, serial_name, 256, NULL);
-            return string(serial_name) + string(getCodeSize());
+            CFStringGetCString((CFStringRef)serialNumberAsCFString, serial_name, 256, kCFStringEncodingMacRoman);
+            string res = string(serial_name) + string(getCodeSize());
+            CFRelease(serialNumberAsCFString);
+            return res;
         }
         IOObjectRelease(platformExpert);
     }
