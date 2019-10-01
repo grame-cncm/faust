@@ -740,13 +740,17 @@ void faustgen_factory::display_libraries()
     open_file("compressors.lib");
     open_file("delays.lib");
     open_file("demos.lib");
+    open_file("double.lib");
     open_file("dx7.lib");
     open_file("envelopes.lib");
     open_file("filters.lib");
+    open_file("float.lib");
     open_file("hoa.lib");
     open_file("instruments.lib");
+    open_file("interpolators.lib");
     open_file("maths.lib");
     open_file("maxmsp.lib");
+    open_file("mi.lib");
     open_file("misceffects.lib");
     open_file("noises.lib");
     open_file("oscillators.lib");
@@ -755,6 +759,7 @@ void faustgen_factory::display_libraries()
     open_file("reducemaps.lib");
     open_file("reverbs.lib");
     open_file("routes.lib");
+    open_file("runtime.lib");
     open_file("sf.lib");
     open_file("signals.lib");
     open_file("soundfiles.lib");
@@ -772,13 +777,17 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("compressors.lib");
     display_libraries_aux("delays.lib");
     display_libraries_aux("demos.lib");
+    display_libraries_aux("double.lib");
     display_libraries_aux("dx7.lib");
     display_libraries_aux("envelopes.lib");
     display_libraries_aux("filters.lib");
+    display_libraries_aux("float.lib");
     display_libraries_aux("hoa.lib");
     display_libraries_aux("instruments.lib");
+    display_libraries_aux("interpolators.lib");
     display_libraries_aux("maths.lib");
     display_libraries_aux("maxmsp.lib");
+    display_libraries_aux("mi.lib");
     display_libraries_aux("misceffects.lib");
     display_libraries_aux("noises.lib");
     display_libraries_aux("oscillators.lib");
@@ -787,6 +796,7 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("reducemaps.lib");
     display_libraries_aux("reverbs.lib");
     display_libraries_aux("routes.lib");
+    display_libraries_aux("runtime.lib");
     display_libraries_aux("sf.lib");
     display_libraries_aux("signals.lib");
     display_libraries_aux("soundfiles.lib");
@@ -1150,95 +1160,85 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac < 0) return;
     
-    if (fDSPfactory->lock()) {
+    bool res = false;
+    string name = string((s)->s_name);
+
+    // If no argument is there, consider it as a toggle message for a button
+    if (ac == 0 && fDSPUI->isValue(name)) {
         
-        bool res = false;
-        string name = string((s)->s_name);
+        float off = 0.0f;
+        float on = 1.0f;
+        fDSPUI->setValue(name, off);
+        fDSPUI->setValue(name, on);
         
-        // If no argument is there, consider it as a toggle message for a button
-        if (ac == 0 && fDSPUI->isValue(name)) {
-            
-            float off = 0.0f;
-            float on = 1.0f;
-            fDSPUI->setValue(name, off);
-            fDSPUI->setValue(name, on);
-            
-            av[0].a_type = A_FLOAT;
-            av[0].a_w.w_float = off;
-            anything(inlet, s, 1, av);
-            
-            goto unlock;
+        av[0].a_type = A_FLOAT;
+        av[0].a_w.w_float = off;
+        anything(inlet, s, 1, av);
+        
+    } else if (check_digit(name)) { // List of values
+        
+        int ndigit = 0;
+        int pos;
+        
+        for (pos = name.size() - 1; pos >= 0; pos--) {
+            if (isdigit(name[pos]) || name[pos] == ' ') {
+                ndigit++;
+            } else {
+                break;
+            }
         }
+        pos++;
         
-        // List of values
-        if (check_digit(name)) {
-            
-            int ndigit = 0;
-            int pos;
-            
-            for (pos = name.size() - 1; pos >= 0; pos--) {
-                if (isdigit(name[pos]) || name[pos] == ' ') {
-                    ndigit++;
-                } else {
+        string prefix = name.substr(0, pos);
+        string num_base = name.substr(pos);
+        int num = atoi(num_base.c_str());
+        
+        int i;
+        t_atom* ap;
+        
+        // Increment ap each time to get to the next atom
+        for (i = 0, ap = av; i < ac; i++, ap++) {
+            float value;
+            switch (atom_gettype(ap)) {
+                case A_LONG:
+                    value = (float)ap[0].a_w.w_long;
                     break;
-                }
-            }
-            pos++;
-            
-            string prefix = name.substr(0, pos);
-            string num_base = name.substr(pos);
-            int num = atoi(num_base.c_str());
-            
-            int i;
-            t_atom* ap;
-            
-            // Increment ap each time to get to the next atom
-            for (i = 0, ap = av; i < ac; i++, ap++) {
-                float value;
-                switch (atom_gettype(ap)) {
-                    case A_LONG:
-                        value = (float)ap[0].a_w.w_long;
-                        break;
-                        
-                    case A_FLOAT:
-                        value = ap[0].a_w.w_float;
-                        break;
-                        
-                    default:
-                        post("Invalid argument in parameter setting");
-                        goto unlock;
-                }
-                
-                stringstream num_val; num_val << num + i;
-                stringstream param_name; param_name << prefix;
-                for (int i = 0; i < ndigit - count_digit(num_val.str()); i++) {
-                    param_name << ' ';
-                }
-                param_name << num_val.str();
-                
-                // Try special naming scheme for list of parameters
-                res = fDSPUI->setValue(param_name.str(), value);
-                
-                // Otherwise try standard name
-                if (!res) {
-                    res = fDSPUI->setValue(name, value);
-                }
-                if (!res) {
-                    post("Unknown parameter : %s", (s)->s_name);
-                }
+                    
+                case A_FLOAT:
+                    value = ap[0].a_w.w_float;
+                    break;
+                    
+                default:
+                    post("Invalid argument in parameter setting");
+                    return;
             }
             
-        } else {
-            // Standard parameter name
-            float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-            res = fDSPUI->setValue(name, value);
+            stringstream num_val; num_val << num + i;
+            stringstream param_name; param_name << prefix;
+            for (int i = 0; i < ndigit - count_digit(num_val.str()); i++) {
+                param_name << ' ';
+            }
+            param_name << num_val.str();
+            
+            // Try special naming scheme for list of parameters
+            res = fDSPUI->setValue(param_name.str(), value);
+            
+            // Otherwise try standard name
+            if (!res) {
+                res = fDSPUI->setValue(name, value);
+            }
             if (!res) {
                 post("Unknown parameter : %s", (s)->s_name);
             }
         }
         
-    unlock:
-        fDSPfactory->unlock();
+    } else {
+        // Standard parameter name
+        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+        res = fDSPUI->setValue(name, value);
+        if (!res) {
+            post("Unknown parameter : %s", (s)->s_name);
+        }
     }
 }
 
