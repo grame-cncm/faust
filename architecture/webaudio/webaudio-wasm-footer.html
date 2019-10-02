@@ -39,8 +39,11 @@
             }
         }
 
-        if (!navigator.requestMIDIAccess) alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
-        navigator.requestMIDIAccess().then(onSuccess, onError);
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(onSuccess, onError);
+        } else {
+            alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+        }
     }
 
     // Audio input handling
