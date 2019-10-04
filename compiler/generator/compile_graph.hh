@@ -89,12 +89,12 @@ class GraphCompiler : public Compiler {
     property<string>               fCompileProperty;
     property<string>               fSoundfileVariableProperty;  // variable associated to a soundfile
     property<string>               fVectorProperty;
-    property<pair<string, string>> fStaticInitProperty;        // property added to solve 20101208 kjetil bug
-    property<pair<string, string>> fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
-    property<Tree>                 fTableInitExpression;       // init expression associated with each table ID
-    property<set<Tree>>            fTableInitInstructions;     // init expression associated with each table ID
-    property<Scheduling>           fTableInitScheduling;       // instruction scheduling for each init expression
-    digraph<Tree>                  fTableInitialisationGraph;  // Graph of table IDs
+    property<pair<string, string>> fStaticInitProperty;     // property added to solve 20101208 kjetil bug
+    property<pair<string, string>> fInstanceInitProperty;   // property added to solve 20101208 kjetil bug
+    property<Tree>                 fTableInitExpression;    // init expression associated with each table ID
+    property<set<Tree>>            fTableInitInstructions;  // init expression associated with each table ID
+    property<Scheduling>           fTableInitScheduling;    // instruction scheduling for each init expression
+    digraph<Tree>                  fTableInitGraph;         // Graph of table IDs
 
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
@@ -120,6 +120,8 @@ class GraphCompiler : public Compiler {
     virtual string generateCacheCode(Tree sig, const string& exp);
     virtual string forceCacheCode(Tree sig, const string& exp);
     virtual string generateVariableStore(Tree sig, const string& exp);
+
+    Klass SchedulingToClass(const string& name, const string& super, int numInputs, int numOutputs, Scheduling& S);
 
     string getFreshID(const string& prefix);
 

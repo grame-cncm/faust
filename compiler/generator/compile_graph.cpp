@@ -240,8 +240,9 @@ Tree GraphCompiler::prepare3(Tree L1)
 }
 
 /**
- * @brief expression2Instructions() : transform an expression into instructions
- * @param exp
+ * @brief expression2Instructions() : transform a single expression into
+ * a set of instructions
+ * @param exp the expression to transform
  * @return set<Tree>
  */
 set<Tree> GraphCompiler::expression2Instructions(Tree exp)
@@ -281,14 +282,16 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
 }
 
 /**
- * @brief transformIntoInstructions(): transfoms a list of signals expressions into a set of instructions
+ * @brief transformIntoInstructions(): transfoms a list of signals expressions
+ * into a set of instructions
  *
- * @param L3
- * @return set<Tree>
+ * @param L3 a list of expressions
+ * @return set<Tree> the resulting set of instructions
  */
 set<Tree> GraphCompiler::transformIntoInstructions(Tree L3)
 {
-    // Decorate output expressions
+    // Each expression represent an output. We decorate them with
+    // output informations
     Tree L3d  = gGlobal->nil;
     int  onum = 0;
     for (Tree l = L3; isList(l); l = tl(l)) {
@@ -329,6 +332,13 @@ set<Tree> GraphCompiler::transformIntoInstructions(Tree L3)
     return INSTR5;
 }
 
+/**
+ * @brief Schedule a set of instructions into init, block and
+ * exec instruction sequences
+ *
+ * @param I the set of instructions to schedule
+ * @return the sequential Scheduling
+ */
 Scheduling GraphCompiler::schedule(const set<Tree>& I)
 {
     digraph<Tree> G;  // the signal graph
@@ -352,7 +362,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 3) fill the scheduling
 
-    // a) for the init and block level graph we know they are DACs
+    // a) for the init and block level graph we know they don't have cycles
+    // and can be directly serialized
     for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
     for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
 
@@ -533,6 +544,13 @@ static string nature2ctype(int n)
     return ctype;
 }
 
+/**
+ * @brief Fill all needed information for table initialisation, in particular the
+ * fTableInitGraph, an acyclic graph that describes in which order to initialize
+ * tables.
+ *
+ * @param I the instruction set to analyze
+ */
 void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
     set<Tree> T;                       // Treated IDs so far
@@ -540,7 +558,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
     while (!R.empty()) {
         set<Tree> N;  // Set of unseen IDs
         for (Tree id : R) {
-            fTableInitialisationGraph.add(id);
+            fTableInitGraph.add(id);
             T.insert(id);
             Tree init;
             faustassert(fTableInitExpression.get(id, init));
@@ -555,7 +573,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 
             set<Tree> D = collectTableIDs(J);
             for (Tree dst : D) {
-                fTableInitialisationGraph.add(id, dst);
+                fTableInitGraph.add(id, dst);
                 if ((T.count(dst) == 0) || (R.count(dst) == 0)) {
                     N.insert(dst);  // dst is unseen
                 }
@@ -563,6 +581,107 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         }
         R = N;  // Unseen are remaining to treat
     }
+    vector<Tree> S = serialize(fTableInitGraph);
+    cerr << "Table order" << endl;
+    for (Tree id : S) {
+        Tree       init;
+        Scheduling s;
+        faustassert(fTableInitExpression.get(id, init));
+        faustassert(fTableInitScheduling.get(init, s));
+        cerr << "table " << id << " has init expression " << ppsig(init) << endl;
+        cerr << s << endl;
+        Klass k{SchedulingToClass("gen", "", 0, 1, s)};
+        cerr << "The corresponding Klass:" << endl;
+        k.println(1, cerr);
+        cerr << "\n\n" << endl;
+    }
+}
+/**
+ * @brief Transform a scheduling into a C++ class
+ *
+ * @param name
+ * @param super
+ * @param numInputs
+ * @param numOutputs
+ * @param S
+ * @return Klass
+ */
+Klass GraphCompiler::SchedulingToClass(const string& name, const string& super, int numInputs, int numOutputs,
+                                       Scheduling& S)
+{
+    Klass K{name, super, numInputs, numOutputs};
+
+    for (int i = 0; i < K.inputs(); i++) {
+        K.addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+    }
+    for (int i = 0; i < K.outputs(); i++) {
+        K.addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+    }
+
+    K.addDeclCode("int \ttime;");
+    K.addClearCode("time = 0;");
+    K.addPostCode(Statement("", "++time;"));
+
+    for (Tree i : S.fInitLevel) {
+        // We compile
+        Tree sig = S.fDic[i];
+        Tree id, origin, content;
+        int  nature;
+
+        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+
+        string ctype{(nature == kInt) ? "int" : "float"};
+        string vname{tree2str(id)};
+
+        K.addDeclCode(subst("$0 \t$1;", ctype, vname));
+        K.addInitCode(subst("$0 = $1;", vname, CS(content)));
+    }
+
+    for (Tree i : S.fBlockLevel) {
+        // We compile
+        Tree sig = S.fDic[i];
+        Tree id, origin, content;
+        int  nature;
+
+        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+
+        string ctype{(nature == kInt) ? "int" : "float"};
+        string vname{tree2str(id)};
+
+        K.addFirstPrivateDecl(vname);
+        K.addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+    }
+
+    for (Tree instr : S.fExecLevel) {
+        // We compile
+        Tree sig = S.fDic[instr];
+
+        Tree id, origin, content, init, idx;
+        int  i, nature, dmax, tblsize;
+
+        if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
+            string vname{tree2str(id)};
+            K.addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
+
+        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
+            string vname{tree2str(id)};
+            K.addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
+            if (isZero(init)) {
+                K.addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+            } else {
+                cerr << "Table init needed here" << endl;
+            }
+            if (!isNil(idx)) K.addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
+
+        } else if (isSigOutput(sig, &i, content)) {
+            K.addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
+
+        } else {
+            std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
+            faustassert(false);
+        }
+    }
+    return K;
 }
 
 void GraphCompiler::compileMultiSignal(Tree L)
@@ -571,6 +690,11 @@ void GraphCompiler::compileMultiSignal(Tree L)
     L                = prepare(L);  // optimize, share and annotate expressions
     set<Tree>  INSTR = transformIntoInstructions(L);
     Scheduling S     = schedule(INSTR);
+
+    Klass KKK = SchedulingToClass("theDSP", "theSuper", fClass->inputs(), fClass->outputs(), S);
+    cerr << " KKK = [[";
+    KKK.println(1, cerr);
+    cerr << "]]" << endl;
 
     tableDependenciesGraph(INSTR);
 
