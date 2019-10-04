@@ -53,23 +53,43 @@ static int int2pow2(int x) { int r = 0; while ((1<<r) < x) r++; return r; }
 
 static long lopt(char* argv[], const char* name, long def)
 {
-	int	i;
+    int i;
     for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return std::atoi(argv[i+1]);
-	return def;
+    return def;
 }
 
-static bool isopt(char* argv[], const char* name)
+static long lopt1(int argc, char* argv[], const char* longname, const char* shortname, long def)
 {
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
-	return false;
+    for (int i = 2; i < argc; i++) {
+        if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
+            return atoi(argv[i]);
+        }
+    }
+    return def;
 }
 
 static const char* lopts(char* argv[], const char* name, const char* def)
 {
-	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
-	return def;
+    int i;
+    for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
+    return def;
+}
+
+static const char* lopts1(int argc, char* argv[], const char* longname, const char* shortname, const char* def)
+{
+    for (int i = 2; i < argc; i++) {
+        if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
+            return argv[i];
+        }
+    }
+    return def;
+}
+
+static bool isopt(char* argv[], const char* name)
+{
+    int i;
+    for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+    return false;
 }
 
 static std::string pathToContent(const std::string& path)

@@ -554,41 +554,6 @@ struct AudioInterface : public AudioParam
 
 };
 
-// lopt : Scan Command Line long int Arguments
-static long lopt(int argc, char* argv[], const char* longname, const char* shortname, long def)
-{
-	for (int i = 2; i < argc; i++)
-		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0)
-			return atoi(argv[i]);
-	return def;
-}
-
-// sopt : Scan Command Line string Arguments
-static const char* sopt(int argc, char* argv[], const char* longname, const char* shortname, const char* def)
-{
-	for (int i = 2; i < argc; i++)
-		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0)
-			return argv[i];
-	return def;
-}
-
-// fopt : Scan Command Line flag option (without argument), return true if the flag
-static bool fopt(int argc, char* argv[], const char* longname, const char* shortname)
-{
-	for (int i = 1; i < argc; i++)
-		if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0)
-			return true;
-	return false;
-}
-
-static bool isopt(char* argv[], const char* name)
-{
-    int i;
-    for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
-    return false;
-}
-
-
 /**
  * Return the value of an environment variable or defval if undefined.
  */
@@ -639,10 +604,10 @@ class alsaaudio : public audio
             std::cout << "prog [--device|-d <device> (default \"hw:0\")] [--frequency|-f <f> (default 44100)] [--buffer|-b <bs> (default 512)] [--periods|-p <n> (default 2)]\n";
             exit(1);
         }
-        fAudio = new AudioInterface(AudioParam().cardName(sopt(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
-            .frequency(lopt(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY", 44100)))
-            .buffering(lopt(argc, argv, "--buffer", "-b", getDefaultEnv("FAUST2ALSA_BUFFER", 512)))
-            .periods(lopt(argc, argv, "--periods", "-p", getDefaultEnv("FAUST2ALSA_PERIODS", 2)))
+        fAudio = new AudioInterface(AudioParam().cardName(lopts1(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
+            .frequency(lopt1(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY", 44100)))
+            .buffering(lopt1(argc, argv, "--buffer", "-b", getDefaultEnv("FAUST2ALSA_BUFFER", 512)))
+            .periods(lopt1(argc, argv, "--periods", "-p", getDefaultEnv("FAUST2ALSA_PERIODS", 2)))
             .inputs(DSP->getNumInputs())
             .outputs(DSP->getNumOutputs()));
     }
