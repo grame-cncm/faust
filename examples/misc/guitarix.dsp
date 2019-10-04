@@ -105,7 +105,7 @@ with {
 low = 0.0;
 high = 0.970874;
 step = 101.97;
-size = 100;
+size = 99; // (real size = 100, set the actual size at 100-1 for interpolation to work at the last point)
 	
 ts9table = waveform{0.0,-0.0296990148227,-0.0599780676992,-0.0908231643281,-0.122163239629,
 	-0.15376009788,-0.184938007182,-0.214177260107,-0.239335434213,-0.259232575019,
