@@ -68,7 +68,7 @@ unGrain(input, clk) = (linrwtable(wf , rindex) : *(0.2 * EnvGrain))
 
         EnvGrain = clk : (rampe(freq) : envelop);	
 
-        windex = (%(_,size) ) ~ ( +(1) );
+        windex = (%(_,size) ) ~ (+(1));
         posTabl = int(ba.sAndH(clk, windex));
         rindex = %(int(rampe2(speed, clk)) + posTabl + int(size * decal), size);
 

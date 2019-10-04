@@ -1,4 +1,4 @@
-% man(1) Version 2.18.9 (30-September-2019) | Faust man page
+% man(1) Version 2.19.0 (04-October-2019) | Faust man page
 
 NAME
 ====
@@ -171,6 +171,8 @@ Debug options:
   **-sg**         **--signal-graph**              print the internal signal graph in dot format.
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
+
+  **-ct**         **--check-table**               check table index range.
 
 
 Information options:

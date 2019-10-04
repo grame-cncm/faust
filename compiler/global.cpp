@@ -139,9 +139,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
 
-    gDSPStruct = false;
-    gLightMode = false;
-    gClang     = false;
+    gDSPStruct  = false;
+    gLightMode  = false;
+    gClang      = false;
+    gCheckTable = false;
 
     gClassName      = "mydsp";
     gSuperClassName = "dsp";

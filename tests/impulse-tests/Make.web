@@ -71,11 +71,11 @@ ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
 	mv $@.tmp $@
 	
 ir/$(wasmdir)/%.wasm : dsp/%.dsp
-	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS)  $<  -o $@
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS)  $<  -o $@
 
 # Specific rule to test 'control' primitive, using a 'fake' test...
 ir/$(wasmdir)/control.wasm : dsp/control.dsp
-	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
 
 #########################################################################
 # rules for wast

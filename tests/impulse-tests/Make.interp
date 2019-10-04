@@ -67,7 +67,7 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	@echo "Cannot be tested with the Interp backend"
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
-	cd $(dir $<); ../impulseinterp $(notdir $<) -I . -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
+	cd $(dir $<); ../impulseinterp $(notdir $<) -I dsp -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
 
 

@@ -1388,7 +1388,19 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     // Check types and possibly cast written value
     int table_type = getCertifiedSigType(tbl)->nature();
     int data_type  = getCertifiedSigType(data)->nature();
-
+    
+    if (gGlobal->gCheckTable) {
+        // Check if index is inside the table range (to rework with a low, high, impose interval model)
+        Tree id, size, content;
+        interval idx_i = getCertifiedSigType(idx)->getInterval();
+        isSigTable(tbl, id, size, content);
+        if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+            stringstream error;
+            error << "ERROR : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi << "] is outside of table range (" << tree2int(size) << ")" << endl;
+            throw faustexception(error.str());
+        }
+    }
+  
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(
         load_value->fAddress->getName(), CS(idx),
         (table_type != data_type) ? InstBuilder::genCastInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
@@ -1407,7 +1419,7 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     Tree                id, size, content;
     ValueInst*          tblname;
     Address::AccessType access;
-
+    
     if (isSigTable(tbl, id, size, content)) {
         access = Address::kStaticStruct;
         if (!getCompiledExpression(tbl, tblname)) {
@@ -1417,7 +1429,17 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
         access  = Address::kStruct;
         tblname = CS(tbl);
     }
-
+    
+    if (gGlobal->gCheckTable) {
+        // Check if index is inside the table range (to rework with a low, high, impose interval model)
+        interval idx_i = getCertifiedSigType(idx)->getInterval();
+        if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
+            stringstream error;
+            error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi << "] is outside of table range (" << tree2int(size) << ")" << endl;
+            throw faustexception(error.str());
+        }
+    }
+ 
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value1);
 
