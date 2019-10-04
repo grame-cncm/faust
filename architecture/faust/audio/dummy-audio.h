@@ -128,14 +128,14 @@ class dummyaudio : public audio {
             fNumInputs = fDSP->getNumInputs();
             fNumOutputs = fDSP->getNumOutputs();
             
-            fInChannel = new FAUSTFLOAT*[fDSP->getNumInputs()];
-            fOutChannel = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            fInChannel = new FAUSTFLOAT*[fNumInputs];
+            fOutChannel = new FAUSTFLOAT*[fNumOutputs];
             
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            for (int i = 0; i < fNumInputs; i++) {
                 fInChannel[i] = new FAUSTFLOAT[fBufferSize];
                 memset(fInChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            for (int i = 0; i < fNumOutputs; i++) {
                 fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
                 memset(fOutChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
@@ -186,12 +186,12 @@ class dummyaudio : public audio {
         void render()
         {
             fDSP->compute(fBufferSize, fInChannel, fOutChannel);
-            if (fDSP->getNumInputs() > 0) {
+            if (fNumInputs > 0) {
                 for (int frame = 0; frame < fSample; frame++) {
                     std::cout << std::fixed << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
                 }
             }
-            if (fDSP->getNumOutputs() > 0) {
+            if (fNumOutputs > 0) {
                 for (int frame = 0; frame < fSample; frame++) {
                     std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
                 }
@@ -201,8 +201,8 @@ class dummyaudio : public audio {
         virtual int getBufferSize() { return fBufferSize; }
         virtual int getSampleRate() { return fSampleRate; }
         
-        virtual int getNumInputs() { return fDSP->getNumInputs(); }
-        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
+        virtual int getNumInputs() { return fNumInputs; }
+        virtual int getNumOutputs() { return fNumOutputs; }
     
 };
 
