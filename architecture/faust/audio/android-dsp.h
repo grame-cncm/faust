@@ -341,6 +341,26 @@ class androidaudio : public audio {
                     return false;
             }
           
+			if (fInputBufferQueue) {
+				(*fInputBufferQueue)->Destroy(fInputBufferQueue);
+				fInputBufferQueue = NULL;
+			}
+
+			if (fOutputBufferQueue) {
+				(*fOutputBufferQueue)->Destroy(fOutputBufferQueue);
+				fOutputBufferQueue = NULL;
+			}
+
+			if (fOutputMix) {
+				(*fOutputMix)->Destroy(fOutputMix);
+				fOutputMix = NULL;
+			}
+
+			if (fOpenSLEngine) {
+				(*fOpenSLEngine)->Destroy(fOpenSLEngine);
+				fOpenSLEngine = NULL;
+			}
+			
             // Create the OpenSL ES engine.
             result = slCreateEngine(&fOpenSLEngine, 0, NULL, 0, NULL, NULL);
             if (result != SL_RESULT_SUCCESS) {
