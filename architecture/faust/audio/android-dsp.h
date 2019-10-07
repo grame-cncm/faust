@@ -215,13 +215,36 @@ class androidaudio : public audio {
                 __android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback Enqueue error = %s", res_str(result));
             }
         }
-          
+    
+        void destroy()
+        {
+            if (fInputBufferQueue) {
+                (*fInputBufferQueue)->Destroy(fInputBufferQueue);
+                fInputBufferQueue = NULL;
+            }
+            
+            if (fOutputBufferQueue) {
+                (*fOutputBufferQueue)->Destroy(fOutputBufferQueue);
+                fOutputBufferQueue = NULL;
+            }
+            
+            if (fOutputMix) {
+                (*fOutputMix)->Destroy(fOutputMix);
+                fOutputMix = NULL;
+            }
+            
+            if (fOpenSLEngine) {
+                (*fOpenSLEngine)->Destroy(fOpenSLEngine);
+                fOpenSLEngine = NULL;
+            }
+        }
+    
     public:
     
         androidaudio(long srate, long bsize)
-        : fDSP(0), fSampleRate(srate),
+        : fDSP(NULL), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
-        fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0),
+        fOpenSLEngine(NULL), fOutputMix(NULL), fInputBufferQueue(NULL), fOutputBufferQueue(NULL),
         fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
@@ -244,26 +267,7 @@ class androidaudio : public audio {
         virtual ~androidaudio()
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Destructor");
-            
-            if (fInputBufferQueue) {
-                (*fInputBufferQueue)->Destroy(fInputBufferQueue);
-                fInputBufferQueue = NULL;
-            }
-            
-            if (fOutputBufferQueue) {
-                (*fOutputBufferQueue)->Destroy(fOutputBufferQueue);
-                fOutputBufferQueue = NULL;
-            }
-            
-            if (fOutputMix) {
-                (*fOutputMix)->Destroy(fOutputMix);
-                fOutputMix = NULL;
-            }
-             
-            if (fOpenSLEngine) {
-                (*fOpenSLEngine)->Destroy(fOpenSLEngine);
-                fOpenSLEngine = NULL;
-            }
+            destroy();
             
             for (int i = 0; i < NUM_INPUTS; i++) {
                 delete [] fInputs[i];
@@ -340,6 +344,8 @@ class androidaudio : public audio {
                 default:
                     return false;
             }
+            
+            destroy();
           
             // Create the OpenSL ES engine.
             result = slCreateEngine(&fOpenSLEngine, 0, NULL, 0, NULL, NULL);
