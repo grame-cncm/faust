@@ -23,7 +23,9 @@
 #define _C_INSTRUCTIONS_H
 
 #include <string>
+
 #include "text_instructions.hh"
+#include "struct_manager.hh"
 
 using namespace std;
 
@@ -384,6 +386,48 @@ class CInstVisitor : public TextInstVisitor {
     }
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
+};
+
+class CInstVisitor1 : public CInstVisitor {
+    
+    private:
+    
+        StructInstVisitor1 fStructVisitor;
+    
+    public:
+    
+        CInstVisitor1(std::ostream* out, const string& structname, int tab = 0):CInstVisitor(out, structname, tab)
+        {}
+    
+        virtual void visit(DeclareVarInst* inst)
+        {
+            Address::AccessType access = inst->fAddress->getAccess();
+            if ((access & Address::kStruct) || (access & Address::kStaticStruct)) {
+                fStructVisitor.visit(inst);
+            } else {
+                CInstVisitor::visit(inst);
+            }
+        }
+    
+        virtual void visit(NamedAddress* named)
+        {
+            if (named->getAccess() & Address::kStruct) {
+                *fOut << "dsp->";
+            }
+            Typed::VarType type;
+            if (fStructVisitor.hasField(named->fName, type)) {
+                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName) << "]";
+            } else {
+                *fOut << named->fName;
+            }
+        }
+        
+        virtual void visit(LoadVarAddressInst* inst)
+        {
+            *fOut << "&";
+            inst->fAddress->accept(this);
+        }
+   
 };
 
 #endif
