@@ -149,6 +149,13 @@ install (
 # install VS redistributables
 if (WIN32)
 set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
+if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
+	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
+elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
+	set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Redist/MSVC/14.16.27012")
+else()
+	set (VS "/unknown/visual/studio/version")
+endif()
 install (
     FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
