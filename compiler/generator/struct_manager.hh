@@ -61,6 +61,7 @@ struct StructInstVisitor : public DispatchVisitor {
     int        fFieldIndex;    // Keep the field index
     MemoryDesc fDefault;
 
+    // Vector is used so that field names are ordered in 'getStructType'
     typedef vector<pair<string, MemoryDesc> > field_table_type;
 
     field_table_type fFieldTable;  // Table: field_name, { index, offset, size, type }
@@ -89,6 +90,7 @@ struct StructInstVisitor : public DispatchVisitor {
         return -1;
     }
 
+    // Return the memory description of a given field
     MemoryDesc& getMemoryDesc(const string& name)
     {
         for (auto& field : fFieldTable) {

@@ -19,6 +19,7 @@
 . faustoptflags
 
 NVOICES=-1
+CXXFLAGS=$MYGCCFLAGS
 ANDROID_MK=Android.mk
 
 #-------------------------------------------------------------------
