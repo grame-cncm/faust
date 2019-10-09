@@ -14,7 +14,7 @@ cd %BUILD%
 cmake -C ..\backends\most.cmake -C ../targets/all-win64.cmake ..
 cmake --build . --config Release --  /maxcpucount:4
 CALL ../MakePkg.bat
-cmake -DCMAKE_INSTALL_PREFIX=faust ..
+cmake -DCMAKE_INSTALL_PREFIX=faust -DPACK=off ..
 REM Install faust locally - to be used to build faustgen and faustlive
 cmake --build . --config Release --target install
 cd ..
