@@ -40,12 +40,9 @@ class CInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
+    CInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*", struct_name), tab)
     {
-        fTypeManager->fTypeDirectTable[Typed::kObj]     = structname;
-        fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
-
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
 

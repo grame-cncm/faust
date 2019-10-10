@@ -279,7 +279,7 @@ void CCodeContainer::produceClass()
     *fOut << "void classInit" << fKlassName << "(int sample_rate) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
+        // Local visitor here to avoid DSP object incorrect type generation
         CInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 1);
         generateStaticInit(&codeproducer);
@@ -292,7 +292,7 @@ void CCodeContainer::produceClass()
     *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
+        // Local visitor here to avoid DSP object incorrect type generation
         CInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 1);
         generateResetUserInterface(&codeproducer);
@@ -305,7 +305,7 @@ void CCodeContainer::produceClass()
     *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
+        // Local visitor here to avoid DSP object incorrect type generation
         CInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 1);
         generateClear(&codeproducer);
@@ -318,7 +318,7 @@ void CCodeContainer::produceClass()
     *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
+        // Local visitor here to avoid DSP object incorrect type generation
         CInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 1);
         generateInit(&codeproducer);

@@ -87,11 +87,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
                            : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_size + "]" + "\"";
-                /*
-                return (array_typed->fSize == 0)
-                    ? fTypeDirectTable[basic_typed1->fType]
-                    : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
-                */
             } else if (array_typed1) {
                 return generateType(array_typed1) + "[" + num_size + "]";
             } else if (named_typed1) {
@@ -134,7 +129,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (named_typed) {
             // TODO : break code with subclasses
             // return named_typed->fName + generateType(named_typed->fType) + ", " + name;
-            return named_typed->fName + ", " + name;
+            return "\"" + named_typed->fName + "\", " + name;
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
@@ -146,11 +141,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
                            : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_size + "]";
-                /*
-                 ? fTypeDirectTable[basic_typed1->fType] + "*, " + name
-                 : fTypeDirectTable[basic_typed1->fType] + ", " + name + "[" + num_str.str() + "]";
-                 */
-                //: "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
             } else if (array_typed1) {
                 return generateType(array_typed1) + "[" + num_size + "]";
             } else if (named_typed1) {
@@ -352,7 +342,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(NamedAddress* named)
     {
-        *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")";
+        *fOut << "Address(" << named->fName << ", " << Address::dumpString(named->fAccess) << ")";
     }
 
     virtual void visit(IndexedAddress* indexed)
