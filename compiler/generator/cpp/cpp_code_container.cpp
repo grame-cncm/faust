@@ -40,7 +40,9 @@ dsp_factory_base* CPPCodeContainer::produceFactory()
 
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+    return (gGlobal->gOneSample)
+        ? new CPPScalarOneSampleCodeContainer(name, "", 0, 1, fOut, sub_container_type)
+        : new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
 CodeContainer* CPPCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs,
@@ -73,7 +75,9 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
     } else if (gGlobal->gVectorSwitch) {
         container = new CPPVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        container = new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        container = (gGlobal->gOneSample)
+            ? new CPPScalarOneSampleCodeContainer(name, super, numInputs, numOutputs, dst, kInt)
+            : new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
 
     return container;
@@ -269,15 +273,6 @@ void CPPCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut);
 
-    if (gGlobal->gOneSample) {
-        *fOut << "#define FAUST_INPUTS " << fNumInputs << endl;
-        *fOut << "#define FAUST_OUTPUTS  " << fNumOutputs << endl;
-        *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
-        *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum;
-        tab(n, *fOut);
-        fSuperKlassName = "one_sample_dsp";
-    }
-   
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
@@ -489,22 +484,6 @@ void CPPCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "}";
 
-    if (gGlobal->gOneSample) {
-        tab(n + 1, *fOut);
-        *fOut << subst("virtual void control(int* icontrol, $0* fcontrol) {", xfloat());
-        tab(n + 2, *fOut);
-        fCodeProducer.Tab(n + 2);
-        // Generates local variables declaration and setup
-        generateComputeBlock(&fCodeProducer);
-        tab(n + 1, *fOut);
-        *fOut << "};" << endl;
-
-        tab(n + 1, *fOut);
-        *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";
-        tab(n + 1, *fOut);
-        *fOut << "virtual int getNumRealControls() { return " << fRealControlNum << "; }";
-    }
-
     // Compute
     generateCompute(n);
     tab(n, *fOut);
@@ -529,38 +508,22 @@ CPPScalarCodeContainer::CPPScalarCodeContainer(const string& name, const string&
     fSubContainerType = sub_container_type;
 }
 
-CPPScalarCodeContainer::~CPPScalarCodeContainer()
-{
-}
-
 void CPPScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    if (gGlobal->gOneSample) {
-        *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* icontrol, $0* fcontrol) {", xfloat());
-    } else {
-        *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    }
+    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
-    if (!gGlobal->gOneSample) {
-        // Generates local variables declaration and setup
-        generateComputeBlock(&fCodeProducer);
-    }
-
-    if (gGlobal->gOneSample) {
-        // Generates one sample computation
-        BlockInst* block = fCurLoop->generateOneSample();
-        block->accept(&fCodeProducer);
-    } else {
-        // Generates one single scalar loop
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-        loop->accept(&fCodeProducer);
-    }
-
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+   
+    // Generates one single scalar loop
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    loop->accept(&fCodeProducer);
+   
     /*
     // TODO : atomic switch
     // Currently for soundfile management
@@ -571,14 +534,246 @@ void CPPScalarCodeContainer::generateCompute(int n)
     *fOut << "}";
 }
 
+// One Sample Scalar
+
+void CPPScalarOneSampleCodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* icontrol, $0* fcontrol) {", xfloat());
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    
+    // Generates one sample computation
+    BlockInst* block = fCurLoop->generateOneSample();
+    block->accept(&fCodeProducer);
+    
+    /*
+     // TODO : atomic switch
+     // Currently for soundfile management
+     generatePostComputeBlock(&fCodeProducer);
+     */
+    
+    tab(n + 1, *fOut);
+    *fOut << "}";
+}
+
+void CPPScalarOneSampleCodeContainer::produceClass()
+{
+    int n = 0;
+    
+    // Libraries
+    printLibrary(*fOut);
+    printIncludeFile(*fOut);
+    
+    // Sub containers
+    generateSubContainers();
+    
+    // Global declarations
+    tab(n, *fOut);
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
+    
+    tab(n, *fOut);
+    *fOut << "#ifndef FAUSTCLASS " << endl;
+    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+    
+    *fOut << "#ifdef __APPLE__ " << endl;
+    *fOut << "#define exp10f __exp10f" << endl;
+    *fOut << "#define exp10 __exp10" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+    
+    *fOut << "#define FAUST_INPUTS " << fNumInputs << endl;
+    *fOut << "#define FAUST_OUTPUTS  " << fNumOutputs << endl;
+    *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
+    *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum;
+    tab(n, *fOut);
+    fSuperKlassName = "one_sample_dsp";
+    
+    tab(n, *fOut);
+    *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
+    
+    tab(n + 1, *fOut);
+    
+    if (gGlobal->gUIMacroSwitch) {
+        tab(n, *fOut);
+        *fOut << " public:";
+    } else {
+        tab(n, *fOut);
+        *fOut << " private:";
+    }
+    tab(n + 1, *fOut);
+    
+    // Fields
+    fCodeProducer.Tab(n + 1);
+    tab(n + 1, *fOut);
+    generateDeclarations(&fCodeProducer);
+    
+    if (fAllocateInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "void allocate() {";
+        tab(n + 2, *fOut);
+        fCodeProducer.Tab(n + 2);
+        generateAllocate(&fCodeProducer);
+        tab(n + 1, *fOut);
+        *fOut << "}";
+        tab(n + 1, *fOut);
+    }
+    
+    if (fDestroyInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "void destroy() {";
+        tab(n + 2, *fOut);
+        fCodeProducer.Tab(n + 2);
+        generateDestroy(&fCodeProducer);
+        tab(n + 1, *fOut);
+        *fOut << "}";
+        tab(n + 1, *fOut);
+    }
+    
+    tab(n, *fOut);
+    *fOut << " public:";
+    
+    if (gGlobal->gMemoryManager) {
+        tab(n + 1, *fOut);
+        *fOut << "static dsp_memory_manager* fManager;";
+    }
+    
+    // Print metadata declaration
+    tab(n + 1, *fOut);
+    produceMetadata(n + 1);
+    
+    if (fAllocateInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << fKlassName << "() {";
+        tab(n + 2, *fOut);
+        *fOut << "allocate();";
+        tab(n + 1, *fOut);
+        *fOut << "}" << endl;
+    }
+    
+    if (fDestroyInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "virtual ~" << fKlassName << "() {";
+        tab(n + 2, *fOut);
+        *fOut << "destroy();";
+        tab(n + 1, *fOut);
+        *fOut << "}" << endl;
+    }
+    
+    tab(n + 1, *fOut);
+    // No class name for main class
+    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
+    
+    tab(n + 1, *fOut);
+    *fOut << "static void classInit(int sample_rate) {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateStaticInit(&fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    
+    if (gGlobal->gMemoryManager) {
+        tab(n + 1, *fOut);
+        *fOut << "static void classDestroy() {";
+        tab(n + 2, *fOut);
+        fCodeProducer.Tab(n + 2);
+        generateStaticDestroy(&fCodeProducer);
+        tab(n + 1, *fOut);
+        *fOut << "}";
+    }
+  
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << "virtual void instanceConstants(int sample_rate) {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateInit(&fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+    
+    tab(n + 1, *fOut);
+    *fOut << "virtual void instanceResetUserInterface() {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateResetUserInterface(&fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+    
+    tab(n + 1, *fOut);
+    *fOut << "virtual void instanceClear() {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateClear(&fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+    
+    // Init
+    produceInit(n + 1);
+    
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << "virtual " << fKlassName << "* clone() {";
+    tab(n + 2, *fOut);
+    *fOut << "return new " << fKlassName << "();";
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    
+    tab(n + 1, *fOut);
+    fCodeProducer.Tab(n + 1);
+    tab(n + 1, *fOut);
+    generateGetSampleRate("getSampleRate", "dsp", true, true)->accept(&fCodeProducer);
+    
+    // User interface
+    tab(n + 1, *fOut);
+    *fOut << "virtual void buildUserInterface(UI* ui_interface) {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateUserInterface(&fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    
+    tab(n + 1, *fOut);
+    *fOut << subst("virtual void control(int* icontrol, $0* fcontrol) {", xfloat());
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "};" << endl;
+    
+    tab(n + 1, *fOut);
+    *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    tab(n + 1, *fOut);
+    *fOut << "virtual int getNumRealControls() { return " << fRealControlNum << "; }";
+    
+    // Compute
+    generateCompute(n);
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "};" << endl;
+    
+    // To improve (generalization for all backends...)
+    if (gGlobal->gMemoryManager) {
+        tab(n, *fOut);
+        *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
+    }
+    
+    // Generate user interface macros if needed
+    printMacros(*fOut, n);
+}
+
 // Vector
 CPPVectorCodeContainer::CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
                                                std::ostream* out)
     : VectorCodeContainer(numInputs, numOutputs), CPPCodeContainer(name, super, numInputs, numOutputs, out)
-{
-}
-
-CPPVectorCodeContainer::~CPPVectorCodeContainer()
 {
 }
 
@@ -612,10 +807,6 @@ CPPOpenMPCodeContainer::CPPOpenMPCodeContainer(const string& name, const string&
 {
 }
 
-CPPOpenMPCodeContainer::~CPPOpenMPCodeContainer()
-{
-}
-
 void CPPOpenMPCodeContainer::generateCompute(int n)
 {
     // Possibly generate separated functions
@@ -643,10 +834,6 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
 CPPWorkStealingCodeContainer::CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs,
                                                            int numOutputs, std::ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "this"), CPPCodeContainer(name, super, numInputs, numOutputs, out)
-{
-}
-
-CPPWorkStealingCodeContainer::~CPPWorkStealingCodeContainer()
 {
 }
 

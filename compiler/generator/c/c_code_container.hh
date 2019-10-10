@@ -95,8 +95,24 @@ class CScalarCodeContainer : public CCodeContainer {
    public:
     CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
                          int sub_container_type);
-    virtual ~CScalarCodeContainer();
+    virtual ~CScalarCodeContainer()
+    {}
 
+    void generateCompute(int tab);
+};
+
+class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
+   protected:
+    virtual void produceClass();
+   public:
+    CScalarOneSampleCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
+                         int sub_container_type)
+    : CScalarCodeContainer(name, numInputs, numOutputs, out, sub_container_type)
+    {}
+
+    virtual ~CScalarOneSampleCodeContainer()
+    {}
+    
     void generateCompute(int tab);
 };
 
@@ -104,7 +120,8 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
    protected:
    public:
     CVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CVectorCodeContainer();
+    virtual ~CVectorCodeContainer()
+    {}
 
     void generateCompute(int n);
 };
@@ -113,7 +130,8 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
    protected:
    public:
     COpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~COpenMPCodeContainer();
+    virtual ~COpenMPCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
@@ -122,7 +140,8 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
    protected:
    public:
     CWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CWorkStealingCodeContainer();
+    virtual ~CWorkStealingCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
