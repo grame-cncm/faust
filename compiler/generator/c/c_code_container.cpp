@@ -258,7 +258,6 @@ void CCodeContainer::produceClass()
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
   
     tab(n, *fOut);
-    tab(n, *fOut);
     produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
 
     // Inits
@@ -492,7 +491,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     fCodeProducer->Tab(n);
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     
-    tab(n, *fOut);
     tab(n, *fOut);
     produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
     

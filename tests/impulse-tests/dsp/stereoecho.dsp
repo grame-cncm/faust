@@ -12,5 +12,5 @@ import("music.lib");
 
 process = vgroup("stereo echo", (echo1s, echo1s))
 	with {
-		echo1s  = vgroup("echo  1000", +~(delay(65536,   int(hslider("millisecond", 16.3, 0,	1000, 0.10)*millisec)-1) * (hslider("feedback", 90.9, 0,  100, 0.1)/100.0)));
+		echo1s = vgroup("echo 1000", +~(delay(65536, int(hslider("millisecond", 16.3, 0, 1000, 0.10)*millisec)-1) * (hslider("feedback", 90.9, 0,  100, 0.1)/100.0)));
 	};

@@ -395,7 +395,7 @@ class CInstVisitor1 : public CInstVisitor {
         bool fZoneAddress;      // If a zone address is currently written
         bool fIndexedAddress;   // If an indexed address is currently written
     
-        string genName(const string& name)
+        string genZoneName(const string& name)
         {
             Typed::VarType type;
             if (fStructVisitor.hasField(name, type)) {
@@ -416,10 +416,10 @@ class CInstVisitor1 : public CInstVisitor {
         {
             // Special case
             if (inst->fZone == "0") {
-                *fOut << "ui_interface->declare(ui_interface->uiInterface, " << genName(inst->fZone) << ", " << quote(inst->fKey)
+                *fOut << "ui_interface->declare(ui_interface->uiInterface, " << genZoneName(inst->fZone) << ", " << quote(inst->fKey)
                 << ", " << quote(inst->fValue) << ")";
             } else {
-                *fOut << "ui_interface->declare(ui_interface->uiInterface, &dsp->" << genName(inst->fZone) << ", "
+                *fOut << "ui_interface->declare(ui_interface->uiInterface, &dsp->" << genZoneName(inst->fZone) << ", "
                 << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             }
             EndLine();
@@ -433,7 +433,7 @@ class CInstVisitor1 : public CInstVisitor {
             } else {
                 name = "ui_interface->addCheckButton(";
             }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genName(inst->fZone) << ")";
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genZoneName(inst->fZone) << ")";
             EndLine();
         }
         
@@ -451,7 +451,7 @@ class CInstVisitor1 : public CInstVisitor {
                     name = "ui_interface->addNumEntry(";
                     break;
             }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genName(inst->fZone) << ", "
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genZoneName(inst->fZone) << ", "
             << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
             << checkReal(inst->fStep) << ")";
             EndLine();
@@ -468,7 +468,7 @@ class CInstVisitor1 : public CInstVisitor {
                     name = "ui_interface->addVerticalBargraph(";
                     break;
             }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genName(inst->fZone) << ", "
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genZoneName(inst->fZone) << ", "
             << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
