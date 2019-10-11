@@ -109,7 +109,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(NamedAddress* named) { *fOut << named->fName; }
 
     /*
-     Indexed adresses can actually be values in an array or fields in a struct type
+     Indexed address can actually be values in an array or fields in a struct type
      */
     virtual void visit(IndexedAddress* indexed)
     {

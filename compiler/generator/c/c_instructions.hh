@@ -154,6 +154,7 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << "ui_interface->closeBox(ui_interface->uiInterface);";
         tab(fTab, *fOut);
     }
+    
     virtual void visit(AddButtonInst* inst)
     {
         string name;
@@ -385,16 +386,92 @@ class CInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
+// Used for -os mode (TODO : does not work with subcontainers, soundfile and waveform)
 class CInstVisitor1 : public CInstVisitor {
     
     private:
     
         StructInstVisitor1 fStructVisitor;
+        bool fZoneAddress;      // If a zone address is currently written
+        bool fIndexedAddress;   // If an indexed address is currently written
+    
+        string genName(const string& name)
+        {
+            Typed::VarType type;
+            if (fStructVisitor.hasField(name, type)) {
+                string res_type = ((type == Typed::kInt32) ? "iZone": "fZone");
+                return res_type + "[" + to_string(fStructVisitor.getFieldOffset(name)) + "]";
+            } else {
+                return name;
+            }
+        }
     
     public:
     
-        CInstVisitor1(std::ostream* out, const string& structname, int tab = 0):CInstVisitor(out, structname, tab)
+        CInstVisitor1(std::ostream* out, const string& structname, int tab = 0)
+        :CInstVisitor(out, structname, tab), fZoneAddress(false), fIndexedAddress(false)
         {}
+    
+        virtual void visit(AddMetaDeclareInst* inst)
+        {
+            // Special case
+            if (inst->fZone == "0") {
+                *fOut << "ui_interface->declare(ui_interface->uiInterface, " << genName(inst->fZone) << ", " << quote(inst->fKey)
+                << ", " << quote(inst->fValue) << ")";
+            } else {
+                *fOut << "ui_interface->declare(ui_interface->uiInterface, &dsp->" << genName(inst->fZone) << ", "
+                << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+            }
+            EndLine();
+        }
+
+        virtual void visit(AddButtonInst* inst)
+        {
+            string name;
+            if (inst->fType == AddButtonInst::kDefaultButton) {
+                name = "ui_interface->addButton(";
+            } else {
+                name = "ui_interface->addCheckButton(";
+            }
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genName(inst->fZone) << ")";
+            EndLine();
+        }
+        
+        virtual void visit(AddSliderInst* inst)
+        {
+            string name;
+            switch (inst->fType) {
+                case AddSliderInst::kHorizontal:
+                    name = "ui_interface->addHorizontalSlider(";
+                    break;
+                case AddSliderInst::kVertical:
+                    name = "ui_interface->addVerticalSlider(";
+                    break;
+                case AddSliderInst::kNumEntry:
+                    name = "ui_interface->addNumEntry(";
+                    break;
+            }
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genName(inst->fZone) << ", "
+            << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
+            << checkReal(inst->fStep) << ")";
+            EndLine();
+        }
+        
+        virtual void visit(AddBargraphInst* inst)
+        {
+            string name;
+            switch (inst->fType) {
+                case AddBargraphInst::kHorizontal:
+                    name = "ui_interface->addHorizontalBargraph(";
+                    break;
+                case AddBargraphInst::kVertical:
+                    name = "ui_interface->addVerticalBargraph(";
+                    break;
+            }
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genName(inst->fZone) << ", "
+            << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            EndLine();
+        }
     
         virtual void visit(DeclareVarInst* inst)
         {
@@ -413,17 +490,40 @@ class CInstVisitor1 : public CInstVisitor {
             }
             Typed::VarType type;
             if (fStructVisitor.hasField(named->fName, type)) {
-                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName) << "]";
+                fZoneAddress = true;
+                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
+                if (!fIndexedAddress) {
+                    *fOut << "]";
+                }
             } else {
+                fZoneAddress = false;
                 *fOut << named->fName;
             }
         }
-        
-        virtual void visit(LoadVarAddressInst* inst)
+    
+        /*
+         Indexed address can actually be values in an array or fields in a struct type
+         */
+        virtual void visit(IndexedAddress* indexed)
         {
-            *fOut << "&";
-            inst->fAddress->accept(this);
+            fIndexedAddress = true;
+            indexed->fAddress->accept(this);
+            DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+            if (struct_type) {
+                Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            } else {
+                if (fZoneAddress) { *fOut << "+"; } else { *fOut << "["; }
+                fIndexedAddress = false;
+                fZoneAddress = false;
+                indexed->fIndex->accept(this);
+                *fOut << "]";
+            }
+
         }
+    
+        int getIntZoneSize() { return fStructVisitor.fStructIntOffset; }
+        int getRealZoneSize() { return fStructVisitor.fStructRealOffset; }
    
 };
 

@@ -35,17 +35,19 @@
 
 class CCodeContainer : public virtual CodeContainer {
    protected:
-    CInstVisitor  fCodeProducer;
+    CInstVisitor* fCodeProducer;
     std::ostream* fOut;
 
     void produceMetadata(int tabs);
 
    public:
+    CCodeContainer()
+    {}
     CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
-        : fCodeProducer(out, name), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
+        fOut = out;
 
         // For mathematical functions
         if (gGlobal->gFastMath) {
@@ -57,9 +59,14 @@ class CCodeContainer : public virtual CodeContainer {
 
         // For malloc/free
         addIncludeFile("<stdlib.h>");
+        
+        fCodeProducer = new CInstVisitor(out, name);
     }
 
-    virtual ~CCodeContainer() {}
+    virtual ~CCodeContainer()
+    {
+        // fCodeProducer is a 'Garbageable'
+    }
 
     virtual void              produceClass();
     virtual void              generateCompute(int tab) = 0;
@@ -93,7 +100,12 @@ class CCodeContainer : public virtual CodeContainer {
 class CScalarCodeContainer : public CCodeContainer {
    protected:
    public:
-    CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
+    CScalarCodeContainer()
+    {}
+    CScalarCodeContainer(const std::string& name,
+                         int numInputs,
+                         int numOutputs,
+                         std::ostream* out,
                          int sub_container_type);
     virtual ~CScalarCodeContainer()
     {}
@@ -105,10 +117,32 @@ class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
    public:
-    CScalarOneSampleCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
-                         int sub_container_type)
-    : CScalarCodeContainer(name, numInputs, numOutputs, out, sub_container_type)
-    {}
+    CScalarOneSampleCodeContainer(const std::string& name,
+                                  int numInputs,
+                                  int numOutputs,
+                                  std::ostream* out,
+                                  int sub_container_type)
+    {
+        initialize(numInputs, numOutputs);
+        fKlassName = name;
+        fOut = out;
+        
+        // For mathematical functions
+        if (gGlobal->gFastMath) {
+            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
+                           : ("\"" + gGlobal->gFastMathLib + "\""));
+        } else {
+            addIncludeFile("<math.h>");
+        }
+        
+        // For malloc/free
+        addIncludeFile("<stdlib.h>");
+        
+        fSubContainerType = sub_container_type;
+        
+        fCodeProducer = new CInstVisitor(out, name);
+        //fCodeProducer = new CInstVisitor1(out, name);
+    }
 
     virtual ~CScalarOneSampleCodeContainer()
     {}
