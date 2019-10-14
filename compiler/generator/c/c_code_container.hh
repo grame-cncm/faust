@@ -68,9 +68,10 @@ class CCodeContainer : public virtual CodeContainer {
         // fCodeProducer is a 'Garbageable'
     }
 
-    virtual void              produceClass();
-    virtual void              generateCompute(int tab) = 0;
-    void                      produceInternal();
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
+    virtual void produceInternal();
+    
     virtual dsp_factory_base* produceFactory();
 
     virtual void printHeader()
@@ -99,6 +100,7 @@ class CCodeContainer : public virtual CodeContainer {
 
 class CScalarCodeContainer : public CCodeContainer {
    protected:
+    virtual void produceInternal() {}
    public:
     CScalarCodeContainer()
     {}
@@ -116,6 +118,7 @@ class CScalarCodeContainer : public CCodeContainer {
 class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
+    virtual void produceInternal();
    public:
     CScalarOneSampleCodeContainer(const std::string& name,
                                   int numInputs,
@@ -140,8 +143,8 @@ class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
         
         fSubContainerType = sub_container_type;
         
-        fCodeProducer = new CInstVisitor(out, name);
-        //fCodeProducer = new CInstVisitor1(out, name);
+        //fCodeProducer = new CInstVisitor(out, name);
+        fCodeProducer = new CInstVisitor1(out, name);
     }
 
     virtual ~CScalarOneSampleCodeContainer()

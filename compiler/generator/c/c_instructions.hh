@@ -386,7 +386,7 @@ class CInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-// Used for -os mode (TODO : does not work with subcontainers, soundfile and waveform)
+// Used for -os mode (TODO : does not work with 'soundfile')
 class CInstVisitor1 : public CInstVisitor {
     
     private:
@@ -473,6 +473,12 @@ class CInstVisitor1 : public CInstVisitor {
             EndLine();
         }
     
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            // Not supported for now
+            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+        }
+    
         virtual void visit(DeclareVarInst* inst)
         {
             Address::AccessType access = inst->fAddress->getAccess();
@@ -485,16 +491,12 @@ class CInstVisitor1 : public CInstVisitor {
     
         virtual void visit(NamedAddress* named)
         {
-            if (named->getAccess() & Address::kStruct) {
-                *fOut << "dsp->";
-            }
             Typed::VarType type;
             if (fStructVisitor.hasField(named->fName, type)) {
+                // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
-                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
-                if (!fIndexedAddress) {
-                    *fOut << "]";
-                }
+                *fOut << ((type == Typed::kInt32) ? "dsp->iZone": "dsp->fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
+                if (!fIndexedAddress) { *fOut << "]"; }
             } else {
                 fZoneAddress = false;
                 *fOut << named->fName;
@@ -513,13 +515,13 @@ class CInstVisitor1 : public CInstVisitor {
                 Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
                 *fOut << "->" << struct_type->fType->getName(field_index->fNum);
             } else {
+                // Zone address zone[id][index] are rewritten as zone[id+index]
                 if (fZoneAddress) { *fOut << "+"; } else { *fOut << "["; }
                 fIndexedAddress = false;
                 fZoneAddress = false;
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             }
-
         }
     
         int getIntZoneSize() { return fStructVisitor.fStructIntOffset; }

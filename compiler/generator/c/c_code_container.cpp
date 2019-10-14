@@ -368,6 +368,12 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
 }
 
+void CScalarOneSampleCodeContainer::produceInternal()
+{
+    generateGlobalDeclarations(fCodeProducer);
+    generateDeclarations(fCodeProducer);
+}
+
 void CScalarOneSampleCodeContainer::produceClass()
 {
     int n = 0;
@@ -383,11 +389,15 @@ void CScalarOneSampleCodeContainer::produceClass()
     printIncludeFile(*fOut);
     
     // Sub containers
+    mergeSubContainers();
+  
+    // Sub containers
     generateSubContainers();
-    
+ 
     // Functions
     tab(n, *fOut);
     fCodeProducer->Tab(n);
+    
     generateGlobalDeclarations(fCodeProducer);
     
     tab(n, *fOut);
@@ -504,14 +514,20 @@ void CScalarOneSampleCodeContainer::produceClass()
      generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&codeproducer2);
      */
     
+    // Dummy
     tab(n, *fOut);
-    *fOut << "void classInit" << fKlassName << "(int sample_rate) {";
+    *fOut << "void classInit" << fKlassName << "(int sample_rate) {}";
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    *fOut << "void staticInit" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object incorrect type generation
-        CInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n + 1);
-        generateStaticInit(&codeproducer);
+        fCodeProducer->Tab(n + 1);
+        // For waveform
+        MoveVariablesInFront3().getCode(fGlobalDeclarationInstructions)->accept(fCodeProducer);
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(fCodeProducer);
     }
     tab(n, *fOut);
     *fOut << "}";
@@ -521,12 +537,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object incorrect type generation
-        /*
-        CInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n + 1);
-        generateResetUserInterface(&codeproducer);
-        */
         fCodeProducer->Tab(n + 1);
         generateResetUserInterface(fCodeProducer);
     }
@@ -538,12 +548,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object incorrect type generation
-        /*
-        CInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n + 1);
-        generateClear(&codeproducer);
-        */
         fCodeProducer->Tab(n + 1);
         generateClear(fCodeProducer);
     }
@@ -555,14 +559,9 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
     {
         tab(n + 1, *fOut);
-        // Local visitor here to avoid DSP object incorrect type generation
-        /*
-        CInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n + 1);
-        generateInit(&codeproducer);
-        */
         fCodeProducer->Tab(n + 1);
-        generateInit(fCodeProducer);
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     }
     tab(n, *fOut);
     *fOut << "}";
@@ -583,7 +582,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
     tab(n + 1, *fOut);
-    *fOut << "classInit" << fKlassName << "(sample_rate);";
+    *fOut << "staticInit" << fKlassName << "(dsp, sample_rate);";
     tab(n + 1, *fOut);
     *fOut << "instanceInit" << fKlassName << "(dsp, sample_rate);";
     tab(n, *fOut);

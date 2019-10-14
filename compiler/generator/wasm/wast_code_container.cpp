@@ -134,24 +134,18 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    
     BlockInst* init_block = InstBuilder::genBlockInst();
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
-
+    
     init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
+    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 void WASTCodeContainer::produceInternal()

@@ -668,17 +668,17 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const
     }
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(fInitInstructions);
-    block->pushBackInst(fPostInitInstructions);
-    block->pushBackInst(fResetUserInterfaceInstructions);
-    block->pushBackInst(fClearInstructions);
+    BlockInst* init_block = InstBuilder::genBlockInst();
+    init_block->pushBackInst(fInitInstructions);
+    init_block->pushBackInst(fPostInitInstructions);
+    init_block->pushBackInst(fResetUserInterfaceInstructions);
+    init_block->pushBackInst(fClearInstructions);
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
