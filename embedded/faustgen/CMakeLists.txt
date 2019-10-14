@@ -81,8 +81,9 @@ target_include_directories (faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC}
 target_link_libraries (faustgen ${FAUSTLIBS}  ${MAXLIBS} ${LLVM_LIBS} ${SNDFILELIB} )
 
 if (APPLE)
+
 set_target_properties (faustgen PROPERTIES 
-	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp"
+	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp ${LLVM_LD_FLAGS}"
 	BUNDLE TRUE
 	BUNDLE_EXTENSION mxo
 	MACOSX_BUNDLE_INFO_PLIST ${ROOT}/Info.plist
