@@ -2345,7 +2345,7 @@ struct InstBuilder {
     // Functions
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
     static DeclareFunInst* genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code,
-                                           bool isvirtual);
+                                           bool isvirtual = false);
     static DeclareFunInst* genFunction0(const string& name, Typed::VarType res, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction1(const string& name, Typed::VarType res, const string& arg1,
                                         Typed::VarType arg1_ty, BlockInst* code = new BlockInst());

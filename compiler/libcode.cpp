@@ -676,13 +676,22 @@ static bool processCmdline(int argc, const char* argv[])
         error << "ERROR : invalid vector size [-vs = " << gGlobal->gVecSize << "] should be at least 4" << endl;
         throw faustexception(error.str());
     }
+    
+    if (gGlobal->gFunTaskSwitch) {
+        if (!(gGlobal->gOutputLang == "c"
+              || gGlobal->gOutputLang == "cpp"
+              || gGlobal->gOutputLang == "llvm")) {
+            throw faustexception("ERROR : -fun can only be used with c, cpp or llvm backends\n");
+        }
+    }
 
     if (gGlobal->gFastMath) {
-        if (!(gGlobal->gOutputLang == "c" || gGlobal->gOutputLang == "cpp" || gGlobal->gOutputLang == "llvm" ||
-              startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm"))) {
-            stringstream error;
-            error << "ERROR : -fm can only be used with c, cpp, or llvm backends" << endl;
-            throw faustexception(error.str());
+        if (!(gGlobal->gOutputLang == "c"
+              || gGlobal->gOutputLang == "cpp"
+              || gGlobal->gOutputLang == "llvm"
+              || startWith(gGlobal->gOutputLang, "wast")
+              || startWith(gGlobal->gOutputLang, "wasm"))) {
+            throw faustexception("ERROR : -fm can only be used with c, cpp, llvm or wast/wast backends\n");
         }
     }
 
