@@ -127,11 +127,7 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
     if (--llvm_dsp_factory_aux::gInstance == 0) {
         // Remove the LLVM error handler
 #ifdef __APPLE__
-    #if defined(LLVM_90)
-        LLVMResetFatalErrorHandler();
-    #else
-        #warning Crash on OSX before LLVM 9.0, so deactivated in this case
-    #endif
+    #warning Crash on OSX so deactivated in this case
 #else
         LLVMResetFatalErrorHandler();
 #endif
