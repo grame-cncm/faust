@@ -70,6 +70,7 @@ if (WIN32)
 else()
 	set (MACLIBS "-framework CoreServices -framework IOKit")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
 	set (FAUSTLIBS ${FAUSTLIB}/libfaust.a ${FAUSTLIB}/libOSCFaust.a)
 endif()
 
