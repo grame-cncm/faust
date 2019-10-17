@@ -395,83 +395,11 @@ class CInstVisitor1 : public CInstVisitor {
         bool fZoneAddress;      // If a zone address is currently written
         bool fIndexedAddress;   // If an indexed address is currently written
     
-        string genZoneName(const string& name)
-        {
-            Typed::VarType type;
-            if (fStructVisitor.hasField(name, type)) {
-                string res_type = ((type == Typed::kInt32) ? "iZone": "fZone");
-                return res_type + "[" + to_string(fStructVisitor.getFieldOffset(name)) + "]";
-            } else {
-                return name;
-            }
-        }
-    
     public:
     
         CInstVisitor1(std::ostream* out, const string& structname, int tab = 0)
         :CInstVisitor(out, structname, tab), fZoneAddress(false), fIndexedAddress(false)
         {}
-    
-        virtual void visit(AddMetaDeclareInst* inst)
-        {
-            // Special case
-            if (inst->fZone == "0") {
-                *fOut << "ui_interface->declare(ui_interface->uiInterface, " << genZoneName(inst->fZone) << ", " << quote(inst->fKey)
-                << ", " << quote(inst->fValue) << ")";
-            } else {
-                *fOut << "ui_interface->declare(ui_interface->uiInterface, &dsp->" << genZoneName(inst->fZone) << ", "
-                << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
-            }
-            EndLine();
-        }
-
-        virtual void visit(AddButtonInst* inst)
-        {
-            string name;
-            if (inst->fType == AddButtonInst::kDefaultButton) {
-                name = "ui_interface->addButton(";
-            } else {
-                name = "ui_interface->addCheckButton(";
-            }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genZoneName(inst->fZone) << ")";
-            EndLine();
-        }
-        
-        virtual void visit(AddSliderInst* inst)
-        {
-            string name;
-            switch (inst->fType) {
-                case AddSliderInst::kHorizontal:
-                    name = "ui_interface->addHorizontalSlider(";
-                    break;
-                case AddSliderInst::kVertical:
-                    name = "ui_interface->addVerticalSlider(";
-                    break;
-                case AddSliderInst::kNumEntry:
-                    name = "ui_interface->addNumEntry(";
-                    break;
-            }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genZoneName(inst->fZone) << ", "
-            << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
-            << checkReal(inst->fStep) << ")";
-            EndLine();
-        }
-        
-        virtual void visit(AddBargraphInst* inst)
-        {
-            string name;
-            switch (inst->fType) {
-                case AddBargraphInst::kHorizontal:
-                    name = "ui_interface->addHorizontalBargraph(";
-                    break;
-                case AddBargraphInst::kVertical:
-                    name = "ui_interface->addVerticalBargraph(";
-                    break;
-            }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << genZoneName(inst->fZone) << ", "
-            << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
-            EndLine();
-        }
     
         virtual void visit(AddSoundfileInst* inst)
         {

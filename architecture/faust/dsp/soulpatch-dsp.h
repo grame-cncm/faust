@@ -324,15 +324,12 @@ class soul_dsp_factory : public dsp_factory {
             
             virtual soul::patch::VirtualFile::Ptr getChildFile (const char* subPath) { return {}; }
             
-            virtual bool isFolder() { return false; }
-            
             virtual int64_t getSize() { return 0; }
             
             virtual int64_t getLastModificationTime() { return 0; }
             
             virtual int64_t read (uint64_t startPositionInFile, void* targetBuffer, uint64_t bytesToRead) { return 0; }
-            
-            virtual uint64_t findChildFiles (const char* wildcard, soul::patch::FileSearchCallback* callback) { return 0; }
+      
         };
     
         struct FaustSourceFilePreprocessor : public soul::patch::SourceFilePreprocessor {
@@ -356,7 +353,7 @@ class soul_dsp_factory : public dsp_factory {
             fPath = path;
             std::string filename = "/usr/local/lib/" + std::string(soul::patch::SOULPatchLibrary::getLibraryFileName());
             soul::patch::SOULPatchLibrary library(filename.c_str());
-            
+         
             if (!library.loadedSuccessfully()) {
                 error_msg = "cannot load SOUL_PatchLoader.dylib\n";
                 throw std::bad_alloc();

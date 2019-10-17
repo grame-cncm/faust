@@ -201,6 +201,7 @@ void CCodeContainer::produceClass()
     // Memory methods
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
+        
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n, *fOut);
             *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
@@ -209,7 +210,6 @@ void CCodeContainer::produceClass()
             tab(n, *fOut);
             *fOut << "}";
         }
-
         tab(n, *fOut);
 
         if (fDestroyInstructions->fCode.size() > 0) {
@@ -409,7 +409,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
-    
+     
     if (gGlobal->gLightMode) {
         tab(n, *fOut);
         *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
@@ -417,6 +417,7 @@ void CScalarOneSampleCodeContainer::produceClass()
         tab(n, *fOut);
     }
     
+    tab(n, *fOut);
     *fOut << "typedef struct {";
     tab(n + 1, *fOut);
     
@@ -441,6 +442,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     // Memory methods
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
+        
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n, *fOut);
             *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
@@ -449,7 +451,6 @@ void CScalarOneSampleCodeContainer::produceClass()
             tab(n, *fOut);
             *fOut << "}";
         }
-        
         tab(n, *fOut);
         
         if (fDestroyInstructions->fCode.size() > 0) {

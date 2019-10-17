@@ -541,7 +541,7 @@ void CPPScalarOneSampleCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* icontrol, $0* fcontrol) {", xfloat());
+    *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* iControl, $0* fControl) {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     
@@ -741,7 +741,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     *fOut << "}";
     
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void control(int* icontrol, $0* fcontrol) {", xfloat());
+    *fOut << subst("virtual void control(int* iControl, $0* fControl) {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     // Generates local variables declaration and setup

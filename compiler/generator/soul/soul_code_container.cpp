@@ -225,11 +225,11 @@ void SOULCodeContainer::produceClass()
 
     // For control computation
     if (fInt32ControlNum > 0) {
-        *fOut << "int32[" << fInt32ControlNum << "] icontrol;";
+        *fOut << "int32[" << fInt32ControlNum << "] iControl;";
         tab(n + 1, *fOut);
     }
     if (fRealControlNum > 0) {
-        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControlNum << "] fcontrol;";
+        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControlNum << "] fControl;";
     }
 
     // Global declarations
