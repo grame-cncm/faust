@@ -903,16 +903,16 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             if (gGlobal->gOneSample || gGlobal->gOneSampleControl) {
                 if (t->nature() == kInt) {
                     pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar(
-                        "icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
+                        "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
                     ValueInst* res = InstBuilder::genLoadArrayStackVar(
-                        "icontrol", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
+                        "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
                     fContainer->fInt32ControlNum++;
                     return res;
                 } else {
                     pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar(
-                        "fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
+                        "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
                     ValueInst* res = InstBuilder::genLoadArrayStackVar(
-                        "fcontrol", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
+                        "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
                     fContainer->fRealControlNum++;
                     return res;
                 }

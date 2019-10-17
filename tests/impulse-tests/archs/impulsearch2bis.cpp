@@ -22,26 +22,30 @@ class Cdsp : public one_sample_dsp {
     private:
         
         mydsp* fDSP;
-        
+    
     public:
         
         Cdsp()
         {
             fDSP = newmydsp();
+            iZone = new int[getiZoneSizemydsp(fDSP)];
+            fZone = new FAUSTFLOAT[getfZoneSizemydsp(fDSP)];
         }
         
         virtual ~Cdsp()
         {
             deletemydsp(fDSP);
+            delete[] iZone;
+            delete[] fZone;
         }
     
         virtual int getNumIntControls() { return getNumIntControlsmydsp(fDSP); }
     
         virtual int getNumRealControls() { return getNumRealControlsmydsp(fDSP); }
     
-        virtual void control(int* icontrol, FAUSTFLOAT* fcontrol)
+        virtual void control(int* iControl, FAUSTFLOAT* fControl)
         {
-            controlmydsp(fDSP, icontrol, fcontrol);
+            controlmydsp(fDSP, iControl, fControl, iZone, fZone);
         }
     
         virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
@@ -62,7 +66,7 @@ class Cdsp : public one_sample_dsp {
         
         virtual void init(int sample_rate)
         {
-            initmydsp(fDSP, sample_rate);
+            initmydsp(fDSP, sample_rate, iZone, fZone);
         }
         
         static void classInit(int sample_rate)
@@ -72,12 +76,12 @@ class Cdsp : public one_sample_dsp {
         
         virtual void instanceInit(int sample_rate)
         {
-            instanceInitmydsp(fDSP, sample_rate);
+            instanceInitmydsp(fDSP, sample_rate, iZone, fZone);
         }
         
         virtual void instanceConstants(int sample_rate)
         {
-            instanceConstantsmydsp(fDSP, sample_rate);
+            instanceConstantsmydsp(fDSP, sample_rate, iZone, fZone);
         }
         
         virtual void instanceResetUserInterface()
@@ -87,7 +91,7 @@ class Cdsp : public one_sample_dsp {
         
         virtual void instanceClear()
         {
-            instanceClearmydsp(fDSP);
+            instanceClearmydsp(iZone, fZone);
         }
         
         virtual dsp* clone()
@@ -102,9 +106,9 @@ class Cdsp : public one_sample_dsp {
             metadatamydsp(&glue);
         }
 
-        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* icontrol, FAUSTFLOAT* fcontrol)
+        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl)
         {
-            computemydsp(fDSP, inputs, outputs, icontrol, fcontrol);
+            computemydsp(fDSP, inputs, outputs, iControl, fControl, iZone, fZone);
         }
     
 };

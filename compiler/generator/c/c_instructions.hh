@@ -482,7 +482,16 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             Address::AccessType access = inst->fAddress->getAccess();
-            if ((access & Address::kStruct) || (access & Address::kStaticStruct)) {
+            string name = inst->fAddress->getName();
+            bool is_control = startWith(name, "fButton")
+                || startWith(name, "fCheckbox")
+                || startWith(name, "fVslider")
+                || startWith(name, "fHslider")
+                || startWith(name, "fEntry")
+                || startWith(name, "fVbargraph")
+                || startWith(name, "fHbargraph")
+                || name == "fSampleRate";
+            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control){
                 fStructVisitor.visit(inst);
             } else {
                 CInstVisitor::visit(inst);
@@ -495,10 +504,13 @@ class CInstVisitor1 : public CInstVisitor {
             if (fStructVisitor.hasField(named->fName, type)) {
                 // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
-                *fOut << ((type == Typed::kInt32) ? "dsp->iZone": "dsp->fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
+                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
                 if (!fIndexedAddress) { *fOut << "]"; }
             } else {
                 fZoneAddress = false;
+                if (named->getAccess() & Address::kStruct) {
+                    *fOut << "dsp->";
+                }
                 *fOut << named->fName;
             }
         }
