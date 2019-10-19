@@ -40,8 +40,8 @@ dsp_factory_base* CCodeContainer::produceFactory()
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return (gGlobal->gOneSample)
-        ? new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type)
-        : new CScalarOneSampleCodeContainer(name, 0, 1, fOut, sub_container_type);
+        ? new CScalarOneSampleCodeContainer(name, 0, 1, fOut, sub_container_type)
+        : new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
 CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)

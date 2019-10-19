@@ -38,7 +38,9 @@ class CCodeContainer : public virtual CodeContainer {
     CInstVisitor* fCodeProducer;
     std::ostream* fOut;
 
+    virtual void produceClass();
     void produceMetadata(int tabs);
+    virtual void produceInternal();
 
    public:
     CCodeContainer()
@@ -67,10 +69,8 @@ class CCodeContainer : public virtual CodeContainer {
     {
         // fCodeProducer is a 'Garbageable'
     }
-
-    virtual void produceClass();
+  
     virtual void generateCompute(int tab) = 0;
-    virtual void produceInternal();
     
     virtual dsp_factory_base* produceFactory();
 
@@ -100,7 +100,7 @@ class CCodeContainer : public virtual CodeContainer {
 
 class CScalarCodeContainer : public CCodeContainer {
    protected:
-    virtual void produceInternal() {}
+ 
    public:
     CScalarCodeContainer()
     {}

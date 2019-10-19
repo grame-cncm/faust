@@ -393,7 +393,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     delete tmp_dsp;
     
     t_faust* x = (t_faust*)newobject(faust_class);
-
+  
     x->m_json = 0;
     x->m_mute = false;
     
@@ -449,7 +449,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     dsp_setup((t_pxobject*)x, num_input);
 
     /* Multi out */
-    for (int i = 0; i< x->m_dsp->getNumOutputs(); i++) {
+    for (int i = 0; i < x->m_dsp->getNumOutputs(); i++) {
         outlet_new((t_pxobject*)x, (char*)"signal");
     }
 
