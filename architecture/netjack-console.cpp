@@ -55,6 +55,8 @@
 // Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
+using namespace std;
+
 /******************************************************************************
  *******************************************************************************
  
@@ -84,7 +86,7 @@
 
 dsp* DSP;
 
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
@@ -113,17 +115,15 @@ int main(int argc, char* argv[])
     snprintf(appname, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, appname);
     
-    if (isopt(argv, "-h")) {
-        std::cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
-        exit(1);
-    }
+    CMDUI interface(argc, argv, true);
+    FUI finterface;
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     
-    std::cout << "Started with " << nvoices << " voices\n";
+    cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     int group = lopt(argv, "--group", 1);
     
     if (nvoices > 0) {
-        std::cout << "Started with " << nvoices << " voices\n";
+        cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
         
 #if MIDICTRL
@@ -168,14 +168,18 @@ int main(int argc, char* argv[])
 #endif
     
     if (DSP == 0) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
 
-    CMDUI* interface = new CMDUI(argc, argv, true);
-    FUI* finterface = new FUI();
-    DSP->buildUserInterface(interface);
-    DSP->buildUserInterface(finterface);
+    DSP->buildUserInterface(&interface);
+    DSP->buildUserInterface(&finterface);
+    
+    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+    }
+    interface.process_command();
+    
 
 #ifdef HTTPCTRL
     httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -186,21 +190,23 @@ int main(int argc, char* argv[])
     GUI* oscinterface = new OSCUI(appname, argc, argv);
     DSP->buildUserInterface(oscinterface);
 #endif
-
+    
     netjackaudio_midicontrol audio(celt, master_ip, master_port, mtu, latency);
     if (!audio.init(appname, DSP)) {
-        return 0;
+        cerr << "Unable to init audio" << endl;
+        exit(1);
     }
-    finterface->recallState(rcfilename);
+    finterface.recallState(rcfilename);
     if (!audio.start()) {
-        return 0;
+        cerr << "Unable to start audio" << endl;
+        exit(1);
     }
     
 #ifdef MIDICTRL
     MidiUI* midiinterface = new MidiUI(&audio);
     DSP->buildUserInterface(midiinterface);
     audio.addMidiIn(dsp_poly);
-    std::cout << "MIDI is on" << std::endl;
+    cout << "MIDI is on" << endl;
 #endif
 
 #ifdef HTTPCTRL
@@ -213,22 +219,20 @@ int main(int argc, char* argv[])
     
 #ifdef MIDICTRL
     if (!midiinterface->run()) {
-        std::cerr << "MidiUI run error\n";
+        cerr << "MidiUI run error\n";
     }
 #endif
     
-    interface->run();
+    interface.run();
 
     audio.stop();
-    finterface->saveState(rcfilename);
+    finterface.saveState(rcfilename);
     
 #ifdef MIDICTRL
     midiinterface->stop();
 #endif
     
     // desallocation
-    delete interface;
-    delete finterface;
 #ifdef HTTPCTRL
 	 delete httpdinterface;
 #endif

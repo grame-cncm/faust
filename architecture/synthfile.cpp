@@ -101,7 +101,11 @@ int main(int argc, char* argv[])
 {
 	CMDUI* interface = new CMDUI(argc, argv, true);
 	DSP.buildUserInterface(interface);
-	interface->process_command();
+    if (argc == 1) {
+        interface->printhelp_command(OUTPUT_FILE);
+        exit(1);
+    }
+	interface->process_command(OUTPUT_FILE);
     
     int num_samples = loptrm(&argc, argv, "--samples", "-s", kSampleRate*5);
     int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);

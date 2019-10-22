@@ -44,7 +44,7 @@ sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/l
 # directory. You can also specify this explicitly by setting the FAUSTARCH
 # environment variable accordingly.
 
-# the part below is obsolete
+# The part below is obsolete
 # architecture location is now defined by faustpath and stored in a variable named FAUSTARCH
 #[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/share/faust/faustvstqt.h /usr/local/share/faust/faustvstqt.h /opt/local/share/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
 #[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"

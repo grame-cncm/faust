@@ -45,6 +45,10 @@
  *******************************************************************************
  *******************************************************************************/
 
+#define NO_FILE             0
+#define INPUT_OUTPUT_FILE   1
+#define OUTPUT_FILE         2
+
 struct param {
     FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
     param(FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) { *z = init; }
@@ -198,15 +202,16 @@ public:
         return true;
     }
     
-    void printhelp_command(bool duplex = false)
+    void printhelp_command(int file = NO_FILE)
     {
         std::cout << fArgv[0] << " ";
         for (auto& i : fKeyParam) {
             std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
         }
-        if (duplex) {
+        std::cout << std::endl;
+        if (file == INPUT_OUTPUT_FILE) {
             std::cout << "infile outfile\n";
-        } else {
+        } else if (file == OUTPUT_FILE) {
             std::cout << "outfile\n";
         }
     }
@@ -220,19 +225,15 @@ public:
         std::cout << std::endl;
     }
     
-    void process_command(bool duplex = false)
+    void process_command(int file = NO_FILE)
     {
-        if (fArgc == 1) {
-            printhelp_command(duplex);
-            exit(1);
-        }
         std::map<std::string, param>::iterator p;
         for (int i = 1; i < fArgc; i++) {
             if (fArgv[i][0] == '-') {
                 if ((strcmp(fArgv[i], "-help") == 0)
                     || (strcmp(fArgv[i], "-h") == 0)
                     || (strcmp(fArgv[i], "--help") == 0)) 	{
-                    printhelp_command(duplex);
+                    printhelp_command(file);
                     exit(1);
                 }
                 p = fKeyParam.find(fArgv[i]);

@@ -108,16 +108,20 @@ mydsp DSP;
 
 int main(int argc, char* argv[])
 {
+    CMDUI* interface = new CMDUI(argc, argv, true);
+    DSP.buildUserInterface(interface);
+    if (argc == 1) {
+        interface->printhelp_command(INPUT_OUTPUT_FILE);
+        exit(1);
+    }
+    interface->process_command(INPUT_OUTPUT_FILE);
+    
+    unsigned int num_samples = loptrm(&argc, argv, "--continue", "-c", 0);
+    
     SNDFILE* in_sf;
     SNDFILE* out_sf;
     SF_INFO in_info;
     SF_INFO out_info;
-
-    unsigned int num_samples = loptrm(&argc, argv, "--continue", "-c", 0);
-    
-    CMDUI* interface = new CMDUI(argc, argv, true);
-    DSP.buildUserInterface(interface);
-    interface->process_command(true);
     
     // open input file
     in_info.format = 0;
