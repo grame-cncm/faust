@@ -1,11 +1,11 @@
 
-faust stereo_echo
+faust stereoEcho
 {
     import("stdfaust.lib");
 
-    echo(del, feedback, gain) = + ~ de.delay(50000,d) * feedback * gain
+    echo(del_sec, feedback, gain) = + ~ de.delay(50000, del_samples) * feedback * gain
     with {
-        d = del*ma.SR;
+        del_samples = del_sec*ma.SR;
     };
 
     process = echo(1.6, 0.6, 0.7),echo(0.5, 0.9, 0.5);
@@ -41,19 +41,19 @@ processor ClassicRingtone
     }
 }
 
-faust osc
+faust addSynth
 {
     import("stdfaust.lib");
 
     vol = hslider("volume [unit:dB]", -20, -96, 0, 0.1) : ba.db2linear : si.smoo;
-    freq = hslider("freq [unit:Hz]", 1000, 20, 5000, 1);
+    freq = hslider("freq [unit:Hz]", 500, 100, 2000, 1);
 
-    process = vgroup("Oscillator", os.osci(freq) * vol);
+    process = vgroup("addSynth", (os.osc(freq) + 0.5*os.osc(2.*freq) + 0.25*os.osc(3.*freq)) * vol);
 }
 
 graph sequence [[main]]
 {
-    input event float32 eventfHslider1 [[ name: "freq", path: "/Oscillator/freq", min: 20.0f, max: 5000.0f, init: 1000.0f, step: 0.01f, unit: "Hz" ]];
+    input event float32 eventfHslider1 [[ name: "freq", path: "/Oscillator/freq", min: 100.0f, max: 2000.0f, init: 500.0f, step: 0.01f, unit: "Hz" ]];
     input event float32 eventfHslider0 [[ name: "volume", path: "/Oscillator/volume", min: -96.0f, max: 0.0f, init: -20.0f, step: 0.100000001f, unit: "dB" ]];
 
     output stream float audioOut0;
@@ -61,13 +61,13 @@ graph sequence [[main]]
 
     connection 
     {
-        eventfHslider1 -> osc.eventfHslider1;
-        eventfHslider0 -> osc.eventfHslider0;
+        eventfHslider1 -> addSynth.eventfHslider1;
+        eventfHslider0 -> addSynth.eventfHslider0;
 
-        osc.output0 -> stereo_echo.input0;
-        ClassicRingtone.out -> stereo_echo.input1;
+        addSynth.output0 -> stereoEcho.input0;
+        ClassicRingtone.out -> stereoEcho.input1;
 
-        stereo_echo.output0 -> audioOut0;
-        stereo_echo.output1 -> audioOut1;
+        stereoEcho.output0 -> audioOut0;
+        stereoEcho.output1 -> audioOut1;
     }
 }
