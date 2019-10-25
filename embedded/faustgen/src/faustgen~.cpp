@@ -1166,8 +1166,8 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
     // If no argument is there, consider it as a toggle message for a button
     if (ac == 0 && fDSPUI->isValue(name)) {
         
-        float off = 0.0f;
-        float on = 1.0f;
+        FAUSTFLOAT off = FAUSTFLOAT(0.0);
+        FAUSTFLOAT on = FAUSTFLOAT(1.0);
         fDSPUI->setValue(name, off);
         fDSPUI->setValue(name, on);
         
@@ -1198,10 +1198,10 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
         // Increment ap each time to get to the next atom
         for (i = 0, ap = av; i < ac; i++, ap++) {
-            float value;
+            FAUSTFLOAT value;
             switch (atom_gettype(ap)) {
                 case A_LONG:
-                    value = (float)ap[0].a_w.w_long;
+                    value = FAUSTFLOAT(ap[0].a_w.w_long);
                     break;
                     
                 case A_FLOAT:
@@ -1234,7 +1234,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
     } else {
         // Standard parameter name
-        float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
+        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : av[0].a_w.w_float;
         res = fDSPUI->setValue(name, value);
         if (!res) {
             post("Unknown parameter : %s", (s)->s_name);
