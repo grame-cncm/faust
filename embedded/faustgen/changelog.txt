@@ -7,9 +7,15 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2019
 
 ----------------------------------------------------
+Version 1.40 - 10/25/2019
+
+- correct messages handling bug, correctly cast values to FAUSTFLOAT
+- use Faust 2.19.2 version and LLVM 9.0
+
+----------------------------------------------------
 Version 1.39 - 10/10/2019
 
-- correct messages handling bug
+- correct messages handling bug, remove unneeded lock
 - updated libraries.
 - use Faust 2.19.0 version
 
