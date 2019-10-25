@@ -228,7 +228,7 @@ if [ -n "$plugin_gui" ]; then
 # XXXTODO: OSX support
 (
     cd "$tmpdir"
-    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
     $QMAKE *.pro
     make
 ) > /dev/null || exit 1
