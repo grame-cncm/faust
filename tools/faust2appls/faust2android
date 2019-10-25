@@ -191,13 +191,21 @@ if [ $SOUNDFILE -eq 1 ]; then
 	fi
 	mv $BUILDDIR/app/CMakeLists_sndfile.txt $BUILDDIR/app/CMakeLists.txt
 	if [ $OSCCTRL -eq 1 ]; then
-	sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	else
+		sed -i 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	fi
   fi
 	rm $APPNAME-tmp.txt
 else
 	rm $BUILDDIR/app/CMakeLists_sndfile.txt
 	if [ $OSCCTRL -eq 1 ]; then
-	sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	else
+		sed -i 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	fi
   fi
 	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
 fi
