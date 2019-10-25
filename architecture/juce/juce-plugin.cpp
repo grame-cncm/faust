@@ -309,6 +309,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
     
 };
 
+// Used to get inputs/outputs number at allocation time
 static mydsp gDSP;
 
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()

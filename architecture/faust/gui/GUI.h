@@ -103,8 +103,7 @@ class GUI : public UI
         virtual ~GUI() 
         {   
             // delete all items
-            zmap::iterator it;
-            for (it = fZoneMap.begin(); it != fZoneMap.end(); it++) {
+            for (zmap::iterator it = fZoneMap.begin(); it != fZoneMap.end(); it++) {
                 delete (*it).second;
             }
             // suppress 'this' in static fGuiList
@@ -119,20 +118,6 @@ class GUI : public UI
             fZoneMap[z]->push_back(c);
         }
  
-        void updateAllZones()
-        {
-            for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
-                FAUSTFLOAT* z = m->first;
-                clist* l = m->second;
-                if (z) {
-                    FAUSTFLOAT v = *z;
-                    for (clist::iterator c = l->begin(); c != l->end(); c++) {
-                        if ((*c)->cache() != v) (*c)->reflectZone();
-                    }
-                }
-            }
-        }
-        
         void updateZone(FAUSTFLOAT* z)
         {
             FAUSTFLOAT v = *z;
@@ -142,11 +127,24 @@ class GUI : public UI
             }
         }
     
+        void updateAllZones()
+        {
+            for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
+                updateZone(m->first);
+            }
+        }
+    
         static void updateAllGuis()
         {
-            std::list<GUI*>::iterator g;
-            for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
+            for (std::list<GUI*>::iterator g = fGuiList.begin(); g != fGuiList.end(); g++) {
                 (*g)->updateAllZones();
+            }
+        }
+    
+        static void runAllGuis()
+        {
+            for (std::list<GUI*>::iterator g = fGuiList.begin(); g != fGuiList.end(); g++) {
+                (*g)->run();
             }
         }
     
@@ -158,13 +156,6 @@ class GUI : public UI
         virtual void show() {};	
         virtual bool run() { return false; };
 
-        static void runAllGuis() {
-            std::list<GUI*>::iterator g;
-            for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
-                (*g)->run();
-            }
-        }
-    
         virtual void stop() { fStopped = true; }
         bool stopped() { return fStopped; }
     

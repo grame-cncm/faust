@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2018 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -44,6 +44,7 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/SoundUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/SaveUI.h"
 
 #include "maxcpp5.h"
 
@@ -52,6 +53,7 @@
 #endif
 
 #include "faust/gui/mspUI.h"
+
 #include "jpatcher_api.h"
 #include "jgraphics.h"
 #include "ext_drag.h"
@@ -123,7 +125,7 @@ class faustgen_factory {
         bool fPolyphonic;               // Whether the created DSP is polyphonic
         
         short fDefaultPath;             // default path to be saved in factory constructor (using path_getdefault)
-        // and explicitely set in 'read' and 'write' (using path_setdefault)
+                                        // and explicitly set in 'read' and 'write' (using path_setdefault)
         
         int m_siginlets;
         int m_sigoutlets;
@@ -140,7 +142,6 @@ class faustgen_factory {
     public:
         
         faustgen_factory(const string& name);
-        
         ~faustgen_factory();
         
         llvm_dsp_factory* create_factory_from_bitcode();
@@ -218,11 +219,12 @@ class faustgen : public MspCpp5<faustgen> {
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI
-        
+        SaveUI fSavedUI;                // Save/load current value, reset to init value
+    
         ::dsp* fDSP;                    // LLVM Faust dsp
-        t_object* fEditor;              // text editor object
+        t_object* fEditor;              // Text editor object
         bool fMute;                     // DSP mute state
-        static t_jrgba gDefaultColor;   // color of the object to be used when restoring default color
+        static t_jrgba gDefaultColor;   // Color of the object to be used when restoring default color
         
         // Display DSP text source
         void display_dsp_source();
@@ -284,6 +286,7 @@ class faustgen : public MspCpp5<faustgen> {
         void write(long inlet, t_symbol* s);
         
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void reset(long inlet, t_symbol* s, long argc, t_atom* argv);
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
         

@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2018 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -1116,6 +1116,9 @@ faustgen::~faustgen()
 
 void faustgen::free_dsp()
 {
+    // Save controller state
+    fSavedUI.save();
+    
     // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
     remove_midihandler();
     
@@ -1264,7 +1267,7 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
         
-        // Init all controllers (UI, MIDI, Soundfile)
+        // Init all controller (UI, MIDI, Soundfile)
         init_controllers();
         
         // Prepare JSON
@@ -1279,6 +1282,12 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     } else {
         post("Mutex lock cannot be taken...");
     }
+}
+
+void faustgen::reset(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    // Reset controller to init value
+    fSavedUI.reset();
 }
 
 // osc 'IP inport outport xmit bundle'
@@ -1449,10 +1458,11 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     if (!fMute && fDSPfactory->try_lock()) {
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
-            fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
+            fDSP->compute(vs, static_cast<FAUSTFLOAT**>(inputs), static_cast<FAUSTFLOAT**>(outputs));
             if (fOSCUI) fOSCUI->endBundle();
             update_outputs();
         }
+        // Done for fMIDIUI and fOSCUI
         GUI::updateAllGuis();
         fDSPfactory->unlock();
     } else {
@@ -1602,6 +1612,9 @@ void faustgen::create_dsp(bool init)
         
         setupIO(&faustgen::perform, &faustgen::init, fDSP->getNumInputs(), fDSP->getNumOutputs(), init);
         
+        // Load old controller state
+        fDSP->buildUserInterface(&fSavedUI);
+        
         // Possibly restart IO
         if (dspstate) {
             dsp_status("start");
@@ -1742,6 +1755,9 @@ extern "C" void ext_main(void* r)
     
     // Process the "polyphony" message
     REGISTER_METHOD_GIMME(faustgen, polyphony);
+    
+    // Process the "reset" message
+    REGISTER_METHOD_GIMME(faustgen, reset);
     
     // Process the "osc" message
     REGISTER_METHOD_GIMME(faustgen, osc);

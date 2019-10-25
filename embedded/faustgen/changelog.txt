@@ -10,6 +10,8 @@ Copyright GRAME (c) 2012-2019
 Version 1.40 - 10/25/2019
 
 - correct messages handling bug, correctly cast values to FAUSTFLOAT
+- add DSP controller state save/load after recompilation
+- add "reset" message to restore the DSP controller state to the 'init' values
 - use Faust 2.19.2 version and LLVM 9.0
 
 ----------------------------------------------------
