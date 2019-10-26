@@ -236,9 +236,7 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
-    
-    //exit(1);
-  
+   
     if (nvoices > 0) {
         cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
         DSP = dsp_poly = new mydsp_poly(DSP, nvoices, !is_all, true);

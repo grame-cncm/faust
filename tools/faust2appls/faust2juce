@@ -156,7 +156,7 @@ for p in $FILES; do
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+        faust -uim -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
     else
         faust -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
     fi
