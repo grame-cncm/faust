@@ -36,7 +36,6 @@ You can freely customize this file to your needs or create a new one. A `BACKEND
 The `targets` folder contains a set of files describing the targets to be embedded into your ptoject. By default, the project includes the faust, osc and http targets, corresponding to the faust compiler, the osc and the httpd static libraries.
 You can freely customize this file to your needs or create a new one. A `TARGETS` option is provided by the Makefile to use any file (note it always look for the targets files into the targets folder). At cmake level, use of the `-C targets_file.cmake` will populate the cmake cache with the correponding settings.
 
-
 ## Advanced settings with cmake
 
 You can directly invoke `cmake` with the appropriate options. In this case, it is recommended to create a new folder and to invoke `cmake` from this folder:
@@ -74,10 +73,24 @@ Read the MSVC [specific note](README-MSVC.md) for more details.
 ## Notes regarding the backends compilation
 
 ### Notes regarding LLVM
+
 - you must have `llvm-config` available from the command line.
 - LLVM supported versions starts at 3.8, older versions may work but are not supported anymore.
 - using LLVM 5.0.0 works on every platform, you can get binary distributions from the [LLVM Releases page](http://releases.llvm.org/)
 - using a previous LLVM version: you have to make sure that it is compiled **with rtti**. You can check using `llvm-config --has-rtti`
+
+
+#### LLVM on macOS:
+
+##### Using Macports:
+
+- you can use [macports](https://www.macports.org/) to install the LLVM package.
+- use `sudo port select llvm mp-llvm-XX` to activate a given version of LLVM (like `sudo port select llvm mp-llvm-9.0`).
+- you can check that llvm-config is found doing `llvm-config --version`.
+
+##### Using Homebrew:
+
+- look at [Homebrew](https://brew.sh/index_fr).
 
 
 #### LLVM on windows:
