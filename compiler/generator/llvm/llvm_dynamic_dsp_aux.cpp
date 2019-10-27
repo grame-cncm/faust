@@ -280,6 +280,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
     targetOptions.NoTrappingFPMath      = true;
+#if defined(LLVM_90)
+    targetOptions.NoSignedZerosFPMath   = true;
+#endif
     targetOptions.FPDenormalMode        = FPDenormal::IEEE;
 
     targetOptions.GuaranteedTailCallOpt = true;

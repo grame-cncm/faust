@@ -31,10 +31,8 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # without having to configure CXX and CXXFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
+		CXX=icpc
+		CXXFLAGS=$MYICCFLAGS
     fi
 done
 

@@ -10,9 +10,9 @@
 . faustpath
 . faustoptflags
 
-ARCHFILE=$FAUSTARCH/dummy.cpp
-
 CXXFLAGS=$MYGCCFLAGS
+
+ARCHFILE=$FAUSTARCH/dummy.cpp
 
 OSCDEFS=""
 NVOICES=-1

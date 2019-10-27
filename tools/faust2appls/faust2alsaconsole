@@ -12,10 +12,11 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/alsa-console.cpp
+
 POLY="POLY"
 NVOICES=-1
 OSCDEFS=""
-ARCHFILE=$FAUSTARCH/alsa-console.cpp
 
 #-------------------------------------------------------------------
 # Analyze command arguments :

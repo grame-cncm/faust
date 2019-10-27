@@ -10,7 +10,10 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE=$FAUSTARCH/matlabplot.cpp
+
 FAUSTFLOAT=float
 
 #-------------------------------------------------------------------
@@ -22,7 +25,6 @@ FAUSTFLOAT=float
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc

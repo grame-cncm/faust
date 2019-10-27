@@ -17,8 +17,9 @@
 . faustpath
 . faustoptflags
 
-NVOICES=-1
 CXXFLAGS=$MYGCCFLAGS
+
+NVOICES=-1
 
 #-------------------------------------------------------------------
 # Dispatch command arguments

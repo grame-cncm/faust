@@ -10,9 +10,10 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE=$FAUSTARCH/dssi.cpp
 
-CXXFLAGS=$MYGCCFLAGS
 OSCDEFS=""
 
 #-------------------------------------------------------------------
@@ -27,7 +28,7 @@ OSCDEFS=""
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+		CXXFLAGS=$MYICCFLAGS
     fi
 done
 

@@ -15,6 +15,7 @@ set -e
 CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE=$FAUSTARCH/ca-qt.cpp
+
 [ -d /opt/local/lib ] && OPTLIB=-L/opt/local/lib
 ARCHLIB="-L$FAUSTLDDIR -L/usr/local/lib $OPTLIB -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 DEBUG=false

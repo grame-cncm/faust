@@ -10,7 +10,6 @@
 . faustpath
 . faustoptflags
 
-CXX=g++
 CXXFLAGS="$MYGCCFLAGS -I/opt/local/include"
 
 ARCHFILE=$FAUSTARCH/jack-gtk.cpp

@@ -12,6 +12,8 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+ARCHFILE=$FAUSTARCH/jack-qt-chain-header.cpp
+
 #-------------------------------------------------------------------
 # Set Faust include path
 
@@ -97,7 +99,7 @@ TMP="$TDR/chain"
 mkdir "$TMP"
 
 #-------------------------------------------------------------------
-cat $FAUSTARCH/jack-qt-chain-header.cpp > "$TMP/combined.cpp"
+cat $ARCHFILE > "$TMP/combined.cpp"
 echo "void addAllDSP() {" >> "$TMP/combined_dsp.cpp"
 
 #-------------------------------------------------------------------
