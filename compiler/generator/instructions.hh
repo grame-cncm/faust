@@ -1055,9 +1055,8 @@ struct BlockInst : public StatementInst {
 
     void merge(BlockInst* inst)
     {
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            fCode.push_back(*it);
+        for (auto& it : inst->fCode) {
+            fCode.push_back(it);
         }
     }
 

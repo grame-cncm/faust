@@ -402,7 +402,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         argv1[argc1] = nullptr;  // NULL terminated argv
 
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        llvm_dsp_factory*                                 factory = 0;
+        
+        llvm_dsp_factory* factory = nullptr;
 
         if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;

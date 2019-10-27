@@ -185,9 +185,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 
     bool getFactory(const std::string& sha_key, factory_iterator& res)
     {
-        factory_iterator it;
-
-        for (it = this->begin(); it != this->end(); it++) {
+        for (factory_iterator it = this->begin(); it != this->end(); it++) {
             if ((*it).first->getSHAKey() == sha_key) {
                 res = it;
                 return true;

@@ -79,8 +79,8 @@ void CodeContainer::transformDAG(DispatchVisitor* visitor)
     lclgraph G;
     CodeLoop::sortGraph(fCurLoop, G);
     for (int l = int(G.size() - 1); l >= 0; l--) {
-        for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-            (*p)->transform(visitor);
+        for (auto& p : G[l]) {
+            p->transform(visitor);
         }
     }
 }
@@ -202,15 +202,15 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
     // for each level of the graph
     for (int l = int(G.size() - 1); l >= 0; l--) {
         // for each task in the level
-        for (lclset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
+        for (auto& t : G[l]) {
             // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
+            fout << '\t' << 'L' << t << "[label=<<font face=\"verdana,bold\">L"
+                 << lnum++ << "</font> : " << t
                  << ">];" << endl;
             // for each source of the task
-            for (lclset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
-                 src != (*t)->fBackwardLoopDependencies.end(); src++) {
+            for (auto& src : t->fBackwardLoopDependencies) {
                 // print the connection Lxxx -> Lyyy;
-                fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
+                fout << '\t' << 'L' << src << "->" << 'L' << t << ';' << endl;
             }
         }
     }
@@ -227,20 +227,19 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
     int loop_index = START_TASK_MAX;  // First index to be used for remaining tasks
 
     for (int l = int(dag.size() - 1); l >= 0; l--) {
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto& p : dag[l]) {
             // Setup forward dependancy
-            for (lclset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin();
-                 p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
-                (*p1)->fForwardLoopDependencies.insert((*p));
+            for (auto& p1 : p->fBackwardLoopDependencies) {
+                p1->fForwardLoopDependencies.insert(p);
             }
 
             // Setup loop index
-            (*p)->fIndex = loop_index;
+            p->fIndex = loop_index;
             loop_index++;
 
             // Keep ready loops
-            if ((*p)->getBackwardLoopDependencies().size() == 0) {
-                ready_loop.push_back((*p)->getIndex());
+            if (p->getBackwardLoopDependencies().size() == 0) {
+                ready_loop.push_back(p->getIndex());
             }
         }
     }
@@ -303,9 +302,8 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     visited.insert(l);
 
     // Compute the dependencies loops (that need to be computed before this one)
-    for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-         p++) {
-        sortDeepFirstDAG(*p, visited, result);
+    for (auto& p : l->fBackwardLoopDependencies) {
+        sortDeepFirstDAG(p, visited, result);
     }
 
     // Keep the non-empty loops in result
@@ -367,15 +365,15 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
         set<CodeLoop*>  visited;
         list<CodeLoop*> result;
         sortDeepFirstDAG(fCurLoop, visited, result);
-        for (list<CodeLoop*>::const_iterator p = result.begin(); p != result.end(); p++) {
-            generateDAGLoopAux(*p, block, count, loop_num++);
+        for (auto& p : result) {
+            generateDAGLoopAux(p, block, count, loop_num++);
         }
     } else {
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
         for (int l = int(G.size() - 1); l >= 0; l--) {
-            for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-                generateDAGLoopAux(*p, block, count, loop_num++);
+            for (auto& p : G[l]) {
+                generateDAGLoopAux(p, block, count, loop_num++);
             }
         }
     }
@@ -425,9 +423,8 @@ BlockInst* CodeContainer::flattenFIR(void)
 
     // Subcontainers
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Subcontainers =========="));
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        global_block->merge((*it)->flattenFIR());
+    for (auto& it : fSubContainers) {
+        global_block->merge(it->flattenFIR());
     }
 
     // Compute method
@@ -447,16 +444,14 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
     block = DspRenamer().getCode(block);
 
     // Inline subcontainers 'instanceInit' and 'fill' function call
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+    for (auto& it : fSubContainers) {
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* inst_init_fun =
-            (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
+        DeclareFunInst* inst_init_fun = it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
         // dump2FIR(inst_init_fun);
         block = FunctionCallInliner(inst_init_fun).getCode(block);
 
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), "dsp", true, false);
+        DeclareFunInst* fill_fun = it->generateFillFun("fill" + it->getClassName(), "dsp", true, false);
         // dump2FIR(fill_fun);
         block = FunctionCallInliner(fill_fun).getCode(block);
     }
@@ -563,13 +558,13 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const strin
     block->pushBackInst(switch_block);
 
     int i = 0;
-    for (vector<int>::const_iterator it = io.begin(); it != io.end(); it++, i++) {
+    for (auto& it : io) {
         // Creates "case" block
         BlockInst* case_block = InstBuilder::genBlockInst();
         // Compiles "case" block
-        case_block->pushBackInst(InstBuilder::genStoreStackVar("rate", InstBuilder::genInt32NumInst(*it)));
+        case_block->pushBackInst(InstBuilder::genStoreStackVar("rate", InstBuilder::genInt32NumInst(it)));
         // Add it into the switch
-        switch_block->addCase(i, case_block);
+        switch_block->addCase(i++, case_block);
     }
 
     // Default case

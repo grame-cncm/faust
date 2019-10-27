@@ -694,7 +694,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
 
         std::cout << "freezeValues Real" << std::endl;
-        typename std::map<int, T>::iterator it2;
         for (auto& it2 : real_map) {
             std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
             this->fRealHeap[it2.first] = it2.second;

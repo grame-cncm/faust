@@ -1251,9 +1251,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(FunCallInst* inst)
     {
         // Compile args first
-        list<ValueInst*>::const_iterator it;
-        for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-            (*it)->accept(this);
+        for (auto& it : inst->fArgs) {
+            it->accept(this);
         }
 
         // Then compile funcall

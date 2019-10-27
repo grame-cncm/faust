@@ -114,21 +114,18 @@ class CodeContainer : public virtual Garbageable {
 
     void merge(set<string>& dst, set<string>& src)
     {
-        set<string>::iterator i;
-        for (i = src.begin(); i != src.end(); i++) dst.insert(*i);
+        for (auto& i : src) dst.insert(i);
     }
 
     void collectIncludeFile(set<string>& S)
     {
-        list<CodeContainer*>::iterator k;
-        for (k = fSubContainers.begin(); k != fSubContainers.end(); k++) (*k)->collectIncludeFile(S);
+        for (auto& k : fSubContainers) k->collectIncludeFile(S);
         merge(S, fIncludeFileSet);
     }
 
     void collectLibrary(set<string>& S)
     {
-        list<CodeContainer*>::iterator k;
-        for (k = fSubContainers.begin(); k != fSubContainers.end(); k++) (*k)->collectLibrary(S);
+        for (auto& k : fSubContainers) k->collectLibrary(S);
         merge(S, fLibrarySet);
     }
 
@@ -147,12 +144,12 @@ class CodeContainer : public virtual Garbageable {
         selectedKeys.insert(tree("version"));
 
         dst << "/* ------------------------------------------------------------" << endl;
-        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-            if (selectedKeys.count(i->first)) {
-                dst << *(i->first);
+        for (auto& i : gGlobal->gMetaDataSet) {
+            if (selectedKeys.count(i.first)) {
+                dst << *(i.first);
                 const char* sep = ": ";
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                    dst << sep << **j;
+                for (auto& j : i.second) {
+                    dst << sep << *j;
                     sep = ", ";
                 }
                 dst << endl;
@@ -293,19 +290,19 @@ class CodeContainer : public virtual Garbageable {
     void generateMetaData(JSONUIAux<REAL>* json)
     {
         // Add global metadata
-        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
+        for (auto& i : gGlobal->gMetaDataSet) {
+            if (i.first != tree("author")) {
                 stringstream str1, str2;
-                str1 << *(i->first);
-                str2 << **(i->second.begin());
+                str1 << *(i.first);
+                str2 << **(i.second.begin());
                 string res1 = str1.str();
                 string res2 = unquote(str2.str());
                 json->declare(res1.c_str(), res2.c_str());
             } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
+                for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                    if (j == i.second.begin()) {
                         stringstream str1, str2;
-                        str1 << *(i->first);
+                        str1 << *(i.first);
                         str2 << **j;
                         string res1 = str1.str();
                         string res2 = unquote(str2.str());
@@ -576,23 +573,21 @@ class CodeContainer : public virtual Garbageable {
 
     void generateSubContainers()
     {
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            (*it)->produceInternal();
+        for (auto& it : fSubContainers) {
+            it->produceInternal();
         }
     }
 
     // merge declaration part
     void mergeSubContainers()
     {
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            fExtGlobalDeclarationInstructions->merge((*it)->fExtGlobalDeclarationInstructions);
-            fGlobalDeclarationInstructions->merge((*it)->fGlobalDeclarationInstructions);
-            fDeclarationInstructions->merge((*it)->fDeclarationInstructions);
-            (*it)->fGlobalDeclarationInstructions->fCode.clear();
-            (*it)->fExtGlobalDeclarationInstructions->fCode.clear();
-            (*it)->fDeclarationInstructions->fCode.clear();
+        for (auto& it : fSubContainers) {
+            fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
+            fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
+            fDeclarationInstructions->merge(it->fDeclarationInstructions);
+            it->fGlobalDeclarationInstructions->fCode.clear();
+            it->fExtGlobalDeclarationInstructions->fCode.clear();
+            it->fDeclarationInstructions->fCode.clear();
         }
     }
 

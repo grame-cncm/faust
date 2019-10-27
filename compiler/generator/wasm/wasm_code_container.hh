@@ -58,14 +58,13 @@ class WASMCodeContainer : public virtual CodeContainer {
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
 
-        map<string, string>::iterator it;
         std::map<std::string, int>    path_index_table;
         map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
-        for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-            faustassert(path_index_table.find((*it).second) == path_index_table.end());
+        for (auto& it : json_visitor1.fPathTable) {
+            faustassert(path_index_table.find(it.second) == path_index_table.end());
             // Get field index
-            MemoryDesc tmp                 = fieldTable1[(*it).first];
-            path_index_table[(*it).second] = tmp.fOffset;
+            MemoryDesc tmp              = fieldTable1[it.first];
+            path_index_table[it.second] = tmp.fOffset;
         }
 
         // "name", "filename" found in metadata

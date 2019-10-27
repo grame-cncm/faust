@@ -1030,9 +1030,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
 
         // Generates block internal code
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            (*it)->accept(this);
+        for (auto& it : inst->fCode) {
+            it->accept(this);
         }
 
         // No result in fCurValue

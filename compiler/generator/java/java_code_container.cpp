@@ -203,15 +203,15 @@ void JAVACodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "public void metadata(Meta m) { ";
 
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
             tab(n + 2, *fOut);
-            *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                if (j == i.second.begin()) {
                     tab(n + 2, *fOut);
-                    *fOut << "m.declare(\"" << *(i->first) << "\", " << **j << ");";
+                    *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(n + 2, *fOut);
                     *fOut << "m.declare(\""

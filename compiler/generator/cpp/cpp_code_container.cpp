@@ -89,17 +89,17 @@ void CPPCodeContainer::produceMetadata(int tabs)
     *fOut << "void metadata(Meta* m) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
             tab(tabs + 1, *fOut);
-            *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            *fOut << "m->declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
             // "contributor"
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                if (j == i.second.begin()) {
                     tab(tabs + 1, *fOut);
-                    *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
+                    *fOut << "m->declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(tabs + 1, *fOut);
                     *fOut << "m->declare(\""

@@ -132,9 +132,8 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Args.push_back("-O3");
     Args.push_back("-ffast-math");
 
-    list<string>::iterator it;
-    for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-        string path = "-I" + (*it);
+    for (auto& it : gGlobal->gImportDirList) {
+        string path = "-I" + it;
         Args.push_back(strdup(path.c_str()));
     }
 

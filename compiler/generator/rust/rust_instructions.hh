@@ -473,16 +473,15 @@ class RustInstVisitor : public TextInstVisitor {
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            if ((*it).first == -1) {  // -1 used to code "default" case
+        for (auto& it : inst->fCode) {
+            if (it.first == -1) {  // -1 used to code "default" case
                 *fOut << "_ => {";
             } else {
-                *fOut << (*it).first << " => {";
+                *fOut << it.first << " => {";
             }
             fTab++;
             tab(fTab, *fOut);
-            ((*it).second)->accept(this);
+            (it.second)->accept(this);
             /*
             if (!((*it).second)->hasReturn()) {
                 *fOut << "break;";

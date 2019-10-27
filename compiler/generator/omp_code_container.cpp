@@ -126,11 +126,11 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
             loop_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp sections"));
             omp_sections_block->setIndent(true);
         }
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto& p : dag[l]) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) {  // Only one loop
-                if (!(*p)->isRecursive() && gGlobal->gOpenMPLoop) {
-                    generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++, true);
+                if (!p->isRecursive() && gGlobal->gOpenMPLoop) {
+                    generateDAGLoopAux(p, omp_section_block, count_dec, loop_num++, true);
                 } else {
                     omp_section_block->setIndent(true);
                     if (!is_single) {
@@ -139,13 +139,13 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
                     } else {
                         omp_sections_block->pushBackInst(InstBuilder::genLabelInst("/* Still in a single section */"));
                     }
-                    generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
+                    generateDAGLoopAux(p, omp_section_block, count_dec, loop_num++);
                 }
             } else {
                 is_single = false;
                 omp_section_block->setIndent(true);
                 omp_sections_block->pushBackInst(InstBuilder::genLabelInst("#pragma omp section"));
-                generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
+                generateDAGLoopAux(p, omp_section_block, count_dec, loop_num++);
             }
             omp_sections_block->pushBackInst(omp_section_block);
         }

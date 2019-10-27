@@ -285,12 +285,12 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 }
             }
 
-            for (list<StatementInst*>::iterator it = store.begin(); it != store.end(); ++it) {
-                dst->pushFrontInst(*it);
+            for (auto& it : store) {
+                dst->pushFrontInst(it);
             }
 
-            for (list<StatementInst*>::iterator it = dec.begin(); it != dec.end(); ++it) {
-                dst->pushFrontInst(*it);
+            for (auto& it : dec) {
+                dst->pushFrontInst(it);
             }
         } else {
             // Separate with a list of DeclareVarInst with a value, followed by a list of StoreVarInst
