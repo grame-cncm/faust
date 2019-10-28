@@ -294,7 +294,7 @@ template<typename T> void MaxCpp5<T>::setupIO(unsigned int numinlets, unsigned i
 		m_inlets = (long)numinlets - 1;
 		m_inletproxy = (void **)sysmem_newptr(sizeof(void *) * m_inlets);
 		for (long i = 1; i <= m_inlets; i++) {
-			m_inletproxy[i] = proxy_new(this, i, &this->m_whichinlet); // generic outlet
+			m_inletproxy[i] = proxy_new(this, i, &this->m_whichinlet); // generic inlet
         }
 	}
 	

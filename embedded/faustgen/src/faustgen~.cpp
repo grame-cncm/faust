@@ -336,7 +336,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         /*
          std::vector<std::string> sound_directories = factory->getIncludePathnames();
          for (int i= 0; i < sound_directories.size(); i++) {
-         post("sound_directories %d %s", i, sound_directories[i].c_str());
+            post("sound_directories %d %s", i, sound_directories[i].c_str());
          }
          */
         return factory;

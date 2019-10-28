@@ -557,22 +557,22 @@ struct Address : public Printable {
 
     static void dump(AccessType access) { *fOut << dumpString(access); }
 
-#define HasAccess(arg) res += (res != "") ? (string("|") + string(arg)) : string(arg);
+#define hasAccess(arg) res += (res != "") ? (string("|") + string(arg)) : string(arg);
 
     static string dumpString(AccessType access)
     {
         string res;
-        if (access & kStruct) HasAccess("kStruct");
-        if (access & kStaticStruct) HasAccess("kStaticStruct");
-        if (access & kFunArgs) HasAccess("kFunArgs");
-        if (access & kStack) HasAccess("kStack");
-        if (access & kGlobal) HasAccess("kGlobal");
-        if (access & kLink) HasAccess("kLink");
-        if (access & kLoop) HasAccess("kLoop");
-        if (access & kVolatile) HasAccess("kVolatile");
-        if (access & kReference) HasAccess("kReference");
-        if (access & kMutable) HasAccess("kMutable");
-        if (access & kConst) HasAccess("kConst");
+        if (access & kStruct) hasAccess("kStruct");
+        if (access & kStaticStruct) hasAccess("kStaticStruct");
+        if (access & kFunArgs) hasAccess("kFunArgs");
+        if (access & kStack) hasAccess("kStack");
+        if (access & kGlobal) hasAccess("kGlobal");
+        if (access & kLink) hasAccess("kLink");
+        if (access & kLoop) hasAccess("kLoop");
+        if (access & kVolatile) hasAccess("kVolatile");
+        if (access & kReference) hasAccess("kReference");
+        if (access & kMutable) hasAccess("kMutable");
+        if (access & kConst) hasAccess("kConst");
         return res;
     }
 
@@ -1726,18 +1726,33 @@ struct InstBuilder {
     static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min,
                                                      double max, double step)
     {
+        if (init < min || init > max) {
+            stringstream error;
+            error << "ERROR : horizontal slider \'"<< label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
+            throw faustexception(error.str());
+        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kHorizontal);
     }
 
     static AddSliderInst* genAddVerticalSliderInst(const string& label, const string& zone, double init, double min,
                                                    double max, double step)
     {
+        if (init < min || init > max) {
+            stringstream error;
+            error << "ERROR : vertical slider \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
+            throw faustexception(error.str());
+        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kVertical);
     }
 
     static AddSliderInst* genAddNumEntryInst(const string& label, const string& zone, double init, double min,
                                              double max, double step)
     {
+        if (init < min || init > max) {
+            stringstream error;
+            error << "ERROR : num entry \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
+            throw faustexception(error.str());
+        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kNumEntry);
     }
 
