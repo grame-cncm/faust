@@ -357,8 +357,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -556,14 +558,16 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
     set<Tree> T;                       // Treated IDs so far
     set<Tree> R = collectTableIDs(I);  // Remaining to be treated
     while (!R.empty()) {
-        set<Tree> N;  // Set of unseen IDs
-        for (Tree id : R) {
-            fTableInitGraph.add(id);
-            T.insert(id);
-            Tree init;
-            faustassert(fTableInitExpression.get(id, init));
+        set<Tree> N;                  // Set of unseen IDs
+        for (Tree id : R) {           // for each table ID remaining to treat
+            fTableInitGraph.add(id);  // add it to the table init graph
+            T.insert(id);             // remember it has been treated
 
-            // convert init expressions into instruction sets and scheduling
+            // get the init expression (how to compute the initial content of the table) of table id
+            Tree init;
+            faustassert(fTableInitExpression.get(id, init));  //
+
+            // convert this init expression into a set J of instructions and a scheduling
             set<Tree> J;
             if (!fTableInitInstructions.get(init, J)) {
                 J = expression2Instructions(init);
@@ -571,6 +575,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
                 fTableInitScheduling.set(init, schedule(J));
             }
 
+            // compute the set D of tables needed to initialise id
             set<Tree> D = collectTableIDs(J);
             for (Tree dst : D) {
                 fTableInitGraph.add(id, dst);
@@ -581,6 +586,8 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         }
         R = N;  // Unseen are remaining to treat
     }
+
+    // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
     cerr << "Table order" << endl;
     for (Tree id : S) {
@@ -588,7 +595,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         Scheduling s;
         faustassert(fTableInitExpression.get(id, init));
         faustassert(fTableInitScheduling.get(init, s));
-        cerr << "table " << id << " has init expression " << ppsig(init) << endl;
+        cerr << "table " << *id << " has init expression " << ppsig(init) << endl;
         cerr << s << endl;
         Klass k{SchedulingToClass("gen", "", 0, 1, s)};
         cerr << "The corresponding Klass:" << endl;
