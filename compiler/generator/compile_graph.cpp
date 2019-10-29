@@ -357,10 +357,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -597,9 +595,10 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         faustassert(fTableInitScheduling.get(init, s));
         cerr << "table " << *id << " has init expression " << ppsig(init) << endl;
         cerr << s << endl;
-        Klass k{SchedulingToClass("gen", "", 0, 1, s)};
+        Klass* k = new SigFloatGenKlass(nullptr, tree2str(id));
+        SchedulingToClass(s, k);
         cerr << "The corresponding Klass:" << endl;
-        k.println(1, cerr);
+        k->println(1, cerr);
         cerr << "\n\n" << endl;
     }
 }
@@ -613,21 +612,18 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
  * @param S
  * @return Klass
  */
-Klass GraphCompiler::SchedulingToClass(const string& name, const string& super, int numInputs, int numOutputs,
-                                       Scheduling& S)
+void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
 {
-    Klass K{name, super, numInputs, numOutputs};
-
-    for (int i = 0; i < K.inputs(); i++) {
-        K.addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+    for (int i = 0; i < K->inputs(); i++) {
+        K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
     }
-    for (int i = 0; i < K.outputs(); i++) {
-        K.addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+    for (int i = 0; i < K->outputs(); i++) {
+        K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
     }
 
-    K.addDeclCode("int \ttime;");
-    K.addClearCode("time = 0;");
-    K.addPostCode(Statement("", "++time;"));
+    K->addDeclCode("int \ttime;");
+    K->addClearCode("time = 0;");
+    K->addPostCode(Statement("", "++time;"));
 
     for (Tree i : S.fInitLevel) {
         // We compile
@@ -640,8 +636,8 @@ Klass GraphCompiler::SchedulingToClass(const string& name, const string& super, 
         string ctype{(nature == kInt) ? "int" : "float"};
         string vname{tree2str(id)};
 
-        K.addDeclCode(subst("$0 \t$1;", ctype, vname));
-        K.addInitCode(subst("$0 = $1;", vname, CS(content)));
+        K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        K->addInitCode(subst("$0 = $1;", vname, CS(content)));
     }
 
     for (Tree i : S.fBlockLevel) {
@@ -655,8 +651,8 @@ Klass GraphCompiler::SchedulingToClass(const string& name, const string& super, 
         string ctype{(nature == kInt) ? "int" : "float"};
         string vname{tree2str(id)};
 
-        K.addFirstPrivateDecl(vname);
-        K.addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+        K->addFirstPrivateDecl(vname);
+        K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
     }
 
     for (Tree instr : S.fExecLevel) {
@@ -668,27 +664,26 @@ Klass GraphCompiler::SchedulingToClass(const string& name, const string& super, 
 
         if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
             string vname{tree2str(id)};
-            K.addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
+            K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
 
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             string vname{tree2str(id)};
-            K.addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
+            K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
             if (isZero(init)) {
-                K.addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
                 cerr << "Table init needed here" << endl;
             }
-            if (!isNil(idx)) K.addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
+            if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
         } else if (isSigOutput(sig, &i, content)) {
-            K.addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
+            K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
 
         } else {
             std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
             faustassert(false);
         }
     }
-    return K;
 }
 
 void GraphCompiler::compileMultiSignal(Tree L)
@@ -698,9 +693,11 @@ void GraphCompiler::compileMultiSignal(Tree L)
     set<Tree>  INSTR = transformIntoInstructions(L);
     Scheduling S     = schedule(INSTR);
 
-    Klass KKK = SchedulingToClass("theDSP", "theSuper", fClass->inputs(), fClass->outputs(), S);
+    // Klass KKK = SchedulingToClass("theDSP", "theSuper", fClass->inputs(), fClass->outputs(), S);
+    Klass* KKK = new Klass{"theDSP", "theSuper", fClass->inputs(), fClass->outputs()};
+    SchedulingToClass(S, KKK);
     cerr << " KKK = [[";
-    KKK.println(1, cerr);
+    KKK->println(1, cerr);
     cerr << "]]" << endl;
 
     tableDependenciesGraph(INSTR);

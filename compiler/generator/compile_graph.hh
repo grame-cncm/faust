@@ -121,7 +121,7 @@ class GraphCompiler : public Compiler {
     virtual string forceCacheCode(Tree sig, const string& exp);
     virtual string generateVariableStore(Tree sig, const string& exp);
 
-    Klass SchedulingToClass(const string& name, const string& super, int numInputs, int numOutputs, Scheduling& S);
+    void SchedulingToClass(Scheduling& S, Klass* K);
 
     string getFreshID(const string& prefix);
 
