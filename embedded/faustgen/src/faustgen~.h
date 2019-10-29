@@ -59,7 +59,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.40"
+#define FAUSTGEN_VERSION "1.41"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -287,6 +287,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
         void reset(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void dump(long inlet, t_symbol* s, long argc, t_atom* argv);
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
         

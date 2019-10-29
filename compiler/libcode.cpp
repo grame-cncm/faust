@@ -882,7 +882,7 @@ static void printHelp()
             "generation (default 25 elements)."
          << endl;
     cout << tab
-         << "-fc <n>    --fold-complexity <n>       complexity threshold to fold an expression in folding mode "
+         << "-fc <n>    --fold-complexity <n>        complexity threshold to fold an expression in folding mode "
             "(default 2)"
          << endl;
     cout << tab

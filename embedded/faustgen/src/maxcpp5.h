@@ -232,8 +232,9 @@ public:
     maxmethodperform m_perform;
     maxmethodinit m_init;
     double m_samplerate;
+    void* m_control_outlet;
     
-    MspCpp5():m_siginlets(0), m_sigoutlets(0)
+    MspCpp5():m_siginlets(0), m_sigoutlets(0), m_perform(NULL), m_init(NULL), m_samplerate(0), m_control_outlet(NULL)
     {}
 	
 	static t_class * makeMaxClass(const char * name);
@@ -375,8 +376,9 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
                 outlet_append((t_object*)this, NULL, gensym("signal"));
             }
             
-            // Additional output
-            // outlet_append((t_object*)this, NULL, NULL);
+            // Additional control output
+            m_control_outlet = outlet_append((t_object*)this, NULL, gensym("list"));
+            
         } else if (sigoutlets < m_sigoutlets) {
             for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
                 outlet_delete(outlet_nth((t_object*)this, i-1));

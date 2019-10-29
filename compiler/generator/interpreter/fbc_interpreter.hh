@@ -309,6 +309,7 @@ class FBCInterpreter : public FBCExecutor<T> {
                 std::cout << "assertLoadIntHeap array: fIntHeapSize ";
                 std::cout << fFactory->fIntHeapSize << " index " << (index - (*it)->fOffset1);
                 std::cout << " size " << size;
+                std::cout << " value " << fIntHeap[index];
                 std::cout << " name " << (*it)->fName << std::endl;
             } else {
                 std::cout << "assertLoadIntHeap scalar: fIntHeapSize ";
@@ -336,6 +337,7 @@ class FBCInterpreter : public FBCExecutor<T> {
                 std::cout << "assertLoadRealHeap array: fIntHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
                 std::cout << " size " << size;
+                std::cout << " value " << fRealHeap[index];
                 std::cout << " name " << (*it)->fName << std::endl;
             } else {
                 std::cout << "assertLoadRealHeap scalar: fIntHeapSize ";

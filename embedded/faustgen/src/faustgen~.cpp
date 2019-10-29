@@ -1161,8 +1161,6 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    if (ac < 0) return;
-    
     bool res = false;
     string name = string((s)->s_name);
 
@@ -1178,7 +1176,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         av[0].a_w.w_float = off;
         anything(inlet, s, 1, av);
         
-    } else if (check_digit(name)) { // List of values
+    } else if (mspUI::checkDigit(name)) { // List of values
         
         int ndigit = 0;
         int pos;
@@ -1206,22 +1204,20 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                 case A_LONG:
                     value = FAUSTFLOAT(ap[0].a_w.w_long);
                     break;
-                    
                 case A_FLOAT:
-                    value = ap[0].a_w.w_float;
+                    value = FAUSTFLOAT(ap[0].a_w.w_float);
                     break;
-                    
                 default:
                     post("Invalid argument in parameter setting");
                     return;
             }
             
-            stringstream num_val; num_val << num + i;
+            string num_val = to_string(num + i);
             stringstream param_name; param_name << prefix;
-            for (int i = 0; i < ndigit - count_digit(num_val.str()); i++) {
+            for (int i = 0; i < ndigit - mspUI::countDigit(num_val); i++) {
                 param_name << ' ';
             }
-            param_name << num_val.str();
+            param_name << num_val;
             
             // Try special naming scheme for list of parameters
             res = fDSPUI->setValue(param_name.str(), value);
@@ -1284,10 +1280,35 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
+// Reset controllers to init value
 void faustgen::reset(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    // Reset controller to init value
     fSavedUI.reset();
+}
+
+// Dump controllers as list of: [path, cur, init, min, max]
+void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    // Input controllers
+    for (mspUI::iterator it = fDSPUI->begin2(); it != fDSPUI->end2(); it++) {
+        t_atom myList[5];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[2], (*it).second->getInitValue());
+        atom_setfloat(&myList[3], (*it).second->getMinValue());
+        atom_setfloat(&myList[4], (*it).second->getMaxValue());
+        outlet_list(m_control_outlet, 0, 5, myList);
+    }
+    // Output controllers
+    for (mspUI::iterator it = fDSPUI->begin4(); it != fDSPUI->end4(); it++) {
+        t_atom myList[5];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[2], (*it).second->getInitValue());
+        atom_setfloat(&myList[3], (*it).second->getMinValue());
+        atom_setfloat(&myList[4], (*it).second->getMaxValue());
+        outlet_list(m_control_outlet, 0, 5, myList);
+    }
 }
 
 // osc 'IP inport outport xmit bundle'
@@ -1653,7 +1674,7 @@ t_pxobject* faustgen::check_dac()
         }
     }
     
-    return 0;
+    return NULL;
 }
 
 void faustgen::create_jsui()
@@ -1688,8 +1709,9 @@ void faustgen::update_outputs()
     map<string, vector<t_object*> >::iterator it1;
     vector<t_object*>::iterator it2;
     for (it1 = fOutputTable.begin(); it1 != fOutputTable.end(); it1++) {
-        FAUSTFLOAT value = fDSPUI->getOutputValue((*it1).first);
-        if (value != NAN) {
+        bool new_val = false;
+        FAUSTFLOAT value = fDSPUI->getOutputValue((*it1).first, new_val);
+        if (new_val) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
             for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); it2++) {
@@ -1758,6 +1780,9 @@ extern "C" void ext_main(void* r)
     
     // Process the "reset" message
     REGISTER_METHOD_GIMME(faustgen, reset);
+    
+    // Process the "dump" message
+    REGISTER_METHOD_GIMME(faustgen, dump);
     
     // Process the "osc" message
     REGISTER_METHOD_GIMME(faustgen, osc);

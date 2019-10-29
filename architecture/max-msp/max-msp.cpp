@@ -73,6 +73,7 @@
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
+#include "faust/gui/SaveUI.h"
 
 // Always included
 #include "faust/gui/OSCUI.h"
@@ -118,7 +119,7 @@ using namespace std;
 #define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION    "0.69"
+#define EXTERNAL_VERSION    "0.70"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -134,16 +135,18 @@ typedef struct faust
 {
     t_pxobject m_ob;
     t_atom *m_seen, *m_want;
-    map<string, vector <t_object*> > m_output_table;
+    map<string, vector<t_object*> > m_output_table;
     short m_where;
     bool m_mute;
     void** m_args;
     mspUI* m_dspUI;
     dsp* m_dsp;
+    void* m_control_outlet;
     char* m_json;  
     t_systhread_mutex m_mutex;    
     int m_Inputs;
     int m_Outputs;
+    SaveUI* m_savedUI;
 #ifdef MIDICTRL
     MidiUI* m_midiUI;
     midi_handler* m_midiHandler;
@@ -164,8 +167,6 @@ void faust_make_json(t_faust* x);
 /*--------------------------------------------------------------------------*/
 void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
-    if (ac < 0) return;
-    
     bool res = false;
     string name = string((s)->s_name);
     
@@ -181,11 +182,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         av[0].a_w.w_float = off;
         faust_anything(obj, s, 1, av);
         
-        return;
-    }
-    
-    // List of values
-    if (check_digit(name)) {
+    } else if (mspUI::checkDigit(name)) { // List of values
         
         int ndigit = 0;
         int pos;
@@ -213,22 +210,20 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
                 case A_LONG: 
                     value = FAUSTFLOAT(ap[0].a_w.w_long);
                     break;
-          
                 case A_FLOAT:
-                    value = ap[0].a_w.w_float;
+                    value = FAUSTFLOAT(ap[0].a_w.w_float);
                     break;
-                    
                 default:
                     post("Invalid argument in parameter setting"); 
                     return;         
             }
             
-            stringstream num_val; num_val << num + i;
+            string num_val = to_string(num + i);
             stringstream param_name; param_name << prefix;
-            for (int i = 0; i < ndigit - count_digit(num_val.str()); i++) {
+            for (int i = 0; i < ndigit - mspUI::countDigit(num_val); i++) {
                 param_name << ' ';
             }
-            param_name << num_val.str();
+            param_name << num_val;
                 
             // Try special naming scheme for list of parameters
             res = obj->m_dspUI->setValue(param_name.str(), value);
@@ -250,7 +245,6 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
             post("Unknown parameter : %s", (s)->s_name);
         }
     }
-    
 }
 
 /*--------------------------------------------------------------------------*/
@@ -295,6 +289,9 @@ void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
       
         // Send JSON to JS script
         faust_create_jsui(x);
+        
+        // Load old controller state
+        x->m_dsp->buildUserInterface(x->m_savedUI);
         
         systhread_mutex_unlock(x->m_mutex);
     } else {
@@ -349,13 +346,15 @@ void faust_create_jsui(t_faust* x)
     }
 }
 
+/*--------------------------------------------------------------------------*/
 void faust_update_outputs(t_faust* x)
 {
     map<string, vector<t_object*> >::iterator it1;
     vector<t_object*>::iterator it2;
     for (it1 = x->m_output_table.begin(); it1 != x->m_output_table.end(); it1++) {
-        FAUSTFLOAT value = x->m_dspUI->getOutputValue((*it1).first);
-        if (value != NAN) {
+        bool new_val = false;
+        FAUSTFLOAT value = x->m_dspUI->getOutputValue((*it1).first, new_val);
+        if (new_val) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
             for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); it2++) {
@@ -388,8 +387,10 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     delete tmp_dsp;
  
     t_faust* x = (t_faust*)newobject(faust_class);
+    
+    x->m_savedUI = new SaveUI();
 
-    x->m_json = 0;
+    x->m_json = NULL;
     x->m_mute = false;
     
 #ifdef MIDICTRL
@@ -419,6 +420,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_Outputs = x->m_dsp->getNumOutputs();
    
     x->m_dspUI = new mspUI();
+    
+    x->m_control_outlet = outlet_new((t_pxobject*)x, (char*)"list");
 
     x->m_dsp->init(long(sys_getsr()));
     x->m_dsp->buildUserInterface(x->m_dspUI);
@@ -463,12 +466,16 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     // Send JSON to JS script
     faust_create_jsui(x);
     
+    // Load old controller state
+    x->m_dsp->buildUserInterface(x->m_savedUI);
+    
     // Display controls
     x->m_dspUI->displayControls();
     return x;
 }
 
 #ifdef OSCCTRL
+/*--------------------------------------------------------------------------*/
 // osc 'IP inport outport xmit bundle'
 void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
@@ -521,6 +528,39 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 #endif
 
 /*--------------------------------------------------------------------------*/
+// Dump controllers as list of: [path, init, current]
+void faust_reset(t_faust* x, t_symbol* s, short ac, t_atom* av)
+{
+    x->m_savedUI->reset();
+}
+
+/*--------------------------------------------------------------------------*/
+// Dump controllers as list of: [path, init, current]
+void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
+{
+    // Input controllers
+    for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
+        t_atom myList[5];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[2], (*it).second->getInitValue());
+        atom_setfloat(&myList[3], (*it).second->getMinValue());
+        atom_setfloat(&myList[4], (*it).second->getMaxValue());
+        outlet_list(x->m_control_outlet, 0, 5, myList);
+    }
+    // Output controllers
+    for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
+        t_atom myList[5];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[2], (*it).second->getInitValue());
+        atom_setfloat(&myList[3], (*it).second->getMinValue());
+        atom_setfloat(&myList[4], (*it).second->getMaxValue());
+        outlet_list(x->m_control_outlet, 0, 5, myList);
+    }
+}
+
+/*--------------------------------------------------------------------------*/
 void faust_dblclick(t_faust* x, long inlet)
 {
     x->m_dspUI->displayControls();
@@ -533,7 +573,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
     if (msg == ASSIST_INLET) {
         if (a == 0) {
             if (x->m_dsp->getNumInputs() == 0) {
-                sprintf(dst, "(signal) : Unused Input");
+                sprintf(dst, "(message) : Unused Input");
             } else {
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
             }
@@ -541,7 +581,11 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
         }
     } else if (msg == ASSIST_OUTLET) {
-        sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+        if (a < x->m_dsp->getNumOutputs()) {
+            sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+        } else {
+            sprintf(dst, "(list) : [path, cur, init, min, max]*");
+        }
     }
 }
 
@@ -559,6 +603,7 @@ void faust_free(t_faust* x)
     dsp_free((t_pxobject*)x);
     delete x->m_dsp;
     delete x->m_dspUI;
+    delete x->m_savedUI;
     if (x->m_args) free(x->m_args);
     if (x->m_json) free(x->m_json);
     systhread_mutex_free(x->m_mutex);
@@ -631,6 +676,8 @@ extern "C" int main(void)
 #ifdef OSCCTRL
     addmess((method)faust_osc, (char*)"osc", A_GIMME, 0);
 #endif
+    addmess((method)faust_reset, (char*)"reset", A_GIMME, 0);
+    addmess((method)faust_dump, (char*)"dump", A_GIMME, 0);
 #ifdef MIDICTRL
     addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);
 #endif

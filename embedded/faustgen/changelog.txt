@@ -7,6 +7,11 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2019
 
 ----------------------------------------------------
+Version 1.41 - 10/30/2019
+
+- new "dump" message to send  [path, cur, init, min, max] messages for all controllers on a new most-right 'list' outlet
+
+----------------------------------------------------
 Version 1.40 - 10/25/2019
 
 - correct messages handling bug, correctly cast values to FAUSTFLOAT

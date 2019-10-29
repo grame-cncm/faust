@@ -1396,7 +1396,9 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
         isSigTable(tbl, id, size, content);
         if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
             stringstream error;
-            error << "ERROR : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi << "] is outside of table range (" << tree2int(size) << ")" << endl;
+            error << "ERROR : WRTbl read index [" << idx_i.lo << ":" <<idx_i.hi
+                  << "] is outside of table range (" << tree2int(size) << ") in "
+                  << *sig << endl;
             throw faustexception(error.str());
         }
     }
@@ -1435,7 +1437,9 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
         interval idx_i = getCertifiedSigType(idx)->getInterval();
         if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
             stringstream error;
-            error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi << "] is outside of table range (" << tree2int(size) << ")" << endl;
+            error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
+                  << "] is outside of table range (" << tree2int(size) << ") in "
+                  << *sig << endl;
             throw faustexception(error.str());
         }
     }
