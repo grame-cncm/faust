@@ -79,6 +79,13 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", text: \"off|on\""
+            
+            // To avoid Playgroung bug
+            << ", min: " << checkReal(0)
+            << ", max: " << checkReal(1)
+            << ", init: " << checkReal(0)
+            << ", step: " << checkReal(1)
+            
             << ", boolean";
             addMeta();
             fOut << " ]];";
