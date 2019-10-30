@@ -528,18 +528,17 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 #endif
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [path, init, current]
 void faust_reset(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     x->m_savedUI->reset();
 }
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [path, init, current]
+// Dump controllers as list of: [label, cur, init, min, max]
 void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     // Input controllers
-    for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
         t_atom myList[5];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
@@ -549,7 +548,7 @@ void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
         outlet_list(x->m_control_outlet, 0, 5, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
         t_atom myList[5];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());

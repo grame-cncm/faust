@@ -1286,11 +1286,11 @@ void faustgen::reset(long inlet, t_symbol* s, long ac, t_atom* av)
     fSavedUI.reset();
 }
 
-// Dump controllers as list of: [path, cur, init, min, max]
+// Dump controllers as list of: [label, cur, init, min, max]
 void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Input controllers
-    for (mspUI::iterator it = fDSPUI->begin2(); it != fDSPUI->end2(); it++) {
+    for (mspUI::iterator it = fDSPUI->begin1(); it != fDSPUI->end1(); it++) {
         t_atom myList[5];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
@@ -1300,7 +1300,7 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
         outlet_list(m_control_outlet, 0, 5, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = fDSPUI->begin4(); it != fDSPUI->end4(); it++) {
+    for (mspUI::iterator it = fDSPUI->begin3(); it != fDSPUI->end3(); it++) {
         t_atom myList[5];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
