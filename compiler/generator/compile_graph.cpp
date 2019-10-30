@@ -249,7 +249,7 @@ set<Tree> GraphCompiler::expression2Instructions(Tree exp)
 {
     Tree L = cons(exp, gGlobal->nil);
     Tree P = prepare3(L);
-    return transformIntoInstructions(P);
+    return ExpressionsListToInstructionsSet(P);
 }
 
 /**
@@ -282,13 +282,13 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
 }
 
 /**
- * @brief transformIntoInstructions(): transfoms a list of signals expressions
+ * @brief ExpressionsListToInstructionsSet(): transfoms a list of signals expressions
  * into a set of instructions
  *
  * @param L3 a list of expressions
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> GraphCompiler::transformIntoInstructions(Tree L3)
+set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
 {
     // Each expression represent an output. We decorate them with
     // output informations
@@ -690,7 +690,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
     L                = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>  INSTR = transformIntoInstructions(L);
+    set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
     Scheduling S     = schedule(INSTR);
 
     // Klass KKK = SchedulingToClass("theDSP", "theSuper", fClass->inputs(), fClass->outputs(), S);

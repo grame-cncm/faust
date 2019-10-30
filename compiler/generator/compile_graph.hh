@@ -129,7 +129,7 @@ class GraphCompiler : public Compiler {
     Tree       prepare(Tree L0) override;
     Tree       prepare2(Tree L0) override;
     Tree       prepare3(Tree L0);
-    set<Tree>  transformIntoInstructions(Tree L3);
+    set<Tree>  ExpressionsListToInstructionsSet(Tree L3);
     set<Tree>  expression2Instructions(Tree L3);
     Scheduling schedule(const set<Tree>& Instr);
     void       tableDependenciesGraph(const set<Tree>& I);
