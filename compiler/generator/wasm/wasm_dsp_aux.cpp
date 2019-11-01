@@ -231,7 +231,7 @@ void wasm_dsp::instanceInit(int sample_rate)
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #else
-     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
+    EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #endif
 }
 

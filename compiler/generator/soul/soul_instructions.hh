@@ -68,8 +68,11 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ name: " << quote(inst->fLabel)
-            << ", group: " << quote(buildPath(inst->fLabel))
-            << ", text: \"off|on\""
+            << ", group: " << quote(buildPath(inst->fLabel));
+            if (inst->fType != AddButtonInst::kDefaultButton) {
+                fOut << ", latching";
+            }
+            fOut<< ", text: \"off|on\""
             << ", boolean";
             addMeta();
             fOut << " ]];";
@@ -77,15 +80,11 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
             << " [[ name: " << quote(inst->fLabel)
-            << ", group: " << quote(buildPath(inst->fLabel))
-            << ", text: \"off|on\""
-            
-            // To avoid Playgroung bug
-            << ", min: " << checkReal(0)
-            << ", max: " << checkReal(1)
-            << ", init: " << checkReal(0)
-            << ", step: " << checkReal(1)
-            
+            << ", group: " << quote(buildPath(inst->fLabel));
+            if (inst->fType != AddButtonInst::kDefaultButton) {
+                fOut << ", latching";
+            }
+            fOut << ", text: \"off|on\""
             << ", boolean";
             addMeta();
             fOut << " ]];";
