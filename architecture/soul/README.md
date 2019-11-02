@@ -22,7 +22,7 @@ So for instance:
 
 # soul-faust-player 
 
-**soul-faust-player** tool loads a SOUL patch or an hybrid Faust/SOUL code file, wraps it as a Faust DSP object, and runs it in the Faust runtime audio/control machinery. 
+**soul-faust-player** tool loads a Faust DSP file, a SOUL patch or an hybrid Faust/SOUL code file, wraps it as a Faust DSP object, and runs it in the Faust runtime audio/control machinery. 
 
 So for instance:
 
@@ -30,10 +30,11 @@ So for instance:
 
 Then:
 
+- `soul-faust-player clarinetMIDI.dsp` to run the `clarinetMIDI.dsp` file (only containing Faust code)
 - `soul-faust-player clarinetMIDI.soulpatch` to run the `clarinetMIDI.soulpatch` file
-- `soul-faust-player clarinetMIDI.soul` to run the `clarinetMIDI.soul` file (only containing the SOUL code)
 
 Or:
 
+- `soul-faust-player clarinetMIDI.soul` to run the `clarinetMIDI.soul` file (only containing the SOUL code)
 - `soul-faust-player hybrid-test1.soul` to run an hybrid `hybrid-test1.soul` file containing both Faust and SOUL sections. Two `hybrid.soul` (containing the original SOUL sections and the Faust => SOUL generated sections) and an `hybrid.soulpatch` files will be generated in the process.
 

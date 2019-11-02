@@ -533,7 +533,7 @@ class faust_soul_parser  {
             
             return faust_blocks;
         }
-        
+    
         std::string generateSOULBlock(const std::string& name, const std::string& code)
         {
             int argc = 0;
@@ -547,14 +547,14 @@ class faust_soul_parser  {
             argv[argc] = nullptr;  // NULL terminated argv
             
             std::string error_msg;
-            bool res = generateAuxFilesFromString("FaustDSP", code, argc, argv, error_msg);
+            bool res = generateAuxFilesFromString(name, code, argc, argv, error_msg);
             
             if (res) {
                 std::ifstream soul_file("/var/tmp/exp.soul");
                 std::string soul_string((std::istreambuf_iterator<char>(soul_file)), std::istreambuf_iterator<char>());
                 return soul_string;
             } else {
-                std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg << std::endl;
+                std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg;
                 return "";
             }
         }
@@ -564,13 +564,16 @@ class faust_soul_parser  {
         faust_soul_parser()
         {}
     
-        bool parse(const std::string& inputfile, const std::string& outputfile)
+        ~faust_soul_parser()
+        {}
+ 
+        bool parse(const std::string& input, const std::string& output)
         {
-            std::ifstream reader(inputfile.c_str());
+            std::ifstream reader(input.c_str());
             if (reader.is_open()) {
                 
                 // Open SOUL output file
-                std::ofstream output_file(outputfile);
+                std::ofstream output_file(output);
           
                 // Extract the Faust blocks and returns the input file without them
                 std::stringstream soul_file;
@@ -578,7 +581,9 @@ class faust_soul_parser  {
                 
                 // Write all Faust blocks translated to SOUL
                 for (auto& it : faust_blocks) {
-                    output_file << generateSOULBlock(it.first, it.second);
+                    std::string block = generateSOULBlock(it.first, it.second);
+                    if (block == "") return false;
+                    output_file << block;
                 }
                 
                 // Write the SOUL part
@@ -591,11 +596,46 @@ class faust_soul_parser  {
             }
         }
     
-        virtual ~faust_soul_parser()
-        {}
+        bool generateSOULFile(const std::string& filename, const std::string& outputfile)
+        {
+            int argc = 0;
+            const char* argv[16];
+            argv[argc++] = "-lang";
+            argv[argc++] = "soul";
+            argv[argc++] = "-o";
+            argv[argc++] = outputfile.c_str();
+            argv[argc] = nullptr;  // NULL terminated argv
+            
+            std::string error_msg;
+            bool res = generateAuxFilesFromFile(filename, argc, argv, error_msg);
+            if (!res) {
+                std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg;
+            }
+            return res;
+        }
     
+        void createSOULPatch(const std::string& soulpatch_file, const std::string& soul_file)
+        {
+            // Generate "soulpatch" file
+            std::ofstream patch_file(soulpatch_file);
+            patch_file << "{";
+                patch_file << "\"soulPatchV1\":" << std::endl;
+                    patch_file << "\t{" << std::endl;
+                    patch_file << "\t\t\"ID\": \"grame.soul.hybrid\"," << std::endl;
+                    patch_file << "\t\t\"version\": \"1.0\"," << std::endl;
+                    patch_file << "\t\t\"name\": \"hybrid\"," << std::endl;
+                    patch_file << "\t\t\"description\": \"SOUL example\"," << std::endl;
+                    patch_file << "\t\t\"category\": \"synth\"," << std::endl;
+                    patch_file << "\t\t\"manufacturer\": \"GRAME\"," << std::endl;
+                    patch_file << "\t\t\"website\": \"https://faust.grame.fr\"," << std::endl;
+                    patch_file << "\t\t\"isInstrument\": true," << std::endl;
+                    patch_file << "\t\t\"source\": "; patch_file << "\"" << soul_file << "\"" << std::endl;
+                patch_file << "\t}" << std::endl;
+            patch_file << "}";
+            patch_file.close();
+        }
+   
 };
-
 
 #endif
 /**************************  END  soulpatch-dsp.h **************************/
