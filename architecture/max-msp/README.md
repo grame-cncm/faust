@@ -6,7 +6,7 @@ faust2max6/faust2msp transform a Faust DSP program into a compiled Max/MSP exter
 
 faust2max6/faust2msp are used with the following command: 
 
-`faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-nopatch] <file.dsp>` 
+`faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
 
 By default it will create *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **label**, **range** and **complete path**. 
 

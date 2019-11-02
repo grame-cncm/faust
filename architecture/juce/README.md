@@ -24,7 +24,7 @@ Two different achitecture files will be used to glue the previously described fi
 
 **faust2juce** is used with the following command: 
 
-`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth]  [-midi] [-osc] [-soundfile] file.dsp` 
+`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
