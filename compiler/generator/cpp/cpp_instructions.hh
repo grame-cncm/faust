@@ -222,13 +222,13 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "ui_interface->openHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "ui_interface->openTabBox(";
                 break;
         }

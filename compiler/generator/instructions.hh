@@ -640,10 +640,12 @@ struct AddMetaDeclareInst : public StatementInst {
 };
 
 struct OpenboxInst : public StatementInst {
-    int    fOrient;
-    string fName;
+    enum BoxType { kVerticalBox, kHorizontalBox, kTabBox };
+    
+    string  fName;
+    BoxType fOrient;
 
-    OpenboxInst(int orient, const string& name) : fOrient(orient), fName(name) {}
+    OpenboxInst(const string& name, BoxType orient) :  fOrient(orient), fName(name) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1404,7 +1406,7 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new AddMetaDeclareInst(inst->fZone, inst->fKey, inst->fValue);
     }
-    virtual StatementInst* visit(OpenboxInst* inst) { return new OpenboxInst(inst->fOrient, inst->fName); }
+    virtual StatementInst* visit(OpenboxInst* inst) { return new OpenboxInst(inst->fName, inst->fOrient); }
     virtual StatementInst* visit(CloseboxInst* inst) { return new CloseboxInst(); }
     virtual StatementInst* visit(AddButtonInst* inst)
     {
@@ -1709,7 +1711,11 @@ struct InstBuilder {
         return new AddMetaDeclareInst(zone, key, value);
     }
 
-    static OpenboxInst* genOpenboxInst(int orient, const string& name) { return new OpenboxInst(orient, name); }
+    static OpenboxInst* genOpenboxInst(const string& name, OpenboxInst::BoxType orient)
+    {
+        faustassert(orient >= OpenboxInst::kVerticalBox && orient <= OpenboxInst::kTabBox);
+        return new OpenboxInst(name, orient);
+    }
 
     static CloseboxInst* genCloseboxInst() { return new CloseboxInst(); }
 

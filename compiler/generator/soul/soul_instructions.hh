@@ -149,13 +149,13 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     virtual void visit(OpenboxInst* inst)
     {
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 pushLabel("v:" + inst->fName);
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 pushLabel("h:" + inst->fName);
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 pushLabel("t:" + inst->fName);
                 break;
         }

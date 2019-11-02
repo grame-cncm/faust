@@ -2043,7 +2043,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
     Tree label, elements, varname, sig;
 
     if (isUiFolder(t, label, elements)) {
-        const int orient = tree2int(left(label));
+        OpenboxInst::BoxType orient = static_cast<OpenboxInst::BoxType>(tree2int(left(label)));
         // Empty labels will be renamed with a 0xABCD (address) that is ignored and not displayed by UI architectures
         string str = tree2str(right(label));
 
@@ -2067,7 +2067,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
                            ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))
                            : checkNullLabel(t, simplifiedLabel);
 
-        pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, group));
+        pushUserInterfaceMethod(InstBuilder::genOpenboxInst(group, orient));
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(InstBuilder::genCloseboxInst());
     } else if (isUiWidget(t, label, varname, sig)) {

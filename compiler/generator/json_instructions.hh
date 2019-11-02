@@ -77,17 +77,14 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIAux<REAL> {
     virtual void visit(OpenboxInst* inst)
     {
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 this->openVerticalBox(inst->fName.c_str());
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 this->openHorizontalBox(inst->fName.c_str());
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 this->openTabBox(inst->fName.c_str());
-                break;
-            default:
-                faustassert(false);
                 break;
         }
     }

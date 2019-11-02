@@ -179,13 +179,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "OpenVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "OpenHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "OpenTabBox(";
                 break;
         }

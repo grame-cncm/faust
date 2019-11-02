@@ -156,17 +156,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     {
         FBCInstruction::Opcode opcode = FBCInstruction::kNop;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 opcode = FBCInstruction::kOpenVerticalBox;
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 opcode = FBCInstruction::kOpenHorizontalBox;
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 opcode = FBCInstruction::kOpenTabBox;
-                break;
-            default:
-                faustassert(false);
                 break;
         }
 
