@@ -28,6 +28,8 @@
 #include <string>
 #include <algorithm>
 
+//#define FAUSTFLOAT double
+
 #include "faust/gui/GTKUI.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/FUI.h"
@@ -36,7 +38,7 @@
 
 using namespace std;
 
-// faust-osc-controller /clarinet -port 5001 -outport 5000 -xmit 1
+// Usage: faust-osc-controller /clarinet -port 5001 -outport 5000 -xmit 1
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -77,27 +79,21 @@ int main(int argc, char* argv[])
     }
     
     // Controller
-    OSCUI* oscinterface = new OSCUI(argv[1], argc, argv);
-    DSP->buildUserInterface(oscinterface);
-    oscinterface->run();
+    OSCUI oscinterface(argv[1], argc, argv);
+    DSP->buildUserInterface(&oscinterface);
     
     // UI
-    GUI* interface = new GTKUI(argv[1], &argc, &argv);
-    DSP->buildUserInterface(interface);
+    GTKUI interface(argv[1], &argc, &argv);
+    DSP->buildUserInterface(&interface);
     
     // State (after UI construction)
-    FUI* finterface = new FUI();
-    DSP->buildUserInterface(finterface);
-    finterface->recallState(rcfilename);
+    FUI finterface;
+    DSP->buildUserInterface(&finterface);
+    finterface.recallState(rcfilename);
     
-    interface->run();
-    
-    finterface->saveState(rcfilename);
+    GUI::runAllGuis();
+    finterface.saveState(rcfilename);
     
     delete DSP;
-    delete finterface;
-    delete oscinterface;
-    delete interface;
-    
     return 0;
 }

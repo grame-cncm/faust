@@ -486,7 +486,7 @@ class faust_soul_parser  {
     
     private:
         
-        std::map <std::string, std::string> extractFaustBlocks(std::istream* in, std::stringstream& res_file)
+        std::map <std::string, std::string> extractFaustBlocks(std::istream& in, std::stringstream& res_file)
         {
             std::string line;
             std::stringstream faust_block;
@@ -495,7 +495,7 @@ class faust_soul_parser  {
             std::map <std::string, std::string> faust_blocks;     // name, code
             std::map <std::string, std::string>::iterator cur_faust_block;
             
-            while (getline(*in, line)) {
+            while (getline(in, line)) {
                 
                 std::stringstream line_reader(line);
                 std::string token1, token2, token3;
@@ -567,7 +567,7 @@ class faust_soul_parser  {
         ~faust_soul_parser()
         {}
  
-        bool parse(const std::string& input, const std::string& output)
+        bool parseSOULFile(const std::string& input, const std::string& output)
         {
             std::ifstream reader(input.c_str());
             if (reader.is_open()) {
@@ -577,7 +577,7 @@ class faust_soul_parser  {
           
                 // Extract the Faust blocks and returns the input file without them
                 std::stringstream soul_file;
-                std::map <std::string, std::string> faust_blocks = extractFaustBlocks(&reader, soul_file);
+                std::map<std::string, std::string> faust_blocks = extractFaustBlocks(reader, soul_file);
                 
                 // Write all Faust blocks translated to SOUL
                 for (auto& it : faust_blocks) {
@@ -596,18 +596,18 @@ class faust_soul_parser  {
             }
         }
     
-        bool generateSOULFile(const std::string& filename, const std::string& outputfile)
+        bool generateSOULFile(const std::string& input, const std::string& output)
         {
             int argc = 0;
             const char* argv[16];
             argv[argc++] = "-lang";
             argv[argc++] = "soul";
             argv[argc++] = "-o";
-            argv[argc++] = outputfile.c_str();
+            argv[argc++] = output.c_str();
             argv[argc] = nullptr;  // NULL terminated argv
             
             std::string error_msg;
-            bool res = generateAuxFilesFromFile(filename, argc, argv, error_msg);
+            bool res = generateAuxFilesFromFile(input, argc, argv, error_msg);
             if (!res) {
                 std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg;
             }

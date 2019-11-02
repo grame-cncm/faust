@@ -8,6 +8,10 @@ research@grame.fr
 Copyright GRAME (c) 2011 - 2019
 
 ----------------------------------------------------
+Version 1.22                          [November. 02 2019]
+- correct ‘double’ type management in receive mode
+
+----------------------------------------------------
 Version 1.21                           [April. 03 2019]
 - new ‘json’ message to get the program JSON description
 

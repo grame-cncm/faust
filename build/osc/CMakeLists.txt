@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.4.0)
 
 #######################################
 # versions management
-set (VERSION 1.2.0)
+set (VERSION 1.2.2)
 set (SOVERS 1)
 
 #######################################

@@ -45,28 +45,28 @@ typedef class SMARTP<RootNode> SRootNode;
  */
 struct aliastarget
 {
-	float       fMinIn;
-	float       fMaxIn;
-	float       fMinOut;
-	float       fMaxOut;
+	double      fMinIn;
+	double      fMaxIn;
+	double      fMinOut;
+	double      fMaxOut;
 	std::string fTarget;	// the real osc address
 
-	aliastarget(const char* address, float imin, float imax, float omin, float omax)
+	aliastarget(const char* address, double imin, double imax, double omin, double omax)
 		: fMinIn(imin), fMaxIn(imax), fMinOut(omin), fMaxOut(omax), fTarget(address) {}
 
 	aliastarget(const aliastarget& t)
 		: fMinIn(t.fMinIn), fMaxIn(t.fMaxIn), fMinOut(t.fMinOut), fMaxOut(t.fMaxOut), fTarget(t.fTarget) {}
 
-	float scale(float x) const 
+	double scale(double x) const 
     {
         if (fMinIn < fMaxIn) {
             // increasing control
-            float z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x;
+            double z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x;
             return fMinOut + (z-fMinIn)*(fMaxOut-fMinOut)/(fMaxIn-fMinIn);
             
         } else if (fMinIn > fMaxIn) {
             // reversed control
-            float z = (x < fMaxIn) ? fMaxIn : (x > fMinIn) ? fMinIn : x;
+            double z = (x < fMaxIn) ? fMaxIn : (x > fMinIn) ? fMinIn : x;
             return fMinOut + (fMinIn-z)*(fMaxOut-fMinOut)/(fMinIn-fMaxIn);
             
         } else {
@@ -75,16 +75,16 @@ struct aliastarget
         }
     }
     
-    float invscale(float x) const
+    double invscale(double x) const
     {
         if (fMinOut < fMaxOut) {
             // increasing control
-            float z = (x < fMinOut) ? fMinOut : (x > fMaxOut) ? fMaxOut : x;
+            double z = (x < fMinOut) ? fMinOut : (x > fMaxOut) ? fMaxOut : x;
             return fMinIn + (z-fMinOut)*(fMaxIn-fMinIn)/(fMaxOut-fMinOut);
             
         } else if (fMinOut > fMaxOut) {
             // reversed control
-            float z = (x < fMaxOut) ? fMaxOut : (x > fMinOut) ? fMinOut : x;
+            double z = (x < fMaxOut) ? fMaxOut : (x > fMinOut) ? fMinOut : x;
             return fMinIn + (fMinOut-z)*(fMaxIn-fMinIn)/(fMinOut-fMaxOut);
             
         } else {
@@ -112,7 +112,11 @@ class RootNode : public MessageDriven
         typedef std::map<std::string, std::vector<aliastarget> > TAliasMap;
         TAliasMap fAliases;
 
+        template <typename T>
+        void processAliasAux(const std::string& address, T val);
         void processAlias(const std::string& address, float val);
+        void processAlias(const std::string& address, double val);
+    
         void eraseAliases(const std::string& target);
         void eraseAlias(const std::string& target, const std::string& alias);
         bool aliasError(const Message* msg);
@@ -129,8 +133,16 @@ class RootNode : public MessageDriven
         virtual void get(unsigned long ipdest) const;
         virtual void get(unsigned long ipdest, const std::string& what) const;
 
+        template <typename T>
+        bool aliasMsgAux(const Message* msg, T omin, T omax);
+        bool aliasMsg(const Message* msg, double omin, double omax);
         bool aliasMsg(const Message* msg, float omin, float omax);
+    
+        template <typename T>
+        void addAliasAux(const char* alias, const char* address, T imin, T imax, T omin, T omax);
         void addAlias(const char* alias, const char* address, float imin, float imax, float omin, float omax);
+        void addAlias(const char* alias, const char* address, double imin, double imax, double omin, double omax);
+    
         bool acceptSignal(const Message* msg);      ///< handler for signal data
         void hello(unsigned long ipdest) const;     ///< handler for the 'hello' message
         void setPorts(int* in, int* out, int* err);

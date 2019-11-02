@@ -22,10 +22,7 @@
  ************************************************************************/
 
 #include <iostream>
-#include <sstream>
-#include <fstream>
 #include <string>
-#include <map>
 
 #include "faust/gui/GTKUI.h"
 #include "faust/audio/jack-dsp.h"
@@ -79,7 +76,7 @@ int main(int argc, char* argv[])
         
         // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
         faust_soul_parser parser;
-        if (!parser.parse(filename, HYBRID_FILE)) {
+        if (!parser.parseSOULFile(filename, HYBRID_FILE)) {
             cerr << "ERROR : file '" << filename << "' cannot be opened or compiled!\n";
             exit(-1);
         }
@@ -88,12 +85,16 @@ int main(int argc, char* argv[])
         parser.createSOULPatch(HYBRID_PATCH_FILE, HYBRID_FILE);
         real_file = HYBRID_PATCH_FILE;
         
-    } else {
+    } else if (endWith(filename, ".soulpatch")) {
         
         // We have a SOUL patchfile
         real_file = filename;
+        
+    } else {
+        cerr << "Unsupported file extension" << endl;
+        exit(1);
     }
-    
+   
     try {
         string error_msg;
         soul_dsp_factory* factory = createSOULDSPFactoryFromFile(real_file, argc, (const char**)argv, error_msg);
