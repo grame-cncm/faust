@@ -1532,7 +1532,7 @@ peakholder(n) = peakhold2 ~ reset : (!,_) with {
 // button("gate") : impulsify;
 // ```
 //----------------------------------------------------------------
-impulsify = _ <: _,mem : - <: >(0)*_;
+impulsify(x) = x > x';
 
 
 //-----------------------`(ba.)automat`------------------------------
@@ -6864,54 +6864,6 @@ si = library("signals.lib");
 // Author: RM
 smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 
-// Generic implementation
-adsrX(at,dt,sl,rt,gate) = environment {
-
-    // durations in samples
-    an = max(2, at*ma.SR);  // At least 2 to make ar(at,rt,gate) works with ar = 0
-    dn = max(1, dt*ma.SR);
-    rn = max(1, rt*ma.SR);
-
-    // deltas per samples
-    adelta = 1/an;
-    ddelta = (1-sl)/dn;
-    rdelta = sl/rn;
-	
-    // Attack curve
-    A = atime * adelta;
-
-    // Decay curve
-    D0 = 1 + an * ddelta;
-    D = D0 - atime * ddelta;
-
-    // ADS part
-    ADS = min(A, max(D, sl));
-
-    // AS part
-    AS = min(A, sl);  
-    
-    // Attack time
-    atime = +(gate) ~ *(gate' >= gate);
-    
-    // Release time starts when gate is 0 (used in 'asr' and 'adsr' cases)
-    rtime1 = (+(1) : *(gate == 0)) ~ _;
-    
-    // Release time starts when gate is 0 or envelope reaches 1 (used in 'ar' case)
-    rtime2 = (+(1) : *((gate == 0) | (AS >= 1))) ~ _;
-    
-    // Release curve starts when gate is 0 with the current value of the envelope
-    R1 = rtime1 * rdelta;
-    
-    // Release curve starts when gate is 0 or envelope reaches 1 with the current value of the envelope
-    R2 = rtime2 * rdelta;
-    
-    // The 3 envelopes
-    ar = AS - R2 : max(0);
-    asr = AS - R1 : max(0);
-    adsr = ADS - R1 : max(0);
-    
-};
-
 //-----------------------`(en.)ar`--------------------------
 // AR (Attack, Release) envelope generator (useful to create percussion envelopes).
 // `ar` is a standard Faust function.
@@ -6929,8 +6881,37 @@ adsrX(at,dt,sl,rt,gate) = environment {
 // * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
 // when `t=0`)
 //-----------------------------------------------------
-declare ar author "Yann Orlarey";
-ar(at,rt,gate) = adsrX(at,0.0,1.0,rt,gate).ar;
+declare ar author "Yann Orlarey, Stéphane Letz";
+ar(at,rt,gate) = AR : max(0) 
+with {
+
+    // Durations in samples
+    an = max(1, at*ma.SR);  
+    rn = max(1, rt*ma.SR);
+
+    // Deltas per samples
+    adelta = 1/an;
+    rdelta = 1/rn;
+    
+    // Attack time (starts at gate upfront and raises infinitely)
+    atime = (raise*reset + upfront) ~ _
+    with {
+        upfront = gate > gate';
+        reset = gate <= gate';
+        raise(x) = (x + (x > 0));
+    };
+
+    // Attack curve
+    A = atime * adelta;
+    
+    // Release curve
+    D0 = 1 + an * rdelta;
+    D = D0 - atime * rdelta;
+
+    // AR part
+    AR = min(A, D);
+    
+};
 
 /*
 // Author: RM
@@ -7011,8 +6992,34 @@ are(attT60,relT60,gate) = arfe(attT60,relT60,0,gate);
 // * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
 // when `t=0`)
 //-----------------------------------------------------
-declare asr author "Yann Orlarey";
-asr(at,sl,rt,gate) = adsrX(at,0.0,sl,rt,gate).asr;
+declare asr author "Yann Orlarey, Stéphane Letz";
+asr(at,sl,rt,gate) = AS - R : max(0)
+with {
+
+    // Durations in samples
+    an = max(1, at*ma.SR);  
+    rn = max(1, rt*ma.SR);
+
+    // Deltas per samples
+    adelta = sl/an;
+    rdelta = sl/rn;
+
+    // Attack time (starts when gate changes and raises until gate == 0)
+    atime = +(gate) ~ *(gate' >= gate);
+
+    // Attack curve
+    A = atime * adelta;
+
+    // AS part
+    AS = min(A, sl);
+
+    // Release time starts when gate is 0 
+    rtime = (+(1) : *(gate == 0)) ~ _;
+
+    // Release curve starts when gate is 0 with the current value of the envelope
+    R = rtime * rdelta;
+
+};
 
 /*
 // Author: RM
@@ -7049,7 +7056,39 @@ with{
 // when `gate=0`)
 //-----------------------------------------------------
 declare adsr author "Yann Orlarey";
-adsr(at,dt,sl,rt,gate) = adsrX(at,dt,sl,rt,gate).adsr;
+adsr(at,dt,sl,rt,gate) = ADS - R : max(0)
+with {
+
+    // Durations in samples
+    an = max(1, at*ma.SR);  
+    dn = max(1, dt*ma.SR);
+    rn = max(1, rt*ma.SR);
+
+    // Deltas per samples
+    adelta = 1/an;
+    ddelta = (1-sl)/dn;
+    rdelta = sl/rn;
+
+    // Attack time (starts when gate changes and raises until gate == 0)
+    atime = +(gate) ~ *(gate' >= gate);
+
+    // Attack curve
+    A = atime * adelta;
+
+    // Decay curve
+    D0 = 1 + an * ddelta;
+    D = D0 - atime * ddelta;
+
+    // ADS part
+    ADS = min(A, max(D, sl));
+
+    // Release time starts when gate is 0
+    rtime = (+(1) : *(gate == 0)) ~ _;
+
+    // Release curve starts when gate is 0 with the current value of the envelope
+    R = rtime * rdelta;
+
+};
 
 
 //-----------------------------------------------------
@@ -23542,7 +23581,7 @@ rtable(table, r) = (table, int(r)):rdtable;
 inverse(x) = abs(x) * invsign(x);
 
 // function that takes f value and x sign
-ccopysign(f, x) = abs(f)*sign(x);
+ccopysign(f, x) = abs(f) * sign(x);
 
 //-- Get sign and reversed sign of a signal x
 sign(x) = x<0, 1, -1 : select2;
@@ -23560,7 +23599,7 @@ boundFactor(size, factor, index) =
   select2(0<index, boundupperFactor(size, factor, index), 0)
 with {
   boundupperFactor(size, factor, index) =
-    select2(index<size-1, size-1 , factor - index);
+    select2(index<size-1, size-1, factor - index);
 };
 
 // Linear interpolation of x value in table
@@ -23588,7 +23627,7 @@ tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
     low = -5;
     high = 5;
     step = 200;
-    size = 2001;
+    size = 2000; // (real size = 2001, set the actual size at 2001-1 for interpolation to work at the last point)
 
     tube = (+ : -(Vk0) : tubeF(tb, low, high, step, size) : +(VkC-vplus)) ~ (*(Rk/Rp) : lpfk) : /(divider);
     hpf = library("filters.lib").highpass(1,31.0);
