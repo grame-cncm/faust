@@ -57,7 +57,7 @@ do
         echo "Use '-osc' to activate OSC control"
         echo "Use '-preset <directory>' to add a preset manager on top of GUI and save the preset files in a given directory"
         echo "Use '-preset auto' to add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        echo "Use '-me' to catch math computation exception (Floating point exception and integer div-by-zero of overflow)"
+        echo "Use '-me' to catch math computation exception (floating point exceptions and integer div-by-zero or overflow)"
         echo "Use '-debug' to print all the build steps"
         echo "Use '-nodeploy' to not create a self-contained application using 'macdeployqt'"
         exit

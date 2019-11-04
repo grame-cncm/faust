@@ -38,7 +38,9 @@
 #include <CoreServices/CoreServices.h>
 
 #include "faust/audio/audio.h"
+#ifdef HAS_MATH_EXCEPTION
 #include "faust/audio/fpe.h"
+#endif
 #include "faust/dsp/dsp.h"
 
 /******************************************************************************
