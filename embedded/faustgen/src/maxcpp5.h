@@ -234,8 +234,11 @@ public:
     double m_samplerate;
     void* m_control_outlet;
     
-    MspCpp5():m_siginlets(0), m_sigoutlets(0), m_perform(NULL), m_init(NULL), m_samplerate(0), m_control_outlet(NULL)
-    {}
+    MspCpp5():m_siginlets(0), m_sigoutlets(0), m_perform(NULL), m_init(NULL), m_samplerate(0)
+    {
+        // Additional control output
+        m_control_outlet = outlet_append((t_object*)this, NULL, gensym("list"));
+    }
 	
 	static t_class * makeMaxClass(const char * name);
 	static void * create(t_symbol * sym, long ac, t_atom * av);
@@ -266,7 +269,7 @@ public:
 };
 
 // Note: only include this file once to prevent linker errors!
-template<typename T> t_class * MaxCppBase<T>::m_class = 0;
+template<typename T> t_class * MaxCppBase<T>::m_class = NULL;
 
 template<typename T> t_class * MaxCpp5<T>::makeMaxClass(const char * name) {
 	common_symbols_init();
@@ -371,21 +374,20 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
         dsp_resize((t_pxobject*)this, siginlets);
         m_siginlets = siginlets;
       
-        if (sigoutlets > m_sigoutlets) {
-            for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
-                outlet_append((t_object*)this, NULL, gensym("signal"));
-            }
-            
-            // Additional control output
-            m_control_outlet = outlet_append((t_object*)this, NULL, gensym("list"));
-            
-        } else if (sigoutlets < m_sigoutlets) {
-            for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
-                outlet_delete(outlet_nth((t_object*)this, i-1));
-            }
+        // Delete all outlets: m_sigoutlets + 1 for m_control_outlet
+        for (unsigned int i = (m_sigoutlets + 1) ; i > 0; i--) {
+            outlet_delete(outlet_nth((t_object*)this, i-1));
         }
-     
-        // end the transaction
+        
+        // Add sigoutlets new signal outlets
+        for (int i = 0; i < sigoutlets; i++) {
+            outlet_append((t_object*)this, NULL, gensym("signal"));
+        }
+        
+        // Additional control output
+        m_control_outlet = outlet_append((t_object*)this, NULL, gensym("list"));
+        
+        // End the transaction
         m_sigoutlets = sigoutlets;
         object_method(b, gensym("dynlet_end"));
         
