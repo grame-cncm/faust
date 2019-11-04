@@ -28,9 +28,9 @@
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
 
-//----------------------------------------------------------------------------
-// Save/load current value, reset to init value
-//----------------------------------------------------------------------------
+/*
+ Save/load current value, reset to init value
+*/
 
 class SaveUI : public GenericUI, public PathBuilder {
     

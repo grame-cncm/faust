@@ -115,8 +115,7 @@ class bela_midi : public midi_handler {
     
     public:
     
-        bela_midi()
-            :midi_handler("bela")
+        bela_midi():midi_handler("bela")
         {}
     
         virtual ~bela_midi()

@@ -168,7 +168,7 @@ struct WASInst {
         fMathLibTable["min_"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F64Min, Typed::kDouble, 2);
         fMathLibTable["pow"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kDouble, 2);
         fMathLibTable["remainder"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kDouble, 2);
-        fMathLibTable["rint"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "nearest", WasmOp::F32NearestInt, Typed::kDouble, 1);
+        fMathLibTable["rint"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "nearest", WasmOp::F64NearestInt, Typed::kDouble, 1);
         fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kDouble, 1);
         fMathLibTable["sin"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
         fMathLibTable["sqrt"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
