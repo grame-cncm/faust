@@ -133,10 +133,10 @@ class GraphCompiler : public Compiler {
     set<Tree>  expression2Instructions(Tree L3);
     Scheduling schedule(const set<Tree>& Instr);
     void       tableDependenciesGraph(const set<Tree>& I);
-
-    void   generateTime();
-    bool   getCompiledExpression(Tree sig, string& name);
-    string setCompiledExpression(Tree sig, const string& name);
+    void       SchedulingToMethod(Scheduling& S, Klass* K);
+    void       generateTime();
+    bool       getCompiledExpression(Tree sig, string& name);
+    string     setCompiledExpression(Tree sig, const string& name);
 
     void setVectorNameProperty(Tree sig, const string& vecname);
     bool getVectorNameProperty(Tree sig, string& vecname);

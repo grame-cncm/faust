@@ -233,3 +233,10 @@ class SigFloatGenKlass : public Klass {
 
     void println(int n, ostream& fout) override;
 };
+
+class SigFillMethod : public Klass {
+   public:
+    SigFillMethod(Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
+
+    void println(int n, ostream& fout) override;
+};

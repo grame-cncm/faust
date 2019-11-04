@@ -328,8 +328,7 @@ static void groupSeqLoops(Loop* l, set<Loop*>& visited)
             }
             return;
         } else if (n > 1) {
-            for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-                 p++) {
+            for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
                 groupSeqLoops(*p, visited);
             }
         }
@@ -368,8 +367,7 @@ void Klass::buildTasksList()
     // Compute forward dependencies
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         for (auto p = G[l].begin(); p != G[l].end(); p++) {
-            for (auto p1 = (*p)->fBackwardLoopDependencies.begin();
-                 p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
+            for (auto p1 = (*p)->fBackwardLoopDependencies.begin(); p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
             }
             (*p)->fIndex = index_task;
@@ -562,8 +560,8 @@ void Klass::printGraphDotFormat(ostream& fout)
             fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
                  << ">];" << endl;
             // for each source of the task
-            for (auto src = (*t)->fBackwardLoopDependencies.begin();
-                 src != (*t)->fBackwardLoopDependencies.end(); src++) {
+            for (auto src = (*t)->fBackwardLoopDependencies.begin(); src != (*t)->fBackwardLoopDependencies.end();
+                 src++) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
             }
@@ -728,8 +726,7 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
     } else {
         Loop* keep = nullptr;
         // Find one output with only one backward dependencies
-        for (auto p1 = (*p)->fForwardLoopDependencies.begin();
-             p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
+        for (auto p1 = (*p)->fForwardLoopDependencies.begin(); p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
             if ((*p1)->fBackwardLoopDependencies.size() == 1) {
                 keep = *p1;
                 break;
@@ -741,8 +738,7 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
             fout << "tasknum = WORK_STEALING_INDEX;";
         }
 
-        for (auto p1 = (*p)->fForwardLoopDependencies.begin();
-             p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
+        for (auto p1 = (*p)->fForwardLoopDependencies.begin(); p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
             if ((*p1)->fBackwardLoopDependencies.size() == 1) {  // Task is the only input
                 if (*p1 != keep) {
                     tab(n + 1, fout);
@@ -1494,4 +1490,48 @@ void Klass::collectLibrary(set<string>& S)
 {
     for (auto& k : fSubClassList) k->collectLibrary(S);
     merge(S, fLibrarySet);
+}
+
+/**
+ * Print as a method to fill a table
+ */
+void SigFillMethod::println(int n, ostream& fout)
+{
+    tab(n, fout);
+    // fout << "void fill" << fKlassName << " {";
+    fout << subst("void fill$0 (int count, $1 output0[]) {", fKlassName, ifloat());
+
+    printlines(n + 1, fDeclCode, fout);
+
+    tab(n, fout);
+    // fout << "  public:";
+
+    // tab(n + 1, fout);
+    // fout << "int getNumInputs() { "
+    //      << "return " << fNumInputs << "; }";
+    // tab(n + 1, fout);
+    // fout << "int getNumOutputs() { "
+    //      << "return " << fNumOutputs << "; }";
+
+    // tab(n + 1, fout);
+    // fout << "void init(int sample_rate) {";
+    // tab(n + 2, fout);
+    // fout << "fSampleRate = sample_rate;";
+    printlines(n + 1, fInitCode, fout);
+    printlines(n + 1, fClearCode, fout);
+    // tab(n + 1, fout);
+    // fout << "}";
+
+    // tab(n + 1, fout);
+    // fout << subst("void fill (int count, $0 output[]) {", ifloat());
+    printlines(n + 1, fZone1Code, fout);
+    printlines(n + 1, fZone2Code, fout);
+    printlines(n + 1, fZone2bCode, fout);
+    printlines(n + 1, fZone3Code, fout);
+    printLoopGraphInternal(n + 1, fout);
+    // tab(n + 1, fout);
+    // fout << "}";
+
+    tab(n, fout);
+    fout << "};\n" << endl;
 }

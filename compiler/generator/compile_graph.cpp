@@ -595,8 +595,9 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         faustassert(fTableInitScheduling.get(init, s));
         cerr << "table " << *id << " has init expression " << ppsig(init) << endl;
         cerr << s << endl;
-        Klass* k = new SigFloatGenKlass(nullptr, tree2str(id));
-        SchedulingToClass(s, k);
+        // Klass* k = new SigFloatGenKlass(nullptr, tree2str(id));
+        Klass* k = new SigFillMethod(nullptr, tree2str(id));
+        SchedulingToMethod(s, k);
         cerr << "The corresponding Klass:" << endl;
         k->println(1, cerr);
         cerr << "\n\n" << endl;
@@ -620,6 +621,79 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
     for (int i = 0; i < K->outputs(); i++) {
         K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
     }
+
+    K->addDeclCode("int \ttime;");
+    K->addClearCode("time = 0;");
+    K->addPostCode(Statement("", "++time;"));
+
+    for (Tree i : S.fInitLevel) {
+        // We compile
+        Tree sig = S.fDic[i];
+        Tree id, origin, content;
+        int  nature;
+
+        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+
+        string ctype{(nature == kInt) ? "int" : "float"};
+        string vname{tree2str(id)};
+
+        K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        K->addInitCode(subst("$0 = $1;", vname, CS(content)));
+    }
+
+    for (Tree i : S.fBlockLevel) {
+        // We compile
+        Tree sig = S.fDic[i];
+        Tree id, origin, content;
+        int  nature;
+
+        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+
+        string ctype{(nature == kInt) ? "int" : "float"};
+        string vname{tree2str(id)};
+
+        K->addFirstPrivateDecl(vname);
+        K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+    }
+
+    for (Tree instr : S.fExecLevel) {
+        // We compile
+        Tree sig = S.fDic[instr];
+
+        Tree id, origin, content, init, idx;
+        int  i, nature, dmax, tblsize;
+
+        if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
+            string vname{tree2str(id)};
+            K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
+
+        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
+            string vname{tree2str(id)};
+            K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
+            if (isZero(init)) {
+                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+            } else {
+                cerr << "Table init needed here" << endl;
+            }
+            if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
+
+        } else if (isSigOutput(sig, &i, content)) {
+            K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
+
+        } else {
+            std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
+            faustassert(false);
+        }
+    }
+}
+void GraphCompiler::SchedulingToMethod(Scheduling& S, Klass* K)
+{
+    // for (int i = 0; i < K->inputs(); i++) {
+    //     K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+    // }
+    // for (int i = 0; i < K->outputs(); i++) {
+    //     K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+    // }
 
     K->addDeclCode("int \ttime;");
     K->addClearCode("time = 0;");
