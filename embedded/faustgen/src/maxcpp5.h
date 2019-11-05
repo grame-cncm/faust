@@ -237,7 +237,7 @@ public:
     MspCpp5():m_siginlets(0), m_sigoutlets(0), m_perform(NULL), m_init(NULL), m_samplerate(0)
     {
         // Additional control output
-        m_control_outlet = outlet_append((t_object*)this, NULL, gensym("list"));
+        m_control_outlet = outlet_append((t_object*)this, NULL, NULL); // Can send any message
     }
 	
 	static t_class * makeMaxClass(const char * name);
@@ -374,18 +374,31 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
         dsp_resize((t_pxobject*)this, siginlets);
         m_siginlets = siginlets;
       
-        // Delete all outlets: m_sigoutlets + 1 for m_control_outlet
-        for (unsigned int i = (m_sigoutlets + 1) ; i > 0; i--) {
-            outlet_delete(outlet_nth((t_object*)this, i-1));
+        // Update outlets by keeping the same left outlets, so that to keep existing connections as much as possible
+        if (sigoutlets > m_sigoutlets) {
+            
+            // Delete the m_control_outlet at 'm_sigoutlets' index
+            outlet_delete(outlet_nth((t_object*)this, m_sigoutlets));
+            
+            for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
+                outlet_append((t_object*)this, NULL, gensym("signal"));
+            }
+            
+            // Additional control output
+            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);  // Can send any message
+            
+        } else if (sigoutlets < m_sigoutlets) {
+            
+            // Delete the m_control_outlet at 'm_sigoutlets' index
+            outlet_delete(outlet_nth((t_object*)this, m_sigoutlets));
+            
+            for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
+                outlet_delete(outlet_nth((t_object*)this, i-1));
+            }
+            
+            // Additional control output
+            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);  // Can send any message
         }
-        
-        // Add sigoutlets new signal outlets
-        for (int i = 0; i < sigoutlets; i++) {
-            outlet_append((t_object*)this, NULL, gensym("signal"));
-        }
-        
-        // Additional control output
-        m_control_outlet = outlet_append((t_object*)this, NULL, gensym("list"));
         
         // End the transaction
         m_sigoutlets = sigoutlets;

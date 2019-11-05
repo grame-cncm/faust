@@ -265,9 +265,8 @@ void faustgen_factory::free_dsp_factory()
 {
     if (lock()) {
         // Free all instances
-        set<faustgen*>::const_iterator it;
-        for (it = fInstances.begin(); it != fInstances.end(); it++) {
-            (*it)->free_dsp();
+        for (auto& it : fInstances) {
+            it->free_dsp();
         }
         
         //deleteDSPFactory(fDSPfactory);
@@ -342,9 +341,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         return factory;
     } else {
         // Update all instances
-        set<faustgen*>::const_iterator it;
-        for (it = fInstances.begin(); it != fInstances.end(); it++) {
-            (*it)->hilight_on();
+        for (auto& it : fInstances) {
+            it->hilight_on();
         }
         if (fInstances.begin() != fInstances.end()) {
             (*fInstances.begin())->hilight_error(error_msg);
@@ -815,9 +813,8 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
     if (strcmp(source_code, *fSourceCode) != 0) {
         
         // Update all instances
-        set<faustgen*>::const_iterator it;
-        for (it = fInstances.begin(); it != fInstances.end(); it++) {
-            (*it)->hilight_off();
+        for (auto& it : fInstances) {
+            it->hilight_off();
         }
         
         // Delete the existing Faust module
@@ -835,8 +832,8 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
         fSourceCodeSize = size;
         
         // Update all instances
-        for (it = fInstances.begin(); it != fInstances.end(); it++) {
-            (*it)->update_sourcecode();
+        for (auto& it : fInstances) {
+            it->update_sourcecode();
         }
         
     } else {
@@ -907,9 +904,8 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     }
     
     // Update all instances
-    set<faustgen*>::const_iterator it;
-    for (it = fInstances.begin(); it != fInstances.end(); it++) {
-        (*it)->update_sourcecode();
+    for (auto& it : fInstances) {
+        it->update_sourcecode();
     }
 }
 
@@ -1021,9 +1017,8 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     free_bitcode();
     
     // Update all instances
-    set<faustgen*>::const_iterator it;
-    for (it = fInstances.begin(); it != fInstances.end(); it++) {
-        (*it)->update_sourcecode();
+    for (auto& it : fInstances) {
+        it->update_sourcecode();
     }
 }
 
@@ -1280,34 +1275,52 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
-// Reset controllers to init value
-void faustgen::reset(long inlet, t_symbol* s, long ac, t_atom* av)
+// Reset controllers to init value and send [label, init, min, max]
+void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
 {
+    // Reset internal state
     fSavedUI.reset();
+    
+    // Input controllers
+    for (mspUI::iterator it = fDSPUI->begin1(); it != fDSPUI->end1(); it++) {
+        t_atom myList[4];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(m_control_outlet, 0, 4, myList);
+    }
+    // Output controllers
+    for (mspUI::iterator it = fDSPUI->begin3(); it != fDSPUI->end3(); it++) {
+        t_atom myList[4];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(m_control_outlet, 0, 4, myList);
+    }
 }
 
-// Dump controllers as list of: [label, cur, init, min, max]
+// Dump controllers as list of: [label, cur, min, max]
 void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Input controllers
     for (mspUI::iterator it = fDSPUI->begin1(); it != fDSPUI->end1(); it++) {
-        t_atom myList[5];
+        t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
-        atom_setfloat(&myList[2], (*it).second->getInitValue());
-        atom_setfloat(&myList[3], (*it).second->getMinValue());
-        atom_setfloat(&myList[4], (*it).second->getMaxValue());
-        outlet_list(m_control_outlet, 0, 5, myList);
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(m_control_outlet, 0, 4, myList);
     }
     // Output controllers
     for (mspUI::iterator it = fDSPUI->begin3(); it != fDSPUI->end3(); it++) {
-        t_atom myList[5];
+        t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
-        atom_setfloat(&myList[2], (*it).second->getInitValue());
-        atom_setfloat(&myList[3], (*it).second->getMinValue());
-        atom_setfloat(&myList[4], (*it).second->getMaxValue());
-        outlet_list(m_control_outlet, 0, 5, myList);
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(m_control_outlet, 0, 4, myList);
     }
 }
 
@@ -1471,6 +1484,9 @@ void faustgen::update_sourcecode()
     
     // faustgen~ state is modified...
     set_dirty();
+    
+    // Send a bang
+    outlet_bang(m_control_outlet);
 }
 
 // Process the signal data with the Faust module
@@ -1706,16 +1722,14 @@ void faustgen::create_jsui()
 
 void faustgen::update_outputs()
 {
-    map<string, vector<t_object*> >::iterator it1;
-    vector<t_object*>::iterator it2;
-    for (it1 = fOutputTable.begin(); it1 != fOutputTable.end(); it1++) {
+    for (auto& it1 : fOutputTable) {
         bool new_val = false;
-        FAUSTFLOAT value = fDSPUI->getOutputValue((*it1).first, new_val);
+        FAUSTFLOAT value = fDSPUI->getOutputValue(it1.first, new_val);
         if (new_val) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
-            for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); it2++) {
-                object_method_typed((*it2), gensym("float"), 1, &at_value, 0);
+            for (auto& it2 : it1.second) {
+                object_method_typed(it2, gensym("float"), 1, &at_value, 0);
             }
         }
     }
@@ -1778,8 +1792,8 @@ extern "C" void ext_main(void* r)
     // Process the "polyphony" message
     REGISTER_METHOD_GIMME(faustgen, polyphony);
     
-    // Process the "reset" message
-    REGISTER_METHOD_GIMME(faustgen, reset);
+    // Process the "init" message
+    REGISTER_METHOD_GIMME(faustgen, init);
     
     // Process the "dump" message
     REGISTER_METHOD_GIMME(faustgen, dump);

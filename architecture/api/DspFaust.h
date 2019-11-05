@@ -139,7 +139,7 @@ class DspFaust
         // * `pitch`: MIDI note number (0-127)
         // * `velocity`: MIDI velocity (0-127)
         //--------------------------------------------------------
-        unsigned long keyOn(int, int);
+        uintptr_t keyOn(int, int);
 
         //----------------`int keyOff(int pitch)`-----------------
         // De-instantiate a polyphonic voice. This method can
@@ -170,7 +170,7 @@ class DspFaust
         // `deleteVoice` to access the parameters of a specific
         // voice.
         //--------------------------------------------------------
-        unsigned long newVoice();
+        uintptr_t newVoice();
 
         //---------`int deleteVoice(long voice)`------------------
         // De-instantiate a polyphonic voice. This method can
@@ -185,7 +185,7 @@ class DspFaust
         //
         // * `voice`: the address of the voice given by `newVoice`
         //--------------------------------------------------------
-        int deleteVoice(unsigned long);
+        int deleteVoice(uintptr_t);
 
         //-----------------`void allNotesOff()`----------------
         // Gently terminates all the active voices.

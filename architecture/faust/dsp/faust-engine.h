@@ -38,7 +38,7 @@ extern "C" {
     
     bool isRunning(void*);
 
-    unsigned long keyOn(void*, int, int);
+    uintptr_t keyOn(void*, int, int);
     int keyOff(void*, int);
     
     void propagateMidi(void*, int, double, int, int, int, int);

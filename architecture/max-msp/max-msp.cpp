@@ -349,16 +349,14 @@ void faust_create_jsui(t_faust* x)
 /*--------------------------------------------------------------------------*/
 void faust_update_outputs(t_faust* x)
 {
-    map<string, vector<t_object*> >::iterator it1;
-    vector<t_object*>::iterator it2;
-    for (it1 = x->m_output_table.begin(); it1 != x->m_output_table.end(); it1++) {
+    for (auto& it1 : x->m_output_table) {
         bool new_val = false;
-        FAUSTFLOAT value = x->m_dspUI->getOutputValue((*it1).first, new_val);
+        FAUSTFLOAT value = x->m_dspUI->getOutputValue(it1.first, new_val);
         if (new_val) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
-            for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); it2++) {
-                object_method_typed((*it2), gensym("float"), 1, &at_value, 0);
+            for (auto& it2 : it1.second) {
+                object_method_typed(it2, gensym("float"), 1, &at_value, 0);
             }
         }
     }
@@ -528,34 +526,53 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 #endif
 
 /*--------------------------------------------------------------------------*/
-void faust_reset(t_faust* x, t_symbol* s, short ac, t_atom* av)
+// Reset controllers to init value and send [label, init, min, max]
+void faust_init(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
+    // Reset internal state
     x->m_savedUI->reset();
+    
+    // Input controllers
+    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
+        t_atom myList[4];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(x->m_control_outlet, 0, 4, myList);
+    }
+    // Output controllers
+    for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
+        t_atom myList[4];
+        atom_setsym(&myList[0], gensym((*it).first.c_str()));
+        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(x->m_control_outlet, 0, 4, myList);
+    }
 }
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [label, cur, init, min, max]
+// Dump controllers as list of: [label, cur, min, max]
 void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     // Input controllers
     for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
-        t_atom myList[5];
+        t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
-        atom_setfloat(&myList[2], (*it).second->getInitValue());
-        atom_setfloat(&myList[3], (*it).second->getMinValue());
-        atom_setfloat(&myList[4], (*it).second->getMaxValue());
-        outlet_list(x->m_control_outlet, 0, 5, myList);
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(x->m_control_outlet, 0, 4, myList);
     }
     // Output controllers
     for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
-        t_atom myList[5];
+        t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
         atom_setfloat(&myList[1], (*it).second->getValue());
-        atom_setfloat(&myList[2], (*it).second->getInitValue());
-        atom_setfloat(&myList[3], (*it).second->getMinValue());
-        atom_setfloat(&myList[4], (*it).second->getMaxValue());
-        outlet_list(x->m_control_outlet, 0, 5, myList);
+        atom_setfloat(&myList[2], (*it).second->getMinValue());
+        atom_setfloat(&myList[3], (*it).second->getMaxValue());
+        outlet_list(x->m_control_outlet, 0, 4, myList);
     }
 }
 
@@ -675,7 +692,7 @@ extern "C" int main(void)
 #ifdef OSCCTRL
     addmess((method)faust_osc, (char*)"osc", A_GIMME, 0);
 #endif
-    addmess((method)faust_reset, (char*)"reset", A_GIMME, 0);
+    addmess((method)faust_init, (char*)"init", A_GIMME, 0);
     addmess((method)faust_dump, (char*)"dump", A_GIMME, 0);
 #ifdef MIDICTRL
     addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);

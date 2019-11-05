@@ -286,7 +286,7 @@ class faustgen : public MspCpp5<faustgen> {
         void write(long inlet, t_symbol* s);
         
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
-        void reset(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void init(long inlet, t_symbol* s, long argc, t_atom* argv);
         void dump(long inlet, t_symbol* s, long argc, t_atom* argv);
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         void osc(long inlet, t_symbol* s, long argc, t_atom* argv);

@@ -346,9 +346,9 @@ bool DspFaust::isRunning()
 	return fPolyEngine->isRunning();
 }
 
-unsigned long DspFaust::keyOn(int pitch, int velocity)
+uintptr_t DspFaust::keyOn(int pitch, int velocity)
 {
-	return (unsigned long)fPolyEngine->keyOn(pitch, velocity);
+	return (uintptr_t)fPolyEngine->keyOn(pitch, velocity);
 }
 
 int DspFaust::keyOff(int pitch)
@@ -356,12 +356,12 @@ int DspFaust::keyOff(int pitch)
 	return fPolyEngine->keyOff(pitch);
 }
 
-unsigned long DspFaust::newVoice()
+uintptr_t DspFaust::newVoice()
 {
-	return (unsigned long)fPolyEngine->newVoice();
+	return (uintptr_t)fPolyEngine->newVoice();
 }
 
-int DspFaust::deleteVoice(unsigned long voice)
+int DspFaust::deleteVoice(uintptr_t voice)
 {
 	return fPolyEngine->deleteVoice(voice);
 }
