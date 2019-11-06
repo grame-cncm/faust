@@ -113,6 +113,8 @@ echoHelp ()
     echo "   -osc: add JUCE OSC support to the API."
     echo "   -soundfile: add built-in Soundfile support to the API."
     echo ""
+    echo "Additional Faust options (like -vec -vs 8...) can be given at the end of the command line."
+    echo ""
 }
 
 createAPI ()

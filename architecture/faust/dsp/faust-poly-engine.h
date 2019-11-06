@@ -251,8 +251,8 @@ class FaustPolyEngine {
         }
 
         /*
-         * deleteVoice(unsigned long voice)
-         * Delete a voice based on its MapUI* casted as a unsigned long.
+         * deleteVoice(uintptr_t voice)
+         * Delete a voice based on its MapUI* casted as a uintptr_t.
          */
         int deleteVoice(uintptr_t voice)
         {
@@ -261,12 +261,12 @@ class FaustPolyEngine {
         
         /*
          * allNotesOff()
-         * Gently terminates all the active voices.
+         * Immediately terminates all the active voices.
          */
         void allNotesOff()
         {
             if (fPolyDSP) {
-                fPolyDSP->allNotesOff();
+                fPolyDSP->allNotesOff(true);
             }
         }
     
@@ -376,7 +376,7 @@ class FaustPolyEngine {
          * the voice. setVoiceParamValue can only be
          * used if the [style:poly] metadata is used in the Faust code.
          */
-        void setVoiceParamValue(const char* address, unsigned long voice, float value)
+        void setVoiceParamValue(const char* address, uintptr_t voice, float value)
         {
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
         }
@@ -387,7 +387,7 @@ class FaustPolyEngine {
          * the voice. setVoiceParamValue can only be
          * used if the [style:poly] metadata is used in the Faust code.
          */
-        void setVoiceParamValue(int id, unsigned long voice, float value)
+        void setVoiceParamValue(int id, uintptr_t voice, float value)
         {
             reinterpret_cast<MapUI*>(voice)->setParamValue(reinterpret_cast<MapUI*>(voice)->getParamAddress(id), value);
         }
@@ -398,7 +398,7 @@ class FaustPolyEngine {
          * getVoiceParamValue can only be used if the [style:poly] metadata
          * is used in the Faust code.
          */
-        float getVoiceParamValue(const char* address, unsigned long voice)
+        float getVoiceParamValue(const char* address, uintptr_t voice)
         {
             return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
         }
@@ -409,7 +409,7 @@ class FaustPolyEngine {
          * getVoiceParamValue can only be used if the [style:poly] metadata
          * is used in the Faust code.
          */
-        float getVoiceParamValue(int id, unsigned long voice)
+        float getVoiceParamValue(int id, uintptr_t voice)
         {
             return reinterpret_cast<MapUI*>(voice)->getParamValue(reinterpret_cast<MapUI*>(voice)->getParamAddress(id));
         }
@@ -428,7 +428,7 @@ class FaustPolyEngine {
          * Returns the address of a parameter for a specific voice 
          * in function of its "id".
          */
-        const char* getVoiceParamAddress(int id, unsigned long voice)
+        const char* getVoiceParamAddress(int id, uintptr_t voice)
         {
             return reinterpret_cast<MapUI*>(voice)->getParamAddress(id).c_str();
         }
@@ -598,20 +598,20 @@ extern "C" {
     void setParamIdValue(void* dsp, int id, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(id, value); }
     float getParamIdValue(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(id); }
     
-    void setVoiceParamValue(void* dsp, const char* address, unsigned long voice, float value)
+    void setVoiceParamValue(void* dsp, const char* address, uintptr_t voice, float value)
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->setVoiceParamValue(address, voice, value);
     }
-    float getVoiceParamValue(void* dsp, const char* address, unsigned long voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
+    float getVoiceParamValue(void* dsp, const char* address, uintptr_t voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
     
     const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
 
-    void propagateAcc(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }
+    void propagateAcc(void* dsp, int acc, float v) { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }
     void setAccConverter(void* dsp, int p, int acc, int curve, float amin, float amid, float amax)
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->setAccConverter(p, acc, curve, amin, amid, amax);
     }
-    void propagateGyr(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateGyr(acc, v); }
+    void propagateGyr(void* dsp, int acc, float v) { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateGyr(acc, v); }
     void setGyrConverter(void* dsp, int p, int gyr, int curve, float amin, float amid, float amax)
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->setGyrConverter(p, gyr, curve, amin, amid, amax);

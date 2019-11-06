@@ -600,7 +600,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
         if (a < x->m_dsp->getNumOutputs()) {
             sprintf(dst, "(signal) : Audio Output %ld", (a+1));
         } else {
-            sprintf(dst, "(list) : [path, cur, init, min, max]*");
+            sprintf(dst, "(list) : [path, cur|init, min, max]*");
         }
     }
 }

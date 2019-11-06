@@ -54,8 +54,8 @@ extern "C" {
     void setParamIdValue(void*, int, float);
     float getParamIdValue(void*, int);
 
-    void setVoiceParamValue(void*, const char*, unsigned long, float);
-    float getVoiceParamValue(void*, const char*, unsigned long);
+    void setVoiceParamValue(void*, const char*, uintptr_t, float);
+    float getVoiceParamValue(void*, const char*, uintptr_t);
 
     const char* getParamAddress(void*, int);
 

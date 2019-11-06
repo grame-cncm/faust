@@ -9,7 +9,9 @@ Copyright GRAME (c) 2012-2019
 ----------------------------------------------------
 Version 1.41 - 10/30/2019
 
-- new "dump" message to send  [path, cur, init, min, max] messages for all controllers on a new most-right 'list' outlet
+- new "dump" message to send  [path, cur, min, max] messages for all controllers on a new most-right outlet
+- "reset" message renamed to "init " and send [path, init, min, max] messages for all controllers on a new most-right outlet
+- "bang" message sent on most-right outlet when DSP compilation is finished
 
 ----------------------------------------------------
 Version 1.40 - 10/25/2019

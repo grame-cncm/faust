@@ -188,10 +188,10 @@ class DspFaust
         int deleteVoice(uintptr_t);
 
         //-----------------`void allNotesOff()`----------------
-        // Gently terminates all the active voices.
+        // Immediately terminate all the active voices.
         //--------------------------------------------------------
         void allNotesOff();
-
+   
         //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
         // Take a raw MIDI message and propagate it to the Faust
         // DSP object. This method can be used concurrently with
@@ -270,7 +270,7 @@ class DspFaust
         //--------------------------------------------------------
         float getParamValue(int);
 
-        //----`void setVoiceParamValue(const char* address, long voice, float value)`-----
+        //----`void setVoiceParamValue(const char* address, uintptr_t voice, float value)`-----
         // Set the value of one of the parameters of the Faust
         // object in function of its address (path) for a
         // specific voice.
@@ -282,7 +282,7 @@ class DspFaust
         // from `keyOn`
         // * `value`: value of the parameter
         //--------------------------------------------------------
-        void setVoiceParamValue(const char*, unsigned long, float);
+        void setVoiceParamValue(const char*, uintptr_t, float);
 
         //----`void setVoiceValue(int id, long voice, float value)`-----
         // Set the value of one of the parameters of the Faust
@@ -296,7 +296,7 @@ class DspFaust
         // from `keyOn`
         // * `value`: value of the parameter
         //--------------------------------------------------------
-        void setVoiceParamValue(int, unsigned long, float);
+        void setVoiceParamValue(int, uintptr_t, float);
 
         //----`float getVoiceParamValue(const char* address, long voice)`----
         // Returns the value of a parameter in function of its
@@ -308,7 +308,7 @@ class DspFaust
         // * `voice`: address of the polyphonic voice (retrieved
         // from `keyOn`)
         //--------------------------------------------------------
-        float getVoiceParamValue(const char*, unsigned long);
+        float getVoiceParamValue(const char*, uintptr_t);
 
         //----`float getVoiceParamValue(int id, long voice)`----
         // Returns the value of a parameter in function of its
@@ -320,7 +320,7 @@ class DspFaust
         // * `voice`: address of the polyphonic voice (retrieved
         // from `keyOn`)
         //--------------------------------------------------------
-        float getVoiceParamValue(int, unsigned long);
+        float getVoiceParamValue(int, uintptr_t);
 
         //----`const char* getParamAddress(int id)`---------------
         // Returns the address (path) of a parameter in function
@@ -342,7 +342,7 @@ class DspFaust
         // * `voice`: address of the polyphonic voice (retrieved
         // from `keyOn`)
         //--------------------------------------------------------
-        const char* getVoiceParamAddress(int, unsigned long);
+        const char* getVoiceParamAddress(int, uintptr_t);
 
         //-------`float getParamMin(const char* address)`---------
         // Returns the minimum value of a parameter in function of

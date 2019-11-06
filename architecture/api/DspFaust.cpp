@@ -411,22 +411,22 @@ float DspFaust::getParamValue(int id)
 	return fPolyEngine->getParamValue(id);
 }
 
-void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value)
+void DspFaust::setVoiceParamValue(const char* address, uintptr_t voice, float value)
 {
 	fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
-void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value)
+void DspFaust::setVoiceParamValue(int id, uintptr_t voice, float value)
 {
 	fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
-float DspFaust::getVoiceParamValue(const char* address, unsigned long voice)
+float DspFaust::getVoiceParamValue(const char* address, uintptr_t voice)
 {
 	return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
-float DspFaust::getVoiceParamValue(int id, unsigned long voice)
+float DspFaust::getVoiceParamValue(int id, uintptr_t voice)
 {
 	return fPolyEngine->getVoiceParamValue(id, voice);
 }
@@ -436,7 +436,7 @@ const char* DspFaust::getParamAddress(int id)
 	return fPolyEngine->getParamAddress(id);
 }
 
-const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice)
+const char* DspFaust::getVoiceParamAddress(int id, uintptr_t voice)
 {
 	return fPolyEngine->getVoiceParamAddress(id, voice);
 }
