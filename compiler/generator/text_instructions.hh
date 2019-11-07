@@ -238,7 +238,7 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -283,14 +283,14 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
         inst->fThen->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         if (inst->fElse->fCode.size() > 0) {
             *fOut << "} else {";
             fTab++;
             tab(fTab, *fOut);
             inst->fElse->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
         } else {
             *fOut << "}";
@@ -316,7 +316,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -330,7 +330,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -353,7 +353,7 @@ class TextInstVisitor : public InstVisitor {
         }
         if (inst->fIndent) {
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -385,12 +385,13 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
 
     StringTypeManager* getTypeManager() { return fTypeManager; }
+    
 };
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like

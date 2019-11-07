@@ -22,14 +22,21 @@
  
  ************************************************************************/
 
-#include <faust/dsp/llvm-c-dsp.h>
 #include <iostream>
 #include <cassert>
+
+#include <faust/dsp/llvm-c-dsp.h>
+#include "faust/misc.h"
 
 using namespace std;
 
 int main(int argc, const char** argv)
 {
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help")) {
+        cout << "llvm-test-c" << endl;
+        exit(EXIT_FAILURE);
+    }
+    
     int argc1 = 0;
     const char* argv1[2];
     argv1[argc1++] = "-vec";

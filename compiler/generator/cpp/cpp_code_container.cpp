@@ -35,7 +35,7 @@ dsp_factory_base* CPPCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -152,7 +152,6 @@ void CPPCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut);
     *fOut << "class " << fKlassName << " {";
 
     tab(n + 1, *fOut);
@@ -179,7 +178,7 @@ void CPPCodeContainer::produceInternal()
 
     // fKlassName used in method naming for subclasses
     produceInfoFunctions(n + 1, fKlassName, "dsp", true, false, &fCodeProducer);
-
+    
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
 
@@ -191,7 +190,7 @@ void CPPCodeContainer::produceInternal()
     generateInit(&fCodeProducer);
     generateResetUserInterface(&fCodeProducer);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     // Fill
@@ -209,7 +208,7 @@ void CPPCodeContainer::produceInternal()
     generateComputeBlock(&fCodeProducer);
     ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     /*
@@ -273,7 +272,6 @@ void CPPCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut);
 
-    tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
     tab(n + 1, *fOut);
@@ -298,7 +296,7 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         generateAllocate(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(n + 1, *fOut);
     }
@@ -309,7 +307,7 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         generateDestroy(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(n + 1, *fOut);
     }
@@ -359,7 +357,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     if (gGlobal->gMemoryManager) {
@@ -368,7 +366,7 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         generateStaticDestroy(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
     }
 
@@ -406,7 +404,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -415,7 +413,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -424,7 +422,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -481,7 +479,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     // Compute
@@ -530,7 +528,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
     generatePostComputeBlock(&fCodeProducer);
     */
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 }
 
@@ -555,7 +553,7 @@ void CPPScalarOneSampleCodeContainer::generateCompute(int n)
      generatePostComputeBlock(&fCodeProducer);
      */
     
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 }
 
@@ -619,7 +617,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
         tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         generateAllocate(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(n + 1, *fOut);
     }
@@ -630,7 +628,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
         tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         generateDestroy(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(n + 1, *fOut);
     }
@@ -674,7 +672,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     
     if (gGlobal->gMemoryManager) {
@@ -683,7 +681,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
         tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         generateStaticDestroy(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}";
     }
   
@@ -693,7 +691,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
     
@@ -702,7 +700,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
     
@@ -711,7 +709,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
     
@@ -737,7 +735,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     
     tab(n + 1, *fOut);
@@ -746,7 +744,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     fCodeProducer.Tab(n + 2);
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "};" << endl;
     
     tab(n + 1, *fOut);
@@ -796,7 +794,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     // Generates the DSP loop
     fDAGBlock->accept(&fCodeProducer);
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 }
 
@@ -826,7 +824,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     // Generate DSP loop
     fGlobalLoopBlock->accept(&fCodeProducer);
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 }
 
@@ -868,7 +866,8 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
-    tab(n + 1, *fOut);
+    //tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 
     // Generates "computeThread" code
@@ -881,6 +880,6 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     faustassert(fThreadLoopBlock);
     fThreadLoopBlock->accept(&fCodeProducer);
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 }

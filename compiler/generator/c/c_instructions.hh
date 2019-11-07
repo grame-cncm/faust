@@ -371,13 +371,13 @@ class CInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
 
         if (c99_declare_inst) {
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }

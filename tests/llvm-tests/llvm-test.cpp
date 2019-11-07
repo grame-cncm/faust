@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
@@ -74,7 +75,7 @@ struct testUI : public GenericUI {
 
 int main(int argc, const char** argv)
 {
-    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help")) {
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
         cout << "llvm-test foo.dsp" << endl;
         exit(EXIT_FAILURE);
     }
@@ -82,11 +83,10 @@ int main(int argc, const char** argv)
     string error_msg;
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     string dspFile = argv[1];
-    string tempDir = "/private/var/tmp";
-    if (argc > 1) {
-        tempDir = argv[2];
-    }
-    
+    string tempDir = "/private/var/tmp/";
+   
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromFile\n";
     {
         dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, "", error_msg, -1);
         
@@ -120,6 +120,8 @@ int main(int argc, const char** argv)
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
     
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString\n";
     {
         dsp_factory* factory = createDSPFactoryFromString("score", "process = +;", 0, NULL, "", error_msg, -1);
         if (!factory) {
@@ -177,7 +179,7 @@ int main(int argc, const char** argv)
     argv2[argc2++] = "-svg";
     argv2[argc2++] = "-O";
     argv2[argc2++] = tempDir.c_str();
-    argv2[argc2] = 0;  // NULL terminated argv
+    argv2[argc2] = nullptr;  // NULL terminated argv
     
     {
         cout << "=============================\n";

@@ -644,7 +644,7 @@ struct OpenboxInst : public StatementInst {
     const string  fName;
     const BoxType fOrient;
 
-    OpenboxInst(const string& name, BoxType orient) :  fOrient(orient), fName(name) {}
+    OpenboxInst(const string& name, BoxType orient) : fName(name), fOrient(orient) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 

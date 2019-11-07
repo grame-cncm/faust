@@ -230,7 +230,7 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
         memcpy(res->fCode, code.c_str(), res->fCodeSize);
 
         stringstream dst2;
-        factory->writeAux(&dst2, false, false);
+        factory->writeHelper(&dst2, false, false);
         res->fHelpers = strdup(flatten(dst2.str()).c_str());
 
         return res;

@@ -350,7 +350,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     dsp_memory_manager* getMemoryManager();
 
     void write(std::ostream* out, bool binary, bool smallflag = false);
-    void writeAux(std::ostream* out, bool binary, bool smallflag = false);
+    void writeHelper(std::ostream* out, bool binary, bool smallflag = false);
 
     std::string getBinaryCode();
 

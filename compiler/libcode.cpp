@@ -56,7 +56,6 @@
 #include "privatise.hh"
 #include "propagate.hh"
 #include "recursivness.hh"
-#include "rust_instructions_compiler.hh"
 #include "schema.h"
 #include "signals.hh"
 #include "sigprint.hh"
@@ -100,15 +99,16 @@
 
 #ifdef RUST_BUILD
 #include "rust_code_container.hh"
+#include "rust_instructions_compiler.hh"
+#endif
+
+#ifdef SOUL_BUILD
+#include "soul_code_container.hh"
 #endif
 
 #ifdef WASM_BUILD
 #include "wasm_code_container.hh"
 #include "wast_code_container.hh"
-#endif
-
-#ifdef SOUL_BUILD
-#include "soul_code_container.hh"
 #endif
 
 using namespace std;
@@ -169,13 +169,13 @@ static void enumBackends(ostream& out)
 #ifdef RUST_BUILD
     out << dspto << "Rust" << endl;
 #endif
+    
+#ifdef SOUL_BUILD
+    out << dspto << "SOUL" << endl;
+#endif
 
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
-#endif
-
-#ifdef SOUL_BUILD
-    out << dspto << "SOUL" << endl;
 #endif
 }
 
@@ -646,7 +646,7 @@ static bool processCmdline(int argc, const char* argv[])
     }
 #endif
     if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" &&
-        startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
+        !startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
         throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
 
@@ -687,6 +687,15 @@ static bool processCmdline(int argc, const char* argv[])
             throw faustexception("ERROR : -fm can only be used with c, cpp, llvm or wast/wast backends\n");
         }
     }
+    
+    if (gGlobal->gArchFile != ""
+        && ((gGlobal->gOutputLang == "wast")
+            || (gGlobal->gOutputLang == "wasm")
+            || (gGlobal->gOutputLang == "interp")
+            || (gGlobal->gOutputLang == "llvm")
+            || (gGlobal->gOutputLang == "fir"))) {
+            throw faustexception("ERROR : -a can only be used with c, cpp, ocpp, rust and soul backends\n");
+        }
 
     if (err != 0) {
         stringstream error;
@@ -922,18 +931,18 @@ static void printHelp()
 
 static void printDeclareHeader(ostream& dst)
 {
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
             dst << "declare ";
             stringstream key;
-            key << *(i->first);
+            key << *(i.first);
             vector<char> to_replace{'.', ':', '/'};
             dst << replaceCharList(key.str(), to_replace, '_');
-            dst << " " << **(i->second.begin()) << ";" << endl;
+            dst << " " << **(i.second.begin()) << ";" << endl;
         } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                if (j == i->second.begin()) {
-                    dst << "declare " << *(i->first) << " " << **j << ";" << endl;
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); ++j) {
+                if (j == i.second.begin()) {
+                    dst << "declare " << *(i.first) << " " << **j << ";" << endl;
                 } else {
                     dst << "declare contributor " << **j << ";" << endl;
                 }
@@ -959,12 +968,12 @@ static void printHeader(ostream& dst)
     selectedKeys.insert(tree("version"));
 
     dst << "//----------------------------------------------------------" << endl;
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (selectedKeys.count(i->first)) {
-            dst << "// " << *(i->first);
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (selectedKeys.count(i.first)) {
+            dst << "// " << *(i.first);
             const char* sep = ": ";
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                dst << sep << **j;
+            for (auto& j : i.second) {
+                dst << sep << *j;
                 sep = ", ";
             }
             dst << endl;
@@ -985,8 +994,8 @@ static void printHeader(ostream& dst)
 static string fxName(const string& filename)
 {
     // determine position right after the last '/' or 0
-    unsigned int p1 = 0;
-    for (unsigned int i = 0; i < filename.size(); i++) {
+    size_t p1 = 0;
+    for (size_t i = 0; i < filename.size(); i++) {
         if (filename[i] == '/') {
             p1 = i + 1;
         }
@@ -994,7 +1003,7 @@ static string fxName(const string& filename)
 
     // determine position of the last '.'
     size_t p2 = filename.size();
-    for (unsigned int i = p1; i < filename.size(); i++) {
+    for (size_t i = p1; i < filename.size(); i++) {
         if (filename[i] == '.') {
             p2 = i;
         }
@@ -1197,7 +1206,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
         cout << "---------------------------\n";
         // print the pathnames of the files used to evaluate process
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (unsigned int i = 0; i < pathnames.size(); i++) cout << pathnames[i] << endl;
+        for (size_t i = 0; i < pathnames.size(); i++) cout << pathnames[i] << endl;
         cout << "---------------------------\n";
         cout << endl;
     }
@@ -1241,16 +1250,21 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 {
     ostream* dst     = NULL;
     ostream* helpers = NULL;
-    string   outpath = "";
-
+    string  outpath;
+    
+    // MANDATORY: use ostringstream which is indeed a subclass of ostream (otherwise subtle dynamic_cast related crash can occur...)
+    
     // Finally output file
     if (gGlobal->gOutputFile == "string") {
-        dst = new stringstream();
+        dst = new ostringstream();
     } else if (gGlobal->gOutputFile == "binary") {
-        dst = new stringstream(stringstream::out | stringstream::binary);
+        dst = new ostringstream(ostringstream::out | ostringstream::binary);
     } else if (gGlobal->gOutputFile != "") {
-        outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        
+        outpath = (gGlobal->gOutputDir != "")
+            ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile)
+            : gGlobal->gOutputFile;
+        
         ofstream* fdst = new ofstream(outpath.c_str());
         if (!fdst->is_open()) {
             stringstream error;
@@ -1259,8 +1273,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else {
             dst = fdst;
         }
+        
     } else {
-        dst = &cout;
+        dst = new ostringstream();
     }
 
     startTiming("generateCode");
@@ -1271,7 +1286,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gFAUSTFLOATToInternal = true;
 #ifdef CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
-
+        
         if (generate) {
             // TO CHECK ?
         } else {
@@ -1381,12 +1396,13 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "ocpp") {
 #ifdef OCPP_BUILD
-            if (gGlobal->gSchedulerSwitch)
+            if (gGlobal->gSchedulerSwitch) {
                 old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
-            else if (gGlobal->gVectorSwitch)
+            } else if (gGlobal->gVectorSwitch) {
                 old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
-            else
+            } else {
                 old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+            }
 
             if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
 
@@ -1437,12 +1453,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
             gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
             gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-            // gGlobal->gHasTeeLocal = true;   // combined store/load
+            // gGlobal->gHasTeeLocal = true;     // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
             // This speedup (freeverb for instance) ==> to be done at signal level
-            // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
+            // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
 
             container = WASTCodeContainer::createContainer(
                 gGlobal->gClassName, numInputs, numOutputs, dst,
@@ -1477,12 +1493,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
             gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
             gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-            // gGlobal->gHasTeeLocal = true;   // combined store/load
+            // gGlobal->gHasTeeLocal = true;     // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
             // This speedup (freeverb for instance) ==> to be done at signal level
-            // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
+            // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
 
             container = WASMCodeContainer::createContainer(
                 gGlobal->gClassName, numInputs, numOutputs, dst,
@@ -1570,6 +1586,20 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
                 // Force flush since the stream is not closed...
                 dst->flush();
+                
+                // Generate factory
+                gGlobal->gDSPFactory = container->produceFactory();
+                
+                if (gGlobal->gOutputFile == "string") {
+                    gGlobal->gDSPFactory->write(dst, false, false);
+                } else if (gGlobal->gOutputFile == "binary") {
+                    gGlobal->gDSPFactory->write(dst, true, false);
+                } else if (gGlobal->gOutputFile != "") {
+                    // Binary mode for LLVM backend if output different of 'cout'
+                    gGlobal->gDSPFactory->write(dst, true, false);
+                } else {
+                    gGlobal->gDSPFactory->write(&cout, false, false);
+                }
 
                 // Restore current_directory
                 if (current_directory) {
@@ -1590,32 +1620,42 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             container->printFloatDef();
             container->produceClass();
             container->printFooter();
-
-            // Generate factory
-            gGlobal->gDSPFactory = container->produceFactory();
-
-            // Binary mode for LLVM backend if output different of 'cout'
-            gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
-
+         
             // Force flush since the stream is not closed...
             dst->flush();
-
+          
+            // Generate factory
+            gGlobal->gDSPFactory = container->produceFactory();
+            
+            
+            if (gGlobal->gOutputFile == "string") {
+                gGlobal->gDSPFactory->write(dst, false, false);
+            } else if (gGlobal->gOutputFile == "binary") {
+                gGlobal->gDSPFactory->write(dst, true, false);
+            } else if (gGlobal->gOutputFile != "") {
+                // Binary mode for LLVM backend if output different of 'cout'
+                gGlobal->gDSPFactory->write(dst, true, false);
+            } else {
+                gGlobal->gDSPFactory->write(&cout, false, false);
+            }
+      
             if (helpers) {
                 // Possibly helper code
-                gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
+                gGlobal->gDSPFactory->writeHelper(helpers, (helpers != &cout), false);
                 // Force flush since the stream is not closed...
                 helpers->flush();
             }
         }
-
+    
         endTiming("generateCode");
-
+        
         // Delete streams if they were allocated
-        if (dst != &cout) delete dst;
+        delete dst;
         if (helpers != &cout) delete helpers;
 
 #ifdef OCPP_BUILD
     } else if (old_comp) {
+        
         // Check for architecture file
         if (gGlobal->gArchFile != "") {
             if (!(enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
@@ -1663,7 +1703,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             old_comp->getClass()->printGraphDotFormat(dotfile);
         }
-
+        
+        if (gGlobal->gOutputFile == "") {
+            cout << dynamic_cast<ostringstream*>(dst)->str();
+        }
+        
+        delete dst;
         delete old_comp;
 #endif
     } else {
@@ -1691,18 +1736,19 @@ static void generateOutputFiles()
                 const string key = tree2str(it1->first);
                 for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
                     const string value = tree2str(*it2);
-                    if (key == "name")
+                    if (key == "name") {
                         D->name(value);
-                    else if (key == "author")
+                    } else if (key == "author") {
                         D->author(value);
-                    else if (key == "copyright")
+                    } else if (key == "copyright") {
                         D->copyright(value);
-                    else if (key == "license")
+                    } else if (key == "license") {
                         D->license(value);
-                    else if (key == "version")
+                    } else if (key == "version") {
                         D->version(value);
-                    else
+                    } else {
                         D->declare(key, value);
+                    }
                 }
             }
 
@@ -1717,16 +1763,21 @@ static void generateOutputFiles()
             faustassert(D);
             ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
 
-            if (gGlobal->gMetaDataSet.count(tree("name")) > 0)
+            if (gGlobal->gMetaDataSet.count(tree("name")) > 0) {
                 D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("author")) > 0)
+            }
+            if (gGlobal->gMetaDataSet.count(tree("author")) > 0) {
                 D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)
+            }
+            if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0) {
                 D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("license")) > 0)
+            }
+            if (gGlobal->gMetaDataSet.count(tree("license")) > 0) {
                 D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("version")) > 0)
+            }
+            if (gGlobal->gMetaDataSet.count(tree("version")) > 0) {
                 D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
+            }
 
             D->className(gGlobal->gClassName);
             D->inputs(old_comp->getClass()->inputs());
@@ -1802,9 +1853,9 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
 
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-    for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
+    for (auto& it : pathnames) {
         out << "declare "
-            << "library_path " << '"' << *it << "\";" << endl;
+            << "library_path " << '"' << it << "\";" << endl;
     }
 
     printDeclareHeader(out);
@@ -1894,8 +1945,9 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     int  numOutputs = gGlobal->gNumOutputs;
 
     if (gGlobal->gExportDSP) {
-        string outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        string outpath = (gGlobal->gOutputDir != "")
+            ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile)
+            : gGlobal->gOutputFile;
         ofstream* out = new ofstream(outpath.c_str());
 
         // Encode compilation options as a 'declare' : has to be located first in the string
@@ -1903,9 +1955,9 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
 
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
+        for (auto& it : pathnames) {
             *out << "declare "
-                 << "library_path " << '"' << *it << "\";" << endl;
+                 << "library_path " << '"' << it << "\";" << endl;
         }
 
         printDeclareHeader(*out);
@@ -1945,7 +1997,9 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     generateOutputFiles();
 }
 
+// ============
 // Backend API
+// ============
 
 dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
                                       string& error_msg, bool generate)

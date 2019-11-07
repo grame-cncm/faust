@@ -1,10 +1,8 @@
  
  <<includeIntrinsic>>
-
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
-
 <<includeclass>>
 
 // Decode MIDI events and send freq, gain, gate values to the processor

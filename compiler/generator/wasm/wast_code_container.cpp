@@ -54,7 +54,7 @@ dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
 WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
@@ -231,7 +231,7 @@ void WASTCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
         generateWASTBlock(inlined);
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
@@ -242,7 +242,7 @@ void WASTCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
         generateWASTBlock(inlined);
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
@@ -253,7 +253,7 @@ void WASTCodeContainer::produceClass()
         // Rename 'sig' in 'dsp' and remove 'dsp' allocation
         generateWASTBlock(DspRenamer().getCode(fResetUserInterfaceInstructions));
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
@@ -264,7 +264,7 @@ void WASTCodeContainer::produceClass()
         // Rename 'sig' in 'dsp' and remove 'dsp' allocation
         generateWASTBlock(DspRenamer().getCode(fClearInstructions));
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     gGlobal->gWASTVisitor->Tab(n + 1);
@@ -314,7 +314,7 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     generateComputeFunctions(gGlobal->gWASTVisitor);
 
-    tab(n, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
     tab(n, fOutAux);
 
@@ -446,7 +446,7 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
     block = CastRemover().getCode(block);
 
     block->accept(gGlobal->gWASTVisitor);
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 }
 

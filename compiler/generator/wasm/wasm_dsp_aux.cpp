@@ -515,9 +515,9 @@ void wasm_dsp_factory::write(ostream* out, bool binary, bool small)
 {
     fFactory->write(out, binary, small);
 }
-void wasm_dsp_factory::writeAux(ostream* out, bool binary, bool small)
+void wasm_dsp_factory::writeHelper(ostream* out, bool binary, bool small)
 {
-    fFactory->writeAux(out, binary, small);
+    fFactory->writeHelper(out, binary, small);
 }
 
 string wasm_dsp_factory::getBinaryCode()

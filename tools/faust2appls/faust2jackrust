@@ -67,6 +67,7 @@ for p in $FILES; do
         cargo build --release
         cargo build
     ) > /dev/null || exit
+
     fi
 
 done

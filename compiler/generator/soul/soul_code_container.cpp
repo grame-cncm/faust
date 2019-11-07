@@ -40,7 +40,7 @@ using namespace std;
 dsp_factory_base* SOULCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((static_cast<ostringstream*>(fOut)) ? static_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* SOULCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -84,7 +84,7 @@ void SOULCodeContainer::produceInternal()
     struct_visitor.Tab(n + 2);
     generateDeclarations(&struct_visitor);
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 
     // Inits
@@ -97,7 +97,7 @@ void SOULCodeContainer::produceInternal()
     generateInit(&struct_visitor);
     generateResetUserInterface(&struct_visitor);
     generateClear(&struct_visitor);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     // Fill
@@ -130,12 +130,11 @@ void SOULCodeContainer::produceInternal()
             generateComputeBlock(&struct_visitor);
             ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
             loop->accept(&struct_visitor);
-            tab(n + 1, *fOut);
+            back(1, *fOut);
             *fOut << "}";
         }
     }
 
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << fKlassName << " new" << fKlassName << "() { " << fKlassName << " obj; return obj; }";
     tab(n + 1, *fOut);
@@ -287,7 +286,7 @@ void SOULCodeContainer::produceClass()
         BlockInst* block2 = fill_funcall.getCode(fPostStaticInitInstructions);
         block2->accept(&fCodeProducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -305,7 +304,7 @@ void SOULCodeContainer::produceClass()
         BlockInst* block2 = fill_funcall.getCode(fPostInitInstructions);
         block2->accept(&fCodeProducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -323,7 +322,7 @@ void SOULCodeContainer::produceClass()
 
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -334,7 +333,7 @@ void SOULCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -351,7 +350,7 @@ void SOULCodeContainer::produceClass()
         fCodeProducer.Tab(n + 2);
         // Generates local variables declaration and setup
         generateComputeBlock(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}" << endl;
     }
 
@@ -406,7 +405,7 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "}";
 
     tab(n, *fOut);
-    *fOut << "}" << endl;
+    *fOut << "}" << endl << endl;
 }
 
 void SOULVectorCodeContainer::generateCompute(int n)
@@ -447,5 +446,5 @@ void SOULVectorCodeContainer::generateCompute(int n)
     *fOut << "}";
 
     tab(n, *fOut);
-    *fOut << "}" << endl;
+    *fOut << "}" << endl << endl;
 }

@@ -269,7 +269,7 @@ class RustInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -450,8 +450,7 @@ class RustInstVisitor : public TextInstVisitor {
             inst->fUpperBound->accept(this);
             *fOut << "..";
             inst->fLowerBound->accept(this);
-        }
-        else {
+        } else {
             inst->fLowerBound->accept(this);
             *fOut << "..";
             inst->fUpperBound->accept(this);
@@ -461,7 +460,7 @@ class RustInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -488,12 +487,12 @@ class RustInstVisitor : public TextInstVisitor {
             }
             */
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "},";
             tab(fTab, *fOut);
         }
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "} ";
         tab(fTab, *fOut);
     }

@@ -683,7 +683,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
 
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << ")";
         fTab--;
         tab(fTab, *fOut);

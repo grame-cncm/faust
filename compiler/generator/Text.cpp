@@ -227,15 +227,21 @@ void tab(int n, ostream& fout)
     while (n--) fout << '\t';
 }
 
+void back(int n, ostream& fout)
+{
+    long pos = fout.tellp();
+    fout.seekp(pos-n);
+}
+
 /**
  * Print a list of lines
  * @param n number of tabs of indentation
  * @param lines list of lines to be printed
  * @param fout output stream
  */
-void printlines(int n, list<string>& lines, ostream& fout, string sep)
+void printlines(int n, list<string>& lines, ostream& fout, const string& sep)
 {
-    list<string>::iterator s;
+    list<string>::const_iterator s;
     for (s = lines.begin(); s != lines.end(); s++) {
         if (s == lines.begin()) {
             tab(n, fout);

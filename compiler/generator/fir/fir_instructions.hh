@@ -335,6 +335,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
+            back(1, *fOut);
             *fOut << "EndDeclare";
             tab(fTab, *fOut);
         }
@@ -502,6 +503,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             inst->fElse->accept(this);
             fTab--;
         }
+        back(1, *fOut);
         *fOut << "EndIf";
         tab(fTab, *fOut);
     }
@@ -521,6 +523,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
+        back(1, *fOut);
         *fOut << "EndForLoop";
         tab(fTab, *fOut);
     }
@@ -533,6 +536,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
+        back(1, *fOut);
         *fOut << "EndWhileLoop";
         tab(fTab, *fOut);
     }
@@ -546,6 +550,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             it->accept(this);
         }
         fTab--;
+        back(1, *fOut);
         *fOut << "EndBlock";
         tab(fTab, *fOut);
     }
@@ -565,11 +570,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             fTab++;
             tab(fTab, *fOut);
             (it.second)->accept(this);
-            *fOut << "EndCase";
             fTab--;
+            back(1, *fOut);
+            *fOut << "EndCase";
             tab(fTab, *fOut);
         }
         fTab--;
+        back(1, *fOut);
         *fOut << "EndSWitch";
         tab(fTab, *fOut);
     }

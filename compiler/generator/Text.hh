@@ -54,7 +54,8 @@ string unquote(const string& s);
 string quote(const string& s);
 
 void   tab(int n, ostream& fout);
-void   printlines(int n, list<string>& lines, ostream& fout, string sep = "");
+void   back(int n, ostream& fout);
+void   printlines(int n, list<string>& lines, ostream& fout, const string& sep = "");
 string rmWhiteSpaces(const string& s);
 
 inline string checkFloat(float val)
@@ -249,4 +250,5 @@ inline string flattenJSON1(const string& src)
     }
     return dst;
 }
+
 #endif
