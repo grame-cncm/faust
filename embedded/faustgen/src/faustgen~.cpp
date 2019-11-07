@@ -1708,7 +1708,7 @@ void faustgen::create_jsui()
         }
     }
     
-    // Keep all outputs
+    // Keep all outputs to be notified in update_outputs
     fOutputTable.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);

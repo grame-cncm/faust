@@ -340,7 +340,7 @@ void faust_create_jsui(t_faust* x)
         }
     }
         
-    // Keep all outputs
+    // Keep all outputs to be notified in update_outputs
     x->m_output_table.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
@@ -392,7 +392,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     
     t_faust* x = (t_faust*)newobject(faust_class);
     
-    x->m_savedUI = new SaveUI();
+    x->m_savedUI = new SaveLabelUI();
   
     x->m_json = NULL;
     x->m_mute = false;

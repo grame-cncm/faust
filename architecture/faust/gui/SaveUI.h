@@ -28,13 +28,11 @@
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
 
-/*
- Save/load current value, reset to init value
-*/
+// Base class
 
-class SaveUI : public GenericUI, public PathBuilder {
-    
-    private:
+class SaveUI : public GenericUI {
+
+    protected:
     
         struct SavedZone {
             FAUSTFLOAT* fZone;
@@ -45,17 +43,21 @@ class SaveUI : public GenericUI, public PathBuilder {
             {}
             SavedZone(FAUSTFLOAT* zone, FAUSTFLOAT current, FAUSTFLOAT init)
             :fZone(zone), fCurrent(current), fInit(init)
-            {}
+            {
+                *fZone = current;
+            }
             ~SavedZone()
             {}
         };
-    
+        
         std::map<std::string, SavedZone> fName2Zone;
     
-        void openTabBox(const char* label) { pushLabel(label); }
-        void openHorizontalBox(const char* label) { pushLabel(label);; }
-        void openVerticalBox(const char* label) { pushLabel(label); }
-        void closeBox() { popLabel(); };
+        virtual void addItem(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init) = 0;
+    
+    public:
+    
+        SaveUI() {}
+        virtual ~SaveUI() {}
     
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
@@ -77,23 +79,6 @@ class SaveUI : public GenericUI, public PathBuilder {
         {
             addItem(label, zone, init);
         }
-        
-        void addItem(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init)
-        {
-            std::string path = buildPath(label);
-            if (fName2Zone.find(path) != fName2Zone.end()) {
-                FAUSTFLOAT current = fName2Zone[path].fCurrent;
-                fName2Zone[path] = SavedZone(zone, FAUSTFLOAT(0.0), init);
-                *fName2Zone[path].fZone = current;
-            } else {
-                fName2Zone[path] = SavedZone(zone, FAUSTFLOAT(0.0), init);
-            }
-        }
-   
-    public:
-
-        SaveUI() {}
-        virtual ~SaveUI() {}
 
         void reset()
         {
@@ -101,20 +86,75 @@ class SaveUI : public GenericUI, public PathBuilder {
                 *it.second.fZone = it.second.fInit;
             }
         }
-    
+        
         void display()
         {
             for (auto& it : fName2Zone) {
-                 std::cout << "SaveUI::display path = " << it.first << " value = " << *it.second.fZone << std::endl;
+                std::cout << "SaveUI::display path = " << it.first << " value = " << *it.second.fZone << std::endl;
             }
         }
-    
+        
         void save()
         {
             for (auto& it : fName2Zone) {
                 it.second.fCurrent = *it.second.fZone;
             }
         }
+};
+
+/*
+ Save/load current value using the label, reset to init value
+ */
+
+class SaveLabelUI : public SaveUI {
+    
+    protected:
+    
+        void addItem(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init)
+        {
+            if (fName2Zone.find(label) != fName2Zone.end()) {
+                FAUSTFLOAT current = fName2Zone[label].fCurrent;
+                fName2Zone[label] = SavedZone(zone, current, init);
+            } else {
+                fName2Zone[label] = SavedZone(zone, init, init);
+            }
+        }
+        
+    public:
+        
+        SaveLabelUI() : SaveUI() {}
+        virtual ~SaveLabelUI() {}        
+   
+};
+
+/*
+ Save/load current value using the complete path, reset to init value
+*/
+
+class SavePathUI : public SaveUI, public PathBuilder {
+    
+    protected:
+    
+        void openTabBox(const char* label) { pushLabel(label); }
+        void openHorizontalBox(const char* label) { pushLabel(label);; }
+        void openVerticalBox(const char* label) { pushLabel(label); }
+        void closeBox() { popLabel(); };
+    
+        void addItem(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init)
+        {
+            std::string path = buildPath(label);
+            if (fName2Zone.find(path) != fName2Zone.end()) {
+                FAUSTFLOAT current = fName2Zone[path].fCurrent;
+                fName2Zone[path] = SavedZone(zone, current, init);
+            } else {
+                fName2Zone[path] = SavedZone(zone, init, init);
+            }
+        }
+   
+    public:
+
+        SavePathUI(): SaveUI() {}
+        virtual ~SavePathUI() {}
 
 };
 

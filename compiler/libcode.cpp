@@ -179,16 +179,10 @@ static void enumBackends(ostream& out)
 #endif
 }
 
-#ifdef _WIN32
 static void callFun(compile_fun fun)
 {
-    fun(NULL);
-}
-#else
-static void callFun(compile_fun fun)
-{
-#ifdef EMCC
-    // No thread support in JS
+#if defined(EMCC) || defined(_WIN32)
+    // No thread support in JS or WIN32
     fun(NULL);
 #else
     pthread_t      thread;
@@ -200,7 +194,6 @@ static void callFun(compile_fun fun)
     pthread_join(thread, NULL);
 #endif
 }
-#endif
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 

@@ -214,12 +214,12 @@ class faustgen : public MspCpp5<faustgen> {
     private:
         
         faustgen_factory* fDSPfactory;
-        map<string, vector<t_object*> > fOutputTable;
+        map<string, vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
         
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI
-        SaveUI fSavedUI;                // Save/load current value, reset to init value
+        SaveLabelUI fSavedUI;           // Save/load current value, reset to init value
     
         ::dsp* fDSP;                    // LLVM Faust dsp
         t_object* fEditor;              // Text editor object
@@ -309,7 +309,8 @@ class faustgen : public MspCpp5<faustgen> {
         
         // Process the signal data with the Faust module
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
-        
+    
+        // Callback given to setupIO
         void init(double samplerate);
     
 };
