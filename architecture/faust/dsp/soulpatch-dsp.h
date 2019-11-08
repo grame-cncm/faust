@@ -34,6 +34,7 @@
 #include <algorithm>
 
 #include "faust/dsp/dsp.h"
+#include "faust/midi/midi.h"
 #include "faust/GUI/UI.h"
 #include "faust/GUI/JSONUIDecoder.h"
 #include "faust/dsp/libfaust.h"
