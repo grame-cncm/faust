@@ -34,6 +34,7 @@
 #include "interpreter_bytecode.hh"
 
 /*
+ Interpreter using 'computed goto' technique: https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables
 
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case.
 
@@ -568,13 +569,13 @@ class FBCInterpreter : public FBCExecutor<T> {
 
 #define dispatchFirstScal()                   \
     {                                         \
-        goto* fDispatchTable[(*it)->fOpcode]; \
+        goto *fDispatchTable[(*it)->fOpcode]; \
     }
 #define dispatchNextScal()                    \
     {                                         \
         traceInstruction(it);                 \
         it++;                                 \
-        goto* fDispatchTable[(*it)->fOpcode]; \
+        goto *fDispatchTable[(*it)->fOpcode]; \
     }
 
 #define dispatchBranch1Scal()                        \

@@ -745,7 +745,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
     back(1, *fOut);
-    *fOut << "};" << endl;
+    *fOut << "}" << endl;
     
     tab(n + 1, *fOut);
     *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";

@@ -142,7 +142,7 @@ void CCodeContainer::produceInternal()
     loop->accept(fCodeProducer);
 
     back(1, *fOut);
-    *fOut << "};" << endl;
+    *fOut << "}" << endl;
 }
 
 void CCodeContainer::produceClass()
@@ -429,8 +429,8 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum << endl;
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_ZONE " << dynamic_cast<CInstVisitor1*>(fCodeProducer)->getIntZoneSize() << endl;
-    *fOut << "#define FAUST_FLOAT_ZONE " << dynamic_cast<CInstVisitor1*>(fCodeProducer)->getRealZoneSize();
+    *fOut << "#define FAUST_INT_ZONE " << static_cast<CInstVisitor1*>(fCodeProducer)->getIntZoneSize() << endl;
+    *fOut << "#define FAUST_FLOAT_ZONE " << static_cast<CInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
     // Memory methods
     tab(n, *fOut);
@@ -596,7 +596,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
     back(1, *fOut);
-    *fOut << "};" << endl;
+    *fOut << "}" << endl;
     
     tab(n, *fOut);
     *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return "
@@ -608,11 +608,11 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "int getiZoneSize" << fKlassName << "(" << fKlassName << "* dsp) { return "
-          << dynamic_cast<CInstVisitor1*>(fCodeProducer)->getIntZoneSize() << "; }";
+          << static_cast<CInstVisitor1*>(fCodeProducer)->getIntZoneSize() << "; }";
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "int getfZoneSize" << fKlassName << "(" << fKlassName << "* dsp) { return "
-          << dynamic_cast<CInstVisitor1*>(fCodeProducer)->getRealZoneSize() << "; }";
+          << static_cast<CInstVisitor1*>(fCodeProducer)->getRealZoneSize() << "; }";
     
     // Compute
     generateCompute(n);
@@ -624,7 +624,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;
     *fOut << "#endif" << endl;
-    tab(n, *fOut);
 }
 
 void CCodeContainer::produceMetadata(int tabs)

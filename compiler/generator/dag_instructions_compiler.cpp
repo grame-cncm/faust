@@ -50,8 +50,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
 
         for (int index = 0; index < fContainer->inputs(); index++) {
-            // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP
-            // struct
+            // 'name1' variable must be shared between 'compute' and computeThread' methods,
+            // so it is moved in the DSP struct
             if (gGlobal->gSchedulerSwitch) {
                 string name1 = subst("fInput$0_ptr", T(index));
                 pushDeclare(InstBuilder::genDecStructVar(name1, type));
@@ -66,8 +66,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
         // "output" and "outputs" used as a name convention
         for (int index = 0; index < fContainer->outputs(); index++) {
-            // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP
-            // struct
+            // 'name1' variable must be shared between 'compute' and computeThread' methods,
+            // so it is moved in the DSP struct
             if (gGlobal->gSchedulerSwitch) {
                 string name1 = subst("fOutput$0_ptr", T(index));
                 pushDeclare(InstBuilder::genDecStructVar(name1, type));

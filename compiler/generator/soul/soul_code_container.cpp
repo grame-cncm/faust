@@ -246,7 +246,6 @@ void SOULCodeContainer::produceClass()
     }
     
     if (gGlobal->gOutputLang == "soul-dsp") {
-        tab(n + 1, *fOut);
         *fOut << "// Event handler used to call additional methods";
         tab(n + 1, *fOut);
         *fOut << "event eventbuildUserInterface (int dummy) {}";
@@ -259,13 +258,13 @@ void SOULCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "event eventinstanceClear (int dummy) { instanceClear(); }";
         tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
     }
   
     // Sub containers
     generateSubContainers();
 
     // inputs/outputs
-    tab(n + 1, *fOut);
     *fOut << "int getNumInputs() { return " << fNumInputs << "; }";
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
@@ -405,7 +404,7 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "}";
 
     tab(n, *fOut);
-    *fOut << "}" << endl << endl;
+    *fOut << "}" << endl;
 }
 
 void SOULVectorCodeContainer::generateCompute(int n)
