@@ -433,16 +433,42 @@ class SOULInstVisitor : public TextInstVisitor {
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(bool (";
-
         fIntAsBool = true;
         inst->fCond->accept(this);
         fIntAsBool = false;
         *fOut << ") ? ";
-
         inst->fThen->accept(this);
         *fOut << " : ";
         inst->fElse->accept(this);
         *fOut << ")";
+    }
+    
+    virtual void visit(IfInst* inst)
+    {
+        *fOut << "if ";
+        *fOut << "(bool ";
+        fIntAsBool = true;
+        visitCond(inst->fCond);
+        fIntAsBool = false;
+        *fOut << ")";
+        *fOut << " {";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fThen->accept(this);
+        fTab--;
+        back(1, *fOut);
+        if (inst->fElse->fCode.size() > 0) {
+            *fOut << "} else {";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fElse->accept(this);
+            fTab--;
+            back(1, *fOut);
+            *fOut << "}";
+        } else {
+            *fOut << "}";
+        }
+        tab(fTab, *fOut);
     }
 
     virtual void visit(BinopInst* inst)
