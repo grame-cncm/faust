@@ -48,7 +48,14 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
     }
-
+    
+    void visitCond(ValueInst* cond)
+    {
+        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << "(";
+        cond->accept(this);
+        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << ")";
+    }
+  
    public:
     using InstVisitor::visit;
 
@@ -277,7 +284,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
@@ -324,7 +331,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(WhileLoopInst* inst)
     {
         *fOut << "while (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
@@ -362,7 +369,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "switch (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);

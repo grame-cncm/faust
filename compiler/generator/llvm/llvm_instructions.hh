@@ -809,10 +809,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
-
-        // Convert condition to a bool by comparing to 0
-        LLVMValue cond_value =
-            fBuilder->CreateICmpNE(fCurValue, (getCurType() == getInt64Ty()) ? genInt64(0) : genInt32(0), "ifcond");
+  
+        // Convert condition to a bool
+        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "ifcond");
 
         // Compile then branch, result in fCurValue
         inst->fThen->accept(this);
@@ -831,8 +830,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
 
-        // Convert condition to a bool by comparing equal to comp_val value
-        LLVMValue cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1), "ifcond");
+       // Convert condition to a bool
+        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "ifcond");
 
         Function* function = fBuilder->GetInsertBlock()->getParent();
 

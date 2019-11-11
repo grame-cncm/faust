@@ -1671,10 +1671,9 @@ ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, ValueInst* 
     return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, v2, v1));
 }
 
-ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* sel, ValueInst* v1,
+ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* cond, ValueInst* v1,
                                                        ValueInst* v2)
 {
-    ValueInst* cond   = InstBuilder::genNotEqual(sel, InstBuilder::genInt32NumInst(0));
     string     vname  = gGlobal->getFreshID(((type == Typed::kInt32) ? "iSel" : "fSel"));
     BlockInst* block1 = InstBuilder::genBlockInst();
     BlockInst* block2 = InstBuilder::genBlockInst();

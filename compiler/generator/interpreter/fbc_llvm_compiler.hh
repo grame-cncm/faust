@@ -688,8 +688,7 @@ class FBCLLVMCompiler {
                 case FBCInstruction::kSelectReal:
                 case FBCInstruction::kSelectInt: {
                     // Prepare condition
-                    LLVMValueRef cond_value =
-                        LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
+                    LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "select_cond");
 
                     // Compile then branch (= branch1)
                     CompileBlock((*it)->fBranch1, code_block);
