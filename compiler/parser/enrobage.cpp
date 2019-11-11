@@ -158,10 +158,9 @@ static void inject(ostream& dst, const string& fname)
 {
     if (gGlobal->gAlreadyIncluded.find(fname) == gGlobal->gAlreadyIncluded.end()) {
         gGlobal->gAlreadyIncluded.insert(fname);
-        istream* src = openArchStream(fname.c_str());
+        unique_ptr<istream> src = unique_ptr<istream>(openArchStream(fname.c_str()));
         if (src) {
             streamCopyUntilEnd(*src, dst);
-            delete src;
         } else {
             stringstream error;
             error << fname << " not found\n";
@@ -180,13 +179,11 @@ static string removeSpaces(const string& line)
 }
 
 #define TRY_OPEN(filename)           \
-    ifstream* f = new ifstream();    \
+    unique_ptr<ifstream> f = unique_ptr<ifstream>(new ifstream());    \
     f->open(filename, ifstream::in); \
     err = chdir(old);                \
     if (f->is_open())                \
         return f;                    \
-    else                             \
-        delete f;
 
 /**
  * Check if an URL exists.
@@ -303,7 +300,7 @@ static void buildFullPathname(string& fullpath, const char* filename)
 /**
  * Try to open an architecture file searching in various directories
  */
-ifstream* openArchStream(const char* filename)
+unique_ptr<ifstream> openArchStream(const char* filename)
 {
     char  buffer[FAUST_PATH_MAX];
     char* old = getcwd(buffer, FAUST_PATH_MAX);

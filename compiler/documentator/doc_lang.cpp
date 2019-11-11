@@ -43,7 +43,7 @@ static void     getKey(const string& s, string& key, size_t& pt1);
 static void     getText(const string& s, size_t pt1, string& text);
 static void     storePair(const string& key, const string& text);
 static void     printStringMapContent(map<string, string>& map, const string& name);
-static istream* openArchFile(const string& filename);
+static unique_ptr<ifstream> openArchFile(const string& filename);
 
 /*****************************************************************************
                             Public functions
@@ -86,7 +86,7 @@ static void importDocStrings(const string& filename)
 {
     string   s;
     string   key, text;
-    istream* file = openArchFile(filename);
+    unique_ptr<ifstream> file = openArchFile(filename);
 
     while (getline(*file, s)) {
         size_t pt1;  // Text pointer.
@@ -112,8 +112,6 @@ static void importDocStrings(const string& filename)
     printStringMapContent(gGlobal->gDocAutodocStringMap, "gGlobal->gDocAutodocStringMap");
     printStringMapContent(gGlobal->gDocMathStringMap, "gGlobal->gDocMathStringMap");
     printStringMapContent(gGlobal->gDocMetadatasStringMap, "gGlobal->gDocMetadatasStringMap");
-
-    delete (file);
 }
 
 static void getKey(const string& s, string& key, size_t& pt1)
@@ -186,10 +184,10 @@ static void printStringMapContent(map<string, string>& m, const string& name)
 /**
  * Open architecture file.
  */
-static istream* openArchFile(const string& filename)
+static unique_ptr<ifstream> openArchFile(const string& filename)
 {
     getCurrentDir();  // Save the current directory.
-    istream* file = openArchStream(filename.c_str());
+    unique_ptr<ifstream> file = openArchStream(filename.c_str());
     if (!file) {
         stringstream error;
         error << "ERROR : can't open architecture file " << filename << endl;

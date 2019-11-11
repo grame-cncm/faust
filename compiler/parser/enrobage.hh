@@ -27,7 +27,7 @@ void streamCopyLicense(std::istream& src, std::ostream& dst, const std::string& 
 void streamCopyUntil(std::istream& src, std::ostream& dst, const std::string& until);
 void streamCopyUntilEnd(std::istream& src, std::ostream& dst);
 
-std::ifstream* openArchStream(const char* filename);
+std::unique_ptr<std::ifstream> openArchStream(const char* filename);
 
 FILE* fopenSearch(const char* filename, std::string& fullpath);
 

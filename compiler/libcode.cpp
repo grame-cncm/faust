@@ -1216,7 +1216,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
 static void includeFile(const string& file, ostream& dst)
 {
-    unique_ptr<ifstream> file_include = unique_ptr<ifstream>(openArchStream(file.c_str()));
+    unique_ptr<ifstream> file_include = openArchStream(file.c_str());
     if (file_include != nullptr) {
         streamCopyUntilEnd(*file_include.get(), dst);
     }
@@ -1558,7 +1558,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             char  buffer[FAUST_PATH_MAX];
             char* current_directory = getcwd(buffer, FAUST_PATH_MAX);
 
-            if ((enrobage = unique_ptr<ifstream>(openArchStream(gGlobal->gArchFile.c_str()))) != nullptr) {
+            if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) != nullptr) {
                 // Possibly inject code
                 injectCode(enrobage, *dst.get());
 
@@ -1642,7 +1642,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         
         // Check for architecture file
         if (gGlobal->gArchFile != "") {
-            if ((enrobage = unique_ptr<ifstream>(openArchStream(gGlobal->gArchFile.c_str()))) == nullptr) {
+            if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) == nullptr) {
                 stringstream error;
                 error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
                 throw faustexception(error.str());
@@ -1661,7 +1661,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             streamCopyUntil(*enrobage.get(), *dst.get(), "<<includeIntrinsic>>");
 
             if (gGlobal->gSchedulerSwitch) {
-                unique_ptr<ifstream> scheduler_include = unique_ptr<ifstream>(openArchStream("old-scheduler.cpp"));
+                unique_ptr<ifstream> scheduler_include = openArchStream("old-scheduler.cpp");
                 if (scheduler_include) {
                     streamCopyUntilEnd(*scheduler_include, *dst.get());
                 } else {

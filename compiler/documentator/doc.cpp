@@ -130,7 +130,7 @@ static void       initCompilationDate();
 static struct tm* getCompilationDate();
 
 /* Files functions */
-static istream* openArchFile(const string& filename);
+static unique_ptr<ifstream> openArchFile(const string& filename);
 static char*    legalFileName(const Tree t, int n, char* dst);
 static void     copyFaustSources(const char* projname, const vector<string>& pathnames);
 vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlices);
@@ -264,12 +264,11 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 
     /** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
     printFaustdocStamp(faustversion, docout);  ///< Faust version and compilation date (comment).
-    istream* latexheader = openArchFile(gGlobal->gLatexheaderfilename);
+    unique_ptr<istream> latexheader = openArchFile(gGlobal->gLatexheaderfilename);
     printLatexHeader(*latexheader, faustversion, docout);  ///< Static LaTeX header (packages and setup).
     printDocContent(svgTopDir.c_str(), gGlobal->gDocVector, faustversion,
                     docout);   ///< Generate math contents (main stuff!).
     printLatexFooter(docout);  ///< Static LaTeX footer.
-    delete latexheader;
 }
 
 /*****************************************************************************
@@ -953,9 +952,9 @@ static bool doesFileBeginWithCode(const string& faustfile)
 /*
  * Open architecture file.
  */
-static istream* openArchFile(const string& filename)
+static unique_ptr<ifstream> openArchFile(const string& filename)
 {
-    istream* file;
+    unique_ptr<ifstream> file;
     getCurrentDir();  // Save the current directory.
     // cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
     if ((file = openArchStream(filename.c_str()))) {
