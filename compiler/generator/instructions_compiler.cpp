@@ -1658,8 +1658,9 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
         v2 = promote2real(t2, v2);
     }
 
-    if (gGlobal->gGenerateSelectWithIf && (type->variability() == kSamp) &&
-        (!v1->isSimpleValue() || !v2->isSimpleValue())) {
+    if (gGlobal->gGenerateSelectWithIf
+        && (type->variability() == kSamp)
+        && (!v1->isSimpleValue() || !v2->isSimpleValue())) {
         return generateSelect2WithIf(sig, (((t1 == kReal) || (t2 == kReal)) ? itfloat() : Typed::kInt32), cond, v1, v2);
     } else {
         return generateSelect2WithSelect(sig, cond, v1, v2);

@@ -657,10 +657,8 @@ class FBCLLVMCompiler {
 
                 case FBCInstruction::kIf: {
                     saveReturn();
-
                     // Prepare condition
-                    LLVMValueRef cond_value =
-                        LLVMBuildICmp(fBuilder, LLVMIntEQ, popValue(), genInt32(1), "select_cond");
+                    LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "select_cond");
                     LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
 
                     // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
