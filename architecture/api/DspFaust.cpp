@@ -366,9 +366,9 @@ int DspFaust::deleteVoice(uintptr_t voice)
 	return fPolyEngine->deleteVoice(voice);
 }
 
-void DspFaust::allNotesOff()
+void DspFaust::allNotesOff(bool hard)
 {
-    fPolyEngine->allNotesOff();
+    fPolyEngine->allNotesOff(hard);
 }
 
 void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2)

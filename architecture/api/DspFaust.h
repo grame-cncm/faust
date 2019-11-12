@@ -188,9 +188,9 @@ class DspFaust
         int deleteVoice(uintptr_t);
 
         //-----------------`void allNotesOff()`----------------
-        // Immediately terminate all the active voices.
+        // Terminates all the active voices, gently (with release when hard = false or immediately when hard = true).
         //--------------------------------------------------------
-        void allNotesOff();
+        void allNotesOff(bool hard = false);
    
         //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
         // Take a raw MIDI message and propagate it to the Faust

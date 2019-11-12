@@ -261,12 +261,12 @@ class FaustPolyEngine {
         
         /*
          * allNotesOff()
-         * Immediately terminates all the active voices.
+         * Terminates all the active voices, gently (with release when hard = false or immediately when hard = true)
          */
-        void allNotesOff()
+        void allNotesOff(bool hard = false)
         {
             if (fPolyDSP) {
-                fPolyDSP->allNotesOff(true);
+                fPolyDSP->allNotesOff(hard);
             }
         }
     
