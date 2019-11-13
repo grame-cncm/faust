@@ -830,7 +830,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
 
-       // Convert condition to a bool
+        // Convert condition to a bool
         LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "ifcond");
 
         Function* function = fBuilder->GetInsertBlock()->getParent();

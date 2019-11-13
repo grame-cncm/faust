@@ -1,6 +1,5 @@
 #! /bin/bash -e
 set -e
-#set -x
 
 #####################################################################
 #                                                                   #
@@ -102,8 +101,9 @@ for p in $FILES; do
 	SRCDIR=$(dirname "$p")
 
     # create a temporary dir
+    dspName="${f%.dsp}"
     TDR=$(mktemp -d faust.XXXXXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile Faust to SOUL
@@ -142,12 +142,18 @@ EndOfCode
     cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}.soul"
     rm -rf "$TDR"
     
+    #  create final folder
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    mv "$SRCDIR/${f%.dsp}.soul" "$SRCDIR/$dspName"
+    mv "${f%.dsp}.soulpatch" "$SRCDIR/$dspName"
+    
     if [ $PLAY = "true" ] ; then
-    	soul play "$SRCDIR/${f%.dsp}.soulpatch"
+    	soul play "$SRCDIR/$dspName"
     fi
 
     # collect binary file name for FaustGIDE
-    BINARIES="${f%.dsp}.soul;${f%.dsp}.soulpatch"
+    BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
 done
 
 echo $BINARIES

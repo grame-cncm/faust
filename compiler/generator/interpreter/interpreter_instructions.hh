@@ -572,7 +572,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fCond->accept(this);
 
         // Keep current block
-        FBCBlockInstruction<T>* previous = fCurrentBlock;
+        FBCBlockInstruction<T>* current = fCurrentBlock;
 
         // Compile 'then' in a new block
         FBCBlockInstruction<T>* then_block = new FBCBlockInstruction<T>();
@@ -590,11 +590,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'select'
-        previous->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
+        current->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
                                                   "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
-        fCurrentBlock = previous;
+        fCurrentBlock = current;
     }
 
     // Conditional : if
@@ -604,7 +604,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fCond->accept(this);
 
         // Keep current block
-        FBCBlockInstruction<T>* previous = fCurrentBlock;
+        FBCBlockInstruction<T>* current = fCurrentBlock;
 
         // Compile 'then' in a new block
         FBCBlockInstruction<T>* then_block = new FBCBlockInstruction<T>();
@@ -621,10 +621,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'if'
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, "", 0, 0, 0, 0, then_block, else_block));
+        current->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
-        fCurrentBlock = previous;
+        fCurrentBlock = current;
     }
 
     // Loop : beware: compiled loop don't work with an index of 0
