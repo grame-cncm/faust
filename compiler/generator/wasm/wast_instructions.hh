@@ -56,7 +56,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 dot = true;
                 break;
             } else if (str[i] == 'e') {
-                e_pos = i;
+                e_pos = int(i);
                 break;
             }
         }

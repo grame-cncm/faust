@@ -22,6 +22,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 void streamCopyLicense(std::istream& src, std::ostream& dst, const std::string& exceptiontag);
 void streamCopyUntil(std::istream& src, std::ostream& dst, const std::string& until);

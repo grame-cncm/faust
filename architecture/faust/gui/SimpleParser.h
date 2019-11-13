@@ -435,7 +435,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                 
                 else if (label == "index") {
                     if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].index = dbl;
+                        uiItems[numItems].index = int(dbl);
                     }
                 }
                 

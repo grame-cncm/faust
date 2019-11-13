@@ -259,10 +259,10 @@ struct JSONUIDecoderAux {
         for (auto& it : fUiItems) {
             
             std::string type = it.type;
-            REAL init = it.init;
-            REAL min = it.min;
-            REAL max = it.max;
-            REAL step = it.step;
+            REAL init = REAL(it.init);
+            REAL min = REAL(it.min);
+            REAL max = REAL(it.max);
+            REAL step = REAL(it.step);
             
             // Meta data declaration for input items
             if (isInput(type)) {
@@ -331,10 +331,10 @@ struct JSONUIDecoderAux {
             
             std::string type = it.type;
             int offset = it.index;
-            REAL init = it.init;
-            REAL min = it.min;
-            REAL max = it.max;
-            REAL step = it.step;
+            REAL init = REAL(it.init);
+            REAL min = REAL(it.min);
+            REAL max = REAL(it.max);
+            REAL step = REAL(it.step);
             
             // Meta data declaration for input items
             if (isInput(type)) {
