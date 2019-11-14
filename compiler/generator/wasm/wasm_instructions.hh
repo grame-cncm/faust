@@ -496,6 +496,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             MathFunDesc desc = fMathLibTable[inst->fName];
 
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                
                 // Build function type (args type same as return type)
                 list<NamedTyped*> args;
                 if (desc.fArgs == 1) {
@@ -1273,7 +1274,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
     }
 
-    // Conditional : select
+    // Conditional : select that computes both branches
+    /*
     virtual void visit(Select2Inst* inst)
     {
         inst->fThen->accept(this);
@@ -1291,7 +1293,34 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
         fTypingVisitor.visit(inst);
     }
-
+    */
+    
+    // Conditional : select that only computes one branch
+    virtual void visit(Select2Inst* inst)
+    {
+        // Condition is first item
+        inst->fCond->accept(this);
+        // Possibly convert i64 to i32
+        inst->fCond->accept(&fTypingVisitor);
+        if (isIntType64(fTypingVisitor.fCurType)) {
+            // Compare to 0
+            *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
+            *fOut << int8_t(WasmOp::I64Ne);
+        }
+        // Result type
+        inst->fThen->accept(&fTypingVisitor);
+        *fOut << int8_t(BinaryConsts::If) << S32LEB(type2Binary(fTypingVisitor.fCurType));
+        // Compile 'then'
+        inst->fThen->accept(this);
+        // Compile 'else'
+        *fOut << int8_t(BinaryConsts::Else);
+        inst->fElse->accept(this);
+        // End of if
+        *fOut << int8_t(BinaryConsts::End);
+        
+        fTypingVisitor.visit(inst);
+    }
+  
     // Conditional : if (TO CHECK : utilise drop ?)
     virtual void visit(IfInst* inst)
     {

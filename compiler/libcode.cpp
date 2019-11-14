@@ -1307,7 +1307,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gFAUSTFLOATToInternal = true;
 
         gGlobal->gUseDefaultSound = false;
-
+     
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
         } else {
@@ -1339,7 +1339,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         }
 
         gGlobal->gAllowForeignFunction = false;  // No foreign functions
-        gGlobal->gGenerateSelectWithIf = false;  // No 'select with if',
         gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
@@ -1360,8 +1359,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #endif
     } else if (gGlobal->gOutputLang == "fir") {
 #ifdef FIR_BUILD
-        gGlobal->gGenerateSelectWithIf = false;
-
         container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get(), true);
 
         if (gGlobal->gVectorSwitch) {
@@ -1375,8 +1372,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         throw faustexception("ERROR : -lang fir not supported since FIR backend is not built\n");
 #endif
     } else {
-        gGlobal->gGenerateSelectWithIf = false;
-
         if (gGlobal->gOutputLang == "c") {
 #ifdef C_BUILD
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());

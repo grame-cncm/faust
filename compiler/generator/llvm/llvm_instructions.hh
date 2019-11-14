@@ -151,6 +151,7 @@ struct LLVMTypeHelper {
     // Type generation
     LLVMType getFloatTy() { return llvm::Type::getFloatTy(fModule->getContext()); }
     LLVMType getDoubleTy() { return llvm::Type::getDoubleTy(fModule->getContext()); }
+    LLVMType getRealTy() { return fTypeMap[Typed::kFloatMacro]; }
     LLVMType getInt32Ty() { return llvm::Type::getInt32Ty(fModule->getContext()); }
     LLVMType getInt64Ty() { return llvm::Type::getInt64Ty(fModule->getContext()); }
     LLVMType getInt1Ty() { return llvm::Type::getInt1Ty(fModule->getContext()); }
@@ -804,14 +805,31 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = CreateFuncall(function, fun_args);
         }
     }
-
+    
+    /*
     virtual void visit(Select2Inst* inst)
+    {
+        if (inst->fThen->isSimpleValue() && inst->fElse->isSimpleValue()) {
+            visitSelect(inst);
+        } else {
+            visitIf(inst);
+        }
+    }
+    */
+    
+    // Actually faster...
+    virtual void visit(Select2Inst* inst)
+    {
+        visitIf(inst);
+    }
+ 
+    void visitSelect(Select2Inst* inst)
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
   
         // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "ifcond");
+        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "select_cond");
 
         // Compile then branch, result in fCurValue
         inst->fThen->accept(this);
@@ -824,47 +842,110 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Creates the result
         fCurValue = fBuilder->CreateSelect(cond_value, then_value, else_value);
     }
-
+    
+    /*
+     This could be implemented using a PHY node (to group the result of the 'then' and 'else' blocks)
+     but is more complicated to do when hierarchical 'select' are compiled.
+     
+     Thus we create a local variable that is written in 'then' and 'else' blocks,
+     and loaded in the 'merge' block.
+     
+     LLVM passes will later one create a unique PHY node that groups all results,
+     especially when hierarchical 'select' are compiled.
+    */
+    virtual void visitIf(Select2Inst* inst)
+    {
+        // Compile condition, result in fCurValue
+        inst->fCond->accept(this);
+        
+        // Convert condition to a bool
+        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "select_cond");
+        
+        // Get enclosing function
+        Function* function = fBuilder->GetInsertBlock()->getParent();
+        
+        // Create blocks for the then and else cases. Insert the 'merge_block' block at the end of the function
+        BasicBlock* then_block  = genBlock("select_then_block", function);
+        BasicBlock* else_block  = genBlock("select_else_block");
+        BasicBlock* merge_block = genBlock("select_merge_block");
+        
+        fBuilder->CreateCondBr(cond_value, then_block, else_block);
+        
+        // Emit then block
+        fBuilder->SetInsertPoint(then_block);
+        
+        // Compile then branch
+        inst->fThen->accept(this);
+        
+        // Create typed local variable
+        LLVMValue typed_res = fAllocaBuilder->CreateAlloca(getCurType(), nullptr, "select_res");
+      
+        // "Then" is a BlockInst, result is in fCurValue
+        fBuilder->CreateStore(fCurValue, typed_res);
+        
+        // Branch in merge_block
+        fBuilder->CreateBr(merge_block);
+        
+        // Emit else block
+        function->getBasicBlockList().push_back(else_block);
+        fBuilder->SetInsertPoint(else_block);
+        
+        // Compile else branch
+        inst->fElse->accept(this);
+        
+        // "Else" is a BlockInst, result is in fCurValue
+        fBuilder->CreateStore(fCurValue, typed_res);
+        
+        // Branch in merge_block
+        fBuilder->CreateBr(merge_block);
+        
+        // Emit merge block
+        function->getBasicBlockList().push_back(merge_block);
+        fBuilder->SetInsertPoint(merge_block);
+        
+        // Result in fCurValue
+        fCurValue = fBuilder->CreateLoad(typed_res);
+    }
+    
     virtual void visit(IfInst* inst)
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
 
         // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "ifcond");
+        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "if_cond");
 
+        // Get enclosing function
         Function* function = fBuilder->GetInsertBlock()->getParent();
 
-        // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
-        BasicBlock* then_block  = genBlock("then_block", function);
-        BasicBlock* else_block  = genBlock("else_block");
-        BasicBlock* merge_block = genBlock("if_end_block");
+        // Create blocks for the then and else cases. Insert the 'merge_block' block at the end of the function
+        BasicBlock* then_block  = genBlock("if_then_block", function);
+        BasicBlock* else_block  = genBlock("if_else_block");
+        BasicBlock* merge_block = genBlock("if_merge_block");
 
         fBuilder->CreateCondBr(cond_value, then_block, else_block);
 
         // Emit then block
         fBuilder->SetInsertPoint(then_block);
 
-        // Compile then branch, result in fCurValue
+        // Compile then branch
         inst->fThen->accept(this);
-        // "Then" is a BlockInst so no result in fCurValue
+        // "Then" is a BlockInst, so no result in fCurValue
 
+        // Branch in merge_block
         fBuilder->CreateBr(merge_block);
-        // Codegen of 'Then' can change the current block, update then_block for the PHI
-        then_block = fBuilder->GetInsertBlock();
-
+    
         // Emit else block
         function->getBasicBlockList().push_back(else_block);
         fBuilder->SetInsertPoint(else_block);
 
-        // Compile else branch, result in fCurValue
+        // Compile else branch
         inst->fElse->accept(this);
-        // "Else" is a BlockInst so no result in fCurValue
+        // "Else" is a BlockInst, so no result in fCurValue
 
+        // Branch in merge_block
         fBuilder->CreateBr(merge_block);
-        // Codegen of 'Else' can change the current block, update else_block for the PHI
-        else_block = fBuilder->GetInsertBlock();
-
+    
         // Emit merge block
         function->getBasicBlockList().push_back(merge_block);
         fBuilder->SetInsertPoint(merge_block);

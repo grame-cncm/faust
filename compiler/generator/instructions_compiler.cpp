@@ -1658,57 +1658,7 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
         v2 = promote2real(t2, v2);
     }
 
-    if (gGlobal->gGenerateSelectWithIf
-        && (type->variability() == kSamp)
-        && (!v1->isSimpleValue() || !v2->isSimpleValue())) {
-        return generateSelect2WithIf(sig, (((t1 == kReal) || (t2 == kReal)) ? itfloat() : Typed::kInt32), cond, v1, v2);
-    } else {
-        return generateSelect2WithSelect(sig, cond, v1, v2);
-    }
-}
-
-ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, ValueInst* sel, ValueInst* v1, ValueInst* v2)
-{
-    return generateCacheCode(sig, InstBuilder::genSelect2Inst(sel, v2, v1));
-}
-
-ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* cond, ValueInst* v1,
-                                                       ValueInst* v2)
-{
-    string     vname  = gGlobal->getFreshID(((type == Typed::kInt32) ? "iSel" : "fSel"));
-    BlockInst* block1 = InstBuilder::genBlockInst();
-    BlockInst* block2 = InstBuilder::genBlockInst();
-
-    block1->pushBackInst(InstBuilder::genStoreStackVar(vname, v1));
-    block2->pushBackInst(InstBuilder::genStoreStackVar(vname, v2));
-    DeclareVarInst* var =
-        InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(type), InstBuilder::genTypedZero(type));
-
-    /*
-     generateSelect2WithIf only called for kSamp code for now
-     (otherwise generated "sel" variables are not correctly handled in -sch mode when they are moved from "compute" to
-     "computeThread").
-     */
-    pushComputeDSPMethod(var);
-    pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
-
-    /*
-     switch (type->variability()) {
-
-     case kBlock:
-        pushComputeBlockMethod(var);
-        pushComputeBlockMethod(InstBuilder::genIfInst(cond, block2, block1));
-        break;
-
-     case kSamp:
-        case kKonst:
-        pushComputeDSPMethod(var);
-        pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
-        break;
-     }
-     */
-
-    return generateCacheCode(sig, InstBuilder::genLoadStackVar(vname));
+    return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, v2, v1));
 }
 
 ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)

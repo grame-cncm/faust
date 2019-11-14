@@ -153,7 +153,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gInputString = 0;
 
     // Backend configuration : default values
-    gGenerateSelectWithIf = true;
     gAllowForeignFunction = true;
     gComputeIOTA          = false;
     gFAUSTFLOATToInternal = false;

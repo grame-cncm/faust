@@ -152,7 +152,6 @@ struct global {
 
     // Backend configuration
     string gOutputLang;            // Chosen backend
-    bool   gGenerateSelectWithIf;  // Generates select with an 'if'
     bool   gAllowForeignFunction;  // Can use foreign functions
     bool   gComputeIOTA;           // Cache some computation done with IOTA variable
     bool   gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real

@@ -148,7 +148,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (i < size - 1) *fOut << " ";
         }
         if (inst->fType->getType() != Typed::kVoid) {
-            *fOut << " (result " << type2String(inst->fType->getType()) << ")";
+            *fOut << " (result " << type2String(inst->getResType()) << ")";
         }
     }
 
@@ -199,10 +199,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
 
                 for (int i = 0; i < desc.fArgs; i++) {
-                    *fOut << (isIntType(desc.fType) ? "i32" : realStr);
+                    *fOut << type2String(desc.fType);
                     if (i < desc.fArgs - 1) *fOut << " ";
                 }
-                *fOut << ") (result " << (isIntType(desc.fType) ? "i32" : realStr) << "))";
+                *fOut << ") (result " << type2String(desc.fType) << "))";
                 return;
             }
         }
@@ -598,8 +598,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), (int)inst->fArgs.size());
         *fOut << ")";
     }
-
-    // Conditional : select
+    
+    /*
+    // Conditional : select that computes both branches
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(select ";
@@ -619,7 +620,38 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             inst->fCond->accept(this);
         }
         *fOut << ")";
+        
+        fTypingVisitor.visit(inst);
+    }
+    */
 
+    // Conditional : select that only computes one branch
+    virtual void visit(Select2Inst* inst)
+    {
+        *fOut << "(if ";
+        // Result type
+        inst->fThen->accept(&fTypingVisitor);
+        *fOut << "(result " << type2String(fTypingVisitor.fCurType) << ") ";
+        
+        // Compile 'cond'
+        inst->fCond->accept(&fTypingVisitor);
+        // Possibly convert i64 to i32
+        if (isIntType64(fTypingVisitor.fCurType)) {
+            // Compare to 0
+            *fOut << "(i64.ne ";
+            inst->fCond->accept(this);
+            *fOut << "(i64.const 0))";
+        } else {
+            inst->fCond->accept(this);
+        }
+        // Compile 'then'
+        *fOut << " ";
+        inst->fThen->accept(this);
+        // Compile 'else'
+        *fOut << " ";
+        inst->fElse->accept(this);
+        *fOut << ")";
+        
         fTypingVisitor.visit(inst);
     }
 

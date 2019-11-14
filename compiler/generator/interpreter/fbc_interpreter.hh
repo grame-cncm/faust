@@ -2422,7 +2422,6 @@ class FBCInterpreter : public FBCExecutor<T> {
     }
 
     end:
-
         // Check stack coherency
         assertInterp(real_stack_index == 0 && int_stack_index == 0 && sound_stack_index == 0);
     }
