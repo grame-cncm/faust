@@ -121,8 +121,7 @@ class GraphCompiler : public Compiler {
     virtual string forceCacheCode(Tree sig, const string& exp);
     virtual string generateVariableStore(Tree sig, const string& exp);
 
-    void SchedulingToClass(Scheduling& S, Klass* K);
-
+    void   SchedulingToClass(Scheduling& S, Klass* K);
     string getFreshID(const string& prefix);
 
     void       compilePreparedSignalList(Tree lsig);
@@ -133,7 +132,7 @@ class GraphCompiler : public Compiler {
     set<Tree>  expression2Instructions(Tree L3);
     Scheduling schedule(const set<Tree>& Instr);
     void       tableDependenciesGraph(const set<Tree>& I);
-    void       SchedulingToMethod(Scheduling& S, Klass* K);
+    void       SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K);
     void       generateTime();
     bool       getCompiledExpression(Tree sig, string& name);
     string     setCompiledExpression(Tree sig, const string& name);

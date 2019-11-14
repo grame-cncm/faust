@@ -554,7 +554,8 @@ static string nature2ctype(int n)
 void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
     set<Tree> T;                       // Treated IDs so far
-    set<Tree> R = collectTableIDs(I);  // Remaining to be treated
+    set<Tree> C = collectTableIDs(I);  // Remaining to be treated
+    set<Tree> R = C;                   // Remaining to be treated
     while (!R.empty()) {
         set<Tree> N;                  // Set of unseen IDs
         for (Tree id : R) {           // for each table ID remaining to treat
@@ -597,7 +598,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         cerr << s << endl;
         // Klass* k = new SigFloatGenKlass(nullptr, tree2str(id));
         Klass* k = new SigFillMethod(nullptr, tree2str(id));
-        SchedulingToMethod(s, k);
+        SchedulingToMethod(s, C, k);
         cerr << "The corresponding Klass:" << endl;
         k->println(1, cerr);
         cerr << "\n\n" << endl;
@@ -673,7 +674,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
             if (isZero(init)) {
                 K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
-                cerr << "Table init needed here" << endl;
+                cerr << "Table init needed here for " << *id << endl;
             }
             if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
@@ -686,7 +687,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         }
     }
 }
-void GraphCompiler::SchedulingToMethod(Scheduling& S, Klass* K)
+void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
 {
     // for (int i = 0; i < K->inputs(); i++) {
     //     K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
@@ -742,9 +743,9 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, Klass* K)
 
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             string vname{tree2str(id)};
-            K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
+            fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
             if (isZero(init)) {
-                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
                 cerr << "Table init needed here" << endl;
             }
@@ -767,93 +768,92 @@ void GraphCompiler::compileMultiSignal(Tree L)
     set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
     Scheduling S     = schedule(INSTR);
 
-    // Klass KKK = SchedulingToClass("theDSP", "theSuper", fClass->inputs(), fClass->outputs(), S);
-    Klass* KKK = new Klass{"theDSP", "theSuper", fClass->inputs(), fClass->outputs()};
-    SchedulingToClass(S, KKK);
-    cerr << " KKK = [[";
-    KKK->println(1, cerr);
-    cerr << "]]" << endl;
-
+    SchedulingToClass(S, fClass);
     tableDependenciesGraph(INSTR);
 
-    for (int i = 0; i < fClass->inputs(); i++) {
-        fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
-        if (gGlobal->gInPlace) {
-            CS(sigInput(i));
-        }
-    }
-    for (int i = 0; i < fClass->outputs(); i++) {
-        fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
-    }
+    // cerr << " KKK = [[";
+    // fClass->println(1, cerr);
+    // cerr << "]]" << endl;
 
-    generateTime();
-
-    // for (int i = 0; isList(L); L = tl(L), i++) {
-    //     Tree sig = hd(L);
-    //     fClass->addExecCode(
-    //         Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
-    // }
-
-    for (Tree i : S.fInitLevel) {
-        // We compile
-        Tree sig = S.fDic[i];
-        Tree id, origin, content;
-        int  nature;
-
-        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
-
-        string ctype{(nature == kInt) ? "int" : "float"};
-        string vname{tree2str(id)};
-
-        fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-        fClass->addInitCode(subst("$0 = $1;", vname, CS(content)));
-    }
-
-    for (Tree i : S.fBlockLevel) {
-        // We compile
-        Tree sig = S.fDic[i];
-        Tree id, origin, content;
-        int  nature;
-
-        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
-
-        string ctype{(nature == kInt) ? "int" : "float"};
-        string vname{tree2str(id)};
-
-        fClass->addFirstPrivateDecl(vname);
-        fClass->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
-    }
-
-    for (Tree instr : S.fExecLevel) {
-        // We compile
-        Tree sig = S.fDic[instr];
-
-        Tree id, origin, content, init, idx;
-        int  i, nature, dmax, tblsize;
-
-        if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
-            string vname{tree2str(id)};
-            fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
-
-        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
-            string vname{tree2str(id)};
-            fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
-            if (isZero(init)) {
-                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
-            } else {
-                cerr << "Table init needed here" << endl;
+    /*
+        for (int i = 0; i < fClass->inputs(); i++) {
+            fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+            if (gGlobal->gInPlace) {
+                CS(sigInput(i));
             }
-            if (!isNil(idx)) fClass->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
-
-        } else if (isSigOutput(sig, &i, content)) {
-            fClass->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
-
-        } else {
-            std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
-            faustassert(false);
         }
-    }
+        for (int i = 0; i < fClass->outputs(); i++) {
+            fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+        }
 
+        generateTime();
+
+        // for (int i = 0; isList(L); L = tl(L), i++) {
+        //     Tree sig = hd(L);
+        //     fClass->addExecCode(
+        //         Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+        // }
+
+        for (Tree i : S.fInitLevel) {
+            // We compile
+            Tree sig = S.fDic[i];
+            Tree id, origin, content;
+            int  nature;
+
+            faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+
+            string ctype{(nature == kInt) ? "int" : "float"};
+            string vname{tree2str(id)};
+
+            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
+            fClass->addInitCode(subst("$0 = $1;", vname, CS(content)));
+        }
+
+        for (Tree i : S.fBlockLevel) {
+            // We compile
+            Tree sig = S.fDic[i];
+            Tree id, origin, content;
+            int  nature;
+
+            faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+
+            string ctype{(nature == kInt) ? "int" : "float"};
+            string vname{tree2str(id)};
+
+            fClass->addFirstPrivateDecl(vname);
+            fClass->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+        }
+
+        for (Tree instr : S.fExecLevel) {
+            // We compile
+            Tree sig = S.fDic[instr];
+
+            Tree id, origin, content, init, idx;
+            int  i, nature, dmax, tblsize;
+
+            if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
+                string vname{tree2str(id)};
+                fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
+
+            } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
+                string vname{tree2str(id)};
+                fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
+                if (isZero(init)) {
+                    fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+                } else {
+                    cerr << "Table init needed here" << endl;
+                }
+                if (!isNil(idx)) fClass->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
+
+            } else if (isSigOutput(sig, &i, content)) {
+                fClass->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
+
+            } else {
+                std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
+                faustassert(false);
+            }
+        }
+    */
     generateMetaData();
     generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
     generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
