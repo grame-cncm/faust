@@ -35,7 +35,7 @@ class AbsPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector< ::Type>& types)
+    virtual ::Type infereSigType(const vector<::Type>& types)
     {
         faustassert(types.size() == arity());
         Type t = types[0];
@@ -70,7 +70,7 @@ class AbsPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+                                    vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -91,7 +91,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -104,7 +104,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

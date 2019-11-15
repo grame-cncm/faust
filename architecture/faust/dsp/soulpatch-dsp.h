@@ -361,7 +361,20 @@ class soul_dsp_factory : public dsp_factory {
             }
             
             fPatch = library.createPatchFromFileBundle(fPath.c_str());
+            if (!fPatch) {
+                error_msg = "cannot load SOUL patch : " + path + "\n";
+                throw std::bad_alloc();
+            }
+            
             fDescription = fPatch->getDescription();
+            /*
+            std::cout << "name \"" << fDescription.name->getCharPointer() << "\"" << std::endl;
+            std::cout << "description \"" << fDescription.description->getCharPointer() << "\"" << std::endl;
+            std::cout << "category \"" << fDescription.category->getCharPointer() << "\"" << std::endl;
+            std::cout << "manufacturer \"" << fDescription.manufacturer->getCharPointer() << "\"" << std::endl;
+            std::cout << "URL \"" << fDescription.URL->getCharPointer() << "\"" << std::endl;
+            std::cout << "isInstrument " << fDescription.isInstrument << "\"" << std::endl;
+            */
         }
     
         virtual ~soul_dsp_factory() {}

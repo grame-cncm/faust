@@ -1,6 +1,5 @@
-// test de visualisation de route
+// route visualisation test 
 import("stdfaust.lib");
-
 
 R = 3;
 

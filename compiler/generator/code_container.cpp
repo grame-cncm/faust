@@ -250,47 +250,13 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
                                        const list<ValueInst*>& args)
 {
-    BasicTyped*                      result_type = InstBuilder::genBasicTyped(result);
-    list<ValueInst*>::const_iterator it          = args.begin();
-
-    // Special case for "faustpower", generates sequence of multiplication
-    if (name == getFaustPowerName()) {
-        // Expand the pow depending of the exposant argument
-        BlockInst* block = InstBuilder::genBlockInst();
-
-        it++;
-        Int32NumInst* arg1             = dynamic_cast<Int32NumInst*>(*it);
-        string        faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
-
-        list<NamedTyped*> named_args;
-        named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
-
-        if (arg1->fNum == 0) {
-            block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(1)));
-        } else {
-            ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
-            for (int i = 0; i < arg1->fNum - 1; i++) {
-                res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
-            }
-            block->pushBackInst(InstBuilder::genRetInst(res));
-        }
-
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(
-            faust_power_name, InstBuilder::genFunTyped(named_args, result_type, FunTyped::kLocal), block));
-
-        list<ValueInst*> truncated_args;
-        truncated_args.push_back((*args.begin()));
-        return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
-
-    } else {
-        list<NamedTyped*> named_args;
-        for (size_t i = 0; i < types.size(); i++) {
-            named_args.push_back(
-                InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
-        }
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
-        return InstBuilder::genFunCallInst(name, args);
+    list<ValueInst*>::const_iterator it = args.begin();
+    list<NamedTyped*> named_args;
+    for (size_t i = 0; i < types.size(); i++) {
+        named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
     }
+    pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, InstBuilder::genBasicTyped(result))));
+    return InstBuilder::genFunCallInst(name, args);
 }
 
 void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)

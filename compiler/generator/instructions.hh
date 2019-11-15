@@ -1766,15 +1766,15 @@ struct InstBuilder {
     {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
+    
+    static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
+    {
+        return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical);
+    }
 
     static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& sf_zone)
     {
         return new AddSoundfileInst(label, url, sf_zone);
-    }
-
-    static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
-    {
-        return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical);
     }
 
     static LabelInst* genLabelInst(const string& label) { return new LabelInst(label); }

@@ -66,43 +66,72 @@ class PowPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+                                    vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
         vector<Typed::VarType>          arg_types(2);
-        vector< ::Type>::const_iterator it1;
         Typed::VarType                  result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
 
         list<ValueInst*>::const_iterator it = args.begin();
         it++;
         Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
-        if (arg1 && (types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
-            (types[1]->computability() == kComp) && (gGlobal->gNeedManualPow)) {
+        if (arg1 && (types[1]->nature() == kInt) && (types[1]->variability() == kKonst)
+            && (types[1]->computability() == kComp) && (gGlobal->gNeedManualPow)) {
+            
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt32 : itfloat();
             arg_types[1] = Typed::kInt32;
-            return container->pushFunction(container->getFaustPowerName(), result_type, arg_types, args);
-
+            
+            // Expand the pow depending of the exposant argument
+            BlockInst* block = InstBuilder::genBlockInst();
+            
+            list<ValueInst*>::const_iterator it = args.begin();
+            it++;
+            
+            Int32NumInst* arg1             = dynamic_cast<Int32NumInst*>(*it);
+            string        faust_power_name = container->getFaustPowerName() + to_string(arg1->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
+            
+            list<NamedTyped*> named_args;
+            named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(arg_types[0])));
+            
+            if (arg1->fNum == 0) {
+                block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(1)));
+            } else {
+                ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
+                for (int i = 0; i < arg1->fNum - 1; i++) {
+                    res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
+                }
+                block->pushBackInst(InstBuilder::genRetInst(res));
+            }
+            
+            container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(faust_power_name,
+                                                                        InstBuilder::genFunTyped(named_args, InstBuilder::genBasicTyped(result_type),
+                                                                                                 FunTyped::kLocal), block));
+            
+            list<ValueInst*> truncated_args;
+            truncated_args.push_back((*args.begin()));
+            return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
+      
         } else {
             // Both arguments forced to itfloat()
             arg_types[0] = itfloat();
             arg_types[1] = itfloat();
 
-            list<ValueInst*>                 casted_args;
+            list<ValueInst*> casted_args;
             list<ValueInst*>::const_iterator it2 = args.begin();
-
+            vector< ::Type>::const_iterator it1;
+            
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
                 casted_args.push_back(promote2real((*it1)->nature(), (*it2)));
             }
 
-            return cast2int(result->nature(),
-                            container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args));
+            return cast2int(result->nature(), container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args));
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -116,7 +145,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

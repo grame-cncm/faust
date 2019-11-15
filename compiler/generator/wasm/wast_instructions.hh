@@ -600,7 +600,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
     
     /*
-    // Conditional : select that computes both branches
+    // Select that computes both branches
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(select ";
@@ -625,7 +625,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
     */
 
-    // Conditional : select that only computes one branch
+    // Select that only computes one branch
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(if ";
@@ -723,11 +723,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
     }
 
-    virtual void visit(AddSoundfileInst* inst)
-    {
-        // Not supported for now
-        //throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
-    }
 };
 
 #endif

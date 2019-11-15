@@ -823,6 +823,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         visitIf(inst);
     }
  
+    // Select that computes both branches
     void visitSelect(Select2Inst* inst)
     {
         // Compile condition, result in fCurValue
@@ -844,13 +845,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     }
     
     /*
-     This could be implemented using a PHY node (to group the result of the 'then' and 'else' blocks)
+     Select that only computes one branch.
+     
+     This could be implemented using a PHI node (to group the result of the 'then' and 'else' blocks)
      but is more complicated to do when hierarchical 'select' are compiled.
      
      Thus we create a local variable that is written in 'then' and 'else' blocks,
      and loaded in the 'merge' block.
      
-     LLVM passes will later one create a unique PHY node that groups all results,
+     LLVM passes will later one create a unique PHI node that groups all results,
      especially when hierarchical 'select' are compiled.
     */
     virtual void visitIf(Select2Inst* inst)
@@ -903,7 +906,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         function->getBasicBlockList().push_back(merge_block);
         fBuilder->SetInsertPoint(merge_block);
         
-        // Result in fCurValue
+        // Load result in fCurValue
         fCurValue = fBuilder->CreateLoad(typed_res);
     }
     

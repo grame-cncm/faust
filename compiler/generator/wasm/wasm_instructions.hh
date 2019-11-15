@@ -1274,7 +1274,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
     }
 
-    // Conditional : select that computes both branches
+    // Select that computes both branches
     /*
     virtual void visit(Select2Inst* inst)
     {
@@ -1295,7 +1295,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     }
     */
     
-    // Conditional : select that only computes one branch
+    // Select that only computes one branch
     virtual void visit(Select2Inst* inst)
     {
         // Condition is first item
@@ -1382,11 +1382,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         *fOut << int8_t(BinaryConsts::End);
     }
 
-    virtual void visit(AddSoundfileInst* inst)
-    {
-        // Not supported for now
-        //throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
-    }
 };
 
 #endif
