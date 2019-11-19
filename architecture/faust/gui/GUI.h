@@ -29,6 +29,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <assert.h>
 
 #ifdef _WIN32
 # pragma warning (disable: 4100)
@@ -54,7 +55,11 @@ typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 struct uiItemBase
 {
     
-    uiItemBase(GUI* ui, FAUSTFLOAT* zone) {}
+    uiItemBase(GUI* ui, FAUSTFLOAT* zone)
+    {
+        assert(ui);
+        assert(zone);
+    }
     
     virtual ~uiItemBase()
     {}

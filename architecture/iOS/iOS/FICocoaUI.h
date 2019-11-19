@@ -350,9 +350,10 @@ public:
     int                     fBoxType;
     float                   fLastX;
     float                   fLastY;
+    float                   fDummy;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
-    : uiCocoaItem(ui, NULL, controller, name)
+    : uiCocoaItem(ui, &fDummy, controller, name)
     {
         float tabOffset = 0;
         fBoxType = boxType;
@@ -360,6 +361,7 @@ public:
         fLastY = 0.f;
         fTabView = nil;
         fLabel = nil;
+        fDummy = 0.f;
         
         if (boxType == kTabLayout)
         {
