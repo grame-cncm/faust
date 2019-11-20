@@ -92,6 +92,8 @@ class GraphCompiler : public Compiler {
     property<pair<string, string>> fStaticInitProperty;     // property added to solve 20101208 kjetil bug
     property<pair<string, string>> fInstanceInitProperty;   // property added to solve 20101208 kjetil bug
     property<Tree>                 fTableInitExpression;    // init expression associated with each table ID
+    property<int>                  fTableInitSize;          // init size associated with each table ID
+    property<int>                  fTableInitNature;        // init nature associated with each table ID
     property<set<Tree>>            fTableInitInstructions;  // init expression associated with each table ID
     property<Scheduling>           fTableInitScheduling;    // instruction scheduling for each init expression
     digraph<Tree>                  fTableInitGraph;         // Graph of table IDs

@@ -77,6 +77,7 @@ class Klass  //: public Target
     list<string> fClearCode;
     list<string> fUICode;
     list<string> fUIMacro;
+    list<Klass*> fInitMethods;  ///< list of methods used to initialize tables
 
 #if 0
     list<string>        fSlowDecl;
@@ -128,6 +129,7 @@ class Klass  //: public Target
         return (fParentKlass != nullptr) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
     }  ///< Returns the name of the class
 
+    void addMethod(Klass* k);
     void openLoop(const string& size);
     void openLoop(Tree recsymbol, const string& size);
     void closeLoop(Tree sig);
@@ -234,9 +236,16 @@ class SigFloatGenKlass : public Klass {
     void println(int n, ostream& fout) override;
 };
 
-class SigFillMethod : public Klass {
+class SigIntFillMethod : public Klass {
    public:
-    SigFillMethod(Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
+    SigIntFillMethod(Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
+
+    void println(int n, ostream& fout) override;
+};
+
+class SigFloatFillMethod : public Klass {
+   public:
+    SigFloatFillMethod(Klass* parent, const string& name) : Klass(name, "", 0, 1, false) { fParentKlass = parent; }
 
     void println(int n, ostream& fout) override;
 };

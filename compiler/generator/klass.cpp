@@ -808,6 +808,11 @@ void Klass::println(int n, ostream& fout)
         fout << "class " << fKlassName << " : public " << fSuperKlassName << " {";
     }
 
+    if (fInitMethods.size() > 0) {
+        for (auto k : fInitMethods) {
+            k->println(n + 1, fout);
+        }
+    }
     if (gGlobal->gUIMacroSwitch) {
         tab(n, fout);
         fout << "  public:";
@@ -1492,10 +1497,59 @@ void Klass::collectLibrary(set<string>& S)
     merge(S, fLibrarySet);
 }
 
+void Klass::addMethod(Klass* k)
+{
+    fInitMethods.push_back(k);
+}
+
 /**
  * Print as a method to fill a table
  */
-void SigFillMethod::println(int n, ostream& fout)
+void SigIntFillMethod::println(int n, ostream& fout)
+{
+    tab(n, fout);
+    // fout << "void fill" << fKlassName << " {";
+    fout << subst("void fill$0 (int count, int output0[]) {", fKlassName);
+
+    printlines(n + 1, fDeclCode, fout);
+
+    tab(n, fout);
+    // fout << "  public:";
+
+    // tab(n + 1, fout);
+    // fout << "int getNumInputs() { "
+    //      << "return " << fNumInputs << "; }";
+    // tab(n + 1, fout);
+    // fout << "int getNumOutputs() { "
+    //      << "return " << fNumOutputs << "; }";
+
+    // tab(n + 1, fout);
+    // fout << "void init(int sample_rate) {";
+    // tab(n + 2, fout);
+    // fout << "fSampleRate = sample_rate;";
+    printlines(n + 1, fInitCode, fout);
+    printlines(n + 1, fClearCode, fout);
+    // tab(n + 1, fout);
+    // fout << "}";
+
+    // tab(n + 1, fout);
+    // fout << subst("void fill (int count, $0 output[]) {", ifloat());
+    printlines(n + 1, fZone1Code, fout);
+    printlines(n + 1, fZone2Code, fout);
+    printlines(n + 1, fZone2bCode, fout);
+    printlines(n + 1, fZone3Code, fout);
+    printLoopGraphInternal(n + 1, fout);
+    // tab(n + 1, fout);
+    // fout << "}";
+
+    tab(n, fout);
+    fout << "};\n" << endl;
+}
+
+/**
+ * Print as a method to fill a table
+ */
+void SigFloatFillMethod::println(int n, ostream& fout)
 {
     tab(n, fout);
     // fout << "void fill" << fKlassName << " {";

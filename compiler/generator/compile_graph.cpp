@@ -273,7 +273,10 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
                 } else {
                     IDs.insert(id);
                     fTableInitExpression.set(id, init);
-                    cerr << "\ncollectTableIDs: " << id << "@" << *id << " with init " << ppsig(init) << endl;
+                    fTableInitSize.set(id, tblsize);
+                    fTableInitNature.set(id, nature);
+                    cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init "
+                         << ppsig(init) << endl;
                 }
             }
         }
@@ -553,14 +556,14 @@ static string nature2ctype(int n)
  */
 void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
-    set<Tree> T;                       // Treated IDs so far
+    set<Tree> TID;                     // Treated IDs so far
     set<Tree> C = collectTableIDs(I);  // Remaining to be treated
     set<Tree> R = C;                   // Remaining to be treated
     while (!R.empty()) {
         set<Tree> N;                  // Set of unseen IDs
         for (Tree id : R) {           // for each table ID remaining to treat
             fTableInitGraph.add(id);  // add it to the table init graph
-            T.insert(id);             // remember it has been treated
+            TID.insert(id);           // remember it has been treated
 
             // get the init expression (how to compute the initial content of the table) of table id
             Tree init;
@@ -578,7 +581,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
             set<Tree> D = collectTableIDs(J);
             for (Tree dst : D) {
                 fTableInitGraph.add(id, dst);
-                if ((T.count(dst) == 0) || (R.count(dst) == 0)) {
+                if ((TID.count(dst) == 0) || (R.count(dst) == 0)) {
                     N.insert(dst);  // dst is unseen
                 }
             }
@@ -591,17 +594,32 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
     cerr << "Table order" << endl;
     for (Tree id : S) {
         Tree       init;
+        int        tblsize;
+        int        nature;
         Scheduling s;
+
         faustassert(fTableInitExpression.get(id, init));
+        faustassert(fTableInitSize.get(id, tblsize));
+        faustassert(fTableInitNature.get(id, nature));
         faustassert(fTableInitScheduling.get(init, s));
-        cerr << "table " << *id << " has init expression " << ppsig(init) << endl;
-        cerr << s << endl;
+
+        // cerr << "table " << *id << " has init expression " << ppsig(init) << endl;
+        // cerr << s << endl;
         // Klass* k = new SigFloatGenKlass(nullptr, tree2str(id));
-        Klass* k = new SigFillMethod(nullptr, tree2str(id));
+        Klass* k = nullptr;
+        if (nature == kInt) {
+            k = new SigIntFillMethod(nullptr, tree2str(id));
+        } else {
+            k = new SigFloatFillMethod(nullptr, tree2str(id));
+        }
         SchedulingToMethod(s, C, k);
-        cerr << "The corresponding Klass:" << endl;
-        k->println(1, cerr);
-        cerr << "\n\n" << endl;
+        fClass->addMethod(k);
+        string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
+        cerr << tmp << endl;
+        fClass->addClearCode(tmp);
+        // cerr << "The corresponding Klass:" << endl;
+        // k->println(1, cerr);
+        // cerr << "\n\n" << endl;
     }
 }
 /**
