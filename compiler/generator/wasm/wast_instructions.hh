@@ -80,7 +80,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     string checkReal(T val)
     {
         std::stringstream num;
-        num << std::setprecision(std::numeric_limits<T>::max_digits10) << val;
+        num << setprecision(numeric_limits<T>::max_digits10) << val;
         return ensureFloat(num.str());
     }
 

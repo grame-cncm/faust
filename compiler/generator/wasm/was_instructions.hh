@@ -60,13 +60,6 @@ inline int pow2limit(int x)
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
     return std::max<int>((pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
-
-    // Bigger memory block for soundfile test
-    /*
-    return std::max(
-                    (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize()))))
-    / wasmBlockSize), 8);
-    */
 }
 
 // Base class for textual 'wast' and binary 'wasm' visitors
@@ -76,7 +69,7 @@ struct WASInst {
         enum Gen {
             kWAS,       // Implemented in wasm definition
             kExtMath,   // Implemented in JS Math context
-            kInt32WAS,  // Manually implemented in wast/wasm backends
+            kIntWAS,    // Manually implemented in wast/wasm backends
             kExtWAS     // Manually implemented in JS
         };
 
@@ -109,14 +102,14 @@ struct WASInst {
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
-    bool fFastMemory;  // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
+    bool fFastMemory;    // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
 
     WASInst(bool fast_memory = false)
     {
         // Integer version
         fMathLibTable["abs"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt32, 1);
-        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kInt32WAS, "min_i", Typed::kInt32, 2);
-        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kInt32WAS, "max_i", Typed::kInt32, 2);
+        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "min_i", Typed::kInt32, 2);
+        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "max_i", Typed::kInt32, 2);
 
         // Float version
         fMathLibTable["fabsf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F32Abs, Typed::kFloat, 1);
