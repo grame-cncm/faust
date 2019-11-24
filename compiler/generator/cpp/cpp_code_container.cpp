@@ -224,22 +224,22 @@ void CPPCodeContainer::produceInternal()
     // Memory methods (as globals)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
-        *fOut << fKlassName << "* "
+        *fOut << "static " << fKlassName << "* "
               << "new" << fKlassName << "(dsp_memory_manager* manager) {"
               << " return (" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
               << "()"
               << "; }";
         tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~"
+        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~"
               << fKlassName << "(); manager->destroy(dsp); }";
     } else {
         tab(n, *fOut);
-        *fOut << fKlassName << "* "
+        *fOut << "static " << fKlassName << "* "
               << "new" << fKlassName << "() {"
               << " return (" << fKlassName << "*)new " << fKlassName << "()"
               << "; }";
         tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
+        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
     }
     tab(n, *fOut);
 }
