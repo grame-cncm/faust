@@ -275,8 +275,9 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
                     fTableInitExpression.set(id, init);
                     fTableInitSize.set(id, tblsize);
                     fTableInitNature.set(id, nature);
-                    cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init "
-                         << ppsig(init) << endl;
+                    // cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init
+                    // "
+                    //      << ppsig(init) << endl;
                 }
             }
         }
@@ -591,7 +592,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 
     // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
-    cerr << "Table order" << endl;
+    // cerr << "Table order" << endl;
     for (Tree id : S) {
         Tree       init;
         int        tblsize;
@@ -615,7 +616,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         SchedulingToMethod(s, C, k);
         fClass->addMethod(k);
         string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
-        cerr << tmp << endl;
+        // cerr << tmp << endl;
         fClass->addClearCode(tmp);
         // cerr << "The corresponding Klass:" << endl;
         // k->println(1, cerr);
@@ -692,7 +693,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
             if (isZero(init)) {
                 K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
-                cerr << "Table init needed here for " << *id << endl;
+                // cerr << "Table init needed here for " << *id << endl;
             }
             if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
@@ -765,7 +766,7 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
             if (isZero(init)) {
                 fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
-                cerr << "Table init needed here" << endl;
+                // cerr << "Table init needed here" << endl;
             }
             if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
@@ -923,10 +924,10 @@ void GraphCompiler::generateTime()
 
 string GraphCompiler::generateCode(Tree sig)
 {
-#if 0
-	fprintf(stderr, "CALL generateCode(");
+#if 1
+    fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
-	fprintf(stderr, ")\n");
+    fprintf(stderr, ")\n");
 #endif
 
     int    i, nature, dmin;
