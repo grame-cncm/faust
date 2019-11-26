@@ -206,47 +206,7 @@ public:
     }
     
     // Constructor / Destuctor
-    uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name)
-    : uiItem(ui, zone)
-    {
-        fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
-        fLabel = nil;
-        fHidden = false;
-        fParent = NULL;
-        
-        fx = 0.f;
-        fy = 0.f;
-        fw = 0.f;
-        fh = 0.f;
-        
-        fAbstractX = 0.f;
-        fAbstractY = 0.f;
-        fAbstractW = 0.f;
-        fAbstractH = 0.f;
-        
-        fSelected = false;
-        
-        fInitAssignationType = kAssignationNone;
-        fInitAssignationCurve = kAssignationNone;
-        
-        fInitR = 0.f;
-        fInitG = 0.f;
-        fInitB = 1.f;
-        
-        fInitMinCurve = -100.f;
-        fInitMidCurve = 0.f;
-        fInitMaxCurve = 100.f;
-        
-        fHideOnGUI = false;
-        fInit = 0.f;
-        if (zone) {
-            fItemCount = gItemCount++;
-        } else {
-            fItemCount = -1;
-        }
-        
-        resetParameters();
-    }
+    uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name);
     
     ~uiCocoaItem()
     {
@@ -350,10 +310,10 @@ public:
     int                     fBoxType;
     float                   fLastX;
     float                   fLastY;
-    float                   fDummy;
+    static float            gDummy;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
-    : uiCocoaItem(ui, &fDummy, controller, name)
+    : uiCocoaItem(ui, &gDummy, controller, name)
     {
         float tabOffset = 0;
         fBoxType = boxType;
@@ -361,7 +321,6 @@ public:
         fLastY = 0.f;
         fTabView = nil;
         fLabel = nil;
-        fDummy = 0.f;
         
         if (boxType == kTabLayout)
         {
@@ -577,10 +536,53 @@ public:
     }
 };
 
+// Constructor / Destuctor
+uiCocoaItem::uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name)
+: uiItem(ui, zone)
+{
+    fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
+    fLabel = nil;
+    fHidden = false;
+    fParent = NULL;
+    
+    fx = 0.f;
+    fy = 0.f;
+    fw = 0.f;
+    fh = 0.f;
+    
+    fAbstractX = 0.f;
+    fAbstractY = 0.f;
+    fAbstractW = 0.f;
+    fAbstractH = 0.f;
+    
+    fSelected = false;
+    
+    fInitAssignationType = kAssignationNone;
+    fInitAssignationCurve = kAssignationNone;
+    
+    fInitR = 0.f;
+    fInitG = 0.f;
+    fInitB = 1.f;
+    
+    fInitMinCurve = -100.f;
+    fInitMidCurve = 0.f;
+    fInitMaxCurve = 100.f;
+    
+    fHideOnGUI = false;
+    fInit = 0.f;
+    if (zone != &uiBox::gDummy) {
+        fItemCount = gItemCount++;
+    } else {
+        fItemCount = -1;
+    }
+    
+    resetParameters();
+}
+
 // -------------------------- Knob -----------------------------------
 
 class uiKnob : public uiCocoaItem
-{   
+{
     
 public :
     
@@ -1678,7 +1680,7 @@ public:
     {
         /* 
             29/11/18: used by startMotion to activate the accelerometer and/or gyroscope
-            correction bo make it work even if screen mode is activated
+            correction to make it work even if screen mode is activated
         */
         
         /*

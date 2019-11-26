@@ -77,6 +77,7 @@ int sample_rate = 0;
 int buffer_size = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
+float uiBox::gDummy = 0;
 
 - (void)didReceiveMemoryWarning
 {
@@ -263,6 +264,7 @@ int uiCocoaItem::gItemCount = 0;
     _motionManager = nil;
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
+    
     if (_assignatedWidgets.size() > 0 || uiinterface->isScreenUI()) [self startMotion];
 }
 
