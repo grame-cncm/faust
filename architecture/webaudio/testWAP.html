@@ -2,13 +2,15 @@
 <html>
 
 <head>
-	<title>Host that loads a plugin with its GUI</title>
+  <title>Host that loads a plugin with its GUI</title>
+  <script
+    src="https://mainline.i3s.unice.fr/WebAudioPluginBank/bower_components/webaudio-controls2/webcomponents-lite.js">
+  </script>
+  <script src="main.js"></script>
 </head>
-<script src="main.js"></script>
-
 <body>
 	<audio src="./CleanGuitarRiff.mp3" id="soundSample" controls loop></audio>
-  	<button id="save">Save current state</button>
+	<button id="save">Save current state</button>
   	<button id="load">Load last saved state</button>
 </body>
 <script>
