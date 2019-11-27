@@ -275,9 +275,8 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
                     fTableInitExpression.set(id, init);
                     fTableInitSize.set(id, tblsize);
                     fTableInitNature.set(id, nature);
-                    // cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init
-                    // "
-                    //      << ppsig(init) << endl;
+                    cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init "
+                         << ppsig(init) << endl;
                 }
             }
         }
@@ -706,6 +705,13 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         }
     }
 }
+/**
+ * @brief Transforms a scheduling into method (a special klass)
+ *
+ * @param S the instruction scheduling
+ * @param C a set of ID
+ * @param K
+ */
 void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
 {
     // for (int i = 0; i < K->inputs(); i++) {
@@ -766,7 +772,7 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
             if (isZero(init)) {
                 fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
-                // cerr << "Table init needed here" << endl;
+                cerr << "Instruction Table Write " << *id << " has init " << ppsig(init) << endl;
             }
             if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
@@ -959,15 +965,15 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigOutput(sig, &i, x)) {
         return generateOutput(sig, T(i), CS(x));
     }
-
-    else if (isSigFixDelay(sig, x, y)) {
-        return generateFixDelay(sig, x, y);
-    } else if (isSigPrefix(sig, x, y)) {
-        return generatePrefix(sig, x, y);
-    } else if (isSigIota(sig, x)) {
-        return generateIota(sig, x);
-    }
-
+    /*
+        else if (isSigFixDelay(sig, x, y)) {
+            return generateFixDelay(sig, x, y);
+        } else if (isSigPrefix(sig, x, y)) {
+            return generatePrefix(sig, x, y);
+        } else if (isSigIota(sig, x)) {
+            return generateIota(sig, x);
+        }
+    */
     else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
     } else if (isSigFFun(sig, ff, largs)) {
@@ -977,29 +983,30 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigFVar(sig, type, name, file)) {
         return generateFVar(sig, tree2str(file), tree2str(name));
     }
-
-    else if (isSigTable(sig, id, x, y)) {
-        return generateTable(sig, x, y);
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        return generateWRTbl(sig, x, y, z);
-    } else if (isSigRDTbl(sig, x, y)) {
-        return generateRDTbl(sig, x, y);
-    }
-
+    /*
+        else if (isSigTable(sig, id, x, y)) {
+            return generateTable(sig, x, y);
+        } else if (isSigWRTbl(sig, id, x, y, z)) {
+            return generateWRTbl(sig, x, y, z);
+        } else if (isSigRDTbl(sig, x, y)) {
+            return generateRDTbl(sig, x, y);
+        }
+    */
     else if (isSigSelect2(sig, sel, x, y)) {
         return generateSelect2(sig, sel, x, y);
     } else if (isSigSelect3(sig, sel, x, y, z)) {
         return generateSelect3(sig, sel, x, y, z);
     }
 
-    else if (isSigGen(sig, x)) {
-        return generateSigGen(sig, x);
-    }
+    /*
+        else if (isSigGen(sig, x)) {
+            return generateSigGen(sig, x);
+        }
 
-    else if (isProj(sig, &i, x)) {
-        return generateRecProj(sig, x, i);
-    }
-
+        else if (isProj(sig, &i, x)) {
+            return generateRecProj(sig, x, i);
+        }
+    */
     else if (isSigIntCast(sig, x)) {
         return generateIntCast(sig, x);
     } else if (isSigFloatCast(sig, x)) {
@@ -1045,6 +1052,7 @@ string GraphCompiler::generateCode(Tree sig)
     else {
         stringstream error;
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        cerr << "\nERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
     }
     return "error in generated code";

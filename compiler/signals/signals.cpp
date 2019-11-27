@@ -772,6 +772,7 @@ bool isSigInstructionDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, 
  */
 Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig)
 {
+    faustassert(isSigGen(init));
     return tree(gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tree(nature), tree(tblsize), init, idx, sig);
 }
 
