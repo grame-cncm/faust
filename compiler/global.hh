@@ -167,6 +167,7 @@ struct global {
     bool   gOneSample;             // Generate one sample computation
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     string gFastMathLib;           // The fastmath code mapping file
+    string gNameSpace;             // Wrapping namespace used with the C++ backend
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
     map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions

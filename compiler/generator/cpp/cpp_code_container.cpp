@@ -247,10 +247,13 @@ void CPPCodeContainer::produceInternal()
 void CPPCodeContainer::produceClass()
 {
     int n = 0;
-
+   
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
+    
+    tab(n, *fOut);
+    if (gGlobal->gNameSpace != "") *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
 
     // Sub containers
     generateSubContainers();
@@ -270,10 +273,10 @@ void CPPCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
+    
     tab(n, *fOut);
-
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
-
+    
     tab(n + 1, *fOut);
 
     if (gGlobal->gUIMacroSwitch) {
@@ -496,6 +499,9 @@ void CPPCodeContainer::produceClass()
 
     // Generate user interface macros if needed
     printMacros(*fOut, n);
+    
+    tab(n, *fOut);
+    if (gGlobal->gNameSpace != "") *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
 }
 
 // Scalar
@@ -560,11 +566,14 @@ void CPPScalarOneSampleCodeContainer::generateCompute(int n)
 void CPPScalarOneSampleCodeContainer::produceClass()
 {
     int n = 0;
-    
+   
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
+    tab(n, *fOut);
+    if (gGlobal->gNameSpace != "") *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+ 
     // Sub containers
     generateSubContainers();
     
@@ -594,7 +603,6 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
-    
     tab(n + 1, *fOut);
     
     if (gGlobal->gUIMacroSwitch) {
@@ -766,6 +774,9 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     
     // Generate user interface macros if needed
     printMacros(*fOut, n);
+    
+    tab(n, *fOut);
+    if (gGlobal->gNameSpace != "") *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
 }
 
 // Vector

@@ -168,6 +168,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gOneSample            = false;
     gOneSampleControl     = false;
     gFastMathLib          = "default";
+    gNameSpace            = "";
 
     // Fastmath mapping float version
     gFastMathLibTable["acosf"]      = "fast_acosf";

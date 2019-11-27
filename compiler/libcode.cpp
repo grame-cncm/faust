@@ -542,6 +542,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gFastMath    = true;
             gGlobal->gFastMathLib = argv[i + 1];
             i += 2;
+            
+        } else if (isCmd(argv[i], "-ns", "--namespace")) {
+            gGlobal->gNameSpace = argv[i + 1];
+            i += 2;
 
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
@@ -686,6 +690,10 @@ static bool processCmdline(int argc, const char* argv[])
               || startWith(gGlobal->gOutputLang, "wasm"))) {
             throw faustexception("ERROR : -fm can only be used with c, cpp, llvm or wast/wast backends\n");
         }
+    }
+    
+    if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp") {
+        throw faustexception("ERROR : -ns can only be used with cpp backend\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -873,7 +881,9 @@ static void printHelp()
             "<file>,"
          << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
-
+    cout << tab
+         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name> "
+         << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
