@@ -227,8 +227,7 @@ void CPPCodeContainer::produceInternal()
         *fOut << "static " << fKlassName << "* "
               << "new" << fKlassName << "(dsp_memory_manager* manager) {"
               << " return (" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
-              << "()"
-              << "; }";
+              << "(); }";
         tab(n, *fOut);
         *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~"
               << fKlassName << "(); manager->destroy(dsp); }";
@@ -236,8 +235,7 @@ void CPPCodeContainer::produceInternal()
         tab(n, *fOut);
         *fOut << "static " << fKlassName << "* "
               << "new" << fKlassName << "() {"
-              << " return (" << fKlassName << "*)new " << fKlassName << "()"
-              << "; }";
+              << " return (" << fKlassName << "*)new " << fKlassName << "(); }";
         tab(n, *fOut);
         *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
     }
@@ -252,8 +250,10 @@ void CPPCodeContainer::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    tab(n, *fOut);
-    if (gGlobal->gNameSpace != "") *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+        tab(n, *fOut);
+        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+    }
 
     // Sub containers
     generateSubContainers();
@@ -500,8 +500,10 @@ void CPPCodeContainer::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    tab(n, *fOut);
-    if (gGlobal->gNameSpace != "") *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+        tab(n, *fOut);
+        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+    }
 }
 
 // Scalar
@@ -571,8 +573,10 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    tab(n, *fOut);
-    if (gGlobal->gNameSpace != "") *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+        tab(n, *fOut);
+        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+    }
  
     // Sub containers
     generateSubContainers();
@@ -775,8 +779,10 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    tab(n, *fOut);
-    if (gGlobal->gNameSpace != "") *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+        tab(n, *fOut);
+        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+    }
 }
 
 // Vector

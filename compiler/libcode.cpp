@@ -1564,6 +1564,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             char* current_directory = getcwd(buffer, FAUST_PATH_MAX);
 
             if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) != nullptr) {
+                
+                if (gGlobal->gNameSpace != "") *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
+                
                 // Possibly inject code
                 injectCode(enrobage, *dst.get());
 
@@ -1607,6 +1610,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                         cerr << "can't restore current directory (" << current_directory << ")" << endl;
                     }
                 }
+                
+                if (gGlobal->gNameSpace != "") *dst.get() << "} // namespace " << gGlobal->gNameSpace << endl;
                 
             } else {
                 stringstream error;
