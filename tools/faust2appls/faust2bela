@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 . faustpath
-. faustoptflags
 
 #FAUST DATA:
 [ -z "$ARCHFILE" ] && ARCHFILE=$FAUSTARCH/bela.cpp
