@@ -63,16 +63,16 @@ class TransformTables : public SignalIdentity {
             Type t   = getSimpleType(sig);
             int  nat = t->nature();
             Tree id2, instr;
-            cerr << "TRANFORMATION " << ppsig(sig) << endl;
+            // cerr << "TRANFORMATION " << ppsig(sig) << endl;
             if (isSigWRTbl(tbl, id, itbl, widx, wsig)) {
                 faustassert(isSigTable(itbl, id, tblsize, init));
-                cerr << "We have a read-write table to tranform: " << ppsig(sig) << endl;
+                // cerr << "We have a read-write table to tranform: " << ppsig(sig) << endl;
                 id2   = uniqueID("RWT", tbl);
                 instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, self(widx), self(wsig));
 
             } else {
                 faustassert(isSigTable(tbl, id, tblsize, init));
-                cerr << "We have a read-only table to tranform: " << ppsig(sig) << endl;
+                // cerr << "We have a read-only table to tranform: " << ppsig(sig) << endl;
                 id2   = uniqueID("RDT", tbl);
                 instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, gGlobal->nil, gGlobal->nil);
             }

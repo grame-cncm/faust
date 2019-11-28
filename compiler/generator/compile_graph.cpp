@@ -275,8 +275,9 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
                     fTableInitExpression.set(id, init);
                     fTableInitSize.set(id, tblsize);
                     fTableInitNature.set(id, nature);
-                    cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init "
-                         << ppsig(init) << endl;
+                    // cerr << "\ncollectTableIDs: " << id << "@" << *id << " with size " << tblsize << " and with init
+                    // "
+                    //      << ppsig(init) << endl;
                 }
             }
         }
@@ -769,10 +770,12 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             string vname{tree2str(id)};
             fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
-            if (isZero(init)) {
+            Tree iexp;  // init expression
+            faustassert(isSigGen(init, iexp));
+            if (isZero(iexp)) {
                 fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
             } else {
-                cerr << "Instruction Table Write " << *id << " has init " << ppsig(init) << endl;
+                // cerr << "Instruction Table Write " << *id << " has init " << ppsig(init) << endl;
             }
             if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
@@ -930,7 +933,7 @@ void GraphCompiler::generateTime()
 
 string GraphCompiler::generateCode(Tree sig)
 {
-#if 1
+#if 0
     fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
     fprintf(stderr, ")\n");
@@ -1064,14 +1067,6 @@ string GraphCompiler::generateCode(Tree sig)
 
 string GraphCompiler::generateNumber(Tree sig, const string& exp)
 {
-    string          ctype, vname;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
-
-    // check for number occuring in delays
-    if (o->getMaxDelay() > 0) {
-        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-    }
     return exp;
 }
 
@@ -1089,10 +1084,6 @@ string GraphCompiler::generateFConst(Tree sig, const string& file, const string&
 
     addIncludeFile(file);
 
-    if (o->getMaxDelay() > 0) {
-        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-    }
     return exp;
 }
 
@@ -1115,10 +1106,10 @@ string GraphCompiler::generateFVar(Tree sig, const string& file, const string& e
 string GraphCompiler::generateInput(Tree sig, const string& idx)
 {
     if (gGlobal->gInPlace) {
-        // inputs must be cached for in-place transformations
-        return forceCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        // TODO inputs must be cached for in-place transformations
+        return subst("$1input$0[i]", idx, icast());
     } else {
-        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        return subst("$1input$0[i]", idx, icast());
     }
 }
 
@@ -1206,59 +1197,6 @@ void GraphCompiler::getTypedNames(Type t, const string& prefix, string& ctype, s
 string GraphCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     return exp;
-}
-
-// like generateCacheCode but we force caching like if sharing was always > 1
-string GraphCompiler::forceCacheCode(Tree sig, const string& exp)
-{
-    string code;
-
-    // check reentrance
-    if (getCompiledExpression(sig, code)) {
-        return code;
-    }
-
-    string          vname, ctype;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
-    faustassert(o);
-
-    // check for expression occuring in delays
-    if (o->getMaxDelay() > 0) {
-        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
-
-    } else {
-        return generateVariableStore(sig, exp);
-    }
-}
-
-string GraphCompiler::generateVariableStore(Tree sig, const string& exp)
-{
-    string vname, ctype;
-    Type   t = getCertifiedSigType(sig);
-
-    switch (t->variability()) {
-        case kKonst:
-            getTypedNames(t, "Const", ctype, vname);
-            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            fClass->addInitCode(subst("$0 = $1;", vname, exp));
-            break;
-
-        case kBlock:
-            getTypedNames(t, "Slow", ctype, vname);
-            fClass->addFirstPrivateDecl(vname);
-            fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, exp));
-            break;
-
-        case kSamp:
-            getTypedNames(t, "TempPerm", ctype, vname);
-            // need to be preserved because of new enable and control primitives
-            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            fClass->addInitCode(subst("$0 = 0;", vname));
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
-            break;
-    }
-    return vname;
 }
 
 /*****************************************************************************
@@ -1589,66 +1527,6 @@ string GraphCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 }
 
 /*****************************************************************************
-                               RECURSIONS
-*****************************************************************************/
-
-/**
- * Generate code for a projection of a group of mutually recursive definitions
- */
-string GraphCompiler::generateRecProj(Tree sig, Tree r, int i)
-{
-    string vname;
-    Tree   var, le;
-
-    if (!getVectorNameProperty(sig, vname)) {
-        faustassert(isRec(r, var, le));
-        generateRec(r, var, le);
-        faustassert(getVectorNameProperty(sig, vname));
-    }
-    return "[[UNUSED EXP]]";  // make sure the resulting expression is never used in the generated code
-}
-
-/**
- * Generate code for a group of mutually recursive definitions
- */
-void GraphCompiler::generateRec(Tree sig, Tree var, Tree le)
-{
-    int N = len(le);
-
-    vector<bool>   used(N);
-    vector<int>    delay(N);
-    vector<string> vname(N);
-    vector<string> ctype(N);
-
-    // prepare each element of a recursive definition
-    for (int i = 0; i < N; i++) {
-        Tree e = sigProj(i, sig);  // recreate each recursive definition
-        if (fOccMarkup->retrieve(e)) {
-            // this projection is used
-            used[i] = true;
-            getTypedNames(getCertifiedSigType(e), "Rec", ctype[i], vname[i]);
-            setVectorNameProperty(e, vname[i]);
-            delay[i] = fOccMarkup->retrieve(e)->getMaxDelay();
-        } else {
-            cerr << "UNUSED PROJECTION " << *sig << '.' << i << endl;
-            // this projection is not used therefore
-            // we should not generate code for it
-            used[i] = false;
-        }
-    }
-
-    // generate delayline for each element of a recursive definition
-    for (int i = 0; i < N; i++) {
-        if (used[i]) {
-            // if (delay[i] == 0) {
-            //     cerr << ">>>>>> NOT A REAL RECURSION (Not used delayed)" << *sigProj(i, sig) << endl;
-            // }
-            generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le, i)), getConditionCode(nth(le, i)));
-        }
-    }
-}
-
-/*****************************************************************************
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
 
@@ -1848,158 +1726,159 @@ int GraphCompiler::pow2limit(int x)
 
  *****************************************************************************/
 
-/**
- * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp and the gLessTempSwitch.
- */
+// /**
+//  * Generate code for accessing a delayed signal. The generated code depend of
+//  * the maximum delay attached to exp and the gLessTempSwitch.
+//  */
 
-string GraphCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
-{
-    // cerr << "GraphCompiler::generateFixDelay sig = " << *sig << endl;
-    // cerr << "GraphCompiler::generateFixDelay exp = " << *exp << endl;
-    // cerr << "GraphCompiler::generateFixDelay del = " << *delay << endl;
+// string GraphCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
+// {
+//     // cerr << "GraphCompiler::generateFixDelay sig = " << *sig << endl;
+//     // cerr << "GraphCompiler::generateFixDelay exp = " << *exp << endl;
+//     // cerr << "GraphCompiler::generateFixDelay del = " << *delay << endl;
 
-    string code = CS(exp);  // ensure exp is compiled to have a vector name
-    int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
-    string vecname;
+//     string code = CS(exp);  // ensure exp is compiled to have a vector name
+//     int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+//     string vecname;
 
-    if (!getVectorNameProperty(exp, vecname)) {
-        if (mxd == 0) {
-            // cerr << "it is a pure zero delay : " << code << endl;
-            return code;
-        } else {
-            cerr << "No vector name for : " << ppsig(exp) << endl;
-            faustassert(0);
-        }
-    }
+//     if (!getVectorNameProperty(exp, vecname)) {
+//         if (mxd == 0) {
+//             // cerr << "it is a pure zero delay : " << code << endl;
+//             return code;
+//         } else {
+//             cerr << "No vector name for : " << ppsig(exp) << endl;
+//             faustassert(0);
+//         }
+//     }
 
-    if (mxd == 0) {
-        // not a real vector name but a scalar name
-        return vecname;
+//     if (mxd == 0) {
+//         // not a real vector name but a scalar name
+//         return vecname;
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
-        int d;
-        if (isSigInt(delay, &d)) {
-            return subst("$0[$1]", vecname, CS(delay));
-        } else {
-            return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
-        }
+//     } else if (mxd < gGlobal->gMaxCopyDelay) {
+//         int d;
+//         if (isSigInt(delay, &d)) {
+//             return subst("$0[$1]", vecname, CS(delay));
+//         } else {
+//             return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+//         }
 
-    } else {
-        // long delay : we use a ring buffer of size 2^x
-        int N = pow2limit(mxd + 1);
-        return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
-    }
-}
+//     } else {
+//         // long delay : we use a ring buffer of size 2^x
+//         int N = pow2limit(mxd + 1);
+//         return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
+//     }
+// }
 
-/**
- * Generate code for the delay mecchanism. The generated code depend of the
- * maximum delay attached to exp and the "less temporaries" switch
- */
+// /**
+//  * Generate code for the delay mecchanism. The generated code depend of the
+//  * maximum delay attached to exp and the "less temporaries" switch
+//  */
 
-string GraphCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
-{
-    string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
-    if (getCertifiedSigType(sig)->variability() < kSamp) {
-        return exp;
-    } else {
-        return s;
-    }
-}
+// string GraphCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int
+// mxd)
+// {
+//     string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
+//     if (getCertifiedSigType(sig)->variability() < kSamp) {
+//         return exp;
+//     } else {
+//         return s;
+//     }
+// }
 
-/**
- * Generate code for the delay mecchanism without using temporary variables
- */
+// /**
+//  * Generate code for the delay mecchanism without using temporary variables
+//  */
 
-string GraphCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                             int mxd)
-{
-    faustassert(mxd > 0);
+// string GraphCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
+//                                              int mxd)
+// {
+//     faustassert(mxd > 0);
 
-    // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
-    string ccs = getConditionCode(sig);
+//     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
+//     string ccs = getConditionCode(sig);
 
-    if (mxd < gGlobal->gMaxCopyDelay) {
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+//     if (mxd < gGlobal->gMaxCopyDelay) {
+//         // short delay : we copy
+//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
+//         fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
 
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-            fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-        } else {
-            fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-        }
-        setVectorNameProperty(sig, vname);
-        return subst("$0[0]", vname);
+//         // generate post processing copy code to update delay values
+//         if (mxd == 1) {
+//             fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
+//         } else if (mxd == 2) {
+//             // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
+//             fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
+//         } else {
+//             fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
+//         }
+//         setVectorNameProperty(sig, vname);
+//         return subst("$0[0]", vname);
 
-    } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
+//     } else {
+//         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+//         int N = pow2limit(mxd + 1);
 
-        // we need a iota index
-        ensureIotaCode();
+//         // we need a iota index
+//         ensureIotaCode();
 
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+//         // declare and init
+//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
-        // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-        setVectorNameProperty(sig, vname);
-        return subst("$0[IOTA&$1]", vname, T(N - 1));
-    }
-}
+//         // execute
+//         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+//         setVectorNameProperty(sig, vname);
+//         return subst("$0[IOTA&$1]", vname, T(N - 1));
+//     }
+// }
 
-/**
- * Generate code for the delay mecchanism without using temporary variables
- */
+// /**
+//  * Generate code for the delay mecchanism without using temporary variables
+//  */
 
-void GraphCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                      const string& ccs)
-{
-    // faustassert(mxd > 0);
-    if (mxd == 0) {
-        // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
-        // no need for a real vector
-        fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
+// void GraphCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
+//                                       const string& ccs)
+// {
+//     // faustassert(mxd > 0);
+//     if (mxd == 0) {
+//         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
+//         // no need for a real vector
+//         fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
 
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
-        // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
+//     } else if (mxd < gGlobal->gMaxCopyDelay) {
+//         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+//         // short delay : we copy
+//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
+//         fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
 
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-        } else {
-            fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-        }
+//         // generate post processing copy code to update delay values
+//         if (mxd == 1) {
+//             fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
+//         } else if (mxd == 2) {
+//             fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
+//         } else {
+//             fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
+//         }
 
-    } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
+//     } else {
+//         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+//         int N = pow2limit(mxd + 1);
 
-        // we need a iota index
-        ensureIotaCode();
+//         // we need a iota index
+//         ensureIotaCode();
 
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+//         // declare and init
+//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
-        // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-    }
-}
+//         // execute
+//         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+//     }
+// }
 
 /**
  * Generate code for a unique IOTA variable increased at each sample

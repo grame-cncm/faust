@@ -120,8 +120,8 @@ class GraphCompiler : public Compiler {
     virtual string CS(Tree sig);
     virtual string generateCode(Tree sig);
     virtual string generateCacheCode(Tree sig, const string& exp);
-    virtual string forceCacheCode(Tree sig, const string& exp);
-    virtual string generateVariableStore(Tree sig, const string& exp);
+    // virtual string forceCacheCode(Tree sig, const string& exp);
+    // virtual string generateVariableStore(Tree sig, const string& exp);
 
     void   SchedulingToClass(Scheduling& S, Klass* K);
     string getFreshID(const string& prefix);
@@ -162,11 +162,11 @@ class GraphCompiler : public Compiler {
 
     // code generation
 
-    string         generateXtended(Tree sig);
-    virtual string generateFixDelay(Tree sig, Tree arg, Tree size);
-    string         generatePrefix(Tree sig, Tree x, Tree e);
-    string         generateIota(Tree sig, Tree arg);
-    string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
+    string generateXtended(Tree sig);
+    // virtual string generateFixDelay(Tree sig, Tree arg, Tree size);
+    string generatePrefix(Tree sig, Tree x, Tree e);
+    string generateIota(Tree sig, Tree arg);
+    string generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
     string         generateFFun(Tree sig, Tree ff, Tree largs);
     virtual string generateWaveform(Tree sig);
@@ -204,10 +204,11 @@ class GraphCompiler : public Compiler {
     string generateFConst(Tree sig, const string& file, const string& name);
     string generateFVar(Tree sig, const string& file, const string& name);
 
-    virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    string       generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                   const string& ccs);
+    // virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    // string       generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int
+    // mxd);
+    // virtual void generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
+    //                               const string& ccs);
 
     void getTypedNames(::Type t, const string& prefix, string& ctype, string& vname);
     void ensureIotaCode();
