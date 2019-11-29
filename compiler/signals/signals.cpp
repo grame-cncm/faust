@@ -151,8 +151,16 @@ bool isSigTime(Tree t)
 
 Tree sigRDTbl(Tree t, Tree i)
 {
-    return tree(gGlobal->SIGRDTBL, t, i);
+    Tree id, origin;
+    int  nature;
+    Tree x = tree(gGlobal->SIGRDTBL, t, i);
+    if (isSigInstructionControlRead(t, id, origin, &nature)) {
+        cerr << "\nSPECIAL CASE **********" << endl;
+    }
+    // cerr << "sigRDTbl(Tree t, Tree i) " << ppsig(x) << endl;
+    return x;
 }
+
 bool isSigRDTbl(Tree s, Tree& t, Tree& i)
 {
     return isTree(s, gGlobal->SIGRDTBL, t, i);
@@ -160,8 +168,11 @@ bool isSigRDTbl(Tree s, Tree& t, Tree& i)
 
 Tree sigWRTbl(Tree id, Tree t, Tree i, Tree s)
 {
-    return tree(gGlobal->SIGWRTBL, id, t, i, s);
+    Tree x = tree(gGlobal->SIGWRTBL, id, t, i, s);
+    // cerr << "sigWRTbl(Tree id, Tree t, Tree i, Tree s) " << ppsig(x) << endl;
+    return x;
 }
+
 bool isSigWRTbl(Tree u, Tree& id, Tree& t, Tree& i, Tree& s)
 {
     return isTree(u, gGlobal->SIGWRTBL, id, t, i, s);
@@ -169,8 +180,11 @@ bool isSigWRTbl(Tree u, Tree& id, Tree& t, Tree& i, Tree& s)
 
 Tree sigTable(Tree id, Tree n, Tree sig)
 {
-    return tree(gGlobal->SIGTABLE, id, n, sig);
+    Tree x = tree(gGlobal->SIGTABLE, id, n, sig);
+    // cerr << "sigTable(Tree id, Tree n, Tree sig) " << ppsig(x) << endl;
+    return x;
 }
+
 bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig)
 {
     return isTree(t, gGlobal->SIGTABLE, id, n, sig);

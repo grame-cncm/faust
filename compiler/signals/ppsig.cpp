@@ -254,7 +254,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigTable(sig, id, x, y)) {
-        printfun(fout, "sigTable", x, y);
+        printfun(fout, "sigTable", x, y);  // don't print the table id
     } else if (isSigWRTbl(sig, id, x, y, z)) {
         printfun(fout, "sigWRTbl", x, y, z);
     } else if (isSigRDTbl(sig, x, y)) {
@@ -345,17 +345,17 @@ ostream& ppsig::print(ostream& fout) const
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << " " << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionSharedRead(sig, x, c, &nat)) {
-        // fout << "sigInstructionControlRead(" << *x << ")";
-        fout << *x;
+        fout << "ShareRead(" << *x << ")";
+        // fout << *x;
     }
 
     else if (isSigInstructionControlWrite(sig, x, c, &nat, y)) {
         // fout << "sigInstructionControlWrite(" << *x << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
-        fout << tname << " " << *x << " := " << ppsig(y) << ";";
+        fout << tname << " " << *x << " :CW= " << ppsig(y) << ";";
     } else if (isSigInstructionControlRead(sig, x, c, &nat)) {
-        // fout << "sigInstructionControlRead(" << *x << ")";
-        fout << *x;
+        fout << "ControlRead(" << *x << ")";
+        // fout << *x;
     }
 
     else {

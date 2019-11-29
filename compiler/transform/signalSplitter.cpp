@@ -71,7 +71,7 @@ set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS)
     fOccMarkup->mark(LS);  // annotate L3 with occurrences analysis
 
     SignalSplitter SS(fOccMarkup);
-    SS.trace(false, "Signal Splitter");
+    SS.trace(false, "splitSignalsToInstr");
     SS.mapself(LS);
     return SS.fSplittedSignals;
 }
@@ -138,6 +138,14 @@ Tree SignalSplitter::transformation(Tree sig)
             Tree w = self(y);
             return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
         }
+    } else if (isSigTable(sig, id, tblsize, init)) {
+        // nothing to transform on sigtables, we keep init signal untransformed
+        return sig;
+    } else if (isSigWRTbl(sig, id, itbl, widx, wsig)) {
+        return sigWRTbl(id, self(itbl), self(widx), self(wsig));
+    } else if (isSigRDTbl(sig, wtbl, ridx)) {
+        return sigRDTbl(self(wtbl), self(ridx));
+
         // } else if (isSigRDTbl(sig, wtbl, ridx)) {
         //     cerr << "TRANFORMATION " << ppsig(sig) << endl;
         //     if (isSigWRTbl(wtbl, id, itbl, widx, wsig)) {

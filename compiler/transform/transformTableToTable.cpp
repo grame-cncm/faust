@@ -103,7 +103,7 @@ class TransformTableToTable : public SignalIdentity {
 set<Tree> transformTableToTable(const set<Tree>& I)
 {
     TransformTableToTable d2t;
-    d2t.trace(false);
+    d2t.trace(false, "transformTableToTable");
 
     set<Tree> R;
     for (Tree i : I) R.insert(d2t.self(i));

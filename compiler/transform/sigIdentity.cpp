@@ -47,7 +47,7 @@ void SignalIdentity::traceEnter(Tree t)
 void SignalIdentity::traceExit(Tree t, Tree r)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << " => " << ppsig(r) << endl;
+    cerr << fMessage << ": " << ppsig(t) << "  ===>  " << ppsig(r) << endl;
 }
 
 Tree SignalIdentity::transformation(Tree sig)
@@ -101,7 +101,10 @@ Tree SignalIdentity::transformation(Tree sig)
     } else if (isSigWRTbl(sig, id, x, y, z)) {
         return sigWRTbl(id, self(x), self(y), self(z));
     } else if (isSigRDTbl(sig, x, y)) {
-        return sigRDTbl(self(x), self(y));
+        // cerr << "IDENTITY TRANSFORM " << ppsig(sig) << " INTO ";
+        Tree rr = sigRDTbl(self(x), self(y));
+        // cerr << rr << endl;
+        return rr;
     }
 
     // Doc

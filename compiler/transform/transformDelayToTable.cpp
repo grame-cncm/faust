@@ -103,9 +103,10 @@ class TransformDelayToTable : public SignalIdentity {
 set<Tree> transformDelayToTable(const set<Tree>& I)
 {
     TransformDelayToTable d2t;
-    d2t.trace(false);
+    d2t.trace(false, "transformDelayToTable");
 
     set<Tree> R;
     for (Tree i : I) R.insert(d2t.self(i));
+
     return R;
 }

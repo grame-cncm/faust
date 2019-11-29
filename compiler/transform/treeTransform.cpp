@@ -63,7 +63,7 @@ void TreeTransform::traceEnter(Tree t)
 void TreeTransform::traceExit(Tree t, Tree r)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << *t << " ==> " << *r << endl;
+    cerr << fMessage << ": " << *t << "  ==>  " << *r << endl;
 }
 
 Tree TreeTransform::mapself(Tree lt)

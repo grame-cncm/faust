@@ -308,19 +308,24 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     typeAnnotation(L3d, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
 
+    // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
     signalGraph("phase1-beforeSimplification.dot", INSTR1);
 
+    // cerr << ">>delayLineSimplifier\n" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
     signalGraph("phase2-afterSimplification.dot", INSTR2);
 
+    // cerr << ">>transformDelayToTable\n" << endl;
     set<Tree> INSTR3 = transformDelayToTable(INSTR2);
     signalGraph("phase3-afterTable.dot", INSTR3);
 
+    // cerr << ">>transformTables\n" << endl;
     set<Tree> INSTR4 = transformTables(INSTR3);
     signalGraph("phase4-afterTableTransform.dot", INSTR4);
 
+    // cerr << ">>splitCommonSubexpr\n" << endl;
     set<Tree> INSTR5 = splitCommonSubexpr(INSTR4);
     signalGraph("phase5-afterCSE.dot", INSTR5);
 
@@ -968,15 +973,7 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigOutput(sig, &i, x)) {
         return generateOutput(sig, T(i), CS(x));
     }
-    /*
-        else if (isSigFixDelay(sig, x, y)) {
-            return generateFixDelay(sig, x, y);
-        } else if (isSigPrefix(sig, x, y)) {
-            return generatePrefix(sig, x, y);
-        } else if (isSigIota(sig, x)) {
-            return generateIota(sig, x);
-        }
-    */
+
     else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
     } else if (isSigFFun(sig, ff, largs)) {
@@ -986,30 +983,13 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigFVar(sig, type, name, file)) {
         return generateFVar(sig, tree2str(file), tree2str(name));
     }
-    /*
-        else if (isSigTable(sig, id, x, y)) {
-            return generateTable(sig, x, y);
-        } else if (isSigWRTbl(sig, id, x, y, z)) {
-            return generateWRTbl(sig, x, y, z);
-        } else if (isSigRDTbl(sig, x, y)) {
-            return generateRDTbl(sig, x, y);
-        }
-    */
+
     else if (isSigSelect2(sig, sel, x, y)) {
         return generateSelect2(sig, sel, x, y);
     } else if (isSigSelect3(sig, sel, x, y, z)) {
         return generateSelect3(sig, sel, x, y, z);
     }
 
-    /*
-        else if (isSigGen(sig, x)) {
-            return generateSigGen(sig, x);
-        }
-
-        else if (isProj(sig, &i, x)) {
-            return generateRecProj(sig, x, i);
-        }
-    */
     else if (isSigIntCast(sig, x)) {
         return generateIntCast(sig, x);
     } else if (isSigFloatCast(sig, x)) {
@@ -1065,10 +1045,10 @@ string GraphCompiler::generateCode(Tree sig)
  NUMBERS
  *****************************************************************************/
 
-string GraphCompiler::generateNumber(Tree sig, const string& exp)
-{
-    return exp;
-}
+// string GraphCompiler::generateNumber(Tree sig, const string& exp)
+// {
+//     return exp;
+// }
 
 /*****************************************************************************
  FOREIGN CONSTANTS
