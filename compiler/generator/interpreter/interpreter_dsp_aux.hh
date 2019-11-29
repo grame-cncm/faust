@@ -856,13 +856,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
             // Set count in 'count' variable at the correct offset in fIntHeap
             fFBCExecutor->setIntValue(fFactory->fCountOffset, count);
-
-            // Executes the 'control' block
-            fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
-
+            
             try {
+                
+                // Executes the 'control' block
+                fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
+
                 // Executes the 'DSP' block
                 fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+                
             } catch (faustexception& e) {
                 std::cout << e.Message();
                 fFBCExecutor->dumpMemory(fFactory->fComputeDSPBlock, fFactory->getName(),

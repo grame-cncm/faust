@@ -86,7 +86,6 @@ static string& replaceOccurrences(string& str, const string& oldstr, const strin
  */
 static string& replaceClassName(string& str)
 {
-    string res;
     // "mydsp" can be replaced as the DSP class name, or appearing anywhere in the file
     replaceOccurrences(str, "mydsp", gGlobal->gClassName, true);
     // But "dsp" string has to be replaced in a strict manner
@@ -109,17 +108,20 @@ class myparser {
    public:
     
     myparser(const string& s) : str(s), N(s.length()), p(0) {}
+    
     bool skip()
     {
         while (p < N && isspace(str[p])) p++;
         return true;
     }
+    
     bool parse(const string& s)
     {
         bool f;
         if ((f = (p == str.find(s, p)))) p += s.length();
         return f;
     }
+    
     bool filename(string& fname)
     {
         size_t saved = p;
@@ -162,9 +164,7 @@ static void inject(ostream& dst, const string& fname)
         if (src) {
             streamCopyUntilEnd(*src, dst);
         } else {
-            stringstream error;
-            error << fname << " not found\n";
-            gGlobal->gErrorMsg = error.str();
+            gGlobal->gErrorMsg = fname + " not found\n";
         }
     }
 }
@@ -480,7 +480,7 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 }
 
 /**
- * Copy src to dst until specific line.
+ * Copy src to dst until a specific line
  */
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {
