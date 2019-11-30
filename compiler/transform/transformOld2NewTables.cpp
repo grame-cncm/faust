@@ -28,7 +28,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include "transformTables.hh"
 #include <map>
 #include "global.hh"
 #include "old_occurences.hh"
@@ -37,6 +36,7 @@
 #include "sigIdentity.hh"
 #include "signalDependencies.hh"
 #include "sigtyperules.hh"
+#include "transformOld2NewTables.hh"
 
 using namespace std;
 
@@ -96,11 +96,11 @@ class TransformTables : public SignalIdentity {
  * @param I the initial set of instructions
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> transformTables(const set<Tree>& I)
+set<Tree> transformOld2NewTables(const set<Tree>& I)
 {
     TransformTables tt;
 
-    tt.trace(false, "transformOld2NewTables");
+    tt.trace(gGlobal->gDebugSwitch, "transformOld2NewTables");
 
     // cerr << "\n\nENTER TRANSFORM OLD RD/RW TABLES\n" << endl;
 

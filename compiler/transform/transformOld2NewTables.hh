@@ -32,4 +32,4 @@
  * @param I set of instructions to split
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> transformTables(const set<Tree>& I);
+set<Tree> transformOld2NewTables(const set<Tree>& I);
