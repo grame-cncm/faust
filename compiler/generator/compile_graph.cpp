@@ -147,7 +147,7 @@ Tree GraphCompiler::prepare(Tree LS)
 
     startTiming("Cast and Promotion");
     SignalPromotion SP;
-    SP.trace(false, "Cast");
+    SP.trace(true, "Cast");
     Tree L1b = SP.mapself(L1);
     endTiming("Cast and Promotion");
 
