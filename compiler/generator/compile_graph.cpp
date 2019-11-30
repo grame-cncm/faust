@@ -55,7 +55,7 @@
 #include "splitCommonSubexpr.hh"
 #include "timing.hh"
 #include "transformDelayToTable.hh"
-#include "transformTables.hh"
+#include "transformOld2NewTables.hh"
 #include "xtended.hh"
 
 using namespace std;
@@ -147,7 +147,7 @@ Tree GraphCompiler::prepare(Tree LS)
 
     startTiming("Cast and Promotion");
     SignalPromotion SP;
-    SP.trace(true, "Cast");
+    SP.trace(gGlobal->gDebugSwitch, "Cast");
     Tree L1b = SP.mapself(L1);
     endTiming("Cast and Promotion");
 
@@ -157,7 +157,7 @@ Tree GraphCompiler::prepare(Tree LS)
 
     startTiming("Constant propagation");
     SignalConstantPropagation SK;
-    SK.trace(false, "ConstProp2");
+    SK.trace(gGlobal->gDebugSwitch, "ConstProp2");
     Tree L2b = SK.mapself(L2);
     endTiming("Constant propagation");
 
@@ -321,8 +321,8 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     set<Tree> INSTR3 = transformDelayToTable(INSTR2);
     signalGraph("phase3-afterTable.dot", INSTR3);
 
-    // cerr << ">>transformTables\n" << endl;
-    set<Tree> INSTR4 = transformTables(INSTR3);
+    // cerr << ">>transformOld2NewTables\n" << endl;
+    set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
     signalGraph("phase4-afterTableTransform.dot", INSTR4);
 
     // cerr << ">>splitCommonSubexpr\n" << endl;
@@ -366,8 +366,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -658,6 +660,8 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         int  nature;
 
         faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
+        // force type annotation of transformed expressions
+        Type ty = getSimpleType(content);
 
         string ctype{(nature == kInt) ? "int" : "float"};
         string vname{tree2str(id)};

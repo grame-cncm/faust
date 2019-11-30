@@ -3,6 +3,7 @@
 #include <set>
 #include <sstream>
 
+#include "global.hh"
 #include "ppsig.hh"
 #include "signalDependencies.hh"
 #include "symbol.hh"
@@ -150,7 +151,7 @@ Tree Dictionnary::operator[](Tree id)
 digraph<Tree> dependencyGraph(Tree sig)
 {
     SignalDependencies D(sig);
-    // D.trace(true, "compute dependencies");
+    D.trace(gGlobal->gDebugSwitch, "SignalDependencies");
     // cerr << "Dependencies of " << ppsig(sig) << " are " << D.graph() << endl;
     return D.graph();
 }

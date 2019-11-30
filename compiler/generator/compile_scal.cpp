@@ -110,7 +110,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     startTiming("Cast and Promotion");
     SignalPromotion SP;
-    SP.trace(false, "Cast");
+    SP.trace(gGlobal->gDebugSwitch, "Cast");
     Tree L1b = SP.mapself(L1);
     endTiming("Cast and Promotion");
 
@@ -120,7 +120,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     startTiming("Constant propagation");
     SignalConstantPropagation SK;
-    // SK.trace(true, "ConstProp2");
+    SK.trace(gGlobal->gDebugSwitch, "ConstProp2");
     Tree L2b = SK.mapself(L2);
     endTiming("Constant propagation");
 

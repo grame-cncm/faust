@@ -71,7 +71,7 @@ set<Tree> splitSignalsToInstr(const map<Tree, Tree>& conditionProperty, Tree LS)
     fOccMarkup->mark(LS);  // annotate L3 with occurrences analysis
 
     SignalSplitter SS(fOccMarkup);
-    SS.trace(false, "splitSignalsToInstr");
+    SS.trace(gGlobal->gDebugSwitch, "splitSignalsToInstr");
     SS.mapself(LS);
     return SS.fSplittedSignals;
 }

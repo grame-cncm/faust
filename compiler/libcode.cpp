@@ -307,6 +307,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gDetailsSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-dt", "--debug-trace")) {
+            gGlobal->gDebugSwitch = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-a", "--architecture") && (i + 1 < argc)) {
             gGlobal->gArchFile = argv[i + 1];
             i += 2;
@@ -885,6 +889,7 @@ static void printHelp()
          << endl;
 
     cout << endl << "Debug options:" << line;
+    cout << tab << "-dt         --debug-trace               print debug traces." << endl;
     cout << tab << "-d          --details                   print compilation details." << endl;
     cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
