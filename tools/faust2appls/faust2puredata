@@ -73,7 +73,7 @@ if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
     LIB="-I$PUREDATA_MACSDK -I. -bundle -undefined suppress -flat_namespace"
     EXT="~.pd_darwin"
 else
-    LIB="-I/usr/include/pd -I/usr/include/pdextended -I. -fPIC -shared"
+    LIB="-I$PUREDATA_LINUXSDK -I. -fPIC -shared"
     EXT="~.pd_linux"
 fi
 
