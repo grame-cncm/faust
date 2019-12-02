@@ -277,9 +277,9 @@ class soulpatch_dsp : public dsp {
                 }
             }
             
-            // MIDI handling
+            // MIDI input handling
             if (fMIDIHander) {
-                fRenderContext.numMIDIMessages = fMIDIHander->getMessages(reinterpret_cast<std::vector<MIDIMessage>*>(&fMIDIMessages));
+                fRenderContext.numMIDIMessagesIn = fMIDIHander->getMessages(reinterpret_cast<std::vector<MIDIMessage>*>(&fMIDIMessages));
                 fRenderContext.incomingMIDI = std::addressof(fMIDIMessages[0]);
             }
         

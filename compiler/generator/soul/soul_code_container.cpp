@@ -145,9 +145,11 @@ void SOULCodeContainer::produceInternal()
 void SOULCodeContainer::produceInit(int tabs)
 {
     tab(tabs, *fOut);
-    *fOut << "void init (int sample_rate)";
+    *fOut << "void init ()";
     tab(tabs, *fOut);
     *fOut << "{";
+    tab(tabs + 1, *fOut);
+    *fOut << "let sample_rate = int(processor.frequency);";
     tab(tabs + 1, *fOut);
     *fOut << "classInit (sample_rate);";
     tab(tabs + 1, *fOut);
@@ -364,12 +366,6 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "void run()";
     tab(n, *fOut);
     *fOut << "{";
-    tab(n + 1, *fOut);
-    *fOut << "// 'init' called once before starting the DSP loop";
-    tab(n + 1, *fOut);
-    *fOut << "init (int(processor.frequency));";
-
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "// DSP loop running forever...";
     tab(n + 1, *fOut);
