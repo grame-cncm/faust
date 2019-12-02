@@ -227,9 +227,7 @@ class FaustWasm2ScriptProcessor {
         
         sp.getSampleRate = () => audioCtx.sampleRate;   // Return current sample rate
         sp.getNumInputs = () => sp.numIn;               // Return instance number of audio inputs.
-        sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.
-        
-        
+        sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.    
         
         /**
         * Global init, doing the following initialization:
@@ -325,7 +323,7 @@ class FaustWasm2ScriptProcessor {
         /**
          * Get control value.
          *
-         * @param {string} path - the path to the wanted control (retrieved using 'controls' method)
+         * @param {string} path - the path to the wanted control (retrieved using 'getParams' method)
          *
          * @return {number} the float value
          */
@@ -339,7 +337,7 @@ class FaustWasm2ScriptProcessor {
         sp.getParams = () => sp.inputs_items;
         
         /**
-         * Get DSP JSON description with its UI and metadata
+         * Get DSP JSON description with its UI and metadata.
          *
          * @return {string} DSP JSON description
          */
@@ -349,6 +347,7 @@ class FaustWasm2ScriptProcessor {
         sp.initAux();
         return sp;
     }
+
     /**
     * Create a ScriptProcessorNode Web Audio object
     * by loading and compiling the Faust wasm file

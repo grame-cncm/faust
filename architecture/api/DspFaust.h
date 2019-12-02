@@ -175,7 +175,7 @@ class DspFaust
         //---------`int deleteVoice(long voice)`------------------
         // De-instantiate a polyphonic voice. This method can
         // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if `-polyvoices` flag has been
+        // the Faust code or if `-nvoices` flag has been
         // provided before compilation.
         //
         // `deleteVoice` will return 0 if the object is not polyphonic
@@ -199,7 +199,7 @@ class DspFaust
         //
         // `propagateMidi` can
         // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if `-polyvoices` flag has been
+        // the Faust code or if `-nvoices` flag has been
         // provided before compilation.
         //
         // #### Arguments

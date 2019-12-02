@@ -525,7 +525,7 @@ faust.writeDSPFactoryToMachine = function (factory)
             code_effect: faust.ab2str(factory.code_effect),
             code_source_effect: factory.code_source_effect,
             helpers_effect : factory.helpers_effect,
-            };
+        };
 }
 
 /**
@@ -2481,7 +2481,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     /**
      * Get parameter value.
      *
-     * @param path - the path to the wanted parameter (retrieved using 'controls' method)
+     * @param path - the path to the wanted parameter (retrieved using 'getParams' method)
      *
      * @return the float value
      */

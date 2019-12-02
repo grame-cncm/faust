@@ -351,6 +351,7 @@ class FaustWasm2ScriptProcessorPoly {
         sp.getSampleRate = () => audioCtx.sampleRate; // Return current sample rate
         sp.getNumInputs = () => sp.numIn; // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut; // Return instance number of audio outputs.
+
         /**
          * Global init, doing the following initialization:
          * - static tables initialization
@@ -363,6 +364,7 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.factory.init(sp.dsp_voices[i], sampleRate);
             }
         }
+
         /**
          * Init instance state.
          *
@@ -373,6 +375,7 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.factory.instanceInit(sp.dsp_voices[i], sampleRate);
             }
         }
+
         /**
          * Init instance constant state.
          *
@@ -383,18 +386,21 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.factory.instanceConstants(sp.dsp_voices[i], sampleRate);
             }
         }
+
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = () => {
             for (let i = 0; i < polyphony; i++) {
                 sp.factory.instanceResetUserInterface(sp.dsp_voices[i]);
             }
         }
+
         /* Init instance state (delay lines...).*/
         sp.instanceClear = () => {
             for (let i = 0; i < polyphony; i++) {
                 sp.factory.instanceClear(sp.dsp_voices[i]);
             }
         }
+
         /**
          * Trigger the Meta handler with instance specific calls to 'declare' (key, value) metadata.
          *
@@ -405,6 +411,7 @@ class FaustWasm2ScriptProcessorPoly {
                 this.dspProps.meta.forEach(meta => handler.declare(Object.keys(meta)[0], Object.values(meta)[0]));
             }
         }
+
         /**
          * Setup a control output handler with a function of type (path, value)
          * to be used on each generated output value. This handler will be called
@@ -417,6 +424,7 @@ class FaustWasm2ScriptProcessorPoly {
          * Get the current output handler.
          */
         sp.getOutputParamHandler = () => sp.output_handler;
+
         /**
          * Instantiates a new polyphonic voice.
          *
@@ -438,6 +446,7 @@ class FaustWasm2ScriptProcessorPoly {
             }
             sp.dsp_voices_state[voice] = pitch;
         }
+
         /**
          * De-instantiates a polyphonic voice.
          *
@@ -458,6 +467,7 @@ class FaustWasm2ScriptProcessorPoly {
                 this.log("Playing voice not found...");
             }
         }
+
         /**
          * Gently terminates all the active voices.
          */
@@ -469,6 +479,7 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.dsp_voices_state[i] = sp.kReleaseVoice;
             }
         }
+
         /**
          * Control change
          *
@@ -485,6 +496,7 @@ class FaustWasm2ScriptProcessorPoly {
                 if (sp.output_handler) sp.output_handler(path, sp.getParamValue(path));
             })
         }
+
         /**
          * PitchWeel
          *
@@ -508,6 +520,7 @@ class FaustWasm2ScriptProcessorPoly {
             }
             return false;
         }
+
         /**
          * Set control value.
          *
@@ -523,10 +536,11 @@ class FaustWasm2ScriptProcessorPoly {
                 }
             }
         }
+
         /**
          * Get control value.
          *
-         * @param {string} path - the path to the wanted control (retrieved using 'controls' method)
+         * @param {string} path - the path to the wanted control (retrieved using 'getParams' method)
          *
          * @return {number} the float value
          */
@@ -537,14 +551,16 @@ class FaustWasm2ScriptProcessorPoly {
                 return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
             }
         }
+
         /**
          * Get the table of all input parameters paths.
          *
          * @return {object} the table of all input parameter paths.
          */
         sp.getParams = () => sp.inputs_items;
+
         /**
-         * Get DSP JSON description with its UI and metadata
+         * Get DSP JSON description with its UI and metadata.
          *
          * @return {string} DSP JSON description
          */
@@ -580,6 +596,7 @@ class FaustWasm2ScriptProcessorPoly {
         sp.initAux();
         return sp;
     }
+
     createMemory(bufferSize, polyphony) {
         // Memory allocator
         const ptrSize = 4;
@@ -599,6 +616,7 @@ class FaustWasm2ScriptProcessorPoly {
         memorySize = Math.max(2, memorySize); // As least 2
         return new WebAssembly.Memory({ initial: memorySize, maximum: memorySize });
     }
+    
     /**
      * Create a ScriptProcessorNode Web Audio object
      * by loading and compiling the Faust wasm file
