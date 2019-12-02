@@ -70,22 +70,22 @@ createSOULPatch()
 {
     (
     echo '{'
-    echo '"soulPatchV1":'
-    echo '{'
-    echo "\"ID\": \"grame.soul.$1\","
-    echo '"version": "1.0",'
-    echo "\"name\": \"$1\","
-    echo '"description": "SOUL example",'
-    echo '"category": "synth",'
-    echo '"manufacturer": "GRAME",'
-    echo '"website": "https://faust.grame.fr",'
+    echo -e '\t"soulPatchV1":'
+    echo -e '\t{'
+    echo -e "\t\t\"ID\": \"grame.soul.$1\","
+    echo -e '\t\t"version": "1.0",'
+    echo -e "\t\t\"name\": \"$1\","
+    echo -e '\t\t"description": "SOUL example",'
+    echo -e '\t\t"category": "synth",'
+    echo -e '\t\t"manufacturer": "GRAME",'
+    echo -e '\t\t"website": "https://faust.grame.fr",'
     if [ $MIDI = "true" ]; then
-        echo '"isInstrument": true,'
+        echo -e '\t\t"isInstrument": true,'
     else
-        echo '"isInstrument": false,'
+        echo -e '\t\t"isInstrument": false,'
     fi
-    echo "\"source\": \"$1.soul\""
-    echo '}'
+    echo -e "\t\t\"source\": \"$1.soul\""
+    echo -e '\t}'
     echo '}'
     ) > "$2"
 }

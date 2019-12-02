@@ -632,18 +632,18 @@ class faust_soul_parser  {
         {
             // Generate "soulpatch" file
             std::ofstream patch_file(soulpatch_file);
-            patch_file << "{";
-                patch_file << "\"soulPatchV1\":" << std::endl;
-                    patch_file << "\t{" << std::endl;
-                    patch_file << "\t\t\"ID\": \"grame.soul.hybrid\"," << std::endl;
-                    patch_file << "\t\t\"version\": \"1.0\"," << std::endl;
-                    patch_file << "\t\t\"name\": \"hybrid\"," << std::endl;
-                    patch_file << "\t\t\"description\": \"SOUL example\"," << std::endl;
-                    patch_file << "\t\t\"category\": \"synth\"," << std::endl;
-                    patch_file << "\t\t\"manufacturer\": \"GRAME\"," << std::endl;
-                    patch_file << "\t\t\"website\": \"https://faust.grame.fr\"," << std::endl;
-                    patch_file << "\t\t\"isInstrument\": true," << std::endl;
-                    patch_file << "\t\t\"source\": "; patch_file << "\"" << soul_file << "\"" << std::endl;
+            patch_file << "{" << std::endl;
+                patch_file << "\t\"soulPatchV1\":" << std::endl;
+                patch_file << "\t{" << std::endl;
+                patch_file << "\t\t\"ID\": \"grame.soul.hybrid\"," << std::endl;
+                patch_file << "\t\t\"version\": \"1.0\"," << std::endl;
+                patch_file << "\t\t\"name\": \"hybrid\"," << std::endl;
+                patch_file << "\t\t\"description\": \"SOUL example\"," << std::endl;
+                patch_file << "\t\t\"category\": \"synth\"," << std::endl;
+                patch_file << "\t\t\"manufacturer\": \"GRAME\"," << std::endl;
+                patch_file << "\t\t\"website\": \"https://faust.grame.fr\"," << std::endl;
+                patch_file << "\t\t\"isInstrument\": true," << std::endl;
+                patch_file << "\t\t\"source\": "; patch_file << "\"" << soul_file << "\"" << std::endl;
                 patch_file << "\t}" << std::endl;
             patch_file << "}";
             patch_file.close();
