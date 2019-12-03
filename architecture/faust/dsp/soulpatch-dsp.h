@@ -107,8 +107,10 @@ class soulpatch_dsp : public dsp {
         soul::patch::Parameter::Ptr fInstanceClear;
         JSONUITemplatedDecoder* fDecoder;
     
+        // MIDI handling
         midi_handler* fMIDIHander;
-        std::vector<soul::patch::MIDIMessage> fMIDIMessages;
+        std::vector<soul::patch::MIDIMessage> fMIDIInputMessages;
+        std::vector<soul::patch::MIDIMessage> fMIDIOutputMessages;
     
     public:
 
@@ -279,15 +281,32 @@ class soulpatch_dsp : public dsp {
             
             // MIDI input handling
             if (fMIDIHander) {
-                fRenderContext.numMIDIMessagesIn = fMIDIHander->getMessages(reinterpret_cast<std::vector<MIDIMessage>*>(&fMIDIMessages));
-                fRenderContext.incomingMIDI = std::addressof(fMIDIMessages[0]);
+                fRenderContext.numMIDIMessagesIn = fMIDIHander->recvMessages(reinterpret_cast<std::vector<MIDIMessage>*>(&fMIDIInputMessages));
+                if (fRenderContext.numMIDIMessagesIn > 1024) {
+                    std::cerr << "MIDI input overflow\n";
+                }
+                fRenderContext.incomingMIDI = std::addressof(fMIDIInputMessages[0]);
+                fRenderContext.outgoingMIDI = std::addressof(fMIDIOutputMessages[0]);
+                fRenderContext.maximumMIDIMessagesOut = (uint32_t)fMIDIOutputMessages.size();
+                fRenderContext.numMIDIMessagesOut = 0;
             }
         
-            // DSP compute
+            // Setup audio buffers
             fRenderContext.inputChannels = (const float**)inputs;
             fRenderContext.outputChannels = outputs;
             fRenderContext.numFrames = count;
+            
+            // DSP compute
             fPlayer->render(fRenderContext);
+            
+            // MIDI output handling
+            if (fMIDIHander && fRenderContext.numMIDIMessagesOut != 0) {
+                if (fRenderContext.numMIDIMessagesOut > fRenderContext.maximumMIDIMessagesOut) {
+                    std::cerr << "MIDI output overflow\n";
+                }
+                int numMessagesOut = std::min(fRenderContext.numMIDIMessagesOut, fRenderContext.maximumMIDIMessagesOut);
+                fMIDIHander->sendMessages(reinterpret_cast<std::vector<MIDIMessage>*>(&fMIDIOutputMessages), numMessagesOut);
+            }
             
             // Update outputs control
             if (fDecoder) {
@@ -426,7 +445,8 @@ void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
     fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
-    fMIDIMessages.resize(1024);
+    fMIDIInputMessages.resize(1024);
+    fMIDIOutputMessages.resize(1024);
     
     // FAUST soul code has additional functions
     soul::patch::Span<soul::patch::Parameter::Ptr> params = fPlayer->getParameters();

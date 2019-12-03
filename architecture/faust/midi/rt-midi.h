@@ -186,13 +186,14 @@ class rt_midi : public midi_handler {
         }
     
         // To be used in polling mode
-        int getMessages(std::vector<MIDIMessage>* messages)
+        int recvMessages(std::vector<MIDIMessage>* messages)
         {
             int count = 0;
             double first_time_stamp = 0.;
             for (auto& it : fInput) {
                 std::vector<unsigned char> message;
                 double time_stamp = (uint32_t)it->getMessage(&message);
+                // Small messages
                 if (message.size() > 0) {
                     if (count == 0) first_time_stamp = time_stamp;
                     MIDIMessage& mes = messages->at(count++);
@@ -203,6 +204,18 @@ class rt_midi : public midi_handler {
                 }
             }
             return count;
+        }
+    
+        void sendMessages(std::vector<MIDIMessage>* messages, int count)
+        {
+            for (int i = 0; i < count; ++i) {
+                MIDIMessage mes1 = (*messages)[i];
+                std::vector<unsigned char> mes2;
+                mes2.push_back(mes1.byte0);
+                mes2.push_back(mes1.byte1);
+                mes2.push_back(mes1.byte2);
+                sendMessage(mes2);
+            }
         }
     
         // MIDI output API

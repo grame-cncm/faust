@@ -36,6 +36,7 @@ class MapUI;
  A time-stamped short MIDI message
 **************************************/
 
+// Force contiguous memory layout
 #pragma pack (push, 1)
 struct MIDIMessage
 {
@@ -288,7 +289,8 @@ class midi_handler : public midi {
         std::string getName() { return fName; }
     
         // To be used in polling mode
-        virtual int getMessages(std::vector<MIDIMessage>* message) { return 0; }
+        virtual int recvMessages(std::vector<MIDIMessage>* message) { return 0; }
+        virtual void sendMessages(std::vector<MIDIMessage>* message, int count) {}
     
         // MIDI Real-Time
         void handleClock(double time)
