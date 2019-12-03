@@ -7,10 +7,14 @@ set(LIBFAUST_DIR "" CACHE PATH "Path containing libfaust")
 set(INCLUDE_DIR "" CACHE PATH "Path containing source headers")
 
 if ("${LIBFAUST_DIR}" STREQUAL "")
-    set(LIBFAUST_DIR "../../../build/lib" CACHE PATH "Path containing libfaust" FORCE)
+	execute_process(COMMAND faust --libdir OUTPUT_VARIABLE LIBDIR)
+	string (STRIP ${LIBDIR} LIBFAUST_DIR)
+#    set(LIBFAUST_DIR "../../../build/lib" CACHE PATH "Path containing libfaust" FORCE)
 endif()
 if ("${INCLUDE_DIR}" STREQUAL "")
-    set(INCLUDE_DIR "../../architecture" CACHE PATH "Path containing headers for libfaust" FORCE)
+	execute_process(COMMAND faust --includedir OUTPUT_VARIABLE INCDIR)
+	string (STRIP ${INCDIR} INCLUDE_DIR)
+#    set(INCLUDE_DIR "../../architecture" CACHE PATH "Path containing headers for libfaust" FORCE)
 endif()
 
 #######################################
@@ -49,3 +53,11 @@ endif()
 add_executable(llvm-test llvm-test.cpp)
 target_include_directories (llvm-test PRIVATE ${INCLUDE_DIR})
 target_link_libraries (llvm-test ${LIBS})
+
+add_executable(llvm-algebra-test llvm-algebra-test.cpp)
+target_include_directories (llvm-algebra-test PRIVATE ${INCLUDE_DIR})
+target_link_libraries (llvm-algebra-test ${LIBS})
+
+add_executable(llvm-test-c llvm-test.c)
+target_include_directories (llvm-test-c PRIVATE ${INCLUDE_DIR})
+target_link_libraries (llvm-test-c ${LIBS})

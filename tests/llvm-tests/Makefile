@@ -1,5 +1,8 @@
-LIB ?= ../../build/lib
-INC = ../../architecture
+#LIB ?= ../../build/lib
+#INC = ../../architecture
+
+LIB := $(shell faust --libdir)
+INC := $(shell faust --includedir)
 
 DESTDIR ?=
 PREFIX ?= /usr/local
