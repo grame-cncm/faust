@@ -63,8 +63,8 @@ class TransformDelayToTable : public SignalIdentity {
         int p = int(log2(x));
         int v = 1 << p;
         while (v < x) v = v << 1;
-        // cerr << "dmax2size " << dmax << " -> " << v << endl;
-        // assert(v >= x);
+        cerr << "dmax2size " << dmax << " -> " << v << endl;
+        assert(v >= x);
         return v;
     }
 
@@ -81,12 +81,12 @@ class TransformDelayToTable : public SignalIdentity {
                                                sigAND(sigTime(), sigInt(size - 1)), self(exp));
             return tr;
         } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
-            int size = dmax2size(dmax);
+            int mask = dmax2size(dmax) - 1;
             if (isZero(dl)) {
-                return sigInstructionTableRead(id, origin, nature, dmin, sigAND(sigTime(), sigInt(size - 1)));
+                return sigInstructionTableRead(id, origin, nature, dmin, sigAND(sigTime(), sigInt(mask)));
             } else {
                 return sigInstructionTableRead(id, origin, nature, dmin,
-                                               sigAND(sigSub(sigTime(), self(dl)), sigInt(size - 1)));
+                                               sigAND(sigSub(sigTime(), self(dl)), sigInt(mask)));
             }
         } else {
             return SignalIdentity::transformation(sig);

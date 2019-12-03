@@ -756,7 +756,11 @@ bool isSigInstructionDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature,
  */
 Tree sigInstructionDelayLineRead(Tree id, Tree origin, int nature, int dmax, int dmin, Tree dl)
 {
-    return tree(gGlobal->SIGINSTRUCTIONDELAYLINEREAD, id, origin, tree(nature), tree(dmax), tree(dmin), dl);
+    cerr << "sigInstructionDelayLineRead(" << id << ", " << nature << ", " << dmax << ", " << dmin << ", " << ppsig(dl)
+         << ")" << endl;
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONDELAYLINEREAD, id, origin, tree(nature), tree(dmax), tree(dmin), dl);
+    cerr << "TRACE WRONG DMAX " << ppsig(instr) << endl;
+    return instr;
 }
 
 bool isSigInstructionDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, int* dmin, Tree& dl)

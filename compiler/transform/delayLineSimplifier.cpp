@@ -81,7 +81,7 @@ class ReplaceDelay : public SignalIdentity {
         int  nature1, nature2, dmax1, dmax2, dmin2;
         faustassert(isSigInstructionDelayLineWrite(instr, D1, origin1, &nature1, &dmax1, exp) &
                     isSigInstructionDelayLineRead(exp, D2, origin2, &nature2, &dmax2, &dmin2, dl2));
-        // cerr << "replacement rule for: " << ppsig(instr) << endl;
+        cerr << "replacement rule for: " << ppsig(instr) << endl;
         return ReplaceDelay(D1, dmax1 + M[D2], D2, dmin2, dl2);
     }
 
@@ -94,14 +94,13 @@ class ReplaceDelay : public SignalIdentity {
         if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax2, &dmin1, dl1) && (ID1 == fID1)) {
             // replace occurrences of ID1(dl)
             Tree r = sigInstructionDelayLineRead(fID2, origin, nature, dmax2, dmin1 + fDmin2, sigAdd(dl1, fDl2));
-            // cerr << "sigInstructionDelayLineRead: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
+            cerr << "sigInstructionDelayLineRead: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
             return r;
         } else if (isSigInstructionDelayLineWrite(sig, ID2, origin, &nature, &dmax2, def) && (ID2 == fID2)) {
             // adjust definition of ID2 size
             Tree tdef = self(def);
             Tree r    = sigInstructionDelayLineWrite(fID2, origin, nature, std::max(fDmax1, dmax2), tdef);
-            // cerr << "isSigInstructionDelayLineWrite: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) <<
-            // endl;
+            cerr << "isSigInstructionDelayLineWrite: Replacement of " << ppsig(sig) << "\n\t by " << ppsig(r) << endl;
             return r;
         } else {
             return SignalIdentity::transformation(sig);
@@ -151,7 +150,7 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     // Separate instructions I into substitutions S and normal instructions N
     for (Tree instr : I) {
         if (isSubstitution(instr)) {
-            // cerr << "Substituable def : " << ppsig(instr) << endl;
+            cerr << "Substituable def : " << ppsig(instr) << endl;
             S.push_back(instr);
         } else {
             // cerr << "Normal definition: " << ppsig(instr) << endl;

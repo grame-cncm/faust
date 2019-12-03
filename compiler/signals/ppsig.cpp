@@ -323,7 +323,7 @@ ostream& ppsig::print(ostream& fout) const
         fout << tname << '[' << dmax << "] " << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionDelayLineRead(sig, x, c, &nat, &dmax, &dmin, y)) {
         // fout << "sigInstructionDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
-        fout << *x << "@[" << ppsig(y) << "]";
+        fout << *x << "<" << dmax << ">@[" << ppsig(y) << "]";
     }
 
     else if (isSigInstructionTableWrite(sig, id, origin, &nat, &tblsize, init, idx, exp)) {
