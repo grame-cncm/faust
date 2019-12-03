@@ -290,7 +290,6 @@ class midi_handler : public midi {
         // To be used in polling mode
         virtual int getMessages(std::vector<MIDIMessage>* message) { return 0; }
     
-    
         // MIDI Real-Time
         void handleClock(double time)
         {
