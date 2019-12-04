@@ -364,7 +364,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Allocate table for 'setParamValue'
         this.value_table = [];
         
-        for (var i = 0; i <  this.polyphony; i++) {
+        for (var i = 0; i < this.polyphony; i++) {
             this.dsp_voices[i] = this.dsp_start + i * parseInt(this.json_object.size);
             this.dsp_voices_state[i] = this.kFreeVoice;
             this.dsp_voices_level[i] = 0;

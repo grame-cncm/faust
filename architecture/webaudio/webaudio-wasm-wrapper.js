@@ -3057,7 +3057,7 @@ var mydspPolyProcessorString = `
             // Allocate table for 'setParamValue'
             this.value_table = [];
 
-            for (var i = 0; i <  this.polyphony; i++) {
+            for (var i = 0; i < this.polyphony; i++) {
                 this.dsp_voices[i] = this.dsp_start + i * parseInt(this.json_object.size);
                 this.dsp_voices_state[i] = this.kFreeVoice;
                 this.dsp_voices_level[i] = 0;
@@ -3083,7 +3083,7 @@ var mydspPolyProcessorString = `
                 console.log("audio_heap_mixing: " + this.audio_heap_mixing);
                 
                 console.log("dsp_start: " + this.dsp_start);
-                for (var i = 0; i <  this.polyphony; i++) {
+                for (var i = 0; i < this.polyphony; i++) {
                     console.log("dsp_voices[i]: " + i + " " + this.dsp_voices[i]);
                 }
                 console.log("effect_start: " + this.effect_start);
@@ -3094,7 +3094,7 @@ var mydspPolyProcessorString = `
                 var voice_playing = this.kNoVoice;
                 var oldest_date_playing = Number.MAX_VALUE;
 
-                for (var i = 0; i <  this.polyphony; i++) {
+                for (var i = 0; i < this.polyphony; i++) {
                     if (this.dsp_voices_state[i] === pitch) {
                         // Keeps oldest playing voice
                         if (this.dsp_voices_date[i] < oldest_date_playing) {
@@ -3119,7 +3119,7 @@ var mydspPolyProcessorString = `
 
             this.getFreeVoice = function()
             {
-                for (var i = 0; i <  this.polyphony; i++) {
+                for (var i = 0; i < this.polyphony; i++) {
                     if (this.dsp_voices_state[i] === this.kFreeVoice) {
                         return this.allocVoice(i);
                     }
@@ -3131,7 +3131,7 @@ var mydspPolyProcessorString = `
                 var oldest_date_playing = Number.MAX_VALUE;
 
                 // Scan all voices
-                for (var i = 0; i <  this.polyphony; i++) {
+                for (var i = 0; i < this.polyphony; i++) {
                     // Try to steal a voice in kReleaseVoice mode...
                     if (this.dsp_voices_state[i] === this.kReleaseVoice) {
                         // Keeps oldest release voice
@@ -3231,7 +3231,7 @@ var mydspPolyProcessorString = `
                 }
 
                 // Init DSP voices
-                for (i = 0; i <  this.polyphony; i++) {
+                for (i = 0; i < this.polyphony; i++) {
                     this.factory.init(this.dsp_voices[i], sampleRate);  // 'sampleRate' is defined in AudioWorkletGlobalScope
                 }
 
@@ -3281,7 +3281,7 @@ var mydspPolyProcessorString = `
 
             this.allNotesOff = function ()
             {
-                for (var i = 0; i <  this.polyphony; i++) {
+                for (var i = 0; i < this.polyphony; i++) {
                     for (var j = 0; j < this.fGateLabel.length; j++) {
                         this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 0.0);
                     }
