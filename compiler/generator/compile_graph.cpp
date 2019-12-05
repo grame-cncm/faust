@@ -326,13 +326,13 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     typeAnnotateInstructionSet(INSTR1);
     if (gGlobal->gDebugSwitch) signalGraph("phase1-beforeSimplification.dot", INSTR1);
 
-    // cerr << ">>delayLineSimplifier\n" << endl;
-    set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    typeAnnotateInstructionSet(INSTR2);
-    if (gGlobal->gDebugSwitch) signalGraph("phase2-afterSimplification.dot", INSTR2);
+    // // cerr << ">>delayLineSimplifier\n" << endl;
+    // set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
+    // typeAnnotateInstructionSet(INSTR2);
+    // if (gGlobal->gDebugSwitch) signalGraph("phase2-afterSimplification.dot", INSTR2);
 
     // cerr << ">>transformDelayToTable\n" << endl;
-    set<Tree> INSTR3 = transformDelayToTable(INSTR2);
+    set<Tree> INSTR3 = transformDelayToTable(INSTR1);
     typeAnnotateInstructionSet(INSTR3);
     if (gGlobal->gDebugSwitch) signalGraph("phase3-afterTable.dot", INSTR3);
 
