@@ -165,6 +165,7 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
         n = n - 1;
         // we create a substitution rule
         ReplaceDelay rule = ReplaceDelay::replacement(M, S[n]);
+        rule.trace(true, "ReplaceFusionDelay");
 
         // we update the remaining substitutions
         for (int i = 0; i < n; i++) {
