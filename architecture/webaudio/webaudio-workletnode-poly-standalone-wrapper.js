@@ -419,6 +419,11 @@ class mydspPoly {
             }
         });
     };
+    
+    linkExists(url) 
+    {
+    	return document.querySelectorAll(`link[href="${url}"]`).length > 0;
+    }
 }
 
 // WAP factory or npm package module

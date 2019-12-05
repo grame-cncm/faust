@@ -507,10 +507,10 @@ class mydsp {
                });
     };
     
-    linkExists(url)
+    linkExists(url) 
     {
-        return document.querySelectorAll(`link[href="${url}"]`).length > 0;
-   	}
+    	return document.querySelectorAll(`link[href="${url}"]`).length > 0;
+    }
     
 }
 

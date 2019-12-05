@@ -524,7 +524,6 @@ class mydsp {
 	{
     	return document.querySelectorAll(`link[href="${url}"]`).length > 0;
    	}
-
 }
 
 // Template string for AudioWorkletProcessor

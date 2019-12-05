@@ -212,7 +212,11 @@ EndOfCode
     	echo "}" >> main.json
     	
         # compose the HTML test page
-        cp  $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        if [ $POLY = true ]; then
+        	cp  $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
+        else
+        	cp  $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        fi
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi

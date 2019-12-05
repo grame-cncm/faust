@@ -53,8 +53,8 @@ function pitchWheel(channel, bend)
 
 function ctrlChange(channel, ctrl, value)
 {
-    if (organ) {
-        organ.ctrlChange(channel, ctrl, value);
+    if (organ_dsp) {
+        organ_dsp.ctrlChange(channel, ctrl, value);
     }
 }
 
