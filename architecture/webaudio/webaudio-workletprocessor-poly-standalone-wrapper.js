@@ -224,8 +224,8 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // Memory allocator
         this.ptr_size = 4;
         this.sample_size = 4;
-        
-        var wasm_memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, mydspPolyProcessor.polyphony);
+         
+        var wasm_memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, options.processorOptions.polyphony);
 
         // Create Mixer
         this.mixerObject = { imports: { print: arg => console.log(arg) } }
@@ -348,7 +348,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         }
         
         // Start of DSP memory ('polyphony' DSP voices)
-        this.polyphony = mydspPolyProcessor.polyphony;
+        this.polyphony = options.processorOptions.polyphony;
         this.dsp_voices = [];
         this.dsp_voices_state = [];
         this.dsp_voices_level = [];
@@ -763,7 +763,6 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
 
 // Globals
 mydspPolyProcessor.buffer_size = 128;
-mydspPolyProcessor.polyphony = 16;
 
 // Synchronously compile and instantiate the WASM modules
 try {

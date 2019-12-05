@@ -89,13 +89,13 @@ Note that pages loading an additional .wasm file cannot directly be loaded in Ch
 
 ### Generating Polyphonic WebAudio nodes
 
-Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node (with 16 voices by default) can be created with the *-poly* parameter, and will generate the following class for the node, to be used like: 
+Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node can be created with the *-poly* parameter, and will generate the following class for the node, to be used like: 
 
 
 ```
-// Create the Faust generated node
+// Create the Faust generated node with 16 voices
 var pluginURL = ".";
-var plugin = new FaustorganPoly(audio_context, pluginURL);
+var plugin = new FaustorganPoly(audio_context, 16, pluginURL);
 plugin.load().then(node => {....});
 ```
 

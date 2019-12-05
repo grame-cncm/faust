@@ -117,7 +117,7 @@ function startorgan()
 {
   // Create the Faust generated node
     var pluginURL = ".";
-    var plugin = new FaustorganPoly(audio_context, pluginURL);
+    var plugin = new FaustorganPoly(audio_context, 16, pluginURL);
     plugin.load().then(node => {
                          	organ_dsp = node;
                             console.log(organ_dsp.getJSON());
