@@ -225,7 +225,7 @@ EndOfCode
     		mv test$name.html index.html
         	BINARIES="$BINARIES main.js, $name.wasm, main.json, index.html"
         else
-        	BINARIES="$BINARIES$name.js, $name-processor.js , $name.wasm"
+        	BINARIES="$BINARIES$name.js, $name-processor.js, $name.wasm"
         fi
     else
         BINARIES="$BINARIES$name.js, $name.wasm"
