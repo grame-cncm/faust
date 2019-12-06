@@ -1,10 +1,12 @@
 
 <script>
     'use strict';
+    
     // Faust part
     if (!window.dspName) window.dspName = "mydsp";
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let audioInput, dspNode, $faustUI;
+    let factory = null;
     let dspOutputHandler = () => {};
 
     // MIDI input handling
@@ -99,9 +101,10 @@
 
     const initDSP = bufferSizeIn => {
         if (typeof WebAssembly === "undefined") return alert("WebAssembly is not supported in this browser !");
-        if (!window[dspName]) return console.error(dspName + " instance not found.");
         const bufferSize = parseInt(bufferSizeIn || 1024);
-        window[dspName].createDSP(audioCtx, bufferSize)
+        if (!window[dspName]) return console.error(dspName + " instance not found.");
+        factory = new window[dspName](audioCtx, "");
+        factory.load()
         .then(dsp => {
             if (!dsp) return console.error("Error in DSP creation.");
             if (dspNode) { // destroy current
@@ -126,6 +129,7 @@
             loadDSPState(); // Load DSP state from local storage
         });
     }
+
     // To activate audio on iOS
     window.addEventListener("touchstart", () => {
         if (audioCtx.state !== "suspended") return;

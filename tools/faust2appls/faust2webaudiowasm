@@ -41,7 +41,7 @@ do
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-emcc' to use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code)"
+        echo "Use '-emcc' to use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
     elif [ $p = "-links" ]; then
         SVG="-svg"

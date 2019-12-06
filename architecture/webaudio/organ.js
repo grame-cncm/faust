@@ -370,7 +370,7 @@ class organPoly {
      * @param context - the audio context
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, polyphony, baseURL = "")
+    constructor(context, polyphony = 16, baseURL = "")
     {
         console.log("baseLatency " + context.baseLatency);
         console.log("outputLatency " + context.outputLatency);

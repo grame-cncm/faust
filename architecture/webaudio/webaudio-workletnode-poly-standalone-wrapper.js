@@ -357,6 +357,7 @@ class mydspPoly {
      * Factory constructor.
      *
      * @param context - the audio context
+     * @param polyphony - the number of voices
      * @param baseURL - the baseURL of the plugin folder
      */
     constructor(context, polyphony = 16, baseURL = "")
@@ -428,10 +429,13 @@ class mydspPoly {
     }
 }
 
+const dspName = "mydspPoly";
+
 // WAP factory or npm package module
 if (typeof module === "undefined") {
     window.mydspPoly = mydspPoly;
     window.FaustmydspPoly = mydspPoly;
+    window[dspName] = mydspPoly;
 } else {
     module.exports = { mydspPoly };
 }

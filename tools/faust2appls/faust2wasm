@@ -50,7 +50,7 @@ do
         echo "Use '-worklet' to generate AudioWorklet compatible code"
         echo "Use '-wap' to generate a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
         echo "Use '-comb' to combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
-        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
         echo "Use '-npm' to add a package.json file for npm package distribution"
         exit
     elif [ $p = "-comb" ]; then

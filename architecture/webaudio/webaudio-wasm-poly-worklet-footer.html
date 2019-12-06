@@ -4,14 +4,8 @@
 'use strict';
 
 // Faust part
-//var contextOptions = { latencyHint: 0.040 };
-//var contextOptions = { latencyHint: "interactive" };
-let contextOptions = { latencyHint: "playback" };
-//var contextOptions = { latencyHint: "balanced" };
-
 const isWasm = (typeof(WebAssembly) !== "undefined");
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const max_polyphony = 128;  // Not used for now
 let factory = null;
 let node = null;
 
@@ -226,7 +220,7 @@ function startDSP()
 function startNewDSP()
 {
     if (isWasm && workletAvailable()) {
-        factory = new DSPPoly(audioCtx, "");
+        factory = new FaustDSPPoly(audioCtx, 16, "");
         factory.load()
         .then((aw_node) => startDSPAux(aw_node))
         .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });

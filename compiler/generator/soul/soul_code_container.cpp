@@ -220,7 +220,7 @@ void SOULCodeContainer::produceClass()
   
     // Control
     if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "bool fUpdated; ";
+        *fOut << "bool fUpdated;";
         tab(n + 1, *fOut);
     }
 

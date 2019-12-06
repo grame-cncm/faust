@@ -327,15 +327,17 @@ class mydspPoly {
      * Factory constructor.
      *
      * @param context - the audio context
+     * @param polyphony - the number of voices
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseURL = "")
+    constructor(context, polyphony = 16, baseURL = "")
     {
         console.log("baseLatency " + context.baseLatency);
         console.log("outputLatency " + context.outputLatency);
         console.log("sampleRate " + context.sampleRate);
 
         this.context = context;
+        this.polyphony = polyphony;
         this.baseURL = baseURL;
         this._log = [];
     }
@@ -505,7 +507,7 @@ class mydspPoly {
                            
         	let json_object = JSON.parse(json);
         	
-            let options = { wasm_module: wasm_module.module, json: json, wasm_effect_module: ((wasm_effect_module) ? wasm_effect_module.module : null), json_effect: json_effect, soundfiles: soundfiles, json_all: json_all, polyphony: polyphony };
+            let options = { wasm_module: wasm_module.module, json: json, wasm_effect_module: ((wasm_effect_module) ? wasm_effect_module.module : null), json_effect: json_effect, soundfiles: soundfiles, json_all: json_all, polyphony: this.polyphony };
                            
         	let re = /JSON_STR/g;
         	let mydspPolyProcessorString1 = mydspPolyProcessorString.replace(re, json_all);
