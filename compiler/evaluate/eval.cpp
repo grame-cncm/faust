@@ -632,7 +632,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         throw faustexception(error.str());
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /* Deconstruct a (BDA) op pattern (YO). */
@@ -1269,8 +1269,8 @@ static Tree larg2par(Tree larg)
  */
 static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 {
-    Tree def  = NULL;
-    Tree name = NULL;
+    Tree def  = nullptr;
+    Tree name = nullptr;
 
     // search the environment env for a definition of symbol id
     while (!isNil(lenv) && !getProperty(lenv, id, def)) {

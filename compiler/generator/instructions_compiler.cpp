@@ -53,7 +53,7 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
     : fContainer(container),
-      fSharingKey(NULL),
+      fSharingKey(nullptr),
       fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)),
       fDescription(0),
       fLoadedIota(false)
@@ -1549,7 +1549,7 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
 {
     int N = len(le);
 
-    ValueInst*             res = NULL;
+    ValueInst*             res = nullptr;
     vector<bool>           used(N);
     vector<int>            delay(N);
     vector<string>         vname(N);

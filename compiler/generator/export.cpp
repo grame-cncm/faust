@@ -52,7 +52,7 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 #ifdef EMCC
 #include "exception.hh"
 
-const char* faustexception::gJSExceptionMsg = NULL;
+const char* faustexception::gJSExceptionMsg = nullptr;
 
 extern "C" EXPORT const char* getErrorAfterException()
 {

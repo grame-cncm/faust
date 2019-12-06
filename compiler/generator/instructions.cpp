@@ -438,7 +438,7 @@ static Typed* sharedTypeToFirType(Tree t)
         return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);
     } else {
         faustassert(false);
-        return NULL;
+        return nullptr;
     }
 }
 

@@ -332,7 +332,7 @@ class CInstVisitor : public TextInstVisitor {
         if (inst->fCode->size() == 0) return;
 
         DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-        StoreVarInst*   c99_init_inst    = NULL;
+        StoreVarInst*   c99_init_inst    = nullptr;
 
         if (c99_declare_inst) {
             InstBuilder::genLabelInst("/* C99 loop */")->accept(this);

@@ -442,7 +442,7 @@ class FBCInterpreter : public FBCExecutor<T> {
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     if (it->fOffset == -1) {
-                        glue->declare(static_cast<T*>(NULL), it->fKey.c_str(), it->fValue.c_str());
+                        glue->declare(static_cast<T*>(nullptr), it->fKey.c_str(), it->fValue.c_str());
                     } else {
                         glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
                     }

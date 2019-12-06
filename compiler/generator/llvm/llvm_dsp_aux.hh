@@ -192,7 +192,7 @@ class FaustObjectCache : public llvm::ObjectCache {
 
     virtual std::unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module* M)
     {
-        return (fMachineCode == "") ? NULL : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
+        return (fMachineCode == "") ? nullptr : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
     }
 
     std::string getMachineCode() { return fMachineCode; }

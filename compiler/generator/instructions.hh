@@ -775,7 +775,7 @@ struct DeclareVarInst : public StatementInst {
 struct DropInst : public StatementInst {
     ValueInst* fResult;
 
-    DropInst(ValueInst* result = NULL) : fResult(result) {}
+    DropInst(ValueInst* result = nullptr) : fResult(result) {}
 
     virtual ~DropInst() {}
 
@@ -1125,7 +1125,7 @@ struct SwitchInst : public StatementInst {
 struct RetInst : public StatementInst {
     ValueInst* fResult;
 
-    RetInst(ValueInst* result = NULL) : fResult(result) {}
+    RetInst(ValueInst* result = nullptr) : fResult(result) {}
 
     virtual ~RetInst() {}
 
@@ -1265,7 +1265,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this),
-                                  ((inst->fValue) ? inst->fValue->clone(this) : NULL));
+                                  ((inst->fValue) ? inst->fValue->clone(this) : nullptr));
     }
     virtual StatementInst* visit(DeclareFunInst* inst)
     {
@@ -1339,11 +1339,11 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(RetInst* inst)
     {
-        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : NULL);
+        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
     virtual StatementInst* visit(DropInst* inst)
     {
-        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL);
+        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
 
     // Conditionnal
@@ -1784,7 +1784,7 @@ struct InstBuilder {
     static NullStatementInst* genNullStatementInst() { return new NullStatementInst(); }
 
     // Declarations
-    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = NULL)
+    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = nullptr)
     {
         return new DeclareVarInst(address, typed, value);
     }
@@ -1841,7 +1841,7 @@ struct InstBuilder {
         } else {
             faustassert(false);
         }
-        return NULL;
+        return nullptr;
     }
 
     static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
@@ -1855,7 +1855,7 @@ struct InstBuilder {
         } else {
             faustassert(false);
         }
-        return NULL;
+        return nullptr;
     }
 
     static Int32NumInst* genInt32NumInst(int num) { return new Int32NumInst(num); }
@@ -1934,8 +1934,8 @@ struct InstBuilder {
     static ValueInst* genCastInt32Inst(ValueInst* inst);
 
     // Control flow
-    static RetInst*  genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
-    static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
+    static RetInst*  genRetInst(ValueInst* result = nullptr) { return new RetInst(result); }
+    static DropInst* genDropInst(ValueInst* result = nullptr) { return new DropInst(result); }
 
     // Conditional
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
@@ -2057,12 +2057,12 @@ struct InstBuilder {
     }
 
     // Struct variable
-    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
     }
 
-    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
                                  type, exp);
@@ -2161,12 +2161,12 @@ struct InstBuilder {
     }
 
     // Static struct variable
-    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
     }
 
-    static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(
             genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct | Address::kConst)), type, exp);
@@ -2234,7 +2234,7 @@ struct InstBuilder {
     }
 
     // Stack variable
-    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
     }
@@ -2275,7 +2275,7 @@ struct InstBuilder {
     }
 
     // Loop variable
-    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
     }
@@ -2307,12 +2307,12 @@ struct InstBuilder {
     }
 
     // Global variable
-    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
     }
 
-    static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kGlobal | Address::kConst)),
                                  type, exp);

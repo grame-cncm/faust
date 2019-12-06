@@ -353,7 +353,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                 }
 
             } else {
-                CodeLoop* keep = NULL;
+                CodeLoop* keep = nullptr;
 
                 // Find one output with only one backward dependencies
                 for (auto& p1 : (*p)->getForwardLoopDependencies()) {
@@ -363,7 +363,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                     }
                 }
 
-                if (keep == NULL) {
+                if (keep == nullptr) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
                 }
@@ -378,7 +378,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                             case_block->pushBackInst(InstBuilder::genVoidFunCallInst("pushHead", fun_args));
                         }
                     } else {
-                        if (keep == NULL) {
+                        if (keep == nullptr) {
                             list<ValueInst*> fun_args;
                             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
@@ -395,7 +395,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                     }
                 }
 
-                if (keep != NULL) {
+                if (keep != nullptr) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(keep->getIndex())));
                 } else {

@@ -139,7 +139,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
 
     OwningPtr<Compilation> C(TheDriver.BuildCompilation(Args));
     if (!C) {
-        return NULL;
+        return nullptr;
     }
 
     const driver::JobList& Jobs = C->getJobs();
@@ -148,13 +148,13 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
         llvm::raw_svector_ostream OS(Msg);
         Jobs.Print(OS, "; ", true);
         Diags.Report(diag::err_fe_expected_compiler_job) << OS.str();
-        return NULL;
+        return nullptr;
     }
 
     const driver::Command* Cmd = cast<driver::Command>(*Jobs.begin());
     if (llvm::StringRef(Cmd->getCreator().getName()) != "clang") {
         Diags.Report(diag::err_fe_expected_clang_command);
-        return NULL;
+        return nullptr;
     }
 
     // Initialize a compiler invocation object from the clang (-cc1) arguments.
@@ -170,7 +170,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Create the compilers actual diagnostics engine.
     Clang.createDiagnostics();
     if (!Clang.hasDiagnostics()) {
-        return NULL;
+        return nullptr;
     }
 
     CompilerInvocation::setLangDefaults(Clang.getLangOpts(), IK_CXX, LangStandard::lang_unspecified);
@@ -178,7 +178,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Create and execute the frontend to generate an LLVM bitcode module.
     OwningPtr<CodeGenAction> Act(new EmitLLVMOnlyAction());
     if (!Clang.ExecuteAction(*Act)) {
-        return NULL;
+        return nullptr;
     }
 
     // Get the compiled LLVM module
@@ -226,10 +226,10 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
 
         return result;
     } else {
-        return NULL;
+        return nullptr;
     }
 #else
-    return NULL;
+    return nullptr;
 #endif
 }
 

@@ -688,7 +688,7 @@ void global::destroy()
 #ifdef EMCC
     if (faustexception::gJSExceptionMsg) {
         free((void*)faustexception::gJSExceptionMsg);
-        faustexception::gJSExceptionMsg = NULL;
+        faustexception::gJSExceptionMsg = nullptr;
     }
 #endif
     delete gGlobal;

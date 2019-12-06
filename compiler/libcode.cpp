@@ -124,12 +124,12 @@ static unique_ptr<ifstream> enrobage;
 
 #ifdef OCPP_BUILD
 // Old CPP compiler
-Compiler* old_comp = NULL;
+Compiler* old_comp = nullptr;
 #endif
 
 // FIR container
-InstructionsCompiler* new_comp  = NULL;
-CodeContainer*        container = NULL;
+InstructionsCompiler* new_comp  = nullptr;
+CodeContainer*        container = nullptr;
 
 typedef void* (*compile_fun)(void* arg);
 
@@ -190,8 +190,8 @@ static void callFun(compile_fun fun)
     faustassert(pthread_attr_init(&attr) == 0);
     faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
     faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
-    faustassert(pthread_create(&thread, &attr, fun, NULL) == 0);
-    pthread_join(thread, NULL);
+    faustassert(pthread_create(&thread, &attr, fun, nullptr) == 0);
+    pthread_join(thread, nullptr);
 #endif
 }
 
@@ -223,7 +223,7 @@ static void* threadBoxPropagateSig(void* arg)
                         Global context variable
 *****************************************************************/
 
-global* gGlobal = NULL;
+global* gGlobal = nullptr;
 
 // Timing can be used outside of the scope of 'gGlobal'
 extern bool gTimingSwitch;
@@ -1996,8 +1996,8 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
 dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
                                       string& error_msg, bool generate)
 {
-    gGlobal                   = NULL;
-    dsp_factory_base* factory = NULL;
+    gGlobal                   = nullptr;
+    dsp_factory_base* factory = nullptr;
 
     try {
         global::allocate();
@@ -2015,7 +2015,7 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 string expandDSP(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key,
                  string& error_msg)
 {
-    gGlobal    = NULL;
+    gGlobal    = nullptr;
     string res = "";
 
     try {

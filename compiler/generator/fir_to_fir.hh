@@ -434,7 +434,7 @@ struct FunctionInliner {
                     fInLoop = gGlobal->getFreshID("re_i");
                     return InstBuilder::genDeclareVarInst(renameAddress(inst->fAddress, fInLoop),
                                                           inst->fType->clone(this),
-                                                          (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                                                          (inst->fValue) ? inst->fValue->clone(this) : nullptr);
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }
