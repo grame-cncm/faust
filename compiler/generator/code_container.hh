@@ -618,7 +618,7 @@ class CodeContainer : public virtual Garbageable {
     virtual dsp_factory_base* produceFactory()
     {
         faustassert(false);
-        return 0;
+        return nullptr;
     }
 
     int fInt32ControlNum;  // number of 'int32' intermediate control values

@@ -46,8 +46,8 @@ class InstructionsCompiler : public virtual Garbageable {
 
     property<ValueInst*>            fCompileProperty;
     property<string>                fVectorProperty;
-    property<pair<string, string> > fStaticInitProperty;
-    property<pair<string, string> > fInstanceInitProperty;
+    property<pair<string, string>>  fStaticInitProperty;
+    property<pair<string, string>>  fInstanceInitProperty;
     property<string>                fTableProperty;
     Tree                            fSharingKey;
     OccMarkup                       fOccMarkup;

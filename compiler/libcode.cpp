@@ -1628,7 +1628,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             // Generate factory
             gGlobal->gDSPFactory = container->produceFactory();
             
-            
             if (gGlobal->gOutputFile == "string") {
                 gGlobal->gDSPFactory->write(dst.get(), false, false);
                 if (helpers != nullptr) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);

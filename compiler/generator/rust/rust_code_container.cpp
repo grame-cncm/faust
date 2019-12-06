@@ -178,7 +178,7 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "#![allow(non_snake_case)]";
     tab(n, *fOut); *fOut << "#![allow(non_camel_case_types)]";
     */
-    // tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation" ;
+    // tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation";
 
     // Sub containers
     generateSubContainers();
@@ -188,8 +188,6 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    // TODO
-    // tab(n, *fOut); *fOut << "impl dsp<" << ifloat() <<"> for " << fKlassName << " {";
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);
    
@@ -201,7 +199,6 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     generateDeclarations(&fCodeProducer);
 
-    //tab(n, *fOut);
     back(1, *fOut);
     *fOut << "}";
     tab(n, *fOut);
