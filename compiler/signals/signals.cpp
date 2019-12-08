@@ -881,8 +881,8 @@ bool isSigInstructionSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tr
 /**
  * @brief a control read "instruction"
  *
- * @param id: unique identifier of the control signal
- * @return a control read instruction
+ * @param id: unique identifier of the shared signal
+ * @return a shared read instruction
  */
 Tree sigInstructionSharedRead(Tree id, Tree origin, int nature)
 {

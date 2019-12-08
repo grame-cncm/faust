@@ -442,7 +442,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gErrorMessage = "";
 
     // By default use "cpp" output
-    gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "ocpp";
+    gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
