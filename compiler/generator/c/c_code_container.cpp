@@ -432,6 +432,10 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "#define FAUST_INT_ZONE " << static_cast<CInstVisitor1*>(fCodeProducer)->getIntZoneSize() << endl;
     *fOut << "#define FAUST_FLOAT_ZONE " << static_cast<CInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "#ifndef TESTBENCH";
+    
     // Memory methods
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
@@ -616,6 +620,9 @@ void CScalarOneSampleCodeContainer::produceClass()
     
     // Compute
     generateCompute(n);
+    
+    tab(n, *fOut);
+    *fOut << "#endif // TESTBENCH" << endl;
     tab(n, *fOut);
     
     // Generate user interface macros if needed
