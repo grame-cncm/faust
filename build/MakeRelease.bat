@@ -1,13 +1,20 @@
 
 echo off
 
-IF [%2]==[]     GOTO USAGE
-IF NOT EXIST %2 GOTO USAGE
+IF [%1]==[]     GOTO USAGE
+IF NOT EXIST %1 GOTO USAGE
 
-SET VERSION=%1
+SET VERSION=2.20.2
 SET BUILD=%2
-SET FAUSTGENVERSION=1.39
+SET FAUSTGENVERSION=1.41
 SET FAUSTLIVE=../../faustlive
+
+echo "Building Faust version %VERSION%"
+echo "Building Faustgen version %FAUSTGENVERSION%"
+set CONT="no"
+set /p CONT=Type Y to continue... 
+if /i NOT %CONT%==Y exit
+
 
 echo "###################### Building Faust package ######################"
 cd %BUILD%
@@ -44,8 +51,7 @@ echo DONE VERSION %VERSION%
 GOTO END
 
 :USAGE
-echo "Usage: MakeRelease <version> <builddir>
-echo "       <version>    is the release and faust version"
+echo "Usage: MakeRelease <builddir>
 echo "       <builddir>   is the windows build folder"
 
 :END
