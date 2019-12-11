@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to JACK-GTK                 #
-#               (c) Grame, 2009-2018                                #
+#               (c) Grame, 2009-2019                                #
 #                                                                   #
 #####################################################################
 
@@ -20,6 +20,10 @@ NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+
+if [[ $(uname -s) != Darwin ]]; then
+	LFLAGS+="-no-pie"
+fi
 
 #-------------------------------------------------------------------
 # Check Darwin specifics
@@ -131,10 +135,10 @@ EndOfCode
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
 	) > /dev/null || exit
 
-    # remove tempory stuff
+    # remove tempory files
 	rm -f "$f.cpp" effect.h "$f.json"
 
 	# collect binary file name for FaustWorks
