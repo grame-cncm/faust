@@ -803,12 +803,12 @@ let mydspProcessorString = `
             var output = outputs[0];
             
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
@@ -822,15 +822,15 @@ let mydspProcessorString = `
             }
             
             /*
-             TODO: sample accurate control change is not yet handled
-             When no automation occurs, params[i][1] has a length of 1,
-             otherwise params[i][1] has a length of NUM_FRAMES with possible control change each sample
-             */
+            TODO: sample accurate control change is not yet handled
+            When no automation occurs, params[i][1] has a length of 1,
+            otherwise params[i][1] has a length of NUM_FRAMES with possible control change each sample
+            */
             
             // Update controls
-            var params = Object.entries(parameters);
-            for (var i = 0; i < params.length; i++) {
-                this.setParamValue(params[i][0], params[i][1][0]);
+            for (const path in parameters) {
+                const paramArray = parameters[path];
+                this.setParamValue(path, paramArray[0]);
             }
             
             // Compute

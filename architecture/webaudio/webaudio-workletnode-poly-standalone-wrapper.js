@@ -97,6 +97,9 @@ class mydspPolyNode extends AudioWorkletNode {
 
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
+        try {
+            if (this.parameters) this.parameters.forEach(p => p.automationRate = "k-rate");
+        } catch (e) {}
     }
 
     // To be called by the message port with messages coming from the processor
