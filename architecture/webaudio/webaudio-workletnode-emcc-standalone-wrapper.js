@@ -815,7 +815,7 @@ let mydspProcessorString = `
             
             // Copy inputs
             if (input !== undefined) {
-                for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
+                for (var chan = 0; chan < Math.min(this.numIn, input.length); ++chan) {
                     var dspInput = this.dspInChannnels[chan];
                     dspInput.set(input[chan]);
                 }

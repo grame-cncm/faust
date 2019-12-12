@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
         DSP.compute(kFrames, 0, chan.buffers());
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
+                if (c) cout << "\t\t";
                 cout << chan.buffers()[c][i];
             }
             cout << endl;
@@ -114,6 +115,7 @@ int main(int argc, char* argv[])
     DSP.compute(nbsamples, 0, chan.buffers());
     for (int i = 0; i < nbsamples; i++) {
         for (int c = 0; c < nouts; c++) {
+            if (c) cout << "\t\t";
             cout << chan.buffers()[c][i];
         }
         cout << endl;
