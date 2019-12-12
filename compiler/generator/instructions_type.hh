@@ -32,16 +32,15 @@
 struct Printable : public virtual Garbageable {
     static std::ostream* fOut;
 
-    int fTab;
-
     Printable() {}
     virtual ~Printable() {}
 };
 
-// ==========================
-//  Instruction with a type
-// ==========================
+// ========================
+//  Base classes for types
+// ========================
 
+struct InstVisitor;
 struct CloneVisitor;
 
 struct Typed : public Printable {
@@ -73,6 +72,7 @@ struct Typed : public Printable {
         kDouble_vec_ptr,
         kQuad,
         kQuad_ptr,
+        kQuad_ptr_ptr,
         kQuad_vec,
         kQuad_vec_ptr,
         kVoid,
@@ -86,29 +86,8 @@ struct Typed : public Printable {
         kNoType
     };
 
-    static std::string gTypeString[];
-
-    static void init();
-
     Typed() {}
-
-    virtual VarType getType() = 0;
-
-    static int getSizeOf(VarType type)
-    {
-        switch (type) {
-            case kFloat:
-            case kInt32:
-                return 4;
-            case kDouble:
-                return 8;
-            default:
-                // Not supposed to happen
-                std::cerr << "getSizeOf " << type << std::endl;
-                faustassert(false);
-                return -1;
-        }
-    }
+    virtual ~Typed() {}
 
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)
@@ -136,6 +115,10 @@ struct Typed : public Printable {
                 return kDouble_vec_ptr;
             case kQuad:
                 return kQuad_ptr;
+            case kQuad_ptr:
+                return kQuad_ptr_ptr;
+            case kQuad_vec:
+                return kQuad_vec_ptr;
             case kBool:
                 return kBool_ptr;
             case kBool_vec:
@@ -164,6 +147,8 @@ struct Typed : public Printable {
                 return kInt32_vec;
             case kDouble:
                 return kDouble_vec;
+            case kQuad:
+                return kQuad_vec;
             case kBool:
                 return kBool_vec;
             default:
@@ -196,10 +181,14 @@ struct Typed : public Printable {
                 return kDouble;
             case kDouble_ptr_ptr:
                 return kDouble_ptr;
-            case kQuad_ptr:
-                return kQuad;
             case kDouble_vec_ptr:
                 return kDouble_vec;
+            case kQuad_ptr:
+                return kQuad;
+            case kQuad_ptr_ptr:
+                return kQuad_ptr;
+            case kQuad_vec_ptr:
+                return kQuad_vec;
             case kBool_ptr:
                 return kBool;
             case kBool_vec_ptr:
@@ -228,6 +217,8 @@ struct Typed : public Printable {
                 return kInt32;
             case kDouble_vec:
                 return kDouble;
+            case kQuad_vec:
+                return kQuad;
             case kBool_vec:
                 return kBool;
             default:
@@ -238,7 +229,15 @@ struct Typed : public Printable {
         }
     }
 
-    virtual int getSize() = 0;
+    static std::string gTypeString[];
+
+    static void init();
+
+    virtual VarType getType() const = 0;
+
+    virtual int getSize() const = 0;
+
+    virtual void accept(InstVisitor* visitor) = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;
 };

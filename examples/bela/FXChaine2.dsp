@@ -22,7 +22,7 @@ import("stdfaust.lib");
 // ANALOG 6	: Reverberation Dry/Wet
 // ANALOG 7	: Reverberation Room size
 //
-// Available by OSC :  (see BELA console for precise adress)
+// Available by OSC : (see BELA console for precise adress)
 // Rate			: Chorus LFO modulation rate (Hz)
 // Deviation	: Chorus delay time deviation.
 //
@@ -60,7 +60,7 @@ depth = vslider("Depth [BELA: ANALOG_0]", 0.5, 0, 1, 0.001) : si.smooth(ba.tau2p
 
 depthT60 = 0.15661;
 delayPerVoice = 0.5*curdel/voices;
-sigma  = delayPerVoice * vslider("Deviation",0.5,0,1,0.001) : si.smooth(0.999);
+sigma = delayPerVoice * vslider("Deviation",0.5,0,1,0.001) : si.smooth(0.999);
 
 do2 = depth;   // use when depth=1 means "multivibrato" effect (no original => all are modulated)
 

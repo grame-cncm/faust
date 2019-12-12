@@ -56,6 +56,7 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
 struct Typed;
@@ -104,10 +105,12 @@ struct global {
     //-- command line arguments
     bool   gDetailsSwitch;
     bool   gDrawSignals;
+    bool   gDrawRouteFrame;
     bool   gShadowBlur;      // note: svg2pdf doesn't like the blur filter
     bool   gScaledSVG;       // to draw scaled SVG files
     bool   gStripDocSwitch;  // Strip <mdoc> content from doc listings.
-    int    gFoldThreshold;
+    int    gFoldThreshold;   // global complexity threshold before activating folding
+    int    gFoldComplexity;  // individual complexity threshold before folding
     int    gMaxNameSize;
     bool   gSimpleNames;
     bool   gSimplifyDiagrams;
@@ -141,6 +144,7 @@ struct global {
     bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
                       // for JavaScript)
     bool gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gCheckTable; // whether to check RDTable and RWTable index range
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -148,7 +152,6 @@ struct global {
 
     // Backend configuration
     string gOutputLang;            // Chosen backend
-    bool   gGenerateSelectWithIf;  // Generates select with an 'if'
     bool   gAllowForeignFunction;  // Can use foreign functions
     bool   gComputeIOTA;           // Cache some computation done with IOTA variable
     bool   gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
@@ -162,7 +165,9 @@ struct global {
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation
+    bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     string gFastMathLib;           // The fastmath code mapping file
+    string gNameSpace;             // Wrapping namespace used with the C++ backend
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
     map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
@@ -213,7 +218,7 @@ struct global {
     bool gMemoryManager;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
-    
+
     bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
                       ///< (negative delay)
 
@@ -263,6 +268,7 @@ struct global {
     Sym BOXIDENT;
     Sym BOXCUT;
     Sym BOXWAVEFORM;
+    Sym BOXROUTE;
     Sym BOXWIRE;
     Sym BOXSLOT;
     Sym BOXSYMBOLIC;
@@ -425,7 +431,8 @@ struct global {
     Sym SYMRECREF;
     Sym SYMLIFTN;
 
-    loopDetector gLoopDetector;
+    loopDetector          gLoopDetector;
+    stackOverflowDetector gStackOverflowDetector;
 
     string gDrawPath;
 
@@ -484,6 +491,10 @@ struct global {
 #ifdef INTERP_BUILD
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
+#endif
+
+#ifdef SOUL_BUILD
+    TableSizeVisitor* gTableSizeVisitor;
 #endif
 
     bool gHelpSwitch;
@@ -553,13 +564,17 @@ struct global {
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
+
+    void initTypeSizeMap();
+
+    int audioSampleSize();
 };
 
 // Unique shared global pointer
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
-#define MAX_STACK_SIZE 50000
+#define MAX_MACHINE_STACK_SIZE 65536
 #define MAX_SOUNDFILE_PARTS 256
 
 #endif

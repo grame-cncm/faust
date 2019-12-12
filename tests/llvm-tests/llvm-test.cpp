@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -24,10 +24,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
 #include "faust/audio/dummy-audio.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -35,90 +37,161 @@ using namespace std;
 static void printList(const vector<string>& list)
 {
     for (int i = 0; i < list.size(); i++) {
-        std::cout << "item: " << list[i] << "\n";
+        cout << "item: " << list[i] << "\n";
     }
 }
 
-static std::string pathToContent(const std::string& path)
-{
-    std::ifstream file(path.c_str(), std::ifstream::binary);
+struct testUI : public GenericUI {
     
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
+    FAUSTFLOAT fInit;
+    FAUSTFLOAT fMin;
+    FAUSTFLOAT fMax;
+    FAUSTFLOAT fStep;
     
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
+    testUI(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fInit = init;
+        fMin = min;
+        fMax = max;
+        fStep = step;
+    }
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        if (init != fInit) {
+            cerr << "ERROR in addVerticalSlider init : " << fInit << " " << init << "\n";
+        }
+        if (min != fMin) {
+            cerr << "ERROR in addVerticalSlider min : " << fMin << " " << min << "\n";
+        }
+        if (max != fMax) {
+            cerr << "ERROR in addVerticalSlider max : " << fMax << " " << max << "\n";
+        }
+        if (step != fStep) {
+            cerr << "ERROR in addVerticalSlider step : " << fStep << " " << step << "\n";
+        }
+    }
     
-    // Terminate the string
-    buffer[size] = 0;
-    std::string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
+};
 
-int main(int argc, char* argv[])
+int main(int argc, const char** argv)
 {
-    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
         cout << "llvm-test foo.dsp" << endl;
         exit(EXIT_FAILURE);
     }
     
     string error_msg;
-    
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
-    dsp_factory* factory = createDSPFactoryFromFile(argv[argc-1], 0, NULL, "", error_msg, -1);
-    
-    if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
-        exit(EXIT_FAILURE);
+    string dspFile = argv[1];
+    string tempDir = "/private/var/tmp/";
+   
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromFile\n";
+    {
+        dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, "", error_msg, -1);
+        
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());    
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
+        dummyaudio audio(2);
+        if (!audio.init("FaustDSP", DSP)) {
+            return 0;
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
     
-    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
-    printList(factory->getLibraryList());
-    printList(factory->getIncludePathnames());    
-    
-    dsp* DSP = factory->createDSPInstance();
-    if (!DSP) {
-        cerr << "Cannot create instance "<< endl;
-        exit(EXIT_FAILURE);
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString\n";
+    {
+        dsp_factory* factory = createDSPFactoryFromString("score", "process = +;", 0, NULL, "", error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
+        dummyaudio audio(2);
+        if (!audio.init("FaustDSP", DSP)) {
+            return 0;
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
     
-    cout << "getName " << factory->getName() << endl;
-    cout << "getSHAKey " << factory->getSHAKey() << endl;
-    
-    dummyaudio audio(2);
-    if (!audio.init("FaustDSP", DSP)) {
-        return 0;
+    cout << "=============================\n";
+    cout << "Test of UI element encoding\n";
+    {
+        dsp_factory* factory = createDSPFactoryFromString("score", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, "", error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+
+        testUI test(0.5, 0, 1, 0.025);
+        DSP->buildUserInterface(&test);
     }
-    
-    audio.start();
-    audio.stop();
-    
-    delete DSP;
-    deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     
     // Test generateAuxFilesFromFile/generateAuxFilesFromString
     int argc2 = 0;
     const char* argv2[64];
     argv2[argc2++] = "-svg";
     argv2[argc2++] = "-O";
-    argv2[argc2++] = "/private/var/tmp";
-    argv2[argc2] = 0;  // NULL terminated argv
+    argv2[argc2++] = tempDir.c_str();
+    argv2[argc2] = nullptr;  // NULL terminated argv
     
     {
         cout << "=============================\n";
         cout << "Test generateAuxFilesFromFile\n";
-        if (!generateAuxFilesFromFile(argv[argc-1], argc2, argv2, error_msg)) {
+        if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
             cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
         } else {
-            string filename =  string(argv[argc-1]);
-            string pathname = "/private/var/tmp/" + filename.substr(0, filename.size() - 4) + "-svg";
+            string filename =  string(dspFile);
+            string pathname = tempDir + filename.substr(0, filename.size() - 4) + "-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
-                cout << "ERROR in generateAuxFilesFromFile error : " << pathname << " cannot be opened\n";
+                cerr << "ERROR in generateAuxFilesFromFile error : " << pathname << " cannot be opened\n";
             } else {
                 cout << "generateAuxFilesFromFile OK\n";
             }
@@ -128,13 +201,13 @@ int main(int argc, char* argv[])
     {
         cout << "===============================\n";
         cout << "Test generateAuxFilesFromString\n";
-        if (!generateAuxFilesFromString("FaustDSP", pathToContent(argv[argc-1]), argc2, argv2, error_msg)) {
+        if (!generateAuxFilesFromString("FaustDSP", pathToContent(dspFile), argc2, argv2, error_msg)) {
             cout << "generateAuxFilesFromString error : " << error_msg;
         } else {
-            string pathname = "/private/var/tmp/FaustDSP-svg";
+            string pathname = tempDir + "/FaustDSP-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
-                cout << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+                cerr << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
             } else {
                 cout << "generateAuxFilesFromString OK\n";
             }

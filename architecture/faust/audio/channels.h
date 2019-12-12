@@ -1,3 +1,4 @@
+/************************** BEGIN channels.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -60,7 +61,7 @@ class real_channels
         
         void zero()
         {
-            // allocate audio channels
+            // clear audio channels
             for (int chan = 0; chan < fNumChannels; chan++) {
                 memset(fBuffers[chan], 0, sizeof(REAL) * fNumFrames);
             }
@@ -68,7 +69,7 @@ class real_channels
         
         void impulse()
         {
-            // allocate audio channels
+            // set first sample to 1 for all channels
             for (int chan = 0; chan < fNumChannels; chan++) {
                 fBuffers[chan][0] = FAUSTFLOAT(1.0);
                 for (int frame = 1; frame < fNumFrames; frame++) {
@@ -118,3 +119,4 @@ class channels : public real_channels<FAUSTFLOAT> {
 
 #endif
 
+/**************************  END  channels.h **************************/

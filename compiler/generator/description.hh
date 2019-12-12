@@ -32,7 +32,6 @@
 #include <string>
 #include "garbageable.hh"
 #include "signals.hh"
-#include "smartpointer.hh"
 #include "tlib.hh"
 #include "uitree.hh"
 
@@ -42,11 +41,12 @@ void   extractMetadata(const string& fulllabel, string& label, map<string, set<s
 string extractName(Tree fulllabel);
 
 class Description : public virtual Garbageable {
-    string fName;
-    string fAuthor;
-    string fCopyright;
-    string fLicense;
-    string fVersion;
+    string                    fName;
+    string                    fAuthor;
+    string                    fCopyright;
+    string                    fLicense;
+    string                    fVersion;
+    map<string, set<string> > fMetadata;
 
     string       fClassName;
     int          fInputs;
@@ -61,13 +61,7 @@ class Description : public virtual Garbageable {
 
    public:
     Description()
-        : /*fName("Unknow"),
-          fAuthor("Unknow"),
-          fCopyright("Unknow"),
-          fLicense("Unknow"),
-          fVersion("Unknow"),*/
-
-          fInputs(0),
+        : fInputs(0),
           fOutputs(0),
           fWidgetID(0),
           fActiveWidgetCount(0),
@@ -116,6 +110,11 @@ class Description : public virtual Garbageable {
         fOutputs = n;
         return this;
     }
+    Description* declare(const string& key, const string& value)
+    {
+        fMetadata[key].insert(value);
+        return this;
+    }
 
     void ui(Tree t);
     void print(int n, ostream& fout);
@@ -127,6 +126,8 @@ class Description : public virtual Garbageable {
     void tab(int n, ostream& fout);
     void addActiveLine(const string& l) { fActiveLines.push_back(l); }
     void addPassiveLine(const string& l) { fPassiveLines.push_back(l); }
+    void addActiveMetadata(Tree label);
+    void addPassiveMetadata(Tree label);
     void addLayoutLine(int n, const string& l)
     {
         fLayoutTabs.push_back(n);

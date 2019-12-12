@@ -5,11 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 	android:keepScreenOn="true">
-    
+
     <com.faust.MultiParams
         android:id="@+id/MultiParams"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="top"/>
-    
+
 </LinearLayout>

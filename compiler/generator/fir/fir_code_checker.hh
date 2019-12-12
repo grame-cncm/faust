@@ -42,12 +42,13 @@ using namespace std;
 
  Code checker:
 
- - check that Load/Store only use defined des variables
+ - check that Load/Store only use defined variables
  - check that Load use initialized variables (either with a Declaration or a Store)
  - check that Funcall match with defined functions
  - check that loop variables (kLoop) are correctly inside a loop with the same variable name
  - check that kStack variables are only used in a their scope (and not outside)
- - check that kFunArgs variables are only used in a scope wher they are defined (within a function with the correct arguments)
+ - check that kFunArgs variables are only used in a scope wher they are defined (within a function with the correct
+ arguments)
  - check Load/Store acesses coherency (among 'struct', 'stack', 'loop'...)
 
 */

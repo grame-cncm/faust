@@ -1,3 +1,4 @@
+/************************** BEGIN ofaudio-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -140,3 +141,4 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
 };
 					
 #endif
+/**************************  END  ofaudio-dsp.h **************************/

@@ -350,7 +350,7 @@ string DocCompiler::generateFConst(Tree sig, const string& file, const string& e
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
     }
 
-    if (exp == "fSamplingFreq") {
+    if (exp == "fSampleRate" || exp == "fSamplingFreq") {
         // gGlobal->gDocNoticeFlagMap["fsamp"] = true;
         return "f_S";
     }
@@ -808,7 +808,6 @@ string DocCompiler::generateDocConstantTbl(Tree /*tbl*/, Tree size, Tree isig)
 static bool isSeparator(char c)
 {
     bool w = (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')));
-
     return !w;
 }
 

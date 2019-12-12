@@ -1,3 +1,4 @@
+/************************** BEGIN APIUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -270,10 +271,10 @@ class APIUI : public PathBuilder, public Meta, public UI
     
         // -- widget's layouts
 
-        virtual void openTabBox(const char* label)          { fControlsLevel.push_back(label); }
-        virtual void openHorizontalBox(const char* label)   { fControlsLevel.push_back(label); }
-        virtual void openVerticalBox(const char* label)     { fControlsLevel.push_back(label); }
-        virtual void closeBox()                             { fControlsLevel.pop_back(); }
+        virtual void openTabBox(const char* label)          { pushLabel(label); }
+        virtual void openHorizontalBox(const char* label)   { pushLabel(label); }
+        virtual void openVerticalBox(const char* label)     { pushLabel(label); }
+        virtual void closeBox()                             { popLabel(); }
 
         // -- active widgets
 
@@ -539,3 +540,4 @@ class APIUI : public PathBuilder, public Meta, public UI
 };
 
 #endif
+/**************************  END  APIUI.h **************************/

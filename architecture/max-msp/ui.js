@@ -206,7 +206,7 @@ faust.ui = function (json, patcher) {
         parse_ui(parsed_json.ui, dsp_object1, patcher);
     } else {
         // Tries to find the compiled object from the "filename" field in the JSON
-        var dsp_object2 = patcher.getnamed(parsed_json.filename + "~");
+        var dsp_object2 = patcher.getnamed(parsed_json.filename.slice(0,-4) + "~");
         if (dsp_object2 !== patcher.getnamed("null_object")) {
             parse_ui(parsed_json.ui, dsp_object2, patcher);
         } else {

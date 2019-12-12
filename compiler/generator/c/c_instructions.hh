@@ -23,7 +23,9 @@
 #define _C_INSTRUCTIONS_H
 
 #include <string>
+
 #include "text_instructions.hh"
+#include "struct_manager.hh"
 
 using namespace std;
 
@@ -38,12 +40,9 @@ class CInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
+    CInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*", struct_name), tab)
     {
-        fTypeManager->fTypeDirectTable[Typed::kObj]     = structname;
-        fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
-
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
 
@@ -66,6 +65,7 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10f"]     = true;
         gFunctionSymbolTable["powf"]       = true;
         gFunctionSymbolTable["remainderf"] = true;
+        gFunctionSymbolTable["rintf"]      = true;
         gFunctionSymbolTable["roundf"]     = true;
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
@@ -87,10 +87,33 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10"]     = true;
         gFunctionSymbolTable["pow"]       = true;
         gFunctionSymbolTable["remainder"] = true;
+        gFunctionSymbolTable["rint"]      = true;
         gFunctionSymbolTable["round"]     = true;
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+
+        // Quad version
+        gFunctionSymbolTable["fabsl"]      = true;
+        gFunctionSymbolTable["acosl"]      = true;
+        gFunctionSymbolTable["asinl"]      = true;
+        gFunctionSymbolTable["atanl"]      = true;
+        gFunctionSymbolTable["atan2l"]     = true;
+        gFunctionSymbolTable["ceill"]      = true;
+        gFunctionSymbolTable["cosl"]       = true;
+        gFunctionSymbolTable["expl"]       = true;
+        gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["floorl"]     = true;
+        gFunctionSymbolTable["fmodl"]      = true;
+        gFunctionSymbolTable["logl"]       = true;
+        gFunctionSymbolTable["log10l"]     = true;
+        gFunctionSymbolTable["powl"]       = true;
+        gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["rintl"]      = true;
+        gFunctionSymbolTable["roundl"]     = true;
+        gFunctionSymbolTable["sinl"]       = true;
+        gFunctionSymbolTable["sqrtl"]      = true;
+        gFunctionSymbolTable["tanl"]       = true;
     }
 
     virtual ~CInstVisitor() {}
@@ -112,13 +135,13 @@ class CInstVisitor : public TextInstVisitor {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "ui_interface->openHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "ui_interface->openTabBox(";
                 break;
         }
@@ -131,6 +154,7 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << "ui_interface->closeBox(ui_interface->uiInterface);";
         tab(fTab, *fOut);
     }
+    
     virtual void visit(AddButtonInst* inst)
     {
         string name;
@@ -306,10 +330,10 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-      
+
         DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-        StoreVarInst*   c99_init_inst    = NULL;
-        
+        StoreVarInst*   c99_init_inst    = nullptr;
+
         if (c99_declare_inst) {
             InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
             *fOut << "{";
@@ -317,13 +341,12 @@ class CInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
 
             // To generate C99 compatible loops...
-            c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-            c99_declare_inst =
-                InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
+            c99_init_inst    = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+            c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genInt32Typed());
             // C99 loop variable declared outside the loop
             c99_declare_inst->accept(this);
         }
-        
+
         if (gGlobal->gClang && !inst->fIsRecursive) {
             *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
             tab(fTab, *fOut);
@@ -348,19 +371,102 @@ class CInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
 
         if (c99_declare_inst) {
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
     }
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
+};
+
+// Used for -os mode (TODO : does not work with 'soundfile')
+class CInstVisitor1 : public CInstVisitor {
+    
+    private:
+    
+        StructInstVisitor1 fStructVisitor;
+        bool fZoneAddress;      // If a zone address is currently written
+        bool fIndexedAddress;   // If an indexed address is currently written
+    
+    public:
+    
+        CInstVisitor1(std::ostream* out, const string& structname, int tab = 0)
+        :CInstVisitor(out, structname, tab), fZoneAddress(false), fIndexedAddress(false)
+        {}
+    
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            // Not supported for now
+            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+        }
+    
+        virtual void visit(DeclareVarInst* inst)
+        {
+            Address::AccessType access = inst->fAddress->getAccess();
+            string name = inst->fAddress->getName();
+            bool is_control = startWith(name, "fButton")
+                || startWith(name, "fCheckbox")
+                || startWith(name, "fVslider")
+                || startWith(name, "fHslider")
+                || startWith(name, "fEntry")
+                || startWith(name, "fVbargraph")
+                || startWith(name, "fHbargraph")
+                || name == "fSampleRate";
+            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control){
+                fStructVisitor.visit(inst);
+            } else {
+                CInstVisitor::visit(inst);
+            }
+        }
+    
+        virtual void visit(NamedAddress* named)
+        {
+            Typed::VarType type;
+            if (fStructVisitor.hasField(named->fName, type)) {
+                // Zone address zone[id][index] are rewritten as zone[id+index]
+                fZoneAddress = true;
+                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
+                if (!fIndexedAddress) { *fOut << "]"; }
+            } else {
+                fZoneAddress = false;
+                if (named->getAccess() & Address::kStruct) {
+                    *fOut << "dsp->";
+                }
+                *fOut << named->fName;
+            }
+        }
+    
+        /*
+         Indexed address can actually be values in an array or fields in a struct type
+         */
+        virtual void visit(IndexedAddress* indexed)
+        {
+            fIndexedAddress = true;
+            indexed->fAddress->accept(this);
+            DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+            if (struct_type) {
+                Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            } else {
+                // Zone address zone[id][index] are rewritten as zone[id+index]
+                if (fZoneAddress) { *fOut << "+"; } else { *fOut << "["; }
+                fIndexedAddress = false;
+                fZoneAddress = false;
+                indexed->fIndex->accept(this);
+                *fOut << "]";
+            }
+        }
+    
+        int getIntZoneSize() { return fStructVisitor.fStructIntOffset; }
+        int getRealZoneSize() { return fStructVisitor.fStructRealOffset; }
+   
 };
 
 #endif

@@ -1,22 +1,25 @@
+/************************** BEGIN CInterface.h **************************/
 /************************************************************************
- ************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
- ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2018 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef CINTERFACE_H
@@ -98,20 +101,22 @@ typedef struct {
  *  Interface for the DSP object
  ***************************************/
 
-struct dsp_imp;
+typedef char dsp_imp;
     
-typedef struct dsp_imp* (* newDspFun) ();
-typedef void (* deleteDspFun) (struct dsp_imp* dsp);
-typedef int (* getNumInputsFun) (struct dsp_imp* dsp);
-typedef int (* getNumOutputsFun) (struct dsp_imp* dsp);
-typedef void (* buildUserInterfaceFun) (struct dsp_imp* dsp, UIGlue* ui);
-typedef void (* initFun) (struct dsp_imp* dsp, int freq);
-typedef void (* clearFun) (struct dsp_imp* dsp);
-typedef int (* getSampleRateFun) (struct dsp_imp* dsp);
-typedef void (* computeFun) (struct dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef dsp_imp* (* newDspFun) ();
+typedef void (* deleteDspFun) (dsp_imp* dsp);
+typedef void (* allocateDspFun) (dsp_imp* dsp);
+typedef void (* destroyDspFun) (dsp_imp* dsp);
+typedef int (* getNumInputsFun) (dsp_imp* dsp);
+typedef int (* getNumOutputsFun) (dsp_imp* dsp);
+typedef void (* buildUserInterfaceFun) (dsp_imp* dsp, UIGlue* ui);
+typedef void (* initFun) (dsp_imp* dsp, int sample_rate);
+typedef void (* clearFun) (dsp_imp* dsp);
+typedef int (* getSampleRateFun) (dsp_imp* dsp);
+typedef void (* computeFun) (dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
+typedef void (* classInitFun) (int sample_rate);
 typedef const char* (* getJSONFun) ();
-typedef void (* setDefaultSoundFun) (struct Soundfile* sf);
     
 /***************************************
  * DSP memory manager functions
@@ -134,3 +139,4 @@ typedef struct {
 #endif
 
 #endif
+/**************************  END  CInterface.h **************************/

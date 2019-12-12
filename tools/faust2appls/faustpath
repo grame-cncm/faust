@@ -24,7 +24,9 @@ FAUSTINC=$(faust -includedir);
 
 [ -n "$MAXSDK" ] || MAXSDK=/usr/local/include/c74support/
 CSOUND_MACSDK=/Library/Frameworks/CsoundLib64.framework
-PUREDATA_MACSDK=/Applications/Pd-extended.app/Contents/Resources
+# try and guess a good place for Pd header files. Taking the first entry in /Applications/Pd- and taking the folder containing m_pd.h
+[ -n "$PUREDATA_MACSDK" ] || PUREDATA_MACSDK=`ls -d /Applications/Pd-* 2> /dev/null | head -n1 | xargs -I REPL find REPL -name m_pd.h -exec dirname {} \; | head -n1`
+[ -n "$PUREDATA_LINUXSDK" ] || PUREDATA_LINUXSDK=`find /usr/include/pd /usr/include/libpd/ /usr/include/pdextended /usr/local/include/pd /usr/local/include/libpd -name m_pd.h -exec dirname {} \; 2>/dev/null| head -n1`
 VSTSDK=""
 [ -n "$SUPERCOLLIDER_HEADERS" ] || SUPERCOLLIDER_HEADERS=/usr/local/include/SuperCollider/
 

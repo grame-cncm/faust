@@ -592,7 +592,7 @@ int http_parseFilename(const char* url, char** filename)
 		http_errno = HF_NULLURL;
 		return -1;
 	}
-	ptr = (char*)rindex(url, '/');
+	ptr = (char*)strrchr(url, '/');
 	if (ptr == NULL)
 		/* Root level request, apparently */
 		return 1;

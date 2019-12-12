@@ -66,6 +66,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10f"]     = true;
         gFunctionSymbolTable["powf"]       = true;
         gFunctionSymbolTable["remainderf"] = true;
+        gFunctionSymbolTable["rintf"]      = true;
         gFunctionSymbolTable["roundf"]     = true;
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
@@ -87,10 +88,33 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["log10"]     = true;
         gFunctionSymbolTable["pow"]       = true;
         gFunctionSymbolTable["remainder"] = true;
+        gFunctionSymbolTable["rint"]      = true;
         gFunctionSymbolTable["round"]     = true;
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+
+        // Quad version
+        gFunctionSymbolTable["fabsl"]      = true;
+        gFunctionSymbolTable["acosl"]      = true;
+        gFunctionSymbolTable["asinl"]      = true;
+        gFunctionSymbolTable["atanl"]      = true;
+        gFunctionSymbolTable["atan2l"]     = true;
+        gFunctionSymbolTable["ceill"]      = true;
+        gFunctionSymbolTable["cosl"]       = true;
+        gFunctionSymbolTable["expl"]       = true;
+        gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["floorl"]     = true;
+        gFunctionSymbolTable["fmodl"]      = true;
+        gFunctionSymbolTable["logl"]       = true;
+        gFunctionSymbolTable["log10l"]     = true;
+        gFunctionSymbolTable["powl"]       = true;
+        gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["rintl"]      = true;
+        gFunctionSymbolTable["roundl"]     = true;
+        gFunctionSymbolTable["sinl"]       = true;
+        gFunctionSymbolTable["sqrtl"]      = true;
+        gFunctionSymbolTable["tanl"]       = true;
 
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "std::abs";
@@ -118,6 +142,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10f"]     = "std::log10";
         gPolyMathLibTable["powf"]       = "std::pow";
         gPolyMathLibTable["remainderf"] = "std::remainder";
+        gPolyMathLibTable["rintf"]      = "std::rint";
         gPolyMathLibTable["roundf"]     = "std::round";
         gPolyMathLibTable["sinf"]       = "std::sin";
         gPolyMathLibTable["sqrtf"]      = "std::sqrt";
@@ -144,16 +169,16 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10"]     = "std::log10";
         gPolyMathLibTable["pow"]       = "std::pow";
         gPolyMathLibTable["remainder"] = "std::remainder";
+        gPolyMathLibTable["rint"]      = "std::rint";
         gPolyMathLibTable["round"]     = "std::round";
         gPolyMathLibTable["sin"]       = "std::sin";
         gPolyMathLibTable["sqrt"]      = "std::sqrt";
         gPolyMathLibTable["tan"]       = "std::tan";
-        
-        
+
         // Polymath mapping quad version
         gPolyMathLibTable["max_l"] = "std::max<quad>";
         gPolyMathLibTable["min_l"] = "std::min<quad>";
-        
+
         gPolyMathLibTable["fabsl"]      = "std::fabs";
         gPolyMathLibTable["acosl"]      = "std::acos";
         gPolyMathLibTable["asinl"]      = "std::asin";
@@ -171,6 +196,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10l"]     = "std::log10";
         gPolyMathLibTable["powl"]       = "std::pow";
         gPolyMathLibTable["remainderl"] = "std::remainder";
+        gPolyMathLibTable["rintl"]      = "std::rint";
         gPolyMathLibTable["roundl"]     = "std::round";
         gPolyMathLibTable["sinl"]       = "std::sin";
         gPolyMathLibTable["sqrtl"]      = "std::sqrt";
@@ -196,13 +222,13 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "ui_interface->openHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "ui_interface->openTabBox(";
                 break;
         }
@@ -271,6 +297,10 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
+        if (inst->fAddress->getAccess() & Address::kConst) {
+            *fOut << "const ";
+        }
+
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "static ";
         }
@@ -378,19 +408,19 @@ class CPPInstVisitor : public TextInstVisitor {
             generateFunCall(inst, name);
         }
     }
-    
+
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-        
+
         if (gGlobal->gClang && !inst->fIsRecursive) {
             *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
             tab(fTab, *fOut);
         }
         TextInstVisitor::visit(inst);
     }
-  
+
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 

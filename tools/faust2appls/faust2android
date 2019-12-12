@@ -26,6 +26,7 @@ FAUST=0
 KEYBOARD=0
 REUSE=0
 SOUNDFILE=0
+OSCCTRL=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -38,6 +39,8 @@ for p in $@; do
 		INSTALL=1
 	elif [ $p = "-soundfile" ]; then
     	SOUNDFILE="1"
+	elif [ $p = "-osc" ]; then
+	    OSCCTRL="1"
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
@@ -51,28 +54,29 @@ for p in $@; do
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
 	elif [ $p = "-h" ]; then
-        echo "Usage: faust2android [-install] [-source] [-swig] [-faust] [-reuse] [-soundfile] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Usage: faust2android [-install] [-source] [-swig] [-faust] [-reuse] [-soundfile] [-osc] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-install' once compilation is over, installs the generated app on the Android device connected to the computer."
         echo "Use '-source' creates an eclipse project of the app in the current directory."
         echo "Use '-swig' regenerate the C++ and the JAVA interface for the native portion of the app."
         echo "Use '-faust' only carries out the Faust compilation and install the generated C++ file in the JNI folder."
         echo "Use '-reuse' keep build directory and reuse it to speedup compilation."
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        echo "Use '-osc' to active OSC interface"
         echo "Use '-debug' verbose output."
 		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"
 	fi
 done
 
-# only carry out the faust compilation 
+# only carry out the faust compilation
 if [ $FAUST -eq 1 ]; then
 	faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "app/src/main/cpp/DspFaust.cpp"
 	exit 1
 fi
- 
+
 # Create the temporary directory where compilation will take place
 
 APPNAME=$(basename "$FILE")
@@ -88,16 +92,16 @@ if [ $REUSE -eq 0 ]; then
 		rm -rf "$BUILDDIR"
 	fi
 fi
-		
+
 if [ ! -d "$BUILDDIR" ]; then
   	echo "Creating new Android project $BUILDDIR"  > $LOG
-  	
+
   	mkdir -p "$BUILDDIR"
 	cp -r $FAUSTARCH/android/*  "$BUILDDIR"
 	install -d $JNIFOLDER
 	# Copy include files *.h if any (ignore any error here)
 	(cp *.h $JNIFOLDER 2> $LOG) || true
-	
+
 	# change 'faust' with real *APPNAME
 	PLATFORM=$(uname)
 
@@ -126,7 +130,7 @@ if [ ! -d "$BUILDDIR" ]; then
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
 		sed -i 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 	fi
-	
+
 	mv $APPFOLDER/java/com/faust $APPFOLDER/java/com/$APPNAME
 
 	# TODO wrong: should be checked
@@ -168,13 +172,13 @@ if [ $SOUNDFILE -eq 1 ]; then
 							echo "Warning: soundfile with absolute path is not copied !"
 					else
 							#create destination path and possibly create directory
-							sfpath="$APPFOLDER/assets"
+							sfpath="$APPFOLDER/assets/$(dirname $snd)/"
 							if ! [ -d $sfpath ]; then
 									echo "Create $sfpath"
-									mkdir $sfpath
+									mkdir -p $sfpath
 							fi
 							echo "Copy $snd in apk"
-							cp $snd $sfpath		
+							cp $snd $sfpath
 					fi
 			else
 					echo "Error: file $snd not found !"
@@ -186,9 +190,23 @@ if [ $SOUNDFILE -eq 1 ]; then
 		sed -i 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
 	fi
 	mv $BUILDDIR/app/CMakeLists_sndfile.txt $BUILDDIR/app/CMakeLists.txt
+	if [ $OSCCTRL -eq 1 ]; then
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	else
+		sed -i 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	fi
+  fi
 	rm $APPNAME-tmp.txt
 else
-	rm $BUILDDIR/app/CMakeLists_sndfile.txt 
+	rm $BUILDDIR/app/CMakeLists_sndfile.txt
+	if [ $OSCCTRL -eq 1 ]; then
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	else
+		sed -i 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+	fi
+  fi
 	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
 fi
 rm $FILE.json
@@ -199,13 +217,13 @@ cd $BUILDDIR
 # Try to use installed gradle instead of local ./gradlew in order
 # to avoid potential problems when compiling in a shared folder
 # where execution rights may not be granted (i.e. on a google VM)
-# In order to install gradle-4.6: 
+# In order to install gradle-4.6:
 #	wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
 #   unzip -d /opt/gradle gradle-4.6-bin.zip
 
-if [ -f /opt/gradle/gradle-4.6/bin/gradle ]; then
-	FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.6/bin/gradle}
-else 
+if [ -f /opt/gradle/gradle-4.10.1/bin/gradle ]; then
+	FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.10.1/bin/gradle}
+else
 	FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
 	chmod a+x ./gradlew
 fi
@@ -237,5 +255,3 @@ else
 fi
 
 echo "$APPNAME.apk;"
-
-

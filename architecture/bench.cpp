@@ -1,35 +1,34 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
-	each section for license and copyright information.
-*************************************************************************/
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-    as published by the Free Software Foundation; either version 3 of 
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work 
-    that contains this FAUST architecture section and distribute  
-    that work under terms of your choice, so long as this FAUST 
-    architecture section is not modified. 
-
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -60,17 +59,17 @@
 
 using namespace std;
 
-float*          gBuffer = 0;        // a buffer of NV*VSize samples
+float* gBuffer = 0;        // a buffer of NV*VSize samples
 
-unsigned int    COUNT   = 2000;     // number of measures
-unsigned int    NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
-unsigned int    ITER    = 10;       // number of iterations per measure
-unsigned int    VSIZE   = 4096;     // size of a vector in samples
-unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
+unsigned int COUNT   = 2000;     // number of measures
+unsigned int NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
+unsigned int ITER    = 10;       // number of iterations per measure
+unsigned int VSIZE   = 4096;     // size of a vector in samples
+unsigned int IDX     = 0;        // current vector number (0 <= VIdx < NV)
 
 bool setRealtimePriority()
 {
-    struct passwd *         pw;
+    struct passwd*          pw;
     int                     err;
     uid_t                   uid;
     int                     policy;
@@ -85,7 +84,7 @@ bool setRealtimePriority()
     param.sched_priority = 50;
     err = pthread_setschedparam(pthread_self(), policy, &param);
 
-    setuid (uid);
+    setuid(uid);
     return (err != -1);
 }
 
@@ -94,40 +93,38 @@ double mysecond()
     struct timeval tp;
     struct timezone tzp;
     int i = gettimeofday(&tp,&tzp);
-    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
-		
+
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
-		
+
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-					
+
 mydsp DSP;
 
 #if 0
-
 static __inline__ unsigned long long int rdtsc(void)
 {
     unsigned long long int x;
     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
     return x;
 }
-
 #endif
 
 /**
@@ -143,7 +140,7 @@ void statistic(const char* name, double* timing)
     double mega =  double(VSIZE*ITER)/MEGABYTE; // mega samples
     // skip first 10 values to avoid cache bias ???
     lo = hi = tot = mega/(timing[11] - timing[10]);
-    for (int i = 11; i<COUNT; i++) {
+    for (int i = 11; i < COUNT; i++) {
         double delta = mega/(timing[i] - timing[i-1]);
         if (delta < lo) {
             lo = delta;
@@ -164,7 +161,7 @@ void statistic(const char* name, double* timing)
 void allocBuffer()
 {
     unsigned int BSIZE = NV * VSIZE;
-    gBuffer = (float*) calloc (BSIZE, sizeof(float));
+    gBuffer = (float*)calloc(BSIZE, sizeof(float));
     
     int R0_0 = 0;
     for (int j = 0; j < BSIZE; j++) {
@@ -185,27 +182,27 @@ void bench(const char* name)
     int numInChan = DSP.getNumInputs();
     int numOutChan = DSP.getNumOutputs();
 
-    assert (numInChan < 256);
-    assert (numOutChan < 256);
+    assert(numInChan < 256);
+    assert(numOutChan < 256);
 
-    float*  inChannel[256];
-    float*  outChannel[256];
+    float* inChannel[256];
+    float* outChannel[256];
 
     // allocate input buffers (initialized with white noise)
     allocBuffer();
 
     // allocate output channels (not initialized)
-    for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*) calloc (VSIZE, sizeof(float));
+    for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*)calloc(VSIZE, sizeof(float));
 
     // init the dsp with a resoneable sampling rate)
     DSP.init(48000);
-    double* timing = (double*) calloc (COUNT, sizeof(double));
+    double* timing = (double*) calloc(COUNT, sizeof(double));
 
-    for (int i = 0; i<COUNT; i++) {
+    for (int i = 0; i < COUNT; i++) {
         timing[i] = mysecond();
-        for (int k = 0; k<ITER; k++) {
+        for (int k = 0; k < ITER; k++) {
             // allocate new input buffers to avoid L2 cache
-            for (int c=0; c<numInChan; c++) { inChannel[c] = nextVect(); }
+            for (int c = 0; c < numInChan; c++) { inChannel[c] = nextVect(); }
             DSP.compute(VSIZE,inChannel,outChannel);
         }
     }
@@ -218,9 +215,9 @@ void bench(const char* name)
 //-------------------------------------------------------------------------
 
 // lopt : Scan Command Line long int Arguments
-long lopt (int argc, char *argv[], const char* longname, const char* shortname, long def)
+long lopt(int argc, char* argv[], const char* longname, const char* shortname, long def)
 {
-	for (int i=2; i<argc; i++) {
+	for (int i = 2; i < argc; i++) {
 		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
 			return atoi(argv[i]);
         }
@@ -228,7 +225,7 @@ long lopt (int argc, char *argv[], const char* longname, const char* shortname, 
 	return def;
 }
 
-int main(int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
     AVOIDDENORMALS;
     VSIZE = lopt(argc, argv, "--vector-size", "-vec", 4096);
@@ -241,6 +238,3 @@ int main(int argc, char *argv[] )
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-
-

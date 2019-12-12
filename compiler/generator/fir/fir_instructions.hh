@@ -78,42 +78,34 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            BasicTyped*        basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            ArrayTyped*        array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            NamedTyped*        named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
-            std::ostringstream num_str;
-            num_str << array_typed->fSize;
+            BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
-                           : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\"";
-                /*
-                return (array_typed->fSize == 0)
-                    ? fTypeDirectTable[basic_typed1->fType]
-                    : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
-                */
+                           : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_size + "]" + "\"";
             } else if (array_typed1) {
-                return generateType(array_typed1) + "[" + num_str.str() + "]";
+                return generateType(array_typed1) + "[" + num_size + "]";
             } else if (named_typed1) {
-                return named_typed1->fName + "[" + num_str.str() + "]";
+                return named_typed1->fName + "[" + num_size + "]";
             } else {
                 faustassert(false);
                 return "";
             }
         } else if (vector_typed) {
-            std::ostringstream num_str;
-            num_str << vector_typed->fSize;
+            std::string num_size = std::to_string(vector_typed->fSize);
             faustassert(fTypeDirectTable.find(vector_typed->fType->fType) != fTypeDirectTable.end());
             return (vector_typed->fSize == 0)
                        ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                       : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+                       : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_size + ")";
         } else if (struct_typed) {
-            std::ostringstream res;
+            std::stringstream res;
             res << "StructType<\"" << struct_typed->fName << "\",";
-            vector<NamedTyped*>::const_iterator it;
-            for (it = struct_typed->fFields.begin(); it != struct_typed->fFields.end(); it++) {
-                res << "[" << generateType(*it) << "]";
+            for (auto& it : struct_typed->fFields) {
+                res << "(" << generateType(it) << ")";
             }
             res << ">";
             return res.str();
@@ -137,44 +129,36 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (named_typed) {
             // TODO : break code with subclasses
             // return named_typed->fName + generateType(named_typed->fType) + ", " + name;
-            return named_typed->fName + ", " + name;
+            return "\"" + named_typed->fName + "\", " + name;
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
-            BasicTyped*        basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-            ArrayTyped*        array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
-            NamedTyped*        named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
-            std::ostringstream num_str;
-            num_str << array_typed->fSize;
+            BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+            ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+            NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+            std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
-                           : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_str.str() + "]";
-                /*
-                 ? fTypeDirectTable[basic_typed1->fType] + "*, " + name
-                 : fTypeDirectTable[basic_typed1->fType] + ", " + name + "[" + num_str.str() + "]";
-                 */
-                //: "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
+                           : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_size + "]";
             } else if (array_typed1) {
-                return generateType(array_typed1) + "[" + num_str.str() + "]";
+                return generateType(array_typed1) + "[" + num_size + "]";
             } else if (named_typed1) {
-                return named_typed1->fName + "[" + num_str.str() + "]";
+                return named_typed1->fName + "[" + num_size + "]";
             } else {
                 faustassert(false);
                 return "";
             }
         } else if (vector_typed) {
-            std::ostringstream num_str;
-            num_str << vector_typed->fSize;
+            std::string num_size = std::to_string(vector_typed->fSize);
             return (vector_typed->fSize == 0)
                        ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                       : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+                       : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_size + ")";
         } else if (struct_typed) {
-            std::ostringstream res;
+            std::stringstream res;
             res << "StructType<\"" << struct_typed->fName << "\",";
-            vector<NamedTyped*>::const_iterator it;
-            for (it = struct_typed->fFields.begin(); it != struct_typed->fFields.end(); it++) {
-                res << "[" << generateType(*it) << "]";
+            for (auto& it : struct_typed->fFields) {
+                res << "(" << generateType(it) << ")";
             }
             res << ">";
             return res.str();
@@ -195,13 +179,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "OpenVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "OpenHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "OpenTabBox(";
                 break;
         }
@@ -336,10 +320,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         if (size > 0) {  // Has more arguments...
             *fOut << ", ";
         }
-        list<NamedTyped*>::const_iterator it;
-        for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-            *fOut << generateType((*it));
-            if (i < size - 1) *fOut << ", ";
+        for (auto& it : inst->fType->fArgsTypes) {
+            *fOut << generateType(it);
+            if (i++ < size - 1) *fOut << ", ";
         }
 
         if (inst->fCode->fCode.size() == 0) {
@@ -352,19 +335,23 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
+            back(1, *fOut);
             *fOut << "EndDeclare";
             tab(fTab, *fOut);
         }
     }
 
-    virtual void visit(NamedAddress* named) { *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")"; }
+    virtual void visit(NamedAddress* named)
+    {
+        *fOut << "Address(" << named->fName << ", " << Address::dumpString(named->fAccess) << ")";
+    }
 
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
@@ -403,7 +390,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "FloatArrayNumInst";
         char sep = '{';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkFloat(inst->fNumTable[i]);
             sep = ',';
         }
@@ -418,7 +405,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "Int32ArrayNumInst";
         char sep = '{';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << inst->fNumTable[i];
             sep = ',';
         }
@@ -433,7 +420,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "DoubleArrayNumInst";
         char sep = '{';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkDouble(inst->fNumTable[i]);
             sep = ',';
         }
@@ -479,14 +466,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << fun_name;
 
         *fOut << "\"" << inst->fName << "\"";
-        list<ValueInst*>::const_iterator it;
 
         size_t size = inst->fArgs.size(), i = 0;
         if (size > 0) *fOut << ", ";
-        for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+        for (auto& it : inst->fArgs) {
             // Compile argument
-            (*it)->accept(this);
-            if (i < size - 1) *fOut << ", ";
+            it->accept(this);
+            if (i++ < size - 1) *fOut << ", ";
         }
         *fOut << ")";
     }
@@ -517,6 +503,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             inst->fElse->accept(this);
             fTab--;
         }
+        back(1, *fOut);
         *fOut << "EndIf";
         tab(fTab, *fOut);
     }
@@ -536,6 +523,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
+        back(1, *fOut);
         *fOut << "EndForLoop";
         tab(fTab, *fOut);
     }
@@ -548,6 +536,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
+        back(1, *fOut);
         *fOut << "EndWhileLoop";
         tab(fTab, *fOut);
     }
@@ -557,11 +546,11 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << "BlockInst ";
         fTab++;
         tab(fTab, *fOut);
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            (*it)->accept(this);
+        for (auto& it : inst->fCode) {
+            it->accept(this);
         }
         fTab--;
+        back(1, *fOut);
         *fOut << "EndBlock";
         tab(fTab, *fOut);
     }
@@ -572,21 +561,22 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         inst->fCond->accept(this);
         fTab++;
         tab(fTab, *fOut);
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            if ((*it).first == -1) {  // -1 used to code "default" case
+        for (auto& it : inst->fCode) {
+            if (it.first == -1) {  // -1 used to code "default" case
                 *fOut << "Default ";
             } else {
-                *fOut << "Case " << (*it).first;
+                *fOut << "Case " << it.first;
             }
             fTab++;
             tab(fTab, *fOut);
-            ((*it).second)->accept(this);
-            *fOut << "EndCase";
+            (it.second)->accept(this);
             fTab--;
+            back(1, *fOut);
+            *fOut << "EndCase";
             tab(fTab, *fOut);
         }
         fTab--;
+        back(1, *fOut);
         *fOut << "EndSWitch";
         tab(fTab, *fOut);
     }

@@ -11,7 +11,6 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
-CXX=g++
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
@@ -75,6 +74,7 @@ echoHelp ()
     echo ""
     echo "Android specific options:"
     echo "   -package: set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
     echo "iOS specific options"
     echo "   -midi: add built-in RtMidi support to the API."
@@ -112,6 +112,8 @@ echoHelp ()
     echo "   -midi: add JUCE MIDI support to the API."
     echo "   -osc: add JUCE OSC support to the API."
     echo "   -soundfile: add built-in Soundfile support to the API."
+    echo ""
+    echo "Additional Faust options (like -vec -vs 8...) can be given at the end of the command line."
     echo ""
 }
 

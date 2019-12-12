@@ -10,6 +10,7 @@
 . faustpath
 . faustoptflags
 
+SRC="0"
 ARCHFILE=$FAUSTARCH/minimal-portaudio.rs
 
 #PHASE 2 : dispatch command arguments
@@ -18,10 +19,13 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2portaudiorust [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2portaudiorust [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use '-source' to only generate the source project"
     fi
 
-    if [ ${p:0:1} = "-" ]; then
+    if [ $p = "-source" ]; then
+        SRC="1"
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
@@ -43,7 +47,7 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
 
     # creates the dir
-    dspName="${f%.dsp}-rust"
+    dspName="${f%.dsp}-portaudiorust"
     rm -rf "$SRCDIR/$dspName"
 
     # create rust project
@@ -52,12 +56,17 @@ for p in $FILES; do
     # compile Faust DSP and put in the cargo folder
     faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
-    # add JACK dependency
+    # add dependencies
     echo "portaudio = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
+    echo "libm = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
 
     # build the project
-    cd "$SRCDIR/$dspName"
-    cargo build --release
-    cargo build
+    if [ $SRC = "0" ]; then
+    (
+        cd "$SRCDIR/$dspName"
+        cargo build --release
+        cargo build
+    ) > /dev/null || exit
+    fi
 
 done

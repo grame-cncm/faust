@@ -1,3 +1,4 @@
+/************************** BEGIN OCVUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -689,3 +690,4 @@ void* ocvLoop(void* ocv_object)
 }
 
 #endif
+/**************************  END  OCVUI.h **************************/

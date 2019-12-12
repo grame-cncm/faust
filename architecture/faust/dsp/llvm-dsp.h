@@ -1,3 +1,4 @@
+/************************** BEGIN llvm-dsp.h **************************/
 /************************************************************************
  ************************************************************************
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -30,6 +31,7 @@
 
 #include <string>
 #include <vector>
+
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 
@@ -65,11 +67,11 @@ class llvm_dsp : public dsp {
        
         int getSampleRate();
         
-        void init(int samplingRate);
+        void init(int sample_rate);
        
-        void instanceInit(int samplingRate);
+        void instanceInit(int sample_rate);
     
-        void instanceConstants(int samplingRate);
+        void instanceConstants(int sample_rate);
     
         void instanceResetUserInterface();
         
@@ -238,13 +240,13 @@ std::vector<std::string> getAllDSPFactories();
  * 
  * @return true if 'multi-thread' safe access is started.
  */ 
-bool startMTDSPFactories();
+extern "C" bool startMTDSPFactories();
 
 /**
  * Stop multi-thread access mode.
  * 
  */ 
-void stopMTDSPFactories();
+extern "C" void stopMTDSPFactories();
 
 /**
  * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 
@@ -461,3 +463,4 @@ DEPRECATED(void deleteDSPInstance(llvm_dsp* dsp));
  */
 
 #endif
+/**************************  END  llvm-dsp.h **************************/

@@ -1,3 +1,4 @@
+/************************** BEGIN faust.h **************************/
 #ifndef __VST_FAUST_H__
 #define __VST_FAUST_H__
 
@@ -115,3 +116,4 @@ class Faust : public AudioEffectX {
 }; // end of Faust class
 
 #endif
+/**************************  END  faust.h **************************/

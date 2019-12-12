@@ -2,8 +2,8 @@ import("stdfaust.lib");
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Simple FX chaine build for a mono synthesizer.
-// It controle general volume and pan.
+// Simple FX chain build for a mono synthesizer.
+// It control general volume and pan.
 // FX Chaine is:
 //		Drive
 //		Flanger
@@ -37,19 +37,19 @@ import("stdfaust.lib");
 vol	= hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
-drive	= hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
+drive = hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
 
 // Flanger
-curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb      = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
+curdel = hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
+fb = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw = hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);
 		efx = _ <: _, pf.flanger_mono(10,fldel,1,fb,0) : dry_wet(fldw);
 	};
 
-// Pannoramique:
+// Panoramic:
 panno = _ : sp.panner(hslider ("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
 
 // REVERB (from freeverb_demo)

@@ -1,3 +1,4 @@
+/************************** BEGIN coreaudio-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -37,6 +38,9 @@
 #include <CoreServices/CoreServices.h>
 
 #include "faust/audio/audio.h"
+#ifdef HAS_MATH_EXCEPTION
+#include "faust/audio/fpe.h"
+#endif
 #include "faust/dsp/dsp.h"
 
 /******************************************************************************
@@ -963,7 +967,13 @@ class TCoreAudioRenderer
                 for (int i = 0; i < fDevNumOutChans; i++) {
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
+            #ifdef HAS_MATH_EXCEPTION
+                TRY_FPE
+            #endif
                 fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
+            #ifdef HAS_MATH_EXCEPTION
+                CATCH_FPE
+            #endif
                 fAudio->runControlCallbacks();
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
@@ -1509,3 +1519,4 @@ class coreaudio : public audio {
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
 
+/**************************  END  coreaudio-dsp.h **************************/

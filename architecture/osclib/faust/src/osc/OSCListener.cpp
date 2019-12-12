@@ -78,26 +78,29 @@ void OSCListener::run()
 //--------------------------------------------------------------------------
 void OSCListener::ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& src)
 {
- 	Message msg = Message(m.AddressPattern());
-	msg.setSrcIP(src.address);
-	if (fSetDest && (src.address != kLocalhost)) {
-		oscout.setAddress(src.address);
-		fSetDest = false;
-	}
-	ReceivedMessageArgumentIterator i = m.ArgumentsBegin();
-	while (i != m.ArgumentsEnd()) {
-		if (i->IsString()) {
-			msg.add<string>(i->AsStringUnchecked());			
-		}
-		else if (i->IsInt32()) {
-			msg.add<int>(int(i->AsInt32Unchecked()));
-		}
-		else if (i->IsFloat()) {
-			msg.add<float>(i->AsFloatUnchecked());			
-		}
-		i++;
-	}
-	fMsgHandler->processMessage(&msg);
+    Message msg = Message(m.AddressPattern());
+    msg.setSrcIP(src.address);
+    if (fSetDest && (src.address != kLocalhost)) {
+        oscout.setAddress(src.address);
+        fSetDest = false;
+    }
+    ReceivedMessageArgumentIterator i = m.ArgumentsBegin();
+    while (i != m.ArgumentsEnd()) {
+        if (i->IsString()) {
+            msg.add<string>(i->AsStringUnchecked());
+        }
+        else if (i->IsInt32()) {
+            msg.add<int>(int(i->AsInt32Unchecked()));
+        }
+        else if (i->IsFloat()) {
+            msg.add<float>(i->AsFloatUnchecked());
+        }
+        else if (i->IsDouble()) {
+            msg.add<float>(i->AsDoubleUnchecked());
+        }
+        i++;
+    }
+    fMsgHandler->processMessage(&msg);
 }
 
 } // end namespoace

@@ -1,0 +1,244 @@
+
+<script>
+
+'use strict';
+
+// Faust part
+//var contextOptions = { latencyHint: 0.001 };
+var contextOptions = { latencyHint: "interactive" };
+//var contextOptions = { latencyHint: "playback" };
+
+const isWasm = (typeof(WebAssembly) !== "undefined");
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let factory = null;
+let node = null;
+
+function workletAvailable()
+{
+    if (typeof (OfflineAudioContext) === "undefined") return false;
+    const context = new OfflineAudioContext(1, 1, 44100);
+    return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
+}
+
+// MIDI input handling
+
+function pitchWheel(channel, wheel)
+{
+    if (node) {
+        node.pitchWheel(channel, wheel);
+    }
+}
+
+function ctrlChange(channel, ctrl, value)
+{
+    if (node) {
+        node.ctrlChange(channel, ctrl, value);
+    }
+}
+
+function midiMessageReceived(ev)
+{
+    var cmd = ev.data[0] >> 4;
+    var channel = ev.data[0] & 0xf;
+    var data1 = ev.data[1];
+    var data2 = ev.data[2];
+
+    if (channel === 9) {
+        return;
+    } else if (cmd === 11) {
+        ctrlChange(channel, data1, data2);
+    } else if (cmd === 14) {
+        pitchWheel(channel, (data2 * 128.0 + data1));
+    }
+}
+
+function onerrorcallback(error) {
+    console.log(error);
+}
+
+function onsuccesscallbackStandard(access) {
+    
+    access.onstatechange = function(e) {
+        if (e.port.type === "input") {
+            if (e.port.state === "connected") {
+                console.log(e.port.name + " is connected");
+                e.port.onmidimessage = midiMessageReceived;
+            } else if (e.port.state  === "disconnected") {
+                console.log(e.port.name + " is disconnected");
+                e.port.onmidimessage = null;
+            }
+        }
+    }
+    
+    for (var input of access.inputs.values()) {
+        input.onmidimessage = midiMessageReceived;
+        console.log(input.name + " is connected");
+    }
+}
+
+function activateMIDIInput() {
+    console.log("activateMIDIInput");
+    if (typeof(navigator.requestMIDIAccess) !== "undefined") {
+        navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
+    } else {
+        alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+    }
+}
+
+// Audio input handling
+
+function activateAudioInput()
+{
+    if (!navigator.getUserMedia) {
+        navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    }
+
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
+                               alert('Error getting audio input');
+                               console.log(e);
+                               });
+    } else {
+        alert('Audio input API not available');
+    }
+}
+
+function getDevice(device)
+{
+    // Connect the input to the destination.
+    audioCtx.createMediaStreamSource(device).connect(node);
+}
+
+// Save/Load functions using local storage
+
+//set item from local storage 'item_key' key
+function getStorageItemValue(item_key, key)
+{
+    if (localStorage.getItem(item_key)) {
+        var item_value = JSON.parse(localStorage.getItem(item_key));
+        var item_index = item_value.findIndex((obj => obj[0] === key));
+        return (item_index >= 0) ? item_value[item_index][1]: null;
+    } else {
+        return null;
+    }
+}
+
+//get [key, value] in local storage item_key key
+function setStorageItemValue(item_key, key, value)
+{
+    var item_value;
+    if (localStorage.getItem(item_key)) {
+        item_value = JSON.parse(localStorage.getItem(item_key));
+    } else {
+        item_value = [];
+    }
+    
+    // Possibly update an existing 'key'
+    var item_index = item_value.findIndex((obj => obj[0] === key));
+    if (item_index >= 0) {
+        item_value[item_index][1] = value;
+        // Otherwise push a new [key, value]
+    } else {
+        item_value.push([key, value]);
+    }
+    
+    localStorage.setItem(item_key, JSON.stringify(item_value));
+}
+
+function saveDSPState()
+{
+    var params = node.getParams();
+    for (var i = 0; i < params.length; i++) {
+        setStorageItemValue('DSP', params[i], node.getParamValue(params[i]));
+    }
+}
+
+function loadDSPState()
+{
+    var params = node.getParams();
+    for (var i = 0; i < params.length; i++) {
+        var value = getStorageItemValue('DSP', params[i]);
+        if (value) {
+            // Restore DSP state
+            node.setParamValue(params[i], Number(value));
+            // Restore GUI state
+            node.getOutputParamHandler()(params[i], Number(value));
+        }
+    }
+}
+
+function startDSPAux(aw_node)
+{
+    node = aw_node;
+
+    if (node.getNumInputs() > 0) {
+        activateAudioInput();
+    }
+    
+    node.connect(audioCtx.destination);
+    //console.log(node.getJSON());
+    console.log(node.getParams());
+
+    // No polling from the server needed, so use an empty loop
+    _f4u$t.main_loop = function() {}
+
+    var faustsvg = $('<div />');
+    $('body').append(faustsvg);
+    
+    node.setOutputParamHandler(_f4u$t.main(node.getJSON(), faustsvg, function(path, val) { node.setParamValue(path, val); }));
+   
+    //setTimeout(function() { node.stop();}, 5000);
+
+    // Load DSP state from local storage
+    loadDSPState();
+}
+
+function startDSP()
+{
+    startNewDSP();
+}
+
+function startNewDSP()
+{
+    if (isWasm && workletAvailable()) {
+        if (!window[dspName]) return console.error(dspName + " instance not found.");
+        factory = new window[dspName](audioCtx, "");
+        factory.load()
+        .then((aw_node) => startDSPAux(aw_node))
+        .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
+    }  else {
+        alert("WebAssembly or AudioWorklet is not supported in this browser !");
+    }
+}
+
+// To activate audio on iOS
+window.addEventListener("touchstart", () => {
+    if (audioCtx.state !== "suspended") return;
+    const buffer = audioCtx.createBuffer(1, 1, 22050);
+    const source = audioCtx.createBufferSource(); // create empty buffer
+    source.buffer = buffer;
+    source.connect(audioCtx.destination); // connect to output (your speakers)
+    source.start(); // play the file
+    audioCtx.resume().then(() => console.log("Audio resumed"));
+}, false);
+        
+// On desktop
+window.addEventListener("mousedown", () => {
+    if (audioCtx.state !== "suspended") return;
+    audioCtx.resume().then(() => console.log("Audio resumed"))
+});
+
+// Start monophonic instrument
+if (typeof (Module) !== "undefined") {
+    console.log("Compiled with EMCC");
+    Module['onRuntimeInitialized'] = startDSP;
+} else {
+    console.log("Compiled with WASM backend");
+    activateMIDIInput();
+    faust_module['onRuntimeInitialized'] = startDSP;
+}
+
+// Save DSP state to local storage
+setInterval(function() { if (node) saveDSPState(); }, 1000);
+
+</script>

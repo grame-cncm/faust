@@ -39,10 +39,8 @@
 
 using namespace std;
 
-// void 		fppbox (FILE* fout, Tree box, int priority=0);
-
-// box pretty printer.
-// usage : out << boxpp(aBoxExp);
+// signal pretty printer.
+// usage : out << ppsig(aSignalExp);
 
 class ppsig : public virtual Garbageable {
     Tree sig;

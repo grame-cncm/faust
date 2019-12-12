@@ -76,33 +76,31 @@
 #endif
 
 class mydsp : public dsp {
-private:
-    
-public:
-    virtual void metadata(Meta* m) 	{
-    }
-    
-    virtual int getNumInputs() { return -1; }
-    virtual int getNumOutputs() { return -1; }
-    static void classInit(int samplingFreq) {
-    }
-    virtual void instanceInit(int samplingFreq) {
-    }
-    virtual void init(int samplingFreq) {
-        classInit(samplingFreq);
-        instanceInit(samplingFreq);
-    }
-    virtual dsp* clone() {
-        return new mydsp();
-    }
-    virtual int getSampleRate() {
-        return fSamplingFreq;
-    }
-    virtual void buildUserInterface(UI* interface) {
-    }
-    virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-    
-    }
+    private:
+        int fSampleRate;
+        
+    public:
+        virtual void metadata(Meta* m) 	{}
+        
+        virtual int getNumInputs() { return -1; }
+        virtual int getNumOutputs() { return -1; }
+        static void classInit(int sample_rate) {}
+        virtual void instanceInit(int sample_rate) {}
+        virtual void init(int sample_rate)
+        {
+            classInit(sample_rate);
+            instanceInit(sample_rate);
+        }
+        virtual dsp* clone()
+        {
+            return new mydsp();
+        }
+        virtual int getSampleRate()
+        {
+            return fSampleRate;
+        }
+        virtual void buildUserInterface(UI* interface) {}
+        virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {}
 };
 
 /***************************END USER SECTION ***************************/

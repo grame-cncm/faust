@@ -42,6 +42,7 @@
 #include <utility>
 #include <vector>
 
+#include "blockSchema.h"
 #include "boxcomplexity.hh"
 #include "boxes.hh"
 #include "compatibility.hh"
@@ -56,6 +57,7 @@
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "property.hh"
+#include "routeSchema.h"
 #include "schema.h"
 #include "xtended.hh"
 
@@ -145,16 +147,16 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     gGlobal->gDevSuffix   = dev;
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
 
-    mkchdir(projname);  // create a directory to store files
+    mkchDir(projname);      // create a directory to store files
 
-    scheduleDrawing(bd);  // schedule the initial drawing
+    scheduleDrawing(bd);    // schedule the initial drawing
 
     Tree t;
     while (pendingDrawing(t)) {
-        writeSchemaFile(t);  // generate all the pending drawing
+        writeSchemaFile(t); // generate all the pending drawing
     }
 
-    cholddir();  // return to current directory
+    choldDir();  // return to current directory
 }
 
 /************************************************************************
@@ -162,6 +164,33 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
                             IMPLEMENTATION
  ************************************************************************
  ************************************************************************/
+
+// Collect the leaf numbers of tree l into vector v.
+// return true if l a number or a parallel tree of numbers
+static bool isIntTree(Tree l, vector<int>& v)
+{
+    int    n;
+    double r;
+    Tree   x, y;
+
+    if (isBoxInt(l, &n)) {
+        v.push_back(n);
+        return true;
+
+    } else if (isBoxReal(l, &r)) {
+        v.push_back(int(r));
+        return true;
+
+    } else if (isBoxPar(l, x, y)) {
+        return isIntTree(x, v) && isIntTree(y, v);
+
+    } else {
+        stringstream error;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
+              << endl;
+        throw faustexception(error.str());
+    }
+}
 
 //------------------- to schedule and retreive drawing ------------------
 
@@ -343,7 +372,7 @@ static schema* generateDiagramSchema(Tree t)
     }
 
     if (gGlobal->gFoldingFlag && /*(gOccurrences->getCount(t) > 0) &&*/
-        (boxComplexity(t) > 2) && getDefNameProperty(t, id)) {
+        (boxComplexity(t) >= gGlobal->gFoldComplexity) && getDefNameProperty(t, id)) {
         char temp[1024];
         getBoxType(t, &ins, &outs);
         stringstream l;
@@ -368,7 +397,7 @@ static schema* generateDiagramSchema(Tree t)
  */
 static schema* generateInsideSchema(Tree t)
 {
-    Tree   a, b, ff, l, type, name, file;
+    Tree   a, b, c, ff, l, type, name, file;
     int    i;
     double r;
     prim0  p0;
@@ -491,9 +520,21 @@ static schema* generateInsideSchema(Tree t)
     } else if (isBoxEnvironment(t)) {
         return makeBlockSchema(0, 0, "environment{...}", normalcolor, "");
 
+    } else if (isBoxRoute(t, a, b, c)) {
+        int         ins, outs;
+        vector<int> route;
+        // cerr << "TRACE: drawing a box route " << boxpp(t) << endl;
+        if (isBoxInt(a, &ins) && isBoxInt(b, &outs) && isIntTree(c, route)) {
+            return makeRouteSchema(ins, outs, route);
+        } else {
+            stringstream error;
+            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t)
+                  << endl;
+            throw faustexception(error.str());
+        }
     } else {
         stringstream error;
-        error << "ERROR : box expression not recognized : ";
+        error << "ERROR in generateInsideSchema, box expression not recognized : ";
         t->print(error);
         error << endl;
         throw faustexception(error.str());
@@ -562,7 +603,7 @@ static schema* generateSoundfileSchema(Tree t)
 {
     Tree label, chan;
     if (isBoxSoundfile(t, label, chan)) {
-        int    n = tree2int(chan);
+        int n = tree2int(chan);
         return makeBlockSchema(2, 2 + n, userInterfaceDescription(t), uicolor, "");
     } else {
         throw faustexception("ERROR : soundfile\n");

@@ -1,4 +1,4 @@
-% man(1) Version 2.15.11 (11-March-2019) | Faust man page
+% man(1) Version 2.20.2 (05-December-2019) | Faust man page
 
 NAME
 ====
@@ -39,7 +39,7 @@ Output options:
 
   **-o** \<file>                               the output file.
 
-  **-e**        **--export-dsp**                  export expanded DSP (all included libraries).
+  **-e**        **--export-dsp**                  export expanded DSP (with all included libraries).
 
   **-uim**      **--user-interface-macros**       add user interface macro definitions to the output code.
 
@@ -54,7 +54,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, interp.
+                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, soul, interp.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -127,6 +127,7 @@ Code generation options:
   **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>,
                                           use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
+  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name> 
 
 Block diagram options:
 ---------------------------------------
@@ -137,8 +138,11 @@ Block diagram options:
 
   **-sd**        **--simplify-diagrams**          try to further simplify diagrams before drawing.
 
-  **-f** \<n>     **--fold** \<n>                   threshold during block-diagram generation (default 25 elements).
+  **-drf**       **--draw-route-frame**           draw route frames instead of simple cables.
 
+  **-f** \<n>     **--fold** \<n>                   threshold to activate folding mode during block-diagram generation (default 25 elements).
+
+  **-fc** \<n>    **--fold-complexity** \<n>        complexity threshold to fold an expression in folding mode (default 2)
   **-mns** \<n>   **--max-name-size** \<n>          threshold during block-diagram generation (default 40 char).
 
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.
@@ -168,6 +172,8 @@ Debug options:
   **-sg**         **--signal-graph**              print the internal signal graph in dot format.
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
+
+  **-ct**         **--check-table**               check table index range.
 
 
 Information options:

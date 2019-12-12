@@ -1,3 +1,4 @@
+/************************** BEGIN voice.h **************************/
 //////////////////////////////////////////////////////
 // Faust VST Voice
 //////////////////////////////////////////////////////
@@ -8,10 +9,10 @@
 class Voice : public vstUI {
     
     public:
-        Voice(int samplingRate) 
+        Voice(int sample_rate)
             : vstUI(), m_dsp() 
         {
-            m_dsp.init(samplingRate);
+            m_dsp.init(sample_rate);
             m_dsp.buildUserInterface(this);
         }
 
@@ -20,3 +21,4 @@ class Voice : public vstUI {
 }; //end of Voice vlass
 
 #endif
+/**************************  END  voice.h **************************/

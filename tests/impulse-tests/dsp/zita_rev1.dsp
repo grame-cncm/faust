@@ -1,5 +1,5 @@
 
-declare name 		"zita_rev1";
+declare name "zita_rev1";
 import("effect.lib");
 
 process = zita_rev1

@@ -21,7 +21,7 @@ MasterTaille =hslider("MasterTaille[BELA: ANALOG_0]", 500, 200, 2000,0.01);
 MasterClocSize = int(MasterTaille*ma.SR/ 1000);
 
 // Depth of repeat fragments
-taille =hslider("taille[BELA: ANALOG_1]", 50, 2, 200,0.01);
+taille = hslider("taille[BELA: ANALOG_1]", 50, 2, 200,0.01);
 clocSize = int(taille*ma.SR/ 1000);
 
 // Number of repeat fragments
@@ -30,7 +30,7 @@ nbRepet = int (hslider("nbRepet[BELA: ANALOG_2]",4,1,16,1) );
 trig = _<:_,mem: >;
 
 routageIO (a, b, c, d) = a, c, d, b, c, d;
-rec_play_table(input, inReadIndex, reset) = ( rwtable( wf , rindex):fi.dcblockerat(20) )
+rec_play_table(input, inReadIndex, reset) = (rwtable(wf , rindex):fi.dcblockerat(20))
     with {
         SR = 44100;
         buffer_sec = 2;
@@ -51,19 +51,19 @@ MasterClock = (%(_,MasterClocSize))~(+(1)) : detect
 SlaveClock(reset) = (%(_,clocSize))~(+(1):*(1-reset));
 detect1(x) = select2 (x < clocSize/2, 0, 1);
 
-pathClock = MasterClock <: trig, _ : SlaveClock, _ : detect1, _ ;
+pathClock = MasterClock <: trig, _ : SlaveClock, _ : detect1, _;
 
 compteurUpReset2(nb, in, reset) = ((in:trig), reset : (routage : memo2)~_), reset
     with {
         memo2(a, b)		= (ba.if(b>0.5, 0, _) )~(+(a));
         compare(value)	= ba.if(value>nb, 1, 0); // :trig;
-        routage(d,e,f)	= e , (f, compare(d) : RSLatch <: +(f));
+        routage(d,e,f)	= e, (f, compare(d) : RSLatch <: +(f));
     };
 
 RSLatch(R, S) = latch(S,R)
     with {
         trig = _<:_,mem: >;
-        latch(S,R) = _~( ba.if(R>0.5, 0, _) : ba.if(S>0.5,1,_) );
+        latch(S,R) = _~(ba.if(R>0.5, 0, _) : ba.if(S>0.5,1,_));
     };
 
 rampePlayer(reset) = rampe

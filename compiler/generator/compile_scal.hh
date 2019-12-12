@@ -97,7 +97,7 @@ class ScalarCompiler : public Compiler {
     // signal drawing
     /*
     SL : 28/09/17 : deactivated for now
-    void sigToGraph (Tree sig, ofstream& fout);
+    void sigToGraph(Tree sig, ofstream& fout);
     void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout);
     */
 

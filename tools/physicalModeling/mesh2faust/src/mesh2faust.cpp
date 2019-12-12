@@ -7,44 +7,46 @@
 
 using namespace std;
 
-void printHelp() {
+void printHelp()
+{
     std::cout << "MESH2FAUST: FAUST PHYSICAL MODEL GENERATOR\n\n";
-		std::cout << "mesh2faust is an open-source modal physical model generator "
-		"for the Faust programming language. mesh2faust takes a volumetric mesh of "
-		"a 3D object as its main argument, carries out a finite element analysis, "
-		"and generates the corresponding Faust modal physical model. A wide range "
-		"of parameters can be configured to fine-tune the analysis as well as the "
-		"behavior of the generated object.\n";
-		std::cout << "Additional resources: https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/README.md\n\n";
-		std::cout << "USAGE:\n\n";
-		std::cout << "mesh2faust --infile 3dObject.obj\n";
-		std::cout << "Where 3dObject.obj is a volumetric mesh file\n\n";
-		std::cout << "OPTIONS:\n\n";
-		std::cout << "--help: prints this help\n";
-		std::cout << "--debug: verboses the output of mesh2faust\n";
-		std::cout << "--showfreqs: prints the list of frequencies of the calculated "
-		"modes\n";
-		std::cout << "--infile: specifies the path to the volumetric mesh "
-		"file. Dimensions of the mesh should be in meters. E.g.: --infile file.obj\n";
-		std::cout << "--freqcontrol: adds frequency control to the generated "
-		"model by adding a freq parameter to it\n";
-		std::cout << "--name: specifies the name of the generated model "
-		"(no spaces or special characters). E.g.: --name modelName\n";
-		std::cout << "--minmode: specifies the minimum frequency of the "
-		"lowest mode. E.g.: --minmode 30\n";
-		std::cout << "--maxmode: specifies the maximum frequency of the "
-		"highest mode. E.g.: --maxmode 9000\n";
-		std::cout << "--lmexpos: specifies the maximum number of excitation "
-		"positions in the model. E.g.: --lmexpos 10\n";
-		std::cout << "--expos: specifies excitation positions as a list "
-		"of vertex IDs. E.g.: --expos 89 63 45\n";
-		std::cout << "--nfemmodes: specifies the number of modes to be computed "
-		"for the finite element analysis. E.g.: --nfemmodes 300\n";
-		std::cout << "--nsynthmodes: specifies the max number of modes to be added "
-		"to the physical model and synthesized. E.g.: --nsynthmodes 50\n";
+    std::cout << "mesh2faust is an open-source modal physical model generator "
+    "for the Faust programming language. mesh2faust takes a volumetric mesh of "
+    "a 3D object as its main argument, carries out a finite element analysis, "
+    "and generates the corresponding Faust modal physical model. A wide range "
+    "of parameters can be configured to fine-tune the analysis as well as the "
+    "behavior of the generated object.\n";
+    std::cout << "Additional resources: https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/README.md\n\n";
+    std::cout << "USAGE:\n\n";
+    std::cout << "mesh2faust --infile 3dObject.obj\n";
+    std::cout << "Where 3dObject.obj is a volumetric mesh file\n\n";
+    std::cout << "OPTIONS:\n\n";
+    std::cout << "--help: prints this help\n";
+    std::cout << "--debug: verboses the output of mesh2faust\n";
+    std::cout << "--showfreqs: prints the list of frequencies of the calculated "
+    "modes\n";
+    std::cout << "--infile: specifies the path to the volumetric mesh "
+    "file. Dimensions of the mesh should be in meters. E.g.: --infile file.obj\n";
+    std::cout << "--freqcontrol: adds frequency control to the generated "
+    "model by adding a freq parameter to it\n";
+    std::cout << "--name: specifies the name of the generated model "
+    "(no spaces or special characters). E.g.: --name modelName\n";
+    std::cout << "--minmode: specifies the minimum frequency of the "
+    "lowest mode. E.g.: --minmode 30\n";
+    std::cout << "--maxmode: specifies the maximum frequency of the "
+    "highest mode. E.g.: --maxmode 9000\n";
+    std::cout << "--lmexpos: specifies the maximum number of excitation "
+    "positions in the model. E.g.: --lmexpos 10\n";
+    std::cout << "--expos: specifies excitation positions as a list "
+    "of vertex IDs. E.g.: --expos 89 63 45\n";
+    std::cout << "--nfemmodes: specifies the number of modes to be computed "
+    "for the finite element analysis. E.g.: --nfemmodes 300\n";
+    std::cout << "--nsynthmodes: specifies the max number of modes to be added "
+    "to the physical model and synthesized. E.g.: --nsynthmodes 50\n";
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     const char *modelFileName = "";        // .obj file name
     std::string objectName = "modalModel"; // generated object name
     double materialProperties[3] = {
@@ -61,7 +63,7 @@ int main(int argc, char **argv) {
     int nExPos = -1;            // number of excitation positions (default is max)
     int modesSelMode =
     0; // mode to select modes (linear/max gains/cricital bands)
-
+    
     /////////////////////////////////////
     // PARSING ARGUMENTS
     /////////////////////////////////////
@@ -89,7 +91,7 @@ int main(int argc, char **argv) {
                         return 0;
                     }
                     if (i < 2)
-                        currentArg++;
+                    currentArg++;
                 }
             } else if (strcmp(argv[currentArg], "--expos") == 0) {
                 currentArg++;
@@ -100,8 +102,8 @@ int main(int argc, char **argv) {
                 currentArg--;
             } else if (strcmp(argv[currentArg], "--debug") == 0) {
                 debugMode = true;
-						} else if (strcmp(argv[currentArg], "--help") == 0) {
-	                printHelp();
+            } else if (strcmp(argv[currentArg], "--help") == 0) {
+                printHelp();
             } else if (strcmp(argv[currentArg], "--showfreqs") == 0) {
                 showFreqs = true;
             } else if (strcmp(argv[currentArg], "--freqcontrol") == 0) {
@@ -181,17 +183,17 @@ int main(int argc, char **argv) {
         printHelp();
         return 0;
     }
-
+    
     /////////////////////////////////////
     // RETRIEVING MODEL
     /////////////////////////////////////
-
+    
     // loading mesh file
     if (debugMode) {
         cout << "Loading the mesh file\n";
     }
     ObjMesh *objMesh = new ObjMesh(modelFileName);
-
+    
     // generating 3D volumetric mesh from 2D mesh
     if (debugMode) {
         cout << "\nGenerating a 3D mesh with the following properties\n";
@@ -204,14 +206,14 @@ int main(int argc, char **argv) {
     // setting mesh material properties
     volumetricMesh->setSingleMaterial(
                                       materialProperties[0], materialProperties[1], materialProperties[2]);
-
+    
     // computing mas matrix
     if (debugMode) {
         cout << "Creating and computing mass matrix\n";
     }
     SparseMatrix *massMatrix;
     GenerateMassMatrix::computeMassMatrix(volumetricMesh, &massMatrix, true);
-
+    
     // computing stiffness matrix
     if (debugMode) {
         cout << "Creating and computing stiffness matrix\n";
@@ -227,11 +229,11 @@ int main(int argc, char **argv) {
     double *zero =
     (double *)calloc(3 * volumetricMesh->getNumVertices(), sizeof(double));
     stiffnessMatrixClass->ComputeStiffnessMatrix(zero, stiffnessMatrix);
-
+    
     /////////////////////////////////////
     // EIGEN ANALYSIS
     /////////////////////////////////////
-
+    
     // temporary variables for analysis
     // int numModes = stiffnessMatrix->Getn()-1; // number of computed modes:
     // always max
@@ -239,7 +241,7 @@ int main(int argc, char **argv) {
     double *eigenValues = (double *)malloc(sizeof(double) * femNModes);
     double *eigenVectors =
     (double *)malloc(sizeof(double) * stiffnessMatrix->Getn() * femNModes);
-
+    
     // solver parameters
     double sigma = -1.0;
     int numLinearSolverThreads =
@@ -256,13 +258,13 @@ int main(int argc, char **argv) {
     // int nconv = generalizedEigenvalueProblem.SolveGenEigReg(stiffnessMatrix,
     // massMatrix, femNModes, eigenValues, eigenVectors, "LM",
     // numLinearSolverThreads,0);
-
+    
     if (nconv == femNModes) { // if analysis was successful...
-
+        
         /////////////////////////////////////
         // COMPUTING MODE FREQS
         /////////////////////////////////////
-
+        
         if (debugMode) {
             printf("Computing modes frequencies\n\n");
         }
@@ -284,13 +286,13 @@ int main(int argc, char **argv) {
                 highestModeIndex++;
             }
         }
-
+        
         // adjusting number of target modes to modes range
         int modesRange = highestModeIndex - lowestModeIndex;
         if (modesRange < targetNModes) {
             targetNModes = modesRange;
         }
-
+        
         // diplaying mode frequencies
         if (showFreqs) {
             cout << "Mode frequencies between " << modesMinFreq << "Hz and "
@@ -300,11 +302,11 @@ int main(int argc, char **argv) {
             }
             cout << "\n";
         }
-
+        
         /////////////////////////////////////
         // COMPUTING GAINS
         /////////////////////////////////////
-
+        
         if (debugMode) {
             cout << "Computing modes gains for modes between " << modesMinFreq
             << "Hz and " << modesMaxFreq << "Hz\n\n";
@@ -348,7 +350,7 @@ int main(int argc, char **argv) {
                                                 2));
                 }
                 if (modesGains[i][j] > maxGain)
-                    maxGain = modesGains[i][j]; // saving max gain for normalization
+                maxGain = modesGains[i][j]; // saving max gain for normalization
             }
             // normalizing gains for current position
             for (int j = 0; j < targetNModes; j++) {
@@ -361,14 +363,14 @@ int main(int argc, char **argv) {
                  */
             }
         }
-
+        
         /////////////////////////////////////
         // GENERATING FAUST FILE
         /////////////////////////////////////
-
+        
         // TODO: say something about the model that will be generated (parameters
         // available, etc.)
-
+        
         std::string faustFileName;
         faustFileName.append(objectName).append(".lib");
         std::ofstream faustFile(faustFileName.c_str());
@@ -380,22 +382,22 @@ int main(int argc, char **argv) {
             "modesGains(int(exPos),i))) :> /(nModes)\n";
         } else {
             faustFile << objectName
-						<< "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+            << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
             "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
             "modesGains(int(exPos),i))) :> /(nModes)\n";
         }
         faustFile << "with{\n";
         faustFile << "nModes = " << targetNModes << ";\n";
         if (nExPos > 1)
-            faustFile << "nExPos = " << nExPos << ";\n";
-
+        faustFile << "nExPos = " << nExPos << ";\n";
+        
         if (freqControl) {
             faustFile << "modesFreqRatios(n) = ba.take(n+1,(";
             for (int i = 0; i < targetNModes; i++) {
                 faustFile << modesFreqs[lowestModeIndex + i] /
                 modesFreqs[lowestModeIndex];
                 if (i < (targetNModes - 1))
-                    faustFile << ",";
+                faustFile << ",";
             }
             faustFile << "));\n";
             faustFile << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
@@ -404,7 +406,7 @@ int main(int argc, char **argv) {
             for (int i = 0; i < targetNModes; i++) {
                 faustFile << modesFreqs[lowestModeIndex + i];
                 if (i < (targetNModes - 1))
-                    faustFile << ",";
+                faustFile << ",";
             }
             faustFile << "));\n";
         }
@@ -413,10 +415,10 @@ int main(int argc, char **argv) {
             for (int j = 0; j < targetNModes; j++) {
                 faustFile << modesGains[i][j];
                 if (j < (targetNModes - 1))
-                    faustFile << ",";
+                faustFile << ",";
             }
             if (i < (nExPos - 1))
-                faustFile << ",";
+            faustFile << ",";
         }
         if (freqControl) {
             faustFile << "},int(p*nModes+n) : rdtable : "
@@ -433,7 +435,7 @@ int main(int argc, char **argv) {
         faustFile << "};\n";
         faustFile.close();
     }
-
+    
     // cleaning
     free(eigenValues);
     free(eigenVectors);
@@ -452,6 +454,6 @@ int main(int argc, char **argv) {
     volumetricMesh = NULL;
     delete objMesh;
     objMesh = NULL;
-
+    
     return 0;
 }

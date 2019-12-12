@@ -38,11 +38,13 @@
 #include "tlib.hh"
 
 #ifdef WIN32
-# pragma warning (disable: 4250)
+#pragma warning(disable : 4250)
 #endif
 
 // The name of 'count' parameter
-#define fFullCount "count"
+#define fFullCount string("count")
+
+#define fTableName string("table")
 
 class TextInstVisitor;
 
@@ -56,10 +58,10 @@ class CodeContainer : public virtual Garbageable {
 
     int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
     int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
-    
-    int fSubContainerType;
+
+    int  fSubContainerType;
     bool fGeneratedSR;
-    
+
     string fKlassName;
 
     vector<int> fInputRates;
@@ -112,21 +114,18 @@ class CodeContainer : public virtual Garbageable {
 
     void merge(set<string>& dst, set<string>& src)
     {
-        set<string>::iterator i;
-        for (i = src.begin(); i != src.end(); i++) dst.insert(*i);
+        for (auto& i : src) dst.insert(i);
     }
 
     void collectIncludeFile(set<string>& S)
     {
-        list<CodeContainer*>::iterator k;
-        for (k = fSubContainers.begin(); k != fSubContainers.end(); k++) (*k)->collectIncludeFile(S);
+        for (auto& k : fSubContainers) k->collectIncludeFile(S);
         merge(S, fIncludeFileSet);
     }
 
     void collectLibrary(set<string>& S)
     {
-        list<CodeContainer*>::iterator k;
-        for (k = fSubContainers.begin(); k != fSubContainers.end(); k++) (*k)->collectLibrary(S);
+        for (auto& k : fSubContainers) k->collectLibrary(S);
         merge(S, fLibrarySet);
     }
 
@@ -145,12 +144,12 @@ class CodeContainer : public virtual Garbageable {
         selectedKeys.insert(tree("version"));
 
         dst << "/* ------------------------------------------------------------" << endl;
-        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-            if (selectedKeys.count(i->first)) {
-                dst << *(i->first);
+        for (auto& i : gGlobal->gMetaDataSet) {
+            if (selectedKeys.count(i.first)) {
+                dst << *(i.first);
                 const char* sep = ": ";
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                    dst << sep << **j;
+                for (auto& j : i.second) {
+                    dst << sep << *j;
                     sep = ", ";
                 }
                 dst << endl;
@@ -162,16 +161,16 @@ class CodeContainer : public virtual Garbageable {
         gGlobal->printCompilationOptions(dst);
         dst << "\n------------------------------------------------------------ */" << endl;
     }
-    
+
     void printMacros(ostream& fout, int n);
-  
+
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
-            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genInt32Typed()));
+            pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
         }
         pushFrontInitMethod(
-            InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+            InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
@@ -193,7 +192,8 @@ class CodeContainer : public virtual Garbageable {
     // Returns the name of the class
     string getFullClassName()
     {
-        return (fParentContainer != 0) ? fParentContainer->getFullClassName() + "::" + getClassName() : getClassName();
+        return (fParentContainer != 0) ? (fParentContainer->getFullClassName() + "::" + getClassName())
+                                       : getClassName();
     }
 
     void setGeneratedSR() { fGeneratedSR = true; }
@@ -235,6 +235,9 @@ class CodeContainer : public virtual Garbageable {
     virtual void generateLocalInputs(BlockInst* loop_code, const string& index) { faustassert(false); }
     virtual void generateLocalOutputs(BlockInst* loop_code, const string& index) { faustassert(false); }
 
+    virtual DeclareFunInst* generateAllocate(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    virtual DeclareFunInst* generateDestroy(const string& name, const string& obj, bool ismethod, bool isvirtual);
+
     DeclareFunInst* generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetOutputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
@@ -249,17 +252,11 @@ class CodeContainer : public virtual Garbageable {
         faustassert(false);
         return nullptr;
     }
-    virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual)
-    {
-        faustassert(false);
-        return nullptr;
-    }
+    virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
+
     virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod,
-                                                      bool isvirtual)
-    {
-        faustassert(false);
-        return nullptr;
-    }
+                                                      bool isvirtual);
+
     virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                                bool isvirtual)
     {
@@ -267,26 +264,100 @@ class CodeContainer : public virtual Garbageable {
         return nullptr;
     }
 
-    virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
-    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                    bool isvirtual, bool addreturn = false);
-    virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
-                                            bool addreturn = false);
+    virtual DeclareFunInst* generateComputeFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-    DeclareFunInst* generateInit(const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceInit(const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateGetSampleRate(const string& obj, bool ismethod, bool isvirtual);
+    virtual BlockInst* generateComputeAux()
+    {
+        faustassert(false);
+        return nullptr;
+    }
+
+    virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic);
+    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
+                                                    bool isvirtual);
+    virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+
+    DeclareFunInst* generateInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateGetSampleRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
     void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
                               TextInstVisitor* producer);
 
     void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
+    
+    template <typename REAL>
+    void generateMetaData(JSONUIAux<REAL>* json)
+    {
+        // Add global metadata
+        for (auto& i : gGlobal->gMetaDataSet) {
+            if (i.first != tree("author")) {
+                stringstream str1, str2;
+                str1 << *(i.first);
+                str2 << **(i.second.begin());
+                string res1 = str1.str();
+                string res2 = unquote(str2.str());
+                json->declare(res1.c_str(), res2.c_str());
+            } else {
+                for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                    if (j == i.second.begin()) {
+                        stringstream str1, str2;
+                        str1 << *(i.first);
+                        str2 << **j;
+                        string res1 = str1.str();
+                        string res2 = unquote(str2.str());
+                        json->declare(res1.c_str(), res2.c_str());
+                    } else {
+                        stringstream str2;
+                        str2 << **j;
+                        string res2 = unquote(str2.str());
+                        json->declare("contributor", res2.c_str());
+                    }
+                }
+            }
+        }
+    }
 
-    void generateJSONFile();
-    void generateMetaData(JSONUI* json);
-    void generateJSON(JSONInstVisitor* visitor);
+    template <typename REAL>
+    void generateJSONFile()
+    {
+        JSONInstVisitor<REAL> json_visitor;
+        generateJSON(&json_visitor);
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
+        xout << json_visitor.JSON();
+    }
+    
+    template <typename REAL>
+    void generateJSON(JSONInstVisitor<REAL>* visitor)
+    {
+        // Prepare compilation options
+        stringstream compile_options;
+        gGlobal->printCompilationOptions(compile_options);
+        
+        // "name", "filename" found in medata
+        visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+                      gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
+        
+        generateUserInterface(visitor);
+        generateMetaData(visitor);
+    }
+    
+    template <typename REAL>
+    string generateJSON()
+    {
+        JSONInstVisitor<REAL> json_visitor;
+        generateUserInterface(&json_visitor);
+        generateMetaData(&json_visitor);
+        return json_visitor.JSON(true);
+    }
 
-    /* can be overridden by subclasses to reorder the FIR before the actual code generation */
+    DeclareFunInst* generateCalloc();
+    DeclareFunInst* generateFree();
+
+    DeclareFunInst* generateNewDsp(const string& name, int size);
+    DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
+
+    /* Can be overridden by subclasses to transform the FIR before the actual code generation */
     virtual void processFIR(void);
 
     virtual BlockInst* flattenFIR(void);
@@ -502,30 +573,29 @@ class CodeContainer : public virtual Garbageable {
 
     void generateSubContainers()
     {
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            (*it)->produceInternal();
+        for (auto& it : fSubContainers) {
+            it->produceInternal();
         }
     }
 
     // merge declaration part
     void mergeSubContainers()
     {
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            fExtGlobalDeclarationInstructions->merge((*it)->fExtGlobalDeclarationInstructions);
-            fGlobalDeclarationInstructions->merge((*it)->fGlobalDeclarationInstructions);
-            fDeclarationInstructions->merge((*it)->fDeclarationInstructions);
-            (*it)->fGlobalDeclarationInstructions->fCode.clear();
-            (*it)->fExtGlobalDeclarationInstructions->fCode.clear();
-            (*it)->fDeclarationInstructions->fCode.clear();
+        for (auto& it : fSubContainers) {
+            fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
+            fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
+            fDeclarationInstructions->merge(it->fDeclarationInstructions);
+            it->fGlobalDeclarationInstructions->fCode.clear();
+            it->fExtGlobalDeclarationInstructions->fCode.clear();
+            it->fDeclarationInstructions->fCode.clear();
         }
     }
 
     size_t getSubContainers() { return fSubContainers.size(); }
 
-    const string& getClassName() { return fKlassName; }
-    string        getFaustPowerName() { return fKlassName + "_faustpower"; }
+    const string getTableName() { return fTableName; }
+    const string getClassName() { return fKlassName; }
+    const string getFaustPowerName() { return fKlassName + "_faustpower"; }
 
     // UI construction
     void addUIMacro(const string& str) { fUIMacro.push_back(str); }
@@ -548,12 +618,11 @@ class CodeContainer : public virtual Garbageable {
     virtual dsp_factory_base* produceFactory()
     {
         faustassert(false);
-        return 0;
+        return nullptr;
     }
-    
-    int fInt32ControlNum;   // number of 'int32' intermediate control values
-    int fRealControlNum;    // number of 'real' intermediate control values
 
+    int fInt32ControlNum;  // number of 'int32' intermediate control values
+    int fRealControlNum;   // number of 'real' intermediate control values
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)

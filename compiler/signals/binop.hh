@@ -174,7 +174,7 @@ struct BinOp {
           const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32,
           const char* name_wasm_int64, const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32,
           WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
-          FBCInstruction::Opcode interp_float, comp f, pred ln, pred rn, int priority, pred la = falsePredicate,
+          FBCInstruction::Opcode interp_float, comp fun, pred ln, pred rn, int priority, pred la = falsePredicate,
           pred ra = falsePredicate)
         : fName(name),
           fNameVec(name_vec),
@@ -193,7 +193,7 @@ struct BinOp {
           fWasmDouble(wasm_double),
           fInterpIntInst32(interp_int32),
           fInterpFloatInst(interp_float),
-          fCompute(f),
+          fCompute(fun),
           fLeftNeutral(ln),
           fRightNeutral(rn),
           fLeftAbsorbing(la),

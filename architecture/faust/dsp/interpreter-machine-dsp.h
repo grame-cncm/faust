@@ -1,3 +1,4 @@
+/************************** BEGIN interpreter-machine-dsp.h **************************/
 /************************************************************************
  ************************************************************************
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -66,11 +67,11 @@ class interpreter_dsp : public dsp {
         
         int getSampleRate();
         
-        void init(int samplingRate);
+        void init(int sample_rate);
         
-        void instanceInit(int samplingRate);
+        void instanceInit(int sample_rate);
     
-        void instanceConstants(int samplingRate);
+        void instanceConstants(int sample_rate);
     
         void instanceResetUserInterface();
         
@@ -223,3 +224,4 @@ void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, c
  */
 
 #endif
+/**************************  END  interpreter-machine-dsp.h **************************/

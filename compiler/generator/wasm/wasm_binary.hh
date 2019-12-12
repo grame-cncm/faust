@@ -52,7 +52,7 @@ struct LEB {
     {
         // for signed, we must ensure the last bit has the right sign, as it will zero extend
         return std::is_signed<T>::value
-                   ? (temp != 0 && temp != -1) || (value >= 0 && (byte & 64)) || (value < 0 && !(byte & 64))
+                   ? (temp != 0 && temp != T(-1)) || (value >= 0 && (byte & 64)) || (value < 0 && !(byte & 64))
                    : (temp != 0);
     }
 

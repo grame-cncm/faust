@@ -1,3 +1,4 @@
+/************************** BEGIN qrcodegen.h **************************/
 /* 
  * QR Code generator library (C)
  * 
@@ -282,3 +283,4 @@ static bool qrcodegen_getModule(const uint8_t qrcode[], int x, int y);
 #include "faust/gui/qrcodegen.impl.h"
 
 #endif
+/**************************  END  qrcodegen.h **************************/

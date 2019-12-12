@@ -24,9 +24,9 @@
 
 #include <string>
 
-int  cholddir();
-int  mkchdir(std::string dirname);
-int  makedir(std::string dirname);
+void choldDir();
+void mkchDir(const std::string& dirname);
+void makeDir(const std::string& dirname);
 void getCurrentDir();
 
 #endif

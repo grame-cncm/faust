@@ -1,3 +1,4 @@
+/************************** BEGIN QTUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -34,7 +35,7 @@
 #include <vector>
 #include <stack>
 
-#if defined(HTTPCTRL) && defined(QRCODECTRL) 
+#if defined(HTTPCTRL) && defined(QRCODECTRL)
 
 #ifdef _WIN32
 # include <winsock2.h>
@@ -90,121 +91,120 @@
 #define DIAL_RANGE     (DIAL_MAX - DIAL_MIN)
 #define DIAL_WRAPPING  false
 
-
 class qsynthDialVokiStyle : public QCommonStyle
 {
     
 public:
-	qsynthDialVokiStyle() {};
-	virtual ~qsynthDialVokiStyle() {};
+    qsynthDialVokiStyle() {};
+    virtual ~qsynthDialVokiStyle() {};
     
     virtual void drawComplexControl(ComplexControl cc, const QStyleOptionComplex* opt, QPainter* p, const QWidget* widget = NULL) const
-	{
-		if (cc != QStyle::CC_Dial)
-		{
-			QCommonStyle::drawComplexControl(cc, opt, p, widget);
-			return;
-		}
+    {
+        if (cc != QStyle::CC_Dial)
+        {
+            QCommonStyle::drawComplexControl(cc, opt, p, widget);
+            return;
+        }
         
-		const QStyleOptionSlider* dial = qstyleoption_cast<const QStyleOptionSlider *>(opt);
-		if (dial == NULL) return;
+        const QStyleOptionSlider* dial = qstyleoption_cast<const QStyleOptionSlider *>(opt);
+        if (dial == NULL) return;
         
-		double angle = DIAL_MIN // offset
+        double angle = DIAL_MIN // offset
         + (DIAL_RANGE *
            (double(dial->sliderValue - dial->minimum) /
             (double(dial->maximum - dial->minimum))));
-		int degrees = int(angle * 180.0 / M_PI);
-		int side = dial->rect.width() < dial->rect.height() ? dial->rect.width() : dial->rect.height();
-		int xcenter = dial->rect.width() / 2;
-		int ycenter = dial->rect.height() / 2;
-		int notchWidth   = 1 + side / 400;
-		int pointerWidth = 2 + side / 30;
-		int scaleShadowWidth = 1 + side / 100;
-		int knobBorderWidth = 0;
-		int ns = dial->tickInterval;
-		int numTicks = 1 + (dial->maximum + ns - dial->minimum) / ns;
-		int indent = int(0.15 * side) + 2;
-		int knobWidth = side - 2 * indent;
-		int shineFocus = knobWidth / 4;
-		int shineCenter = knobWidth / 5;
-		int shineExtension = shineCenter * 4;
-		int shadowShift = shineCenter * 2;
-		int meterWidth = side - 2 * scaleShadowWidth;
+        int degrees = int(angle * 180.0 / M_PI);
+        int side = dial->rect.width() < dial->rect.height() ? dial->rect.width() : dial->rect.height();
+        int xcenter = dial->rect.width() / 2;
+        int ycenter = dial->rect.height() / 2;
+        int notchWidth   = 1 + side / 400;
+        int pointerWidth = 2 + side / 30;
+        int scaleShadowWidth = 1 + side / 100;
+        int knobBorderWidth = 0;
+        int ns = dial->tickInterval;
+        int numTicks = 1 + (dial->maximum + ns - dial->minimum) / ns;
+        int indent = int(0.15 * side) + 2;
+        int knobWidth = side - 2 * indent;
+        int shineFocus = knobWidth / 4;
+        int shineCenter = knobWidth / 5;
+        int shineExtension = shineCenter * 4;
+        int shadowShift = shineCenter * 2;
+        int meterWidth = side - 2 * scaleShadowWidth;
         
-		QPalette pal = opt->palette;
-		QColor knobColor = pal.mid().color();
-		QColor borderColor = knobColor.light();
-		QColor meterColor = (dial->state & State_Enabled) ?
+        QPalette pal = opt->palette;
+        QColor knobColor = pal.mid().color();
+        QColor borderColor = knobColor.light();
+        QColor meterColor = (dial->state & State_Enabled) ?
         QColor("orange") : pal.mid().color();
         // pal.highlight().color() : pal.mid().color();
-		QColor background = pal.window().color();
+        QColor background = pal.window().color();
         
-		p->save();
-		p->setRenderHint(QPainter::Antialiasing, true);
+        p->save();
+        p->setRenderHint(QPainter::Antialiasing, true);
         
-		// The bright metering bit...
-    	QConicalGradient meterShadow(xcenter, ycenter, -90);
-		meterShadow.setColorAt(0, meterColor.dark());
-		meterShadow.setColorAt(0.5, meterColor);
-		meterShadow.setColorAt(1.0, meterColor.light().light());
-		p->setBrush(meterShadow);
-		p->setPen(Qt::transparent);
-		p->drawPie(xcenter - meterWidth / 2, ycenter - meterWidth / 2,
+        // The bright metering bit...
+        QConicalGradient meterShadow(xcenter, ycenter, -90);
+        meterShadow.setColorAt(0, meterColor.dark());
+        meterShadow.setColorAt(0.5, meterColor);
+        meterShadow.setColorAt(1.0, meterColor.light().light());
+        p->setBrush(meterShadow);
+        p->setPen(Qt::transparent);
+        p->drawPie(xcenter - meterWidth / 2, ycenter - meterWidth / 2,
                    meterWidth, meterWidth, (180 + 45) * 16, -(degrees - 45) * 16);
         
-		// Knob projected shadow
-		QRadialGradient projectionGradient(xcenter + shineCenter, ycenter + shineCenter,
+        // Knob projected shadow
+        QRadialGradient projectionGradient(xcenter + shineCenter, ycenter + shineCenter,
                                            shineExtension,	xcenter + shadowShift, ycenter + shadowShift);
-		projectionGradient.setColorAt(0, QColor(  0, 0, 0, 100));
-		projectionGradient.setColorAt(1, QColor(200, 0, 0,  10));
-		QBrush shadowBrush(projectionGradient);
-		p->setBrush(shadowBrush);
-		p->drawEllipse(xcenter - shadowShift, ycenter - shadowShift,
+        projectionGradient.setColorAt(0, QColor(  0, 0, 0, 100));
+        projectionGradient.setColorAt(1, QColor(200, 0, 0,  10));
+        QBrush shadowBrush(projectionGradient);
+        p->setBrush(shadowBrush);
+        p->drawEllipse(xcenter - shadowShift, ycenter - shadowShift,
                        knobWidth, knobWidth);
         
-		// Knob body and face...
-      	QPen pen;
-		pen.setColor(knobColor);
-		pen.setWidth(knobBorderWidth);
-		p->setPen(pen);
+        // Knob body and face...
+        QPen pen;
+        pen.setColor(knobColor);
+        pen.setWidth(knobBorderWidth);
+        p->setPen(pen);
         
-		QRadialGradient gradient(xcenter - shineCenter, ycenter - shineCenter,
+        QRadialGradient gradient(xcenter - shineCenter, ycenter - shineCenter,
                                  shineExtension,	xcenter - shineFocus, ycenter - shineFocus);
-		gradient.setColorAt(0.2, knobColor.light().light());
-		gradient.setColorAt(0.5, knobColor);
-		gradient.setColorAt(1.0, knobColor.dark(150));
-		QBrush knobBrush(gradient);
-		p->setBrush(knobBrush);
-		p->drawEllipse(xcenter - knobWidth / 2, ycenter - knobWidth / 2,
+        gradient.setColorAt(0.2, knobColor.light().light());
+        gradient.setColorAt(0.5, knobColor);
+        gradient.setColorAt(1.0, knobColor.dark(150));
+        QBrush knobBrush(gradient);
+        p->setBrush(knobBrush);
+        p->drawEllipse(xcenter - knobWidth / 2, ycenter - knobWidth / 2,
                        knobWidth, knobWidth);
         
-		// Tick notches...
-     	p->setBrush(Qt::NoBrush);
+        // Tick notches...
+        p->setBrush(Qt::NoBrush);
         
-		if (dial->subControls & QStyle::SC_DialTickmarks) {
-			pen.setColor(pal.dark().color());
-			pen.setWidth(notchWidth);
-			p->setPen(pen);
-			double hyp = double(side - scaleShadowWidth) / 2.0;
-			double len = hyp / 4;
-			for (int i = 0; i < numTicks; ++i) {
-				int div = numTicks;
-				if (div > 1) --div;
-				bool internal = (i != 0 && i != numTicks - 1);
-				double angle = DIAL_MIN
+        if (dial->subControls & QStyle::SC_DialTickmarks) {
+            pen.setColor(pal.dark().color());
+            pen.setWidth(notchWidth);
+            p->setPen(pen);
+            double hyp = double(side - scaleShadowWidth) / 2.0;
+            double len = hyp / 4;
+            for (int i = 0; i < numTicks; ++i) {
+                int div = numTicks;
+                if (div > 1) --div;
+                bool internal = (i != 0 && i != numTicks - 1);
+                double angle = DIAL_MIN
                 + (DIAL_MAX - DIAL_MIN) * i / div;
-				double dir = (internal ? -1 : len);
-				double sinAngle = sin(angle);
-				double cosAngle = cos(angle);
-				double x0 = xcenter - (hyp - len) * sinAngle;
-				double y0 = ycenter + (hyp - len) * cosAngle;
-				double x1 = xcenter - (hyp + dir) * sinAngle;
-				double y1 = ycenter + (hyp + dir) * cosAngle;
-				p->drawLine(QLineF(x0, y0, x1, y1));
-			}
-		}
+                double dir = (internal ? -1 : len);
+                double sinAngle = sin(angle);
+                double cosAngle = cos(angle);
+                double x0 = xcenter - (hyp - len) * sinAngle;
+                double y0 = ycenter + (hyp - len) * cosAngle;
+                double x1 = xcenter - (hyp + dir) * sinAngle;
+                double y1 = ycenter + (hyp + dir) * cosAngle;
+                p->drawLine(QLineF(x0, y0, x1, y1));
+            }
+        }
         
-		// Shadowing...
+        // Shadowing...
         
         // Knob shadow...
         if (knobBorderWidth > 0) {
@@ -217,7 +217,7 @@ public:
                            ycenter - side / 2 + indent,
                            side - 2 * indent, side - 2 * indent);
         }
-
+        
         // Scale shadow...
         QLinearGradient outShadow(xcenter - side / 3, ycenter - side / 3,
                                   xcenter + side / 3, ycenter + side / 3);
@@ -227,14 +227,14 @@ public:
         p->drawArc(xcenter - side / 2 + scaleShadowWidth / 2,
                    ycenter - side / 2 + scaleShadowWidth / 2,
                    side - scaleShadowWidth, side - scaleShadowWidth, -45 * 16, 270 * 16);
-
+        
         // Pointer notch...
         double hyp = double(side) / 2.0;
         double len = hyp - indent - 1;
-
+        
         double x = xcenter - len * sin(angle);
         double y = ycenter + len * cos(angle);
-
+        
         QColor pointerColor = pal.dark().color();
         pen.setColor((dial->state & State_Enabled) ? pointerColor.dark(140) : pointerColor);
         pen.setWidth(pointerWidth + 2);
@@ -244,10 +244,10 @@ public:
         pen.setWidth(pointerWidth);
         p->setPen(pen);
         p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
-
+        
         // done
         p->restore();
-	}
+    }
     
 };
 
@@ -459,7 +459,7 @@ class LED : public AbstractDisplay
     
 protected:
     
-     QColor fColor;
+    QColor fColor;
     
     /**
      * Draw the LED using a transparency depending of its value
@@ -793,20 +793,20 @@ class uiButton : public QObject, public uiItem
     
 public:
     
-	QAbstractButton* 	fButton;
+    QAbstractButton* 	fButton;
     
-	uiButton(GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiButton(GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
     
-	virtual void reflectZone()
-	{
-		FAUSTFLOAT v = *fZone;
-		fCache = v;
-		fButton->setDown( v > 0.0 );
-	}
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        fButton->setDown( v > 0.0 );
+    }
     
     public slots :
-	void pressed()		{ modifyZone(1.0); }
-	void released()		{ modifyZone(0.0); }
+    void pressed()		{ modifyZone(1.0); }
+    void released()		{ modifyZone(0.0); }
 };
 
 
@@ -820,19 +820,19 @@ class uiCheckButton : public QObject, public uiItem
     
 public:
     
-	QCheckBox* 	fCheckBox;
+    QCheckBox* 	fCheckBox;
     
-	uiCheckButton(GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
+    uiCheckButton(GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
     
-	virtual void reflectZone()
-	{
-		FAUSTFLOAT v = *fZone;
-		fCache = v;
-		fCheckBox->setCheckState((v < 0.5) ? Qt::Unchecked : Qt::Checked);
-	}
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        fCheckBox->setCheckState((v < 0.5) ? Qt::Unchecked : Qt::Checked);
+    }
     
     public slots :
-	void setState(int v)		{ modifyZone(FAUSTFLOAT(v>0)); }
+    void setState(int v)		{ modifyZone(FAUSTFLOAT(v>0)); }
 };
 
 /**
@@ -850,16 +850,16 @@ protected:
     FAUSTFLOAT			fMin;
     FAUSTFLOAT			fMax;
     FAUSTFLOAT			fStep;
-	ValueConverter*		fConverter;
+    ValueConverter*		fConverter;
     
 public:
     
     uiSlider(GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, MetaDataUI::Scale scale)
     : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
     {
-		// select appropriate converter according to scale mode
-		if (scale == MetaDataUI::kLog) 			{ fConverter = new LogValueConverter(0, 10000, fMin, fMax); }
-		else if (scale == MetaDataUI::kExp) 	{ fConverter = new ExpValueConverter(0, 10000, fMin, fMax); }
+        // select appropriate converter according to scale mode
+        if (scale == MetaDataUI::kLog) 			{ fConverter = new LogValueConverter(0, 10000, fMin, fMax); }
+        else if (scale == MetaDataUI::kExp) 	{ fConverter = new ExpValueConverter(0, 10000, fMin, fMax); }
         else                                    { fConverter = new LinearValueConverter(0, 10000, fMin, fMax); }
         
         fSlider->setMinimum(0);
@@ -868,10 +868,10 @@ public:
         *fZone = fCur;
     }
     
-	virtual ~uiSlider()
-	{
-		delete fConverter;
-	}
+    virtual ~uiSlider()
+    {
+        delete fConverter;
+    }
     
     virtual void reflectZone()
     {
@@ -934,8 +934,8 @@ protected:
 public:
     
     uiRadioButtons(GUI* ui, FAUSTFLOAT* z, const char* label,
-                    FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
-                    bool vertical, const char* mdescr, QWidget* parent)
+                   FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
+                   bool vertical, const char* mdescr, QWidget* parent)
     : QGroupBox(label, parent),  uiItem(ui, z)
     {
         std::vector<std::string>  names;
@@ -1019,8 +1019,8 @@ protected:
 public:
     
     uiMenu(GUI* ui, FAUSTFLOAT* z, const char* /*label*/,
-            FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
-            const char* mdescr, QWidget* parent)
+           FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
+           const char* mdescr, QWidget* parent)
     : QComboBox(parent),  uiItem(ui, z)
     {
         std::vector<std::string>  names;
@@ -1123,34 +1123,32 @@ class uiNumEntry : public QObject, public uiItem
     
 protected:
     
-	QDoubleSpinBox* 	fNumEntry;
-	FAUSTFLOAT			fCur;
-	FAUSTFLOAT			fMin;
-	FAUSTFLOAT			fMax;
-	FAUSTFLOAT			fStep;
-	int					fDecimals;
+    QDoubleSpinBox* 	fNumEntry;
+    FAUSTFLOAT			fCur;
+    FAUSTFLOAT			fMin;
+    FAUSTFLOAT			fMax;
+    FAUSTFLOAT			fStep;
     
 public:
     
-	uiNumEntry(GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
+    uiNumEntry(GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
     : uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step)
-	{
-		fDecimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
-        
-		fNumEntry->setMinimum(fMin);
-		fNumEntry->setMaximum(fMax);
-		fNumEntry->setSingleStep(fStep);
-		fNumEntry->setDecimals(fDecimals);
-		fNumEntry->setValue(fCur);
-		*fZone = fCur;
-	}
+    {
+        int decimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
+        fNumEntry->setMinimum(fMin);
+        fNumEntry->setMaximum(fMax);
+        fNumEntry->setSingleStep(fStep);
+        fNumEntry->setDecimals(decimals);
+        fNumEntry->setValue(fCur);
+        *fZone = fCur;
+    }
     
-	virtual void reflectZone()
-	{
-		FAUSTFLOAT v = *fZone;
-		fCache = v;
-		fNumEntry->setValue(v);
-	}
+    virtual void reflectZone()
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        fNumEntry->setValue(v);
+    }
     
     public slots :
     void setValue(double v)
@@ -1172,31 +1170,31 @@ public:
 // introduced to remove the dependency to qrencode
 static QImage getQRCode(const QString& url, int padding)
 {
-	qrcodegen_Ecc errCorLvl = qrcodegen_Ecc_HIGH; //qrcodegen_Ecc_MEDIUM qrcodegen_Ecc_LOW Error correction level
-	uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
-	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
-	if (!qrcodegen_encodeText(url.toStdString().c_str(), tempBuffer, qrcode, errCorLvl, qrcodegen_VERSION_MIN, qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true))
-		return QImage(1, 1, QImage::Format_RGB32);
-
-	int size = qrcodegen_getSize(qrcode);
-	QRgb colors[2];
-	colors[0] = qRgb(255, 255, 255); 	// 0 is white
-	colors[1] = qRgb(0, 0, 0); 			// 1 is black
-	// build the QRCode image
-	QImage image(size+2*padding, size+2*padding, QImage::Format_RGB32);
-	// clear the image
-	for (int y=0; y<size + 2*padding; y++) {
-		for (int x=0; x<size + 2*padding; x++) {
-			image.setPixel(x, y, colors[0]);
-		}
-	}
-	// copy the qrcode inside
-	for (int y = 0; y < size; y++) {
-		for (int x = 0; x < size; x++) {
-			image.setPixel(x+padding, y+padding, colors[qrcodegen_getModule(qrcode, x, y) & 1]);
-		}
-	}
-	return image;
+    qrcodegen_Ecc errCorLvl = qrcodegen_Ecc_HIGH; //qrcodegen_Ecc_MEDIUM qrcodegen_Ecc_LOW Error correction level
+    uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
+    uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+    if (!qrcodegen_encodeText(url.toStdString().c_str(), tempBuffer, qrcode, errCorLvl, qrcodegen_VERSION_MIN, qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true))
+        return QImage(1, 1, QImage::Format_RGB32);
+    
+    int size = qrcodegen_getSize(qrcode);
+    QRgb colors[2];
+    colors[0] = qRgb(255, 255, 255); 	// 0 is white
+    colors[1] = qRgb(0, 0, 0); 			// 1 is black
+    // build the QRCode image
+    QImage image(size+2*padding, size+2*padding, QImage::Format_RGB32);
+    // clear the image
+    for (int y=0; y<size + 2*padding; y++) {
+        for (int x=0; x<size + 2*padding; x++) {
+            image.setPixel(x, y, colors[0]);
+        }
+    }
+    // copy the qrcode inside
+    for (int y = 0; y < size; y++) {
+        for (int x = 0; x < size; x++) {
+            image.setPixel(x+padding, y+padding, colors[qrcodegen_getModule(qrcode, x, y) & 1]);
+        }
+    }
+    return image;
 }
 #endif
 
@@ -1206,7 +1204,7 @@ class QTGUI : public QWidget, public GUI, public MetaDataUI
     
 protected:
     
-	QTimer*                 fTimer;
+    QTimer*                 fTimer;
     std::stack<QWidget* > 	fGroupStack;
     
     QMainWindow*            fMainWindow;
@@ -1214,11 +1212,11 @@ protected:
     
     QPixmap                 fQrCode;
     
-	bool isTabContext()
-	{
-		//return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
-		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != NULL));
-	}
+    bool isTabContext()
+    {
+        //return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
+        return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != NULL));
+    }
     
     /**
      * Insert a widget into the parent widget (the top of
@@ -1227,18 +1225,18 @@ protected:
      */
     
     void insert(const char* label, QWidget* widget)
-	{
+    {
         if (!fGroupStack.empty()) {
-			QWidget* mother = fGroupStack.top();
-			QTabWidget*	tab = dynamic_cast<QTabWidget*>(mother);
-			if (tab) {
-				tab->addTab(widget,label);
-			} else {
-				widget->setParent(mother);
-				mother->layout()->addWidget(widget);
-			}
-		}
-	}
+            QWidget* mother = fGroupStack.top();
+            QTabWidget*	tab = dynamic_cast<QTabWidget*>(mother);
+            if (tab) {
+                tab->addTab(widget,label);
+            } else {
+                widget->setParent(mother);
+                mother->layout()->addWidget(widget);
+            }
+        }
+    }
     
     /**
      * Analyses a full label and activates the relevant options. Returns a simplified
@@ -1274,12 +1272,12 @@ protected:
     }
     
     void openBox(const char* fulllabel, QLayout* layout)
-	{
+    {
         std::map<std::string, std::string> metadata;
         std::string label;
         extractMetadata(fulllabel, label, metadata);
-  		layout->setMargin(5);
-		QWidget* box;
+        layout->setMargin(5);
+        QWidget* box;
         
         label = startWith(label, "0x") ? "" : label;
         
@@ -1337,9 +1335,9 @@ protected:
         fGroupStack.push(box);
     }
     
-	void openTab(const char* label)
-	{
-		QTabWidget* group;
+    void openTab(const char* label)
+    {
+        QTabWidget* group;
         
         if (fGroupStack.empty()) {
             group = new QTabWidget(this);
@@ -1348,18 +1346,18 @@ protected:
             group = new QTabWidget();
         }
         
-		insert(label, group);
-		fGroupStack.push(group);
-	}
+        insert(label, group);
+        fGroupStack.push(group);
+    }
     
     public slots:
     
-	void update()		
+    void update()
     {
         //std::cout << '.' << std::endl;
         //		updateAllZones();
-		updateAllGuis();
-	}
+        updateAllGuis();
+    }
     
 public:
     
@@ -1369,18 +1367,18 @@ public:
         setLayout(fGeneralLayout);
         QWidget::show();
         
-        fMainWindow = NULL;        
+        fMainWindow = NULL;
         fTimer = NULL;
     }
-
+    
     QTGUI():QWidget()
     {
         fGeneralLayout = new QVBoxLayout;
         setLayout(fGeneralLayout);
         QWidget::show();
-
+        
         fTimer = NULL;
-
+        
         fMainWindow = new QMainWindow;
         QScrollArea *sa = new QScrollArea(fMainWindow);
         
@@ -1389,12 +1387,12 @@ public:
         
         fMainWindow->setCentralWidget(sa);
     }
-
-	virtual ~QTGUI() 
+    
+    virtual ~QTGUI()
     {
         delete fGeneralLayout;
     }
-
+    
     QString styleSheet()
     {
         QString styleSheet("");
@@ -1426,7 +1424,7 @@ public:
     {
         QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
         QList<QHostAddress>::iterator it;
-        QString localhost("localhost"); 
+        QString localhost("localhost");
         
         for (it = ipAdresses.begin(); it != ipAdresses.end(); it++) {
             if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost) {
@@ -1450,7 +1448,7 @@ public:
         url += QString::number(portnum);
         displayQRCode(url, NULL);
     }
-	
+    
     void displayQRCode(const QString& url, QMainWindow* parent = NULL)
     {
         if (parent == NULL) {
@@ -1462,34 +1460,34 @@ public:
         //    QTextEdit* httpdText = new QTextEdit(centralWidget);
         QTextBrowser* myBro = new QTextBrowser(centralWidget);
         
-//        //Construction of the flashcode
-//        const int padding = 5;
-//        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
-//
-//        //   qDebug() << "QRcode width = " << qrc->width;
-//
-//        QRgb colors[2];
-//        colors[0] = qRgb(255, 255, 255); 	// 0 is white
-//        colors[1] = qRgb(0, 0, 0); 			// 1 is black
-//
-//        // build the QRCode image
-//        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
-//        // clear the image
-//        for (int y = 0; y < qrc->width+2*padding; y++) {
-//            for (int x = 0; x < qrc->width+2*padding; x++) {
-//                image.setPixel(x, y, colors[0]);
-//            }
-//        }
-//        // copy the qrcode inside
-//        for (int y = 0; y < qrc->width; y++) {
-//            for (int x = 0; x < qrc->width; x++) {
-//                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
-//            }
-//        }
-		
+        //        //Construction of the flashcode
+        //        const int padding = 5;
+        //        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+        //
+        //        //   qDebug() << "QRcode width = " << qrc->width;
+        //
+        //        QRgb colors[2];
+        //        colors[0] = qRgb(255, 255, 255); 	// 0 is white
+        //        colors[1] = qRgb(0, 0, 0); 			// 1 is black
+        //
+        //        // build the QRCode image
+        //        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
+        //        // clear the image
+        //        for (int y = 0; y < qrc->width+2*padding; y++) {
+        //            for (int x = 0; x < qrc->width+2*padding; x++) {
+        //                image.setPixel(x, y, colors[0]);
+        //            }
+        //        }
+        //        // copy the qrcode inside
+        //        for (int y = 0; y < qrc->width; y++) {
+        //            for (int x = 0; x < qrc->width; x++) {
+        //                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
+        //            }
+        //        }
+        
         const int padding = 5;
-		QImage image = getQRCode (url, padding);
-//        QImage big = image.scaledToWidth(qrc->width*8);
+        QImage image = getQRCode (url, padding);
+        //        QImage big = image.scaledToWidth(qrc->width*8);
         QImage big = image.scaledToWidth(image.width() * 8);
         QLabel* myLabel = new QLabel(centralWidget);
         
@@ -1541,7 +1539,7 @@ public:
             QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
             fTimer->start(100);
         }
-
+        
         if (fMainWindow) {
             fMainWindow->show();
         }
@@ -1549,27 +1547,27 @@ public:
     }
     
     virtual void stop()
-	{
-		if (fTimer) {
+    {
+        if (fTimer) {
             fTimer->stop();
             delete fTimer;
             fTimer = NULL;
-		}
+        }
         
         GUI::stop();
-	}
+    }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // OPEN AND CLOSE GROUPS
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    virtual void openHorizontalBox(const char* label) 
+    virtual void openHorizontalBox(const char* label)
     {
-		openBox(label, new QHBoxLayout());
-	}
+        openBox(label, new QHBoxLayout());
+    }
     
-	virtual void openVerticalBox(const char* label) 	
+    virtual void openVerticalBox(const char* label)
     {
         openBox(label, new QVBoxLayout());
     }
@@ -1577,20 +1575,20 @@ public:
     virtual void openFrameBox(const char* )
     {}
     
-	virtual void openTabBox(const char* label) 		
-    { 
-		openTab(label);
-	}
+    virtual void openTabBox(const char* label)
+    {
+        openTab(label);
+    }
     
-	virtual void closeBox()
-	{
-		QWidget* group = fGroupStack.top();
-		fGroupStack.pop();
-		if (fGroupStack.empty()) {
+    virtual void closeBox()
+    {
+        QWidget* group = fGroupStack.top();
+        fGroupStack.pop();
+        if (fGroupStack.empty()) {
             group->show();
             group->adjustSize();
         }
-	}
+    }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -1599,31 +1597,31 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
-	{
-		QAbstractButton* 	w = new QPushButton(label);
-		w->setAttribute(Qt::WA_MacNoClickThrough);
-		uiButton* 			c = new uiButton(this, zone, w);
+    {
+        QAbstractButton* 	w = new QPushButton(label);
+        w->setAttribute(Qt::WA_MacNoClickThrough);
+        uiButton* 			c = new uiButton(this, zone, w);
         
-		insert(label, w);
-		QObject::connect(w, SIGNAL(pressed()), c, SLOT(pressed()));
-		QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
+        insert(label, w);
+        QObject::connect(w, SIGNAL(pressed()), c, SLOT(pressed()));
+        QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
         checkForTooltip(zone, w);
         clearMetadata();
-	}
+    }
     
     virtual void addToggleButton(const char*, FAUSTFLOAT*)
     {}
     
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
-	{
-		QCheckBox* w = new QCheckBox(label);
-		uiCheckButton* c = new uiCheckButton(this, zone, w);
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        QCheckBox* w = new QCheckBox(label);
+        uiCheckButton* c = new uiCheckButton(this, zone, w);
         
-		insert(label, w);
-		QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
+        insert(label, w);
+        QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
         checkForTooltip(zone, w);
         clearMetadata();
-	}
+    }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -1683,11 +1681,11 @@ public:
         // Metadata is not cleared here, since it will be by the enclosing element calling addNumDisplay
     }
     
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
     // ADD KNOBS
-	//
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
@@ -1700,18 +1698,18 @@ public:
         w->setWrapping(DIAL_WRAPPING);
         QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
         addNumDisplay(0, zone, init, min, max, step);
-
+        
         // compute the size of the knob+display
         int width = int(64*pow(2,fGuiSize[zone]));
         int height = int(100*pow(2,fGuiSize[zone]));
         fGroupStack.top()->setMinimumSize(width,height);
         fGroupStack.top()->setMaximumSize(width,height);
-
+        
         closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
     }
-
+    
     virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         openHorizontalBox(label);
@@ -1728,17 +1726,17 @@ public:
         clearMetadata();
     }
     
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
     // ADD SLIDERS
-	//
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-	{
-		if (isKnob(zone)) {
-			addVerticalKnob(label, zone, init, min, max, step);
-			return;
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        if (isKnob(zone)) {
+            addVerticalKnob(label, zone, init, min, max, step);
+            return;
         } else if (isRadio(zone)) {
             addVerticalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
             return;
@@ -1746,25 +1744,25 @@ public:
             addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
             return;
         }
-		openVerticalBox(label);
-		QSlider* w = new QSlider(Qt::Vertical);
+        openVerticalBox(label);
+        QSlider* w = new QSlider(Qt::Vertical);
         w->setMinimumHeight(160);
         w->setMinimumWidth(34);
-		//w->setTickPosition(QSlider::TicksBothSides);
- 		uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
-		insert(label, w);
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-		addNumDisplay(0, zone, init, min, max, step);
-		closeBox();
+        //w->setTickPosition(QSlider::TicksBothSides);
+        uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+        insert(label, w);
+        QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+        addNumDisplay(0, zone, init, min, max, step);
+        closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
-	}
+    }
     
-	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-	{
-		if (isKnob(zone)) {
-			addHorizontalKnob(label, zone, init, min, max, step);
-			return;
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        if (isKnob(zone)) {
+            addHorizontalKnob(label, zone, init, min, max, step);
+            return;
         } else if (isRadio(zone)) {
             addHorizontalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
             return;
@@ -1772,19 +1770,19 @@ public:
             addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
             return;
         }
-		openHorizontalBox(label);
-		QSlider* w = new QSlider(Qt::Horizontal);
+        openHorizontalBox(label);
+        QSlider* w = new QSlider(Qt::Horizontal);
         w->setMinimumHeight(34);
         w->setMinimumWidth(160);
-		//w->setTickPosition(QSlider::TicksBothSides);
- 		uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
-		insert(label, w);
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-		addNumDisplay(0, zone, init, min, max, step);
-		closeBox();
+        //w->setTickPosition(QSlider::TicksBothSides);
+        uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+        insert(label, w);
+        QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+        addNumDisplay(0, zone, init, min, max, step);
+        closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
-	}
+    }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -1795,7 +1793,7 @@ public:
     virtual void addVerticalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
-        uiRadioButtons* w = new uiRadioButtons(this,zone,label,init,min,max,step,true,mdescr,0);
+        uiRadioButtons* w = new uiRadioButtons(this, zone, label, init, min, max, step, true, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
         clearMetadata();
@@ -1804,7 +1802,7 @@ public:
     virtual void addHorizontalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                                            FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
-        uiRadioButtons* w = new uiRadioButtons(this,zone,label,init,min,max,step,false,mdescr,0);
+        uiRadioButtons* w = new uiRadioButtons(this, zone, label, init, min, max, step, false, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
         clearMetadata();
@@ -1814,7 +1812,7 @@ public:
                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
         if (label && label[0]) openVerticalBox(label);
-        uiMenu* w = new uiMenu(this,zone,label,init,min,max,step,mdescr,0);
+        uiMenu* w = new uiMenu(this, zone, label, init, min, max, step, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
         if (label && label[0]) closeBox();
@@ -1827,11 +1825,11 @@ public:
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    virtual void addHorizontalBargraph(const char* label , FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         openVerticalBox(label);
         if (isNumerical(zone)) {
-			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
+            addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
         } else {
             AbstractDisplay* bargraph;
             bool db = (fUnit[zone] == "dB");
@@ -1850,7 +1848,7 @@ public:
             }
             
             new uiBargraph(this, zone, bargraph, min, max);
-			insert(label, bargraph);
+            insert(label, bargraph);
             checkForTooltip(zone, bargraph);
         }
         closeBox();
@@ -1861,7 +1859,7 @@ public:
     {
         openVerticalBox(label);
         if (isNumerical(zone)) {
-			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
+            addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
         } else {
             AbstractDisplay* bargraph;
             bool db = (fUnit[zone] == "dB");
@@ -1879,8 +1877,8 @@ public:
                 }
             }
             new uiBargraph(this, zone, bargraph, min, max);
-			insert(label, bargraph);
-			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
+            insert(label, bargraph);
+            addNumDisplay(0, zone, min, min, max, (max-min)/1000.0);
             checkForTooltip(zone, bargraph);
         }
         closeBox();
@@ -1892,5 +1890,5 @@ public:
 # pragma warning (default: 4100)
 #endif
 
-
 #endif
+/**************************  END  QTUI.h **************************/

@@ -28,7 +28,7 @@
 #define fFFullCount "fCount"
 
 class WSSCodeContainer : public virtual CodeContainer {
-   private:
+   protected:
     string fObjName;
 
     void moveCompute2ComputeThread();
@@ -40,6 +40,9 @@ class WSSCodeContainer : public virtual CodeContainer {
     void       generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
     void       generateDAGLoopWSSAux2(lclgraph dag, const string& counter);
     void       generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
+
+    DeclareFunInst* generateComputeThread(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateComputeThreadExternal(const string& name, const string& obj);
 
     void       processFIR(void);
     BlockInst* flattenFIR(void);

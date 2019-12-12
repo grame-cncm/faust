@@ -108,7 +108,7 @@ void topSchema::draw(device& dev)
 }
 
 /**
- * Draw the enlarged schema. This methos can only
+ * Draw the enlarged schema. This method can only
  * be called after the block have been placed
  */
 void topSchema::collectTraits(collector& c)
@@ -120,13 +120,11 @@ void topSchema::collectTraits(collector& c)
     for (unsigned int i = 0; i < fSchema->inputs(); i++) {
         point p = fSchema->inputPoint(i);
         c.addOutput(p);
-        ;
     }
 
     // draw arrows at output points of schema
     for (unsigned int i = 0; i < fSchema->outputs(); i++) {
         point p = fSchema->outputPoint(i);
         c.addInput(p);
-        ;
     }
 }

@@ -457,7 +457,7 @@ bool getProperty(Tree t, Tree key, Tree& val)
 
 void remProperty(Tree t, Tree key)
 {
-    exit(1);  // fonction not implemented
+    throw faustexception("ERROR : remProperty not implemented\n");
 }
 #endif
 

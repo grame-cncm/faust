@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LINUX="faust2alsa faust2asmjs faust2csound faust2dssi faust2jack faust2ladspa faust2lv2 faust2supercollider faust2webaudioasm"
+LINUX="faust2alsa faust2asmjs faust2csound faust2dssi faust2jack faust2ladspa faust2lv2 faust2supercollider"
 LINUXMIDI="faust2jack"
 LINUXPOLY="faust2jack faust2juce"
 LINUXPOLYMIDI="faust2jack faust2juce"

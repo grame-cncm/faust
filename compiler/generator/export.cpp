@@ -34,32 +34,34 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 #endif
 }
 
-    /*
+/*
 
-     Regular C++ exceptions are deactivated when compiled with 'emcc' since adding
-     them (using Emscripten runtime mechanism) practically doubles the size of the generated wasm library.
+ Regular C++ exceptions are deactivated when compiled with 'emcc' since adding
+ them (using Emscripten runtime mechanism) practically doubles the size of the generated wasm library.
 
-     A 'light' exception handling model is used:
+ A 'light' exception handling model is used:
 
-     - C++ 'throw' is actually catched by the Emscripten runtime 'catch_throw' and the exception
-     error message is kept in the global faustexception::gJSExceptionMsg variable
-     - a regular JS exception is triggered and catched on JS side
-     - the actual exception message is retrieved on JS side using 'getErrorAfterException'
-     - and finally global context cleanup is done from JS side using 'cleanupAfterException'
+ - C++ 'throw' is actually catched by the Emscripten runtime 'catch_throw' and the exception
+ error message is kept in the global faustexception::gJSExceptionMsg variable
+ - a regular JS exception is triggered and catched on JS side
+ - the actual exception message is retrieved on JS side using 'getErrorAfterException'
+ - and finally global context cleanup is done from JS side using 'cleanupAfterException'
 
-     */
+ */
 
 #ifdef EMCC
-
 #include "exception.hh"
-#include "global.hh"
 
-const char* faustexception::gJSExceptionMsg = NULL;
+const char* faustexception::gJSExceptionMsg = nullptr;
 
 extern "C" EXPORT const char* getErrorAfterException()
 {
     return faustexception::gJSExceptionMsg;
 }
+#endif
+
+#if defined(EMCC) && defined(FAUST_LIB)
+#include "global.hh"
 
 extern "C" EXPORT void cleanupAfterException()
 {

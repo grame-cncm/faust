@@ -1,3 +1,4 @@
+/************************** BEGIN coreaudio-ios-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -20,7 +21,6 @@
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  ************************************************************************/
-
 
 #ifndef __coreaudio_ios_dsp__
 #define __coreaudio_ios_dsp__
@@ -739,3 +739,4 @@ class iosaudio : public audio {
 #endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
+/**************************  END  coreaudio-ios-dsp.h **************************/

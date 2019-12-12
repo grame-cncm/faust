@@ -235,6 +235,14 @@ struct InstVisitor : public virtual Garbageable {
 
     // Block
     virtual void visit(BlockInst* inst) {}
+
+    // Typed
+    virtual void visit(BasicTyped* typed) {}
+    virtual void visit(NamedTyped* typed) {}
+    virtual void visit(FunTyped* typed) {}
+    virtual void visit(ArrayTyped* typed) {}
+    virtual void visit(StructTyped* typed) {}
+    virtual void visit(VectorTyped* typed) {}
 };
 
 // Clone a FIR expression
@@ -243,7 +251,7 @@ struct CloneVisitor : public virtual Garbageable {
     CloneVisitor() {}
     virtual ~CloneVisitor() {}
 
-    virtual ValueInst* visit(NullValueInst* inst) = 0;
+    virtual ValueInst*     visit(NullValueInst* inst)     = 0;
     virtual StatementInst* visit(NullStatementInst* inst) = 0;
 
     // Declarations
@@ -328,7 +336,7 @@ struct StatementInst : public Printable {
 
     virtual StatementInst* clone(CloneVisitor* cloner) = 0;
 
-    virtual string getName() { return ""; }
+    virtual string getName() const { return ""; }
 };
 
 // Results from the compilation
@@ -339,9 +347,9 @@ struct ValueInst : public Printable {
 
     ValueInst() {}
 
-    virtual int size() { return 1; }
+    virtual int size() const { return 1; }
 
-    virtual bool isSimpleValue() { return false; }
+    virtual bool isSimpleValue() const { return false; }
 };
 
 // =======================
@@ -362,9 +370,9 @@ struct NullValueInst : public ValueInst {
 
 struct NullStatementInst : public StatementInst {
     NullStatementInst() {}
-    
+
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
-    
+
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -377,30 +385,34 @@ struct NullStatementInst : public StatementInst {
 Typed::VarType ctType(Type t);
 
 struct BasicTyped : public Typed {
-    VarType fType;
+    const VarType fType;
 
     static void cleanup();
 
     BasicTyped(VarType type) : fType(type) {}
 
-    VarType getType() { return fType; }
+    VarType getType() const { return fType; }
 
-    int getSize();  // moved in "instructions.cpp"
+    int getSize() const;  // moved in "instructions.cpp"
+
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 struct NamedTyped : public Typed {
-    string fName;
+    const string fName;
     Typed* fType;
 
     NamedTyped(const string& name, Typed* type) : fName(name), fType(type) {}
 
     virtual ~NamedTyped() {}
 
-    VarType getType() { return fType->getType(); }
+    VarType getType() const { return fType->getType(); }
 
-    int getSize() { return fType->getSize(); }
+    int getSize() const { return fType->getSize(); }
+
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -417,18 +429,17 @@ struct FunTyped : public Typed {
     {
     }
 
-    VarType getType() { return fResult->getType(); }
+    VarType getType() const { return fResult->getType(); }
 
     Typed* getTyped() { return fResult; }
 
     // Arguments type encoded as a string
     string getPrototype()
     {
-        string                            res;
-        list<NamedTyped*>::const_iterator it;
+        string res;
         if (fArgsTypes.size() > 0) {
-            for (it = fArgsTypes.begin(); it != fArgsTypes.end(); it++) {
-                res += gTypeString[(*it)->getType()];
+            for (auto& it : fArgsTypes) {
+                res += gTypeString[it->getType()];
             }
         } else {
             res = "void";
@@ -436,64 +447,80 @@ struct FunTyped : public Typed {
         return res;
     }
 
-    int getSize();  // moved in "instructions.cpp"
+    int getSize() const;  // moved in "instructions.cpp"
+
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 struct ArrayTyped : public Typed {
-    Typed* fType;
-    int    fSize;
-    bool   fIsPtr;
+    Typed*     fType;
+    const int  fSize;
+    const bool fIsPtr;
 
     ArrayTyped(Typed* type, int size, bool is_ptr = false) : fType(type), fSize(size), fIsPtr(is_ptr) {}
 
     virtual ~ArrayTyped() {}
 
-    VarType getType() { return getPtrFromType(fType->getType()); }
+    VarType getType() const { return getPtrFromType(fType->getType()); }
 
-    int getSize();  // moved in "instructions.cpp"
+    int getSize() const;  // moved in "instructions.cpp"
+
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 struct StructTyped : public Typed {
-    string              fName;
+    const string        fName;
     vector<NamedTyped*> fFields;
 
     StructTyped(const string& name, const vector<NamedTyped*>& fields) : fName(name), fFields(fields) {}
 
     virtual ~StructTyped() {}
 
-    VarType getType() { return kObj_ptr; }
+    VarType getType() const { return kObj_ptr; }
     VarType getType(int index) { return fFields[index]->getType(); }
 
-    int getSize()
+    int getSize() const
     {
-        int                           size = 0;
-        vector<NamedTyped*>::iterator it;
-        for (it = fFields.begin(); it != fFields.end(); it++) {
-            size += (*it)->getSize();
+        int size = 0;
+        for (auto& it : fFields) {
+            size += it->getSize();
         }
         return size;
     }
+    
+    int getOffset(int field) const
+    {
+        int offset = 0;
+        for (int i = 0; i < field; i++) {
+            offset += fFields[i]->getSize();
+        }
+        return offset;
+    }
 
     string getName(int index) { return fFields[index]->fName; }
+
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 struct VectorTyped : public Typed {
     BasicTyped* fType;
-    int         fSize;
+    const int  fSize;
 
     VectorTyped(BasicTyped* type, int size) : fType(type), fSize(size) {}
 
     virtual ~VectorTyped() {}
 
-    VarType getType() { return getVecFromType(fType->getType()); }
+    VarType getType() const { return getVecFromType(fType->getType()); }
 
-    int getSize() { return fType->getSize() * fSize; }
+    int getSize() const { return fType->getSize() * fSize; }
+
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -501,62 +528,52 @@ struct VectorTyped : public Typed {
 struct NumValueInst {
 };
 
-// ============
+// ===========
 //  Addresses
-// ============
+// ===========
 
 struct Address : public Printable {
     enum AccessType {
         kStruct       = 0x1,
-        kStaticStruct = 0x2,    // Static shared variable between all DSPs
+        kStaticStruct = 0x2,  // Static shared variable between all DSPs
         kFunArgs      = 0x4,
         kStack        = 0x8,
         kGlobal       = 0x10,
         kLink         = 0x20,
         kLoop         = 0x40,
         kVolatile     = 0x80,
-        kReference    = 0x100,  // Access by reference
-        kMutable      = 0x200   // Mutable access
+        kReference    = 0x100,  // Access by reference (for Rust backend)
+        kMutable      = 0x200,  // Mutable access (for Rust backend)
+        kConst        = 0x400   // Const access
     };
 
     Address() {}
 
     virtual void                setAccess(Address::AccessType type) = 0;
-    virtual Address::AccessType getAccess()                         = 0;
+    virtual Address::AccessType getAccess() const                   = 0;
 
     virtual void   setName(const string& name) = 0;
-    virtual string getName()                   = 0;
+    virtual string getName() const             = 0;
 
-    static void dump(AccessType access)
-    {
-        *fOut << dumpString(access);
-    }
+    static void dump(AccessType access) { *fOut << dumpString(access); }
+
+#define hasAccess(arg) res += (res != "") ? (string("|") + string(arg)) : string(arg);
 
     static string dumpString(AccessType access)
     {
-        if (access & kStruct) {
-            return "kStruct";
-        } else if (access & kStaticStruct) {
-            return "kStaticStruct";
-        } else if (access & kFunArgs) {
-            return "kFunArgs";
-        } else if (access & kStack) {
-            return "kStack";
-        } else if (access & kGlobal) {
-            return "kGlobal";
-        } else if (access & kLink) {
-            return "kLink";
-        } else if (access & kLoop) {
-            return "kLoop";
-        } else if (access & kVolatile) {
-            return "kVolatile";
-        } else if (access & kReference) {
-            return "kReference";
-        } else if (access & kMutable) {
-            return "kMutable";
-        } else {
-            return "";
-        }
+        string res;
+        if (access & kStruct) hasAccess("kStruct");
+        if (access & kStaticStruct) hasAccess("kStaticStruct");
+        if (access & kFunArgs) hasAccess("kFunArgs");
+        if (access & kStack) hasAccess("kStack");
+        if (access & kGlobal) hasAccess("kGlobal");
+        if (access & kLink) hasAccess("kLink");
+        if (access & kLoop) hasAccess("kLoop");
+        if (access & kVolatile) hasAccess("kVolatile");
+        if (access & kReference) hasAccess("kReference");
+        if (access & kMutable) hasAccess("kMutable");
+        if (access & kConst) hasAccess("kConst");
+        return res;
     }
 
     virtual Address* clone(CloneVisitor* cloner) = 0;
@@ -565,16 +582,16 @@ struct Address : public Printable {
 };
 
 struct NamedAddress : public Address {
-    string     fName;
-    AccessType fAccess;
+    string fName;
+    AccessType   fAccess;
 
     NamedAddress(const string& name, AccessType access) : fName(name), fAccess(access) {}
 
     void                setAccess(Address::AccessType type) { fAccess = type; }
-    Address::AccessType getAccess() { return fAccess; }
+    Address::AccessType getAccess() const { return fAccess; }
 
     void   setName(const string& name) { fName = name; }
-    string getName() { return fName; }
+    string getName() const { return fName; }
 
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -584,19 +601,18 @@ struct NamedAddress : public Address {
 struct IndexedAddress : public Address {
     Address*   fAddress;
     ValueInst* fIndex;
-    bool       fAligned;
-
+  
     IndexedAddress(Address* address, ValueInst* index) : fAddress(address), fIndex(index) {}
 
     virtual ~IndexedAddress() {}
 
     void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
-    Address::AccessType getAccess() { return fAddress->getAccess(); }
+    Address::AccessType getAccess() const { return fAddress->getAccess(); }
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
-    
-    ValueInst* getIndex() { return fIndex; }
+    string getName() const { return fAddress->getName(); }
+
+    ValueInst* getIndex() const { return fIndex; }
 
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -608,9 +624,9 @@ struct IndexedAddress : public Address {
 // ===============
 
 struct AddMetaDeclareInst : public StatementInst {
-    string fZone;
-    string fKey;
-    string fValue;
+    const string fZone;
+    const string fKey;
+    const string fValue;
 
     AddMetaDeclareInst(const string& zone, const string& key, const string& value)
         : fZone(zone), fKey(key), fValue(value)
@@ -623,10 +639,12 @@ struct AddMetaDeclareInst : public StatementInst {
 };
 
 struct OpenboxInst : public StatementInst {
-    int    fOrient;
-    string fName;
+    enum BoxType { kVerticalBox, kHorizontalBox, kTabBox };
+    
+    const string  fName;
+    const BoxType fOrient;
 
-    OpenboxInst(int orient, const string& name) : fOrient(orient), fName(name) {}
+    OpenboxInst(const string& name, BoxType orient) : fName(name), fOrient(orient) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -642,11 +660,11 @@ struct CloseboxInst : public StatementInst {
 };
 
 struct AddButtonInst : public StatementInst {
-    enum ButtonType { kDefaultButton, kCheckbutton };
+    enum ButtonType { kDefaultButton, kCheckButton };
 
-    string     fLabel;
-    string     fZone;
-    ButtonType fType;
+    const string     fLabel;
+    const string     fZone;
+    const ButtonType fType;
 
     AddButtonInst(const string& label, const string& zone, ButtonType type) : fLabel(label), fZone(zone), fType(type) {}
 
@@ -658,13 +676,13 @@ struct AddButtonInst : public StatementInst {
 struct AddSliderInst : public StatementInst {
     enum SliderType { kHorizontal, kVertical, kNumEntry };
 
-    string     fLabel;
-    string     fZone;
-    double     fInit;
-    double     fMin;
-    double     fMax;
-    double     fStep;
-    SliderType fType;
+    const string     fLabel;
+    const string     fZone;
+    const double     fInit;
+    const double     fMin;
+    const double     fMax;
+    const double     fStep;
+    const SliderType fType;
 
     AddSliderInst(const string& label, const string& zone, double init, double min, double max, double step,
                   SliderType type)
@@ -680,11 +698,11 @@ struct AddSliderInst : public StatementInst {
 struct AddBargraphInst : public StatementInst {
     enum BargraphType { kHorizontal, kVertical };
 
-    string       fLabel;
-    string       fZone;
-    double       fMin;
-    double       fMax;
-    BargraphType fType;
+    const string       fLabel;
+    const string       fZone;
+    const double       fMin;
+    const double       fMax;
+    const BargraphType fType;
 
     AddBargraphInst(const string& label, const string& zone, double min, double max, BargraphType type)
         : fLabel(label), fZone(zone), fMin(min), fMax(max), fType(type)
@@ -697,9 +715,9 @@ struct AddBargraphInst : public StatementInst {
 };
 
 struct AddSoundfileInst : public StatementInst {
-    string fLabel;
-    string fURL;
-    string fSFZone;
+    const string fLabel;
+    const string fURL;
+    const string fSFZone;
 
     AddSoundfileInst(const string& label, const string& url, const string& sf_zone)
         : fLabel(label), fURL(url), fSFZone(sf_zone)
@@ -712,7 +730,7 @@ struct AddSoundfileInst : public StatementInst {
 };
 
 struct LabelInst : public StatementInst {
-    string fLabel;
+    const string fLabel;
 
     LabelInst(const string& label) : fLabel(label) {}
 
@@ -737,10 +755,10 @@ struct DeclareVarInst : public StatementInst {
     virtual ~DeclareVarInst() {}
 
     void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
-    Address::AccessType getAccess() { return fAddress->getAccess(); }
+    Address::AccessType getAccess() const  { return fAddress->getAccess(); }
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() const { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -757,7 +775,7 @@ struct DeclareVarInst : public StatementInst {
 struct DropInst : public StatementInst {
     ValueInst* fResult;
 
-    DropInst(ValueInst* result = NULL) : fResult(result) {}
+    DropInst(ValueInst* result = nullptr) : fResult(result) {}
 
     virtual ~DropInst() {}
 
@@ -774,13 +792,13 @@ struct LoadVarInst : public ValueInst {
     virtual ~LoadVarInst() {}
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() const { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return dynamic_cast<NamedAddress*>(fAddress); }
+    virtual bool isSimpleValue() const { return dynamic_cast<NamedAddress*>(fAddress); }
 };
 
 struct LoadVarAddressInst : public ValueInst {
@@ -791,13 +809,13 @@ struct LoadVarAddressInst : public ValueInst {
     virtual ~LoadVarAddressInst() {}
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() const { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return dynamic_cast<NamedAddress*>(fAddress); }
+    virtual bool isSimpleValue() const { return dynamic_cast<NamedAddress*>(fAddress); }
 };
 
 // Special for wast/wasm backend : combine a store and a load
@@ -810,7 +828,7 @@ struct TeeVarInst : public ValueInst {
     virtual ~TeeVarInst() {}
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() const { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -826,7 +844,7 @@ struct StoreVarInst : public StatementInst {
     virtual ~StoreVarInst() {}
 
     void   setName(const string& name) { fAddress->setName(name); }
-    string getName() { return fAddress->getName(); }
+    string getName() const { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -834,8 +852,8 @@ struct StoreVarInst : public StatementInst {
 };
 
 struct ShiftArrayVarInst : public StatementInst {
-    Address* fAddress;
-    int      fDelay;
+    Address*  fAddress;
+    const int fDelay;
 
     ShiftArrayVarInst(Address* address, int delay) : fAddress(address), fDelay(delay) {}
 
@@ -851,7 +869,7 @@ struct ShiftArrayVarInst : public StatementInst {
 // ========
 
 struct FloatNumInst : public ValueInst, public NumValueInst {
-    float fNum;
+    const float fNum;
 
     FloatNumInst(float num) : ValueInst(), fNum(num) {}
 
@@ -859,7 +877,7 @@ struct FloatNumInst : public ValueInst, public NumValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    virtual bool isSimpleValue() const { return true; }
 };
 
 template <class TYPE>
@@ -876,7 +894,7 @@ struct ArrayNumInst : public ValueInst {
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    virtual bool isSimpleValue() const { return true; }
 };
 
 struct FloatArrayNumInst : public ArrayNumInst<float> {
@@ -889,7 +907,7 @@ struct FloatArrayNumInst : public ArrayNumInst<float> {
 };
 
 struct DoubleNumInst : public ValueInst, public NumValueInst {
-    double fNum;
+    const double fNum;
 
     DoubleNumInst(double num) : ValueInst(), fNum(num) {}
 
@@ -897,7 +915,7 @@ struct DoubleNumInst : public ValueInst, public NumValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    virtual bool isSimpleValue() const { return true; }
 };
 
 struct DoubleArrayNumInst : public ArrayNumInst<double> {
@@ -910,7 +928,7 @@ struct DoubleArrayNumInst : public ArrayNumInst<double> {
 };
 
 struct Int32NumInst : public ValueInst, public NumValueInst {
-    int fNum;
+    const int fNum;
 
     Int32NumInst(int num) : ValueInst(), fNum(num) {}
 
@@ -918,11 +936,11 @@ struct Int32NumInst : public ValueInst, public NumValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    virtual bool isSimpleValue() const { return true; }
 };
 
 struct Int64NumInst : public ValueInst, public NumValueInst {
-    long long fNum;
+    const long long fNum;
 
     Int64NumInst(long long num) : ValueInst(), fNum(num) {}
 
@@ -930,7 +948,7 @@ struct Int64NumInst : public ValueInst, public NumValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    virtual bool isSimpleValue() const { return true; }
 };
 
 struct Int32ArrayNumInst : public ArrayNumInst<int> {
@@ -943,7 +961,7 @@ struct Int32ArrayNumInst : public ArrayNumInst<int> {
 };
 
 struct BoolNumInst : public ValueInst, public NumValueInst {
-    bool fNum;
+    const bool fNum;
 
     BoolNumInst(bool num) : ValueInst(), fNum(num) {}
 
@@ -951,7 +969,7 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() { return true; }
+    virtual bool isSimpleValue() const { return true; }
 };
 
 // ======================
@@ -959,7 +977,7 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
 // ======================
 
 struct BinopInst : public ValueInst {
-    int        fOpcode;
+    const int  fOpcode;
     ValueInst* fInst1;
     ValueInst* fInst2;
 
@@ -974,7 +992,7 @@ struct BinopInst : public ValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual int size() { return fInst1->size() + fInst2->size(); }
+    virtual int size() const { return fInst1->size() + fInst2->size(); }
 };
 
 // =====
@@ -993,7 +1011,7 @@ struct CastInst : public ValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual int size() { return fInst->size(); }
+    virtual int size() const { return fInst->size(); }
 };
 
 struct BitcastInst : public ValueInst {
@@ -1008,12 +1026,12 @@ struct BitcastInst : public ValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual int size() { return fInst->size(); }
+    virtual int size() const { return fInst->size(); }
 };
 
-// ==============
+// =============
 // Control flow
-// ==============
+// =============
 
 struct BlockInst : public StatementInst {
     list<StatementInst*> fCode;
@@ -1038,15 +1056,14 @@ struct BlockInst : public StatementInst {
 
     void merge(BlockInst* inst)
     {
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            fCode.push_back(*it);
+        for (auto& it : inst->fCode) {
+            fCode.push_back(it);
         }
     }
 
-    int size() { return int(fCode.size()); }
+    int size() const { return int(fCode.size()); }
 
-    bool       hasReturn();
+    bool hasReturn() const;
     ValueInst* getReturnValue();
 };
 
@@ -1066,7 +1083,7 @@ struct Select2Inst : public ValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual int size() { return std::max(fThen->size(), fElse->size()); }
+    virtual int size() const { return std::max(fThen->size(), fElse->size()); }
 };
 
 struct IfInst : public StatementInst {
@@ -1108,7 +1125,7 @@ struct SwitchInst : public StatementInst {
 struct RetInst : public StatementInst {
     ValueInst* fResult;
 
-    RetInst(ValueInst* result = NULL) : fResult(result) {}
+    RetInst(ValueInst* result = nullptr) : fResult(result) {}
 
     virtual ~RetInst() {}
 
@@ -1118,9 +1135,9 @@ struct RetInst : public StatementInst {
 };
 
 struct FunCallInst : public ValueInst {
-    string           fName;
+    const string     fName;
     list<ValueInst*> fArgs;  // List of arguments
-    bool             fMethod;
+    const bool       fMethod;
 
     FunCallInst(const string& name, const list<ValueInst*>& args, bool method)
         : ValueInst(), fName(name), fArgs(args), fMethod(method)
@@ -1135,14 +1152,16 @@ struct FunCallInst : public ValueInst {
 };
 
 struct DeclareFunInst : public StatementInst {
-    string     fName;
-    FunTyped*  fType;  // Describes type of all arguments and function result
-    BlockInst* fCode;  // Code is a list of StatementInst*
+    const string fName;
+    FunTyped*    fType;  // Describes type of all arguments and function result
+    BlockInst*   fCode;  // Code is a list of StatementInst*
 
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
     virtual ~DeclareFunInst() {}
-
+    
+    Typed::VarType getResType() { return fType->fResult->getType(); }
+  
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1169,7 +1188,7 @@ struct ForLoopInst : public StatementInst {
     StatementInst* fIncrement;
     ValueInst*     fEnd;
     BlockInst*     fCode;
-    bool           fIsRecursive;
+    const bool     fIsRecursive;
 
     ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code, bool is_recursive)
         : fInit(init), fIncrement(increment), fEnd(end), fCode(code), fIsRecursive(is_recursive)
@@ -1182,7 +1201,7 @@ struct ForLoopInst : public StatementInst {
 
     void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
 
-    string getLoopVarName() { return fInit->getName(); }
+    string getName() const { return fInit->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1191,10 +1210,10 @@ struct ForLoopInst : public StatementInst {
 
 // To be used for the 'rust' backend
 struct SimpleForLoopInst : public StatementInst {
-    ValueInst* fUpperBound;
-    ValueInst* fLowerBound;
-    string     fName;
-    bool       fReverse;
+    ValueInst*   fUpperBound;
+    ValueInst*   fLowerBound;
+    const string fName;
+    const bool   fReverse;
     BlockInst* fCode;
 
     SimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
@@ -1202,7 +1221,7 @@ struct SimpleForLoopInst : public StatementInst {
     {
     }
 
-    string getName() { return fName; }
+    string getName() const { return fName; }
 
     virtual ~SimpleForLoopInst() {}
 
@@ -1228,9 +1247,9 @@ struct WhileLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-// =====================
+// ====================
 // Basic clone visitor
-// =====================
+// ====================
 
 class BasicCloneVisitor : public CloneVisitor {
    protected:
@@ -1239,14 +1258,14 @@ class BasicCloneVisitor : public CloneVisitor {
    public:
     BasicCloneVisitor() {}
 
-    virtual NullValueInst* visit(NullValueInst* inst) { return new NullValueInst(); }
+    virtual NullValueInst*     visit(NullValueInst* inst) { return new NullValueInst(); }
     virtual NullStatementInst* visit(NullStatementInst* inst) { return new NullStatementInst(); }
 
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this),
-                                  ((inst->fValue) ? inst->fValue->clone(this) : NULL));
+                                  ((inst->fValue) ? inst->fValue->clone(this) : nullptr));
     }
     virtual StatementInst* visit(DeclareFunInst* inst)
     {
@@ -1312,20 +1331,19 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(FunCallInst* inst)
     {
         list<ValueInst*> cloned_args;
-
-        for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-            cloned_args.push_back((*it)->clone(this));
+        for (auto& it : inst->fArgs) {
+            cloned_args.push_back(it->clone(this));
         }
 
         return new FunCallInst(inst->fName, cloned_args, inst->fMethod);
     }
     virtual StatementInst* visit(RetInst* inst)
     {
-        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : NULL);
+        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
     virtual StatementInst* visit(DropInst* inst)
     {
-        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL);
+        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
 
     // Conditionnal
@@ -1344,10 +1362,9 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(SwitchInst* inst)
     {
-        SwitchInst*                                  cloned = new SwitchInst(inst->fCond->clone(this));
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            cloned->addCase((*it).first, static_cast<BlockInst*>(((*it).second)->clone(this)));
+        SwitchInst* cloned = new SwitchInst(inst->fCond->clone(this));
+        for (auto& it : inst->fCode) {
+            cloned->addCase(it.first, static_cast<BlockInst*>((it.second)->clone(this)));
         }
         return cloned;
     }
@@ -1376,9 +1393,8 @@ class BasicCloneVisitor : public CloneVisitor {
         // fBlockStack is used when inlining functions
         BlockInst* cloned = new BlockInst();
         fBlockStack.push(cloned);
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            cloned->pushBackInst((*it)->clone(this));
+        for (auto& it : inst->fCode) {
+            cloned->pushBackInst(it->clone(this));
         }
         fBlockStack.pop();
         return cloned;
@@ -1389,7 +1405,7 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new AddMetaDeclareInst(inst->fZone, inst->fKey, inst->fValue);
     }
-    virtual StatementInst* visit(OpenboxInst* inst) { return new OpenboxInst(inst->fOrient, inst->fName); }
+    virtual StatementInst* visit(OpenboxInst* inst) { return new OpenboxInst(inst->fName, inst->fOrient); }
     virtual StatementInst* visit(CloseboxInst* inst) { return new CloseboxInst(); }
     virtual StatementInst* visit(AddButtonInst* inst)
     {
@@ -1415,20 +1431,21 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
     virtual Typed* visit(FunTyped* typed)
     {
-        list<NamedTyped*>                 cloned;
-        list<NamedTyped*>::const_iterator it;
-        for (it = typed->fArgsTypes.begin(); it != typed->fArgsTypes.end(); it++) {
-            cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
+        list<NamedTyped*> cloned;
+        for (auto& it : typed->fArgsTypes) {
+            cloned.push_back(static_cast<NamedTyped*>(it->clone(this)));
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
     }
-    virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr); }
+    virtual Typed* visit(ArrayTyped* typed)
+    {
+        return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr);
+    }
     virtual Typed* visit(StructTyped* typed)
     {
-        vector<NamedTyped*>                 cloned;
-        vector<NamedTyped*>::const_iterator it;
-        for (it = typed->fFields.begin(); it != typed->fFields.end(); it++) {
-            cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
+        vector<NamedTyped*> cloned;
+        for (auto& it : typed->fFields) {
+            cloned.push_back(static_cast<NamedTyped*>(it->clone(this)));
         }
         return new StructTyped(typed->fName, cloned);
     }
@@ -1439,9 +1456,9 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 };
 
-// ========================
+// =======================
 // Basic dispatch visitor
-// ========================
+// =======================
 
 struct DispatchVisitor : public InstVisitor {
     using InstVisitor::visit;
@@ -1495,9 +1512,8 @@ struct DispatchVisitor : public InstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        list<ValueInst*>::const_iterator it;
-        for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-            (*it)->accept(this);
+        for (auto& it : inst->fArgs) {
+            it->accept(this);
         }
     }
 
@@ -1552,19 +1568,35 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(SwitchInst* inst)
     {
         inst->fCond->accept(this);
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            ((*it).second)->accept(this);
+        for (auto& it : inst->fCode) {
+            (it.second)->accept(this);
         }
     }
 
     virtual void visit(BlockInst* inst)
     {
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            (*it)->accept(this);
+        for (auto& it : inst->fCode) {
+            it->accept(this);
         }
     }
+
+    // Typed
+    virtual void visit(FunTyped* typed)
+    {
+        typed->fResult->accept(this);
+        for (auto& it : typed->fArgsTypes) {
+            it->accept(this);
+        }
+    }
+    virtual void visit(ArrayTyped* typed) { typed->fType->accept(this); }
+    virtual void visit(StructTyped* typed)
+    {
+        for (auto& it : typed->fFields) {
+            it->accept(this);
+        }
+    }
+
+    virtual void visit(VectorTyped* typed) { typed->fType->accept(this); }
 };
 
 struct VariableScopeVisitor : public DispatchVisitor {
@@ -1651,9 +1683,9 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
     virtual void visit(Select2Inst* inst) { Dispatch2Visitor(inst); }
 };
 
-// ========================
+// ===================
 // Combining visitors
-// ========================
+// ===================
 
 class CombinerVisitor : public DispatchVisitor {
    protected:
@@ -1667,9 +1699,9 @@ class CombinerVisitor : public DispatchVisitor {
     virtual ~CombinerVisitor() {}
 };
 
-// =======================
+// ======================
 // Instruction generator
-// =======================
+// ======================
 
 struct InstBuilder {
     // User interface
@@ -1678,7 +1710,11 @@ struct InstBuilder {
         return new AddMetaDeclareInst(zone, key, value);
     }
 
-    static OpenboxInst* genOpenboxInst(int orient, const string& name) { return new OpenboxInst(orient, name); }
+    static OpenboxInst* genOpenboxInst(const string& name, OpenboxInst::BoxType orient)
+    {
+        faustassert(orient >= OpenboxInst::kVerticalBox && orient <= OpenboxInst::kTabBox);
+        return new OpenboxInst(name, orient);
+    }
 
     static CloseboxInst* genCloseboxInst() { return new CloseboxInst(); }
 
@@ -1689,24 +1725,39 @@ struct InstBuilder {
 
     static AddButtonInst* genAddCheckbuttonInst(const string& label, const string& zone)
     {
-        return new AddButtonInst(label, zone, AddButtonInst::kCheckbutton);
+        return new AddButtonInst(label, zone, AddButtonInst::kCheckButton);
     }
 
     static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min,
                                                      double max, double step)
     {
+        if (init < min || init > max) {
+            stringstream error;
+            error << "ERROR : horizontal slider \'"<< label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
+            throw faustexception(error.str());
+        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kHorizontal);
     }
 
     static AddSliderInst* genAddVerticalSliderInst(const string& label, const string& zone, double init, double min,
                                                    double max, double step)
     {
+        if (init < min || init > max) {
+            stringstream error;
+            error << "ERROR : vertical slider \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
+            throw faustexception(error.str());
+        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kVertical);
     }
 
     static AddSliderInst* genAddNumEntryInst(const string& label, const string& zone, double init, double min,
                                              double max, double step)
     {
+        if (init < min || init > max) {
+            stringstream error;
+            error << "ERROR : num entry \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
+            throw faustexception(error.str());
+        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kNumEntry);
     }
 
@@ -1715,25 +1766,25 @@ struct InstBuilder {
     {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
+    
+    static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
+    {
+        return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical);
+    }
 
     static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& sf_zone)
     {
         return new AddSoundfileInst(label, url, sf_zone);
     }
 
-    static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
-    {
-        return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical);
-    }
-
     static LabelInst* genLabelInst(const string& label) { return new LabelInst(label); }
 
     // Null instruction
-    static NullValueInst* genNullValueInst() { return new NullValueInst(); }
+    static NullValueInst*     genNullValueInst() { return new NullValueInst(); }
     static NullStatementInst* genNullStatementInst() { return new NullStatementInst(); }
 
     // Declarations
-    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = NULL)
+    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = nullptr)
     {
         return new DeclareVarInst(address, typed, value);
     }
@@ -1790,7 +1841,7 @@ struct InstBuilder {
         } else {
             faustassert(false);
         }
-        return NULL;
+        return nullptr;
     }
 
     static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
@@ -1804,7 +1855,7 @@ struct InstBuilder {
         } else {
             faustassert(false);
         }
-        return NULL;
+        return nullptr;
     }
 
     static Int32NumInst* genInt32NumInst(int num) { return new Int32NumInst(num); }
@@ -1823,10 +1874,14 @@ struct InstBuilder {
         FloatNumInst*  float_num  = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
         BasicTyped*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
+        CastInst*      cast       = dynamic_cast<CastInst*>(inst);
 
         if (!typed) {
             // Default case
             return new CastInst(inst, typed_ext);
+        } else if (cast && (cast->fType == typed_ext)) {
+            // Casting an already casted value with the same type
+            return inst;
         } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer
@@ -1879,8 +1934,8 @@ struct InstBuilder {
     static ValueInst* genCastInt32Inst(ValueInst* inst);
 
     // Control flow
-    static RetInst*  genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
-    static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
+    static RetInst*  genRetInst(ValueInst* result = nullptr) { return new RetInst(result); }
+    static DropInst* genDropInst(ValueInst* result = nullptr) { return new DropInst(result); }
 
     // Conditional
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
@@ -1919,13 +1974,13 @@ struct InstBuilder {
         faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
         return new ForLoopInst(init, end, increment, code, is_recursive);
     }
-    
+
     // TODO: add access to the loop variable, generate ascending/descending loops...
     static ForLoopInst* genForLoopInst(const string& index, int init, int size, int step = 1)
     {
         DeclareVarInst* dec = genDecLoopVar(index, genInt32Typed(), genInt32NumInst(init));
-        ValueInst* end = genLessThan(dec->load(), genInt32NumInst(size));
-        StoreVarInst* inc = dec->store(genAdd(dec->load(), step));
+        ValueInst*      end = genLessThan(dec->load(), genInt32NumInst(size));
+        StoreVarInst*   inc = dec->store(genAdd(dec->load(), step));
         return genForLoopInst(dec, end, inc);
     }
 
@@ -1945,7 +2000,7 @@ struct InstBuilder {
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
-    
+
     static BasicTyped* genInt32Typed() { return genBasicTyped(Typed::kInt32); }
     static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
     static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
@@ -1960,7 +2015,7 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped* genArrayTyped(Typed* type, int size, bool is_ptr = false)
+    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
     {
         return new ArrayTyped(type, size, is_ptr);
     }
@@ -2002,12 +2057,12 @@ struct InstBuilder {
     }
 
     // Struct variable
-    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
     }
 
-    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
                                  type, exp);
@@ -2106,9 +2161,15 @@ struct InstBuilder {
     }
 
     // Static struct variable
-    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
+    }
+
+    static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
+    {
+        return genDeclareVarInst(
+            genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct | Address::kConst)), type, exp);
     }
 
     static LoadVarInst* genLoadStaticStructVar(const string& vname)
@@ -2173,7 +2234,7 @@ struct InstBuilder {
     }
 
     // Stack variable
-    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
     }
@@ -2214,7 +2275,7 @@ struct InstBuilder {
     }
 
     // Loop variable
-    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
     }
@@ -2246,9 +2307,15 @@ struct InstBuilder {
     }
 
     // Global variable
-    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
+    }
+
+    static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kGlobal | Address::kConst)),
+                                 type, exp);
     }
 
     static LoadVarInst* genLoadGlobalVar(const string& vname)
@@ -2267,7 +2334,7 @@ struct InstBuilder {
     static BinopInst* genAdd(ValueInst* a1, int a2) { return genBinopInst(kAdd, a1, genInt32NumInst(a2)); }
 
     static BinopInst* genSub(ValueInst* a1, ValueInst* a2) { return genBinopInst(kSub, a1, a2); }
-    
+
     static BinopInst* genSub(ValueInst* a1, int a2) { return genBinopInst(kSub, a1, genInt32NumInst(a2)); }
 
     static BinopInst* genMul(ValueInst* a1, ValueInst* a2) { return genBinopInst(kMul, a1, a2); }
@@ -2296,6 +2363,8 @@ struct InstBuilder {
 
     // Functions
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
+    static DeclareFunInst* genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code,
+                                           bool isvirtual = false);
     static DeclareFunInst* genFunction0(const string& name, Typed::VarType res, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction1(const string& name, Typed::VarType res, const string& arg1,
                                         Typed::VarType arg1_ty, BlockInst* code = new BlockInst());

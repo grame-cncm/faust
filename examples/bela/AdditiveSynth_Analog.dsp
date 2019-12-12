@@ -28,9 +28,9 @@ midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain = nentry("gain", 0.5, 0, 10, 0.01);
 
 // pitchwheel
-pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
 
-gFreq = midifreq * pitchwheel;
+gFreq = midifreq * bend;
 
 partiel(rang) = os.oscrs(gFreq*(rang+1))*volume
     with {

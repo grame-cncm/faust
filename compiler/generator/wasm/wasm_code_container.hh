@@ -23,10 +23,11 @@
 #define _WASM_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "vec_code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "vec_code_container.hh"
 #include "wasm_instructions.hh"
+#include "json_instructions.hh"
 
 using namespace std;
 
@@ -37,15 +38,44 @@ class WASMCodeContainer : public virtual CodeContainer {
     std::stringstream      fHelper;
     int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
-                                            bool addreturn);
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateClassInit(const string& name);
     DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                        bool isvirtual);
-    
+
     void generateComputeAux(BlockInst* compute_block);
+    
+    template <typename REAL>
+    string generateJSON()
+    {
+        // Prepare compilation options
+        stringstream compile_options;
+        gGlobal->printCompilationOptions(compile_options);
+
+        // JSON generation
+        JSONInstVisitor<REAL> json_visitor1;
+        generateUserInterface(&json_visitor1);
+
+        std::map<std::string, int>    path_index_table;
+        map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
+        for (auto& it : json_visitor1.fPathTable) {
+            faustassert(path_index_table.find(it.second) == path_index_table.end());
+            // Get field index
+            MemoryDesc tmp              = fieldTable1[it.first];
+            path_index_table[it.second] = tmp.fOffset;
+        }
+
+        // "name", "filename" found in metadata
+        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+        gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
+        gGlobal->gWASMVisitor->getStructSize(), path_index_table);
+        generateUserInterface(&json_visitor2);
+        generateMetaData(&json_visitor2);
+
+        return json_visitor2.JSON(true);
+    }
 
    public:
     WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,

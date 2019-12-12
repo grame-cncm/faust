@@ -237,7 +237,21 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern "C" {
 #endif
 
-SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_new_1DspFaust_1_1SWIG_10(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_new_1DspFaust_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jboolean jarg1) {
+  jlong jresult = 0 ;
+  bool arg1 ;
+  DspFaust *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = jarg1 ? true : false; 
+  result = (DspFaust *)new DspFaust(arg1);
+  *(DspFaust **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_new_1DspFaust_1_1SWIG_11(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   DspFaust *result = 0 ;
   
@@ -249,7 +263,7 @@ SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_new_1DspFaust_1_1SWIG_1
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_new_1DspFaust_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_new_1DspFaust_1_1SWIG_12(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
   jlong jresult = 0 ;
   int arg1 ;
   int arg2 ;
@@ -916,10 +930,10 @@ SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getCPULoad(J
 }
 
 
-SWIGEXPORT jboolean JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1configureOSC(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2, jint jarg3, jint jarg4, jint jarg5, jstring jarg6) {
+SWIGEXPORT jboolean JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1configureOSC(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jint jarg3, jint jarg4, jint jarg5, jstring jarg6) {
   jboolean jresult = 0 ;
   DspFaust *arg1 = (DspFaust *) 0 ;
-  bool arg2 ;
+  int arg2 ;
   int arg3 ;
   int arg4 ;
   int arg5 ;
@@ -930,7 +944,7 @@ SWIGEXPORT jboolean JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1configureO
   (void)jcls;
   (void)jarg1_;
   arg1 = *(DspFaust **)&jarg1; 
-  arg2 = jarg2 ? true : false; 
+  arg2 = (int)jarg2; 
   arg3 = (int)jarg3; 
   arg4 = (int)jarg4; 
   arg5 = (int)jarg5; 
@@ -942,6 +956,21 @@ SWIGEXPORT jboolean JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1configureO
   result = (bool)(arg1)->configureOSC(arg2,arg3,arg4,arg5,(char const *)arg6);
   jresult = (jboolean)result; 
   if (arg6) jenv->ReleaseStringUTFChars(jarg6, (const char *)arg6);
+  return jresult;
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1isOSCOn(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jboolean jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  bool result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  result = (bool)(arg1)->isOSCOn();
+  jresult = (jboolean)result; 
   return jresult;
 }
 

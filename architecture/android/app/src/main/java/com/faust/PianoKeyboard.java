@@ -139,7 +139,7 @@ public class PianoKeyboard extends ViewGroup {
         private PianoKeyElement keyUp, keyDown;
         private int ID = 0;         // key ID on the keyboard
         private int keyType = 0;    // key type (white left, center, right or black)
-        public long voice;           // allocated voice for the played pitch
+        public long voice;          // allocated voice for the played pitch
 
 		public PianoKey(Context context, int type, int id)
         {

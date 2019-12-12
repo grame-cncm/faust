@@ -1,0 +1,161 @@
+#! /bin/bash -e
+set -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to SOUL                     #
+#               (c) Grame, 2019                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
+ARCHFILE=$FAUSTARCH/soul/minimal.soul
+
+#-------------------------------------------------------------------
+#PHASE 1 : dispatch command arguments
+#-------------------------------------------------------------------
+
+POLY="POLY"
+EFFECT=""
+NVOICES=-1
+OPTIONS=""
+PLAY="false"
+MIDI="false"
+
+while [ $1 ] 
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2soul [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-play] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-play' to start the 'soul' runtime with the generated SOUL file"
+        exit
+    fi
+
+    if [ $p = "-nvoices" ]; then
+  		ARCHFILE=$FAUSTARCH/soul/poly-dsp.soul
+	    shift
+        NVOICES=$1
+    elif [ $p = "-effect" ]; then
+        ARCHFILE=$FAUSTARCH/soul/poly-dsp-effect.soul
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-midi" ]; then
+        MIDI="true"
+        echo "MIDI will be used"
+    elif [ $p = "-play" ]; then
+    	PLAY="true"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+	fi
+
+shift
+
+done
+
+createSOULPatch()
+{
+    (
+    echo '{'
+    echo -e '\t"soulPatchV1":'
+    echo -e '\t{'
+    echo -e "\t\t\"ID\": \"grame.soul.$1\","
+    echo -e '\t\t"version": "1.0",'
+    echo -e "\t\t\"name\": \"$1\","
+    echo -e '\t\t"description": "SOUL example",'
+    echo -e '\t\t"category": "synth",'
+    echo -e '\t\t"manufacturer": "GRAME",'
+    echo -e '\t\t"website": "https://faust.grame.fr",'
+    if [ $MIDI = "true" ]; then
+        echo -e '\t\t"isInstrument": true,'
+    else
+        echo -e '\t\t"isInstrument": false,'
+    fi
+    echo -e "\t\t\"source\": \"$1.soul\""
+    echo -e '\t}'
+    echo '}'
+    ) > "$2"
+}
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#-------------------------------------------------------------------
+
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+	SRCDIR=$(dirname "$p")
+
+    # create a temporary dir
+    dspName="${f%.dsp}"
+    TDR=$(mktemp -d faust.XXXXXX)
+    TMP="$TDR/${f%.dsp}"
+    mkdir "$TMP"
+
+    # compile Faust to SOUL
+    if [ $POLY = "POLY2" ]; then
+       if [ $EFFECT = "auto" ]; then
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang soul -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
+        else
+            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang soul -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
+        fi
+        cat "$TMP/effect.soul" > "$TMP/${f%.dsp}.soul"
+        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}_tmp2.soul"
+        cat "$TMP/${f%.dsp}_tmp2.soul" >> "$TMP/${f%.dsp}.soul"
+    else
+    	if [ $NVOICES != -1 ]; then
+        	faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        else
+        	faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        fi
+        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
+    fi
+
+    # create patch
+    createSOULPatch "${f%.dsp}" "${f%.dsp}.soulpatch"
+    
+    rm -f $p.json "$TMP/${f%.dsp}_tmp1.soul" "$TMP/${f%.dsp}_tmp2.soul" "$TMP/effect.dsp"
+    cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}.soul"
+    rm -rf "$TDR"
+    
+    #  create final folder
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    mv "$SRCDIR/${f%.dsp}.soul" "$SRCDIR/$dspName"
+    mv "${f%.dsp}.soulpatch" "$SRCDIR/$dspName"
+    
+    if [ $PLAY = "true" ] ; then
+    	soul play "$SRCDIR/$dspName"
+    fi
+
+    # collect binary file name for FaustGIDE
+    BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
+done
+
+echo $BINARIES
+
+

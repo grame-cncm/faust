@@ -45,8 +45,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 1.20f
-#define kVersionStr	"1.20"
+#define kVersion     1.22f
+#define kVersionStr "1.22"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -141,7 +141,7 @@ static void treatXmitFilterOption(int argc, char *argv[], const std::string& opt
 }
 
 //--------------------------------------------------------------------------
-OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
+OSCControler::OSCControler(int argc, char* argv[], GUI* ui, JSONUI* json, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
 	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io), fInit(init)
 {
 	checkHelp(argc, argv, kHelp);
@@ -157,7 +157,7 @@ OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCall
 	}
     treatXmitFilterOption(argc, argv, kXmitFilterOpt);
  
-	fFactory = new FaustFactory(ui, io);
+	fFactory = new FaustFactory(ui, json, io);
 	fOsc = new OSCSetup(errCallback, arg);
 }
     

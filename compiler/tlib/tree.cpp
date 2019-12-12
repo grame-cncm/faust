@@ -84,7 +84,7 @@ storage of trees.
 #include "tree.hh"
 
 #ifdef WIN32
-# pragma warning (disable: 4800)
+#pragma warning(disable : 4800)
 #endif
 
 #define ERROR(s, t)              \
@@ -93,12 +93,19 @@ storage of trees.
     }
 
 Tree         CTree::gHashTable[kHashTableSize];
-bool         CTree::gDetails   = false;
-unsigned int CTree::gVisitTime = 0;
+bool         CTree::gDetails       = false;
+unsigned int CTree::gVisitTime     = 0;
+size_t       CTree::gSerialCounter = 0;
 
 // Constructor : add the tree to the hash table
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
-    : fNode(n), fType(0), fHashKey(hk), fAperture(calcTreeAperture(n, br)), fVisitTime(0), fBranch(br)
+    : fNode(n),
+      fType(0),
+      fHashKey(hk),
+      fSerial(++gSerialCounter),
+      fAperture(calcTreeAperture(n, br)),
+      fVisitTime(0),
+      fBranch(br)
 {
     // link dans la hash table
     int j         = hk % kHashTableSize;
@@ -116,7 +123,7 @@ CTree::~CTree()
     if (t == this) {
         gHashTable[i] = fNext;
     } else {
-        Tree p = NULL;
+        Tree p = nullptr;
         while (t != this) {
             p = t;
             t = t->fNext;

@@ -41,7 +41,7 @@ do
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        echo "Use '-emcc' to use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
     elif [ $p = "-links" ]; then
         SVG="-svg"
@@ -86,43 +86,55 @@ echo "Compiling with :" $OPTIONS
 #
 
 if [ $POLY = "true" ]; then
-    echo "The mixer32.wasm code is copied"
-    cp $FAUSTLIB/webaudio/mixer32.wasm .
-    WASM="wasm-e"
-    if [ $EMCC = "true" ]; then
-        echo "Compiled with 'emcc' in polyphonic mode"
-        CODE_WRAPPER1=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-wasm-poly-emcc.js
-        HTML_FOOTER=webaudio-wasm-poly-footer.html
-    else
-        if [ $WORKLET = "true" ]; then
+    if [ $WORKLET = "true" ]; then
+        if [ $EMCC = "true" ]; then
+            echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode with EMCC glue"
             WASM="wasm-eb"
+            CODE_WRAPPER2=webaudio-workletnode-emcc-poly-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-emcc-poly-worklet-footer.html
+        else
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
+            WASM="wasm-eb"
             CODE_WRAPPER1=webaudio-workletprocessor-poly-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
+        fi
+    else
+        if [ $EMCC = "true" ]; then
+            echo "Compiled with 'wasm' backend in polyphonic mode with EMCC glue"
+            WASM="wasm-eb"
+            CODE_WRAPPER1=webaudio-wasm-emcc-poly-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-emcc-poly-footer.html
         else
             echo "Compiled with 'wasm' backend in polyphonic mode"
+            WASM="wasm-e"
             CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-footer.html
         fi
     fi
 else
-    WASM="wasm"
-    if [ $EMCC = "true" ]; then
-        echo "Compiled with 'emcc'"
-        CODE_WRAPPER1=webaudio-asm.cpp
-        JS_WRAPPER=webaudio-wasm-emcc.js
-        HTML_FOOTER=webaudio-wasm-footer.html
-    else
-        if [ $WORKLET = "true" ]; then
+    if [ $WORKLET = "true" ]; then
+        if [ $EMCC = "true" ]; then
+            WASM="wasm-eb"
+            echo "Compiled with 'wasm' backend in AudioWorklet mode with EMCC glue"
+            CODE_WRAPPER2=webaudio-workletnode-emcc-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-emcc-worklet-footer.html
+        else
             WASM="wasm-ib"
             echo "Compiled with 'wasm' backend in AudioWorklet mode"
             CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-worklet-footer.html
+        fi
+    else
+        if [ $EMCC = "true" ]; then
+            echo "Compiled with 'wasm' backend with EMCC glue"
+            WASM="wasm-eb"
+            CODE_WRAPPER1=webaudio-wasm-emcc-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-emcc-footer.html
         else
             echo "Compiled with 'wasm' backend"
+            WASM="wasm-ib"
             CODE_WRAPPER1=webaudio-wasm-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-footer.html
         fi
@@ -138,79 +150,62 @@ BINARIES=""
 for f in $FILES; do
     name=$(basename "$f" .dsp)
     
-    # compile the Faust DSP to C++ or wasm code
-    if [ $EMCC = "true" ]; then
-        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
-    else
-        faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
+    faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
 
-        # possibly compile effect
-        if [ "$EFFECT" = "auto" ]; then
-            cat > $name"_effect".dsp << EndOfCode
-            adapt(1,1) = _;
-            adapt(2,2) = _,_;
-            adapt(1,2) = _ <: _,_;
-            adapt(2,1) = _,_ :> _;
-            adaptor(F,G) = adapt(outputs(F),inputs(G));
-            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+    # possibly compile effect
+    if [ "$EFFECT" = "auto" ]; then
+        cat > $name"_effect".dsp << EndOfCode
+        adapt(1,1) = _;
+        adapt(2,2) = _,_;
+        adapt(1,2) = _ <: _,_;
+        adapt(2,1) = _,_ :> _;
+        adaptor(F,G) = adapt(outputs(F),inputs(G));
+        process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
 EndOfCode
-            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit 
-            rm $name"_effect".dsp
-        elif [ "$EFFECT" != "" ]; then
-            faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
-        fi
-
-        # wasm ==> wasm optimizations
-        if [ $OPT = "true" ]; then
-            echo "Optimize wasm module"
-            wasm-opt $name.wasm -O3 -o $name.wasm
-        fi
+        faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit 
+        rm $name"_effect".dsp
+    elif [ "$EFFECT" != "" ]; then
+        faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
     fi
 
-    if [ $EMCC = "true" ]; then
-
-        # prepare emcc compilation files
-        if [ $POLY = "false" ]; then    EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_init','_"$name"_getSampleRate','_"$name"_instanceInit','_"$name"_instanceConstants','_"$name"_instanceResetUserInterface','_"$name"_instanceClear','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
-        else        EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_init','_"$name"_poly_getSampleRate','_"$name"_poly_instanceInit','_"$name"_poly_instanceConstants','_"$name"_poly_instanceResetUserInterface','_"$name"_poly_instanceClear','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"
-        fi
-        # compile the C++ code to wasm
-        emcc -O3 --memory-init-file 0 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 $name.cpp --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
- 
-        # remove intermediate C++ file
-        rm $name.cpp
+    # wasm ==> wasm optimizations
+    if [ $OPT = "true" ]; then
+        echo "Optimize wasm module"
+        wasm-opt $name.wasm -O3 -o $name.wasm
     fi
-    
-    #java -jar /usr/local/bin/yuicompressor-2.4.8.jar $name-temp1.js -o $name-temp1.js --charset utf-8
-          
+
     # compose the self-contained HTML page
     echo "<html>" > $name-temp2.html
     echo "<head>" >> $name-temp2.html
     echo "<meta charset=\"UTF-8\">" >> $name-temp2.html
-
-    # add AudioWorklet Origin Trial for Chrome
-    echo "<!-- Origin Trial Token, feature = AudioWorklet, origin = https://faust.grame.fr, expires = 2018-03-03 --> <meta http-equiv=\"origin-trial\" data-feature=\"AudioWorklet\" data-expires=\"2018-03-03\" content=\"ApDZ87+zpjI09+oIyEDTPDZtGN4bs1lh9n83f+4ssENINML3DxJbklOsd8Hu+M82TY4eIP/B2l7Iued7Y5I4hQAAAABUeyJvcmlnaW4iOiJodHRwczovL2ZhdXN0LmdyYW1lLmZyOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MjAxMjA2MDB9\">" >> $name-temp2.html
-
+    if [ $EMCC = "true" ]; then
+        echo "<script src="libfaust-glue.js"></script>" >> $name-temp2.html
+    fi
     echo "<style type=\"text/css\">" >> $name-temp2.html
     cat $FAUSTLIB/js/stylesheet.js >> $name-temp2.html
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
-    if [ $EMCC != "true" ]; then
 
+    if [ $EMCC != "true" ]; then
         if [ "$EFFECT" != "" ]; then
             cat $name"_effect".js >> $name.js
             rm $name"_effect".js
         fi
+    fi
 
-        if [ $WORKLET = "true" ]; then
+    if [ $WORKLET = "true" ]; then
+        if [ $EMCC = "true" ]; then
+            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
+        else
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
-        else
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
         fi
-
+    else
+        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
     fi
+
     sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html
     echo "</head>" >> $name-temp2.html
@@ -222,18 +217,31 @@ EndOfCode
     fi
     echo "</body>" >> $name-temp2.html
     echo "</html>" >> $name-temp2.html
-    sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
-    
-    rm $name.js $name-temp2.html
-
+    if [ $EMCC = "true" ]; then
+        cp $name-temp2.html $name.html
+    else
+        sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
+    fi
+   
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-        BINARIES="$BINARIES$name.html;$name-processor.js;"
-        rm $name.wasm
-        rm -f $name"_effect".wasm
+        if [ $EMCC = "true" ]; then
+        	cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
+            BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
+        else
+            BINARIES="$BINARIES$name.html;$name-processor.js;$name.wasm;"
+        fi
     else
-        BINARIES="$BINARIES$name.html;$name.wasm;"
+        if [ $EMCC = "true" ]; then
+            cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
+            BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
+        else
+            BINARIES="$BINARIES$name.html;$name.wasm;"
+        fi
     fi
+
+    # cleanup
+    rm $name.js $name-temp2.html
 
 done
 

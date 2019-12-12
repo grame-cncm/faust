@@ -46,14 +46,12 @@ void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    
+
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("input$0", T(i));
         string name2 = subst("input$0_ptr", T(i));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1,
-            type,
-            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+            name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
@@ -61,14 +59,12 @@ void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
 {
     // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    
+
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("output$0", T(i));
         string name2 = subst("output$0_ptr", T(i));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1,
-            type,
-            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+            name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
@@ -130,11 +126,11 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
             loop_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp sections"));
             omp_sections_block->setIndent(true);
         }
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto& p : dag[l]) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) {  // Only one loop
-                if (!(*p)->isRecursive() && gGlobal->gOpenMPLoop) {
-                    generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++, true);
+                if (!p->isRecursive() && gGlobal->gOpenMPLoop) {
+                    generateDAGLoopAux(p, omp_section_block, count_dec, loop_num++, true);
                 } else {
                     omp_section_block->setIndent(true);
                     if (!is_single) {
@@ -143,13 +139,13 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
                     } else {
                         omp_sections_block->pushBackInst(InstBuilder::genLabelInst("/* Still in a single section */"));
                     }
-                    generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
+                    generateDAGLoopAux(p, omp_section_block, count_dec, loop_num++);
                 }
             } else {
                 is_single = false;
                 omp_section_block->setIndent(true);
                 omp_sections_block->pushBackInst(InstBuilder::genLabelInst("#pragma omp section"));
-                generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
+                generateDAGLoopAux(p, omp_section_block, count_dec, loop_num++);
             }
             omp_sections_block->pushBackInst(omp_section_block);
         }
@@ -175,7 +171,7 @@ void OpenMPCodeContainer::processFIR()
     CodeContainer::processFIR();
 
     // Sort arrays to be at the begining (break code genaration when 'soundfile' is used)
-    //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    // fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Prepare global loop
     fGlobalLoopBlock = generateDAGLoopOMP(fFullCount);

@@ -1,5 +1,5 @@
 // FROM FAUST DEMO
-// Designed to use the Analog Input for parameters contrôles.
+// Designed to use the Analog Input for parameter controls.
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -47,22 +47,22 @@ process = vgroup("Granulator", environment {
 
     P = freq; // fundamental period in samples
     freq = hslider("[1]GrainSize[BELA: ANALOG_0]", 200,5,2205,1);
-    // la frequence donne la largeur de bande extraite du bruit blanc
+    // the frequency gives the white noise band width
     Pmax = 4096; // maximum P (for de.delay-line allocation)
 
     // PHASOR_BIN //////////////////////////////
-    phasor_bin (init) =  (+(float(speed)/float(ma.SR)) : fmod(_,1.0)) ~ *(init);
+    phasor_bin(init) = (+(float(speed)/float(ma.SR)) : fmod(_,1.0)) ~ *(init);
     gate = phasor_bin(1) :-(0.001):pulsar;
     gain = 1;
                             
     // PULSAR //////////////////////////////
-    //Le pulsar permet de creer une 'pulsation' plus ou moins aleatoire (proba).
+    // Pulsar allows to create a more or less random 'pulse'(proba).
 
     pulsar = _<:((_<(ratio_env)):@(100))*(proba>(_,abs(no.noise):ba.latch)); 
     speed = hslider ("[2]Speed[BELA: ANALOG_1]", 10,1,20,0.0001):fi.lowpass(1,1);
 
     ratio_env = 0.5;
-    fade = (0.5); // min > 0 pour eviter division par 0
+    fade = (0.5); // min > 0 to avoid division by 0
 
     proba = hslider ("[3]Probability[BELA: ANALOG_2]", 70,50,100,1) * (0.01):fi.lowpass(1,1);
     duree_env = 1/(speed: / (ratio_env*(0.25)*fade));

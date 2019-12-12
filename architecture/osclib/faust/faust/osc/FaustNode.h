@@ -54,8 +54,8 @@ template <typename C> struct mapping
 template <typename C> class FaustNode : public MessageDriven, public uiTypedItem<C>
 {
 	mapping<C>	fMapping;
-    RootNode* fRoot;
-    bool fInput;  // true for input nodes (slider, button...)
+    RootNode*   fRoot;
+    bool        fInput;  // true for input nodes (slider, button...)
 	
 	//---------------------------------------------------------------------
 	// Warning !!!
@@ -63,8 +63,8 @@ template <typename C> class FaustNode : public MessageDriven, public uiTypedItem
 	// only known at execution time. When the library is compiled, fZone is
 	// uniquely defined by FAUSTFLOAT.
 	//---------------------------------------------------------------------
-	bool	store(C val) { *(C *)this->fZone = fMapping.clip(val); return true; }
-	void	sendOSC() const;
+	bool store(C val) { *(C *)this->fZone = fMapping.clip(val); return true; }
+	void sendOSC() const;
 
 	protected:
 		FaustNode(RootNode* root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input) 

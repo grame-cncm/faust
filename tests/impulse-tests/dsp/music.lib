@@ -42,12 +42,11 @@ import("math.lib");
 //-----------------------------------------------
 // 					DELAY LINE
 //-----------------------------------------------
-frac(n)                 = n-int(n);
-index(n)                = &(n-1) ~ +(1);                // n = 2**i
+frac(n)         = n-int(n);
+index(n)        = &(n-1) ~ +(1);                // n = 2**i
 //delay(n,d,x)  = rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
 delay(n,d,x)    = x@(int(d)&(n-1));
 fdelay(n,d,x)   = delay(n,int(d),x)*(1 - frac(d)) + delay(n,int(d)+1,x)*frac(d);
-
 
 delay1s(d)		= delay(65536,d);
 delay2s(d)		= delay(131072,d);
@@ -63,7 +62,7 @@ fdelay10s(d)	= fdelay(524288,d);
 fdelay21s(d)	= fdelay(1048576,d);
 fdelay43s(d)	= fdelay(2097152,d);
 
-millisec	= SR/1000.0;
+millisec = SR/1000.0;
 
 time1s 	= hslider("time", 0, 0,  1000, 0.1)*millisec;
 time2s 	= hslider("time", 0, 0,  2000, 0.1)*millisec;
@@ -71,7 +70,6 @@ time5s 	= hslider("time", 0, 0,  5000, 0.1)*millisec;
 time10s = hslider("time", 0, 0, 10000, 0.1)*millisec;
 time21s = hslider("time", 0, 0, 21000, 0.1)*millisec;
 time43s = hslider("time", 0, 0, 43000, 0.1)*millisec;
-
 
 echo1s  = vgroup("echo  1000", +~(delay(65536,   int(hslider("millisecond", 0, 0,	1000, 0.10)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
 echo2s  = vgroup("echo  2000", +~(delay(131072,  int(hslider("millisecond", 0, 0,	2000, 0.25)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
@@ -161,9 +159,6 @@ sdelay(N, it, dt) = ctrl(it,dt),_ : ddi(N)
 			} ) ~ (_,_,_,_) : (!,_,_,_);
 	};
 
-
-
-
 //-----------------------------------------------
 // 			Tempo, beats and pulses
 //-----------------------------------------------
@@ -175,8 +170,6 @@ pulse(t) 	= period(t)==0;			// pulse (10000...) de periode p
 pulsen(n,t) = period(t)<n;			// pulse (1110000...) de taille n et de periode p
 beat(t) 	= pulse(tempo(t));		// pulse au tempo t
 
-
-
 //-----------------------------------------------
 // 	conversions between db and linear values
 //-----------------------------------------------
@@ -184,14 +177,9 @@ beat(t) 	= pulse(tempo(t));		// pulse au tempo t
 db2linear(x)	= pow(10, x/20.0);
 linear2db(x)	= 20*log10(x);
 
-
-
-
-
 //===============================================
 // 			Random and Noise generators
 //===============================================
-
 
 //-----------------------------------------------
 // 			noise : Noise generator
@@ -201,7 +189,6 @@ random 		= +(12345) ~ *(1103515245); // "linear congruential"
 RANDMAX		= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
 
 noise 		= random / RANDMAX;
-
 
 //-----------------------------------------------
 // Generates multiple decorrelated random numbers 
@@ -214,7 +201,6 @@ with {
 	randomize (n) 	= randomize(1) <: randomize(n-1),_;
 };
 
-
 //-----------------------------------------------
 // Generates multiple decorrelated noises
 // in parallel. Expects n>0.
@@ -225,36 +211,34 @@ with {
 	RANDMAX = 2147483647.0; 
 };
 
-
 //------------------------------------------------
 
 noises(N,i) = multinoise(N) : selector(i,N);
  
-
 //-----------------------------------------------
 // 			osc(freq) : Sinusoidal Oscillator
 //-----------------------------------------------
 
-tablesize 	= 1 << 16;
-samplingfreq	= SR;
+tablesize = 1 << 16;
+samplingfreq = SR;
 
-time 		= (+(1)~_ ) - 1; 			// 0,1,2,3,...
-sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
-coswaveform 	= float(time)*(2.0*PI)/float(tablesize) : cos;
+time = (+(1)~_) - 1; 			// 0,1,2,3,...
+sinwaveform = float(time)*(2.0*PI)/float(tablesize) : sin;
+coswaveform = float(time)*(2.0*PI)/float(tablesize) : cos;
 
-decimal(x)	= x - floor(x);
-phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
-oscsin(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
-osccos(freq)	= rdtable(tablesize, coswaveform, int(phase(freq)) );
-oscp(freq,p)	= oscsin(freq) * cos(p) + osccos(freq) * sin(p);
-osc		= oscsin;
-osci(freq)	= s1 + d * (s2 - s1)
-		with {
-			i = int(phase(freq));
-			d = decimal(phase(freq));
-			s1 = rdtable(tablesize+1,sinwaveform,i);
-			s2 = rdtable(tablesize+1,sinwaveform,i+1);};
-
+decimal(x) = x - floor(x);
+phase(freq) = freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
+oscsin(freq) = rdtable(tablesize, sinwaveform, int(phase(freq)));
+osccos(freq) = rdtable(tablesize, coswaveform, int(phase(freq)));
+oscp(freq,p) = oscsin(freq) * cos(p) + osccos(freq) * sin(p);
+osc	= oscsin;
+osci(freq) = s1 + d * (s2 - s1)
+with {
+	i = int(phase(freq));
+	d = decimal(phase(freq));
+	s1 = rdtable(tablesize+1,sinwaveform,i);
+	s2 = rdtable(tablesize+1,sinwaveform,i+1);
+};
 
 //-----------------------------------------------
 // 			ADSR envelop
@@ -283,7 +267,6 @@ with {
     };
 };
 
-
 //-----------------------------------------------
 // 			Spatialisation
 //-----------------------------------------------
@@ -306,7 +289,6 @@ gain6(g) = *(g),*(g),*(g),*(g),*(g),*(g);
 gain7(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g);
 gain8(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g),*(g);
 
-
 //------------------------------------------------------
 //
 // 					    GMEM SPAT
@@ -327,8 +309,6 @@ spat(n,a,d)	= _ <: par(i, n, *( scaler(i, n, a, d) : smooth(0.9999) ))
 		smooth(c) = *(1-c) : +~*(c);
 	};
 
-
-
 //--------------- Second Order Generic Transfert Function -------------------------
 // TF2(b0,b1,b2,a1,a2)
 //
@@ -340,7 +320,6 @@ TF2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
 		conv2(k0,k1,x) 		= k0*x + k1*x';
 		sub(x,y)			= y-x;
 	};
-
 
 /*************************** Break Point Functions ***************************
 
@@ -388,7 +367,6 @@ bpf = environment
   if (c,t,e) = select2(c,e,t);
 };
 
-
 //----------------------------------Stereoize------------------------------
 // Transform an arbitrary processor p into a stereo processor with 2 inputs
 // and 2 outputs.
@@ -415,7 +393,6 @@ stereoize(p) = S(inputs(p), outputs(p))
 		S(n,m) = _,_ <: p,p :> _,_;	// we are sure this works if n or p are odd
 	};
 
-
 //----------------------------------Recursivize------------------------------
 // Create a recursion from two arbitrary processors p and q 
 //-----------------------------------------------------------------------
@@ -439,7 +416,6 @@ automat(bps, size, init, input) = rwtable(size+1, init, windex, input, rindex)
 		countfrom(reset) = (+ : if(reset, 0, _)) ~ _;
 	};
 
-
 //----------------------------------bsmooth------------------------------
 // bsmooth : (block smooth) linear interpolation during a block of samples
 //
@@ -451,7 +427,6 @@ bsmooth(c) = +(i) ~ _
 		i = (c-c@n)/n;
 		n = min(4096, max(1, fvariable(int count, <math.h>)));
 	};
-
 
 //--------------------------------chebychev-------------------------------
 // chebychev(n) : chebychev transformation of order n
@@ -469,8 +444,6 @@ bsmooth(c) = +(i) ~ _
 chebychev(0) = !:1;
 chebychev(1) = _;
 chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
-
-
 
 //--------------------------------chebychevpoly-------------------------------
 //	chebychevpoly((c0,c1,...,cn)) : linear combination of the first Chebyshev polynomials

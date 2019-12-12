@@ -22,6 +22,8 @@
 #ifndef _WAST_INSTRUCTIONS_H
 #define _WAST_INSTRUCTIONS_H
 
+#include <ostream>
+
 #include "was_instructions.hh"
 
 using namespace std;
@@ -49,12 +51,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         bool dot   = false;
         int  e_pos = -1;
-        for (unsigned int i = 0; i < str.size(); i++) {
+        for (size_t i = 0; i < str.size(); i++) {
             if (str[i] == '.') {
                 dot = true;
                 break;
             } else if (str[i] == 'e') {
-                e_pos = i;
+                e_pos = int(i);
                 break;
             }
         }
@@ -78,7 +80,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     string checkReal(T val)
     {
         std::stringstream num;
-        num << std::setprecision(std::numeric_limits<T>::max_digits10) << val;
+        num << setprecision(numeric_limits<T>::max_digits10) << val;
         return ensureFloat(num.str());
     }
 
@@ -94,29 +96,28 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct =
-            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string name = inst->fAddress->getName();
-        
-        //std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
+        Address::AccessType access      = inst->fAddress->getAccess();
+        bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string              name        = inst->fAddress->getName();
+
+        // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fFieldTable.find(name) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] =
-                    MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += (array_typed->fSize * audioSampleSize());
+                fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
                 *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
                 EndLine();
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
-                fStructOffset += audioSampleSize();
+                fStructOffset += gGlobal->audioSampleSize();
             } else {
                 *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
                 // Local variable declaration has been previously separated as 'pure declaration' first,
@@ -126,7 +127,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-  
+
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
@@ -147,7 +148,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (i < size - 1) *fOut << " ";
         }
         if (inst->fType->getType() != Typed::kVoid) {
-            *fOut << " (result " << type2String(inst->fType->getType()) << ")";
+            *fOut << " (result " << type2String(inst->getResType()) << ")";
         }
     }
 
@@ -198,10 +199,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
 
                 for (int i = 0; i < desc.fArgs; i++) {
-                    *fOut << (isIntType(desc.fType) ? "i32" : realStr);
+                    *fOut << type2String(desc.fType);
                     if (i < desc.fArgs - 1) *fOut << " ";
                 }
-                *fOut << ") (result " << (isIntType(desc.fType) ? "i32" : realStr) << "))";
+                *fOut << ") (result " << type2String(desc.fType) << "))";
                 return;
             }
         }
@@ -220,10 +221,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType        type = fTypingVisitor.fCurType;
+        Address::AccessType access = inst->fAddress->getAccess();
+        string                name = inst->fAddress->getName();
+        IndexedAddress*    indexed =  dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -241,8 +245,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fAddress->accept(this);
                 *fOut << ")";
             }
+        
         } else {
-            *fOut << "(local.get $" << inst->fAddress->getName() << ")";
+            *fOut << "(local.get $" << name << ")";
         }
     }
 
@@ -251,7 +256,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
         string name = inst->fAddress->getName();
-        
+
         if (fTeeMap.find(name) == fTeeMap.end()) {
             *fOut << "(tee_local $" << name << " ";
             inst->fValue->accept(this);
@@ -265,9 +270,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(StoreVarInst* inst)
     {
         inst->fValue->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType      type   = fTypingVisitor.fCurType;
+        Address::AccessType access = inst->fAddress->getAccess();
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
+        if (access & Address::kStruct || access & Address::kStaticStruct ||
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
@@ -387,8 +393,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // Local variable
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                    *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.const " << (num->fNum << offStrNum)
-                          << "))";
+                    // Hack for 'soundfile'
+                    DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+                    *fOut << "(i32.add (local.get " << indexed->getName();
+                    if (struct_type) {
+                        *fOut << ") (i32.const " << struct_type->fType->getOffset(num->fNum);
+                    } else {
+                        *fOut << ") (i32.const " << (num->fNum << offStrNum);
+                    }
+                    *fOut << "))";
                 } else {
                     *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
                     indexed->fIndex->accept(this);
@@ -397,7 +410,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     }
-
+  
     virtual void visit(LoadVarAddressInst* inst)
     {
         // Not implemented in WASM
@@ -415,6 +428,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
+
+    virtual void visit(BoolNumInst* inst) { faustassert(false); }
 
     virtual void visit(Int32NumInst* inst)
     {
@@ -583,8 +598,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), (int)inst->fArgs.size());
         *fOut << ")";
     }
-
-    // Conditional : select
+    
+    /*
+    // Select that computes both branches
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(select ";
@@ -604,7 +620,38 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             inst->fCond->accept(this);
         }
         *fOut << ")";
+        
+        fTypingVisitor.visit(inst);
+    }
+    */
 
+    // Select that only computes one branch
+    virtual void visit(Select2Inst* inst)
+    {
+        *fOut << "(if ";
+        // Result type
+        inst->fThen->accept(&fTypingVisitor);
+        *fOut << "(result " << type2String(fTypingVisitor.fCurType) << ") ";
+        
+        // Compile 'cond'
+        inst->fCond->accept(&fTypingVisitor);
+        // Possibly convert i64 to i32
+        if (isIntType64(fTypingVisitor.fCurType)) {
+            // Compare to 0
+            *fOut << "(i64.ne ";
+            inst->fCond->accept(this);
+            *fOut << "(i64.const 0))";
+        } else {
+            inst->fCond->accept(this);
+        }
+        // Compile 'then'
+        *fOut << " ";
+        inst->fThen->accept(this);
+        // Compile 'else'
+        *fOut << " ";
+        inst->fElse->accept(this);
+        *fOut << ")";
+        
         fTypingVisitor.visit(inst);
     }
 
@@ -668,19 +715,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
 
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << ")";
         fTab--;
         tab(fTab, *fOut);
         *fOut << ")";
         tab(fTab, *fOut);
     }
-    
-    virtual void visit(AddSoundfileInst* inst)
-    {
-        // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not supported for wast\n");
-    }
+
 };
 
 #endif

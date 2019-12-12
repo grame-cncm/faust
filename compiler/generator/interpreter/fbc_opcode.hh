@@ -236,8 +236,11 @@ struct FBCInstruction {
         kAbs,
         kAbsf,
         kAcosf,
+        kAcoshf,
         kAsinf,
+        kAsinhf,
         kAtanf,
+        kAtanhf,
         kCeilf,
         kCosf,
         kCoshf,
@@ -245,6 +248,7 @@ struct FBCInstruction {
         kFloorf,
         kLogf,
         kLog10f,
+        kRintf,
         kRoundf,
         kSinf,
         kSinhf,
@@ -256,8 +260,11 @@ struct FBCInstruction {
         kAbsHeap,
         kAbsfHeap,
         kAcosfHeap,
+        kAcoshfHeap,
         kAsinfHeap,
+        kAsinhfHeap,
         kAtanfHeap,
+        kAtanhfHeap,
         kCeilfHeap,
         kCosfHeap,
         kCoshfHeap,
@@ -265,6 +272,7 @@ struct FBCInstruction {
         kFloorfHeap,
         kLogfHeap,
         kLog10fHeap,
+        kRintfHeap,
         kRoundfHeap,
         kSinfHeap,
         kSinhfHeap,
@@ -367,9 +375,13 @@ struct FBCInstruction {
                 || (opt == kAddReal) || (opt == kSubReal) || (opt == kMultReal) || (opt == kDivReal) ||
                 (opt == kRemReal)
 
-                || (opt == kAbsf) || (opt == kAcosf) || (opt == kAsinf) || (opt == kAtanf) || (opt == kCeilf) ||
+                || (opt == kAbsf)
+                || (opt == kAcosf) || (opt == kAcoshf)
+                || (opt == kAsinf) || (opt == kAsinhf)
+                || (opt == kAtanf) || (opt == kAtanhf)
+                || (opt == kCeilf) ||
                 (opt == kCosf) || (opt == kCoshf) || (opt == kExpf) || (opt == kFloorf) || (opt == kLogf) ||
-                (opt == kLog10f) || (opt == kRoundf) || (opt == kSinf) || (opt == kSinhf) || (opt == kSqrtf) ||
+                (opt == kLog10f) || (opt == kRintf) || (opt == kRoundf) || (opt == kSinf) || (opt == kSinhf) || (opt == kSqrtf) ||
                 (opt == kTanf) || (opt == kTanhf)
 
                 || (opt == kAtan2f) || (opt == kFmodf) || (opt == kPowf) || (opt == kMaxf) || (opt == kMinf));
@@ -433,12 +445,12 @@ static std::string gFBCInstructionTable[] = {
     "kLERealValueInvert",
 
     // Extended unary math
-    "kAbs", "kAbsf", "kAcosf", "kAsinf", "kAtanf", "kCeilf", "kCosf", "kCoshf", "kExpf", "kFloorf", "kLogf", "kLog10f",
-    "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf",
+    "kAbs", "kAbsf", "kAcosf", "kAcoshf", "kAsinf", "kAsinhf", "kAtanf", "kAtanhf", "kCeilf", "kCosf", "kCoshf", "kExpf", "kFloorf", "kLogf", "kLog10f",
+    "kRintf", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf",
 
     // Extended unary math (heap OP heap)
-    "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAsinfHeap", "kAtanfHeap", "kCeilfHeap", "kCosfHeap", "kCoshfHeap",
-    "kExpfHeap", "kFloorfHeap", "kLogfHeap", "kLog10fHeap", "kRoundfHeap", "kSinfHeap", "kSinhfHeap", "kSqrtfHeap",
+    "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAcoshfHeap", "kAsinfHeap", "kAsinhfHeap", "kAtanfHeap", "kAtanhfHeap", "kCeilfHeap", "kCosfHeap", "kCoshfHeap",
+    "kExpfHeap", "kFloorfHeap", "kLogfHeap", "kLog10fHeap", "kRintfHeap", "kRoundfHeap", "kSinfHeap", "kSinhfHeap", "kSqrtfHeap",
     "kTanfHeap", "kTanhfHeap",
 
     // Extended binary math
@@ -471,9 +483,8 @@ static std::string gFBCInstructionTable[] = {
     "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile", "kAddHorizontalBargraph",
     "kAddVerticalBargraph", "kDeclare",
 
-    "kNop"
-};
+    "kNop"};
 
-#define INTERP_FILE_VERSION 6
+#define INTERP_FILE_VERSION 7
 
 #endif

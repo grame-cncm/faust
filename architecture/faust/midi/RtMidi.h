@@ -1,3 +1,4 @@
+/************************** BEGIN RtMidi.h **************************/
 /*
  File: CAHostTimeBase.h
  Abstract: Part of CoreAudio Utility Classes
@@ -1030,3 +1031,4 @@ class MidiOutDummy: public MidiOutApi
 #endif
 
 #endif
+/**************************  END  RtMidi.h **************************/

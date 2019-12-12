@@ -34,7 +34,7 @@ dsp_factory_base* JAVACodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -113,7 +113,7 @@ void JAVACodeContainer::produceInternal()
 
     // Inits
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -203,15 +203,15 @@ void JAVACodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "public void metadata(Meta m) { ";
 
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
             tab(n + 2, *fOut);
-            *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                if (j == i.second.begin()) {
                     tab(n + 2, *fOut);
-                    *fOut << "m.declare(\"" << *(i->first) << "\", " << **j << ");";
+                    *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(n + 2, *fOut);
                     *fOut << "m.declare(\""
@@ -238,7 +238,7 @@ void JAVACodeContainer::produceClass()
     */
 
     tab(n + 1, *fOut);
-    *fOut << "public void classInit(int samplingFreq) {";
+    *fOut << "public void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -247,7 +247,7 @@ void JAVACodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void instanceConstants(int samplingFreq) {";
+    *fOut << "public void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -274,19 +274,19 @@ void JAVACodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void init(int samplingFreq) {";
+    *fOut << "public void init(int sample_rate) {";
     tab(n + 2, *fOut);
-    *fOut << "classInit(samplingFreq);";
+    *fOut << "classInit(sample_rate);";
     tab(n + 2, *fOut);
-    *fOut << "instanceInit(samplingFreq);";
+    *fOut << "instanceInit(sample_rate);";
     tab(n + 1, *fOut);
     *fOut << "}";
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void instanceInit(int samplingFreq) {";
+    *fOut << "public void instanceInit(int sample_rate) {";
     tab(n + 2, *fOut);
-    *fOut << "instanceConstants(samplingFreq);";
+    *fOut << "instanceConstants(sample_rate);";
     tab(n + 2, *fOut);
     *fOut << "instanceResetUserInterface();";
     tab(n + 2, *fOut);

@@ -49,7 +49,7 @@
 typedef void (* openTabBoxFun) (void* interface, const char* label);
 typedef void (* openHorizontalBoxFun) (void* interface, const char* label);
 typedef void (* openVerticalBoxFun) (void* interface, const char* label);
-typedef void (*closeBoxFun) (void* interface);
+typedef void (* closeBoxFun) (void* interface);
 
 // -- active widgets
 

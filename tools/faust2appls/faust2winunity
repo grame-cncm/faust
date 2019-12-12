@@ -17,6 +17,8 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 NVOICES=-1
 
 #-----------------------------------------------------------------------
@@ -63,10 +65,9 @@ fi
 #-----------------------------------------------------------------------
 # Compiler settings
 
-CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
+CXXFLAGS+=" -Wl,--enable-auto-import"
 LIB="-shared"
 EXT=".dll"
-
 
 #-----------------------------------------------------------------------
 # compiles the *.dsp files
@@ -77,7 +78,7 @@ for p in $FILES; do
     f=$(basename "$p")
     NAME=${f%.dsp}
     FNAME=FaustPlugin_$NAME
-    LIBNAME=$FNAME$EXT
+    LIBNAME="lib$FNAME$EXT"
 
     SRCDIR=$(dirname "$p")
 

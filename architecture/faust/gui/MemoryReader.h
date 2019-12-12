@@ -1,3 +1,4 @@
+/************************** BEGIN MemoryReader.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -34,13 +35,16 @@
  *
  */
 
-// To adapt
+// To adapt for a real case use
 
 #define SOUND_CHAN      2
 #define SOUND_LENGTH    4096
 #define SOUND_SR        40100
 
 struct MemoryReader : public SoundfileReader {
+    
+    MemoryReader()
+    {}
     
     /**
      * Check the availability of a sound resource.
@@ -77,7 +81,7 @@ struct MemoryReader : public SoundfileReader {
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         soundfile->fLength[part] = SOUND_LENGTH;
-        soundfile->fSampleRate[part] = SOUND_SR;
+        soundfile->fSR[part] = SOUND_SR;
         soundfile->fOffset[part] = offset;
         
         // Audio frames have to be written for each chan
@@ -94,3 +98,4 @@ struct MemoryReader : public SoundfileReader {
 };
 
 #endif
+/**************************  END  MemoryReader.h **************************/

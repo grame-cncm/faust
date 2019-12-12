@@ -38,7 +38,7 @@ using namespace std;
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
-void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
+void extractMetadata(const string& fulllabel, string& label, map<string, set<string>>& metadata)
 {
     enum { kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue };
     int    state = kLabel;
@@ -155,8 +155,8 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
 
 string extractName(Tree fulllabel)
 {
-    string                    name;
-    map<string, set<string> > metadata;
+    string                   name;
+    map<string, set<string>> metadata;
 
     extractMetadata(tree2str(fulllabel), name, metadata);
     return name;
@@ -167,9 +167,9 @@ string extractName(Tree fulllabel)
  */
 static string xmlize(const string& fullsrc)
 {
-    map<string, set<string> > metadata;
-    string                    dst;
-    string                    src;
+    map<string, set<string>> metadata;
+    string                   dst;
+    string                   src;
 
     extractMetadata(fullsrc, src, metadata);
 
@@ -195,10 +195,33 @@ static string xmlize(const string& fullsrc)
     return dst;
 }
 
+static list<string> xmlOfMetadata(const map<string, set<string>>& metadata, int level)
+{
+    list<string> lines;
+    string       line;
+
+    line.reserve(128);
+
+    for (auto& it1 : metadata) {
+        const string& key = it1.first;
+        for (auto& it2 : it1.second) {
+            const string& value = it2;
+            line.assign(level, '\t');
+            line += "<meta key=\"";
+            line += xmlize(key);
+            line += "\">";
+            line += xmlize(value);
+            line += "</meta>";
+            lines.push_back(line);
+        }
+    }
+
+    return lines;
+}
+
 void Description::print(int n, ostream& fout)
 {
-    list<string>::iterator s;
-    list<int>::iterator    t;
+    list<string> metaDataLines = xmlOfMetadata(fMetadata, 0);
 
     tab(n, fout);
     fout << "<faust>";
@@ -220,6 +243,11 @@ void Description::print(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "<outputs>" << fOutputs << "</outputs>";
 
+    for (auto& s : metaDataLines) {
+        tab(n + 1, fout);
+        fout << s;
+    }
+
     tab(n + 1, fout);
     fout << "<ui>";
 
@@ -228,9 +256,9 @@ void Description::print(int n, ostream& fout)
     fout << "<activewidgets>";
     tab(n + 3, fout);
     fout << "<count>" << fActiveWidgetCount << "</count>";
-    for (s = fActiveLines.begin(); s != fActiveLines.end(); s++) {
+    for (auto& s : fActiveLines) {
         tab(n + 3, fout);
-        fout << *s;
+        fout << s;
     }
     tab(n + 2, fout);
     fout << "</activewidgets>";
@@ -242,9 +270,9 @@ void Description::print(int n, ostream& fout)
     fout << "<passivewidgets>";
     tab(n + 3, fout);
     fout << "<count>" << fPassiveWidgetCount << "</count>";
-    for (s = fPassiveLines.begin(); s != fPassiveLines.end(); s++) {
+    for (auto& s : fPassiveLines) {
         tab(n + 3, fout);
-        fout << *s;
+        fout << s;
     }
     tab(n + 2, fout);
     fout << "</passivewidgets>";
@@ -254,6 +282,8 @@ void Description::print(int n, ostream& fout)
     // widget layout
     tab(n + 2, fout);
     fout << "<layout>";
+    list<int>::iterator t;
+    list<string>::iterator s;
     for (t = fLayoutTabs.begin(), s = fLayoutLines.begin(); s != fLayoutLines.end(); t++, s++) {
         tab(n + 3 + *t, fout);
         fout << *s;
@@ -316,6 +346,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addActiveLine(subst("<widget type=\"button\" id=\"$0\">", T(fWidgetID)));
         addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
+        addActiveMetadata(label);
         addActiveLine("</widget>");
 
     } else if (isSigCheckbox(sig, path)) {
@@ -324,6 +355,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addActiveLine(subst("<widget type=\"checkbox\" id=\"$0\">", T(fWidgetID)));
         addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
+        addActiveMetadata(label);
         addActiveLine("</widget>");
 
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
@@ -336,6 +368,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addActiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addActiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
         addActiveLine(subst("\t<step>$0</step>", T(tree2double(z))));
+        addActiveMetadata(label);
         addActiveLine("</widget>");
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
@@ -348,6 +381,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addActiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addActiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
         addActiveLine(subst("\t<step>$0</step>", T(tree2double(z))));
+        addActiveMetadata(label);
         addActiveLine("</widget>");
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
@@ -360,6 +394,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addActiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addActiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
         addActiveLine(subst("\t<step>$0</step>", T(tree2double(z))));
+        addActiveMetadata(label);
         addActiveLine("</widget>");
 
     } else if (isSigSoundfile(sig, path)) {
@@ -368,6 +403,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addActiveLine(subst("<widget type=\"nentry\" id=\"$0\">", T(fWidgetID)));
         addActiveLine(subst("\t<label>$0</label>", checkNullLabel(sig, xmlize(tree2str(label)), true)));
         addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
+        addActiveMetadata(label);
         addActiveLine("</widget>");
 
         // add a passive widget description
@@ -380,6 +416,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addPassiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addPassiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
+        addPassiveMetadata(label);
         addPassiveLine("</widget>");
 
     } else if (isSigHBargraph(sig, path, x, y, z)) {
@@ -390,6 +427,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
         addPassiveLine(subst("\t<min>$0</min>", T(tree2double(x))));
         addPassiveLine(subst("\t<max>$0</max>", T(tree2double(y))));
+        addPassiveMetadata(label);
         addPassiveLine("</widget>");
 
     } else {
@@ -397,4 +435,28 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
     }
 
     return fWidgetID;
+}
+
+void Description::addActiveMetadata(Tree label)
+{
+    map<string, set<string>>     metadata;
+    string                       shortLabel;
+    list<string>                 lines;
+  
+    extractMetadata(tree2str(label), shortLabel, metadata);
+    lines = xmlOfMetadata(metadata, 1);
+
+    for (auto& it : lines) fActiveLines.push_back(it);
+}
+
+void Description::addPassiveMetadata(Tree label)
+{
+    map<string, set<string>>     metadata;
+    string                       shortLabel;
+    list<string>                 lines;
+  
+    extractMetadata(tree2str(label), shortLabel, metadata);
+    lines = xmlOfMetadata(metadata, 1);
+
+    for (auto& it : lines) fPassiveLines.push_back(it);
 }

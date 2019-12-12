@@ -1,22 +1,25 @@
+/************************** BEGIN CGlue.h **************************/
 /************************************************************************
- ************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
- ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2018 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef CGLUE_H
@@ -272,33 +275,33 @@ static void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
     glue->uiInterface = ui_interface;
     
     if (is_double) {
-        glue->openTabBox = (openTabBoxFun)openTabBoxGlueDouble;
-        glue->openHorizontalBox = (openHorizontalBoxFun)openHorizontalBoxGlueDouble;
-        glue->openVerticalBox = (openVerticalBoxFun)openVerticalBoxGlueDouble;
-        glue->closeBox = (closeBoxFun)closeBoxGlueDouble;
-        glue->addButton = (addButtonFun)addButtonGlueDouble;
-        glue->addCheckButton = (addCheckButtonFun)addCheckButtonGlueDouble;
-        glue->addVerticalSlider = (addVerticalSliderFun)addVerticalSliderGlueDouble;
-        glue->addHorizontalSlider = (addHorizontalSliderFun)addHorizontalSliderGlueDouble;
-        glue->addNumEntry = (addNumEntryFun)addNumEntryGlueDouble;
-        glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueDouble;
-        glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueDouble;
-        glue->addSoundfile = (addSoundfileFun)addSoundfileGlueDouble;
-        glue->declare = (declareFun)declareGlueDouble;
+        glue->openTabBox = reinterpret_cast<openTabBoxFun>(openTabBoxGlueDouble);
+        glue->openHorizontalBox = reinterpret_cast<openHorizontalBoxFun>(openHorizontalBoxGlueDouble);
+        glue->openVerticalBox = reinterpret_cast<openVerticalBoxFun>(openVerticalBoxGlueDouble);
+        glue->closeBox = reinterpret_cast<closeBoxFun>(closeBoxGlueDouble);
+        glue->addButton = reinterpret_cast<addButtonFun>(addButtonGlueDouble);
+        glue->addCheckButton = reinterpret_cast<addCheckButtonFun>(addCheckButtonGlueDouble);
+        glue->addVerticalSlider = reinterpret_cast<addVerticalSliderFun>(addVerticalSliderGlueDouble);
+        glue->addHorizontalSlider = reinterpret_cast<addHorizontalSliderFun>(addHorizontalSliderGlueDouble);
+        glue->addNumEntry = reinterpret_cast<addNumEntryFun>(addNumEntryGlueDouble);
+        glue->addHorizontalBargraph = reinterpret_cast<addHorizontalBargraphFun>(addHorizontalBargraphGlueDouble);
+        glue->addVerticalBargraph = reinterpret_cast<addVerticalBargraphFun>(addVerticalBargraphGlueDouble);
+        glue->addSoundfile = reinterpret_cast<addSoundfileFun>(addSoundfileGlueDouble);
+        glue->declare = reinterpret_cast<declareFun>(declareGlueDouble);
     } else {
-        glue->openTabBox = (openTabBoxFun)openTabBoxGlueFloat;
-        glue->openHorizontalBox = (openHorizontalBoxFun)openHorizontalBoxGlueFloat;
-        glue->openVerticalBox = (openVerticalBoxFun)openVerticalBoxGlueFloat;
-        glue->closeBox = (closeBoxFun)closeBoxGlueFloat;
-        glue->addButton = (addButtonFun)addButtonGlueFloat;
-        glue->addCheckButton = (addCheckButtonFun)addCheckButtonGlueFloat;
-        glue->addVerticalSlider = (addVerticalSliderFun)addVerticalSliderGlueFloat;
-        glue->addHorizontalSlider = (addHorizontalSliderFun)addHorizontalSliderGlueFloat;
-        glue->addNumEntry = (addNumEntryFun)addNumEntryGlueFloat;
-        glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueFloat;
-        glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueFloat;
-        glue->addSoundfile = (addSoundfileFun)addSoundfileGlueFloat;
-        glue->declare = (declareFun)declareGlueFloat;
+        glue->openTabBox = reinterpret_cast<openTabBoxFun>(openTabBoxGlueFloat);
+        glue->openHorizontalBox = reinterpret_cast<openHorizontalBoxFun>(openHorizontalBoxGlueFloat);
+        glue->openVerticalBox = reinterpret_cast<openVerticalBoxFun>(openVerticalBoxGlueFloat);
+        glue->closeBox = reinterpret_cast<closeBoxFun>(closeBoxGlueFloat);
+        glue->addButton = reinterpret_cast<addButtonFun>(addButtonGlueFloat);
+        glue->addCheckButton = reinterpret_cast<addCheckButtonFun>(addCheckButtonGlueFloat);
+        glue->addVerticalSlider = reinterpret_cast<addVerticalSliderFun>(addVerticalSliderGlueFloat);
+        glue->addHorizontalSlider = reinterpret_cast<addHorizontalSliderFun>(addHorizontalSliderGlueFloat);
+        glue->addNumEntry = reinterpret_cast<addNumEntryFun>(addNumEntryGlueFloat);
+        glue->addHorizontalBargraph = reinterpret_cast<addHorizontalBargraphFun>(addHorizontalBargraphGlueFloat);
+        glue->addVerticalBargraph = reinterpret_cast<addVerticalBargraphFun>(addVerticalBargraphGlueFloat);
+        glue->addSoundfile = reinterpret_cast<addSoundfileFun>(addSoundfileGlueFloat);
+        glue->declare = reinterpret_cast<declareFun>(declareGlueFloat);
     }
 }
     
@@ -434,7 +437,6 @@ class UITemplate
             declareGlueDouble(fCPPInterface, zone, key, val);
         }
 
-    
 };
 
 /*******************************************************************************
@@ -481,3 +483,4 @@ static void buildManagerGlue(ManagerGlue* glue, dsp_memory_manager* manager)
 #endif
 
 #endif
+/**************************  END  CGlue.h **************************/

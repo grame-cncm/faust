@@ -46,12 +46,12 @@ class InstructionsCompiler : public virtual Garbageable {
 
     property<ValueInst*>            fCompileProperty;
     property<string>                fVectorProperty;
-    property<pair<string, string> > fStaticInitProperty;
-    property<pair<string, string> > fInstanceInitProperty;
+    property<pair<string, string>>  fStaticInitProperty;
+    property<pair<string, string>>  fInstanceInitProperty;
     property<string>                fTableProperty;
     Tree                            fSharingKey;
     OccMarkup                       fOccMarkup;
-    
+
     std::map<int, std::string> fIOTATable;  // Ensure IOTA base fixed delays are computed once
 
     Tree         fUIRoot;
@@ -73,15 +73,12 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
     virtual StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
     virtual StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
-    virtual StatementInst* generateShiftArray(const string& vname,
-                                              int           delay);  // Redefined in InterpreterInstructionsCompiler
+    // Redefined in InterpreterInstructionsCompiler
+    virtual StatementInst* generateShiftArray(const string& vname, int delay);
 
     ValueInst* generateButtonAux(Tree sig, Tree path, const string& name);
     ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
     ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
-
-    ValueInst* generateSelect2WithSelect(Tree sig, ValueInst* sel, ValueInst* val1, ValueInst* val2);
-    ValueInst* generateSelect2WithIf(Tree sig, Typed::VarType type, ValueInst* sel, ValueInst* val1, ValueInst* val2);
 
     /* wrapper functions to access code container */
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }

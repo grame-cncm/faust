@@ -18,7 +18,7 @@ if (typeof (WebAssembly) === "undefined") {
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var noise = null;
+var noise_dsp = null;
 
 // Slider handler to change the 'noise' volume
 function changeVolume(event)
@@ -26,20 +26,21 @@ function changeVolume(event)
     var val = event.target.value;
     val = parseFloat(val);
     console.log(val);
-    noise.setParamValue("/Noise/Volume", val);
+    noise_dsp.setParamValue("/noise/Volume", val);
 }
 
 function startnoise()
 {
     // Create the Faust generated node
-    faust.createnoise(audio_context, 1024,
-                      function (node) {
-                            noise = node;
-                            console.log(noise.getJSON());
+    var pluginURL = ".";
+    var plugin = new Faustnoise(audio_context, pluginURL);
+    plugin.load().then(node => {
+                            noise_dsp = node;
+                            console.log(noise_dsp.getJSON());
                             // Print path to be used with 'setParamValue'
-                            console.log(noise.getParams());
+                            console.log(noise_dsp.getParams());
                             // Connect it to output as a regular WebAudio node
-                            noise.connect(audio_context.destination);
+                            noise_dsp.connect(audio_context.destination);
                       });
 }
 
@@ -48,7 +49,7 @@ window.addEventListener('load', startnoise);
 
 // To activate audio on iOS
 window.addEventListener('touchstart', function() {
-                        
+                        if (audio_context.state !== "suspended") return;
                         // create empty buffer
                         var buffer = audio_context.createBuffer(1, 1, 22050);
                         var source = audio_context.createBufferSource();
@@ -60,7 +61,14 @@ window.addEventListener('touchstart', function() {
                         // play the file
                         source.start();
                         
+                        audio_context.resume().then(() => console.log("Audio resumed"));
                         }, false);
+
+// On desktop
+window.addEventListener("mousedown", () => {
+    if (audio_context.state !== "suspended") return;
+    audio_context.resume().then(() => console.log("Audio resumed"))
+});                       
 
 </script>
 

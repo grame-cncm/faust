@@ -9,6 +9,7 @@ OPTIONS=""
 LIBS=""
 TESTS="all"
 RUN=1
+OPT=-1
 NOTRACE=false
 GENERIC=false
 
@@ -22,7 +23,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-notrace' to only generate the best compilation parameters"
         echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
@@ -32,6 +33,7 @@ do
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
+        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to c++\n";
         exit
     fi
 
@@ -48,6 +50,9 @@ do
     elif [ "$p" = "-run" ]; then
         shift
         RUN=$1
+     elif [ "$p" = "-opt" ]; then
+        shift
+        OPT=$1
     elif [ "$p" = "-double" ]; then
         DOUBLE="1"
         OPTIONS="$OPTIONS $p"
@@ -66,9 +71,17 @@ done
 # Set default value for CXXFLAGS
 if [ "$CXXFLAGS" = "" ]; then
     if $GENERIC; then
-        CXXFLAGS="-Ofast"
+        if [ $OPT = -1 ]; then
+            CXXFLAGS="-Ofast"
+        else
+            CXXFLAGS="-O$OPT"
+        fi
     else
-        CXXFLAGS="-Ofast -march=native"
+        if [ $OPT = -1 ]; then
+            CXXFLAGS="-Ofast -march=native"
+        else
+            CXXFLAGS="-O$OPT -march=native"
+        fi
     fi
 fi
 

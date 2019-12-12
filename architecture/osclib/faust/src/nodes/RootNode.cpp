@@ -50,6 +50,7 @@ namespace oscfaust
 
 static const char* kHelloMsg		= "hello";
 static const char* kDestMsg         = "desthost";
+static const char* kJSONMsg         = "json";
 static const char* kUdpOutPortMsg	= "outport";
 static const char* kUdpErrPortMsg	= "errport";
 static const char* kBundleMsg       = "bundle";
@@ -81,10 +82,23 @@ string getIP()
 }
 
 //--------------------------------------------------------------------------
+template <typename T>
+void RootNode::addAliasAux(const char* alias, const char* address, T imin, T imax, T omin, T omax)
+{
+    aliastarget target(address, imin, imax, omin, omax);
+    fAliases[alias].push_back(target);
+}
+
+//--------------------------------------------------------------------------
 void RootNode::addAlias(const char* alias, const char* address, float imin, float imax, float omin, float omax)
 {
-	aliastarget target(address, imin, imax, omin, omax);
-	fAliases[alias].push_back(target);
+    addAliasAux<float>(alias, address, imin, imax, omin, omax);
+}
+    
+//--------------------------------------------------------------------------
+void RootNode::addAlias(const char* alias, const char* address, double imin, double imax, double omin, double omax)
+{
+    addAliasAux<double>(alias, address, imin, imax, omin, omax);
 }
 
 //--------------------------------------------------------------------------
@@ -98,7 +112,7 @@ static string ip2string(unsigned long ip)
 //--------------------------------------------------------------------------
 // handler for the get attribute message
 //--------------------------------------------------------------------------
-void RootNode::get(unsigned long ipdest, const std::string& what) const		///< handler for the 'get' message
+void RootNode::get(unsigned long ipdest, const string& what) const		///< handler for the 'get' message
 {
  	unsigned long savedip = oscout.getAddress();	// saves the current destination IP
 	oscout.setAddress(ipdest);						// sets the osc stream dest IP to the request src IP
@@ -109,6 +123,8 @@ void RootNode::get(unsigned long ipdest, const std::string& what) const		///< ha
 		oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	else if (what == kDestMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
+    else if (what == kJSONMsg)
+        oscout << OSCStart(getOSCAddress().c_str()) << kJSONMsg << OSCEnd();
 	else if (what == kUdpOutPortMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	else if (what == kUdpErrPortMsg)
@@ -129,16 +145,17 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 	oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
+    oscout << OSCStart(getOSCAddress().c_str()) << kJSONMsg << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
 
-	std::map<std::string, std::vector<aliastarget> >::const_iterator i = fAliases.begin();
+	map<string, vector<aliastarget> >::const_iterator i = fAliases.begin();
 	while (i != fAliases.end()) {
 		vector<aliastarget> targets = i->second;
 		for (size_t n = 0; n < targets.size(); n++) {
 			// send a alias message for each target
 			const aliastarget& t = targets[n];
-//			oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
+            // oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
 			oscout << OSCStart(targets[n].fTarget.c_str()) << "alias" << i->first.c_str() << t.fMinIn << t.fMaxIn << OSCEnd();
 		}
 		i++;
@@ -150,26 +167,38 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 //--------------------------------------------------------------------------
 // handling aliases
 //--------------------------------------------------------------------------
-void RootNode::processAlias(const string& address, float val)
+    
+template <typename T>
+void RootNode::processAliasAux(const string& address, T val)
 {
- 	vector<aliastarget> targets = fAliases[address];	// retrieve the address aliases
-	size_t n = targets.size();							// that could point to an arbitraty number of targets
-	for (size_t i = 0; i < n; i++) {					// for each target
-		Message m(targets[i].fTarget, address);			// create a new message with the target address and the alias
-		m.add(targets[i].scale(val));					// add the scaled value of the value
-		MessageDriven::processMessage(&m);				// and do a regular processing of the message
-	}
+    vector<aliastarget> targets = fAliases[address];    // retrieve the address aliases
+    size_t n = targets.size();                          // that could point to an arbitraty number of targets
+    for (size_t i = 0; i < n; i++) {                    // for each target
+        Message m(targets[i].fTarget, address);         // create a new message with the target address and the alias
+        m.add(targets[i].scale(val));                   // add the scaled value of the value
+        MessageDriven::processMessage(&m);              // and do a regular processing of the message
+    }
 }
 
-std::vector<std::pair<std::string, double> > RootNode::getAliases(const std::string& address, double value)
+void RootNode::processAlias(const string& address, float val)
 {
-    std::map<std::string, std::vector<aliastarget> >::iterator it;
-    std::vector<std::pair<std::string, double> > res;
+    processAliasAux<float>(address, val);
+}
+
+void RootNode::processAlias(const string& address, double val)
+{
+    processAliasAux<double>(address, val);
+}
+
+vector<pair<string, double> > RootNode::getAliases(const string& address, double value)
+{
+    map<string, vector<aliastarget> >::iterator it;
+    vector<pair<string, double> > res;
     for (it = fAliases.begin(); it != fAliases.end(); it++) {
         vector<aliastarget> targets = (*it).second;
         for (size_t i = 0; i < targets.size(); i++) {
             if (targets[i].fTarget == address) {
-                res.push_back(std::make_pair((*it).first, targets[i].invscale( float(value) )));
+                res.push_back(make_pair((*it).first, targets[i].invscale(float(value))));
             }
         }
     }
@@ -181,25 +210,29 @@ std::vector<std::pair<std::string, double> > RootNode::getAliases(const std::str
 //--------------------------------------------------------------------------
 void RootNode::processMessage(const Message* msg)
 {
-	const string& addr = msg->address();
-	float v; int iv;
-	if (msg->size() == 1) {             // there is a single parameter
-		if (msg->param(0, v))           // check the parameter float value
-			processAlias(addr, v);		// and try to process as an alias
-		else if (msg->param(0, iv))		// not a float value : try with an int value
-			processAlias(addr, float(iv));
-	}
-	else if (msg->size() > 1) {			// there are several parameters
-		// we simulate several messages, one for each value
-		for (int i = 0; i < msg->size(); i++) {
-			ostringstream as; as << addr << '/' << i;		// compute an address in the form /address/i
-			if (msg->param(i, v))							// get the parameter float value
-				processAlias(as.str(), v);					// and try to process as an alias using the extended address
-			else if (msg->param(i, iv))						// not a float value : try with an int value
-				processAlias(as.str(), float(iv));
-		}
-	}
-	MessageDriven::processMessage(msg);
+    const string& addr = msg->address();
+    float fv; double dv; int iv;
+    if (msg->size() == 1) {             // there is a single parameter
+        if (msg->param(0, fv))          // check the parameter float value
+            processAlias(addr, fv);		// and try to process as an alias
+        if (msg->param(0, dv))          // check the parameter double value
+            processAlias(addr, dv);		// and try to process as an alias
+        else if (msg->param(0, iv))		// not a float value : try with an int value
+            processAlias(addr, float(iv));
+    }
+    else if (msg->size() > 1) {			// there are several parameters
+        // we simulate several messages, one for each value
+        for (int i = 0; i < msg->size(); i++) {
+            ostringstream as; as << addr << '/' << i;		// compute an address in the form /address/i
+            if (msg->param(i, fv))							// get the parameter float value
+                processAlias(as.str(), fv);					// and try to process as an alias using the extended address
+            if (msg->param(i, dv))							// get the parameter double value
+                processAlias(as.str(), dv);					// and try to process as an alias using the extended address
+            else if (msg->param(i, iv))						// not a float value : try with an int value
+                processAlias(as.str(), float(iv));
+        }
+    }
+    MessageDriven::processMessage(msg);
 }
 
 //--------------------------------------------------------------------------
@@ -227,7 +260,7 @@ bool RootNode::acceptSignal(const Message* msg)
 }
 
 //--------------------------------------------------------------------------
-void RootNode::eraseAliases (const string& target)
+void RootNode::eraseAliases(const string& target)
 {
 	for (TAliasMap::iterator i = fAliases.begin(); i != fAliases.end(); ) {
 		vector<aliastarget>::iterator j = i->second.begin();
@@ -241,7 +274,7 @@ void RootNode::eraseAliases (const string& target)
 }
 
 //--------------------------------------------------------------------------
-void RootNode::eraseAlias (const string& target, const string& alias)
+void RootNode::eraseAlias(const string& target, const string& alias)
 {
 	TAliasMap::iterator i = fAliases.find(alias);
 	if (i != fAliases.end()) {
@@ -263,47 +296,67 @@ bool RootNode::aliasError(const Message* msg)
 }
 
 //--------------------------------------------------------------------------
+template <typename T>
+bool RootNode::aliasMsgAux(const Message* msg, T omin, T omax)
+{
+    string addr = msg->address();
+    switch (msg->size()) {
+        case 1:			// remove all aliases for dest address
+            eraseAliases(addr);
+            break;
+        case 2:			// remove one alias for dest address
+        {
+            string alias;
+            if (msg->param(1, alias)) eraseAlias(addr, alias);
+            else return aliasError(msg);
+        }
+            break;
+        case 4:			// create an alias for dest address
+        {
+            string alias; float min, max; int imin, imax;
+            if (msg->param(1, alias)) {
+                if (msg->param(2, imin)) min = T(imin);
+                else if (!msg->param(2, min)) return aliasError (msg);
+                if (msg->param(3, imax)) max = T(imax);
+                else if (!msg->param(3, max)) return aliasError (msg);
+                addAliasAux<T>(alias.c_str(), addr.c_str(), min, max, omin, omax);
+            }
+        }
+            break;
+        default:
+            return aliasError(msg);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------
 bool RootNode::aliasMsg(const Message* msg, float omin, float omax)
 {
-	string addr = msg->address();
-	switch (msg->size()) {
-		case 1:			// remove all aliases for dest address
-			eraseAliases (addr);
-			break;
-		case 2:			// remove one alias for dest address
-			{
-				string alias;
-				if (msg->param(1, alias)) eraseAlias (addr, alias);
-				else return aliasError (msg);
-			}
-			break;
-		case 4:			// create an alias for dest address
-			{
-				string alias; float min, max; int imin, imax;
-				if (msg->param(1, alias)) {
-					if (msg->param(2, imin)) min = float(imin);
-					else if (!msg->param(2, min)) return aliasError (msg);
-					if (msg->param(3, imax)) max = float(imax);
-					else if (!msg->param(3, max)) return aliasError (msg);
-					addAlias (alias.c_str(), addr.c_str(), min, max, omin,omax);
-				}
-			}
-			break;
-		default:
-			return aliasError (msg);
-	}
-	return true;
+    return aliasMsgAux<float>(msg, omin, omax);
+}
+    
+//--------------------------------------------------------------------------
+bool RootNode::aliasMsg(const Message* msg, double omin, double omax)
+{
+    return aliasMsgAux<double>(msg, omin, omax);
 }
 
 //--------------------------------------------------------------------------
 bool RootNode::accept(const Message* msg)
 {
  	string val;
+    
 	// checks for the 'hello' message first
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg)) {
 		hello(msg->src());
 		return true;
 	}
+    
+    // checks for the 'json' message
+    if ((msg->size() >= 1) && (msg->param(0, val)) && (val == kJSONMsg)) {
+        oscout << OSCStart(getOSCAddress().c_str()) << kJSONMsg << fJSON->JSON(true) << OSCEnd();
+        return true;
+    }
 
 	if (MessageDriven::accept(msg)) {
 		return true;
@@ -320,11 +373,10 @@ bool RootNode::accept(const Message* msg)
 		} else if ((val == kBundleMsg) && (msg->param(1, num))) {
 			OSCControler::gBundle = num;
 			oscout.setBundle(num);
-			
 		} else if ((val == kXmitMsg) && (msg->param(1, num))) {
 			OSCControler::gXmit = num;
         } else if (val == kXmitFilter) {
-            for (int i = 1 ; i < msg->size(); i++) {
+            for (int i = 1; i < msg->size(); i++) {
                 msg->param(i, str);
                 OSCControler::addFilteredPath(str);
             }

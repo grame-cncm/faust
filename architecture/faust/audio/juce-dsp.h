@@ -1,3 +1,4 @@
+/************************** BEGIN juce-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -115,3 +116,4 @@ class juceaudio : public audio, private AudioAppComponent {
 };
 
 #endif
+/**************************  END  juce-dsp.h **************************/

@@ -377,4 +377,6 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen = true);
  */
 bool verySimple(Tree exp);
 
+bool sigList2vecInt(Tree ls, vector<int>& v);
+
 #endif

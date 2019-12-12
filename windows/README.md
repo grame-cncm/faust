@@ -1,4 +1,4 @@
 
 # Windows resources #
 
-This folder contains windows specific resources. It includes binary versions of libmicrohttpd.
+This folder contains Windows specific resources. It includes binary versions of libmicrohttpd.

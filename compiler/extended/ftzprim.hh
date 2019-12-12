@@ -84,7 +84,7 @@ class FtzPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+                                    vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -127,10 +127,9 @@ class FtzPrim : public xtended {
                     switch (gGlobal->gFloatSize) {
                         case 1:
                             return InstBuilder::genSelect2Inst(
-                                InstBuilder::genAnd(
-                                    InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
-                                                                InstBuilder::genInt32Typed()),
-                                    InstBuilder::genInt32NumInst(0x7F800000)),
+                                InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
+                                                                                InstBuilder::genInt32Typed()),
+                                                    InstBuilder::genInt32NumInst(0x7F800000)),
                                 InstBuilder::genLoadStackVar(vname), InstBuilder::genTypedZero(itfloat()));
                         case 2:
                             return InstBuilder::genSelect2Inst(
@@ -156,7 +155,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -175,13 +174,12 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
         return args[0];
     }
-    
 };
 
 int FtzPrim::freshnum = 0;

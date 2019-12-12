@@ -85,12 +85,12 @@ class FaustComponent : public AudioAppComponent, private Timer
                 
         #if MIDICTRL
             if (midi_sync) {
-                fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+                fDSP = std::make_unique<timed_dsp>(new dsp_sequencer(dsp_poly, new effect()));
             } else {
-                fDSP = new dsp_sequencer(dsp_poly, new effect());
+                fDSP = std::make_unique<dsp_sequencer>(dsp_poly, new effect());
             }
         #else
-            fDSP = new dsp_sequencer(dsp_poly, new effect());
+            fDSP = std::make_unique<dsp_sequencer>(dsp_poly, new effect());
         #endif
                 
         #else
@@ -100,22 +100,22 @@ class FaustComponent : public AudioAppComponent, private Timer
                 
         #if MIDICTRL
                 if (midi_sync) {
-                    fDSP = new timed_dsp(dsp_poly);
+                    fDSP = std::make_unique<timed_dsp>(dsp_poly);
                 } else {
-                    fDSP = dsp_poly;
+                    fDSP = std::make_unique<decorator_dsp>(dsp_poly);
                 }
         #else
-                fDSP = dsp_poly;
+                fDSP = std::make_unique<decorator_dsp>(dsp_poly);
         #endif
             } else {
         #if MIDICTRL
                 if (midi_sync) {
-                    fDSP = new timed_dsp(new mydsp());
+                    fDSP = std::make_unique<timed_dsp>(new mydsp());
                 } else {
-                    fDSP = new mydsp();
+                    fDSP = std::make_unique<mydsp>();
                 }
         #else
-                fDSP = new mydsp();
+                fDSP = std::make_unique<mydsp>();
         #endif
             }
                 
@@ -126,18 +126,18 @@ class FaustComponent : public AudioAppComponent, private Timer
             fDSP->buildUserInterface(&fJuceGUI);
             
         #if defined(MIDICTRL)
-            fMIDIHandler = new juce_midi();
+            fMIDIHandler = std::make_unique<juce_midi>();
             fMIDIHandler->addMidiIn(dsp_poly);
-            fMIDIUI = new MidiUI(fMIDIHandler);
-            fDSP->buildUserInterface(fMIDIUI);
+            fMIDIUI = std::make_unique<MidiUI>(fMIDIHandler.get());
+            fDSP->buildUserInterface(fMIDIUI.get());
             if (!fMIDIUI->run()) {
                 std::cerr << "JUCE MIDI handler cannot be started..." << std::endl;
             }
         #endif
         
         #if defined(OSCCTRL)
-            fOSCUI = new JuceOSCUI("127.0.0.1", 5510, 5511);
-            fDSP->buildUserInterface(fOSCUI);
+            fOSCUI = std::make_unique<JuceOSCUI>("127.0.0.1", 5510, 5511);
+            fDSP->buildUserInterface(fOSCUI.get());
             if (!fOSCUI->run()) {
                 std::cerr << "JUCE OSC handler cannot be started..." << std::endl;
             }
@@ -149,7 +149,7 @@ class FaustComponent : public AudioAppComponent, private Timer
             fSoundUI = new SoundUI(file.getFullPathName().toStdString());
             // SoundUI has to be dispatched on all internal voices
             if (dsp_poly) dsp_poly->setGroup(false);
-            fDSP->buildUserInterface(fSoundUI);
+            fDSP->buildUserInterface(fSoundUI.get());
             if (dsp_poly) dsp_poly->setGroup(group);
         #endif
             
@@ -182,7 +182,7 @@ class FaustComponent : public AudioAppComponent, private Timer
             
             // Possibly adapt DSP...
             if (fDSP->getNumInputs() > maxInputChannels || fDSP->getNumOutputs() > maxOutputChannels) {
-                fDSP = new dsp_adapter(fDSP.release(), maxInputChannels, maxOutputChannels, 4096);
+                fDSP = std::make_unique<dsp_adapter>(fDSP.release(), maxInputChannels, maxOutputChannels, 4096);
             }
             
             fDSP->init(int(sampleRate));
@@ -232,21 +232,21 @@ class FaustComponent : public AudioAppComponent, private Timer
     private:
     
     #if defined(MIDICTRL)
-        ScopedPointer<juce_midi> fMIDIHandler;
-        ScopedPointer<MidiUI> fMIDIUI;
+        std::unique_ptr<juce_midi> fMIDIHandler;
+        std::unique_ptr<MidiUI> fMIDIUI;
     #endif
     
     #if defined(OSCCTRL)
-        ScopedPointer<JuceOSCUI> fOSCUI;
+        std::unique_ptr<JuceOSCUI> fOSCUI;
     #endif
     
     #if defined(SOUNDFILE)
-        ScopedPointer<SoundUI> fSoundUI;
+        std::unique_ptr<SoundUI> fSoundUI;
     #endif
         
         JuceGUI fJuceGUI;
         
-        ScopedPointer<dsp> fDSP;
+        std::unique_ptr<dsp> fDSP;
     
         juce::Rectangle<int> recommendedSize;
         juce::Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
@@ -275,7 +275,7 @@ class FaustAudioApplication : public JUCEApplication
         void initialise (const String& commandLine) override
         {
             // This method is where you should put your application's initialisation code..
-            mainWindow = new MainWindow (getApplicationName());
+            mainWindow = std::make_unique<MainWindow>(getApplicationName());
         }
         
         void shutdown() override
@@ -372,11 +372,11 @@ class FaustAudioApplication : public JUCEApplication
                     int recomWidth = fWindow->getRecommendedSize().getWidth();
                     int recomHeight = fWindow->getRecommendedSize().getHeight();
                     
-                    fViewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
+                    fViewport = std::make_unique<myViewport>(name, minWidth, minHeight, recomWidth, recomHeight);
                     fViewport->setViewedComponent(fWindow);
                     fViewport->setSize(minWidth, minHeight);
                     
-                    setContentOwned(fViewport, true);
+                    setContentOwned(fViewport.get(), true);
                     centreWithSize (getWidth(), getHeight());
                     setResizable (true, false);
                     setVisible(true);
@@ -399,13 +399,13 @@ class FaustAudioApplication : public JUCEApplication
                 
             private:
             
-                ScopedPointer<myViewport> fViewport;
+                std::unique_ptr<myViewport> fViewport;
                 JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
         };
         
     private:
     
-        ScopedPointer<MainWindow> mainWindow;
+        std::unique_ptr<MainWindow> mainWindow;
 };
 
 //==============================================================================

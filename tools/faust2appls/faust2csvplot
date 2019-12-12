@@ -10,7 +10,12 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE=$FAUSTARCH/csvplot.cpp
+
+FAUSTFLOAT=float
+SOUNDFILELIBS=""
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -21,8 +26,6 @@ ARCHFILE=$FAUSTARCH/csvplot.cpp
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-CXX=g++
-CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -34,7 +37,8 @@ done
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2csvplot <file.dsp>"
+        echo "faust2csvplot [-soundfile] <file.dsp>"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive"
         exit
     fi
 
@@ -52,6 +56,11 @@ for p in $@; do
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
+    elif [ $p = "-double" ]; then
+        FAUSTFLOAT="double"
+    elif [ $p = "-soundfile" ]; then
+        CXXFLAGS="$CXXFLAGS -DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -71,7 +80,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+		${CXX=g++} $CXXFLAGS $PROCARCH $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

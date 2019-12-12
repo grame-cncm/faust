@@ -1,3 +1,4 @@
+/************************** BEGIN JuceReader.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -40,14 +41,14 @@ struct JuceReader : public SoundfileReader {
         if (file.existsAsFile()) {
             return true;
         } else {
-            std::cerr << "ERROR : cannot open '" << path_name << std::endl;
+            std::cerr << "ERROR : cannot open '" << path_name << "'" << std::endl;
             return false;
         }
     }
     
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
-        ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
+        std::unique_ptr<AudioFormatReader> formatReader = std::make_unique<AudioFormatReader>(fFormatManager.createReaderFor(File(path_name)));
         assert(formatReader);
         channels = int(formatReader->numChannels);
         length = int(formatReader->lengthInSamples);
@@ -55,12 +56,12 @@ struct JuceReader : public SoundfileReader {
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
+        std::unique_ptr<AudioFormatReader> formatReader = std::make_unique<AudioFormatReader>(fFormatManager.createReaderFor(File(path_name)));
         
         int channels = std::min<int>(max_chan, int(formatReader->numChannels));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
-        soundfile->fSampleRate[part] = int(formatReader->sampleRate);
+        soundfile->fSR[part] = int(formatReader->sampleRate);
         soundfile->fOffset[part] = offset;
         
         FAUSTFLOAT* buffers[soundfile->fChannels];
@@ -87,3 +88,4 @@ struct JuceReader : public SoundfileReader {
 };
 
 #endif
+/**************************  END  JuceReader.h **************************/

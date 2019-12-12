@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. faustpath
+
 FILENAME=$1
 CLASSNAME=`basename $FILENAME .dsp`
 PATCHNAME=$CLASSNAME"Patch"

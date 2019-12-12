@@ -26,20 +26,19 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <map>
 
 #include "Text.hh"
 #include "fir_to_fir.hh"
 #include "instructions.hh"
 #include "type_manager.hh"
 
-using namespace std;
-
 class TextInstVisitor : public InstVisitor {
    protected:
     int                fTab;
     std::ostream*      fOut;
     bool               fFinishLine;
-    string             fObjectAccess;
+    std::string        fObjectAccess;
     StringTypeManager* fTypeManager;
 
     virtual void EndLine(char end_line = ';')
@@ -49,25 +48,31 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
     }
-
+    
+    void visitCond(ValueInst* cond)
+    {
+        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << "(";
+        cond->accept(this);
+        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << ")";
+    }
+  
    public:
-    
     using InstVisitor::visit;
-    
-    TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
+
+    TextInstVisitor(std::ostream* out, const std::string& object_access, int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
     {
         fTypeManager = new CStringTypeManager(FLOATMACRO, "*");
     }
 
-    TextInstVisitor(std::ostream* out, const string& object_access, string float_macro_name, string ptr_postfix,
-                    int tab = 0)
+    TextInstVisitor(std::ostream* out, const std::string& object_access, const std::string& float_macro_name,
+                    const std::string& ptr_postfix, int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
     {
         fTypeManager = new CStringTypeManager(float_macro_name, ptr_postfix);
     }
 
-    TextInstVisitor(std::ostream* out, const string& object_access, StringTypeManager* manager, int tab = 0)
+    TextInstVisitor(std::ostream* out, const std::string& object_access, StringTypeManager* manager, int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access), fTypeManager(manager)
     {
     }
@@ -84,11 +89,8 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(DeclareVarInst* inst) { faustassert(false); }
 
-    virtual void visit(RetInst* inst)
-    {
-        visitAux(inst, true);
-    }
-    
+    virtual void visit(RetInst* inst) { visitAux(inst, true); }
+
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
         if (inst->fResult) {
@@ -114,7 +116,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(NamedAddress* named) { *fOut << named->fName; }
 
     /*
-     Indexed adresses can actually be values in an array or fields in a struct type
+     Indexed address can actually be values in an array or fields in a struct type
      */
     virtual void visit(IndexedAddress* indexed)
     {
@@ -147,7 +149,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '{';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkFloat(inst->fNumTable[i]);
             sep = ',';
         }
@@ -161,7 +163,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '{';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << inst->fNumTable[i];
             sep = ',';
         }
@@ -175,7 +177,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '{';
-        for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkDouble(inst->fNumTable[i]);
             sep = ',';
         }
@@ -195,22 +197,23 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(::CastInst* inst) { faustassert(false); }
 
-    virtual string generateFunName(const string& name)
+    virtual std::string generateFunName(const std::string& name)
     {
         // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
         size_t pos;
-        if ((pos = name.find("::")) != string::npos) {
+        if ((pos = name.find("::")) != std::string::npos) {
             return name.substr(pos + 2);  // After the "::"
         } else {
             return name;
         }
     }
 
-    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
+    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg,
+                                     list<ValueInst*>::const_iterator end,
                                      size_t size)
     {
-		list<ValueInst*>::const_iterator it = beg;
-        size_t                            i  = 0;
+        list<ValueInst*>::const_iterator it = beg;
+        size_t                           i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
@@ -221,8 +224,10 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunDefArgs(DeclareFunInst* inst)
     {
         *fOut << "(";
+        
         list<NamedTyped*>::const_iterator it;
-        size_t                            size = inst->fType->fArgsTypes.size(), i = 0;
+        
+        size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
             *fOut << fTypeManager->generateType((*it));
             if (i < size - 1) *fOut << ", ";
@@ -240,13 +245,13 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
     }
 
-    virtual void generateFunCall(FunCallInst* inst, const string& fun_name)
+    virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
             list<ValueInst*>::const_iterator it = inst->fArgs.begin();
@@ -269,9 +274,9 @@ class TextInstVisitor : public InstVisitor {
     {
         *fOut << "(";
         inst->fCond->accept(this);
-        *fOut << "?";
+        *fOut << " ? ";
         inst->fThen->accept(this);
-        *fOut << ":";
+        *fOut << " : ";
         inst->fElse->accept(this);
         *fOut << ")";
     }
@@ -279,20 +284,20 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         if (inst->fElse->fCode.size() > 0) {
             *fOut << "} else {";
             fTab++;
             tab(fTab, *fOut);
             inst->fElse->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
         } else {
             *fOut << "}";
@@ -304,7 +309,7 @@ class TextInstVisitor : public InstVisitor {
     {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-       
+
         *fOut << "for (";
         fFinishLine = false;
         inst->fInit->accept(this);
@@ -318,7 +323,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -326,13 +331,13 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(WhileLoopInst* inst)
     {
         *fOut << "while (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -344,19 +349,18 @@ class TextInstVisitor : public InstVisitor {
             fTab++;
             tab(fTab, *fOut);
         }
-        list<StatementInst*>::const_iterator it;
         RetInst* ret_inst = nullptr;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+        for (auto& it : inst->fCode) {
             // Special case for "return" as last instruction
-            if ((*it == *inst->fCode.rbegin()) && (ret_inst = dynamic_cast<RetInst*>(*it))) {
+            if ((it == *inst->fCode.rbegin()) && (ret_inst = dynamic_cast<RetInst*>(it))) {
                 visitAux(ret_inst, false);
             } else {
-                (*it)->accept(this);
+                it->accept(this);
             }
         }
         if (inst->fIndent) {
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -365,7 +369,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "switch (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
@@ -388,18 +392,21 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
+
+    StringTypeManager* getTypeManager() { return fTypeManager; }
+    
 };
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like
 // 'faustpower')
 struct sortDeclareFunctions {
-    map<string, string> fMathLibTable;
+    std::map<std::string, std::string> fMathLibTable;
 
-    sortDeclareFunctions(const map<string, string>& table) : fMathLibTable(table) {}
+    sortDeclareFunctions(const std::map<std::string, std::string>& table) : fMathLibTable(table) {}
 
     bool operator()(StatementInst* a, StatementInst* b)
     {

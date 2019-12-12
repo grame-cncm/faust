@@ -1,3 +1,4 @@
+/************************** BEGIN dsp-optimizer.h **************************/
 
 /************************************************************************
     FAUST Architecture File
@@ -238,8 +239,6 @@ class dsp_optimizer {
         
         bool computeOne(const std::vector<std::string>& item, int run, double& res)
         {
-            if (fTrace) printItem(item);
-            
             int argc = 0;
             const char* argv[64];
             for (int i = 0; i < item.size(); i++) {
@@ -254,7 +253,7 @@ class dsp_optimizer {
             }
             
             if (!fFactory) {
-                std::cerr << "Cannot create factory : " << fError << std::endl;
+                std::cerr << "Cannot create factory : " << fError;
                 return false;
             }
             
@@ -263,6 +262,9 @@ class dsp_optimizer {
                 std::cerr << "Cannot create instance..." << std::endl;
                 return false;
             }
+            
+            if (fTrace) printItem(item);
+            
             res = bench(run);
             // fDSP is deallocated by bench calling measure_dsp
             
@@ -424,3 +426,4 @@ class dsp_optimizer {
 };
 
 #endif
+/**************************  END  dsp-optimizer.h **************************/

@@ -1,5 +1,7 @@
 // Test of all math functions
 
+import("math.lib");
+
 process = int(_*10.5) % 3,
 		int(_*3.5) & int(_*2.4),
 		int(_*3.5) | int(_*2.4),
@@ -34,7 +36,14 @@ process = int(_*10.5) % 3,
 		pow(_*0.5, 3),
 		pow(10, _*3),
 		remainder(_*9.2, 2.0),
+		rint(_*1.5),
 		// round(_*0.5),
 		sin(_*0.3),
 		sqrt(_*0.3),
-		tan(_*0.3);
+		tan(_*0.3),
+		acosh(10+_*0.3),
+		asinh(10+_*0.3),
+		atanh(0.5+_*0.3),
+		cosh(10+_*0.3),
+		sinh(10+_*0.3),
+		tanh(10+_*0.3);

@@ -248,7 +248,7 @@ void Automaton::build(State* st)
     }
 }
 
-    /* Debugging output. */
+/* Debugging output. */
 
 #ifdef DEBUG
 inline ostream& operator<<(ostream& s, const Rule& x)
@@ -632,7 +632,7 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
                 continue;
             else if (t->is_cst_trans(x)) {
                 if (X == x) {
-                /* transition on constant */
+                    /* transition on constant */
 #ifdef DEBUG
                     cerr << "state " << s << ", " << *x << ": goto state " << t->state->s << endl;
 #endif
@@ -643,7 +643,7 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
             } else if (t->is_op_trans(op)) {
                 Tree x0, x1;
                 if (isBoxPatternOp(X, op1, x0, x1) && op == op1) {
-                /* transition on operation symbol */
+                    /* transition on operation symbol */
 #ifdef DEBUG
                     cerr << "state " << s << ", " << op << ": goto state " << t->state->s << endl;
 #endif
@@ -706,7 +706,7 @@ int apply_pattern_matcher(Automaton*    A,  // automaton
                 Tree Z, Z1 = subtree(X, 0, assoc->p);
                 if (searchIdDef(assoc->id, Z, E[r->r])) {
                     if (Z != Z1) {
-                    /* failed nonlinearity, add to the set of nonviable rules */
+                        /* failed nonlinearity, add to the set of nonviable rules */
 #ifdef DEBUG
                         cerr << "state " << s << ", rule #" << r->r << ": " << *assoc->id << " := " << *Z1
                              << " *** failed *** old value: " << *Z << endl;
@@ -714,7 +714,7 @@ int apply_pattern_matcher(Automaton*    A,  // automaton
                         E[r->r] = boxError();
                     }
                 } else {
-                /* bind a variable for the current rule */
+                    /* bind a variable for the current rule */
 #ifdef DEBUG
                     cerr << "state " << s << ", rule #" << r->r << ": " << *assoc->id << " := " << *Z1 << endl;
 #endif
@@ -735,7 +735,7 @@ int apply_pattern_matcher(Automaton*    A,  // automaton
 #endif
                 return s;
             }
-                /* if none of the rules were matched then declare a failed match */
+            /* if none of the rules were matched then declare a failed match */
 #ifdef DEBUG
         cerr << "state " << s << ", *** match failed ***" << endl;
 #endif

@@ -1,3 +1,4 @@
+/************************** BEGIN MetaDataUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -20,7 +21,7 @@
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  ************************************************************************/
- 
+
 #ifndef MetaData_UI_H
 #define MetaData_UI_H
 
@@ -51,17 +52,17 @@ static FAUSTFLOAT dB2Scale(FAUSTFLOAT dB)
      scale = 0.0f;
      else*/
     if (dB < FAUSTFLOAT(-60.0))
-         scale = (dB + FAUSTFLOAT(70.0)) * FAUSTFLOAT(0.0025);
+        scale = (dB + FAUSTFLOAT(70.0)) * FAUSTFLOAT(0.0025);
     else if (dB < FAUSTFLOAT(-50.0))
-         scale = (dB + FAUSTFLOAT(60.0)) * FAUSTFLOAT(0.005) + FAUSTFLOAT(0.025);
+        scale = (dB + FAUSTFLOAT(60.0)) * FAUSTFLOAT(0.005) + FAUSTFLOAT(0.025);
     else if (dB < FAUSTFLOAT(-40.0))
-         scale = (dB + FAUSTFLOAT(50.0)) * FAUSTFLOAT(0.0075) + FAUSTFLOAT(0.075);
+        scale = (dB + FAUSTFLOAT(50.0)) * FAUSTFLOAT(0.0075) + FAUSTFLOAT(0.075);
     else if (dB < FAUSTFLOAT(-30.0))
-         scale = (dB + FAUSTFLOAT(40.0)) * FAUSTFLOAT(0.015) + FAUSTFLOAT(0.15);
+        scale = (dB + FAUSTFLOAT(40.0)) * FAUSTFLOAT(0.015) + FAUSTFLOAT(0.15);
     else if (dB < FAUSTFLOAT(-20.0))
-         scale = (dB + FAUSTFLOAT(30.0)) * FAUSTFLOAT(0.02) + FAUSTFLOAT(0.3);
+        scale = (dB + FAUSTFLOAT(30.0)) * FAUSTFLOAT(0.02) + FAUSTFLOAT(0.3);
     else if (dB < FAUSTFLOAT(-0.001) || dB > FAUSTFLOAT(0.001))  /* if (dB < 0.0) */
-         scale = (dB + FAUSTFLOAT(20.0)) * FAUSTFLOAT(0.025) + FAUSTFLOAT(0.5);
+        scale = (dB + FAUSTFLOAT(20.0)) * FAUSTFLOAT(0.025) + FAUSTFLOAT(0.5);
     
     return scale;
 }
@@ -108,10 +109,10 @@ class MetaDataUI {
         }
         
         /**
-        * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
-        * (but not those in the middle of the string)
-        */
-        std::string rmWhiteSpaces(const std::string& s)
+         * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
+         * (but not those in the middle of the string)
+         */
+        static std::string rmWhiteSpaces(const std::string& s)
         {
             size_t i = s.find_first_not_of(" \t");
             size_t j = s.find_last_not_of(" \t");
@@ -121,11 +122,80 @@ class MetaDataUI {
                 return "";
             }
         }
-      
+        
         /**
-         * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata(unit=dB)
+         * Format tooltip string by replacing some white spaces by
+         * return characters so that line width doesn't exceed n.
+         * Limitation : long words exceeding n are not cut
          */
-        void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::string>& metadata)
+        std::string formatTooltip(int n, const std::string& tt)
+        {
+            std::string ss = tt;  // ss string we are going to format
+            int lws = 0;          // last white space encountered
+            int lri = 0;          // last return inserted
+            for (int i = 0; i < (int)tt.size(); i++) {
+                if (tt[i] == ' ') lws = i;
+                if (((i-lri) >= n) && (lws > lri)) {
+                    // insert return here
+                    ss[lws] = '\n';
+                    lri = lws;
+                }
+            }
+            return ss;
+        }
+        
+    public:
+        
+        virtual ~MetaDataUI()
+        {}
+        
+        enum Scale {
+            kLin,
+            kLog,
+            kExp
+        };
+        
+        Scale getScale(FAUSTFLOAT* zone)
+        {
+            if (fLogSet.count(zone) > 0) return kLog;
+            if (fExpSet.count(zone) > 0) return kExp;
+            return kLin;
+        }
+        
+        bool isKnob(FAUSTFLOAT* zone)
+        {
+            return fKnobSet.count(zone) > 0;
+        }
+        
+        bool isRadio(FAUSTFLOAT* zone)
+        {
+            return fRadioDescription.count(zone) > 0;
+        }
+        
+        bool isMenu(FAUSTFLOAT* zone)
+        {
+            return fMenuDescription.count(zone) > 0;
+        }
+        
+        bool isLed(FAUSTFLOAT* zone)
+        {
+            return fLedSet.count(zone) > 0;
+        }
+        
+        bool isNumerical(FAUSTFLOAT* zone)
+        {
+            return fNumSet.count(zone) > 0;
+        }
+        
+        bool isHidden(FAUSTFLOAT* zone)
+        {
+            return fHiddenSet.count(zone) > 0;
+        }
+        
+        /**
+         * Extracts metadata from a label : 'vol [unit: dB]' -> 'vol' + metadata(unit=dB)
+         */
+        static void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::string>& metadata)
         {
             enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
             int state = kLabel; int deep = 0;
@@ -171,11 +241,11 @@ class MetaDataUI {
                                 break;
                                 
                             case ':':
-                            if (deep == 1) {
-                                state = kValue;
-                            } else {
-                                key += c;
-                            }
+                                if (deep == 1) {
+                                    state = kValue;
+                                } else {
+                                    key += c;
+                                }
                                 break;
                             case ']':
                                 deep--;
@@ -225,76 +295,7 @@ class MetaDataUI {
             }
             label = rmWhiteSpaces(label);
         }
-       
-        /**
-         * Format tooltip string by replacing some white spaces by
-         * return characters so that line width doesn't exceed n.
-         * Limitation : long words exceeding n are not cut
-         */
-        std::string formatTooltip(int n, const std::string& tt)
-        {
-            std::string  ss = tt;	// ss string we are going to format
-            int	lws = 0;            // last white space encountered
-            int lri = 0;            // last return inserted
-            for (int i = 0; i < (int)tt.size(); i++) {
-                if (tt[i] == ' ') lws = i;
-                if (((i-lri) >= n) && (lws > lri)) {
-                    // insert return here
-                    ss[lws] = '\n';
-                    lri = lws;
-                }
-            }
-            return ss;
-        }
         
-    public:
-        
-        virtual ~MetaDataUI()
-        {}
-        
-        enum Scale {
-            kLin,
-            kLog,
-            kExp
-        };
-        
-        Scale getScale(FAUSTFLOAT* zone)
-        {
-            if (fLogSet.count(zone) > 0) return kLog;
-            if (fExpSet.count(zone) > 0) return kExp;
-            return kLin;
-        }
-    
-        bool isKnob(FAUSTFLOAT* zone)
-        {
-            return fKnobSet.count(zone) > 0;
-        }
-        
-        bool isRadio(FAUSTFLOAT* zone)
-        {
-            return fRadioDescription.count(zone) > 0;
-        }
-        
-        bool isMenu(FAUSTFLOAT* zone)
-        {
-            return fMenuDescription.count(zone) > 0;
-        }
-        
-        bool isLed(FAUSTFLOAT* zone)
-        {
-            return fLedSet.count(zone) > 0;
-        }
-        
-        bool isNumerical(FAUSTFLOAT* zone)
-        {
-            return fNumSet.count(zone) > 0;
-        }
-    
-        bool isHidden(FAUSTFLOAT* zone)
-        {
-            return fHiddenSet.count(zone) > 0;
-        }
-    
         /**
          * Analyses the widget zone metadata declarations and takes appropriate actions
          */
@@ -350,3 +351,4 @@ class MetaDataUI {
 };
 
 #endif
+/**************************  END  MetaDataUI.h **************************/

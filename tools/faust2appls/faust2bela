@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 . faustpath
-. faustoptflags
 
 #FAUST DATA:
 [ -z "$ARCHFILE" ] && ARCHFILE=$FAUSTARCH/bela.cpp
@@ -144,6 +143,7 @@ fi
 
 cat "$FAUST_MAIN_OUTPUT" >> "$PROJECTDIR/tmp.txt"
 mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
+rm -rf "$PROJECTDIR/tmp"
 
 #-------------------------------------------------------------------
 #PHASE 4 : SEND data to BELA and RUN it.

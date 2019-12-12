@@ -8,6 +8,7 @@ FAUST  ?= faust
 MAXSDK ?= $(ROOT)/max-sdk-7.3.3/source/c74support
 JOBS   ?= 
 GENERATOR ?= 
+LLVM_CONFIG ?= on
 
 all: 
 	$(MAKE) cmake
@@ -17,7 +18,7 @@ package:
 	cmake --build $(OUTDIR) --config Release --target install
 
 cmake: $(OUTDIR)
-	cd $(OUTDIR) && cmake -Wno-dev -DFAUST=$(FAUST) -DMAXSDK=$(MAXSDK) .. $(GENERATOR)
+	cd $(OUTDIR) && cmake -Wno-dev -DFAUST=$(FAUST) -DMAXSDK=$(MAXSDK) -DUSE_LLVM_CONFIG=$(LLVM_CONFIG) .. $(GENERATOR)
 
 $(OUTDIR):
 	mkdir $(OUTDIR)

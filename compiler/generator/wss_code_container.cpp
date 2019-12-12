@@ -104,14 +104,14 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code,
     // Compute init section
     gen_code->pushBackInst(InstBuilder::genLabelInst("/* Only initialize tasks with more than one input */"));
     for (int l = int(dag.size()) - 1; l >= 0; l--) {
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
-            if ((*p)->getBackwardLoopDependencies().size() > 1) {  // Only initialize tasks with more than 1 input,
+        for (auto& p : dag[l]) {
+            if (p->getBackwardLoopDependencies().size() > 1) {  // Only initialize tasks with more than 1 input,
                                                                    // since tasks with one input are "directly"
                                                                    // activated.
                 list<ValueInst*> fun_args;
                 fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
-                fun_args.push_back(InstBuilder::genInt32NumInst((*p)->getIndex()));
-                fun_args.push_back(InstBuilder::genInt32NumInst(int((*p)->getBackwardLoopDependencies().size())));
+                fun_args.push_back(InstBuilder::genInt32NumInst(p->getIndex()));
+                fun_args.push_back(InstBuilder::genInt32NumInst(int(p->getBackwardLoopDependencies().size())));
                 gen_code->pushBackInst(InstBuilder::genVoidFunCallInst("initTask", fun_args));
             }
         }
@@ -150,7 +150,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(lclgraph dag, const string& counte
         fun_args2.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
     }
     fun_args2.push_back(InstBuilder::genInt32NumInst(0));
-    loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread", fun_args2));
+    loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread" + fKlassName, fun_args2));
 
     loop_code->pushBackInst(InstBuilder::genVoidFunCallInst("syncAll", fun_args1));
 }
@@ -211,7 +211,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     pushAllocateMethod(
         InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
 
-    for (unsigned int i = 0; i < ready_loop.size(); i++) {
+    for (size_t i = 0; i < ready_loop.size(); i++) {
         list<ValueInst*> fun_args;
         fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
         fun_args.push_back(InstBuilder::genInt32NumInst(ready_loop[i]));
@@ -232,13 +232,12 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& i
 {
     // Generates line like: FAUSTFLOAT* fInput0 = &fInput0_ptr[index];
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    
+
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("input$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1,
-            type,
+            name1, type,
             InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genVolatileLoadStructVar(index_string))));
     }
 }
@@ -247,13 +246,12 @@ void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& 
 {
     // Generates line like: FAUSTFLOAT* fOutput0 = &fOutput0_ptr[index];
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genFloatMacroTyped(), 0);
-    
+
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("output$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1,
-            type,
+            name1, type,
             InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genVolatileLoadStructVar(index_string))));
     }
 }
@@ -267,7 +265,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                                                         InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
 
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genInt32Typed());
-  
+
     ValueInst*    switch_cond  = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
@@ -355,51 +353,49 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                 }
 
             } else {
-                CodeLoop* keep = NULL;
+                CodeLoop* keep = nullptr;
 
                 // Find one output with only one backward dependencies
-                for (lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin();
-                     p1 != (*p)->getForwardLoopDependencies().end(); p1++) {
-                    if ((*p1)->getBackwardLoopDependencies().size() == 1) {
-                        keep = *p1;
+                for (auto& p1 : (*p)->getForwardLoopDependencies()) {
+                    if (p1->getBackwardLoopDependencies().size() == 1) {
+                        keep = p1;
                         break;
                     }
                 }
 
-                if (keep == NULL) {
+                if (keep == nullptr) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
                 }
 
-                for (lclset::const_iterator p1 = (*p)->getForwardLoopDependencies().begin();
-                     p1 != (*p)->getForwardLoopDependencies().end(); p1++) {
-                    if ((*p1)->getBackwardLoopDependencies().size() == 1) {  // Task is the only input
-                        if (*p1 != keep) {
+                for (auto& p1 : (*p)->getForwardLoopDependencies()) {
+                    if (p1->getBackwardLoopDependencies().size() == 1) {  // Task is the only input
+                        if (p1 != keep) {
                             list<ValueInst*> fun_args;
                             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-                            fun_args.push_back(InstBuilder::genInt32NumInst((*p1)->getIndex()));
+                            fun_args.push_back(InstBuilder::genInt32NumInst(p1->getIndex()));
                             case_block->pushBackInst(InstBuilder::genVoidFunCallInst("pushHead", fun_args));
                         }
                     } else {
-                        if (keep == NULL) {
+                        if (keep == nullptr) {
                             list<ValueInst*> fun_args;
                             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-                            fun_args.push_back(InstBuilder::genInt32NumInst((*p1)->getIndex()));
+                            fun_args.push_back(InstBuilder::genInt32NumInst(p1->getIndex()));
                             fun_args.push_back(InstBuilder::genLoadStackVarAddress("tasknum"));
                             case_block->pushBackInst(InstBuilder::genVoidFunCallInst("activateOutputTask1", fun_args));
                         } else {
                             list<ValueInst*> fun_args;
                             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-                            fun_args.push_back(InstBuilder::genInt32NumInst((*p1)->getIndex()));
+                            fun_args.push_back(InstBuilder::genInt32NumInst(p1->getIndex()));
                             case_block->pushBackInst(InstBuilder::genVoidFunCallInst("activateOutputTask2", fun_args));
                         }
                     }
                 }
 
-                if (keep != NULL) {
+                if (keep != nullptr) {
                     case_block->pushBackInst(
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(keep->getIndex())));
                 } else {
@@ -473,16 +469,16 @@ void WSSCodeContainer::processFIR(void)
     fThreadLoopBlock = generateDAGLoopWSS(dag);
 
     generateDAGLoopWSSAux2(dag, fFullCount);
-    
+
     if (gGlobal->gRemoveVarAddress) {
         VarAddressRemover remover;
-        fComputeBlockInstructions = remover.getCode(fComputeBlockInstructions);
-        fThreadLoopBlock = remover.getCode(fThreadLoopBlock);
+        fComputeBlockInstructions       = remover.getCode(fComputeBlockInstructions);
+        fThreadLoopBlock                = remover.getCode(fThreadLoopBlock);
         fComputeThreadBlockInstructions = remover.getCode(fComputeThreadBlockInstructions);
     }
 
     // Sort arrays to be at the begining
-    //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+    // fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     /*
     // Verify code
@@ -502,6 +498,47 @@ void WSSCodeContainer::processFIR(void)
     global_block.pushBackInst(fDAGBlock);
     global_block.accept(&verifier);
     */
+}
+
+DeclareFunInst* WSSCodeContainer::generateComputeThread(const string& name, const string& obj, bool ismethod,
+                                                        bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("num_thread", Typed::kInt32));
+
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(fThreadLoopBlock);
+
+    // Explicit return
+    block->pushBackInst(InstBuilder::genRetInst());
+
+    // Creates function
+    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+}
+
+DeclareFunInst* WSSCodeContainer::generateComputeThreadExternal(const string& name, const string& obj)
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped(obj, Typed::kVoid_ptr));
+    args.push_back(InstBuilder::genNamedTyped("num_thread", Typed::kInt32));
+
+    BlockInst* block = InstBuilder::genBlockInst();
+    {
+        list<ValueInst*> args;
+        args.push_back(
+            InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj), InstBuilder::genBasicTyped(Typed::kObj_ptr)));
+        args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread" + fKlassName, args));
+    }
+
+    // Explicit return
+    block->pushBackInst(InstBuilder::genRetInst());
+
+    // Creates function
+    return InstBuilder::genVoidFunction(name, args, block, false);
 }
 
 BlockInst* WSSCodeContainer::flattenFIR(void)

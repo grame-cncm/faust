@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faustgen)
-set (VERSION "1.36")
+set (VERSION "1.41")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -70,6 +70,7 @@ if (WIN32)
 else()
 	set (MACLIBS "-framework CoreServices -framework IOKit")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11")
 	set (FAUSTLIBS ${FAUSTLIB}/libfaust.a ${FAUSTLIB}/libOSCFaust.a)
 endif()
 
@@ -81,8 +82,9 @@ target_include_directories (faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC}
 target_link_libraries (faustgen ${FAUSTLIBS}  ${MAXLIBS} ${LLVM_LIBS} ${SNDFILELIB} )
 
 if (APPLE)
+
 set_target_properties (faustgen PROPERTIES 
-	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp"
+	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp ${LLVM_LD_FLAGS}"
 	BUNDLE TRUE
 	BUNDLE_EXTENSION mxo
 	MACOSX_BUNDLE_INFO_PLIST ${ROOT}/Info.plist
@@ -149,6 +151,13 @@ install (
 # install VS redistributables
 if (WIN32)
 set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
+if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
+	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
+elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
+	set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Redist/MSVC/14.16.27012")
+else()
+	set (VS "/unknown/visual/studio/version")
+endif()
 install (
     FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ

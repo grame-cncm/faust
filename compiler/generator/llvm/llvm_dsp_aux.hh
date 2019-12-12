@@ -29,35 +29,19 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/CInterface.h"
+#include "faust/gui/JSONUIDecoder.h"
 #include "faust/gui/meta.h"
 
-#include "TMutex.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
 #include "smartpointer.h"
 #include "timing.hh"
 
-#if defined(LLVM_35) || defined(LLVM_38)
-#define __STDC_LIMIT_MACROS
-#define __STDC_CONSTANT_MACROS
-#endif
-
 #include <llvm/ExecutionEngine/ObjectCache.h>
 
 #define LLVM_MAX_OPT_LEVEL 5
 
-#if defined(LLVM_35)
-#define STREAM_ERROR std::string
-#define MEMORY_BUFFER llvm::MemoryBuffer*
-#define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
-#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-#define MEMORY_BUFFER_CREATE(stringref) (llvm::MemoryBuffer::getMemBuffer(stringref))
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
-#define PASS_MANAGER legacy::PassManager
-#define FUNCTION_PASS_MANAGER FunctionPassManager
-#else
 #define STREAM_ERROR std::error_code
 #define MEMORY_BUFFER llvm::MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
@@ -67,12 +51,77 @@
 #define MovePTR(ptr) std::move(ptr)
 #define PASS_MANAGER legacy::PassManager
 #define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
-#endif
-
 #define sysfs_binary_flag sys::fs::F_None
 #define OwningPtr std::unique_ptr
 #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
 #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+
+// We take the largest sample size here, to cover 'float' and 'double' cases
+#define LLVM_FAUSTFLOAT double
+
+#define BUFFER_SIZE 1024
+#define SAMPLE_RATE 44100
+#define MAX_CHAN 64
+#define MAX_SOUNDFILE_PARTS 256
+
+#ifdef _MSC_VER
+#define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
+#define POST_PACKED_STRUCTURE \
+;                         \
+__pragma(pack(pop))
+#else
+#define PRE_PACKED_STRUCTURE
+#define POST_PACKED_STRUCTURE __attribute__((__packed__))
+#endif
+
+PRE_PACKED_STRUCTURE
+struct Soundfile {
+    LLVM_FAUSTFLOAT** fBuffers;
+    int* fLength;   // length of each part
+    int* fSR;       // sample rate of each part
+    int* fOffset;   // offset of each part in the global buffer
+    int fChannels;  // max number of channels of all concatenated files
+ 
+    Soundfile(int max_chan)
+    {
+        fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
+        fLength  = new int[MAX_SOUNDFILE_PARTS];
+        fSR      = new int[MAX_SOUNDFILE_PARTS];
+        fOffset  = new int[MAX_SOUNDFILE_PARTS];
+        
+        for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
+            fLength[part] = BUFFER_SIZE;
+            fSR[part]     = SAMPLE_RATE;
+            fOffset[part] = 0;
+        }
+        
+        // Allocate 1 channel
+        fChannels   = 1;
+        fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
+        faustassert(fBuffers[0]);
+        memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
+        
+        // Share the same buffer for all other channels so that we have max_chan channels available
+        for (int chan = fChannels; chan < max_chan; chan++) {
+            fBuffers[chan] = fBuffers[0];
+        }
+    }
+    
+    ~Soundfile()
+    {
+        // Free the real channels only
+        for (int chan = 0; chan < fChannels; chan++) {
+            delete fBuffers[chan];
+        }
+        delete[] fBuffers;
+        delete[] fLength;
+        delete[] fSR;
+        delete[] fOffset;
+    }
+    
+} POST_PACKED_STRUCTURE;
+
+extern Soundfile* dynamic_defaultsound;
 
 // namespace llvm
 namespace llvm {
@@ -82,7 +131,6 @@ class Module;
 }  // namespace llvm
 
 class llvm_dsp_factory;
-struct JSONUIDecoder;
 
 // Public C++ interface
 
@@ -107,15 +155,17 @@ class EXPORT llvm_dsp : public dsp {
 
     virtual int getSampleRate();
 
-    virtual void init(int samplingRate);
+    virtual void init(int sample_rate);
 
-    virtual void instanceInit(int samplingRate);
+    virtual void instanceInit(int sample_rate);
 
-    virtual void instanceConstants(int samplingRate);
+    virtual void instanceConstants(int sample_rate);
 
     virtual void instanceResetUserInterface();
 
     virtual void instanceClear();
+
+    virtual void classInit(int sample_rate);
 
     virtual llvm_dsp* clone();
 
@@ -126,7 +176,6 @@ class EXPORT llvm_dsp : public dsp {
     virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
-#ifndef LLVM_35
 class FaustObjectCache : public llvm::ObjectCache {
    private:
     std::string fMachineCode;
@@ -143,12 +192,11 @@ class FaustObjectCache : public llvm::ObjectCache {
 
     virtual std::unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module* M)
     {
-        return (fMachineCode == "") ? NULL : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
+        return (fMachineCode == "") ? nullptr : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
     }
 
     std::string getMachineCode() { return fMachineCode; }
 };
-#endif
 
 typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
 
@@ -156,35 +204,24 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     friend class llvm_dsp;
 
    protected:
-    llvm::ExecutionEngine* fJIT;
-
-#ifndef LLVM_35
-    FaustObjectCache* fObjectCache;
-#endif
-    llvm::Module*      fModule;
-    llvm::LLVMContext* fContext;
-    JSONUIDecoder*     fDecoder;
+    llvm::ExecutionEngine*  fJIT;
+    FaustObjectCache*       fObjectCache;
+    llvm::Module*           fModule;
+    llvm::LLVMContext*      fContext;
+    JSONUITemplatedDecoder* fDecoder;
 
     int         fOptLevel;
     std::string fTarget;
     std::string fClassName;
     std::string fTypeName;
 
-    newDspFun             fNew;
-    deleteDspFun          fDelete;
-    getNumInputsFun       fGetNumInputs;
-    getNumOutputsFun      fGetNumOutputs;
-    buildUserInterfaceFun fBuildUserInterface;
-    initFun               fInit;
-    initFun               fInstanceInit;
-    initFun               fInstanceConstants;
-    clearFun              fInstanceResetUI;
-    clearFun              fInstanceClear;
-    getSampleRateFun      fGetSampleRate;
-    computeFun            fCompute;
-    metadataFun           fMetadata;
-    getJSONFun            fGetJSON;
-    setDefaultSoundFun    fSetDefaultSound;
+    allocateDspFun fAllocate;
+    destroyDspFun  fDestroy;
+    initFun        fInstanceConstants;
+    clearFun       fInstanceClear;
+    classInitFun   fClassInit;
+    computeFun     fCompute;
+    getJSONFun     fGetJSON;
 
     uint64_t loadOptimize(const std::string& function);
 
@@ -214,8 +251,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     virtual bool initJIT(std::string& error_msg);
     bool         initJITAux(std::string& error_msg);
 
-    static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target, std::string& error_msg);
-    
+    static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target,
+                                                          std::string& error_msg);
+
     // Bitcode
     virtual std::string writeDSPFactoryToBitcode() { return ""; }
 
@@ -230,9 +268,12 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     virtual std::string writeDSPFactoryToMachine(const std::string& target);
 
     virtual bool writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target);
-    
+
     // Object
-    virtual bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target) { return false; }
+    virtual bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target)
+    {
+        return false;
+    }
 
     std::string getTarget();
     void        setTarget(const std::string& target) { fTarget = target; }
@@ -252,8 +293,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     void metadata(MetaGlue* glue);
 
     static int gInstance;
-
-    static TLockAble* gDSPFactoriesLock;
 
     static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
 };
@@ -307,7 +346,10 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string writeDSPFactoryToIR() { return fFactory->writeDSPFactoryToIR(); }
 
-    bool writeDSPFactoryToIRFile(const std::string& ir_code_path) { return fFactory->writeDSPFactoryToIRFile(ir_code_path); }
+    bool writeDSPFactoryToIRFile(const std::string& ir_code_path)
+    {
+        return fFactory->writeDSPFactoryToIRFile(ir_code_path);
+    }
 
     std::string writeDSPFactoryToMachine(const std::string& target)
     {
@@ -318,7 +360,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     {
         return fFactory->writeDSPFactoryToMachineFile(machine_code_path, target);
     }
-    
+
     bool writeDSPFactoryToObjectcodeFile(const std::string& object_code_path, const std::string& target)
     {
         return fFactory->writeDSPFactoryToObjectcodeFile(object_code_path, target);
@@ -339,15 +381,13 @@ EXPORT std::vector<std::string> getAllDSPFactories();
 
 EXPORT void deleteAllDSPFactories();
 
-EXPORT bool startMTDSPFactories();
-
-EXPORT void stopMTDSPFactories();
-
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target, std::string& error_msg);
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target,
+                                                   std::string& error_msg);
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target, std::string& error_msg);
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target,
+                                                       std::string& error_msg);
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
@@ -392,11 +432,13 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, co
 
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target,
+                                                        char* error_msg);
 
 EXPORT bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
-    
-EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path, const char* target);
+
+EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path,
+                                             const char* target);
 
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
 
@@ -408,11 +450,11 @@ EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate);
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
 EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
 

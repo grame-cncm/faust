@@ -157,10 +157,6 @@ for f in $FILES; do
     echo "<html>" > $name-temp2.html
     echo "<head>" >> $name-temp2.html
     echo "<meta charset=\"UTF-8\">" >> $name-temp2.html
-
-    # add AudioWorklet Origin Trial for Chrome
-    echo "<!-- Origin Trial Token, feature = AudioWorklet, origin = https://faust.grame.fr, expires = 2018-01-27 --> <meta http-equiv=\"origin-trial\" data-feature=\"AudioWorklet\" data-expires=\"2018-01-27\" content=\"ArOoNTa+dX8OXYD95xliibaCxzUTBxilqcXLAxKOXxf/qU2n09ry4XqX4ShkkqKgfzwwuSE2I7GqxGqvVi9aewwAAABUeyJvcmlnaW4iOiJodHRwczovL2ZhdXN0LmdyYW1lLmZyOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MTcwMjQ1OTl9\">" >> $name-temp2.html
-
     echo "<style type=\"text/css\">" >> $name-temp2.html
     cat $FAUSTARCH/js/stylesheet.js >> $name-temp2.html
     echo "</style>" >> $name-temp2.html

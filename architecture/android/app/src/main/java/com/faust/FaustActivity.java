@@ -81,15 +81,15 @@ import android.content.pm.PackageManager;
 
 public class FaustActivity extends Activity
 implements ActivityCompat.OnRequestPermissionsResultCallback {
-    
+
     private int sampleRate = 44100;
     private int bufferSize = 512;
     private int sensorIntervalMs = 0;
-    
+
     // For audio input request permission
     private static final int AUDIO_ECHO_REQUEST = 0;
     private boolean permissionToRecordAccepted = false;
-    
+
 	private SensorManager mSensorManager;
 	private int numberOfParameters;
 	private UI ui = new UI();
@@ -101,6 +101,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
     private MonochromeView fMonoView;
     public static DspFaust dspFaust;
 
+    private boolean OSCisOn = false;
     /**
      * Detects and toggles immersive mode (also known as "hidey bar" mode).
      */
@@ -146,12 +147,12 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
         getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
         //END_INCLUDE (set_ui_flags)
     }
-    
+
     private void createFaust() {
-        
+
         Log.d("FaustJava", "createFaust");
         sensorIntervalMs = bufferSize/sampleRate*1000;
-        
+
         if (dspFaust == null) {
             // check if audio files were saved in internal storage
             String[] internalStorageList = getFilesDir().list();
@@ -162,7 +163,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
                     break;
                 }
             }
-            
+
             // if audio files were not saved in internal storage, then transfer them
             if(!fileWereCopied) {
                 AssetManager assets = getAssets();
@@ -175,7 +176,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
                             in = assets.open(assetsList[i]);
                             File outFile = new File(getFilesDir().getPath(), assetsList[i]);
                             out = new FileOutputStream(outFile);
-                            
+
                             // copy content
                             byte[] buffer = new byte[1024];
                             int read;
@@ -189,39 +190,27 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
                             out = null;
                         }
                     }
-                    
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            
-            WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-            if (wifi != null) {
-                WifiManager.MulticastLock lock = wifi.createMulticastLock("Log_Tag");
-                lock.acquire();
-            }
-            // attempting to open a new OSC port, if default not available create a new one
-            int oscPortNumber = 5510;
-            while (!Osc.init(oscPortNumber)) oscPortNumber++;
-            Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
-            
+
             // Use machine buffer size and sample rate
             AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-            
-            // Do not work on Android 4.xx
+
+            // Does not work on Android 4.xx
             /*
              String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
              String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
              Log.d("FaustJava", "Size :" + size + " Rate: " + rate);
              dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
              */
-            
+
             // TODO: sr and buffer length should change in function of the device for best latency perfs
             dspFaust = new DspFaust(sampleRate, bufferSize);
-            
-            Osc.startListening();
         }
-        
+
         fBuildUI = (dspFaust.getScreenColor() < 0);
         if (!fBuildUI) {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -233,14 +222,14 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             fMonoView = new MonochromeView(getApplicationContext());
             setContentView(fMonoView);
         }
-        
+
         numberOfParameters = dspFaust.getParamsCount();
-        
+
         Log.d("FaustJava", "onCreate : numberOfParameters " + numberOfParameters);
-        
+
         parametersInfo.init(numberOfParameters);
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        
+
         if (fBuildUI) {
             LinearLayout mainGroup = (LinearLayout) findViewById(R.id.the_layout);
             HorizontalScrollView horizontalScroll = (HorizontalScrollView) findViewById(R.id.horizontalScroll);
@@ -251,16 +240,23 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             Log.d("FaustJava", "Don't create User Interface");
             toggleHideyBar();
         }
-        
+
+        if (dspFaust.isOSCOn()){
+            dspFaust.configureOSC(parametersInfo.xmit,parametersInfo.inPort,parametersInfo.outPort,5512,parametersInfo.ipAddress);
+            OSCisOn = true;
+        } else {
+            OSCisOn = false;
+        }
+
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        
+
         Log.d("FaustJava", "onCreate");
         super.onCreate(savedInstanceState);
-        
+
         if (Build.VERSION.SDK_INT >= 23 && !isRecordPermissionGranted()){
             requestRecordPermission();
         } else {
@@ -286,7 +282,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             long curDate = java.lang.System.currentTimeMillis();
             long uiDeltaMs = curDate - lastUIDateMs;
             long sensorDeltaMs = curDate - lastSensorDateMs;
-    
+
             if (sensorDeltaMs > sensorIntervalMs) {
                 lastSensorDateMs = curDate;
                 if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -334,6 +330,12 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             }
             // display the keyboard icon if the Faust code enables keyboard interfaces
             if (!ui.hasKeyboard && !ui.hasMulti) keybItem.setVisible(false);
+
+            if (OSCisOn) {
+                menu.getItem(5).setVisible(true);
+            } else {
+                menu.getItem(5).setVisible(false);
+            }
             return super.onCreateOptionsMenu(menu);
         } else {
             Log.d("FaustJava", "Don't create Menu");
@@ -376,6 +378,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             case R.id.action_reset:
                 parametersInfo.saved = 0;
                 recreate();
+                ui.settingWindow.initOSC(parametersInfo);
                 return true;
             case R.id.action_lock:
             	if (parametersInfo.locked) {
@@ -387,6 +390,11 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             		parametersInfo.locked = true;
             		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
             	}
+                return true;
+            case R.id.action_settings:
+                Log.d("FaustJava", "OSC setting");
+                ui.settingWindow.showWindow(parametersInfo);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -409,7 +417,7 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
             if (!isChangingConfigurations()) {
                 dspFaust.start();
             }
-            ui.updateUIstate();
+            ui.reloadUIstate();
             mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
                     Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
             mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
@@ -448,7 +456,6 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
         if (permissionToRecordAccepted) {
             // only stops audio when the user press the return button (and not when the screen is rotated)
             if (!isChangingConfigurations()) {
-                Osc.stopListening();
                 dspFaust.stop(); // TODO: not sure if needed
                 dspFaust.delete();
                 dspFaust = null;

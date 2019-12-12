@@ -1,35 +1,34 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
-	each section for license and copyright information.
-*************************************************************************/
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-    as published by the Free Software Foundation; either version 3 of 
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work 
-    that contains this FAUST architecture section and distribute  
-    that work under terms of your choice, so long as this FAUST 
-    architecture section is not modified. 
-
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -41,12 +40,8 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
-
-#include <vector>
-#include <stack>
 #include <string>
-#include <map>
-#include <iostream> 
+#include <iostream>
 #include <limits> 
 #include <iomanip>
 
@@ -55,20 +50,22 @@
 #include "faust/misc.h"
 #include "faust/audio/channels.h"
 
+using namespace std;
+
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
-		
+
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
-		
+
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
@@ -79,7 +76,7 @@ mydsp DSP;
 	
 #define kFrames 512
 	
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     FAUSTFLOAT fnbsamples;
 
@@ -92,8 +89,6 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    //std::cout << "sizeof(FAUSTFLOAT) = " << sizeof(FAUSTFLOAT) << std::endl;;
-
     // init signal processor and the user interface values
     DSP.init(44100);
 
@@ -104,14 +99,15 @@ int main(int argc, char *argv[])
     channels chan(kFrames, nouts);
   
     int nbsamples = int(fnbsamples);
-    std::cout << std::setprecision(std::numeric_limits<FAUSTFLOAT>::max_digits10);
+    cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
     while (nbsamples > kFrames) {
         DSP.compute(kFrames, 0, chan.buffers());
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
-                std::cout << chan.buffers()[c][i];
+                if (c) cout << "\t\t";
+                cout << chan.buffers()[c][i];
             }
-            std::cout << std::endl;
+            cout << endl;
         }
         nbsamples -= kFrames;
     }
@@ -119,12 +115,13 @@ int main(int argc, char *argv[])
     DSP.compute(nbsamples, 0, chan.buffers());
     for (int i = 0; i < nbsamples; i++) {
         for (int c = 0; c < nouts; c++) {
-            std::cout << chan.buffers()[c][i];
+            if (c) cout << "\t\t";
+            cout << chan.buffers()[c][i];
         }
-        std::cout << std::endl;
+        cout << endl;
     }
     return 0;
-} 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+}
 
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
 

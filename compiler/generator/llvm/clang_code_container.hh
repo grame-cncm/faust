@@ -65,7 +65,7 @@ class ClangCodeContainer : public virtual CodeContainer {
     CodeContainer* createScalarContainer(const string& name, int sub_container_type)
     {
         faustassert(false);
-        return NULL;
+        return nullptr;
     }  // Not used
 
     static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);

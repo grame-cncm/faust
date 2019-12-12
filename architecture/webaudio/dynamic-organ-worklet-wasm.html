@@ -1,7 +1,5 @@
 <html>
 <head>
-<!-- Origin Trial Token, feature = AudioWorklet, origin = https://faust.grame.fr, expires = 2018-01-27 -->
-<meta http-equiv="origin-trial" data-feature="AudioWorklet" data-expires="2018-03-03" content="ApDZ87+zpjI09+oIyEDTPDZtGN4bs1lh9n83f+4ssENINML3DxJbklOsd8Hu+M82TY4eIP/B2l7Iued7Y5I4hQAAAABUeyJvcmlnaW4iOiJodHRwczovL2ZhdXN0LmdyYW1lLmZyOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MjAxMjA2MDB9">
 <H1> Faust dynamically generated polyphonic MIDI ready WebAudio node </H1>
 </head>
 <body>
@@ -18,7 +16,7 @@
 function workletAvailable()
 {
     if (typeof (OfflineAudioContext) === "undefined") return false;
-     var context = new OfflineAudioContext(1, 1, 44100);
+    var context = new OfflineAudioContext(1, 1, 44100);
     return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
 }
 
@@ -35,7 +33,7 @@ var midi_input = [];
 var dsp_code_url = "http://127.0.0.1:8000/organ.dsp";
 
 //var libraries_url = "https://faust.grame.fr/libraries/";
-var libraries_url = "http://127.0.0.1:8000/libraries/";
+var libraries_url = "http://127.0.0.1:8000/../../libraries/";
 
 // Slider handler to change the 'noise' volume
 function changeVolume(event)
@@ -93,7 +91,7 @@ function midiMessageReceived(ev)
     } else if (cmd === 11) {
         ctrlChange(channel, data1, data2);
     } else if (cmd === 14) {
-        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        pitchWheel(channel, (data2 * 128.0 + data1));
     }
 }
 

@@ -1,35 +1,34 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
-	each section for license and copyright information.
-*************************************************************************/
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-    as published by the Free Software Foundation; either version 3 of 
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work 
-    that contains this FAUST architecture section and distribute  
-    that work under terms of your choice, so long as this FAUST 
-    architecture section is not modified. 
-
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -43,6 +42,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/gui/GUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/JSONUIDecoder.h"
@@ -71,17 +71,27 @@ static void osc_compute_callback(void* arg)
 #include "faust/midi/RtMidi.cpp"
 #endif
 
+using namespace std;
+
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
-		
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
 <<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 #include "faust/dsp/poly-dsp.h"
 
@@ -90,13 +100,9 @@ static void osc_compute_callback(void* arg)
 #include "effect.h"
 #endif
 
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-					
 dsp* DSP;
 
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
@@ -109,7 +115,7 @@ int main(int argc, char* argv[])
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
-    int control = 0;
+    bool control = true;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -122,17 +128,12 @@ int main(int argc, char* argv[])
     CMDUI interface(argc, argv, true);
     FUI finterface;
     
-    if (isopt(argv, "-h")) {
-        std::cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
-        exit(1);
-    }
-    
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     
-    std::cout << "Started with " << nvoices << " voices\n";
+    cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
     int group = lopt(argv, "--group", 1);
     
     if (nvoices > 0) {
-        std::cout << "Started with " << nvoices << " voices\n";
+        cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
         
 #if MIDICTRL
@@ -177,7 +178,7 @@ int main(int argc, char* argv[])
 #endif
     
     if (DSP == 0) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
 
@@ -190,6 +191,11 @@ int main(int argc, char* argv[])
 #endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
+    
+    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+    }
+    interface.process_command();
  
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -227,11 +233,15 @@ int main(int argc, char* argv[])
     }
     
     DSP->buildUserInterface(midiinterface);
-    std::cout << "MIDI is on" << std::endl;
+    cout << "MIDI is on" << endl;
 #endif
     
-    interface.process_command();
-    audio.start();
+    
+    finterface.recallState(rcfilename);
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
  
 #ifdef HTTPCTRL
     httpdinterface.run();
@@ -243,7 +253,7 @@ int main(int argc, char* argv[])
     
 #ifdef MIDICTRL
     if (!midiinterface->run()) {
-        std::cerr << "MidiUI run error\n";
+        cerr << "MidiUI run error\n";
     }
 #endif
     
@@ -260,4 +270,3 @@ int main(int argc, char* argv[])
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-

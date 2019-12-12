@@ -17,6 +17,8 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE=$FAUSTARCH/supercollider.cpp
 
 #-------------------------------------------------------------------
@@ -168,7 +170,6 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile the .dsp file to c++ and xml
-    
     faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     mv "$SRCDIR/$f.xml" $TMP/
 
@@ -176,7 +177,7 @@ for p in $FILES; do
     (
 	SC_FAUST_PREFIX="Faust"
 	if [ $NO_FAUST_PREFIX = 1 ]; then
-            SC_FAUST_PREFIX=""
+        SC_FAUST_PREFIX=""
 	fi
 
         cd "$TMP"
@@ -188,7 +189,7 @@ for p in $FILES; do
         
         #build for supernova
         if [ $SUPERNOVA_FLAG = 1 ]; then
-          $CXX $BUILDFLAGS -std=c++11 -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
+        	$CXX $BUILDFLAGS -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
         fi
 
     )> $OUTDEV || exit
@@ -205,7 +206,7 @@ for p in $FILES; do
     fi
 
     if [ $F2SC_DEBUG = 1 ]; then
-        echo "Retaining intermediate products directory '$TDR'"
+    	echo "Retaining intermediate products directory '$TDR'"
         OUTDEV=/dev/tty
     else       
         rm -rf "$TDR"
@@ -214,7 +215,7 @@ for p in $FILES; do
     # collects all the files produced
      BINARIES="$SRCDIR/${f%.dsp}.$EXT;"
      if [ $SUPERNOVA_FLAG = 1 ]; then
-       BINARIES="$BINARIES$SRCDIR/${f%.dsp}_supernova.$EXT;"
+    	BINARIES="$BINARIES$SRCDIR/${f%.dsp}_supernova.$EXT;"
      fi
      BINARIES="$BINARIES$SRCDIR/${f%.dsp}.sc;"
 

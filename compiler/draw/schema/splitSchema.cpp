@@ -22,8 +22,8 @@
 #include <algorithm>
 #include <iostream>
 
-#include "splitSchema.h"
 #include "exception.hh"
+#include "splitSchema.h"
 
 using namespace std;
 

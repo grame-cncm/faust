@@ -69,8 +69,10 @@ void Message::print(std::ostream& out) const
 		if (s) out << "\"" << escape(s->getValue()) << "\" ";
 		MsgParam<int>* ip = dynamic_cast<MsgParam<int>*>((baseparam*)(*i));
 		if (ip) out << ip->getValue() << " ";
-		MsgParam<float>* f = dynamic_cast<MsgParam<float>*>((baseparam*)(*i));
-		if (f) out << f->getValue() << " ";
+		MsgParam<float>* fv = dynamic_cast<MsgParam<float>*>((baseparam*)(*i));
+		if (fv) out << fv->getValue() << " ";
+        MsgParam<double>* dv = dynamic_cast<MsgParam<double>*>((baseparam*)(*i));
+        if (dv) out << dv->getValue() << " ";
 		i++;
 	}
 	out.flags ( f );
@@ -87,7 +89,7 @@ void Message::print(OSCStream& out) const
 //--------------------------------------------------------------------------
 void Message::printArgs(OSCStream& out) const
 {
-	for (int i=0; i < size(); i++) {
+	for (int i = 0; i < size(); i++) {
 		string str; float fv; int iv;
 		if (param(i, fv))			out << fv;
 		else if (param(i, iv))		out << iv;

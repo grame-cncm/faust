@@ -34,7 +34,7 @@ using namespace std;
 namespace oscfaust
 {
 
-FaustFactory::FaustFactory(GUI* ui, OSCIO * io) : fIO(io), fGUI(ui) {}
+FaustFactory::FaustFactory(GUI* ui, JSONUI* json, OSCIO* io) : fIO(io), fGUI(ui), fJSON(json) {}
 FaustFactory::~FaustFactory() {}
 
 /**
@@ -46,7 +46,7 @@ void FaustFactory::opengroup(const char* label)
 	if (fNodes.size() == 0) {	
 		// the stack is empty: creates a root node 
 		// and gives the root node a possible OSCIO controler
-		fRoot = RootNode::create(label, fIO);	
+		fRoot = RootNode::create(label, fJSON, fIO);
 		fNodes.push(fRoot);					
 		
 	} else {
@@ -67,7 +67,7 @@ void FaustFactory::opengroup(const char* label)
 }
 
 //--------------------------------------------------------------------------
-SRootNode FaustFactory::root() const	{ return fRoot; }
+SRootNode FaustFactory::root() const { return fRoot; }
 
 //--------------------------------------------------------------------------
 // add an alias to the root node
@@ -76,10 +76,15 @@ void FaustFactory::addAlias(const char* alias, const char* address, float imin, 
 {
 	if (fRoot) fRoot->addAlias(alias, address, imin, imax, omin, omax);
 }
+    
+void FaustFactory::addAlias(const char* alias, const char* address, double imin, double imax, double omin, double omax)
+{
+    if (fRoot) fRoot->addAlias(alias, address, imin, imax, omin, omax);
+}
 
 //--------------------------------------------------------------------------
-std::string FaustFactory::addressFirst(const std::string& address) const    { return OSCAddress::addressFirst(address); }
-std::string FaustFactory::addressTail(const std::string& address) const     { return OSCAddress::addressTail(address); }
+string FaustFactory::addressFirst(const string& address) const    { return OSCAddress::addressFirst(address); }
+string FaustFactory::addressTail(const string& address) const     { return OSCAddress::addressTail(address); }
 
 //--------------------------------------------------------------------------
 void FaustFactory::closegroup()

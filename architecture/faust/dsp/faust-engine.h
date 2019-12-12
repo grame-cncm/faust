@@ -1,3 +1,4 @@
+/************************** BEGIN faust-engine.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
@@ -37,7 +38,7 @@ extern "C" {
     
     bool isRunning(void*);
 
-    unsigned long keyOn(void*, int, int);
+    uintptr_t keyOn(void*, int, int);
     int keyOff(void*, int);
     
     void propagateMidi(void*, int, double, int, int, int, int);
@@ -53,8 +54,8 @@ extern "C" {
     void setParamIdValue(void*, int, float);
     float getParamIdValue(void*, int);
 
-    void setVoiceParamValue(void*, const char*, unsigned long, float);
-    float getVoiceParamValue(void*, const char*, unsigned long);
+    void setVoiceParamValue(void*, const char*, uintptr_t, float);
+    float getVoiceParamValue(void*, const char*, uintptr_t);
 
     const char* getParamAddress(void*, int);
 
@@ -72,3 +73,4 @@ extern "C" {
 #endif
 
 #endif // __faust_engine__
+/**************************  END  faust-engine.h **************************/

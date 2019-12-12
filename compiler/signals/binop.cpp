@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #ifdef WIN32
-# pragma warning (disable: 4141 4146 4244 4267 4800)
+#pragma warning(disable : 4141 4146 4244 4267 4800)
 #endif
 
 #include "binop.hh"
@@ -42,12 +42,6 @@ static bool noNtrl(const Node& n)
 #endif
 
 #ifdef LLVM_BUILD
-
-#if defined(LLVM_35) || defined(LLVM_38)
-#define __STDC_LIMIT_MACROS
-#define __STDC_CONSTANT_MACROS
-#endif
-
 #include <llvm/IR/Instructions.h>
 
 using namespace llvm;
@@ -66,9 +60,9 @@ BinOp* gBinOpTable[] = {
     new BinOp("/", "div_vec", "div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, "i32.div_s",
               "i64.div_s", "f32.div", "f64.div", WasmOp::I32DivS, WasmOp::I64DivS, WasmOp::F32Div, WasmOp::F64Div,
               FBCInstruction::kDivInt, FBCInstruction::kDivReal, &divExtendedNode, &noNtrl, &isOne, 10),
-    new BinOp("%", "mod_vec", "mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, "i32.rem_s", "i64.rem_s",
-              "dummy", "dummy", WasmOp::I32RemS, WasmOp::I64RemS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kRemInt,
-              FBCInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
+    new BinOp("%", "mod_vec", "mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, "i32.rem_s",
+              "i64.rem_s", "dummy", "dummy", WasmOp::I32RemS, WasmOp::I64RemS, WasmOp::Dummy, WasmOp::Dummy,
+              FBCInstruction::kRemInt, FBCInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
 
     new BinOp("<<", "shift_left_vec", "shift_left_scal", "", "", Instruction::Shl, Instruction::Shl, "i32.shl",
               "i64.shl", "dummy", "dummy", WasmOp::I32Shl, WasmOp::I64Shl, WasmOp::Dummy, WasmOp::Dummy,
@@ -122,9 +116,9 @@ BinOp* gBinOpTable[] = {
     new BinOp("/", "div_vec", "div_scal", "sdiv", "fdiv", 0, 0, "i32.div_s", "i64.div_s", "f32.div", "f64.div",
               WasmOp::I32DivS, WasmOp::I64DivS, WasmOp::F32Div, WasmOp::F64Div, FBCInstruction::kDivInt,
               FBCInstruction::kDivReal, &divExtendedNode, &noNtrl, &isOne, 10),
-    new BinOp("%", "mod_vec", "mod_scal", "srem", "frem", 0, 0, "i32.rem_s", "i64.rem_s", "dummy", "dummy", WasmOp::I32RemS,
-              WasmOp::I64RemS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kRemInt, FBCInstruction::kRemReal,
-              &remNode, &noNtrl, &noNtrl, 9),
+    new BinOp("%", "mod_vec", "mod_scal", "srem", "frem", 0, 0, "i32.rem_s", "i64.rem_s", "dummy", "dummy",
+              WasmOp::I32RemS, WasmOp::I64RemS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kRemInt,
+              FBCInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
 
     new BinOp("<<", "shift_left_vec", "shift_left_scal", "", "", 0, 0, "i32.shl", "i64.shl", "dummy", "dummy",
               WasmOp::I32Shl, WasmOp::I64Shl, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kLshInt,

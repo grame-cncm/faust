@@ -35,12 +35,16 @@ public class DspFaust {
     }
   }
 
+  public DspFaust(boolean use_driver) {
+    this(dsp_faustJNI.new_DspFaust__SWIG_0(use_driver), true);
+  }
+
   public DspFaust() {
-    this(dsp_faustJNI.new_DspFaust__SWIG_0(), true);
+    this(dsp_faustJNI.new_DspFaust__SWIG_1(), true);
   }
 
   public DspFaust(int arg0, int arg1) {
-    this(dsp_faustJNI.new_DspFaust__SWIG_1(arg0, arg1), true);
+    this(dsp_faustJNI.new_DspFaust__SWIG_2(arg0, arg1), true);
   }
 
   public boolean start() {
@@ -183,8 +187,12 @@ public class DspFaust {
     return dsp_faustJNI.DspFaust_getCPULoad(swigCPtr, this);
   }
 
-  public boolean configureOSC(boolean xmit, int inport, int outport, int errport, String address) {
+  public boolean configureOSC(int xmit, int inport, int outport, int errport, String address) {
     return dsp_faustJNI.DspFaust_configureOSC(swigCPtr, this, xmit, inport, outport, errport, address);
+  }
+
+  public boolean isOSCOn() {
+    return dsp_faustJNI.DspFaust_isOSCOn(swigCPtr, this);
   }
 
   public int getScreenColor() {
