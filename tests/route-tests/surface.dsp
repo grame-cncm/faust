@@ -2,9 +2,8 @@
 
 surface(X,Y) = route(X*Y, X*Y, par(x, X, par(y, Y, neighborhood(X,Y).vonNeumann(x,y) ) ) );
                             
-
 // von Neumann neighborhood (or 4-neighborhood)
-neighborhood(X,Y)= environment {
+neighborhood(X,Y) = environment {
 
     vonNeumann(x,y) =
         (coord(x,y), coord(x+1,y)),
@@ -26,7 +25,6 @@ neighborhood(X,Y)= environment {
 };
 
 process = surface(2,2);
-
 
 /*
 

@@ -208,7 +208,7 @@ EndOfCode
     	echo "\"vendor\": \"Faust\"," >> main.json
     	echo "\"version\": \"1.01\"," >> main.json
     	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
-    	echo "\"thumbnail\": \"\"" >> main.json
+    	echo "\"thumbnail\": \"default.png\"" >> main.json
     	echo "}" >> main.json
     	
         # compose the HTML test page

@@ -167,7 +167,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     virtual std::string getBinaryCode() { return fCode; }
 };
 
-// Backend API
+// Backend API implemented in libcode.cpp
 
 dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* input,
                                       std::string& error_msg, bool generate);
