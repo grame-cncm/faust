@@ -191,6 +191,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
     constructor(options)
     {
         super(options);
+        this.running = true;
         
         this.json_object = JSON.parse(getJSONmydsp());
         if (typeof (getJSONeffect) !== "undefined") {
@@ -668,6 +669,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             // Generic data message
             case "param": this.setParamValue(msg.key, msg.value); break;
             //case "patch": this.onpatch(msg.data); break;
+            case "destroy": this.running = false; break;
         }
     }
   	
@@ -697,12 +699,12 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         var output = outputs[0];
         
         // Check inputs
-        if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+        if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
             //console.log("Process input error");
             return true;
         }
         // Check outputs
-        if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+        if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
             //console.log("Process output error");
             return true;
         }
@@ -714,7 +716,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 dspInput.set(input[chan]);
             }
         }
-         
+       
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
         if (this.compute_handler) {
             this.compute_handler(mydspPolyProcessor.buffer_size);
@@ -757,7 +759,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             }
         }
         
-        return true;
+        return this.running;
     }
 }
 

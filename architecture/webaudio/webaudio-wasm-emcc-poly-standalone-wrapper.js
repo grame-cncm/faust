@@ -250,6 +250,11 @@ class FaustWasm2ScriptProcessorPoly {
             sp.instance.init(audioCtx.sampleRate);
         }
         
+        /**
+         * Stop audio processing.
+         */
+    	sp.stop = () => {}
+        
         sp.getSampleRate = () => audioCtx.sampleRate;   // Return current sample rate
         sp.getNumInputs = () => sp.numIn;               // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.

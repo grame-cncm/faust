@@ -834,6 +834,7 @@
             function deleteDSP()
             {
                 if (DSP) {
+                    DSP.stop();
                     if (audio_input) {
                         audio_input.disconnect(DSP);
                     }

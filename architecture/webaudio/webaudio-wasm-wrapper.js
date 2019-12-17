@@ -978,7 +978,12 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
         /*
      	 Public API to be used to control the DSP.
          */
-
+         
+        /**
+         * Stop audio processing.
+         */
+        sp.stop = function () {}
+	
     	/* Return current sample rate */
     	sp.getSampleRate = function ()
         {
@@ -1303,6 +1308,7 @@ var mydspProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
 
             this.json_object = JSON.parse(getJSONmydsp());
 
@@ -1407,12 +1413,12 @@ var mydspProcessorString = `
 
             this.setParamValue = function (path, val)
             {
-                this.HEAPF32[this.pathTable[path]] = val;
+                this.HEAPF32[this.pathTable[path] >> 2] = val;
             }
 
             this.getParamValue = function (path)
             {
-                return this.HEAPF32[this.pathTable[path]];
+                return this.HEAPF32[this.pathTable[path] >> 2];
             }
 
             // Init resulting DSP
@@ -1425,12 +1431,12 @@ var mydspProcessorString = `
             var output = outputs[0];
 
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
@@ -1442,16 +1448,26 @@ var mydspProcessorString = `
                     dspInput.set(input[chan]);
                 }
             }
+            
+            /*
+            TODO: sample accurate control change is not yet handled
+            When no automation occurs, params[i][1] has a length of 1,
+            otherwise params[i][1] has a length of NUM_FRAMES with possible control change each sample
+            */
 
             // Update controls (possibly needed for sample accurate control)
-            var params = Object.entries(parameters);
-            for (var i = 0; i < params.length; i++) {
-                this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+            for (const path in parameters) {
+            	const paramArray = parameters[path];
+            	this.setParamValue(path, paramArray[0]);
             }
 
-            // Compute
-            this.factory.compute(this.dsp, mydspProcessor.buffer_size, this.ins, this.outs);
-
+           // Compute
+            try {
+                this.factory.compute(this.dsp, mydspProcessor.buffer_size, this.ins, this.outs);
+            } catch(e) {
+                console.log("ERROR in compute (" + e + ")");
+            }
+            
             // Update bargraph
             this.update_outputs();
 
@@ -1463,7 +1479,15 @@ var mydspProcessorString = `
                 }
             }
 
-            return true;
+            return this.running;
+        }
+        
+        handleMessage(event)
+        {
+            var msg = event.data;
+            switch (msg.type) {
+                case "destroy": this.running = false; break;
+            }
         }
     }
 
@@ -1653,6 +1677,8 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 
     // Call init
     audio_node.init();
+    
+    audio_node.stop = function() { this.port.postMessage({ type: "destroy" }); }
 
     audio_node.getJSON = function() { return factory.getJSON(); }
     
@@ -2249,6 +2275,11 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     /*
      Public API to be used to control the DSP.
      */
+     
+    /**
+     * Stop audio processing.
+     */
+    sp.stop = function () {}
 
     /* Return current sample rate. */
     sp.getSampleRate = function ()
@@ -2885,6 +2916,7 @@ var mydspPolyProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
 
             this.json_object = JSON.parse(getJSONmydsp());
             if (getJSONeffect() !== "") {
@@ -3359,6 +3391,7 @@ var mydspPolyProcessorString = `
                 // Generic data message
                 case "param": this.setParamValue(msg.key, msg.value); break;
                 //case "patch": this.onpatch(msg.data); break;
+                case "destroy": this.running = false; break;
             }
         }
 
@@ -3388,12 +3421,12 @@ var mydspPolyProcessorString = `
             var output = outputs[0];
 
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
@@ -3444,7 +3477,7 @@ var mydspPolyProcessorString = `
                 }
             }
 
-            return true;
+            return this.running;
         }
     }
 
@@ -3556,6 +3589,8 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
 
     // Calls init
     audio_node.init();
+    
+    audio_node.stop = function() { this.port.postMessage({ type: "destroy" }); }
 
     audio_node.getJSON = function()
     {
