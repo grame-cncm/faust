@@ -29,7 +29,7 @@ A full JSON description of the node with the complete UI, can be retrieved with:
 
     var json = node.getJSON(); 
 
-The complete usable API is fully documented in the generated JavaScript file in the *Public API* section.
+The complete usable API is fully documented in the generated JavaScript file in the *Public API* section. **To properly deallocate ressources at the end of its life, be sure to call the *destroy* function on the node.**
 
 ### A simple example Web page
 

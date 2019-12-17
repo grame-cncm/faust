@@ -225,6 +225,13 @@ class FaustWasm2ScriptProcessor {
             sp.factory.init(sp.dsp, audioCtx.sampleRate);
         }
         
+        // Public API
+        
+        /**
+         * Destroy the node, deallocate resources.
+         */
+        sp.destroy = () => {}
+        
         sp.getSampleRate = () => audioCtx.sampleRate;   // Return current sample rate
         sp.getNumInputs = () => sp.numIn;               // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.    

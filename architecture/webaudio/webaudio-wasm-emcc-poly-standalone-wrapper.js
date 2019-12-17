@@ -250,14 +250,17 @@ class FaustWasm2ScriptProcessorPoly {
             sp.instance.init(audioCtx.sampleRate);
         }
         
+        // Public API
+        
         /**
-         * Stop audio processing.
+         * Destroy the node, deallocate resources.
          */
-    	sp.stop = () => {}
+    	sp.destroy = () => {}
         
         sp.getSampleRate = () => audioCtx.sampleRate;   // Return current sample rate
         sp.getNumInputs = () => sp.numIn;               // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.
+        
         /**
          * Global init, doing the following initialization:
          * - static tables initialization
@@ -273,6 +276,7 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} sampleRate - the sampling rate in Hertz
          */
         sp.instanceInit = sampleRate => sp.instance.instanceInit(sampleRate);
+        
         /**
         * Init instance constant state.
         *
@@ -296,6 +300,7 @@ class FaustWasm2ScriptProcessorPoly {
                 this.json_object.meta.forEach(meta => handler.declare(Object.keys(meta)[0], Object.values(meta)[0]));
             }
         }
+        
         /**
          * Setup a control output handler with a function of type (path, value)
          * to be used on each generated output value. This handler will be called
@@ -303,10 +308,12 @@ class FaustWasm2ScriptProcessorPoly {
          *
          * @param {{ declare: (string, any) => any }} handler - a function of type function(path, value)
          */
+         
         sp.setOutputParamHandler = handler => sp.output_handler = handler;
         /**
          * Get the current output handler.
          */
+         
         sp.getOutputParamHandler = () => sp.output_handler;
         /**
          * Instantiates a new polyphonic voice.
@@ -315,6 +322,7 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} pitch - the MIDI pitch (0..127)
          * @param {number} velocity - the MIDI velocity (0..127)
          */
+         
         sp.keyOn = (channel, pitch, velocity) => { sp.instance.keyOn(channel, pitch, velocity); }
         /**
          * De-instantiates a polyphonic voice.
@@ -323,10 +331,12 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} pitch - the MIDI pitch (0..127)
          * @param {number} velocity - the MIDI velocity (0..127)
          */
+         
         sp.keyOff = (channel, pitch, velocity) => { sp.instance.keyOff(channel, pitch, velocity); }
         /**
          * Gently terminates all the active voices. TODO
          */
+         
         sp.allNotesOff = () => {}
         /**
          * Control change
@@ -335,6 +345,7 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} ctrl - the MIDI controller number (0..127)
          * @param {number} value - the MIDI controller value (0..127)
          */
+         
         sp.ctrlChange = (channel, ctrl, value) => { sp.instance.ctrlChange(channel, ctrl, value); }
         /**
          * PitchWeel
@@ -342,6 +353,7 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} channel - the MIDI channel (0..15, not used for now)
          * @param {number} value - the MIDI controller value (-1..1)
          */
+         
         sp.pitchWheel = (channel, wheel) => { sp.instance.pitchWheel(channel, wheel); }
        
         /**
@@ -350,6 +362,7 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {string} path - the path to the wanted control (retrieved using 'getParams' method)
          * @param {number} val - the float value for the wanted parameter
          */
+         
         sp.setParamValue = (path, val) => { sp.instance.setParamValue(path, parseFloat(val)); }
         /**
          * Get control value.
@@ -358,18 +371,21 @@ class FaustWasm2ScriptProcessorPoly {
          *
          * @return {number} the float value
          */
+         
         sp.getParamValue = path => { return sp.instance.getParamValue(path); }
         /**
          * Get the table of all input parameters paths.
          *
          * @return {object} the table of all input parameter paths.
          */
+         
         sp.getParams = () => sp.inputs_items;
         /**
          * Get DSP JSON description with its UI and metadata
          *
          * @return {string} DSP JSON description
          */
+         
         sp.getJSON = () => { return this.json; }
         /**
          * Set a compute handler to be called each audio cycle
@@ -377,6 +393,7 @@ class FaustWasm2ScriptProcessorPoly {
          *
          * @param {(bufferSize: number) => any} handler - a function of type function(buffer_size)
          */
+         
         sp.setComputeHandler = handler => sp.compute_handler = handler;
         /**
          * Get the current compute handler.

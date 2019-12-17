@@ -1,13 +1,13 @@
 
 /*
-Code generated with Faust version 2.20.2
+Code generated with Faust version 2.20.3
 Compilation options: -lang wasm-ib -scal -ftz 2
 */
 
 function getJSONosc() {
-	return '{"name": "osc","filename": "osc.dsp","version": "2.20.2","compile_options": "-lang wasm-ib -scal -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/oscillators.lib","/usr/local/share/faust/maths.lib","/usr/local/share/faust/basics.lib","/usr/local/share/faust/signals.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 262184,"inputs": 0,"outputs": 1,"meta": [ { "author": "Grame" },{ "basics.lib/name": "Faust Basic Element Library" },{ "basics.lib/version": "0.1" },{ "copyright": "(c)GRAME 2009" },{ "filename": "osc.dsp" },{ "license": "BSD" },{ "maths.lib/author": "GRAME" },{ "maths.lib/copyright": "GRAME" },{ "maths.lib/license": "LGPL with exception" },{ "maths.lib/name": "Faust Math Library" },{ "maths.lib/version": "2.1" },{ "name": "osc" },{ "oscillators.lib/name": "Faust Oscillator Library" },{ "oscillators.lib/version": "0.0" },{ "signals.lib/name": "Faust Signal Routing Library" },{ "signals.lib/version": "0.0" },{ "version": "1.0" }],"ui": [ {"type": "vgroup","label": "Oscillator","items": [ {"type": "hslider","label": "freq","address": "/Oscillator/freq","index": 262164,"meta": [{ "unit": "Hz" }],"init": 1000,"min": 20,"max": 24000,"step": 1},{"type": "hslider","label": "volume","address": "/Oscillator/volume","index": 262144,"meta": [{ "unit": "dB" }],"init": 0,"min": -96,"max": 0,"step": 0.1}]}]}';
+	return '{"name": "osc","filename": "osc.dsp","version": "2.20.3","compile_options": "-lang wasm-ib -scal -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/oscillators.lib","/usr/local/share/faust/maths.lib","/usr/local/share/faust/basics.lib","/usr/local/share/faust/signals.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 262184,"inputs": 0,"outputs": 1,"meta": [ { "author": "Grame" },{ "basics.lib/name": "Faust Basic Element Library" },{ "basics.lib/version": "0.1" },{ "copyright": "(c)GRAME 2009" },{ "filename": "osc.dsp" },{ "license": "BSD" },{ "maths.lib/author": "GRAME" },{ "maths.lib/copyright": "GRAME" },{ "maths.lib/license": "LGPL with exception" },{ "maths.lib/name": "Faust Math Library" },{ "maths.lib/version": "2.1" },{ "name": "osc" },{ "oscillators.lib/name": "Faust Oscillator Library" },{ "oscillators.lib/version": "0.0" },{ "signals.lib/name": "Faust Signal Routing Library" },{ "signals.lib/version": "0.0" },{ "version": "1.0" }],"ui": [ {"type": "vgroup","label": "Oscillator","items": [ {"type": "hslider","label": "freq","address": "/Oscillator/freq","index": 262164,"meta": [{ "unit": "Hz" }],"init": 1000,"min": 20,"max": 24000,"step": 1},{"type": "hslider","label": "volume","address": "/Oscillator/volume","index": 262144,"meta": [{ "unit": "dB" }],"init": 0,"min": -96,"max": 0,"step": 0.1}]}]}';
 }
-function getBase64Codeosc() { return "AGFzbQEAAAAB1oCAgAAQYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gAn19AX1gA39/fQBgAX0BfQKZgICAAAIDZW52BV9wb3dmAA0DZW52BV9zaW5mAA8Dj4CAgAAOAAECAwQFBgcICQoLDA4FjICAgAABAYiAgIAA8IeAgAAHuoGAgAAMB2NvbXB1dGUAAwxnZXROdW1JbnB1dHMABA1nZXROdW1PdXRwdXRzAAUNZ2V0UGFyYW1WYWx1ZQAGDWdldFNhbXBsZVJhdGUABwRpbml0AAgNaW5zdGFuY2VDbGVhcgAJEWluc3RhbmNlQ29uc3RhbnRzAAoMaW5zdGFuY2VJbml0AAsaaW5zdGFuY2VSZXNldFVzZXJJbnRlcmZhY2UADA1zZXRQYXJhbVZhbHVlAA8GbWVtb3J5AgAKlIaAgAAOkYGAgAABAn9BACEDQQAhAkEAIQIDQAJAQaCAECACQQJ0akEANgIAIAJBAWohAiACQQJIBEAMAgwBCwsLQQAhAwNAAkBBAEEAKAKkgBBBAWo2AqCAECADQQJ0Q9sPyThBACgCoIAQQX9qspQQATgCAEEAQQAoAqCAEDYCpIAQIANBAWohAyADQYCABEgEQAwCDAELCwsLo4KAgAACAn8EfUEAIQRDAAAAACEGQwAAAAAhB0EAIQVDAAAAACEIQwAAAAAhCSADQQBqKAIAIQRDbxKDOkMAACBBQ83MTD1BACoCgIAQlBAAlCEGQQAqApCAEEEAKgKUgBCUIQdBACEFA0ACQCAGQ3e+fz9BACoCiIAQlJIhCEEAIAi8QYCAgPwHcQR9IAgFQwAAAAALOAKEgBAgB0EAKgKcgBAgB0EAKgKcgBCSjpOSIQlBACAJvEGAgID8B3EEfSAJBUMAAAAACzgCmIAQIAQgBWpBACoChIAQQwAAgEdBACoCmIAQlKhBAnQqAgCUOAIAQQBBACoChIAQOAKIgBBBAEEAKgKYgBA4ApyAECAFQQRqIQUgBUEEIAFsSARADAIMAQsLCwuFgICAAABBAA8LhYCAgAAAQQEPC4uAgIAAACAAIAFqKgIADwuKgICAAABBACgCjIAQDwuOgICAAAAgACABEAIgACABEAsL6oCAgAABAn9BACEBQQAhAkEAIQEDQAJAQYSAECABQQJ0akMAAAAAOAIAIAFBAWohASABQQJIBEAMAgwBCwsLQQAhAgNAAkBBmIAQIAJBAnRqQwAAAAA4AgAgAkEBaiECIAJBAkgEQAwCDAELCwsLrICAgAAAQQAgATYCjIAQQQBDAACAP0MAgDtIQwAAgD9BACgCjIAQspeWlTgCkIAQC5CAgIAAACAAIAEQCiAAEAwgABAJC5qAgIAAAEEAQwAAAAA4AoCAEEEAQwAAekQ4ApSAEAuQgICAAAAgACABSAR/IAEFIAALDwuQgICAAAAgACABSAR/IAAFIAELDwuMgICAAAAgACABaiACOAIACwvNi4CAAAEAQQALxgt7Im5hbWUiOiAib3NjIiwiZmlsZW5hbWUiOiAib3NjLmRzcCIsInZlcnNpb24iOiAiMi4yMC4yIiwiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLXNjYWwgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvb3NjaWxsYXRvcnMubGliIiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdC9tYXRocy5saWIiLCIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L2Jhc2ljcy5saWIiLCIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3NpZ25hbHMubGliIl0sImluY2x1ZGVfcGF0aG5hbWVzIjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0IiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3Ivc2hhcmUvZmF1c3QiLCIuIiwiL0RvY3VtZW50cy9mYXVzdC1naXRodWItZmF1c3QyL2FyY2hpdGVjdHVyZS93ZWJhdWRpbyJdLCJzaXplIjogMjYyMTg0LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiYXV0aG9yIjogIkdyYW1lIiB9LHsgImJhc2ljcy5saWIvbmFtZSI6ICJGYXVzdCBCYXNpYyBFbGVtZW50IExpYnJhcnkiIH0seyAiYmFzaWNzLmxpYi92ZXJzaW9uIjogIjAuMSIgfSx7ICJjb3B5cmlnaHQiOiAiKGMpR1JBTUUgMjAwOSIgfSx7ICJmaWxlbmFtZSI6ICJvc2MuZHNwIiB9LHsgImxpY2Vuc2UiOiAiQlNEIiB9LHsgIm1hdGhzLmxpYi9hdXRob3IiOiAiR1JBTUUiIH0seyAibWF0aHMubGliL2NvcHlyaWdodCI6ICJHUkFNRSIgfSx7ICJtYXRocy5saWIvbGljZW5zZSI6ICJMR1BMIHdpdGggZXhjZXB0aW9uIiB9LHsgIm1hdGhzLmxpYi9uYW1lIjogIkZhdXN0IE1hdGggTGlicmFyeSIgfSx7ICJtYXRocy5saWIvdmVyc2lvbiI6ICIyLjEiIH0seyAibmFtZSI6ICJvc2MiIH0seyAib3NjaWxsYXRvcnMubGliL25hbWUiOiAiRmF1c3QgT3NjaWxsYXRvciBMaWJyYXJ5IiB9LHsgIm9zY2lsbGF0b3JzLmxpYi92ZXJzaW9uIjogIjAuMCIgfSx7ICJzaWduYWxzLmxpYi9uYW1lIjogIkZhdXN0IFNpZ25hbCBSb3V0aW5nIExpYnJhcnkiIH0seyAic2lnbmFscy5saWIvdmVyc2lvbiI6ICIwLjAiIH0seyAidmVyc2lvbiI6ICIxLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIk9zY2lsbGF0b3IiLCJpdGVtcyI6IFsgeyJ0eXBlIjogImhzbGlkZXIiLCJsYWJlbCI6ICJmcmVxIiwiYWRkcmVzcyI6ICIvT3NjaWxsYXRvci9mcmVxIiwiaW5kZXgiOiAyNjIxNjQsIm1ldGEiOiBbeyAidW5pdCI6ICJIeiIgfV0sImluaXQiOiAxMDAwLCJtaW4iOiAyMCwibWF4IjogMjQwMDAsInN0ZXAiOiAxfSx7InR5cGUiOiAiaHNsaWRlciIsImxhYmVsIjogInZvbHVtZSIsImFkZHJlc3MiOiAiL09zY2lsbGF0b3Ivdm9sdW1lIiwiaW5kZXgiOiAyNjIxNDQsIm1ldGEiOiBbeyAidW5pdCI6ICJkQiIgfV0sImluaXQiOiAwLCJtaW4iOiAtOTYsIm1heCI6IDAsInN0ZXAiOiAwLjF9XX1dfQ=="; }
+function getBase64Codeosc() { return "AGFzbQEAAAAB1oCAgAAQYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gAn19AX1gA39/fQBgAX0BfQKZgICAAAIDZW52BV9wb3dmAA0DZW52BV9zaW5mAA8Dj4CAgAAOAAECAwQFBgcICQoLDA4FjICAgAABAYiAgIAA8IeAgAAHuoGAgAAMB2NvbXB1dGUAAwxnZXROdW1JbnB1dHMABA1nZXROdW1PdXRwdXRzAAUNZ2V0UGFyYW1WYWx1ZQAGDWdldFNhbXBsZVJhdGUABwRpbml0AAgNaW5zdGFuY2VDbGVhcgAJEWluc3RhbmNlQ29uc3RhbnRzAAoMaW5zdGFuY2VJbml0AAsaaW5zdGFuY2VSZXNldFVzZXJJbnRlcmZhY2UADA1zZXRQYXJhbVZhbHVlAA8GbWVtb3J5AgAKlIaAgAAOkYGAgAABAn9BACEDQQAhAkEAIQIDQAJAQaCAECACQQJ0akEANgIAIAJBAWohAiACQQJIBEAMAgwBCwsLQQAhAwNAAkBBAEEAKAKkgBBBAWo2AqCAECADQQJ0Q9sPyThBACgCoIAQQX9qspQQATgCAEEAQQAoAqCAEDYCpIAQIANBAWohAyADQYCABEgEQAwCDAELCwsLo4KAgAACAn8EfUEAIQRDAAAAACEGQwAAAAAhB0EAIQVDAAAAACEIQwAAAAAhCSADQQBqKAIAIQRDbxKDOkMAACBBQ83MTD1BACoCgIAQlBAAlCEGQQAqApCAEEEAKgKUgBCUIQdBACEFA0ACQCAGQ3e+fz9BACoCiIAQlJIhCEEAIAi8QYCAgPwHcQR9IAgFQwAAAAALOAKEgBAgB0EAKgKcgBAgB0EAKgKcgBCSjpOSIQlBACAJvEGAgID8B3EEfSAJBUMAAAAACzgCmIAQIAQgBWpBACoChIAQQwAAgEdBACoCmIAQlKhBAnQqAgCUOAIAQQBBACoChIAQOAKIgBBBAEEAKgKYgBA4ApyAECAFQQRqIQUgBUEEIAFsSARADAIMAQsLCwuFgICAAABBAA8LhYCAgAAAQQEPC4uAgIAAACAAIAFqKgIADwuKgICAAABBACgCjIAQDwuOgICAAAAgACABEAIgACABEAsL6oCAgAABAn9BACEBQQAhAkEAIQEDQAJAQYSAECABQQJ0akMAAAAAOAIAIAFBAWohASABQQJIBEAMAgwBCwsLQQAhAgNAAkBBmIAQIAJBAnRqQwAAAAA4AgAgAkEBaiECIAJBAkgEQAwCDAELCwsLrICAgAAAQQAgATYCjIAQQQBDAACAP0MAgDtIQwAAgD9BACgCjIAQspeWlTgCkIAQC5CAgIAAACAAIAEQCiAAEAwgABAJC5qAgIAAAEEAQwAAAAA4AoCAEEEAQwAAekQ4ApSAEAuQgICAAAAgACABSAR/IAEFIAALDwuQgICAAAAgACABSAR/IAAFIAELDwuMgICAAAAgACABaiACOAIACwvNi4CAAAEAQQALxgt7Im5hbWUiOiAib3NjIiwiZmlsZW5hbWUiOiAib3NjLmRzcCIsInZlcnNpb24iOiAiMi4yMC4zIiwiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLXNjYWwgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvb3NjaWxsYXRvcnMubGliIiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdC9tYXRocy5saWIiLCIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L2Jhc2ljcy5saWIiLCIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3NpZ25hbHMubGliIl0sImluY2x1ZGVfcGF0aG5hbWVzIjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0IiwiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3Ivc2hhcmUvZmF1c3QiLCIuIiwiL0RvY3VtZW50cy9mYXVzdC1naXRodWItZmF1c3QyL2FyY2hpdGVjdHVyZS93ZWJhdWRpbyJdLCJzaXplIjogMjYyMTg0LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiYXV0aG9yIjogIkdyYW1lIiB9LHsgImJhc2ljcy5saWIvbmFtZSI6ICJGYXVzdCBCYXNpYyBFbGVtZW50IExpYnJhcnkiIH0seyAiYmFzaWNzLmxpYi92ZXJzaW9uIjogIjAuMSIgfSx7ICJjb3B5cmlnaHQiOiAiKGMpR1JBTUUgMjAwOSIgfSx7ICJmaWxlbmFtZSI6ICJvc2MuZHNwIiB9LHsgImxpY2Vuc2UiOiAiQlNEIiB9LHsgIm1hdGhzLmxpYi9hdXRob3IiOiAiR1JBTUUiIH0seyAibWF0aHMubGliL2NvcHlyaWdodCI6ICJHUkFNRSIgfSx7ICJtYXRocy5saWIvbGljZW5zZSI6ICJMR1BMIHdpdGggZXhjZXB0aW9uIiB9LHsgIm1hdGhzLmxpYi9uYW1lIjogIkZhdXN0IE1hdGggTGlicmFyeSIgfSx7ICJtYXRocy5saWIvdmVyc2lvbiI6ICIyLjEiIH0seyAibmFtZSI6ICJvc2MiIH0seyAib3NjaWxsYXRvcnMubGliL25hbWUiOiAiRmF1c3QgT3NjaWxsYXRvciBMaWJyYXJ5IiB9LHsgIm9zY2lsbGF0b3JzLmxpYi92ZXJzaW9uIjogIjAuMCIgfSx7ICJzaWduYWxzLmxpYi9uYW1lIjogIkZhdXN0IFNpZ25hbCBSb3V0aW5nIExpYnJhcnkiIH0seyAic2lnbmFscy5saWIvdmVyc2lvbiI6ICIwLjAiIH0seyAidmVyc2lvbiI6ICIxLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIk9zY2lsbGF0b3IiLCJpdGVtcyI6IFsgeyJ0eXBlIjogImhzbGlkZXIiLCJsYWJlbCI6ICJmcmVxIiwiYWRkcmVzcyI6ICIvT3NjaWxsYXRvci9mcmVxIiwiaW5kZXgiOiAyNjIxNjQsIm1ldGEiOiBbeyAidW5pdCI6ICJIeiIgfV0sImluaXQiOiAxMDAwLCJtaW4iOiAyMCwibWF4IjogMjQwMDAsInN0ZXAiOiAxfSx7InR5cGUiOiAiaHNsaWRlciIsImxhYmVsIjogInZvbHVtZSIsImFkZHJlc3MiOiAiL09zY2lsbGF0b3Ivdm9sdW1lIiwiaW5kZXgiOiAyNjIxNDQsIm1ldGEiOiBbeyAidW5pdCI6ICJkQiIgfV0sImluaXQiOiAwLCJtaW4iOiAtOTYsIm1heCI6IDAsInN0ZXAiOiAwLjF9XX1dfQ=="; }
 
 /*
  faust2wasm: GRAME 2017-2019
@@ -115,6 +115,9 @@ class oscNode extends AudioWorkletNode {
 
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
+        try {
+            if (this.parameters) this.parameters.forEach(p => p.automationRate = "k-rate");
+        } catch (e) {}
     }
 
     // To be called by the message port with messages coming from the processor
@@ -127,6 +130,15 @@ class oscNode extends AudioWorkletNode {
     }
 
     // Public API
+    
+    /**
+     * Destroy the node, deallocate resources.
+     */
+    destroy()
+    {
+        this.port.postMessage({ type: "destroy" });
+        this.port.close();
+    }
 
     /**
      *  Returns a full JSON description of the DSP.
@@ -492,8 +504,8 @@ class osc {
             });
             
         } catch (e) {
-            this.error(e);
-            this.error("Faust " + this.name + " cannot be loaded or compiled");
+            console.error(e);
+            console.error("Faust " + this.name + " cannot be loaded or compiled");
             return null;
         }
     	
@@ -622,6 +634,7 @@ let oscProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
             
             const importObject = {
                     env: {
@@ -792,18 +805,16 @@ let oscProcessorString = `
 
             this.setParamValue = function (path, val)
             {
-                this.HEAPF32[this.pathTable[path]] = val;
+                this.HEAPF32[this.pathTable[path] >> 2] = val;
             }
 
             this.getParamValue = function (path)
             {
-                return this.HEAPF32[this.pathTable[path]];
+                return this.HEAPF32[this.pathTable[path] >> 2];
             }
 
             // Init resulting DSP
             this.initAux();
-            
-            console.log(this);
         }
         
         process(inputs, outputs, parameters) 
@@ -812,19 +823,19 @@ let oscProcessorString = `
             var output = outputs[0];
             
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
             
             // Copy inputs
             if (input !== undefined) {
-                for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
+                for (var chan = 0; chan < Math.min(this.numIn, input.length); ++chan) {
                     var dspInput = this.dspInChannnels[chan];
                     dspInput.set(input[chan]);
                 }
@@ -837,11 +848,11 @@ let oscProcessorString = `
             */
             
             // Update controls
-            var params = Object.entries(parameters);
-            for (var i = 0; i < params.length; i++) {
-                this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+            for (const path in parameters) {
+                const paramArray = parameters[path];
+                this.setParamValue(path, paramArray[0]);
             }
-            
+        
           	// Compute
             try {
                 this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
@@ -860,7 +871,15 @@ let oscProcessorString = `
                 }
             }
             
-            return true;
+            return this.running;
+    	}
+        
+        handleMessage(event)
+        {
+            var msg = event.data;
+            switch (msg.type) {
+                case "destroy": this.running = false; break;
+            }
         }
     }
 
@@ -873,10 +892,13 @@ let oscProcessorString = `
     }
 `;
 
+const dspName = "osc";
+
 // WAP factory or npm package module
 if (typeof module === "undefined") {
     window.osc = osc;
     window.Faustosc = osc;
+    window[dspName] = osc;
 } else {
     module.exports = { osc };
 }

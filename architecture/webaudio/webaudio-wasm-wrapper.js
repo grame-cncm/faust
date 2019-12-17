@@ -337,7 +337,6 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         faust.cleanupAfterException();
         return null;
     }
-
 }
 
 faust.createDSPFactoryAux = function (code, argv, internal_memory, callback)
@@ -807,7 +806,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
         sp.ptr_size = 4;
         sp.sample_size = 4;
 
-        // Start of DSP memory : DSP is placed first with index 0
+        // Start of DSP memory: DSP is placed first with index 0
         sp.dsp = 0;
 
         sp.pathTable = [];
@@ -974,15 +973,13 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
             // Init DSP
             sp.factory.init(sp.dsp, context.sampleRate);
 	    }
-
-        /*
-     	 Public API to be used to control the DSP.
-         */
+	    
+	    // Public API
          
-        /**
-         * Stop audio processing.
-         */
-        sp.stop = function () {}
+       /**
+        * Destroy the node, deallocate resources.
+        */
+        sp.destroy = function () {}
 	
     	/* Return current sample rate */
     	sp.getSampleRate = function ()
@@ -1678,7 +1675,9 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     // Call init
     audio_node.init();
     
-    audio_node.stop = function() { this.port.postMessage({ type: "destroy" }); }
+    // Public API
+    
+    audio_node.destroy = function() { this.port.postMessage({ type: "destroy" }); this.port.close(); }
 
     audio_node.getJSON = function() { return factory.getJSON(); }
     
@@ -2271,15 +2270,13 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             sp.effect.init(sp.effect_start, context.sampleRate);
         }
     }
-
-    /*
-     Public API to be used to control the DSP.
-     */
+    
+    // Public API
      
     /**
-     * Stop audio processing.
+     * Destroy the node, deallocate resources.
      */
-    sp.stop = function () {}
+    sp.destroy = function () {}
 
     /* Return current sample rate. */
     sp.getSampleRate = function ()
@@ -3590,7 +3587,9 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
     // Calls init
     audio_node.init();
     
-    audio_node.stop = function() { this.port.postMessage({ type: "destroy" }); }
+    // Public API
+    
+    audio_node.destroy = function() { this.port.postMessage({ type: "destroy" }); this.port.close(); }
 
     audio_node.getJSON = function()
     {

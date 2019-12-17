@@ -98,11 +98,12 @@ class mydspPolyNode extends AudioWorkletNode {
     // Public API
     
     /**
-     *  Stop audio processing and destroy the AWP
+     * Destroy the node, deallocate resources.
      */
-	stop()
+	destroy()
 	{
-		this.port.postMessage({ type: "destroy" });
+        this.port.postMessage({ type: "destroy" });
+        this.port.close();
 	}
 
     /**
