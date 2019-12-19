@@ -1,4 +1,4 @@
-% man(1) Version 2.20.3 (18-December-2019) | Faust man page
+% man(1) Version 2.21.0 (19-December-2019) | Faust man page
 
 NAME
 ====
@@ -173,7 +173,9 @@ Debug options:
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
-  **-ct**         **--check-table**               check table index range.
+  **-ct**         **--check-table**               check table index range and fails.
+
+  **-cta**        **--check-table-all**           check all table index range.
 
 
 Information options:

@@ -1,5 +1,5 @@
 #
-# Makefile for testing the faust compiler output
+# Makefile for testing the Faust compiler output
 #
 
 system := $(shell uname -s)

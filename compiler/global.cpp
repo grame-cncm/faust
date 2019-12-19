@@ -142,7 +142,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDSPStruct  = false;
     gLightMode  = false;
     gClang      = false;
-    gCheckTable = false;
+    gCheckTable = "";
 
     gClassName      = "mydsp";
     gSuperClassName = "dsp";

@@ -77,7 +77,7 @@ static void testSOUL(const string& filename, int argc1, const char* argv1[])
 {
     // Faust => SOUL compilation
     faust_soul_parser parser;
-    if (!parser.generateSOULFile(filename, FAUST_FILE)) {
+    if (!parser.generateSOULFile(filename, FAUST_FILE, argc1, argv1)) {
         cerr << "ERROR : file '" << filename << "' cannot be opened or compiled! \n";
         exit(-1);
     }

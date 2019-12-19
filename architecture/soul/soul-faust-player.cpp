@@ -59,11 +59,17 @@ int main(int argc, char* argv[])
     char* filename = argv[argc-1];
     string real_file;
     
+    int argc1 = 0;
+    const char* argv1[64];
+    for (int i = 1; i < argc-1; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    
     if (endWith(filename, ".dsp")) {
         
         // We have a pure Faust file, compile it to SOUL
         faust_soul_parser parser;
-        if (!parser.generateSOULFile(filename, FAUST_FILE)) {
+        if (!parser.generateSOULFile(filename, FAUST_FILE, argc1, argv1)) {
             cerr << "ERROR : file '" << filename << "' cannot be opened or compiled!\n";
             exit(-1);
         }
@@ -76,7 +82,7 @@ int main(int argc, char* argv[])
         
         // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
         faust_soul_parser parser;
-        if (!parser.parseSOULFile(filename, HYBRID_FILE)) {
+        if (!parser.parseSOULFile(filename, HYBRID_FILE, argc1, argv1)) {
             cerr << "ERROR : file '" << filename << "' cannot be opened or compiled!\n";
             exit(-1);
         }

@@ -335,13 +335,13 @@ class FBCInterpreter : public FBCExecutor<T> {
              || (fRealHeap[index] == T(DUMMY_REAL)))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
-                std::cout << "assertLoadRealHeap array: fIntHeapSize ";
+                std::cout << "assertLoadRealHeap array: fRealHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
                 std::cout << " size " << size;
                 std::cout << " value " << fRealHeap[index];
                 std::cout << " name " << (*it)->fName << std::endl;
             } else {
-                std::cout << "assertLoadRealHeap scalar: fIntHeapSize ";
+                std::cout << "assertLoadRealHeap scalar: fRealHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << index;
                 std::cout << " name " << (*it)->fName << std::endl;
             }

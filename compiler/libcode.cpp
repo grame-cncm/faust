@@ -610,7 +610,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
             
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
-            gGlobal->gCheckTable = true;
+            gGlobal->gCheckTable = "ct";
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-cat", "--check-all-table")) {
+            gGlobal->gCheckTable = "cat";
             i += 1;
 
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
@@ -921,7 +925,8 @@ static void printHelp()
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check table index range." << endl;
+    cout << tab << "-ct         --check-table               check table index range and fails." << endl;
+    cout << tab << "-cat        --check-all-table           check all table index range." << endl;
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
@@ -1246,6 +1251,7 @@ static void injectCode(unique_ptr<ifstream>& enrobage, ostream& dst)
             throw faustexception(error.str());
         } else {
             streamCopyUntil(*enrobage.get(), dst, "<<includeIntrinsic>>");
+            container->printMacros(dst, 0);
             streamCopyUntil(*enrobage.get(), dst, "<<includeclass>>");
             streamCopyUntilEnd(*injcode.get(), dst);
             streamCopyUntilEnd(*enrobage.get(), dst);

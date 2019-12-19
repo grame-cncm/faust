@@ -568,20 +568,23 @@ class faust_soul_parser  {
             return faust_blocks;
         }
     
-        std::string generateSOULBlock(const std::string& name, const std::string& code)
+        std::string generateSOULBlock(const std::string& name, const std::string& code, int argc, const char* argv[])
         {
-            int argc = 0;
-            const char* argv[16];
-            argv[argc++] = "-lang";
-            argv[argc++] = "soul";
-            argv[argc++] = "-cn";
-            argv[argc++] = name.c_str();
-            argv[argc++] = "-o";
-            argv[argc++] = "/var/tmp/exp.soul";
-            argv[argc] = nullptr;  // NULL terminated argv
+            int argc1 = 0;
+            const char* argv1[64];
+            argv1[argc1++] = "-lang";
+            argv1[argc1++] = "soul";
+            argv1[argc1++] = "-cn";
+            argv1[argc1++] = name.c_str();
+            argv1[argc1++] = "-o";
+            argv1[argc1++] = "/var/tmp/exp.soul";
+            for (int i = 0; i < argc; i++) {
+                argv1[argc1++] = argv[i];
+            }
+            argv1[argc1] = nullptr;  // NULL terminated argv
             
             std::string error_msg;
-            bool res = generateAuxFilesFromString(name, code, argc, argv, error_msg);
+            bool res = generateAuxFilesFromString(name, code, argc1, argv1, error_msg);
             
             if (res) {
                 std::ifstream soul_file("/var/tmp/exp.soul");
@@ -601,7 +604,7 @@ class faust_soul_parser  {
         ~faust_soul_parser()
         {}
  
-        bool parseSOULFile(const std::string& input, const std::string& output)
+        bool parseSOULFile(const std::string& input, const std::string& output, int argc, const char* argv[])
         {
             std::ifstream reader(input.c_str());
             if (reader.is_open()) {
@@ -615,7 +618,7 @@ class faust_soul_parser  {
                 
                 // Write all Faust blocks translated to SOUL
                 for (auto& it : faust_blocks) {
-                    std::string block = generateSOULBlock(it.first, it.second);
+                    std::string block = generateSOULBlock(it.first, it.second, argc, argv);
                     if (block == "") return false;
                     output_file << block;
                 }
@@ -630,18 +633,21 @@ class faust_soul_parser  {
             }
         }
     
-        bool generateSOULFile(const std::string& input, const std::string& output)
+        bool generateSOULFile(const std::string& input, const std::string& output, int argc, const char* argv[])
         {
-            int argc = 0;
-            const char* argv[16];
-            argv[argc++] = "-lang";
-            argv[argc++] = "soul";
-            argv[argc++] = "-o";
-            argv[argc++] = output.c_str();
-            argv[argc] = nullptr;  // NULL terminated argv
+            int argc1 = 0;
+            const char* argv1[64];
+            argv1[argc1++] = "-lang";
+            argv1[argc1++] = "soul";
+            argv1[argc1++] = "-o";
+            argv1[argc1++] = output.c_str();
+            for (int i = 0; i < argc; i++) {
+                argv1[argc1++] = argv[i];
+            }
+            argv1[argc1] = nullptr;  // NULL terminated argv
             
             std::string error_msg;
-            bool res = generateAuxFilesFromFile(input, argc, argv, error_msg);
+            bool res = generateAuxFilesFromFile(input, argc1, argv1, error_msg);
             if (!res) {
                 std::cerr << "ERROR : generateAuxFilesFromFile " << error_msg;
             }

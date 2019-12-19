@@ -162,8 +162,6 @@ class CodeContainer : public virtual Garbageable {
         dst << "\n------------------------------------------------------------ */" << endl;
     }
 
-    void printMacros(ostream& fout, int n);
-
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
@@ -179,6 +177,8 @@ class CodeContainer : public virtual Garbageable {
     CodeContainer();
     void initialize(int numInputs, int numOutputs);
     virtual ~CodeContainer();
+    
+    void printMacros(ostream& fout, int n);
 
     CodeLoop* getCurLoop() { return fCurLoop; }
 

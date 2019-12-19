@@ -23,6 +23,10 @@
 #ifndef LLVM_DSP_ADAPTER_H
 #define LLVM_DSP_ADAPTER_H
 
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 #include "faust/gui/JSONUIDecoder.h"
 
 /*
@@ -111,7 +115,11 @@ class mydsp : public dsp {
     
         virtual void instanceResetUserInterface()
         {
+        #if defined(SOUNDFILE)
             fDecoder->resetUserInterface(fDSP, defaultsound);
+        #else
+            fDecoder->resetUserInterface(fDSP, nullptr);
+        #endif
         }
     
         virtual void instanceClear()

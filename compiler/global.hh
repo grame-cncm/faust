@@ -144,7 +144,7 @@ struct global {
     bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
                       // for JavaScript)
     bool gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    bool gCheckTable; // whether to check RDTable and RWTable index range
+    string gCheckTable; // whether to check RDTable and RWTable index range
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'

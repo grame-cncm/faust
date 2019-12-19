@@ -49,31 +49,31 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
     LOCK_API
     string expanded_dsp_content, sha_key;
 
-    if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+    //if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+    if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
     } else {
-        int         argc1 = 0;
-        const char* argv1[32];
-
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        argv1[argc1++] = "interp";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "string";
-
-        for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
-        }
-        argv1[argc1] = 0;  // NULL terminated argv
-
+     
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        interpreter_dsp_factory*                          factory = 0;
+        interpreter_dsp_factory* factory = nullptr;
 
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
         } else {
+            int         argc1 = 0;
+            const char* argv1[64];
+            argv1[argc1++] = "faust";
+            argv1[argc1++] = "-lang";
+            argv1[argc1++] = "interp";
+            argv1[argc1++] = "-o";
+            argv1[argc1++] = "string";
+            for (int i = 0; i < argc; i++) {
+                argv1[argc1++] = argv[i];
+            }
+            argv1[argc1] = nullptr;  // NULL terminated argv
+            
             dsp_factory_base* dsp_factory_aux =
                 compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
             if (dsp_factory_aux) {

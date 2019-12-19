@@ -24,7 +24,7 @@ Two different achitecture files will be used to glue the previously described fi
 
 **faust2juce** is used with the following command: 
 
-`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] file.dsp` 
+`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-llvm] [-soundfile] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
@@ -43,6 +43,7 @@ The following options are available:
  - `-jsynth`                : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
  - `-midi`                  : activates MIDI control
  - `-osc`                   : activates OSC control
+ - `-llvm`                  : to use the LLVM compilation chain (OSX and Linux for now)
  - `-soundfile`             : when compiling DSP using 'soundfile' primitive, to add needed resources
  - `-help or -h`            : shows the different options 
 

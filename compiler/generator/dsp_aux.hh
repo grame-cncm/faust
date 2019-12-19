@@ -292,6 +292,9 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
     }
 };
 
+// Compute SHA1 key from name_app, dsp_content and compialtions arguments, and returns the dsp_content
+std::string sha1FromDSP(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& sha_key);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
