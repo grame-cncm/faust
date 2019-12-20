@@ -112,14 +112,16 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
   
-    string opt_target = "";
+    string opt_target;
     vector<string> optimal_options;
+    
+    string triple, cpu;
+    splitTarget(getDSPMachineTarget(), triple, cpu);
+    cout << "Host : " << triple << ":"<< cpu << "\n";
     
     if (is_opt) {
         
         if (opt == "generic") {
-            string triple, cpu;
-            splitTarget(getDSPMachineTarget(), triple, cpu);
             opt_target = triple + ":generic";
             cout << "Using 'generic' mode\n";
         } else {

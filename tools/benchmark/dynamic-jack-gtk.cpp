@@ -81,6 +81,15 @@ static void printList(const vector<string>& list)
     }
 }
 
+static void splitTarget(const string& target, string& triple, string& cpu)
+{
+    size_t pos1 = target.find_first_of(':');
+    triple = target.substr(0, pos1);
+    if (pos1 != string::npos) {
+        cpu = target.substr(pos1 + 1);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     char name[256];
@@ -97,6 +106,7 @@ int main(int argc, char* argv[])
     bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
     bool is_all = isopt(argv, "-all");
+    bool is_generic = isopt(argv, "-generic");
     bool is_httpd = isopt(argv, "-httpd");
     bool is_resample = isopt(argv, "-resample");
     int nvoices = lopt(argv, "-nvoices", -1);
@@ -104,9 +114,10 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-jack-gtk [-llvm|interp] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+        cout << "dynamic-jack-gtk [-llvm|interp] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
+        cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-all' to active the 'all voices always playing' mode\n";
         cout << "Use '-midi' to activate MIDI control\n";
@@ -134,6 +145,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc-1; i++) {
         if ((string(argv[i]) == "-llvm")
             || (string(argv[i]) == "-interp")
+            || (string(argv[i]) == "-generic")
             || (string(argv[i]) == "-midi")
             || (string(argv[i]) == "-osc")
             || (string(argv[i]) == "-all")
@@ -148,13 +160,22 @@ int main(int argc, char* argv[])
         cout << argv[i] << " ";
     }
     cout << endl;
-    
     argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (is_llvm) {
-        cout << "Using LLVM backend" << endl;
+        
+        string opt_target;
+        if (is_generic) {
+            string triple, cpu;
+            splitTarget(getDSPMachineTarget(), triple, cpu);
+            opt_target = triple + ":generic";
+            cout << "Using LLVM backend in 'generic' mode\n";
+        } else {
+            cout << "Using LLVM backend in 'native' mode\n";
+        }
+        
         // argc : without the filename (last element);
-        factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+        factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
         
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;

@@ -26,7 +26,9 @@ The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Fau
 Here are the available options:
 
 - `-llvm/interp to choose either LLVM or Interpreter backend`
+- `-generic to JIT for a generic CPU (otherwise 'native' mode is used)`
 - `-nvoices N to start the DSP in polyphonic mode with N voices`
+- `-all' to active the 'all voices always playing' mode`
 - `-midi to activate MIDI control`
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
