@@ -80,7 +80,7 @@ if (INCLUDE_LLVM )
 		llvm_cmake()
 	endif()
 
-	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
+	string (REGEX REPLACE "([0-9]+)\\.([0-9]+).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
 
 	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
 	set (TMP ${SRCDIR}/generator/llvm)
@@ -91,6 +91,10 @@ endif()
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 	
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}")
+
+	if("${LLVM_PACKAGE_VERSION}" VERSION_GREATER_EQUAL 10)
+        set (CMAKE_CXX_STANDARD 14)
+	endif()
 endif()
 
 ####################################
