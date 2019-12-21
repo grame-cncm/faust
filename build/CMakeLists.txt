@@ -382,7 +382,7 @@ endif()
 
 ####################################
 # install VS redistributables
-if (WIN32)
+if (MSVC)
 if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
 	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
 elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
