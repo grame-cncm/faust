@@ -78,6 +78,7 @@ do
         FAUST_UTILITY=FaustPolyUtilities_template.cs
     elif [ $p = "-source" ]; then
         SRC="1"
+        ALL="0"
     elif [ $p = "-unpacked" ]; then
         UNPCK="1"
     elif [ ${p:0:1} = "-" ]; then

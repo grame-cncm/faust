@@ -99,8 +99,23 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
    public:
     CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
                            int sub_container_type);
-    virtual ~CPPScalarCodeContainer();
+    virtual ~CPPScalarCodeContainer()
+    {}
 
+    void generateCompute(int tab);
+};
+
+class CPPScalarOneSampleCodeContainer : public CPPScalarCodeContainer {
+   protected:
+    virtual void produceClass();
+   public:
+    CPPScalarOneSampleCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                                    int sub_container_type)
+    : CPPScalarCodeContainer(name, super, numInputs, numOutputs, out, sub_container_type)
+    {}
+    virtual ~CPPScalarOneSampleCodeContainer()
+    {}
+    
     void generateCompute(int tab);
 };
 
@@ -108,7 +123,8 @@ class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContain
    protected:
    public:
     CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CPPVectorCodeContainer();
+    virtual ~CPPVectorCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
@@ -117,7 +133,8 @@ class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContain
    protected:
    public:
     CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CPPOpenMPCodeContainer();
+    virtual ~CPPOpenMPCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
@@ -127,7 +144,8 @@ class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeCont
    public:
     CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
                                  std::ostream* out);
-    virtual ~CPPWorkStealingCodeContainer();
+    virtual ~CPPWorkStealingCodeContainer()
+    {}
 
     void produceClass();
     void generateCompute(int tab);

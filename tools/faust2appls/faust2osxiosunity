@@ -28,12 +28,14 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 NVOICES=-1
 
 #------------------------------------------------
 # Compiler settings
 ARCH="-arch x86_64"
-CXXFLAGS="-I. -O3 -fPIC"
+CXXFLAGS+=" -fPIC"
 LDFLAGS="-bundle"
 CXX="c++"
 

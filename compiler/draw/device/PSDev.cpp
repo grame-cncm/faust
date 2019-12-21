@@ -57,7 +57,7 @@ static char* addFileNum(const char* fname)
 
 PSDev::PSDev(const char* ficName, double largeur, double hauteur)
 {
-    if ((fic_repr = fopen(addFileNum(ficName), "w+")) == NULL) {
+    if ((fic_repr = fopen(addFileNum(ficName), "w+")) == nullptr) {
         stringstream error;
         error << "ERROR : impossible to create or open " << ficName << endl;
         throw faustexception(error.str());

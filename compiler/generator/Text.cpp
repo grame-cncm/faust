@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "Text.hh"
 #include "compatibility.hh"
@@ -39,8 +40,7 @@ static string substitution(const string& model, const vector<string>& args);
 /**
  * Text substitution. Creates a string by replacing all the $n
  * occurences in the model string, with the corresponding arguments.
- * Example :
- * 		subst("float $0 = $1;", "var", T(10.2))
+ * Example : subst("float $0 = $1;", "var", T(10.2))
  */
 string subst(const string& model, const vector<string>& args)
 {
@@ -59,30 +59,25 @@ string subst(const string& model, const string& a0, const string& a1)
     vector<string> args(10);
     args[0] = a0;
     args[1] = a1;
-
     return substitution(model, args);
 }
 
 string subst(const string& model, const string& a0, const string& a1, const string& a2)
 {
     vector<string> args(10);
-
     args[0] = a0;
     args[1] = a1;
     args[2] = a2;
-
     return substitution(model, args);
 }
 
 string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3)
 {
     vector<string> args(10);
-
     args[0] = a0;
     args[1] = a1;
     args[2] = a2;
     args[3] = a3;
-
     return substitution(model, args);
 }
 
@@ -90,13 +85,11 @@ string subst(const string& model, const string& a0, const string& a1, const stri
              const string& a4)
 {
     vector<string> args(10);
-
     args[0] = a0;
     args[1] = a1;
     args[2] = a2;
     args[3] = a3;
     args[4] = a4;
-
     return substitution(model, args);
 }
 
@@ -104,14 +97,12 @@ string subst(const string& model, const string& a0, const string& a1, const stri
              const string& a4, const string& a5)
 {
     vector<string> args(10);
-
     args[0] = a0;
     args[1] = a1;
     args[2] = a2;
     args[3] = a3;
     args[4] = a4;
     args[5] = a5;
-
     return substitution(model, args);
 }
 
@@ -119,7 +110,6 @@ string subst(const string& model, const string& a0, const string& a1, const stri
              const string& a4, const string& a5, const string& a6)
 {
     vector<string> args(10);
-
     args[0] = a0;
     args[1] = a1;
     args[2] = a2;
@@ -127,7 +117,6 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     args[4] = a4;
     args[5] = a5;
     args[6] = a6;
-
     return substitution(model, args);
 }
 
@@ -136,7 +125,6 @@ static string substitution(const string& model, const vector<string>& args)
     char   c;
     int    i = 0, ilast = (int)model.length() - 1;
     string result;
-
     while (i < ilast) {
         c = model[i++];
         if (c != '$') {
@@ -158,12 +146,14 @@ string T(char* c)
 {
     return string(c);
 }
+
 string T(int n)
 {
     char c[64];
     snprintf(c, 63, "%d", n);
     return string(c);
 }
+
 string T(long n)
 {
     char c[64];
@@ -194,8 +184,8 @@ static string ensureFloat(const string& c)
  */
 string T(float n)
 {
-    std::stringstream num;
-    num << std::setprecision(std::numeric_limits<float>::max_digits10) << n;
+    stringstream num;
+    num << setprecision(numeric_limits<float>::max_digits10) << n;
     return ensureFloat(num.str()) + inumix();
 }
 
@@ -205,8 +195,8 @@ string T(float n)
  */
 string T(double n)
 {
-    std::stringstream num;
-    num << std::setprecision(std::numeric_limits<double>::max_digits10) << n;
+    stringstream num;
+    num << setprecision(numeric_limits<double>::max_digits10) << n;
     return ensureFloat(num.str()) + inumix();
 }
 
@@ -237,15 +227,21 @@ void tab(int n, ostream& fout)
     while (n--) fout << '\t';
 }
 
+void back(int n, ostream& fout)
+{
+    long pos = fout.tellp();
+    fout.seekp(pos-n);
+}
+
 /**
  * Print a list of lines
  * @param n number of tabs of indentation
  * @param lines list of lines to be printed
  * @param fout output stream
  */
-void printlines(int n, list<string>& lines, ostream& fout, string sep)
+void printlines(int n, list<string>& lines, ostream& fout, const string& sep)
 {
-    list<string>::iterator s;
+    list<string>::const_iterator s;
     for (s = lines.begin(); s != lines.end(); s++) {
         if (s == lines.begin()) {
             tab(n, fout);
@@ -266,7 +262,6 @@ string rmWhiteSpaces(const string& s)
 {
     size_t i = s.find_first_not_of(" \t");
     size_t j = s.find_last_not_of(" \t");
-
     if ((i != string::npos) & (j != string::npos)) {
         return s.substr(i, 1 + j - i);
     } else {
@@ -292,17 +287,12 @@ string indent(const string& str, int tabs)
         }
         outstream << line << endl;
     }
-
     return outstream.str();
 }
 
 string replaceChar(string str, char src, char dst)
 {
-    for (size_t i = 0; i < str.length(); ++i) {
-        if (str[i] == src) {
-            str[i] = dst;
-        }
-    }
+    replace(str.begin(), str.end(), src, dst);
     return str;
 }
 
@@ -311,7 +301,7 @@ string replaceCharList(string str, const vector<char>& ch1, char ch2)
     vector<char>::const_iterator beg = ch1.begin();
     vector<char>::const_iterator end = ch1.end();
     for (size_t i = 0; i < str.length(); ++i) {
-        if (std::find(beg, end, str[i]) != end) {
+        if (find(beg, end, str[i]) != end) {
             str[i] = ch2;
         }
     }

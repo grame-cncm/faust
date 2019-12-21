@@ -1,3 +1,4 @@
+/************************** BEGIN alsa-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -202,7 +203,7 @@ struct AudioInterface : public AudioParam
 
 		fCardOutputs = fSoftOutputs;
 		snd_pcm_hw_params_set_channels_near(fOutputDevice, fOutputParams, &fCardOutputs);
-		err = snd_pcm_hw_params(fOutputDevice, fOutputParams ); check_error(err);
+		err = snd_pcm_hw_params(fOutputDevice, fOutputParams); check_error(err);
 
 		// allocate alsa output buffers
 		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
@@ -219,7 +220,7 @@ struct AudioInterface : public AudioParam
 			fCardInputs = 0;
 		} else {
 			// try to open input device
-			err = snd_pcm_open( &fInputDevice,  fCardName, SND_PCM_STREAM_CAPTURE, 0 );
+			err = snd_pcm_open(&fInputDevice, fCardName,SND_PCM_STREAM_CAPTURE, 0);
 			if (err == 0) {
 				fDuplexMode = true;
 			} else {
@@ -296,7 +297,7 @@ struct AudioInterface : public AudioParam
 		}
 		snd_pcm_hw_params_get_format(params, &fSampleFormat);
 		// set sample frequency
-		snd_pcm_hw_params_set_rate_near (stream, params, &fFrequency, 0);
+		snd_pcm_hw_params_set_rate_near(stream, params, &fFrequency, 0);
 
 		// set period and period size (buffering)
 		err = snd_pcm_hw_params_set_period_size(stream, params, fBuffering, 0);
@@ -306,7 +307,7 @@ struct AudioInterface : public AudioParam
 		check_error_msg(err, "number of periods not available");
 	}
 
-	ssize_t interleavedBufferSize (snd_pcm_hw_params_t* params)
+	ssize_t interleavedBufferSize(snd_pcm_hw_params_t* params)
 	{
 		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
 		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
@@ -315,7 +316,7 @@ struct AudioInterface : public AudioParam
 		return bsize;
 	}
 
-	ssize_t noninterleavedBufferSize (snd_pcm_hw_params_t* params)
+	ssize_t noninterleavedBufferSize(snd_pcm_hw_params_t* params)
 	{
 		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
 		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
@@ -439,7 +440,7 @@ struct AudioInterface : public AudioParam
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
 				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					short* chan16b = (short*) fOutputCardChannels[c];
+					short* chan16b = (short*)fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
 						chan16b[f] = short(max(min(x,1.0f),-1.0f) * float(SHRT_MAX));
@@ -449,7 +450,7 @@ struct AudioInterface : public AudioParam
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
 
 				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					int32* chan32b = (int32*) fOutputCardChannels[c];
+					int32* chan32b = (int32*)fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
 						chan32b[f] = int(max(min(x,1.0f),-1.0f) * float(INT_MAX));
@@ -462,7 +463,7 @@ struct AudioInterface : public AudioParam
 			}
 
 			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering);
-			if (count<0) {
+			if (count < 0) {
 				//display_error_msg(count, "w3");
 				snd_pcm_prepare(fOutputDevice);
 				//check_error_msg(err, "preparing output stream");
@@ -483,7 +484,7 @@ struct AudioInterface : public AudioParam
 		snd_ctl_card_info_t*	card_info;
     	snd_ctl_t*				ctl_handle;
 		err = snd_ctl_open(&ctl_handle, fCardName, 0); check_error(err);
-		snd_ctl_card_info_alloca (&card_info);
+		snd_ctl_card_info_alloca(&card_info);
 		err = snd_ctl_card_info(ctl_handle, card_info);	check_error(err);
 		printf("%s|%d|%d|%d|%d|%s\n",
 				snd_ctl_card_info_get_driver(card_info),
@@ -509,8 +510,8 @@ struct AudioInterface : public AudioParam
 		printf("Channel inputs  : %2d, Channel outputs  : %2d\n", fChanInputs, fChanOutputs);
 
 		// affichage des infos de la carte
-		err = snd_ctl_open (&ctl_handle, fCardName, 0); check_error(err);
-		snd_ctl_card_info_alloca (&card_info);
+		err = snd_ctl_open(&ctl_handle, fCardName, 0); check_error(err);
+		snd_ctl_card_info_alloca(&card_info);
 		err = snd_ctl_card_info(ctl_handle, card_info); check_error(err);
 		printCardInfo(card_info);
 
@@ -531,7 +532,7 @@ struct AudioInterface : public AudioParam
 		printf("--------------\n");
 	}
 
-	void printHWParams( snd_pcm_hw_params_t* params )
+	void printHWParams(snd_pcm_hw_params_t* params)
 	{
 		printf("HW Params info (address : %p)\n", params);
 #if 0
@@ -552,33 +553,6 @@ struct AudioInterface : public AudioParam
     int getNumOutputs() { return fCardOutputs; }
 
 };
-
-// lopt : Scan Command Line long int Arguments
-long lopt(int argc, char *argv[], const char* longname, const char* shortname, long def)
-{
-	for (int i=2; i<argc; i++)
-		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0)
-			return atoi(argv[i]);
-	return def;
-}
-
-// sopt : Scan Command Line string Arguments
-const char* sopt(int argc, char *argv[], const char* longname, const char* shortname, const char* def)
-{
-	for (int i=2; i<argc; i++)
-		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0)
-			return argv[i];
-	return def;
-}
-
-// fopt : Scan Command Line flag option (without argument), return true if the flag
-bool fopt(int argc, char *argv[], const char* longname, const char* shortname)
-{
-	for (int i=1; i<argc; i++)
-		if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0)
-			return true;
-	return false;
-}
 
 /**
  * Return the value of an environment variable or defval if undefined.
@@ -624,12 +598,16 @@ class alsaaudio : public audio
 
  public:
 
-    alsaaudio(int argc, char *argv[], dsp* DSP) : fDSP(DSP), fRunning(false)
+    alsaaudio(int argc, char* argv[], dsp* DSP) : fDSP(DSP), fRunning(false)
     {
-        fAudio = new AudioInterface(AudioParam().cardName(sopt(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
-            .frequency(lopt(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY", 44100)))
-            .buffering(lopt(argc, argv, "--buffer", "-b", getDefaultEnv("FAUST2ALSA_BUFFER", 512)))
-            .periods(lopt(argc, argv, "--periods", "-p", getDefaultEnv("FAUST2ALSA_PERIODS", 2)))
+        if (isopt(argv, "-help") || isopt(argv, "-h")) {
+            std::cout << "prog [--device|-d <device> (default \"hw:0\")] [--frequency|-f <f> (default 44100)] [--buffer|-b <bs> (default 512)] [--periods|-p <n> (default 2)]\n";
+            exit(1);
+        }
+        fAudio = new AudioInterface(AudioParam().cardName(lopts1(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
+            .frequency(lopt1(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY", 44100)))
+            .buffering(lopt1(argc, argv, "--buffer", "-b", getDefaultEnv("FAUST2ALSA_BUFFER", 512)))
+            .periods(lopt1(argc, argv, "--periods", "-p", getDefaultEnv("FAUST2ALSA_PERIODS", 2)))
             .inputs(DSP->getNumInputs())
             .outputs(DSP->getNumOutputs()));
     }
@@ -712,3 +690,4 @@ void* __run (void* ptr)
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
+/**************************  END  alsa-dsp.h **************************/

@@ -292,6 +292,11 @@ const mterm& mterm::operator*=(const mterm& m)
 const mterm& mterm::operator/=(const mterm& m)
 {
     // cerr << "division en place : " << *this << " / " << m << endl;
+    if (m.fCoef == 0) {
+        stringstream error;
+        error << "ERROR : division by 0 in " << *this << " / " << m << endl;
+        throw faustexception(error.str());
+    }
     fCoef = divExtendedNums(fCoef, m.fCoef);
     for (MP::const_iterator p = m.fFactors.begin(); p != m.fFactors.end(); p++) {
         fFactors[p->first] -= p->second;

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+FILES=""
+IMP=false
+RAMP=false
+PULSE=false
+
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust-tester [-imp] [-pulse] foo.dsp"
+        echo "Use '-imp' to test with an dirac impulse"
+        echo "Use '-pulse' to test with a periodic pulse"
+        exit
+    fi
+
+    if [ "$p" = "-imp" ]; then
+        IMP=true
+    elif [ "$p" = "-ramp" ]; then
+        RMP=true
+    elif [ "$p" = "-pulse" ]; then
+        PULSE=true
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+    dspName="${f%.dsp}"
+    
+     # creates a temporary dir
+    TMP="${f%.dsp}_tester"
+    mkdir "$TMP"
+    cp "$SRCDIR/$f" "$TMP"
+    
+    if [ $IMP == true ]; then
+    	cat > $TMP/test1.dsp << EndOfCode
+    	test = 1 - 1';
+    	process = test <: library("$SRCDIR/$f").process;
+EndOfCode
+
+        faust2plot $TMP/test1.dsp || echo "ERROR in faust2plot"
+        ./$TMP/test1 -n 10000 > $TMP/test1.plot
+        octave $TMP/test1.plot
+    fi
+ 	
+ 	if [ $PULSE == true ]; then
+    	cat > $TMP/test2.dsp << EndOfCode
+    	import("stdfaust.lib");
+    	test = ba.pulsen(30, 10000);
+    	process = test <: library("$SRCDIR/$f").process;
+EndOfCode
+
+        faust2plot $TMP/test2.dsp || echo "ERROR in faust2plot"
+        ./$TMP/test2 -n 30000 > $TMP/test2.plot
+        octave $TMP/test2.plot
+ 	fi
+
+done

@@ -92,6 +92,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["max_f"]      = FBCInstruction::kMaxf;
         gMathLibTable["powf"]       = FBCInstruction::kPowf;
         gMathLibTable["remainderf"] = FBCInstruction::kRemReal;
+        gMathLibTable["rintf"]      = FBCInstruction::kRintf;
         gMathLibTable["roundf"]     = FBCInstruction::kRoundf;
         gMathLibTable["sinf"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
@@ -122,6 +123,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["max_"]      = FBCInstruction::kMaxf;
         gMathLibTable["pow"]       = FBCInstruction::kPowf;
         gMathLibTable["remainder"] = FBCInstruction::kRemReal;
+        gMathLibTable["rint"]      = FBCInstruction::kRintf;
         gMathLibTable["round"]     = FBCInstruction::kRoundf;
         gMathLibTable["sin"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
@@ -154,17 +156,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     {
         FBCInstruction::Opcode opcode = FBCInstruction::kNop;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 opcode = FBCInstruction::kOpenVerticalBox;
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 opcode = FBCInstruction::kOpenHorizontalBox;
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 opcode = FBCInstruction::kOpenTabBox;
-                break;
-            default:
-                faustassert(false);
                 break;
         }
 
@@ -573,7 +572,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fCond->accept(this);
 
         // Keep current block
-        FBCBlockInstruction<T>* previous = fCurrentBlock;
+        FBCBlockInstruction<T>* current = fCurrentBlock;
 
         // Compile 'then' in a new block
         FBCBlockInstruction<T>* then_block = new FBCBlockInstruction<T>();
@@ -591,11 +590,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'select'
-        previous->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
+        current->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
                                                   "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
-        fCurrentBlock = previous;
+        fCurrentBlock = current;
     }
 
     // Conditional : if
@@ -605,7 +604,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fCond->accept(this);
 
         // Keep current block
-        FBCBlockInstruction<T>* previous = fCurrentBlock;
+        FBCBlockInstruction<T>* current = fCurrentBlock;
 
         // Compile 'then' in a new block
         FBCBlockInstruction<T>* then_block = new FBCBlockInstruction<T>();
@@ -622,10 +621,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'if'
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, "", 0, 0, 0, 0, then_block, else_block));
+        current->push(new FBCBasicInstruction<T>(FBCInstruction::kIf, "", 0, 0, 0, 0, then_block, else_block));
 
         // Restore current block
-        fCurrentBlock = previous;
+        fCurrentBlock = current;
     }
 
     // Loop : beware: compiled loop don't work with an index of 0

@@ -1,3 +1,4 @@
+/************************** BEGIN one-sample-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2019 GRAME, Centre National de Creation Musicale
@@ -27,12 +28,19 @@
 #include "faust/dsp/dsp.h"
 
 class one_sample_dsp : public dsp {
+  
+    protected:
+        
+        int* iZone;
+        FAUSTFLOAT* fZone;
     
     public:
-        
-        one_sample_dsp() {}
     
-        virtual ~one_sample_dsp() {}
+        one_sample_dsp():iZone(NULL),fZone(NULL)
+        {}
+    
+        virtual ~one_sample_dsp()
+        {}
     
         /**
          * Return the number of 'int' typed values necessary to compute the internal DSP state
@@ -47,14 +55,14 @@ class one_sample_dsp : public dsp {
          * @return the number of 'float, double or quad' typed values.
          */
         virtual int getNumRealControls() = 0;
-        
+    
         /**
          * Update the DSP control state.
          *
          * @param icontrol - an externally allocated array of 'int' typed values used to keep the DSP control state
          * @param fcontrol - an externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
-        virtual void control(int* icontrol, FAUSTFLOAT* fcontrol) = 0;
+        virtual void control(int* iControl, FAUSTFLOAT* fControl) = 0;
         
         /**
          * Compute one sample.
@@ -64,7 +72,7 @@ class one_sample_dsp : public dsp {
          * @param icontrol - the externally allocated array of 'int' typed values used to keep the DSP control state
          * @param fcontrol - the externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
-        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* icontrol, FAUSTFLOAT* fcontrol) = 0;
+        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
     
         // The standard 'compute' expressed using the control/compute (one sample) model
         virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
@@ -97,3 +105,4 @@ class one_sample_dsp : public dsp {
 };
 
 #endif
+/**************************  END  one-sample-dsp.h **************************/

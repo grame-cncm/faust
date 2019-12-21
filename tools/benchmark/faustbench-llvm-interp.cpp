@@ -36,20 +36,20 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
+    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
-    std::string error_msg1;
-    std::string error_msg2;
+    string error_msg1;
+    string error_msg2;
     dsp_factory* factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, -1);
     dsp_factory* factory2 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg2);
     
     if (!factory1) {
-        std::cout << "Cannot create factory : " << error_msg1;
+        cout << "Cannot create factory : " << error_msg1;
         exit(1);
     }
     
     if (!factory2) {
-        std::cout << "Cannot create factory : " << error_msg2;
+        cout << "Cannot create factory : " << error_msg2;
         exit(1);
     }
     
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     dsp* DSP2 = factory2->createDSPInstance();
     
     if (!DSP1 || !DSP2) {
-        std::cout << "Cannot create instances" << std::endl;
+        cout << "Cannot create instances" << endl;
         exit(1);
     }
     
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     double res1 = measure1->getStats();
     double res2 = measure2->getStats();
   
-    cout << "Result LLVM : " << res1 <<  " Interpreter : " << res2 << " ratio : " << res1/res2 << std::endl;
+    cout << "Result LLVM : " << res1 <<  " Interpreter : " << res2 << " ratio : " << res1/res2 << endl;
   
     delete measure1;
     delete measure2;

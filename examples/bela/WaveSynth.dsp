@@ -19,20 +19,20 @@ import("stdfaust.lib");
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // GENERAL
-midigate = button ("gate");
+midigate = button("gate");
 midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain = nentry("gain", 0.5, 0, 1, 0.01);
 
-waveTravel = hslider("waveTravel [midi:ctrl ]",0,0,1,0.01);
+waveTravel = hslider("waveTravel [midi:ctrl]",0,0,1,0.01);
 
 // pitchwheel
-pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
 
-gFreq = midifreq * pitchwheel;
+gFreq = midifreq * bend;
 
 // LFO
-lfoDepth = hslider ("lfoDepth[midi:ctrl 1]",0,0.,1,0.001):si.smoo;
-lfoFreq  = hslider ("lfoFreq[midi:ctrl 14]",0.1,0.01,10,0.001):si.smoo;
+lfoDepth = hslider("lfoDepth[midi:ctrl 1]",0,0.,1,0.001):si.smoo;
+lfoFreq  = hslider("lfoFreq[midi:ctrl 14]",0.1,0.01,10,0.001):si.smoo;
 moov = ((os.lf_trianglepos(lfoFreq) * lfoDepth) + waveTravel) : min(1) : max(0);
 
 volA = hslider("A[midi:ctrl 73]",0.01,0.01,4,0.01);
@@ -42,9 +42,9 @@ volR = hslider("R[midi:ctrl 72]",0.8,0.01,8,0.01);
 envelop = en.adsre(volA,volD,volS,volR,midigate);
 
 // Out Amplitude
-vol = envelop * midigain ;
+vol = envelop * midigain;
 
-WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0 ))-2) -1.;
+WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0))-2) -1.;
 
 // 4 WF maxi with this version:
 scanner(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)

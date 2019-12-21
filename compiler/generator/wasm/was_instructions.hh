@@ -59,17 +59,7 @@ inline int pow2limit(int x)
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max(
-        (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) /
-         wasmBlockSize),
-        1);
-
-    // Bigger memory block for soundfile test
-    /*
-    return std::max(
-                    (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize()))))
-    / wasmBlockSize), 8);
-    */
+    return std::max<int>((pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
 }
 
 // Base class for textual 'wast' and binary 'wasm' visitors
@@ -79,7 +69,7 @@ struct WASInst {
         enum Gen {
             kWAS,       // Implemented in wasm definition
             kExtMath,   // Implemented in JS Math context
-            kInt32WAS,  // Manually implemented in wast/wasm backends
+            kIntWAS,    // Manually implemented in wast/wasm backends
             kExtWAS     // Manually implemented in JS
         };
 
@@ -112,14 +102,14 @@ struct WASInst {
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
-    bool fFastMemory;  // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
+    bool fFastMemory;    // If true, assume $dsp is always 0 to simplify and speed-up dsp memory access code
 
     WASInst(bool fast_memory = false)
     {
         // Integer version
         fMathLibTable["abs"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt32, 1);
-        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kInt32WAS, "min_i", Typed::kInt32, 2);
-        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kInt32WAS, "max_i", Typed::kInt32, 2);
+        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "min_i", Typed::kInt32, 2);
+        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "max_i", Typed::kInt32, 2);
 
         // Float version
         fMathLibTable["fabsf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F32Abs, Typed::kFloat, 1);
@@ -139,7 +129,7 @@ struct WASInst {
         fMathLibTable["min_f"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
         fMathLibTable["powf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
         fMathLibTable["remainderf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kFloat, 2);
-        fMathLibTable["rintf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
+        fMathLibTable["rintf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "nearest", WasmOp::F32NearestInt, Typed::kFloat, 1);
         fMathLibTable["roundf"]     = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
         fMathLibTable["sinf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
         fMathLibTable["sqrtf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
@@ -171,7 +161,7 @@ struct WASInst {
         fMathLibTable["min_"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F64Min, Typed::kDouble, 2);
         fMathLibTable["pow"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kDouble, 2);
         fMathLibTable["remainder"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kDouble, 2);
-        fMathLibTable["rint"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kDouble, 1);
+        fMathLibTable["rint"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "nearest", WasmOp::F64NearestInt, Typed::kDouble, 1);
         fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kDouble, 1);
         fMathLibTable["sin"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
         fMathLibTable["sqrt"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
@@ -207,21 +197,23 @@ struct WASInst {
         if (!fFastMemory || no_offset_opt) {
             return 0;
         }
-
+        
+        string name = address->getName();
         NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
-
-        if (named && fFieldTable.find(named->getName()) != fFieldTable.end()) {
-            MemoryDesc tmp = fFieldTable[named->getName()];
-            return tmp.fOffset;
-        } else if (indexed && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
-            MemoryDesc    tmp = fFieldTable[indexed->getName()];
-            Int32NumInst* num;
-            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                return tmp.fOffset + (num->fNum << offStrNum);
+        
+        if (fFieldTable.find(name) != fFieldTable.end()) {
+            MemoryDesc tmp = fFieldTable[name];
+            if (named) {
+                return tmp.fOffset;
+            } else if (indexed) {
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    return tmp.fOffset + (num->fNum << offStrNum);
+                }
             }
         }
-
+        
         return 0;
     }
 

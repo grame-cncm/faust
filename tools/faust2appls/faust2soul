@@ -1,6 +1,5 @@
 #! /bin/bash -e
 set -e
-#set -x
 
 #####################################################################
 #                                                                   #
@@ -24,8 +23,8 @@ POLY="POLY"
 EFFECT=""
 NVOICES=-1
 OPTIONS=""
-EXT=".soul"
 PLAY="false"
+MIDI="false"
 
 while [ $1 ] 
 do
@@ -51,7 +50,8 @@ do
         shift
         EFFECT=$1
     elif [ $p = "-midi" ]; then
-    	echo "MIDI will be used"
+        MIDI="true"
+        echo "MIDI will be used"
     elif [ $p = "-play" ]; then
     	PLAY="true"
     elif [ ${p:0:1} = "-" ]; then
@@ -66,6 +66,30 @@ shift
 
 done
 
+createSOULPatch()
+{
+    (
+    echo '{'
+    echo -e '\t"soulPatchV1":'
+    echo -e '\t{'
+    echo -e "\t\t\"ID\": \"grame.soul.$1\","
+    echo -e '\t\t"version": "1.0",'
+    echo -e "\t\t\"name\": \"$1\","
+    echo -e '\t\t"description": "SOUL example",'
+    echo -e '\t\t"category": "synth",'
+    echo -e '\t\t"manufacturer": "GRAME",'
+    echo -e '\t\t"website": "https://faust.grame.fr",'
+    if [ $MIDI = "true" ]; then
+        echo -e '\t\t"isInstrument": true,'
+    else
+        echo -e '\t\t"isInstrument": false,'
+    fi
+    echo -e "\t\t\"source\": \"$1.soul\""
+    echo -e '\t}'
+    echo '}'
+    ) > "$2"
+}
+
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #-------------------------------------------------------------------
@@ -76,12 +100,13 @@ for p in $FILES; do
     f=$(basename "$p")
 	SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # create a temporary dir
+    dspName="${f%.dsp}"
     TDR=$(mktemp -d faust.XXXXXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
-    # compile faust to c++
+    # compile Faust to SOUL
     if [ $POLY = "POLY2" ]; then
        if [ $EFFECT = "auto" ]; then
             cat > $TMP/effect.dsp << EndOfCode
@@ -109,17 +134,26 @@ EndOfCode
         fi
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
     fi
+
+    # create patch
+    createSOULPatch "${f%.dsp}" "${f%.dsp}.soulpatch"
     
     rm -f $p.json "$TMP/${f%.dsp}_tmp1.soul" "$TMP/${f%.dsp}_tmp2.soul" "$TMP/effect.dsp"
-    cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}$EXT"
+    cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}.soul"
     rm -rf "$TDR"
     
+    #  create final folder
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    mv "$SRCDIR/${f%.dsp}.soul" "$SRCDIR/$dspName"
+    mv "${f%.dsp}.soulpatch" "$SRCDIR/$dspName"
+    
     if [ $PLAY = "true" ] ; then
-    	soul play "$SRCDIR/${f%.dsp}$EXT"
+    	soul play "$SRCDIR/$dspName"
     fi
 
     # collect binary file name for FaustGIDE
-    BINARIES="$SRCDIR/${f%.dsp}$EXT"
+    BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
 done
 
 echo $BINARIES

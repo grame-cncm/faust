@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-qt                  #
-#               (c) Grame, 2009                                     #
+#               (c) Grame, 2009-2019                                #
 #                                                                   #
 #####################################################################
 
@@ -14,6 +14,10 @@ CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE=$FAUSTARCH/alsa-qt.cpp
 ARCHLIB="-lasound"
+
+if [[ $(uname -s) != Darwin ]]; then
+	LFLAGS+="-no-pie"
+fi
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -31,10 +35,8 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # without having to configure CXX and CXXFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
+		CXX=icpc
+		CXXFLAGS=$MYICCFLAGS
     fi
 done
 
@@ -113,7 +115,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-       	$QMAKE -project "QT += widgets printsupport network" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"  
+       	$QMAKE -project "QT += widgets printsupport network" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"  
 	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit

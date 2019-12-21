@@ -23,29 +23,7 @@
 #include "Text.hh"
 #include "global.hh"
 
-/*
-SL : 28/09/17
-extern bool gVectorSwitch;
-extern bool gOpenMPSwitch;
-extern bool gOpenMPLoop;
-*/
-
 using namespace std;
-
-/**
- * Print n tabs (for indentation purpose)
- * @param n number of tabs to print
- * @param fout output stream
- */
-
-/*
-SL : 28/09/17
-static void tab(int n, ostream& fout)
-{
-    fout << '\n';
-    while (n--) fout << '\t';
-}
- */
 
 /**
  * Print a list of lines
@@ -142,7 +120,7 @@ bool Loop::hasRecDependencyIn(Tree S)
 }
 
 /**
- * Test if a loop is empty that is if it contains no lines of code).
+ * Test if a loop is empty that is if it contains no lines of code.
  * @return true if the loop is empty
  */
 bool Loop::isEmpty()
@@ -151,7 +129,7 @@ bool Loop::isEmpty()
 }
 
 /**
- * Add a line of pre code  (begin of the loop)
+ * Add a line of pre code (begin of the loop)
  */
 void Loop::addPreCode(const Statement& stmt)
 {
@@ -209,11 +187,6 @@ void Loop::println(int n, ostream& fout)
     }
 
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
-        /* if (gVectorSwitch) {
-            tab(n,fout);
-            fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
-        }*/
-
         tab(n, fout);
         fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
         if (fPreCode.size() > 0) {
@@ -305,11 +278,6 @@ void Loop::printParLoopln(int n, ostream& fout)
 void Loop::printoneln(int n, ostream& fout)
 {
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
-        /*        if (gVectorSwitch) {
-                    tab(n,fout);
-                    fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
-                }*/
-
         tab(n, fout);
         fout << "for (int i=0; i<" << fSize << "; i++) {";
         if (fPreCode.size() > 0) {

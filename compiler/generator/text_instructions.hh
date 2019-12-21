@@ -48,7 +48,14 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
     }
-
+    
+    void visitCond(ValueInst* cond)
+    {
+        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << "(";
+        cond->accept(this);
+        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << ")";
+    }
+  
    public:
     using InstVisitor::visit;
 
@@ -109,7 +116,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(NamedAddress* named) { *fOut << named->fName; }
 
     /*
-     Indexed adresses can actually be values in an array or fields in a struct type
+     Indexed address can actually be values in an array or fields in a struct type
      */
     virtual void visit(IndexedAddress* indexed)
     {
@@ -238,7 +245,7 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -277,20 +284,20 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         if (inst->fElse->fCode.size() > 0) {
             *fOut << "} else {";
             fTab++;
             tab(fTab, *fOut);
             inst->fElse->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
         } else {
             *fOut << "}";
@@ -316,7 +323,7 @@ class TextInstVisitor : public InstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -324,13 +331,13 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(WhileLoopInst* inst)
     {
         *fOut << "while (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -353,7 +360,7 @@ class TextInstVisitor : public InstVisitor {
         }
         if (inst->fIndent) {
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -362,7 +369,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "switch (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
@@ -385,12 +392,13 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
 
     StringTypeManager* getTypeManager() { return fTypeManager; }
+    
 };
 
 // Mathematical functions are declared as variables, they have to be generated before any other function (like

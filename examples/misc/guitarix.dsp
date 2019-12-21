@@ -42,78 +42,52 @@ process = preamp;
  *  tubescreamer -  tube stage 1 - 2 - tonestack - cabinet
  */
 preamp = hgroup("Guitarix",
-         hgroup("[0]TubeScreamer",ts9sim) :
-         hgroup("[1]preamp: 12AX7", stage1 : stage2 ): 
-         hgroup("[2]tonestack: jcm2000", tstack) :
-         hgroup("[3]Cabinet", cab) )with {
+         	hgroup("[0]TubeScreamer",ts9sim) :
+         	hgroup("[1]preamp: 12AX7", stage1 : stage2): 
+         	hgroup("[2]tonestack: jcm2000", tstack) :
+         	hgroup("[3]Cabinet", cab)) 
+with {
 
-    stage1 = T1_12AX7 : *(preamp): fi.lowpass(1,6531.0) : 
-    			T2_12AX7 : *(preamp) with {
-                preamp = vslider("[0] Pregain [style:knob]",-6,-20,20,0.1) : 
-                  ba.db2linear : si.smoo;
-             };
+    stage1 = T1_12AX7 : *(preamp) : fi.lowpass(1,6531.0) : T2_12AX7 : *(preamp) 
+    with {
+        preamp = vslider("[0] Pregain [style:knob]",-6,-20,20,0.1) : ba.db2linear : si.smoo;
+    };
 
-    stage2 = fi.lowpass(1,6531.0) : T3_12AX7 : *(gain) with {
-                gain = vslider("[1] Gain [style:knob]",-6,-20.0,20.0,0.1) : 
-                  ba.db2linear : si.smoo;
-             };
+    stage2 = fi.lowpass(1,6531.0) : T3_12AX7 : *(gain) 
+    with {
+        gain = vslider("[1] Gain [style:knob]",-6,-20.0,20.0,0.1) : ba.db2linear : si.smoo;
+    };
 
-    tstack = jcm2000(t, m, l) with {
+    tstack = jcm2000(t, m, l) 
+    with {
         t = vslider("[2] Treble [style:knob]",0.5,0,1,0.01);
         m = vslider("[3] Middle [style:knob]",0.5,0,1,0.01);
         l = vslider("[4] Bass [style:knob]",0.5,0,1,0.01);
     };
+   
+    /*
+    // Dynamically choose between several 'tstack'
+    tstack = ba.selectmulti(ma.SR/100, (tjcm2000, tjtm45, tjcm800), 
+    nentry("tstack [style:menu{'tjcm2000':0;'tjtm45':1;'tjcm800':2}]", 0, 0, 2, 1))
+    with {
+    	tjcm2000 = jcm2000(t, m, l);
+    	tjtm45 = jtm45(t, m, l);
+    	tjcm800 = jcm800(t, m, l);
+        t = vslider("[2] Treble [style:knob]",0.5,0,1,0.01);
+        m = vslider("[3] Middle [style:knob]",0.5,0,1,0.01);
+        l = vslider("[4] Bass [style:knob]",0.5,0,1,0.01);
+    };
+    */
 };
 
-/****************************************************************************************/
-
-//-- Rdtable from waveform
-rtable(table, r) = (table, int(r)):rdtable;
-
-// Change sign of input signal x;
-inverse(x) = abs(x) * invsign(x);
-
-//function that takes f value and x sign
-ccopysign(f, x) = abs(f)*sign(x);       
-
-//-- Get sign and reversed sign of a signal x
-sign (x) = x<0, 1, -1 : select2;  
-invsign (x) = x<0, -1, 1 : select2;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-
-//-- Interpolate value between i and i+1 in table with coefficient f.
-interpolation (table, f, i) = rtable(table, i)*(1-f) + rtable(table,i+1)*f;
-
-//-- Bound Index with table boundaries
-boundIndex(size, index) = index : floor: min(size-1) : max(0);
-
-//-- Bound factor of interpolation : factor-index if still in the table boundaries, 0 otherwise
-boundFactor(size, factor, index) = 0<index<size-1, factor - index, 0 : select2;  
-
-/****************************************************************************************
- * 1-dimensional function tables for linear interpolation
-****************************************************************************************/
-
-// Linear interpolation of x value in table
-tubeF(table, low, high, step, size, x) = interpolation(
-											table, 
-											getFactor(low, step, size, x),
-											linindex(low, step, x) : boundIndex(size));
-
-//--Get interpolation factor
-getFactor(low, step, size, x) = boundFactor(size, linindex(low, step, x), linindex(low, step, x) : boundIndex(size));
-
-//-- Calculate linear index
-linindex(low, step, x) = (x - low) * step;
 
 /****************************************************************************************
  * 1-dimensional function tables for nonlinear interpolation
 ****************************************************************************************/
-nonlininterpolation(table, low, high, step, size, x) = ts9(low, step, size, table, x) , inverse(x) : ccopysign;
+nonlininterpolation(table, low, high, step, size, x) = ts9(low, step, size, table, x),inverse(x) : ccopysign;
 
 //-- Interpolate value from table
-ts9 (low, step, size, table, x) = interpolation(
-										table, 
-										getCoef(low, step, size, x), 
+ts9(low, step, size, table, x) = interpolation(table, getCoef(low, step, size, x), 
 										nonlinindex(low, step, x) : boundIndex(size));
 
 //-- Calculate non linear index
@@ -124,13 +98,14 @@ getCoef(low, step, size, x) = boundFactor(size, nonlinindex(low, step, x), nonli
 
 /********* Faust Version of ts9nonlin.cc, generated by tools/ts9sim.py ****************/
 
-ts9comp = nonlininterpolation(ts9table, low, high, step, size) with{
+ts9comp = nonlininterpolation(ts9table, low, high, step, size) 
+with {
 
 // Characteristics of the wavetable
-	low = 0.0;
-	high = 0.970874;
-	step = 101.97;
-	size = 100;
+low = 0.0;
+high = 0.970874;
+step = 101.97;
+size = 99; // (real size = 100, set the actual size at 100-1 for interpolation to work at the last point)
 	
 ts9table = waveform{0.0,-0.0296990148227,-0.0599780676992,-0.0908231643281,-0.122163239629,
 	-0.15376009788,-0.184938007182,-0.214177260107,-0.239335434213,-0.259232575019,
@@ -157,17 +132,16 @@ ts9table = waveform{0.0,-0.0296990148227,-0.0599780676992,-0.0908231643281,-0.12
 /****************************************************************************************/
 
 /****************************************************************************************
-*	declare id 		"ts9sim";
-*	declare name            "Tube Screamer";
-*	declare category        "Distortion";
+*	declare id       "ts9sim";
+*	declare name     "Tube Screamer";
+*	declare category "Distortion";
 *
-** 		based on a circuit diagram of the Ibanez TS-9 and
-** 		a mathematical analysis published by Tamás Kenéz
+** 	based on a circuit diagram of the Ibanez TS-9 and
+** 	a mathematical analysis published by Tamás Kenéz
 ****************************************************************************************/
 
-smoothi(c) = *(1-c) : +~*(c);
-
-ts9sim = ts9nonlin : lowpassfilter : *(gain) with {
+ts9sim = ts9nonlin : lowpassfilter : *(gain) 
+with {
 
     R1 = 4700;
     R2 = 51000 + 500000 * vslider("drive[name:Drive][style:knob]", 0.5, 0, 1, 0.01);
@@ -180,20 +154,20 @@ ts9sim = ts9nonlin : lowpassfilter : *(gain) with {
     X2 = fi.tf1(B0, B1, A1);
 
     ts9nonlin = _ <: _ ,(X2,_ : - : ts9comp) : - :> _;
-    
+  
     fc = vslider("tone[log][name:Tone][style:knob]", 400, 100, 1000, 1.03);
     lowpassfilter = fi.lowpass(1,fc);
-    gain = vslider("level[name:Level][style:knob]", -16, -20, 4, 0.1) : ba.db2linear : smoothi(0.999);
+    gain = vslider("level[name:Level][style:knob]", -16, -20, 4, 0.1) : ba.db2linear : si.smoo;
 };
 
 /****************************************************************************************
-*	declare name            "cabinet";
+*	declare name "cabinet";
 *
-** 		based on a circuit diagram of the Ibanez TS-9 and
-** 		a mathematical analysis published by Tamás Kenéz
+** 	based on a circuit diagram of the Ibanez TS-9 and
+** 	a mathematical analysis published by Tamás Kenéz
 ****************************************************************************************/
 
-wetdry = vslider("[5] amount[style:knob]",  100, 0, 100, 1) : /(100);
+wetdry = vslider("[5] amount[style:knob]", 100, 0, 100, 1) : /(100);
 dry = 1 - wetdry;
 
 cab = _<:(*(dry):_), (*(wetdry):fi.conv((0.000488281, -0.0020752, 0.000561523, -0.00231934, 0.000634766, -0.00247803, 0.000512695, -0.00247803, 0.000146484, -0.00219727, -0.000622559, -0.00145264, -0.00202637, 

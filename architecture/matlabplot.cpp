@@ -1,34 +1,36 @@
-/*   matlabplot.cpp = simple variation of plot.cpp */
+/************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
- ************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2007-2016 Julius O. Smith III
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2.1 of the
-    License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with the GNU C Library; if not, write to the Free
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA.
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************
  ************************************************************************/
-
-#include "faust/gui/UI.h"
-#include "faust/gui/console.h"
-#include "faust/gui/meta.h"
-#include "faust/audio/channels.h"
-#include "faust/dsp/dsp.h"
-
-using namespace std;
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,30 +40,47 @@ using namespace std;
 #include <errno.h>
 #include <time.h>
 #include <unistd.h>
-#include <vector>
-#include <stack>
 #include <string>
-#include <map>
-#include <list>
 #include <iostream>
+#include <iomanip>
+
+#include "faust/gui/UI.h"
+#include "faust/gui/console.h"
+#include "faust/gui/meta.h"
+#include "faust/audio/channels.h"
+#include "faust/dsp/dsp.h"
+
+using namespace std;
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
 
-//----------------------------------------------------------------------------
-//      FAUST generated code
-//----------------------------------------------------------------------------
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
 
 <<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp DSP;
 
 #define kFrames 512
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    float fStartAtSample;
-    float fnbsamples;
-    float srate;
+    FAUSTFLOAT fStartAtSample;
+    FAUSTFLOAT fnbsamples;
+    FAUSTFLOAT srate;
 
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
@@ -104,13 +123,14 @@ int main(int argc, char *argv[])
     // end skip
 
     int nbsamples = int(fnbsamples);
+    cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
 
     while (nbsamples > kFrames) {
         DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
         inchan.zero();
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
-                printf(" %g", outchan.buffers()[c][i]);
+                cout << " " << outchan.buffers()[c][i];
             }
             if (i < kFrames-1) {
                 printf("; ...\n");
@@ -126,23 +146,27 @@ int main(int argc, char *argv[])
         inchan.zero();
         for (int i = 0; i < nbsamples; i++) {
             for (int c = 0; c < nouts; c++) {
-                printf(" %g", outchan.buffers()[c][i]);
+                cout << " " << outchan.buffers()[c][i];
             }
             printf("; ...\n");
         }
     }
     printf("];\n\n");
     printf("plot(faustout);\n");
-    printf("title('Plot generated by %s made using ''faust -a matlabplot.cpp ...''');\n",argv[0]);
+    printf("title('Plot generated by %s made using ''faust -a matlabplot.cpp ...''');\n", argv[0]);
     printf("xlabel('Time (samples)');\n");
     printf("ylabel('Amplitude');\n");
-    if (nouts>1) {
+    if (nouts > 0) {
         printf("legend(");
         for (int c = 0; c < nouts; c++) {
             printf("'channel %d'", c+1);
-            if (c<nouts-1) { printf(","); }
+            if (c < nouts-1) { printf(","); }
         }
-        printf(");");
+        printf(");\n");
+        printf("print -dpdf %s.pdf;\n", argv[0]);
     }
     return 0;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+

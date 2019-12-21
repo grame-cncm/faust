@@ -35,17 +35,21 @@
 
 class CCodeContainer : public virtual CodeContainer {
    protected:
-    CInstVisitor  fCodeProducer;
+    CInstVisitor* fCodeProducer;
     std::ostream* fOut;
 
+    virtual void produceClass();
     void produceMetadata(int tabs);
+    virtual void produceInternal();
 
    public:
+    CCodeContainer()
+    {}
     CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
-        : fCodeProducer(out, name), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
+        fOut = out;
 
         // For mathematical functions
         if (gGlobal->gFastMath) {
@@ -57,13 +61,17 @@ class CCodeContainer : public virtual CodeContainer {
 
         // For malloc/free
         addIncludeFile("<stdlib.h>");
+        
+        fCodeProducer = new CInstVisitor(out, name);
     }
 
-    virtual ~CCodeContainer() {}
-
-    virtual void              produceClass();
-    virtual void              generateCompute(int tab) = 0;
-    void                      produceInternal();
+    virtual ~CCodeContainer()
+    {
+        // fCodeProducer is a 'Garbageable'
+    }
+  
+    virtual void generateCompute(int tab) = 0;
+    
     virtual dsp_factory_base* produceFactory();
 
     virtual void printHeader()
@@ -92,11 +100,56 @@ class CCodeContainer : public virtual CodeContainer {
 
 class CScalarCodeContainer : public CCodeContainer {
    protected:
+ 
    public:
-    CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
+    CScalarCodeContainer()
+    {}
+    CScalarCodeContainer(const std::string& name,
+                         int numInputs,
+                         int numOutputs,
+                         std::ostream* out,
                          int sub_container_type);
-    virtual ~CScalarCodeContainer();
+    virtual ~CScalarCodeContainer()
+    {}
 
+    void generateCompute(int tab);
+};
+
+class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
+   protected:
+    virtual void produceClass();
+    virtual void produceInternal();
+   public:
+    CScalarOneSampleCodeContainer(const std::string& name,
+                                  int numInputs,
+                                  int numOutputs,
+                                  std::ostream* out,
+                                  int sub_container_type)
+    {
+        initialize(numInputs, numOutputs);
+        fKlassName = name;
+        fOut = out;
+        
+        // For mathematical functions
+        if (gGlobal->gFastMath) {
+            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
+                           : ("\"" + gGlobal->gFastMathLib + "\""));
+        } else {
+            addIncludeFile("<math.h>");
+        }
+        
+        // For malloc/free
+        addIncludeFile("<stdlib.h>");
+        
+        fSubContainerType = sub_container_type;
+        
+        //fCodeProducer = new CInstVisitor(out, name);
+        fCodeProducer = new CInstVisitor1(out, name);
+    }
+
+    virtual ~CScalarOneSampleCodeContainer()
+    {}
+    
     void generateCompute(int tab);
 };
 
@@ -104,7 +157,8 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
    protected:
    public:
     CVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CVectorCodeContainer();
+    virtual ~CVectorCodeContainer()
+    {}
 
     void generateCompute(int n);
 };
@@ -113,7 +167,8 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
    protected:
    public:
     COpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~COpenMPCodeContainer();
+    virtual ~COpenMPCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
@@ -122,7 +177,8 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
    protected:
    public:
     CWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~CWorkStealingCodeContainer();
+    virtual ~CWorkStealingCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };

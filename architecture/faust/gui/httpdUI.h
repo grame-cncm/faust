@@ -1,3 +1,4 @@
+/************************** BEGIN httpdUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -259,19 +260,19 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         // -- widget's layouts
         void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
 
         // -- active widgets
@@ -368,3 +369,4 @@ class httpdUI : public DecoratorUI
 };
 
 #endif
+/**************************  END  httpdUI.h **************************/

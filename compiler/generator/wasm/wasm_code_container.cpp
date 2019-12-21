@@ -24,7 +24,6 @@
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "json_instructions.hh"
 #include "rn_base64.h"
 
 using namespace std;
@@ -58,7 +57,7 @@ dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
 WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
@@ -216,9 +215,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
+    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 void WASMCodeContainer::produceInternal()
@@ -318,7 +315,7 @@ void WASMCodeContainer::produceClass()
 
     // 13) min_i
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
-
+    
     // 14) setParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     gGlobal->gWASMVisitor->generateSetParamValue();
 
@@ -333,38 +330,22 @@ void WASMCodeContainer::produceClass()
         generateUserInterface(gGlobal->gWASMVisitor);
     }
 
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options, false);
-
     // JSON generation
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
-
-    map<string, string>::iterator it;
-    std::map<std::string, int>    path_index_table;
-    map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
-    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-        // Get field index
-        MemoryDesc tmp                 = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
+    string json;
+    if (gGlobal->gFloatSize == 1) {
+        json = generateJSON<float>();
+    } else {
+        json = generateJSON<double>();
     }
-
-    // "name", "filename" found in metadata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                  to_string(gGlobal->gWASMVisitor->getStructSize()), path_index_table);
-    generateUserInterface(&json_visitor2);
-    generateMetaData(&json_visitor2);
-
-    string json = json_visitor2.JSON(true);
-
+  
     // Memory size can now be written
     if (fInternalMemory) {
-        // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
-        // and DSP + audio buffer size
-        fBinaryOut.writeAt(begin_memory, U32LEB(genMemSize(gGlobal->gWASMVisitor->getStructSize(),
-                                                           fNumInputs + fNumOutputs, (int)json.size())));
+        int memory_size = genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        // Since JSON is written in data segment at offset 0, the memory size
+        // must be computed taking account JSON size and DSP + audio buffer size
+        fBinaryOut.writeAt(begin_memory, U32LEB(memory_size));
+        // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
+        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size+1000));
     }
 
     // Data segment contains the JSON string starting at offset 0,
@@ -386,10 +367,11 @@ void WASMCodeContainer::produceClass()
 
     // Generate JSON
     tab(n, fHelper);
+    string json2 = flattenJSON1(json);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
     fHelper << "return '";
-    fHelper << json;
+    fHelper << json2;
     fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
@@ -440,9 +422,6 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     DeclareFunInst* int_max_fun = WASInst::generateIntMax();
     DeclareFunInst* int_min_fun = WASInst::generateIntMin();
 
-    // Remove unecessary cast
-    compute_block = CastRemover().getCode(compute_block);
-
     // Inline "max_i" call
     compute_block = FunctionCallInliner(int_max_fun).getCode(compute_block);
 
@@ -454,7 +433,10 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-
+    
+    // Remove unecessary cast
+    block = CastRemover().getCode(block);
+    
     // Creates function and visit it
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
@@ -462,6 +444,7 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
+    
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 

@@ -1,16 +1,15 @@
 /************************************************************************
- 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
  *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 Thomas Charbonnel and GRAME
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -74,8 +73,6 @@ static void osc_compute_callback(void* arg)
 #include "faust/gui/OCVUI.h"
 #endif
 
-/**************************BEGIN USER SECTION **************************/
-
 /******************************************************************************
  *******************************************************************************
  
@@ -86,7 +83,15 @@ static void osc_compute_callback(void* arg)
 
 <<includeIntrinsic>>
 
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
 <<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 #include "faust/dsp/poly-dsp.h"
 
@@ -94,10 +99,6 @@ static void osc_compute_callback(void* arg)
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.h"
 #endif
-
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 dsp* DSP;
 
@@ -107,14 +108,14 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char name[256];
     char rcfilename[256];
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
-    int control = 0;
+    bool control = true;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -185,13 +186,6 @@ int main(int argc, char *argv[])
     
     GTKUI interface(name, &argc, &argv);
     FUI finterface;
-#if SOUNDFILE
-    SoundUI soundinterface;
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
-    DSP->buildUserInterface(&soundinterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
-#endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 #ifdef HTTPCTRL
@@ -214,6 +208,15 @@ int main(int argc, char *argv[])
     audio.init(name, DSP);
 #endif
     
+// After audio init to get SR
+#if SOUNDFILE
+    SoundUI soundinterface("", audio.getSampleRate());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
+#endif
+
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);

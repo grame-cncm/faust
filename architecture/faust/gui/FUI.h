@@ -1,3 +1,4 @@
+/************************** BEGIN FUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -115,10 +116,10 @@ class FUI : public UI, public PathBuilder
 
         // -- widget's layouts (just keep track of group labels)
 
-        virtual void openTabBox(const char* label) { fControlsLevel.push_back(label); }
-        virtual void openHorizontalBox(const char* label) { fControlsLevel.push_back(label); }
-        virtual void openVerticalBox(const char* label) { fControlsLevel.push_back(label); }
-        virtual void closeBox() { fControlsLevel.pop_back(); };
+        virtual void openTabBox(const char* label) { pushLabel(label); }
+        virtual void openHorizontalBox(const char* label) { pushLabel(label);; }
+        virtual void openVerticalBox(const char* label) { pushLabel(label); }
+        virtual void closeBox() { popLabel(); };
 
         // -- active widgets (just add an element)
 
@@ -147,3 +148,4 @@ class FUI : public UI, public PathBuilder
 
 #endif
 
+/**************************  END  FUI.h **************************/

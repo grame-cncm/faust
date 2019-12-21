@@ -1,7 +1,15 @@
 /************************************************************************
- /************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -53,8 +61,6 @@
 #include "faust/midi/RtMidi.cpp"
 #endif
 
-/**************************BEGIN USER SECTION **************************/
-
 /******************************************************************************
  *******************************************************************************
  
@@ -62,17 +68,22 @@
  
  *******************************************************************************
  *******************************************************************************/
+
 <<includeIntrinsic>>
 
-<<includeclass>>
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-#ifdef POLY
-#include "faust/dsp/poly-dsp.h"
-#endif
+/**************************BEGIN USER SECTION **************************/
+
+<<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
 
 dsp* DSP;
 
@@ -101,7 +112,7 @@ static bool hasMIDISync()
              (json.find("clock") != std::string::npos)));
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char name[256];
     char rcfilename[256];
@@ -217,3 +228,5 @@ int main(int argc, char *argv[])
     
     return 0;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/

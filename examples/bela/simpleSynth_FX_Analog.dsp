@@ -36,29 +36,29 @@ midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain = nentry("gain", 0.5, 0, 0.5, 0.01);// MIDI KEYBOARD
 
 // pitchwheel
-pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
 
 // VCO
 wfFade = hslider("waveform[BELA: ANALOG_0]",0.5,0,1,0.001):si.smoo;
 
 // VCF
 res = hslider("resonnance[BELA: ANALOG_2]",0.5,0,1,0.001):si.smoo;
-fr = hslider("fc[BELA: ANALOG_1]", 10, 15, 12000, 0.001):si.smoo;
+fr = hslider("fc[BELA: ANALOG_1]", 15, 15, 12000, 0.001):si.smoo;
 track = hslider("tracking[midi:ctrl 79]", 1, 0, 2, 0.001);
-envMod  = hslider("envMod[BELA: ANALOG_3]",50,0,100,0.01):si.smoo; 
+envMod = hslider("envMod[BELA: ANALOG_3]",50,0,100,0.01):si.smoo; 
 
 // ENV
-att = 0.01 * (hslider ("attack[midi:ctrl 73]",0.1,0.1,400,0.001));
-dec = 0.01 * (hslider ("decay[midi:ctrl 76]",60,0.1,400,0.001));
+att = 0.01 * (hslider("attack[midi:ctrl 73]",0.1,0.1,400,0.001));
+dec = 0.01 * (hslider("decay[midi:ctrl 76]",60,0.1,400,0.001));
 sust = hslider ("sustain[midi:ctrl 77]",0.2,0,1,0.001);
-rel = 0.01 * (hslider ("release[midi:ctrl 72]",100,0.1,400,0.001));
+rel = 0.01 * (hslider("release[midi:ctrl 72]",100,0.1,400,0.001));
 
 // LFO
-lfoFreq	= hslider("lfoFreq[midi:ctrl 78]",6,0.001,10,0.001):si.smoo;
+lfoFreq = hslider("lfoFreq[midi:ctrl 78]",6,0.001,10,0.001):si.smoo;
 modwheel = hslider("modwheel[midi:ctrl 1]",0,0,0.5,0.001):si.smoo;
 
 // PROCESS /////////////////////////////////////////////
-allfreq = (midifreq * pitchwheel) + LFO;
+allfreq = (midifreq * bend) + LFO;
 // VCF
 cutoff = ((allfreq * track) + fr + (envMod * midigain * env)) : min(ma.SR/8);
 
@@ -113,16 +113,16 @@ synth = (oscillo(allfreq) :ve.moog_vcf(res,cutoff)) * volume;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // VOLUME:
-volFX	= hslider ("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
+volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
-drive	= hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
+drive = hslider("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
 
 
 // Flanger
-curdel	= hslider ("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb		= hslider ("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider ("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
+curdel = hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
+fb = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw = hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);
@@ -130,7 +130,7 @@ flanger = efx
 	};
 
 // Pannoramique:
-panno = _ : sp.panner(hslider ("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
+panno = _ : sp.panner(hslider("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
 
 // REVERB (from freeverb_demo)
 reverb = _,_ <: (*(g)*fixedgain,*(g)*fixedgain :

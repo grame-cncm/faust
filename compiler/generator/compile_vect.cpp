@@ -170,6 +170,7 @@ string VectorCompiler::generateLoopCode(Tree sig)
     int   i;
     Tree  x;
     Loop* l;
+    Loop* l2;
 
     l = fClass->topLoop();
     faustassert(l);
@@ -181,6 +182,10 @@ string VectorCompiler::generateLoopCode(Tree sig)
             if (l->hasRecDependencyIn(singleton(x))) {
                 // x is already in the loop stack
                 return ScalarCompiler::generateCode(sig);
+            } else if (fClass->getLoopProperty(x, l2)) {
+                string c = ScalarCompiler::generateCode(sig);
+                // cerr << "SPECIAL CASE TO PREVENT VECTOR BUG " << *sig << endl;
+                return c;
             } else {
                 // x must be defined
                 fClass->openLoop(x, "count");

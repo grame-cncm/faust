@@ -12,16 +12,16 @@ Here are the available options:
 
 - `-target xxx to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')`
 - `-opt (native|generic) to discover and compile with the best compilation parameters`
-- `-o foo.ll to generate a LLVM IR textual file`
-- `-o foo.bc to generate a LLVM bitcode file`
-- `-o foo.mc to generate a LLVM machine code file`
-- `-o foo.o to generate a LLVM object code file`
+- `-o foo.ll to generate an LLVM IR textual file`
+- `-o foo.bc to generate an LLVM bitcode file`
+- `-o foo.mc to generate an LLVM machine code file`
+- `-o foo.o to generate an object code file`
 
 ## dynamic-jack-gtk
 
 The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend. It can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.bc) when using the Interpreter backend.
 
-`dynamic-jack-gtk [-llvm|interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
+`dynamic-jack-gtk [-llvm|interp] [-nvoices N] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
 
 Here are the available options:
 
@@ -30,14 +30,15 @@ Here are the available options:
 - `-midi to activate MIDI control`
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
+- `-resample' to resample soundfiles to the audio driver sample rate`
 
-Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 7 (see the **interp-trace** tool). 
 
 ## poly-dynamic-jack-gtk
 
 The **poly-dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, activate the -effect auto model by default, and runs it with the LLVM or Interpreter backend.
 
-`poly-dynamic-jack-gtk [-llvm|interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp`
+`poly-dynamic-jack-gtk [-llvm|interp] [-nvoices N] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp`
 
 Here are the available options:
 
@@ -46,8 +47,9 @@ Here are the available options:
 - `-midi to activate MIDI control`
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
+- `-resample' to resample soundfiles to the audio driver sample rate`
 
-Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 7 (see the **interp-trace** tool). 
 
 ## dynamic-machine-jack-gtk
 
@@ -75,10 +77,10 @@ Here are the available options:
  - `-trace 1 to collect FP_SUBNORMAL only` 
  - `-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN`
  - `-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO`
- - `-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, fails at first FP_INFINITE, FP_NAN or LOAD error`
- - `-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD errors, continue after FP_INFINITE, FP_NAN or LOAD error`
- - `-trace 6 to only check LOAD errors and continue`
- - `-trace 7 to only check LOAD errors and exit`
+ - `-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD/STORE errors, fails at first FP_INFINITE, FP_NAN or LOAD/STORE error`
+ - `-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and LOAD/STORE errors, continue after FP_INFINITE, FP_NAN or LOAD/STORE error`
+ - `-trace 6 to only check LOAD/STORE errors and continue`
+ - `-trace 7 to only check LOAD/STORE errors and exit`
 
 ## faustbench
 
@@ -109,7 +111,7 @@ Here are the available options:
 
 - `-notrace to only generate the best compilation parameters`
 - `-generic to compile for a generic processor, otherwise the native CPU will be used`
-- `-single to only scalar test`
+- `-single to only execute the scalar test`
 - `-run <num> to execute each test <num> times`
 - `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means "maximal level" if range changes in the future)`
 
@@ -132,6 +134,17 @@ Here is the available options:
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
 - `-jsmem to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
 
+## faust-tester
+
+The **faust-tester** tool allows to test a Faust effect DSP with test input signals, like dirac impulse or periodic pulses.
+
+`faust-tester [-imp] [-pulse] foo.dsp` 
+
+Here is the available options:
+
+- `-imp to test with an dirac impulse`
+- `-pulse to test with a periodic pulse`
+
 ## faust-osc-controller
 
 The **faust-osc-controller** tool allows to control an OSC aware Faust running program (that is a DSP program possibly compiled with *faust2xx* and the *-osc* option). It will ask the program for its JSON description to build a "proxy" User Interface to control the distant program. Communications can be bi-directionnal, so that the proxy controler can display output control values coming from the distant program (like bargraphs for instance). 
@@ -143,7 +156,7 @@ Set root to the OSC program name (like '/freeverb'). Then use the available opti
 - `-port <port> to set the OSC input port`
 - `-outport <port>' to set the OSC output port`
 
-Note that the OSC *input port* of the **faust-osc-controller** tool has to be the *output port* of the controlled program. And the OSC *output port* of the **faust-osc-controller** tool has to be the *input port* of the controlled program. The controler and controlled programs both have to send messages using the -xmit (1|2) parameter, depending if you use real paths or alisases.
+Note that the OSC *input port* of the **faust-osc-controller** tool has to be the *output port* of the controlled program. And the OSC *output port* of the **faust-osc-controller** tool has to be the *input port* of the controlled program. The controler and controlled programs both have to send messages using the -xmit (1|2) parameter, depending if you use real paths or aliases.
 
 Example:
 

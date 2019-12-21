@@ -1,3 +1,4 @@
+/************************** BEGIN console.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -44,6 +45,10 @@
  *******************************************************************************
  *******************************************************************************/
 
+#define NO_FILE             0
+#define INPUT_OUTPUT_FILE   1
+#define OUTPUT_FILE         2
+
 struct param {
     FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
     param(FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) { *z = init; }
@@ -51,12 +56,12 @@ struct param {
 
 class CMDUI : public UI
 {
-    int                             fArgc;
-    char**                          fArgv;
-    std::vector<char*>              fFiles;
-    std::stack<std::string>         fPrefix;
-    std::map<std::string, param>    fKeyParam;
-    bool                            fIgnoreParam;
+    int                           fArgc;
+    char**                        fArgv;
+    std::vector<char*>            fFiles;
+    std::stack<std::string>       fPrefix;
+    std::map<std::string, param>  fKeyParam;
+    bool                          fIgnoreParam;
     
     void openAnyBox(const char* label)
     {
@@ -136,7 +141,8 @@ class CMDUI : public UI
     
 public:
     
-    CMDUI(int argc, char* argv[], bool ignore_param = false) : UI(), fArgc(argc), fArgv(argv), fIgnoreParam(ignore_param) { fPrefix.push("-"); }
+    CMDUI(int argc, char* argv[], bool ignore_param = false)
+    : UI(), fArgc(argc), fArgv(argv), fIgnoreParam(ignore_param) { fPrefix.push("-"); }
     virtual ~CMDUI() {}
     
     void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -147,27 +153,27 @@ public:
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
-        addOption(label,zone,0,0,1);
+        addOption(label, zone, 0, 0, 1);
     }
     
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
-        addOption(label,zone,0,0,1);
+        addOption(label, zone, 0, 0, 1);
     }
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addOption(label,zone,init,min,max);
+        addOption(label, zone, init, min, max);
     }
     
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addOption(label,zone,init,min,max);
+        addOption(label, zone, init, min, max);
     }
     
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addOption(label,zone,init,min,max);
+        addOption(label, zone, init, min, max);
     }
     
     // -- passive widgets
@@ -196,29 +202,30 @@ public:
         return true;
     }
     
-    void printhelp_command()
+    void printhelp_command(int file = NO_FILE)
     {
-        std::map<std::string, param>::iterator i;
-        std::cout << fArgc << "\n";
-        std::cout << fArgv[0] << " option list : ";
-        for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-            std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+        std::cout << fArgv[0] << " ";
+        for (auto& i : fKeyParam) {
+            std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
         }
-        std::cout << " infile outfile\n";
+        std::cout << std::endl;
+        if (file == INPUT_OUTPUT_FILE) {
+            std::cout << "infile outfile\n";
+        } else if (file == OUTPUT_FILE) {
+            std::cout << "outfile\n";
+        }
     }
     
     void printhelp_init()
     {
-        std::map<std::string, param>::iterator i;
-        std::cout << fArgc << "\n";
         std::cout << fArgv[0] << " option list : ";
-        for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-            std::cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+        for (auto& i : fKeyParam) {
+            std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
         }
         std::cout << std::endl;
     }
     
-    void process_command()
+    void process_command(int file = NO_FILE)
     {
         std::map<std::string, param>::iterator p;
         for (int i = 1; i < fArgc; i++) {
@@ -226,7 +233,7 @@ public:
                 if ((strcmp(fArgv[i], "-help") == 0)
                     || (strcmp(fArgv[i], "-h") == 0)
                     || (strcmp(fArgv[i], "--help") == 0)) 	{
-                    printhelp_command();
+                    printhelp_command(file);
                     exit(1);
                 }
                 p = fKeyParam.find(fArgv[i]);
@@ -235,6 +242,9 @@ public:
                         std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
                         printhelp_command();
                         exit(1);
+                    } else {
+                        // Argument with a value, so also ignore the value
+                        if ((i+1 < fArgc) && (fArgv[i+1][0] != '-')) i++;
                     }
                 } else {
                     char* end;
@@ -250,8 +260,8 @@ public:
     unsigned long files() { return fFiles.size(); }
     char* file(int n) { return fFiles[n]; }
     
-    char* input_file() { std::cout << "input file " << fFiles[0] << "\n"; return fFiles[0]; }
-    char* output_file() { std::cout << "output file " << fFiles[1] << "\n"; return fFiles[1]; }
+    char* input_file() { return fFiles[0]; }
+    char* output_file() { return fFiles[1]; }
     
     void process_init()
     {
@@ -281,3 +291,4 @@ public:
 #endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
+/**************************  END  console.h **************************/

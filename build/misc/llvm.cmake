@@ -78,7 +78,9 @@ macro (llvm_config)
 	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
 	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
 	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
-	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
+	
+    string ( APPEND LLVM_LIBS " ${LLVM_SYS_LIBS}")
+    string ( REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS} )
 endmacro()
 
 ####################################

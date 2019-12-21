@@ -26,13 +26,15 @@
 #include <string>
 #include <vector>
 
+#include "faust/gui/MapUI.h"
+#include "faust/gui/JSONControl.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
 #include "wasm_binary.hh"
 
 class wasm_dsp_factory;
-struct JSONUIDecoder;
+struct JSONUITemplatedDecoder;
 
 /*
  Read the wasm binary module, extract the JSON, define a new end for the module (without the last 'data segment'
@@ -53,7 +55,7 @@ struct WasmBinaryReader {
         data_segment_pos = -1;
         if (debug) std::cerr << "WasmBinaryReader size : " << size << std::endl;
     }
-
+    
     ~WasmBinaryReader() { free(input); }
 
     bool more() { return pos < size; }
@@ -261,15 +263,17 @@ struct WasmBinaryReader {
 
 // The C++ side version of compiled wasm code
 
-class EXPORT wasm_dsp : public dsp {
+class SoundUI;
+class MidiUI;
+
+class EXPORT wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
-    int               fIndex;  // Index of Wasm DSP instance
-    int               fDSP;    // Index of Wasm DSP memory
+    int               fDSP;       // Index of wasm DSP memory
 
    public:
-    wasm_dsp() : fFactory(nullptr), fIndex(-1), fDSP(-1) {}
-    wasm_dsp(wasm_dsp_factory* factory, int index);
+    wasm_dsp() : fFactory(nullptr), fDSP(-1) {}
+    wasm_dsp(wasm_dsp_factory* factory);
     virtual ~wasm_dsp();
 
     virtual int getNumInputs();
@@ -294,70 +298,72 @@ class EXPORT wasm_dsp : public dsp {
 
     virtual void metadata(Meta* m);
 
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
-    virtual void computeJS(int count, uintptr_t input, uintptr_t output);
+    virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs);
+    
+    virtual void setParamValue(const std::string& path, FAUSTFLOAT value);
+    
+    virtual FAUSTFLOAT getParamValue(const std::string& path);
 
-    virtual void computeJSTest(int count);
 };
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
+    friend class wasm_dsp;
    protected:
-    dsp_factory_base* fFactory;
-    JSONUIDecoder*    fDecoder;
-    int               fModule;  // Index of Wasm DSP module
-    std::string       fJSON;
+    dsp_factory_base*        fFactory;
+    JSONUITemplatedDecoder*  fDecoder;
+    int                      fInstance; // Index of wasm DSP instance
+    MapUI                    fMapUI;
+#ifdef EMCC
+    SoundUI* fSoundUI;
+#endif
 
    public:
-    wasm_dsp_factory() {}
+    wasm_dsp_factory():fFactory(nullptr), fDecoder(nullptr), fInstance(0)
+    {}
     wasm_dsp_factory(dsp_factory_base* factory);
+    wasm_dsp_factory(int instance, const std::string& json);
 
     virtual ~wasm_dsp_factory();
 
     std::string getName();
 
     std::string getSHAKey();
-    void        setSHAKey(std::string sha_key);
+    void        setSHAKey(const std::string& sha_key);
 
     std::string getDSPCode();
-    void        setDSPCode(std::string code);
+    void        setDSPCode(const std::string& code);
 
     std::string              getCompileOptions();
     std::vector<std::string> getLibraryList();
     std::vector<std::string> getIncludePathnames();
 
-    JSONUIDecoder* getDecoder() { return fDecoder; }
-
-    std::string getJSON() { return fJSON; }
+    JSONUITemplatedDecoder* getDecoder() { return fDecoder; }
 
     wasm_dsp* createDSPInstance();
-
+    void deleteDSPInstance(wasm_dsp* dsp);
+  
     void                setMemoryManager(dsp_memory_manager* manager);
     dsp_memory_manager* getMemoryManager();
 
     void write(std::ostream* out, bool binary, bool smallflag = false);
-    void writeAux(std::ostream* out, bool binary, bool smallflag = false);
+    void writeHelper(std::ostream* out, bool binary, bool smallflag = false);
 
     std::string getBinaryCode();
-
-    void createModuleFromString();
 
     static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path);
 
     static wasm_dsp_factory* readWasmDSPFactoryFromMachine2(const std::string& machine_code);
-
-    // Audio buffer management
-    static uintptr_t createJSAudioBuffers(int chan, int frames);
-    static void      deleteJSAudioBuffers(uintptr_t js_buffers, int chan);
-
-    static FAUSTFLOAT** createAudioBuffers(int chan, int frames);
-    static void         deleteAudioBuffers(FAUSTFLOAT** buffers, int chan);
-
-    static void copyJSAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames);
-    static void copyAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames);
-
+    
+    static wasm_dsp_factory* createWasmDSPFactory(int instance, const std::string& json);
+    
+    static bool deleteWasmDSPFactory2(wasm_dsp_factory* factory);
+    
+    static std::string extractJSON(const std::string& code);
+   
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
@@ -369,11 +375,11 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
 EXPORT void deleteAllWasmDSPFactories();
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code);
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
 
 EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path);
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
 EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
 

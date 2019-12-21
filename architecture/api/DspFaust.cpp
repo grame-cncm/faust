@@ -309,7 +309,7 @@ void DspFaust::stop()
 	fPolyEngine->stop();
 }
 
-bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, const char* address)
+bool DspFaust::configureOSC(int xmit, int inport, int outport, int errport, const char* address)
 {
 #if OSCCTRL
 #if JUCE_DRIVER
@@ -332,14 +332,23 @@ bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, con
 #endif
 }
 
+bool DspFaust::isOSCOn()
+{
+#if OSCCTRL
+	return true;
+#else
+  return false;
+#endif
+}
+
 bool DspFaust::isRunning()
 {
 	return fPolyEngine->isRunning();
 }
 
-unsigned long DspFaust::keyOn(int pitch, int velocity)
+uintptr_t DspFaust::keyOn(int pitch, int velocity)
 {
-	return (unsigned long)fPolyEngine->keyOn(pitch, velocity);
+	return (uintptr_t)fPolyEngine->keyOn(pitch, velocity);
 }
 
 int DspFaust::keyOff(int pitch)
@@ -347,19 +356,19 @@ int DspFaust::keyOff(int pitch)
 	return fPolyEngine->keyOff(pitch);
 }
 
-unsigned long DspFaust::newVoice()
+uintptr_t DspFaust::newVoice()
 {
-	return (unsigned long)fPolyEngine->newVoice();
+	return (uintptr_t)fPolyEngine->newVoice();
 }
 
-int DspFaust::deleteVoice(unsigned long voice)
+int DspFaust::deleteVoice(uintptr_t voice)
 {
 	return fPolyEngine->deleteVoice(voice);
 }
 
-void DspFaust::allNotesOff()
+void DspFaust::allNotesOff(bool hard)
 {
-    fPolyEngine->allNotesOff();
+    fPolyEngine->allNotesOff(hard);
 }
 
 void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2)
@@ -402,22 +411,22 @@ float DspFaust::getParamValue(int id)
 	return fPolyEngine->getParamValue(id);
 }
 
-void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value)
+void DspFaust::setVoiceParamValue(const char* address, uintptr_t voice, float value)
 {
 	fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
-void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value)
+void DspFaust::setVoiceParamValue(int id, uintptr_t voice, float value)
 {
 	fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
-float DspFaust::getVoiceParamValue(const char* address, unsigned long voice)
+float DspFaust::getVoiceParamValue(const char* address, uintptr_t voice)
 {
 	return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
-float DspFaust::getVoiceParamValue(int id, unsigned long voice)
+float DspFaust::getVoiceParamValue(int id, uintptr_t voice)
 {
 	return fPolyEngine->getVoiceParamValue(id, voice);
 }
@@ -427,7 +436,7 @@ const char* DspFaust::getParamAddress(int id)
 	return fPolyEngine->getParamAddress(id);
 }
 
-const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice)
+const char* DspFaust::getVoiceParamAddress(int id, uintptr_t voice)
 {
 	return fPolyEngine->getVoiceParamAddress(id, voice);
 }

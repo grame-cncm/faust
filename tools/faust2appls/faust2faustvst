@@ -15,7 +15,7 @@
 # the preferred path comes *last*.
 sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst* $VSTSDK"
 # This should hopefully work on *BSD, Linux and Mac OSX.
-[ -z "$SDK" ] && SDK=$(ls -f -d $sdkpaths 2>/dev/null | tail -n 1)
+[ -z "$SDK" ] && SDK=$(echo $sdkpaths | xargs ls -f -d 2>/dev/null | tail -n 1)
 [ -z "$SDK" ] && SDK=/usr/local/src/vstsdk
 
 # SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
@@ -44,7 +44,7 @@ sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/l
 # directory. You can also specify this explicitly by setting the FAUSTARCH
 # environment variable accordingly.
 
-# the part below is obsolete
+# The part below is obsolete
 # architecture location is now defined by faustpath and stored in a variable named FAUSTARCH
 #[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/share/faust/faustvstqt.h /usr/local/share/faust/faustvstqt.h /opt/local/share/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
 #[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
@@ -228,7 +228,7 @@ if [ -n "$plugin_gui" ]; then
 # XXXTODO: OSX support
 (
     cd "$tmpdir"
-    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE -project -t lib -o ${clsname}.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network $QTEXTRA" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTARCH" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $CPPFLAGS" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "SOURCES+=$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx" "HEADERS+=$FAUSTARCH/faustvstqt.h $FAUSTINC/faust/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
     $QMAKE *.pro
     make
 ) > /dev/null || exit 1

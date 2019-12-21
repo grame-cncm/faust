@@ -51,7 +51,7 @@ struct StringTypeManager {
 
 class CStringTypeManager : public StringTypeManager {
    public:
-    CStringTypeManager(const std::string& float_macro_name, const std::string& ptr_postfix)
+    CStringTypeManager(const std::string& float_macro_name, const std::string& ptr_postfix, const std::string& struct_name = "")
         : StringTypeManager(float_macro_name, ptr_postfix)
     {
         fPtrPosfix = ptr_postfix;
@@ -89,8 +89,8 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kSound_ptr] = "Soundfile" + fPtrPosfix;
 
         // DSP has to be empty here
-        fTypeDirectTable[Typed::kObj]     = "";
-        fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
+        fTypeDirectTable[Typed::kObj]     = struct_name;
+        fTypeDirectTable[Typed::kObj_ptr] = struct_name + fPtrPosfix;
 
         fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
     }
@@ -124,11 +124,9 @@ class CStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
-            std::ostringstream num_str;
-            num_str << array_typed->fSize;
             return (array_typed->fSize == 0 || array_typed->fIsPtr)
                        ? generateType(array_typed->fType) + fPtrPosfix + " " + name
-                       : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
+            : generateType(array_typed->fType) + " " + name + "[" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
@@ -210,11 +208,9 @@ class RustStringTypeManager : public StringTypeManager {
             string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
-            std::ostringstream num_str;
-            num_str << array_typed->fSize;
             return (array_typed->fSize == 0)
                        ? name + ": " + fPtrPosfix + generateType(array_typed->fType)
-                       : name + ": [" + generateType(array_typed->fType) + ";" + num_str.str() + "]";
+                       : name + ": [" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
@@ -294,11 +290,9 @@ class SOULStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
-            std::ostringstream num_str;
-            num_str << array_typed->fSize;
             return (array_typed->fSize == 0 || array_typed->fIsPtr)
                        ? generateType(array_typed->fType) + fPtrPosfix + " " + name
-                       : generateType(array_typed->fType) + "[" + num_str.str() + "] " + name;
+                       : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "] " + name;
         } else {
             faustassert(false);
             return "";

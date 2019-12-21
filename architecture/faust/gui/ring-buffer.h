@@ -1,3 +1,4 @@
+/************************** BEGIN ring-buffer.h **************************/
 /*
   Copyright (C) 2000 Paul Davis
   Copyright (C) 2003 Rohan Drape
@@ -410,3 +411,4 @@ ringbuffer_get_write_vector (const ringbuffer_t * rb,
 }
 
 #endif // __ring_buffer__
+/**************************  END  ring-buffer.h **************************/

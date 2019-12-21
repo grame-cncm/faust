@@ -1,3 +1,4 @@
+/************************** BEGIN AudioPluginInterface.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -297,3 +298,4 @@ struct UnityAudioEffectDefinition
 // This function fills in N pointers for the N effects contained in the library and returns N.
 extern "C" UNITY_AUDIODSP_EXPORT_API int UnityGetAudioEffectDefinitions(UnityAudioEffectDefinition*** descptr);
 #endif
+/**************************  END  AudioPluginInterface.h **************************/

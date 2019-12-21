@@ -285,12 +285,12 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 }
             }
 
-            for (list<StatementInst*>::iterator it = store.begin(); it != store.end(); ++it) {
-                dst->pushFrontInst(*it);
+            for (auto& it : store) {
+                dst->pushFrontInst(it);
             }
 
-            for (list<StatementInst*>::iterator it = dec.begin(); it != dec.end(); ++it) {
-                dst->pushFrontInst(*it);
+            for (auto& it : dec) {
+                dst->pushFrontInst(it);
             }
         } else {
             // Separate with a list of DeclareVarInst with a value, followed by a list of StoreVarInst
@@ -434,7 +434,7 @@ struct FunctionInliner {
                     fInLoop = gGlobal->getFreshID("re_i");
                     return InstBuilder::genDeclareVarInst(renameAddress(inst->fAddress, fInLoop),
                                                           inst->fType->clone(this),
-                                                          (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                                                          (inst->fValue) ? inst->fValue->clone(this) : nullptr);
                 } else {
                     return BasicCloneVisitor::visit(inst);
                 }
@@ -597,6 +597,17 @@ struct CastRemover : public BasicTypingCloneVisitor {
                 // dump2FIR(inst);
                 return inst->fInst->clone(this);
             } else {
+                /*
+                // TODO = protection out-of [-2147483647, 2147483647] range
+                ValueInst* max = InstBuilder::genRealNumInst(Typed::kFloat, double(2147483647));
+                ValueInst* min = InstBuilder::genRealNumInst(Typed::kFloat, double(-2147483647));
+                
+                return InstBuilder::genSelect2Inst(InstBuilder::genGreaterEqual(inst->fInst->clone(this), max),
+                                                   InstBuilder::genInt32NumInst(2147483647),
+                                                   InstBuilder::genSelect2Inst(InstBuilder::genLessEqual(inst->fInst->clone(this), min),
+                                                                               InstBuilder::genInt32NumInst(-2147483647),
+                                                                               BasicTypingCloneVisitor::visit(inst)));
+                */
                 return BasicTypingCloneVisitor::visit(inst);
             }
         } else {

@@ -9,7 +9,6 @@
 <P> OSC volume:
 <input type="range" oninput="changeVolume(event) "min="-96" max="1" value="0" step="0.1"/>        
 
-
 <!-- Load 'faust2wasm' script generated .js file -->
 <script src="osc.js"></script>
 
@@ -20,8 +19,8 @@ if (typeof (WebAssembly) === "undefined") {
 }
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var audio_context = null;
-var osc = null;
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var osc_dsp = null;
 
 // Slider handler to change the 'osc' frequency
 function changeFreq(event)
@@ -29,7 +28,7 @@ function changeFreq(event)
     var val = event.target.value;
     val = parseFloat(val);
     console.log(val);
-    osc.setParamValue("/Oscillator/freq", val);
+    osc_dsp.setParamValue("/Oscillator/freq", val);
 }
 
 // Slider handler to change the 'osc' volume
@@ -38,23 +37,21 @@ function changeVolume(event)
     var val = event.target.value;
     val = parseFloat(val);
     console.log(val);
-    osc.setParamValue("/Oscillator/volume", val);
+    osc_dsp.setParamValue("/Oscillator/volume", val);
 }
 
 function startosc()
 {
-    // Create audio context
-    audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-  
     // Create the Faust generated node
-    faust.createosc(audio_context, 1024,
-                      function (node) {
-                            osc = node;
-                            console.log(osc.getJSON());
+    var pluginURL = ".";
+    var plugin = new Faustosc(audio_context, pluginURL);
+    plugin.load().then(node => {
+                            osc_dsp = node;
+                            console.log(osc_dsp.getJSON());
                             // Print paths to be used with 'setParamValue'
-                            console.log(osc.getParams());
+                            console.log(osc_dsp.getParams());
                             // Connect it to output as a regular WebAudio node
-                            osc.connect(audio_context.destination);
+                            osc_dsp.connect(audio_context.destination);
                       });
 }
 
@@ -63,7 +60,7 @@ window.addEventListener('load', startosc);
 
 // To activate audio on iOS
 window.addEventListener('touchstart', function() {
-                        
+                        if (audio_context.state !== "suspended") return;
                         // create empty buffer
                         var buffer = audio_context.createBuffer(1, 1, 22050);
                         var source = audio_context.createBufferSource();
@@ -75,7 +72,14 @@ window.addEventListener('touchstart', function() {
                         // play the file
                         source.start();
                         
+                        audio_context.resume().then(() => console.log("Audio resumed"));
                         }, false);
+
+// On desktop
+window.addEventListener("mousedown", () => {
+    if (audio_context.state !== "suspended") return;
+    audio_context.resume().then(() => console.log("Audio resumed"))
+});  
 
 </script>
 

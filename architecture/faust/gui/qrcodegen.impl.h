@@ -1,3 +1,4 @@
+/************************** BEGIN qrcodegen.impl.h **************************/
 /* 
  * QR Code generator library (C)
  * 
@@ -1021,3 +1022,4 @@ static int numCharCountBits(enum qrcodegen_Mode mode, int version) {
 	}
 	return -1;  // Dummy value
 }
+/**************************  END  qrcodegen.impl.h **************************/

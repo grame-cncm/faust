@@ -19,7 +19,7 @@ android {
 
     sourceSets {
         main {
-            jniLibs.srcDirs 'lib/libsndfile/lib'
+            jniLibs.srcDirs = ['/usr/local/share/faust/osclib/android/libs','lib/libsndfile/lib']
         }
     }
 

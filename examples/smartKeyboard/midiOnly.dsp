@@ -43,7 +43,7 @@ declare interface "SmartKeyboard{
 import("stdfaust.lib");
 
 f = hslider("freq",300,50,2000,0.01);
-bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+bend = ba.semi2ratio(hslider("bend[midi:pitchwheel]",0,-2,2,0.001)) : si.polySmooth(gate,0.999,1);
 gain = hslider("gain",1,0,1,0.01);
 key = hslider("key",0,0,1,1) : int;
 kb0k0x = hslider("kb0k0x[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;

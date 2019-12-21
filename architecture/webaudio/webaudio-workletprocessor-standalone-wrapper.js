@@ -75,62 +75,88 @@ class mydspProcessor extends AudioWorkletProcessor {
             obj.pathTable[item.address] = parseInt(item.index);
         }
     }
-    
-    static b64ToUint6(nChr)
-    {
-        return nChr > 64 && nChr < 91 ?
-        nChr - 65
-        : nChr > 96 && nChr < 123 ?
-        nChr - 71
-        : nChr > 47 && nChr < 58 ?
-        nChr + 4
-        : nChr === 43 ?
-        62
-        : nChr === 47 ?
-        63
-        :
-        0;
-    }
-    
-    static atob(sBase64, nBlocksSize)
-    {
-        if (typeof atob === 'function') {
-            return atob(sBase64);
-        } else {
-            
-            var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
-            var nInLen = sB64Enc.length;
-            var nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
-            var taBytes = new Uint8Array(nOutLen);
-            
-            for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
-                nMod4 = nInIdx & 3;
-                nUint24 |= mydspProcessor.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
-                if (nMod4 === 3 || nInLen - nInIdx === 1) {
-                    for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
-                        taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
-                    }
-                    nUint24 = 0;
-                }
-            }
-            return taBytes.buffer;
-        }
-    }
-   
+ 
     static get parameterDescriptors() 
     {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
         mydspProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydspProcessor.parse_item1);
-        return params;
+ 	    return params;
     }
-    
+   
     constructor(options)
     {
         super(options);
-      
-        this.json_object = JSON.parse(getJSONmydsp());
+        
+       	const importObject = {
+                env: {
+                    memoryBase: 0,
+                    tableBase: 0,
 
+                    // Integer version
+                    _abs: Math.abs,
+
+                    // Float version
+                    _acosf: Math.acos,
+                    _asinf: Math.asin,
+                    _atanf: Math.atan,
+                    _atan2f: Math.atan2,
+                    _ceilf: Math.ceil,
+                    _cosf: Math.cos,
+                    _expf: Math.exp,
+                    _floorf: Math.floor,
+                    _fmodf: function(x, y) { return x % y; },
+                    _logf: Math.log,
+                    _log10f: Math.log10,
+                    _max_f: Math.max,
+                    _min_f: Math.min,
+                    _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+                    _powf: Math.pow,
+                    _roundf: Math.fround,
+                    _sinf: Math.sin,
+                    _sqrtf: Math.sqrt,
+                    _tanf: Math.tan,
+                    _acoshf: Math.acosh,
+                    _asinhf: Math.asinh,
+                    _atanhf: Math.atanh,
+                    _coshf: Math.cosh,
+                    _sinhf: Math.sinh,
+                    _tanhf: Math.tanh,
+
+                    // Double version
+                    _acos: Math.acos,
+                    _asin: Math.asin,
+                    _atan: Math.atan,
+                    _atan2: Math.atan2,
+                    _ceil: Math.ceil,
+                    _cos: Math.cos,
+                    _exp: Math.exp,
+                    _floor: Math.floor,
+                    _fmod: function(x, y) { return x % y; },
+                    _log: Math.log,
+                    _log10: Math.log10,
+                    _max_: Math.max,
+                    _min_: Math.min,
+                    _remainder:function(x, y) { return x - Math.round(x/y) * y; },
+                    _pow: Math.pow,
+                    _round: Math.fround,
+                    _sin: Math.sin,
+                    _sqrt: Math.sqrt,
+                    _tan: Math.tan,
+                    _acosh: Math.acosh,
+                    _asinh: Math.asinh,
+                    _atanh: Math.atanh,
+                    _cosh: Math.cosh,
+                    _sinh: Math.sinh,
+                    _tanh: Math.tanh,
+
+                    table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+                }
+        };
+        
+        this.mydsp_instance = new WebAssembly.Instance(options.processorOptions.wasm_module, importObject);
+        this.json_object = JSON.parse(options.processorOptions.json);
+     
         this.output_handler = function(path, value) { this.port.postMessage({ path: path, value: value }); };
         
         this.ins = null;
@@ -147,8 +173,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.sample_size = 4;
         this.integer_size = 4;
         
-        this.mydsp_instance = new WebAssembly.Instance(mydspProcessor.wasm_module, mydspProcessor.importObject);
-  	   	this.factory = this.mydsp_instance.exports;
+        this.factory = this.mydsp_instance.exports;
         this.HEAP = this.mydsp_instance.exports.memory.buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
@@ -178,7 +203,7 @@ class mydspProcessor extends AudioWorkletProcessor {
 
         // Setup buffer offset
         this.audio_heap_inputs = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
-        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * mydspProcessor.buffer_size * this.sample_size);
+        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * NUM_FRAMES * this.sample_size);
         
         // Start of DSP memory : DSP is placed first with index 0
         this.dsp = 0;
@@ -196,82 +221,6 @@ class mydspProcessor extends AudioWorkletProcessor {
             }
         }
         
-        this.loadFile = function (sound_index, sound_ptr, length, sample_rate, channels, buffers)
-        {
-            /*
-             Soundfile layout:
-            
-                FAUSTFLOAT** fBuffers;
-                int fLength;
-                int fSampleRate;
-                int fChannels;
-             
-                ===========
-                Soundfile struct
-                fBuffers[channels]
-                fBuffers0
-                fBuffers1
-                ...
-                Soundfile struct
-                fBuffers[channels]
-                fBuffers0
-                fBuffers1
-                ...
-                ===========
-            */
-            
-            var size_of_soundfile = this.ptr_size + (this.integer_size * 3);  // fBuffers, fLength, fSampleRate, fChannels
-            
-            //console.log("sound_ptr " + sound_ptr);
-            //console.log("size_of_soundfile " + size_of_soundfile);
-            
-            // end of sounfile
-            var end_of_soundfile_ptr = sound_ptr + size_of_soundfile;
-            
-            this.HEAP32[sound_ptr >> 2] = end_of_soundfile_ptr;
-            this.HEAP32[(sound_ptr + 4) >> 2] = length;      // fLength
-            this.HEAP32[(sound_ptr + 8) >> 2] = sample_rate; // fSampleRate
-            this.HEAP32[(sound_ptr + 12) >> 2] = channels;   // fChannels
-            
-            //console.log("end_of_soundfile_ptr " + end_of_soundfile_ptr);
-            
-            // Setup soundfile pointers
-            var start_of_soundfile_data_ptr = end_of_soundfile_ptr + this.ptr_size * channels;
-            
-            for (var i = 0; i < channels; i++) {
-                this.HEAP32[(end_of_soundfile_ptr + (i * this.ptr_size)) >> 2] = start_of_soundfile_data_ptr + (i * length * this.sample_size);
-            }
-            
-            // Setup soundfile buffer
-            for (var i = 0; i < channels; i++) {
-                
-                // start of sound buffer
-                var start_of_buffer_ptr = start_of_soundfile_data_ptr + (i * length * this.sample_size);
-                
-                // generate a 440 Hz signal
-                for (var j = 0; j < length; j++) {
-                    this.HEAPF32[(start_of_buffer_ptr + (j * this.sample_size)) >> 2] = 0.8 * Math.sin((j/length)*2*Math.PI);
-                }
-            }
-            
-            // Setup fSoundfile fields in the DSP structure
-            //console.log("sound_index " + sound_index);
-            //console.log("this.pathTable[this.soundfile_items[sound_index]] " + this.pathTable[this.soundfile_items[sound_index]]);
-            
-            this.HEAP32[this.pathTable[this.soundfile_items[sound_index]] >> 2] = sound_ptr;
-            
-            /*
-            console.log("start_of_soundfile_data_ptr " + start_of_soundfile_data_ptr);
-            console.log("length " + length);
-            console.log("channels " + channels);
-            console.log("this.sample_size " + this.sample_size);
-            console.log("END " + (start_of_soundfile_data_ptr + (channels * length * this.sample_size)));
-            */
-            
-            // End of buffer data;
-            return start_of_soundfile_data_ptr + (channels * length * this.sample_size);
-        }
-        
         this.initAux = function ()
         {
             var i;
@@ -279,43 +228,32 @@ class mydspProcessor extends AudioWorkletProcessor {
             if (this.numIn > 0) {
                 this.ins = this.audio_heap_ptr_inputs;
                 for (i = 0; i < this.numIn; i++) {
-                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((mydspProcessor.buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((NUM_FRAMES * this.sample_size) * i);
                 }
                 
                 // Prepare Ins buffer tables
                 var dspInChans = this.HEAP32.subarray(this.ins >> 2, (this.ins + this.numIn * this.ptr_size) >> 2);
                 for (i = 0; i < this.numIn; i++) {
-                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + mydspProcessor.buffer_size * this.sample_size) >> 2);
+                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + NUM_FRAMES * this.sample_size) >> 2);
                 }
             }
             
             if (this.numOut > 0) {
                 this.outs = this.audio_heap_ptr_outputs;
                 for (i = 0; i < this.numOut; i++) {
-                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((mydspProcessor.buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((NUM_FRAMES * this.sample_size) * i);
                 }
                 
                 // Prepare Out buffer tables
                 var dspOutChans = this.HEAP32.subarray(this.outs >> 2, (this.outs + this.numOut * this.ptr_size) >> 2);
                 for (i = 0; i < this.numOut; i++) {
-                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + mydspProcessor.buffer_size * this.sample_size) >> 2);
+                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + NUM_FRAMES * this.sample_size) >> 2);
                 }
             }
             
             // Parse UI
             mydspProcessor.parse_ui(this.json_object.ui, this, mydspProcessor.parse_item2);
-            
-            /*
-            console.log("soundfile_items.length " + this.soundfile_items.length);
-            
-            // Setup soundfile offset (after audio data)
-            this.soundfile_ptr = this.audio_heap_outputs + (this.numOut * mydspProcessor.buffer_size * this.sample_size);
-            
-            var sound_ptr1 = this.soundfile_ptr;
-            var sound_ptr2 = this.loadFile(0, sound_ptr1, 44100/700, 44100, 2, null);
-            var sound_ptr3 = this.loadFile(1, sound_ptr2, 44100/500, 44100, 2, null);
-            */
-             
+                 
             // Init DSP
             this.factory.init(this.dsp, sampleRate); // 'sampleRate' is defined in AudioWorkletGlobalScope  
         }
@@ -332,6 +270,8 @@ class mydspProcessor extends AudioWorkletProcessor {
 
         // Init resulting DSP
         this.initAux();
+        
+        console.log(this);
     }
     
     process(inputs, outputs, parameters) 
@@ -352,7 +292,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         
         // Copy inputs
         if (input !== undefined) {
-            for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
+            for (var chan = 0; chan < Math.min(this.numIn, input.length); ++chan) {
                 var dspInput = this.dspInChannnels[chan];
                 dspInput.set(input[chan]);
             }
@@ -361,7 +301,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         /*
         TODO: sample accurate control change is not yet handled
         When no automation occurs, params[i][1] has a length of 1,
-        otherwise params[i][1] has a length of 128 with possible control change each sample
+        otherwise params[i][1] has a length of NUM_FRAMES with possible control change each sample
     	*/
         
         // Update controls
@@ -371,7 +311,11 @@ class mydspProcessor extends AudioWorkletProcessor {
         }
         
         // Compute
-        this.factory.compute(this.dsp, mydspProcessor.buffer_size, this.ins, this.outs);
+        try {
+            this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
+        } catch(e) {
+            console.log("ERROR in compute (" + e + ")");
+        }
         
         // Update bargraph
         this.update_outputs();
@@ -389,81 +333,9 @@ class mydspProcessor extends AudioWorkletProcessor {
 }
 
 // Globals
-mydspProcessor.buffer_size = 128;
-
-mydspProcessor.importObject = {
-    env: {
-        memoryBase: 0,
-        tableBase: 0,
-            
-        // Integer version
-        _abs: Math.abs,
-        
-        // Float version
-        _acosf: Math.acos,
-        _asinf: Math.asin,
-        _atanf: Math.atan,
-        _atan2f: Math.atan2,
-        _ceilf: Math.ceil,
-        _cosf: Math.cos,
-        _expf: Math.exp,
-        _floorf: Math.floor,
-        _fmodf: function(x, y) { return x % y; },
-        _logf: Math.log,
-        _log10f: Math.log10,
-        _max_f: Math.max,
-        _min_f: Math.min,
-        _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
-        _powf: Math.pow,
-        _roundf: Math.fround,
-        _sinf: Math.sin,
-        _sqrtf: Math.sqrt,
-        _tanf: Math.tan,
-        _acoshf: Math.acosh,
-        _asinhf: Math.asinh,
-        _atanhf: Math.atanh,
-        _coshf: Math.cosh,
-        _sinhf: Math.sinh,
-        _tanhf: Math.tanh,  
-        
-        // Double version
-        _acos: Math.acos,
-        _asin: Math.asin,
-        _atan: Math.atan,
-        _atan2: Math.atan2,
-        _ceil: Math.ceil,
-        _cos: Math.cos,
-        _exp: Math.exp,
-        _floor: Math.floor,
-        _fmod: function(x, y) { return x % y; },
-        _log: Math.log,
-        _log10: Math.log10,
-        _max_: Math.max,
-        _min_: Math.min,
-        _remainder:function(x, y) { return x - Math.round(x/y) * y; },
-        _pow: Math.pow,
-        _round: Math.fround,
-        _sin: Math.sin,
-        _sqrt: Math.sqrt,
-        _tan: Math.tan,
-        _acosh: Math.acosh,
-        _asinh: Math.asinh,
-        _atanh: Math.atanh,
-        _cosh: Math.cosh,
-        _sinh: Math.sinh,
-        _tanh: Math.tanh,
-        
-        table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
-    }
-};
-
-// Synchronously compile and instantiate the WASM module
+const NUM_FRAMES = 128;
 try {
-    if (mydspProcessor.wasm_module == undefined) {
-        mydspProcessor.wasm_module = new WebAssembly.Module(mydspProcessor.atob(getBase64Codemydsp()));
-        registerProcessor('mydsp', mydspProcessor);
-    }
-} catch (e) {
-    console.log(e); console.log("Faust mydsp cannot be loaded or compiled");
+    registerProcessor('mydsp', mydspProcessor);
+} catch (error) {
+    console.warn(error);
 }
-

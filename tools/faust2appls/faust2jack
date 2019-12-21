@@ -3,14 +3,13 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to JACK-GTK                 #
-#               (c) Grame, 2009-2018                                #
+#               (c) Grame, 2009-2019                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
 
-CXX=g++
 CXXFLAGS="$MYGCCFLAGS -I/opt/local/include"
 
 ARCHFILE=$FAUSTARCH/jack-gtk.cpp
@@ -21,6 +20,10 @@ NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+
+if [[ $(uname -s) != Darwin ]]; then
+	LFLAGS+="-no-pie"
+fi
 
 #-------------------------------------------------------------------
 # Check Darwin specifics
@@ -37,10 +40,11 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2jack [-httpd] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-   	    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-resample' to resample soundfiles to the audio driver sample rate"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
@@ -76,6 +80,9 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-resample" ]; then
+        SAMPLERATEDEFS="-DSAMPLERATE"
+        SAMPLERATELIBS=`pkg-config --cflags --static --libs samplerate`
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
@@ -128,10 +135,10 @@ EndOfCode
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
 	) > /dev/null || exit
 
-    #remove tempory stuff
+    # remove tempory files
 	rm -f "$f.cpp" effect.h "$f.json"
 
 	# collect binary file name for FaustWorks

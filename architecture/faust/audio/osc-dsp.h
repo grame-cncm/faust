@@ -1,3 +1,4 @@
+/************************** BEGIN osc-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -116,3 +117,4 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 };
 
 #endif
+/**************************  END  osc-dsp.h **************************/

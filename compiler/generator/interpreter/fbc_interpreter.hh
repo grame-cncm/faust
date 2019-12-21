@@ -34,6 +34,7 @@
 #include "interpreter_bytecode.hh"
 
 /*
+ Interpreter using 'computed goto' technique: https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables
 
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case.
 
@@ -50,8 +51,8 @@
 #define DUMMY_REAL 0.12233344445555
 #define DUMMY_INT 1223334444
 
-//#define interp_assert(exp) faustassert(exp)
-#define interp_assert(exp)
+//#define assertInterp(exp) faustassert(exp)
+#define assertInterp(exp)
 
 template <class T, int TRACE>
 struct interpreter_dsp_factory_aux;
@@ -107,7 +108,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         void traceInstruction(InstructionIT it)
         {
-            (*it)->write(&fMessage, false, false, false);  // Lats param = fasle means no recursion in branches
+            (*it)->write(&fMessage, false, false, false);  // Last param = false means no recursion in branches
             push(fMessage.str());
             fMessage.str("");
         }
@@ -222,8 +223,8 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         if (TRACE >= 4 && ((index < 0) || (index >= fIntHeap[fFactory->fCountOffset]))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertAudioBuffer : count " << fIntHeap[fFactory->fCountOffset] << " index " << index
-                      << std::endl;
+            std::cout << "assertAudioBuffer : count " << fIntHeap[fFactory->fCountOffset];
+            std::cout << " index " << index << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
             if (TRACE == 4) {
@@ -235,16 +236,22 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline int assertIntHeap(InstructionIT it, int index, int size = -1)
     {
-        if (TRACE >= 6) return index;
-
         if (TRACE >= 4 &&
             ((index < 0) || (index >= fFactory->fIntHeapSize) || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertIntHeap : fIntHeapSize " << fFactory->fIntHeapSize << " index " << index << " size "
-                      << size << " value " << fIntHeap[index] << " name " << (*it)->fName << std::endl;
+            if (size > 0) {
+                std::cout << "assertIntHeap array: fIntHeapSize ";
+                std::cout << fFactory->fIntHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << " size " << size;
+                std::cout << " name " << (*it)->fName << std::endl;
+            } else {
+                std::cout << "assertIntHeap scalar: fIntHeapSize ";
+                std::cout << fFactory->fIntHeapSize << " index " << index;
+                std::cout << " name " << (*it)->fName << std::endl;
+            }
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4) {
+            if (TRACE == 4 || TRACE == 7) {
                 throw faustexception("Interpreter exit\n");
             }
         }
@@ -253,16 +260,22 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline int assertRealHeap(InstructionIT it, int index, int size = -1)
     {
-        if (TRACE >= 6) return index;
-
         if (TRACE >= 4 &&
             ((index < 0) || (index >= fFactory->fRealHeapSize) || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertRealHeap : fRealHeapSize " << fFactory->fRealHeapSize << " index " << index << " size "
-                      << size << " value " << fRealHeap[index] << " name " << (*it)->fName << std::endl;
+            if (size > 0) {
+                std::cout << "assertRealHeap array: fIntHeapSize ";
+                std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << " size " << size;
+                std::cout << " name " << (*it)->fName << std::endl;
+            } else {
+                std::cout << "assertRealHeap scalar: fIntHeapSize ";
+                std::cout << fFactory->fRealHeapSize << " index " << index;
+                std::cout << " name " << (*it)->fName << std::endl;
+            }
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4) {
+            if (TRACE == 4 || TRACE == 7) {
                 throw faustexception("Interpreter exit\n");
             }
         }
@@ -271,15 +284,14 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline int assertSoundHeap(InstructionIT it, int index, int size = -1)
     {
-        if (TRACE >= 6) return index;
-
         if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fSoundHeapSize) || (size > 0 && index >= size))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assertSoundHeap : fSoundHeapSize " << fFactory->fSoundHeapSize << " index " << index
+            std::cout << "assertSoundHeap : fSoundHeapSize "
+                      << fFactory->fSoundHeapSize << " index " << index
                       << " size " << size << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
-            if (TRACE == 4) {
+            if (TRACE == 4 || TRACE == 7) {
                 throw faustexception("Interpreter exit\n");
             }
         }
@@ -288,17 +300,23 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     inline int assertLoadIntHeap(InstructionIT it, int index, int size = -1)
     {
-        if ((TRACE >= 4) && ((index < 0) || (index >= fFactory->fIntHeapSize) ||
-                             (size > 0 && (index >= ((*it)->fOffset1 + size))) || (fIntHeap[index] == DUMMY_INT))) {
+        if ((TRACE >= 4) &&
+            ((index < 0)
+             || (index >= fFactory->fIntHeapSize)
+             || (size > 0 && (index >= ((*it)->fOffset1 + size)))
+             || (fIntHeap[index] == DUMMY_INT))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
                 std::cout << "assertLoadIntHeap array: fIntHeapSize ";
                 std::cout << fFactory->fIntHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << " size " << size;
+                std::cout << " value " << fIntHeap[index];
+                std::cout << " name " << (*it)->fName << std::endl;
             } else {
                 std::cout << "assertLoadIntHeap scalar: fIntHeapSize ";
                 std::cout << fFactory->fIntHeapSize << " index " << index;
+                std::cout << " name " << (*it)->fName << std::endl;
             }
-            std::cout << " size " << size << " value " << fIntHeap[index] << " name " << (*it)->fName << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
             if (TRACE == 4 || TRACE == 7) {
@@ -311,17 +329,22 @@ class FBCInterpreter : public FBCExecutor<T> {
     inline int assertLoadRealHeap(InstructionIT it, int index, int size = -1)
     {
         if ((TRACE >= 4) &&
-            ((index < 0) || (index >= fFactory->fRealHeapSize) || (size > 0 && (index >= ((*it)->fOffset1 + size))) ||
-             (fRealHeap[index] == T(DUMMY_REAL)))) {
+            ((index < 0)
+             || (index >= fFactory->fRealHeapSize)
+             || (size > 0 && (index >= ((*it)->fOffset1 + size)))
+             || (fRealHeap[index] == T(DUMMY_REAL)))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
                 std::cout << "assertLoadRealHeap array: fIntHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << " size " << size;
+                std::cout << " value " << fRealHeap[index];
+                std::cout << " name " << (*it)->fName << std::endl;
             } else {
                 std::cout << "assertLoadRealHeap scalar: fIntHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << index;
+                std::cout << " name " << (*it)->fName << std::endl;
             }
-            std::cout << " size " << size << " value " << fRealHeap[index] << " name " << (*it)->fName << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
             if (TRACE == 4 || TRACE == 7) {
@@ -329,6 +352,20 @@ class FBCInterpreter : public FBCExecutor<T> {
             }
         }
         return index;
+    }
+    
+    inline void assertIndex(InstructionIT it, int index, int size = -1)
+    {
+        if ((TRACE >= 4) && ((index < 0) || (index >= size))) {
+            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
+            std::cout << "index " << index << " size " << size << std::endl;
+            traceInstruction(it);
+            fTraceContext.write(&std::cout);
+            throw faustexception("Interpreter exit\n");
+        }
+        if (TRACE == 4 || TRACE == 7) {
+            throw faustexception("Interpreter exit\n");
+        }
     }
 
     inline T checkReal(InstructionIT it, T val) { return (TRACE > 0) ? checkRealAux(it, val) : val; }
@@ -405,7 +442,7 @@ class FBCInterpreter : public FBCExecutor<T> {
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     if (it->fOffset == -1) {
-                        glue->declare(static_cast<T*>(NULL), it->fKey.c_str(), it->fValue.c_str());
+                        glue->declare(static_cast<T*>(nullptr), it->fKey.c_str(), it->fValue.c_str());
                     } else {
                         glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
                     }
@@ -481,14 +518,14 @@ class FBCInterpreter : public FBCExecutor<T> {
             // Extended unary math
             &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAcoshf, &&do_kAsinf, &&do_kAsinhf, &&do_kAtanf, &&do_kAtanhf, &&do_kCeilf,
             &&do_kCosf, &&do_kCoshf,
-            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
+            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRintf, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
             &&do_kTanf, &&do_kTanhf,
 
             // Extended unary math (heap OP heap)
             &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAcoshfHeap, &&do_kAsinfHeap, &&do_kAsinhfHeap, &&do_kAtanfHeap, &&do_kAtanhfHeap,
             &&do_kCeilfHeap,
             &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap,
-            &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
+            &&do_kRintfHeap, &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
 
             // Extended binary math
             &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf,
@@ -532,13 +569,13 @@ class FBCInterpreter : public FBCExecutor<T> {
 
 #define dispatchFirstScal()                   \
     {                                         \
-        goto* fDispatchTable[(*it)->fOpcode]; \
+        goto *fDispatchTable[(*it)->fOpcode]; \
     }
 #define dispatchNextScal()                    \
     {                                         \
         traceInstruction(it);                 \
         it++;                                 \
-        goto* fDispatchTable[(*it)->fOpcode]; \
+        goto *fDispatchTable[(*it)->fOpcode]; \
     }
 
 #define dispatchBranch1Scal()                        \
@@ -677,10 +714,13 @@ class FBCInterpreter : public FBCExecutor<T> {
     }
 
     do_kLoadIndexedReal : {
+        int offset = popInt();
         if (TRACE > 0) {
-            pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1 + popInt(), (*it)->fOffset2)]);
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
+            pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
         } else {
-            pushReal(it, fRealHeap[(*it)->fOffset1 + popInt()]);
+            pushReal(it, fRealHeap[(*it)->fOffset1 + offset]);
         }
         dispatchNextScal();
     }
@@ -688,6 +728,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kLoadIndexedInt : {
         int offset = popInt();
         if (TRACE > 0) {
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
             pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
         } else {
             pushInt(fIntHeap[(*it)->fOffset1 + offset]);
@@ -696,10 +738,13 @@ class FBCInterpreter : public FBCExecutor<T> {
     }
 
     do_kStoreIndexedReal : {
+        int offset = popInt();
         if (TRACE > 0) {
-            fRealHeap[assertRealHeap(it, (*it)->fOffset1 + popInt(), (*it)->fOffset2)] = popReal(it);
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
+            fRealHeap[assertRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popReal(it);
         } else {
-            fRealHeap[(*it)->fOffset1 + popInt()] = popReal(it);
+            fRealHeap[(*it)->fOffset1 + offset] = popReal(it);
         }
         dispatchNextScal();
     }
@@ -707,6 +752,8 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kStoreIndexedInt : {
         int offset = popInt();
         if (TRACE > 0) {
+            // DEBUG
+            // assertIndex(it, offset, (*it)->fOffset2);
             fIntHeap[assertIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popInt();
         } else {
             fIntHeap[(*it)->fOffset1 + offset] = popInt();
@@ -716,7 +763,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     do_kBlockStoreReal : {
         FIRBlockStoreRealInstruction<T>* inst = static_cast<FIRBlockStoreRealInstruction<T>*>(*it);
-        interp_assert(inst);
+        assertInterp(inst);
         for (int i = 0; i < inst->fOffset2; i++) {
             fRealHeap[inst->fOffset1 + i] = inst->fNumTable[i];
         }
@@ -725,7 +772,7 @@ class FBCInterpreter : public FBCExecutor<T> {
 
     do_kBlockStoreInt : {
         FIRBlockStoreIntInstruction<T>* inst = static_cast<FIRBlockStoreIntInstruction<T>*>(*it);
-        interp_assert(inst);
+        assertInterp(inst);
         for (int i = 0; i < inst->fOffset2; i++) {
             fIntHeap[inst->fOffset1 + i] = inst->fNumTable[i];
         }
@@ -1887,6 +1934,12 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::log10(v));
         dispatchNextScal();
     }
+        
+    do_kRintf : {
+        T v = popReal(it);
+        pushReal(it, std::rint(v));
+        dispatchNextScal();
+    }
 
     do_kRoundf : {
         T v = popReal(it);
@@ -2002,7 +2055,12 @@ class FBCInterpreter : public FBCExecutor<T> {
         pushReal(it, std::log10(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
-
+        
+    do_kRintfHeap : {
+        pushReal(it, std::rint(fRealHeap[(*it)->fOffset1]));
+        dispatchNextScal();
+    }
+   
     do_kRoundfHeap : {
         pushReal(it, std::round(fRealHeap[(*it)->fOffset1]));
         dispatchNextScal();
@@ -2294,12 +2352,12 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         if (popInt()) {
             // Execute new block
-            interp_assert((*it)->fBranch1);
+            assertInterp((*it)->fBranch1);
             dispatchBranch1Scal();
             // No value (If)
         } else {
             // Execute new block
-            interp_assert((*it)->fBranch2);
+            assertInterp((*it)->fBranch2);
             dispatchBranch2Scal();
             // No value (If)
         }
@@ -2311,12 +2369,12 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         if (popInt()) {
             // Execute new block
-            interp_assert((*it)->fBranch1);
+            assertInterp((*it)->fBranch1);
             dispatchBranch1Scal();
             // Real value
         } else {
             // Execute new block
-            interp_assert((*it)->fBranch2);
+            assertInterp((*it)->fBranch2);
             dispatchBranch2Scal();
             // Real value
         }
@@ -2328,12 +2386,12 @@ class FBCInterpreter : public FBCExecutor<T> {
 
         if (popInt()) {
             // Execute new block
-            interp_assert((*it)->fBranch1);
+            assertInterp((*it)->fBranch1);
             dispatchBranch1Scal();
             // Int value
         } else {
             // Execute new block
-            interp_assert((*it)->fBranch2);
+            assertInterp((*it)->fBranch2);
             dispatchBranch2Scal();
             // Int value
         }
@@ -2342,7 +2400,7 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kCondBranch : {
         // If condition is true, just branch back on the block beginning
         if (popInt()) {
-            interp_assert((*it)->fBranch1);
+            assertInterp((*it)->fBranch1);
             dispatchBranch1Scal();
         } else {
             // Just continue after 'loop block' (do the final 'return')
@@ -2355,18 +2413,17 @@ class FBCInterpreter : public FBCExecutor<T> {
         saveReturnScal();
 
         // Push branch2 (loop content)
-        interp_assert((*it)->fBranch2);
+        assertInterp((*it)->fBranch2);
         pushBranch2Scal();
 
         // And start branch1 loop variable declaration block
-        interp_assert((*it)->fBranch1);
+        assertInterp((*it)->fBranch1);
         dispatchBranch1Scal();
     }
 
     end:
-
         // Check stack coherency
-        interp_assert(real_stack_index == 0 && int_stack_index == 0 && sound_stack_index == 0);
+        assertInterp(real_stack_index == 0 && int_stack_index == 0 && sound_stack_index == 0);
     }
 
    public:

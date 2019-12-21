@@ -243,8 +243,8 @@ inline int32_t startSectionAux(BufferWithRandomAccess* out, BinaryConsts::Sectio
 
 inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
 {
-    int32_t size =
-        int32_t(out->size()) - start - 5;  // section size does not include the 5 bytes of the size field itself
+    // section size does not include the 5 bytes of the size field itself
+    int32_t size = int32_t(out->size()) - start - 5;
     out->writeAt(start, U32LEB(size));
 }
 
@@ -496,6 +496,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             MathFunDesc desc = fMathLibTable[inst->fName];
 
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                
                 // Build function type (args type same as return type)
                 list<NamedTyped*> args;
                 if (desc.fArgs == 1) {
@@ -722,8 +723,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         int32_t start = startSection(BinaryConsts::Section::Memory);
         *fOut << U32LEB(1);  // num memories
-        *fOut << U32LEB(0);  // memory flags
+        *fOut << U32LEB(1);  // memory flags, 1 means [min, max]
+        // minimum memory pages number
         size_t size_pos = fOut->writeU32LEBPlaceholder();
+        // maximum memory pages number, to be extended on JS side for soundfiles
+        fOut->writeU32LEBPlaceholder();
         finishSection(start);
         return size_pos;
     }
@@ -879,11 +883,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(LoadVarInst* inst)
     {
         fTypingVisitor.visit(inst);
-        Typed::VarType type = fTypingVisitor.fCurType;
-        string         name = inst->fAddress->getName();
+        Typed::VarType        type = fTypingVisitor.fCurType;
+        Address::AccessType access = inst->fAddress->getAccess();
+        string                name = inst->fAddress->getName();
+        IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
+            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -900,7 +906,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             }
             // Possibly used offset (if > 0)
             generateMemoryAccess(offset);
-
+    
         } else {
             faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
             LocalVarDesc local = fLocalVarTable[name];
@@ -1067,8 +1073,14 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 LocalVarDesc  local = fLocalVarTable[indexed->getName()];
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    // Hack for 'soundfile'
+                    DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                     *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
+                    if (struct_type) {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(struct_type->fType->getOffset(num->fNum));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
+                    }
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {
                     *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
@@ -1240,9 +1252,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(FunCallInst* inst)
     {
         // Compile args first
-        list<ValueInst*>::const_iterator it;
-        for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-            (*it)->accept(this);
+        for (auto& it : inst->fArgs) {
+            it->accept(this);
         }
 
         // Then compile funcall
@@ -1263,7 +1274,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
     }
 
-    // Conditional : select
+    // Select that computes both branches
+    /*
     virtual void visit(Select2Inst* inst)
     {
         inst->fThen->accept(this);
@@ -1281,7 +1293,34 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
         fTypingVisitor.visit(inst);
     }
-
+    */
+    
+    // Select that only computes one branch
+    virtual void visit(Select2Inst* inst)
+    {
+        // Condition is first item
+        inst->fCond->accept(this);
+        // Possibly convert i64 to i32
+        inst->fCond->accept(&fTypingVisitor);
+        if (isIntType64(fTypingVisitor.fCurType)) {
+            // Compare to 0
+            *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
+            *fOut << int8_t(WasmOp::I64Ne);
+        }
+        // Result type
+        inst->fThen->accept(&fTypingVisitor);
+        *fOut << int8_t(BinaryConsts::If) << S32LEB(type2Binary(fTypingVisitor.fCurType));
+        // Compile 'then'
+        inst->fThen->accept(this);
+        // Compile 'else'
+        *fOut << int8_t(BinaryConsts::Else);
+        inst->fElse->accept(this);
+        // End of if
+        *fOut << int8_t(BinaryConsts::End);
+        
+        fTypingVisitor.visit(inst);
+    }
+  
     // Conditional : if (TO CHECK : utilise drop ?)
     virtual void visit(IfInst* inst)
     {
@@ -1293,7 +1332,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
             *fOut << int8_t(WasmOp::I64Ne);
         }
-        *fOut << int8_t(BinaryConsts::If) << int8_t(BinaryConsts::Empty);
+        *fOut << int8_t(BinaryConsts::If) << S32LEB(BinaryConsts::Empty);
         inst->fThen->accept(this);
         if (inst->fElse->fCode.size() > 0) {
             *fOut << int8_t(BinaryConsts::Else);
@@ -1343,11 +1382,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         *fOut << int8_t(BinaryConsts::End);
     }
 
-    virtual void visit(AddSoundfileInst* inst)
-    {
-        // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not supported for wasm\n");
-    }
 };
 
 #endif

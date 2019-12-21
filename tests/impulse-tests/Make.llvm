@@ -70,7 +70,7 @@ ir/llvm/inpl/midi_tester.ir:
 	@echo ">>> skip midi_tester in inpl mode (crash)"
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
-	cd $(dir $<); ../impulsellvm $(notdir $<) -I . -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
+	cd $(dir $<); ../impulsellvm $(notdir $<) -I dsp -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
 
 

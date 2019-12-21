@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.17.6
+VERSION := 2.20.2
 
 #===============================================================
 # current generator and backends
@@ -37,11 +37,16 @@ endif
 DESTDIR ?=
 
 
-.PHONY: faust install uninstall osc http package
+.PHONY: faust install uninstall osc http package wasmglue
 
 MAKE ?= make
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
+WORKLET ?= no
+WORKLETOPT = "-DWORKLET=off"
+ifeq ($(WORKLET), on)
+WORKLETOPT = "-DWORKLET=on"
+endif
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
 BUILDOPT ?= --config Release
 
 #CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
@@ -93,6 +98,7 @@ help:
 	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode."
 	@echo " 'oscdynamic' : builds the OSC library in dynamic mode."
 	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode."
+	@echo " 'oscandroid' : builds the OSC library for Android."
 	@echo
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo
@@ -101,8 +107,8 @@ help:
 	@echo " 'distclean'  : removes the 'FAUSTDIR' folder ($(FAUSTDIR)) but preserves the bin and lib folders"
 	@echo
 	@echo "Targets excluded from all:"
-	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
-	@echo " 'asmjslib'   : builds the libfaust as an ASMJS library"
+	@echo " 'wasmlib'    : builds libfaust as a WebAssembly library"
+	@echo " 'wasmglue'   : builds the WebAssembly glue library."
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
@@ -111,7 +117,8 @@ help:
 	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
 	@echo "  BACKENDS=<backends file>    : see 'Backends' below"
 	@echo "  TARGETS=<targets file>      : see 'Targets' below"
-	@echo "  JOBS        : intended to set the number of tasks to run in parallel (default is $(JOBS))"
+	@echo "  JOBS    : intended to set the number of tasks to run in parallel (default is $(JOBS))"
+	@echo "  WORKLET : Compile wasm glue library for worklet (default is off)"
 	@echo
 	@echo "Backends:"
 	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
@@ -153,6 +160,9 @@ osc: $(PROJ)
 oscdynamic: $(PROJ)
 	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
 
+oscandroid: $(PROJ)
+	cd ../architecture/osclib/android/&& ndk-build 
+
 http: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) -- $(JOBS)
 
@@ -173,7 +183,7 @@ winpack:
 	cd $(FAUSTDIR) && cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
 	$(MAKE)
 	cd $(FAUSTDIR) && cpack -G NSIS64
-	mv  $(FAUSTDIR)/Faust-*.exe .
+	mv $(FAUSTDIR)/Faust-*.exe .
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
@@ -286,11 +296,13 @@ reset: $(FAUSTDIR)
 #===============================================================
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
+	mkdir -p wasm-libraries && cp ../libraries/*.lib ../libraries/old/*.lib wasm-libraries
 	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
+	rm -rf wasm-libraries
 
-asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
+wasmglue: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
-	cmake --build $(FAUSTDIR) --target asmjslib $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target wasmglue $(BUILDOPT) -- $(JOBS)
 
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)

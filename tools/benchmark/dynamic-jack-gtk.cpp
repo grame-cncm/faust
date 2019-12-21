@@ -77,7 +77,7 @@ struct malloc_memory_manager : public dsp_memory_manager {
 static void printList(const vector<string>& list)
 {
     for (int i = 0; i < list.size(); i++) {
-        std::cout << "item: " << list[i] << "\n";
+        cout << "item: " << list[i] << "\n";
     }
 }
 
@@ -96,19 +96,23 @@ int main(int argc, char* argv[])
     bool is_interp = isopt(argv, "-interp");
     bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
+    bool is_all = isopt(argv, "-all");
     bool is_httpd = isopt(argv, "-httpd");
+    bool is_resample = isopt(argv, "-resample");
     int nvoices = lopt(argv, "-nvoices", -1);
     
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-jack-gtk [-llvm|interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+        cout << "dynamic-jack-gtk [-llvm|interp] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
+        cout << "Use '-all' to active the 'all voices always playing' mode\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
         cout << "Use '-httpd' to activate HTTP control\n";
+        cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
         exit(EXIT_FAILURE);
     }
     
@@ -132,7 +136,9 @@ int main(int argc, char* argv[])
             || (string(argv[i]) == "-interp")
             || (string(argv[i]) == "-midi")
             || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-httpd")) {
+            || (string(argv[i]) == "-all")
+            || (string(argv[i]) == "-httpd")
+            || (string(argv[i]) == "-resample")) {
             continue;
         } else if (string(argv[i]) == "-nvoices") {
             i++;
@@ -230,12 +236,10 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
-    
-    //exit(1);
-  
+   
     if (nvoices > 0) {
-        cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
-        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, true);
+        cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
+        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, !is_all, true);
     }
     
     if (isopt(argv, "-double")) {
@@ -248,15 +252,21 @@ int main(int argc, char* argv[])
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
     
-    SoundUI* soundinterface = new SoundUI();
+    if (!audio.init(filename, DSP)) {
+        exit(EXIT_FAILURE);
+    }
+    
+    // After audio init to get SR
+    SoundUI* soundinterface = nullptr;
+    if (is_resample) {
+        soundinterface = new SoundUI("", audio.getSampleRate());
+    } else {
+        soundinterface = new SoundUI();
+    }
     // SoundUI has to be dispatched on all internal voices
     if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(soundinterface);
     if (dsp_poly) dsp_poly->setGroup(true);
-    
-    if (!audio.init(filename, DSP)) {
-        exit(EXIT_FAILURE);
-    }
    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);

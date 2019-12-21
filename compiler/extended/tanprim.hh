@@ -37,7 +37,7 @@ class TanPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector< ::Type>& args)
+    virtual ::Type infereSigType(const vector<::Type>& args)
     {
         faustassert(args.size() == 1);
         interval     srcInterval = args[0]->getInterval();
@@ -80,7 +80,7 @@ class TanPrim : public xtended {
         return container->pushFunction(subst("tan$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -88,7 +88,7 @@ class TanPrim : public xtended {
         return subst("tan$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

@@ -87,18 +87,20 @@ int main(int argc, char* argv[])
     bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
     bool is_httpd = isopt(argv, "-httpd");
+    bool is_resample = isopt(argv, "-resample");
     int nvoices = lopt(argv, "-nvoices", -1);
     
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "poly-dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "poly-dynamic-jack-gtk [-llvm/interp] [-nvoices <num>] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
         cout << "Use '-httpd' to activate HTTP control\n";
+        cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
         exit(EXIT_FAILURE);
     }
     
@@ -122,7 +124,8 @@ int main(int argc, char* argv[])
             || (string(argv[i]) == "-interp")
             || (string(argv[i]) == "-midi")
             || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-httpd")) {
+            || (string(argv[i]) == "-httpd")
+            || (string(argv[i]) == "-resample")) {
             continue;
         } else if (string(argv[i]) == "-nvoices") {
             i++;
@@ -144,20 +147,62 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
-        /*
+        
         // Test Write/Read
         if (factory) {
-            cout << "Test writePolyDSPFactoryToBitcodeFile/readPolyDSPFactoryFromBitcodeFile" << endl;
-            string path_name = factory->getName();
-            writePolyDSPFactoryToBitcodeFile(factory, path_name);
-            delete factory;
-            factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", -1);
+            {
+                cout << "Test writePolyDSPFactoryToBitcodeFile/readPolyDSPFactoryFromBitcodeFile" << endl;
+                string path_name = factory->getName();
+                writePolyDSPFactoryToBitcodeFile(factory, path_name);
+                delete factory;
+                factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", error_msg, -1);
+                if (!factory) {
+                    cerr << "ERROR : readPolyDSPFactoryFromBitcodeFile " << error_msg;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+            {
+                cout << "Test writePolyDSPFactoryToIRFile/readPolyDSPFactoryFromIRFile" << endl;
+                string path_name = factory->getName();
+                writePolyDSPFactoryToIRFile(factory, path_name);
+                delete factory;
+                factory = readPolyDSPFactoryFromIRFile(path_name, "", error_msg, -1);
+                if (!factory) {
+                    cerr << "readPolyDSPFactoryFromIRFile " << error_msg;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
+            {
+                cout << "Test writePolyDSPFactoryToMachineFile/readPolyDSPFactoryFromMachineFile" << endl;
+                string path_name = factory->getName();
+                writePolyDSPFactoryToMachineFile(factory, path_name, "");
+                delete factory;
+                factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", error_msg, -1);
+                if (!factory) {
+                    cerr << "readPolyDSPFactoryFromBitcodeFile " << error_msg;
+                    exit(EXIT_FAILURE);
+                }
+            }
         }
-        */
+        
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
         factory = createInterpreterPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
+        // Test Write/Read
+        if (factory) {
+            cout << "Test writeInterpreterPolyDSPFactoryToMachineFile/readInterpreterPolyDSPFactoryFromMachineFile" << endl;
+            string path_name = factory->getName();
+            writeInterpreterPolyDSPFactoryToMachineFile(factory, path_name);
+            delete factory;
+            factory = readInterpreterPolyDSPFactoryFromMachineFile(path_name, error_msg);
+            if (!factory) {
+                cerr << "readInterpreterPolyDSPFactoryFromMachineFile " << error_msg;
+                exit(EXIT_FAILURE);
+            }
+        }
     }
     
     if (!factory) {
@@ -179,22 +224,34 @@ int main(int argc, char* argv[])
         cout << "Running in double..." << endl;
     }
     
+    /*
+    JSONUI json(DSP->getNumInputs(), DSP->getNumOutputs());
+    DSP->buildUserInterface(&json);
+    cout << "JSON : " << json.JSON() << endl;
+    */
+    
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
     
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
     
-    SoundUI* soundinterface = new SoundUI();
+    if (!audio.init(filename, DSP)) {
+        exit(EXIT_FAILURE);
+    }
+    
+    // After audio init to get SR
+    SoundUI* soundinterface = nullptr;
+    if (is_resample) {
+        soundinterface = new SoundUI("", audio.getSampleRate());
+    } else {
+        soundinterface = new SoundUI();
+    }
     // SoundUI has to be dispatched on all internal voices
     DSP->setGroup(false);
     DSP->buildUserInterface(soundinterface);
     DSP->setGroup(true);
-   
-    if (!audio.init(filename, DSP)) {
-        exit(EXIT_FAILURE);
-    }
- 
+    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -210,13 +267,12 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface = new MidiUI(&midi_handler);
         DSP->buildUserInterface(midiinterface);
-        std::cout << "MIDI is on" << std::endl;
+        cout << "MIDI is on" << endl;
     }
     
     // State (after UI construction)
     finterface->recallState(rcfilename);
     audio.start();
-
     if (is_httpd) {
         httpdinterface->run();
     }
@@ -228,6 +284,37 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface->run();
     }
+    
+    /*
+    cout << DSP->getJSON();
+     
+    // Test setParamValue API
+    DSP->setParamValue("/Polyphonic/Voices/clarinet/otherParams/bellOpening", 0.35);
+    DSP->setParamValue("/Polyphonic/Voices/clarinet/midi/bend", 1.5);
+    
+    // Test MIDI API
+    DSP->keyOn(0, 60, 100);
+    DSP->keyOn(0, 64, 100);
+    DSP->keyOn(0, 67, 100);
+    
+    usleep(1000000);
+    
+    DSP->keyOff(0, 60, 100);
+    DSP->keyOff(0, 64, 100);
+    DSP->keyOff(0, 67, 100);
+    
+    // Test MIDI API
+    DSP->pitchWheel(0, 4000);
+    DSP->keyOn(0, 60, 100);
+    DSP->keyOn(0, 64, 100);
+    DSP->keyOn(0, 67, 100);
+    
+    usleep(1000000);
+    
+    DSP->keyOff(0, 60, 100);
+    DSP->keyOff(0, 64, 100);
+    DSP->keyOff(0, 67, 100);
+    */
     
     interface->run();
 

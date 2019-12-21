@@ -24,7 +24,6 @@
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "json_instructions.hh"
 
 using namespace std;
 
@@ -55,7 +54,7 @@ dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
 WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
@@ -135,24 +134,18 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
+    
     BlockInst* init_block = InstBuilder::genBlockInst();
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
-
+    
     init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
+    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 void WASTCodeContainer::produceInternal()
@@ -224,7 +217,7 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
     WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
-
+    
     // getNumInputs/getNumOutputs
     generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
     generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
@@ -238,7 +231,7 @@ void WASTCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
         generateWASTBlock(inlined);
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
@@ -249,7 +242,7 @@ void WASTCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
         generateWASTBlock(inlined);
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
@@ -260,7 +253,7 @@ void WASTCodeContainer::produceClass()
         // Rename 'sig' in 'dsp' and remove 'dsp' allocation
         generateWASTBlock(DspRenamer().getCode(fResetUserInterfaceInstructions));
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     tab(n + 1, fOutAux);
@@ -271,7 +264,7 @@ void WASTCodeContainer::produceClass()
         // Rename 'sig' in 'dsp' and remove 'dsp' allocation
         generateWASTBlock(DspRenamer().getCode(fClearInstructions));
     }
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 
     gGlobal->gWASTVisitor->Tab(n + 1);
@@ -321,35 +314,17 @@ void WASTCodeContainer::produceClass()
     tab(n + 1, fOutAux);
     generateComputeFunctions(gGlobal->gWASTVisitor);
 
-    tab(n, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
     tab(n, fOutAux);
 
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options, false);
-
     // JSON generation
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
-
-    map<string, string>::iterator it;
-    std::map<std::string, int>    path_index_table;
-    map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
-    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-        // Get field index
-        MemoryDesc tmp                 = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
+    string json;
+    if (gGlobal->gFloatSize == 1) {
+        json = generateJSON<float>();
+    } else {
+        json = generateJSON<double>();
     }
-
-    // "name", "filename" found in medata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                  to_string(gGlobal->gWASTVisitor->getStructSize()), path_index_table);
-    generateUserInterface(&json_visitor2);
-    generateMetaData(&json_visitor2);
-
-    string json = json_visitor2.JSON(true);
 
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();
@@ -360,22 +335,24 @@ void WASTCodeContainer::produceClass()
     *fOut << begin;
 
     // Insert memory generation
+    string json1 = flattenJSON(json);
     tab(n + 1, *fOut);
     if (fInternalMemory) {
+        int memory_size = genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json1.size());
         *fOut << "(memory (export \"memory\") ";
-        // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size
-        // and DSP + audio buffer size
-        *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size())
-              << ")";  // memory initial pages
+        // Since JSON is written in data segment at offset 0, the memory size
+        // must be computed taking account JSON size and DSP + audio buffer size
+        *fOut << memory_size // initial memory pages
+              << " " << (memory_size + 1000) << ")";  // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
     } else {
-        // Memory size set by JS code, so use a minimum value that contains the data segment size (shoud be OK for any
-        // JSON)
+        // Memory size set by JS code, so use a minimum value that contains
+        // the data segment size (shoud be OK for any JSON)
         *fOut << "(import \"env\" \"memory\" (memory $0 1))";
     }
 
     // Generate one data segment containing the JSON string starting at offset 0
     tab(n + 1, *fOut);
-    *fOut << "(data (i32.const 0) \"" << json << "\")";
+    *fOut << "(data (i32.const 0) \"" << json1 << "\")";
 
     // And write end of code stream on *fOut
     *fOut << end;
@@ -392,10 +369,11 @@ void WASTCodeContainer::produceClass()
 
     // Generate JSON
     tab(n, fHelper);
+    string json2 = flattenJSON1(json);
     fHelper << "function getJSON" << fKlassName << "() {";
     tab(n + 1, fHelper);
     fHelper << "return '";
-    fHelper << json;
+    fHelper << json2;
     fHelper << "';";
     printlines(n + 1, fUICode, fHelper);
     tab(n, fHelper);
@@ -452,9 +430,6 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
     DeclareFunInst* int_max_fun = WASInst::generateIntMax();
     DeclareFunInst* int_min_fun = WASInst::generateIntMin();
 
-    // Remove unecessary cast
-    compute_block = CastRemover().getCode(compute_block);
-
     // Inline "max_i" call
     compute_block = FunctionCallInliner(int_max_fun).getCode(compute_block);
 
@@ -466,9 +441,12 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
+    
+    // Remove unecessary cast
+    block = CastRemover().getCode(block);
 
     block->accept(gGlobal->gWASTVisitor);
-    tab(n + 1, fOutAux);
+    back(1, fOutAux);
     fOutAux << ")";
 }
 

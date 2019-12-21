@@ -1,3 +1,4 @@
+/************************** BEGIN llvm-machine-dsp.h **************************/
 /************************************************************************
  ************************************************************************
  Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
@@ -29,6 +30,7 @@
 #endif
 
 #include <vector>
+
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 
@@ -209,3 +211,4 @@ llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_
  */
 
 #endif
+/**************************  END  llvm-machine-dsp.h **************************/

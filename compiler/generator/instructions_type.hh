@@ -32,8 +32,6 @@
 struct Printable : public virtual Garbageable {
     static std::ostream* fOut;
 
-    int fTab;
-
     Printable() {}
     virtual ~Printable() {}
 };
@@ -235,9 +233,9 @@ struct Typed : public Printable {
 
     static void init();
 
-    virtual VarType getType() = 0;
+    virtual VarType getType() const = 0;
 
-    virtual int getSize() = 0;
+    virtual int getSize() const = 0;
 
     virtual void accept(InstVisitor* visitor) = 0;
 

@@ -1307,7 +1307,7 @@ C scheduler interface
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport) __attribute__((always_inline))
 #else
-#define EXPORT __attribute__ ((visibility("default"))) __attribute__((always_inline))
+#define EXPORT inline __attribute__ ((visibility("default"))) __attribute__((always_inline))
 #endif
 
 EXPORT void* createScheduler(int task_queue_size, int init_task_list_size)

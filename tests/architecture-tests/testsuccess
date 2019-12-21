@@ -11,18 +11,18 @@ system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
-OSXSOUND="faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jaqt faust2juce faust2bela"
+OSXSOUND="faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2juce faust2bela"
+OSXSOUNDSR="faust2caqt faust2jaqt faust2jack"
 OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt"
-OSXSOUND="faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jaqt faust2juce faust2bela"
 OSXHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXOSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp"
+OSXOSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android"
 OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
 
-LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole faust2netjackqt faust2jackconsole"
+LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2netjackconsole faust2netjackqt faust2jackconsole"
 LINUXMIDI="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
 LINUXPOLY="faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
 LINUXPOLYMIDI="faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
@@ -49,6 +49,7 @@ if [ "$system" = "Darwin" ]; then
     echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
     echo "Test -nvoices 8 -effect <foo.dsp> -midi $OSXPOLY2MIDI"
     echo "Test -soundfile $OSXSOUND"
+    echo "Test -soundfile -resample $OSXSOUNDSR"
     echo "Test -httpd $OSXHTTPD"
     echo "Test -osc $OSXOSC"
     echo "Test -osc -httpd $OSXOSCHTTPD"
@@ -106,6 +107,14 @@ if [ "$system" = "Darwin" ]; then
     
     for scriptname in $OSXSOUND; do
         ($scriptname -soundfile sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile succeeded !")||(echo "ERROR: $scriptname -soundfile failed")
+        rm -rf good
+    done
+    
+    # Remove sound folder
+    rm -rf sound
+    
+    for scriptname in $OSXSOUNDSR; do
+        ($scriptname -soundfile -resample sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -resample succeeded !")||(echo "ERROR: $scriptname -soundfile -resample failed")
         rm -rf good
     done
     

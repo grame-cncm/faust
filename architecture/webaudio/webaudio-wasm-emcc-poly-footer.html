@@ -1,0 +1,175 @@
+
+<script>
+    'use strict';
+    // Faust part
+    if (!window.dspName) window.dspName = "mydsp";
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioInput, dspNode, $faustUI;
+    let dspOutputHandler = () => {};
+    
+    // MIDI input handling
+    const midiMessageReceived = e => {
+        if (!dspNode) return;
+        const cmd = e.data[0] >> 4;
+        const channel = e.data[0] & 0xf;
+        const data1 = e.data[1];
+        const data2 = e.data[2];
+        if (channel === 9) return;
+        else if (cmd === 8 || (cmd === 9 && data2 === 0)) dspNode.keyOff(channel, data1, data2);
+        else if (cmd === 9) dspNode.keyOn(channel, data1, data2);
+        else if (cmd === 11) dspNode.ctrlChange(channel, data1, data2);
+        else if (cmd === 14) dspNode.pitchWheel(channel, (data2 * 128.0 + data1));
+    }
+    const activateMIDIInput = () => {
+        console.log("activateMIDIInput");
+        const onError = error => console.error(error);
+        const onSuccess = access => {
+            access.onstatechange = e => {
+                if (e.port.type === "input") {
+                    if (e.port.state === "connected") {
+                        console.log(e.port.name + " is connected");
+                        e.port.onmidimessage = midiMessageReceived;
+                    } else if (e.port.state  === "disconnected") {
+                        console.log(e.port.name + " is disconnected");
+                        e.port.onmidimessage = null;
+                    }
+                }
+            }
+            for (const input of access.inputs.values()) {
+                input.onmidimessage = midiMessageReceived;
+                console.log(input.name + " is connected");
+            }
+        }
+    
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(onSuccess, onError);
+        } else {
+            alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+        }
+    }
+
+    // Audio input handling
+    const activateAudioInput = () => {
+        if (!navigator.getUserMedia) {
+            navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        }
+        if (!navigator.getUserMedia) alert("Audio input API not available") 
+        const onSuccess = device => {
+            audioInput = audioCtx.createMediaStreamSource(device); // Create an AudioNode from the stream.
+            audioInput.connect(dspNode); // Connect it to the destination.
+        }
+        const onError = e => {
+            alert('Error getting audio input');
+            console.error(e);
+            audioInput = null;
+        }
+        navigator.getUserMedia({ audio: { echoCancellation: false } }, onSuccess, onError);
+    }
+    
+    // Save/Load functions using local storage
+    const getStorageItemValue = (item_key, key) => { // get item from local storage 'item_key' key
+        if (!localStorage.getItem(item_key)) return null;
+        const item_value = JSON.parse(localStorage.getItem(item_key));
+        const item_index = item_value.findIndex(obj => obj[0] === key);
+        return item_index >= 0 ? item_value[item_index][1] : null;
+    }
+    
+    const setStorageItemValue = (item_key, key, value) => { // set [key, value] in local storage item_key key
+        let item_value = [];
+        if (localStorage.getItem(item_key)) item_value = JSON.parse(localStorage.getItem(item_key));
+        const item_index = item_value.findIndex((obj => obj[0] === key)); // Possibly update an existing 'key'
+        if (item_index >= 0) item_value[item_index][1] = value; // Otherwise push a new [key, value]
+        else item_value.push([key, value]);
+        localStorage.setItem(item_key, JSON.stringify(item_value));
+    }
+    
+    const saveDSPState = () => {
+        dspNode.getParams().forEach(param => {
+            setStorageItemValue('DSP_poly', param, dspNode.getParamValue(param));
+        })
+    }
+    
+    const loadDSPState = () => {
+        dspNode.getParams().forEach(param => {
+            const value = getStorageItemValue('DSP_poly', param);
+            if (typeof value === "number") {
+                dspNode.setParamValue(param, parseFloat(value)); // Restore DSP state
+                dspOutputHandler(param, parseFloat(value)); // Restore GUI state
+            }
+        })
+    }
+    
+    const initDSP = bufferSizeIn => {
+        if (typeof WebAssembly === "undefined") return alert("WebAssembly is not supported in this browser !");
+        if (!window[dspName + "Poly"]) return console.error(dspName + " instance not found.");
+        const bufferSize = parseInt(bufferSizeIn || 1024);
+        window[dspName + "Poly"].createDSP(audioCtx, bufferSize, 16)
+        .then(dsp => {
+            if (!dsp) return console.error("Error in DSP creation.");
+            if (dspNode) { // destroy current
+                dspNode.disconnect(audioCtx.destination);
+                if (audioInput) audioInput.disconnect(dspNode);
+            }
+            dspNode = dsp;
+            if (dspNode.getNumInputs() > 0) activateAudioInput();
+            dspNode.connect(audioCtx.destination);
+            // console.log(dspNode.getJSON());
+            // TODO: emcc
+            // dspNode.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+            // console.log(dspNode.getParams());
+            if (typeof _f4u$t === "undefined") return;
+            if (typeof jQuery === "undefined") return;
+            if ($faustUI) $faustUI.remove();
+            $faustUI = $("<div>");
+            $("body").append($faustUI);
+            dspOutputHandler = _f4u$t.main(dspNode.getJSON(), $faustUI, (path, val) => dspNode.setParamValue(path, val));
+            dspNode.setOutputParamHandler(dspOutputHandler);
+        
+            loadDSPState(); // Load DSP state from local storage
+        })
+    }
+    
+    // To activate audio on iOS
+    window.addEventListener("touchstart", () => {
+        if (audioCtx.state !== "suspended") return;
+        const buffer = audioCtx.createBuffer(1, 1, 22050);
+        const source = audioCtx.createBufferSource(); // create empty buffer
+        source.buffer = buffer;
+        source.connect(audioCtx.destination); // connect to output (your speakers)
+        source.start(); // play the file
+        audioCtx.resume().then(() => console.log("Audio resumed"));
+    }, false);
+    
+    // On desktop
+    window.addEventListener("mousedown", () => {
+        if (audioCtx.state !== "suspended") return;
+        audioCtx.resume().then(() => console.log("Audio resumed"))
+    });
+    
+    if (typeof _f4u$t !== "undefined") _f4u$t.main_loop = () => {}; // No polling from the server needed, so use an empty loop
+    
+    // Start monophonic instrument
+    if (typeof Module !== "undefined") {
+        console.log("Compiled with EMCC");
+        Module['onRuntimeInitialized'] = initDSP;
+    } else {
+        console.log("Compiled with WASM backend");
+        activateMIDIInput();
+        faust_module['onRuntimeInitialized'] = initDSP;
+    }
+
+    // Save DSP state to local storage
+    setInterval(() => dspNode ? saveDSPState() : null, 1000);
+
+</script>
+
+<div style="text-align: center">
+    <select name="selectedBuffer" onChange="initDSP(this.options[this.selectedIndex].value)">
+        <option value="256">256</option>
+        <option value="512">512</option>
+        <option selected value="1024">1024</option>
+        <option value="2048">2048</option>
+        <option value="4096">4096</option>
+        <option value="8192">8192</option>
+    </select>
+</div>

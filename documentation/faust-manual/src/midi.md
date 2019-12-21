@@ -41,6 +41,9 @@ configure of the MIDI behavior of a Faust program.
 [button](#button-primitive) or a [checkbox](#checkbox-primitive), its maximum 
 value (127) maps to 1 ("on") while its minimum value (0) maps to 0 ("off").
 
+> Note that all handlers have a version with an explicit MIDI channel in range {0, 15}, 
+and a version without any MIDI channel (so receiving from any MIDI channel and sending back to channel 0).
+
 ### `[midi:ctrl num]` Metadata
 
 The `[midi:ctrl num]` metadata assigns MIDI CC (control) to a specific UI 
@@ -51,7 +54,7 @@ element value to the {0, 127} range. When used with a button or a checkbox,
 **Usage**
 
 ```
-toto = hslider("toto[midi:ctrl num]",...);
+foo = hslider("foo[midi:ctrl num]",...);
 ```
 
 Where:
@@ -72,6 +75,42 @@ process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
 
+### `[midi:ctrl num chan]` Metadata
+
+The `[midi:ctrl num chan]` metadata assigns MIDI CC (control change)
+to a specific UI element. The UI element receive and send MIDI CC
+values from/to the specified MIDI channel in range {0, 15}.
+When used in a slider or a bargraph, this metadata will map the
+UI element value to the {0, 127} range. When used with a button
+or a checkbox, 1 will be mapped to 127, 0 will be mapped to 0. 
+
+**Usage**
+
+```
+foo = hslider("foo[midi:ctrl num chan]",...);
+```
+
+Where:
+
+* `num`: the MIDI CC number
+* `chan`: the MIDI CC channel (range {0,15})
+
+**Example**
+
+In the following example, the frequency of a sawtooth wave oscillator is 
+controlled by values attached to `Control change 11` messages received
+on channel 2. When CC11=0, then the frequency is 200Hz, when 
+CC11=127, then the frequency is 1000Hz.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("frequency[midi:ctrl 11 2]",200,50,1000,0.01) : si.smoo;
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
+
+
 ### `[midi:keyon midikey]` Metadata
 
 The `[midi:keyon midikey]` metadata assigns the velocity value of a key-on MIDI 
@@ -83,7 +122,7 @@ slider or a bargraph, this metadata will map the UI element value to the
 **Usage**
 
 ```
-toto = hslider("toto[midi:keyon midikey]",...);
+foo = hslider("foo[midi:keyon midikey]",...);
 ```
 
 Where:
@@ -104,6 +143,42 @@ process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
 
+### `[midi:keyon midikey chan]` Metadata
+
+The `[midi:keyon midikey chan]` metadata assigns the velocity value of a key-on MIDI 
+message received on a specific `midikey` to a Faust parameter.
+The UI element receive and send MIDI values from/to the specified MIDI channel in
+range {0, 15}.
+When used in a slider or a bargraph, this metadata will map the UI element value to the 
+{0, 127} range. When used with a button or a checkbox, 1 will be mapped to 127, 
+0 will be mapped to 0.
+
+**Usage**
+
+```
+foo = hslider("foo[midi:keyon midikey chan]",...);
+```
+
+Where:
+
+* `midikey`: the MIDI key number
+* `chan`: the MIDI key channel (range {0,15})
+
+**Example**
+
+In the following example, the frequency of a sawtooth wave oscillator is 
+controlled by the velocity values attached to `key-on 62` messages
+received on channel 3.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("frequency[midi:keyon 62 3]",200,50,1000,0.01) : si.smoo;
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
+
+
 ### `[midi:keyoff midikey]` Metadata
 
 The `[midi:keyoff midikey]` metadata assigns the velocity value of a key-off MIDI 
@@ -115,7 +190,7 @@ slider or a bargraph, this metadata will map the UI element value to the
 **Usage**
 
 ```
-toto = hslider("toto[midi:keyoff midikey]",...);
+foo = hslider("foo[midi:keyoff midikey]",...);
 ```
 
 Where:
@@ -132,10 +207,48 @@ released.
 <!-- faust-run -->
 ```
 import("stdfaust.lib");
-freq = hslider("frequency[midi:keyon 62]",200,50,1000,0.01) : si.smoo;
+freq = hslider("frequency[midi:keyoff 62]",200,50,1000,0.01) : si.smoo;
 process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
+
+
+### `[midi:keyoff midikey chan]` Metadata
+
+The `[midi:keyoff midikey chan]` metadata assigns the velocity value of a key-off MIDI 
+message received on a specific `midikey` to a Faust parameter.
+The UI element receive and send MIDI values from/to the specified MIDI channel in
+range {0, 15}.
+When used in a slider or a bargraph, this metadata will map the UI element value to the 
+{0, 127} range. When used with a button or a checkbox, 1 will be mapped to 127, 
+0 will be mapped to 0.
+
+**Usage**
+
+```
+foo = hslider("foo[midi:keyoff midikey chan]",...);
+```
+
+Where:
+
+* `midikey`: the MIDI key number
+* `chan`: the MIDI key channel (range {0,15})
+
+**Example**
+
+In the following example, the frequency of a sawtooth wave oscillator is 
+controlled by the velocity values attached to `key-off 62` messages
+received on channel 3. (The frequency will only be updated when MIDI key 62 is 
+released.)
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("frequency[midi:keyoff 62 3]",200,50,1000,0.01) : si.smoo;
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
+
 
 ### `[midi:key midikey]` Metadata
 
@@ -148,7 +261,7 @@ mapped to 127, 0 will be mapped to 0.
 **Usage**
 
 ```
-toto = hslider("toto[midi:key midikey]",...);
+foo = hslider("foo[midi:key midikey]",...);
 ```
 
 Where:
@@ -170,6 +283,42 @@ process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
 
+
+### `[midi:key midikey chan]` Metadata
+
+The `[midi:key midikey chan]` metadata assigns the velocity value of key-on and 
+key-off MIDI messages received on a specific `midikey` to a Faust parameter. 
+The UI element receive and send MIDI values from/to the specified MIDI channel in
+range {0, 15}.
+When used in a slider or a bargraph, this metadata will map the UI element 
+value to the {0, 127} range. When used with a button or a checkbox, 1 will be 
+mapped to 127, 0 will be mapped to 0.
+
+**Usage**
+
+```
+foo = hslider("foo[midi:key midikey chan]",...);
+```
+
+Where:
+
+* `midikey`: the MIDI key number
+* `chan`: the MIDI key channel (range {0,15})
+
+**Example**
+
+In the following example, the frequency of a sawtooth wave oscillator is 
+controlled by the velocity values attached to `key-on 62` and `key-off 62` messages 
+received on channel 3. (The frequency is updated when key 62 is pressed and released.)
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("frequency[midi:key 62 3]",200,50,1000,0.01) : si.smoo;
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
+
 ### `[midi:keypress midikey]` Metadata
 
 The `[midi:keypress midikey]` metadata assigns the pressure (after-touch) value 
@@ -181,7 +330,7 @@ mapped to 0.
 **Usage**
 
 ```
-toto = hslider("toto[midi:keypress midikey]",...);
+foo = hslider("foo[midi:keypress midikey]",...);
 ```
 
 Where:
@@ -218,7 +367,7 @@ checkbox, 1 will be mapped to 16383, 0 will be mapped to 0.
 **Usage**
 
 ```
-toto = hslider("toto[midi:pitchwheel]",...);
+foo = hslider("foo[midi:pitchwheel]",...);
 ```
 
 **Example**
@@ -234,6 +383,38 @@ process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
 
+
+### `[midi:pitchwheel chan]` Metadata
+
+The `[midi:pitchwheel chan]` metadata assigns the pitch-wheel value to a 
+Faust parameter.
+The UI element receive and send MIDI values from/to the specified MIDI channel in
+range {0, 15}. When used in a slider or a bargraph, this metadata will map 
+the UI element value to the {0, 16383} range. When used with a button or a 
+checkbox, 1 will be mapped to 16383, 0 will be mapped to 0.
+
+**Usage**
+
+```
+foo = hslider("foo[midi:pitchwheel chan]",...);
+```
+
+* `chan`: the MIDI pitchwheel channel (range {0,15})
+
+**Example**
+
+In the following example, the frequency of a sawtooth wave oscillator is 
+controlled by the pitch-wheel values sent on MIDI channel 3.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("frequency[midi:pitchwheel 3]",200,50,1000,0.01) : si.smoo;
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
+
+
 ### `[midi:start]` Metadata
 
 When used with a button or a checkbox, `[midi:start]` will trigger a value of 
@@ -242,7 +423,7 @@ When used with a button or a checkbox, `[midi:start]` will trigger a value of
 **Usage**
 
 ```
-toto = checkbox("toto[midi:start]");
+foo = checkbox("foo[midi:start]");
 ```
 
 ### `[midi:stop]` Metadata
@@ -253,7 +434,7 @@ When used with a button or a checkbox, `[midi:stop]` will trigger a value of
 **Usage**
 
 ```
-toto = checkbox("toto[midi:stop]");
+foo = checkbox("foo[midi:stop]");
 ```
 
 ### `[midi:clock]` Metadata
@@ -266,7 +447,7 @@ information).
 **Usage**
 
 ```
-toto = checkbox("toto[midi:clock]");
+foo = checkbox("foo[midi:clock]");
 ```
 
 ### MIDI Sync

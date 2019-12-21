@@ -20,20 +20,20 @@ import("stdfaust.lib");
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // GENERAL
-midigate        = button ("gate");
-midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain        = nentry("gain", 0.5, 0, 1, 0.01);
+midigate = button("gate");
+midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
+midigain = nentry("gain", 0.5, 0, 1, 0.01);
 
-waveTravel      = hslider("waveTravel[BELA: ANALOG_0]",0,0,1,0.01);
+waveTravel = hslider("waveTravel[BELA: ANALOG_0]",0,0,1,0.01);
 
 // pitchwheel
-pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
 
-gFreq = midifreq * pitchwheel;
+gFreq = midifreq * bend;
 
 // LFO
 lfoDepth = hslider("lfoDepth[BELA: ANALOG_2]",0,0.,1,0.001):si.smoo;
-lfoFreq  = hslider("lfoFreq[BELA: ANALOG_1]",0.1,0.01,10,0.001):si.smoo;
+lfoFreq = hslider("lfoFreq[BELA: ANALOG_1]",0.1,0.01,10,0.001):si.smoo;
 moov = ((os.lf_trianglepos(lfoFreq) * lfoDepth) + waveTravel) : min(1) : max(0);
 
 volA = hslider("A[midi:ctrl 73]",0.01,0.01,4,0.01);
@@ -42,8 +42,8 @@ volS = hslider("S[midi:ctrl 77]",0.2,0,1,0.01);
 volR = hslider("R[BELA: ANALOG_3]",0.8,0.01,8,0.01);
 envelop = en.adsre(volA,volD,volS,volR,midigate);
 
-// Out Amplitude
-vol = envelop * midigain ;
+// Out amplitude
+vol = envelop * midigain;
 
 WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0 ))-2) -1.;
 
@@ -70,7 +70,7 @@ wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tab
 //#################################################################################################//
 //
 // Simple FX chaine build for a mono synthesizer.
-// It controle general volume and pan.
+// It control general volume and pan.
 // FX Chaine is:
 //		Drive
 //		Flanger
@@ -104,7 +104,7 @@ wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tab
 volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
-drive = hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
+drive = hslider("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
 
 // Flanger
 curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
@@ -116,8 +116,8 @@ flanger = efx
 		efx = _ <: _, pf.flanger_mono(10,fldel,1,fb,0) : dry_wet(fldw);
 	};
 
-// Pannoramique:
-panno = _ : sp.panner(hslider ("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
+// Panoramic:
+panno = _ : sp.panner(hslider("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
 
 // REVERB (from freeverb_demo)
 reverb = _,_ <: (*(g)*fixedgain,*(g)*fixedgain :

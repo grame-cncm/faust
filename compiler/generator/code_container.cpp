@@ -79,8 +79,8 @@ void CodeContainer::transformDAG(DispatchVisitor* visitor)
     lclgraph G;
     CodeLoop::sortGraph(fCurLoop, G);
     for (int l = int(G.size() - 1); l >= 0; l--) {
-        for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-            (*p)->transform(visitor);
+        for (auto& p : G[l]) {
+            p->transform(visitor);
         }
     }
 }
@@ -202,15 +202,15 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
     // for each level of the graph
     for (int l = int(G.size() - 1); l >= 0; l--) {
         // for each task in the level
-        for (lclset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
+        for (auto& t : G[l]) {
             // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
+            fout << '\t' << 'L' << t << "[label=<<font face=\"verdana,bold\">L"
+                 << lnum++ << "</font> : " << t
                  << ">];" << endl;
             // for each source of the task
-            for (lclset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
-                 src != (*t)->fBackwardLoopDependencies.end(); src++) {
+            for (auto& src : t->fBackwardLoopDependencies) {
                 // print the connection Lxxx -> Lyyy;
-                fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
+                fout << '\t' << 'L' << src << "->" << 'L' << t << ';' << endl;
             }
         }
     }
@@ -227,20 +227,19 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
     int loop_index = START_TASK_MAX;  // First index to be used for remaining tasks
 
     for (int l = int(dag.size() - 1); l >= 0; l--) {
-        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+        for (auto& p : dag[l]) {
             // Setup forward dependancy
-            for (lclset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin();
-                 p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
-                (*p1)->fForwardLoopDependencies.insert((*p));
+            for (auto& p1 : p->fBackwardLoopDependencies) {
+                p1->fForwardLoopDependencies.insert(p);
             }
 
             // Setup loop index
-            (*p)->fIndex = loop_index;
+            p->fIndex = loop_index;
             loop_index++;
 
             // Keep ready loops
-            if ((*p)->getBackwardLoopDependencies().size() == 0) {
-                ready_loop.push_back((*p)->getIndex());
+            if (p->getBackwardLoopDependencies().size() == 0) {
+                ready_loop.push_back(p->getIndex());
             }
         }
     }
@@ -251,47 +250,13 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
                                        const list<ValueInst*>& args)
 {
-    BasicTyped*                      result_type = InstBuilder::genBasicTyped(result);
-    list<ValueInst*>::const_iterator it          = args.begin();
-
-    // Special case for "faustpower", generates sequence of multiplication
-    if (name == getFaustPowerName()) {
-        // Expand the pow depending of the exposant argument
-        BlockInst* block = InstBuilder::genBlockInst();
-
-        it++;
-        Int32NumInst* arg1             = dynamic_cast<Int32NumInst*>(*it);
-        string        faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
-
-        list<NamedTyped*> named_args;
-        named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
-
-        if (arg1->fNum == 0) {
-            block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(1)));
-        } else {
-            ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
-            for (int i = 0; i < arg1->fNum - 1; i++) {
-                res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
-            }
-            block->pushBackInst(InstBuilder::genRetInst(res));
-        }
-
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(
-            faust_power_name, InstBuilder::genFunTyped(named_args, result_type, FunTyped::kLocal), block));
-
-        list<ValueInst*> truncated_args;
-        truncated_args.push_back((*args.begin()));
-        return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
-
-    } else {
-        list<NamedTyped*> named_args;
-        for (size_t i = 0; i < types.size(); i++) {
-            named_args.push_back(
-                InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
-        }
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
-        return InstBuilder::genFunCallInst(name, args);
+    list<ValueInst*>::const_iterator it = args.begin();
+    list<NamedTyped*> named_args;
+    for (size_t i = 0; i < types.size(); i++) {
+        named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
     }
+    pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, InstBuilder::genBasicTyped(result))));
+    return InstBuilder::genFunCallInst(name, args);
 }
 
 void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
@@ -303,9 +268,8 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     visited.insert(l);
 
     // Compute the dependencies loops (that need to be computed before this one)
-    for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-         p++) {
-        sortDeepFirstDAG(*p, visited, result);
+    for (auto& p : l->fBackwardLoopDependencies) {
+        sortDeepFirstDAG(p, visited, result);
     }
 
     // Keep the non-empty loops in result
@@ -367,15 +331,15 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
         set<CodeLoop*>  visited;
         list<CodeLoop*> result;
         sortDeepFirstDAG(fCurLoop, visited, result);
-        for (list<CodeLoop*>::const_iterator p = result.begin(); p != result.end(); p++) {
-            generateDAGLoopAux(*p, block, count, loop_num++);
+        for (auto& p : result) {
+            generateDAGLoopAux(p, block, count, loop_num++);
         }
     } else {
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
         for (int l = int(G.size() - 1); l >= 0; l--) {
-            for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-                generateDAGLoopAux(*p, block, count, loop_num++);
+            for (auto& p : G[l]) {
+                generateDAGLoopAux(p, block, count, loop_num++);
             }
         }
     }
@@ -425,9 +389,8 @@ BlockInst* CodeContainer::flattenFIR(void)
 
     // Subcontainers
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Subcontainers =========="));
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        global_block->merge((*it)->flattenFIR());
+    for (auto& it : fSubContainers) {
+        global_block->merge(it->flattenFIR());
     }
 
     // Compute method
@@ -441,75 +404,20 @@ BlockInst* CodeContainer::flattenFIR(void)
     return global_block;
 }
 
-void CodeContainer::generateMetaData(JSONUI* json)
-{
-    // Add global metadata
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
-            stringstream str1, str2;
-            str1 << *(i->first);
-            str2 << **(i->second.begin());
-            string res1 = str1.str();
-            string res2 = unquote(str2.str());
-            json->declare(res1.c_str(), res2.c_str());
-        } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
-                    stringstream str1, str2;
-                    str1 << *(i->first);
-                    str2 << **j;
-                    string res1 = str1.str();
-                    string res2 = unquote(str2.str());
-                    json->declare(res1.c_str(), res2.c_str());
-                } else {
-                    stringstream str2;
-                    str2 << **j;
-                    string res2 = unquote(str2.str());
-                    json->declare("contributor", res2.c_str());
-                }
-            }
-        }
-    }
-}
-
-void CodeContainer::generateJSONFile()
-{
-    JSONInstVisitor json_visitor;
-    generateJSON(&json_visitor);
-    ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-    xout << json_visitor.JSON();
-}
-
-void CodeContainer::generateJSON(JSONInstVisitor* visitor)
-{
-    // Prepare compilation options
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
-
-    // "name", "filename" found in medata
-    visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "", std::map<std::string, int>());
-
-    generateUserInterface(visitor);
-    generateMetaData(visitor);
-}
-
 BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
     block = DspRenamer().getCode(block);
 
     // Inline subcontainers 'instanceInit' and 'fill' function call
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+    for (auto& it : fSubContainers) {
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* inst_init_fun =
-            (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
+        DeclareFunInst* inst_init_fun = it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
         // dump2FIR(inst_init_fun);
         block = FunctionCallInliner(inst_init_fun).getCode(block);
 
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), "dsp", true, false);
+        DeclareFunInst* fill_fun = it->generateFillFun("fill" + it->getClassName(), "dsp", true, false);
         // dump2FIR(fill_fun);
         block = FunctionCallInliner(fill_fun).getCode(block);
     }
@@ -616,13 +524,13 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const strin
     block->pushBackInst(switch_block);
 
     int i = 0;
-    for (vector<int>::const_iterator it = io.begin(); it != io.end(); it++, i++) {
+    for (auto& it : io) {
         // Creates "case" block
         BlockInst* case_block = InstBuilder::genBlockInst();
         // Compiles "case" block
-        case_block->pushBackInst(InstBuilder::genStoreStackVar("rate", InstBuilder::genInt32NumInst(*it)));
+        case_block->pushBackInst(InstBuilder::genStoreStackVar("rate", InstBuilder::genInt32NumInst(it)));
         // Add it into the switch
-        switch_block->addCase(i, case_block);
+        switch_block->addCase(i++, case_block);
     }
 
     // Default case
@@ -721,17 +629,17 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const
     }
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(fInitInstructions);
-    block->pushBackInst(fPostInitInstructions);
-    block->pushBackInst(fResetUserInterfaceInstructions);
-    block->pushBackInst(fClearInstructions);
+    BlockInst* init_block = InstBuilder::genBlockInst();
+    init_block->pushBackInst(fInitInstructions);
+    init_block->pushBackInst(fPostInitInstructions);
+    init_block->pushBackInst(fResetUserInterfaceInstructions);
+    init_block->pushBackInst(fClearInstructions);
 
     // Explicit return
-    block->pushBackInst(InstBuilder::genRetInst());
+    init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    return InstBuilder::genVoidFunction(name, args, block, isvirtual);
+    return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual)

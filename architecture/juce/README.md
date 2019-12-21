@@ -24,7 +24,7 @@ Two different achitecture files will be used to glue the previously described fi
 
 **faust2juce** is used with the following command: 
 
-`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth]  [-midi] [-osc] [-soundfile] file.dsp` 
+`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
@@ -46,5 +46,5 @@ The following options are available:
  - `-soundfile`             : when compiling DSP using 'soundfile' primitive, to add needed resources
  - `-help or -h`            : shows the different options 
 
-Some others options will be added later, still in development...
+As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-cn name` to give a name to the generated DSP class, or `-vec -lv 1 -lv 1` to compile in vector mode...
 

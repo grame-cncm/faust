@@ -33,7 +33,7 @@ class LogPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector< ::Type>& args)
+    virtual ::Type infereSigType(const vector<::Type>& args)
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
@@ -77,7 +77,7 @@ class LogPrim : public xtended {
         return container->pushFunction(subst("log$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -85,7 +85,7 @@ class LogPrim : public xtended {
         return subst("log$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

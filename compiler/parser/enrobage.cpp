@@ -86,7 +86,6 @@ static string& replaceOccurrences(string& str, const string& oldstr, const strin
  */
 static string& replaceClassName(string& str)
 {
-    string res;
     // "mydsp" can be replaced as the DSP class name, or appearing anywhere in the file
     replaceOccurrences(str, "mydsp", gGlobal->gClassName, true);
     // But "dsp" string has to be replaced in a strict manner
@@ -109,17 +108,20 @@ class myparser {
    public:
     
     myparser(const string& s) : str(s), N(s.length()), p(0) {}
+    
     bool skip()
     {
         while (p < N && isspace(str[p])) p++;
         return true;
     }
+    
     bool parse(const string& s)
     {
         bool f;
         if ((f = (p == str.find(s, p)))) p += s.length();
         return f;
     }
+    
     bool filename(string& fname)
     {
         size_t saved = p;
@@ -158,14 +160,11 @@ static void inject(ostream& dst, const string& fname)
 {
     if (gGlobal->gAlreadyIncluded.find(fname) == gGlobal->gAlreadyIncluded.end()) {
         gGlobal->gAlreadyIncluded.insert(fname);
-        istream* src = openArchStream(fname.c_str());
+        unique_ptr<istream> src = unique_ptr<istream>(openArchStream(fname.c_str()));
         if (src) {
             streamCopyUntilEnd(*src, dst);
-            delete src;
         } else {
-            stringstream error;
-            error << fname << " not found\n";
-            gGlobal->gErrorMsg = error.str();
+            gGlobal->gErrorMsg = fname + " not found\n";
         }
     }
 }
@@ -180,13 +179,11 @@ static string removeSpaces(const string& line)
 }
 
 #define TRY_OPEN(filename)           \
-    ifstream* f = new ifstream();    \
+    unique_ptr<ifstream> f = unique_ptr<ifstream>(new ifstream());    \
     f->open(filename, ifstream::in); \
     err = chdir(old);                \
     if (f->is_open())                \
         return f;                    \
-    else                             \
-        delete f;
 
 /**
  * Check if an URL exists.
@@ -247,7 +244,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
               << "' : " << strerror(errno) << endl;
         throw faustexception(error.str());
     }
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -303,7 +300,7 @@ static void buildFullPathname(string& fullpath, const char* filename)
 /**
  * Try to open an architecture file searching in various directories
  */
-ifstream* openArchStream(const char* filename)
+unique_ptr<ifstream> openArchStream(const char* filename)
 {
     char  buffer[FAUST_PATH_MAX];
     char* old = getcwd(buffer, FAUST_PATH_MAX);
@@ -316,7 +313,7 @@ ifstream* openArchStream(const char* filename)
         }
     }
     
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -342,7 +339,7 @@ FILE* fopenSearch(const char* filename, string& fullpath)
             return f;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -421,7 +418,7 @@ string stripEnd(const string& name, const string& ext)
 
 bool checkURL(const char* filename)
 {
-    char* fileBuf = 0;
+    char* fileBuf = nullptr;
     
     // Tries to open as an URL for a local file
     if (strstr(filename, "file://") != 0) {
@@ -483,7 +480,7 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 }
 
 /**
- * Copy src to dst until specific line.
+ * Copy src to dst until a specific line
  */
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {

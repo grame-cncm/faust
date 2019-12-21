@@ -96,7 +96,7 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["cosf"]       = "f32::cos";
         fMathLibTable["expf"]       = "f32::exp";
         fMathLibTable["floorf"]     = "f32::floor";
-        fMathLibTable["fmodf"]      = "f32::fmod";
+        fMathLibTable["fmodf"]      = "libm::fmodf";
         fMathLibTable["logf"]       = "f32::log";
         fMathLibTable["log10f"]     = "f32::log10";
         fMathLibTable["max_f"]      = "f32::max";
@@ -118,7 +118,7 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["cos"]       = "f64::cos";
         fMathLibTable["exp"]       = "f64::exp";
         fMathLibTable["floor"]     = "f64::floor";
-        fMathLibTable["fmod"]      = "f64::fmod";
+        fMathLibTable["fmod"]      = "libm::fmod";
         fMathLibTable["log"]       = "f64::log";
         fMathLibTable["log10"]     = "f32::log10";
         fMathLibTable["max_"]      = "f64::max";
@@ -150,13 +150,13 @@ class RustInstVisitor : public TextInstVisitor {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "ui_interface.openVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "ui_interface.openHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "ui_interface.openTabBox(";
                 break;
         }
@@ -269,7 +269,7 @@ class RustInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
             tab(fTab, *fOut);
         }
@@ -447,20 +447,20 @@ class RustInstVisitor : public TextInstVisitor {
 
         *fOut << "for " << inst->getName() << " in ";
         if (inst->fReverse) {
-            *fOut << "(";
-        }
-        inst->fLowerBound->accept(this);
-        *fOut << "..";
-        inst->fUpperBound->accept(this);
-        if (inst->fReverse) {
-            *fOut << ").rev() ";  // rev() iterates from the end, excluded, to the beginning included
+            inst->fUpperBound->accept(this);
+            *fOut << "..";
+            inst->fLowerBound->accept(this);
+        } else {
+            inst->fLowerBound->accept(this);
+            *fOut << "..";
+            inst->fUpperBound->accept(this);
         }
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }
@@ -472,28 +472,27 @@ class RustInstVisitor : public TextInstVisitor {
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            if ((*it).first == -1) {  // -1 used to code "default" case
+        for (auto& it : inst->fCode) {
+            if (it.first == -1) {  // -1 used to code "default" case
                 *fOut << "_ => {";
             } else {
-                *fOut << (*it).first << " => {";
+                *fOut << it.first << " => {";
             }
             fTab++;
             tab(fTab, *fOut);
-            ((*it).second)->accept(this);
+            (it.second)->accept(this);
             /*
             if (!((*it).second)->hasReturn()) {
                 *fOut << "break;";
             }
             */
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "},";
             tab(fTab, *fOut);
         }
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "} ";
         tab(fTab, *fOut);
     }

@@ -87,6 +87,7 @@ echo " updating $COPYING"
 sed "s/FAUST compiler, Version[ 	]*[0-9].*/FAUST compiler, Version $VERSION/" $COPYING > TMP$$
 mv -f TMP$$ $COPYING
 
-echo "### You need to recompile Faust for the change to take effect."
+make man
 
+echo "### You need to recompile Faust for the change to take effect."
 exit 0

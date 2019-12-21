@@ -22,23 +22,47 @@
  
  ************************************************************************/
 
-#include <faust/dsp/llvm-c-dsp.h>
-#include <iostream>
-#include <cassert>
+#include <stdio.h>
+#include <string.h>
 
-using namespace std;
+#include "faust/dsp/llvm-c-dsp.h"
+
+static bool isopt(char* argv[], const char* name)
+{
+    for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+    return false;
+}
 
 int main(int argc, const char** argv)
 {
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help")) {
+        printf("llvm-test-c\n");
+        exit(EXIT_FAILURE);
+    }
+    
     int argc1 = 0;
     const char* argv1[2];
     argv1[argc1++] = "-vec";
     argv1[argc1] = 0;
     
-    char err[4096] = {};
-    auto fac = createCDSPFactoryFromString("score",
+    char err[4096];
+    llvm_dsp_factory* factory = createCDSPFactoryFromString("score",
                                            "process = +;",
                                            argc1, argv1, "", err, -1);
-    cout << err << endl;
-    assert(fac);
+    if (!factory) {
+        printf("Cannot create factory : %s\n", err);
+        exit(EXIT_FAILURE);
+    } else {
+        llvm_dsp* dsp = createCDSPInstance(factory);
+        if (!dsp) {
+            printf("Cannot create DSP\n");
+            exit(EXIT_FAILURE);
+        } else {
+            printf("getNumInputs : %d\n", getNumInputsCDSPInstance(dsp));
+            printf("getNumOutputs : %d\n", getNumOutputsCDSPInstance(dsp));
+            // Cleanup
+            deleteCDSPInstance(dsp);
+            deleteCDSPFactory(factory);
+        }
+    }
 }

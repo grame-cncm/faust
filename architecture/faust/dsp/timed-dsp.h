@@ -1,3 +1,4 @@
+/************************** BEGIN timed-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -276,3 +277,4 @@ class timed_dsp : public decorator_dsp {
 };
 
 #endif
+/**************************  END  timed-dsp.h **************************/

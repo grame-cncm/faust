@@ -5,8 +5,7 @@
 <body>
     
 <P> Organ volume:
-<input type="range" oninput="changeVolume(event) "min="-96" max="1" value="0" step="0.1"/>        
-
+<input type="range" oninput="changeVolume(event) "min="0" max="1" value="0.5" step="0.01"/>        
 
 <!-- Load 'faust2wasm' script generated .js file -->
 <script src="organ.js"></script>
@@ -18,8 +17,8 @@ if (typeof (WebAssembly) === "undefined") {
 }
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var audio_context = null;
-var organ = null;
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var organ_dsp = null;
 
 // Slider handler to change the 'organ' volume
 function changeVolume(event)
@@ -27,35 +26,35 @@ function changeVolume(event)
     var val = event.target.value;
     val = parseFloat(val);
     console.log(val);
-    organ.setParamValue("/organ/volume", val);
+    organ_dsp.setParamValue("/organ/volume", val);
 }
 
 // MIDI input handling
 function keyOn(channel, pitch, velocity)
 {
-    if (organ) {
-        organ.keyOn(channel, pitch, velocity);
+    if (organ_dsp) {
+        organ_dsp.keyOn(channel, pitch, velocity);
     }
 }
 
 function keyOff(channel, pitch, velocity)
 {
-    if (organ) {
-        organ.keyOff(channel, pitch, velocity);
+    if (organ_dsp) {
+        organ_dsp.keyOff(channel, pitch, velocity);
     }
 }
 
 function pitchWheel(channel, bend)
 {
-    if (organ) {
-        organ.pitchWheel(channel, bend);
+    if (organ_dsp) {
+        organ_dsp.pitchWheel(channel, bend);
     }
 }
 
 function ctrlChange(channel, ctrl, value)
 {
-    if (organ) {
-        organ.ctrlChange(channel, ctrl, value);
+    if (organ_dsp) {
+        organ_dsp.ctrlChange(channel, ctrl, value);
     }
 }
 
@@ -75,7 +74,7 @@ function midiMessageReceived(ev)
     } else if (cmd === 11) {
         ctrlChange(channel, data1, data2);
     } else if (cmd === 14) {
-        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        pitchWheel(channel, (data2 * 128.0 + data1));
     }
 }
 
@@ -114,21 +113,18 @@ function activateMIDIInput()
     }
 }
 
-
 function startorgan()
 {
-    // Create audio context
-    audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-    
-    // Create the Faust generated node
-    faust.createorgan_poly(audio_context, 256, 16,
-                      function (node) {
-                            organ = node;
-                            console.log(organ.getJSON());
+  // Create the Faust generated node
+    var pluginURL = ".";
+    var plugin = new FaustorganPoly(audio_context, 16, pluginURL);
+    plugin.load().then(node => {
+                         	organ_dsp = node;
+                            console.log(organ_dsp.getJSON());
                             // Print paths to be used with 'setParamValue'
-                            console.log(organ.getParams());
+                            console.log(organ_dsp.getParams());
                             // Connect it to output as a regular WebAudio node
-                            organ.connect(audio_context.destination);
+                            organ_dsp.connect(audio_context.destination);
                             // Activate MIDI
                             activateMIDIInput();
                       });
@@ -139,7 +135,7 @@ window.addEventListener('load', startorgan);
 
 // To activate audio on iOS
 window.addEventListener('touchstart', function() {
-                        
+                        if (audio_context.state !== "suspended") return;
                         // create empty buffer
                         var buffer = audio_context.createBuffer(1, 1, 22050);
                         var source = audio_context.createBufferSource();
@@ -151,7 +147,14 @@ window.addEventListener('touchstart', function() {
                         // play the file
                         source.start();
                         
+                        audio_context.resume().then(() => console.log("Audio resumed"));
                         }, false);
+
+// On desktop
+window.addEventListener("mousedown", () => {
+    if (audio_context.state !== "suspended") return;
+    audio_context.resume().then(() => console.log("Audio resumed"))
+});  
 
 </script>
 

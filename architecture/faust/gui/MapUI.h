@@ -1,3 +1,4 @@
+/************************** BEGIN MapUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -55,19 +56,19 @@ class MapUI : public UI, public PathBuilder
         // -- widget's layouts
         void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
         
         // -- active widgets
@@ -169,3 +170,4 @@ class MapUI : public UI, public PathBuilder
 
 
 #endif // FAUST_MAPUI_H
+/**************************  END  MapUI.h **************************/

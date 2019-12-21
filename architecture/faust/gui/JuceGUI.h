@@ -1,3 +1,4 @@
+/************************** BEGIN JuceGUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -476,7 +477,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
         
         Slider::SliderStyle fStyle;
         Label fLabel;
-        ScopedPointer<ValueConverter> fConverter;
+        std::unique_ptr<ValueConverter> fConverter;
         SliderType fType;
         Slider fSlider;
 
@@ -498,13 +499,13 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
         uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
         {
             if (scale == MetaDataUI::kLog) {
-                fConverter = new LogValueConverter(min, max, min, max);
+                fConverter = std::make_unique<LogValueConverter>(min, max, min, max);
                 fSlider.setSkewFactor(0.5); // Logarithmic slider
             } else if (scale == MetaDataUI::kExp) {
-                fConverter = new ExpValueConverter(min, max, min, max);
+                fConverter = std::make_unique<ExpValueConverter>(min, max, min, max);
                 fSlider.setSkewFactor(2.0); // Exponential slider
             } else {
-                fConverter = new LinearValueConverter(min, max, min, max);
+                fConverter = std::make_unique<LinearValueConverter>(min, max, min, max);
             }
 
             // Set the JUCE widget initalization variables.
@@ -1829,7 +1830,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         int fRadioGroupID;               // In case of radio buttons.
         //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
-        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V4();
+        std::unique_ptr<LookAndFeel> fLaf = std::make_unique<LookAndFeel_V4>();
     
         FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
         {
@@ -1912,7 +1913,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          */
         JuceGUI(bool def = true):fDefault(def), fRadioGroupID(1) // fRadioGroupID must start at 1
         {
-            setLookAndFeel(fLaf);
+            setLookAndFeel(fLaf.get());
         }
         
         /**
@@ -2046,3 +2047,4 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         }
     
 };
+/**************************  END  JuceGUI.h **************************/

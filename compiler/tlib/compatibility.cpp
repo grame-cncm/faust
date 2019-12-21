@@ -261,14 +261,22 @@ double remainder(double x, double p)
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 void getFaustPathname(char* str, unsigned int size)
 {
-    char* path = getenv("_");
-    if (path) {
-        strncpy(str, path, size);
+    char buff[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+    if (len != -1) {
+        buff[len] = '\0';
+        strncpy(str, buff, len);
     } else {
-        // prevent the case of _ undefined
-        strncpy(str, "/usr/local/bin/faust", size);
+        char* path = getenv("_");
+        if (path) {
+            strncpy(str, path, size);
+        } else {
+            // prevent the case of _ undefined
+            strncpy(str, "/usr/local/bin/faust", size);
+        }
     }
 }
 

@@ -32,7 +32,6 @@
 #include "faust/gui/JSONUIDecoder.h"
 #include "faust/gui/meta.h"
 
-#include "TMutex.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
@@ -56,6 +55,73 @@
 #define OwningPtr std::unique_ptr
 #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
 #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+
+// We take the largest sample size here, to cover 'float' and 'double' cases
+#define LLVM_FAUSTFLOAT double
+
+#define BUFFER_SIZE 1024
+#define SAMPLE_RATE 44100
+#define MAX_CHAN 64
+#define MAX_SOUNDFILE_PARTS 256
+
+#ifdef _MSC_VER
+#define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
+#define POST_PACKED_STRUCTURE \
+;                         \
+__pragma(pack(pop))
+#else
+#define PRE_PACKED_STRUCTURE
+#define POST_PACKED_STRUCTURE __attribute__((__packed__))
+#endif
+
+PRE_PACKED_STRUCTURE
+struct Soundfile {
+    LLVM_FAUSTFLOAT** fBuffers;
+    int* fLength;   // length of each part
+    int* fSR;       // sample rate of each part
+    int* fOffset;   // offset of each part in the global buffer
+    int fChannels;  // max number of channels of all concatenated files
+ 
+    Soundfile(int max_chan)
+    {
+        fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
+        fLength  = new int[MAX_SOUNDFILE_PARTS];
+        fSR      = new int[MAX_SOUNDFILE_PARTS];
+        fOffset  = new int[MAX_SOUNDFILE_PARTS];
+        
+        for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
+            fLength[part] = BUFFER_SIZE;
+            fSR[part]     = SAMPLE_RATE;
+            fOffset[part] = 0;
+        }
+        
+        // Allocate 1 channel
+        fChannels   = 1;
+        fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
+        faustassert(fBuffers[0]);
+        memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
+        
+        // Share the same buffer for all other channels so that we have max_chan channels available
+        for (int chan = fChannels; chan < max_chan; chan++) {
+            fBuffers[chan] = fBuffers[0];
+        }
+    }
+    
+    ~Soundfile()
+    {
+        // Free the real channels only
+        for (int chan = 0; chan < fChannels; chan++) {
+            delete fBuffers[chan];
+        }
+        delete[] fBuffers;
+        delete[] fLength;
+        delete[] fSR;
+        delete[] fOffset;
+    }
+    
+} POST_PACKED_STRUCTURE;
+
+extern Soundfile* dynamic_defaultsound;
 
 // namespace llvm
 namespace llvm {
@@ -126,7 +192,7 @@ class FaustObjectCache : public llvm::ObjectCache {
 
     virtual std::unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module* M)
     {
-        return (fMachineCode == "") ? NULL : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
+        return (fMachineCode == "") ? nullptr : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
     }
 
     std::string getMachineCode() { return fMachineCode; }
@@ -228,8 +294,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     static int gInstance;
 
-    static TLockAble* gDSPFactoriesLock;
-
     static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
 };
 
@@ -316,10 +380,6 @@ EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 EXPORT std::vector<std::string> getAllDSPFactories();
 
 EXPORT void deleteAllDSPFactories();
-
-EXPORT bool startMTDSPFactories();
-
-EXPORT void stopMTDSPFactories();
 
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target,

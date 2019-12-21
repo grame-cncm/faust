@@ -60,22 +60,22 @@ class samFaustDSP
         ~samFaustDSP();
     
         // setup the the hardware buffer pointers.
-        void setDSP_ChannelBuffers(FAUSTFLOAT *AudioChannelA_0_Left,
-                                   FAUSTFLOAT *AudioChannelA_0_Right,
-                                   FAUSTFLOAT *AudioChannelA_1_Left,
-                                   FAUSTFLOAT *AudioChannelA_1_Right,
-                                   FAUSTFLOAT *AudioChannelA_2_Left,
-                                   FAUSTFLOAT *AudioChannelA_2_Right,
-                                   FAUSTFLOAT *AudioChannelA_3_Left,
-                                   FAUSTFLOAT *AudioChannelA_3_Right,
-                                   FAUSTFLOAT *AudioChannelB_0_Left,
-                                   FAUSTFLOAT *AudioChannelB_0_Right,
-                                   FAUSTFLOAT *AudioChannelB_1_Left,
-                                   FAUSTFLOAT *AudioChannelB_1_Right,
-                                   FAUSTFLOAT *AudioChannelB_2_Left,
-                                   FAUSTFLOAT *AudioChannelB_2_Right,
-                                   FAUSTFLOAT *AudioChannelB_3_Left,
-                                   FAUSTFLOAT *AudioChannelB_3_Right);
+        void setDSP_ChannelBuffers(FAUSTFLOAT* AudioChannelA_0_Left,
+                                   FAUSTFLOAT* AudioChannelA_0_Right,
+                                   FAUSTFLOAT* AudioChannelA_1_Left,
+                                   FAUSTFLOAT* AudioChannelA_1_Right,
+                                   FAUSTFLOAT* AudioChannelA_2_Left,
+                                   FAUSTFLOAT* AudioChannelA_2_Right,
+                                   FAUSTFLOAT* AudioChannelA_3_Left,
+                                   FAUSTFLOAT* AudioChannelA_3_Right,
+                                   FAUSTFLOAT* AudioChannelB_0_Left,
+                                   FAUSTFLOAT* AudioChannelB_0_Right,
+                                   FAUSTFLOAT* AudioChannelB_1_Left,
+                                   FAUSTFLOAT* AudioChannelB_1_Right,
+                                   FAUSTFLOAT* AudioChannelB_2_Left,
+                                   FAUSTFLOAT* AudioChannelB_2_Right,
+                                   FAUSTFLOAT* AudioChannelB_3_Left,
+                                   FAUSTFLOAT* AudioChannelB_3_Right);
     
         //-----------------`void stop()`--------------------------
         // Callback to render a buffer.
@@ -89,7 +89,7 @@ class samFaustDSP
         //
         // `propagateMidi` can
         // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if `-polyvoices` flag has been
+        // the Faust code or if `-nvoices` flag has been
         // provided before compilation.
         //
         // #### Arguments

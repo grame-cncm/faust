@@ -30,10 +30,11 @@
 
 #include "Text.hh"
 #include "text_instructions.hh"
+#include "faust/gui/PathBuilder.h"
 
 using namespace std;
 
-struct SOULInstUIVisitor : public DispatchVisitor {
+struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
     SOULStringTypeManager fTypeManager;
     int                   fTab;
@@ -48,13 +49,13 @@ struct SOULInstUIVisitor : public DispatchVisitor {
         if (fMetaAux.size() > 0) {
             for (size_t i = 0; i < fMetaAux.size(); i++) {
                 if (!std::isdigit(fMetaAux[i].first[0])) {
-                    fOut << ", " << fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
+                    fOut << ", " << "meta_" + fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
                 }
             }
         }
         fMetaAux.clear();
     }
-   
+    
     virtual void visit(AddMetaDeclareInst* inst)
     {
         fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
@@ -66,15 +67,25 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
-            << " [[ label: " << quote(inst->fLabel)
-            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel));
+            if (inst->fType != AddButtonInst::kDefaultButton) {
+                fOut << ", latching";
+            }
+            fOut<< ", text: \"off|on\""
+            << ", boolean";
             addMeta();
             fOut << " ]];";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
-            << " [[ label: " << quote(inst->fLabel)
-            << ", min: 0.0f, max: 1.0f, init: 0.0f, step: 1.0f";
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel));
+            if (inst->fType != AddButtonInst::kDefaultButton) {
+                fOut << ", latching";
+            }
+            fOut << ", text: \"off|on\""
+            << ", boolean";
             addMeta();
             fOut << " ]];";
         }
@@ -87,7 +98,8 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
@@ -97,7 +109,8 @@ struct SOULInstUIVisitor : public DispatchVisitor {
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax)
             << ", init: " << checkReal(inst->fInit)
@@ -114,7 +127,8 @@ struct SOULInstUIVisitor : public DispatchVisitor {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
-            << " [[ label: " << inst->fLabel
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
@@ -122,7 +136,8 @@ struct SOULInstUIVisitor : public DispatchVisitor {
         } else {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
-            << " [[ label: " << quote(inst->fLabel)
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
             << ", max: " << checkReal(inst->fMax);
             addMeta();
@@ -133,13 +148,26 @@ struct SOULInstUIVisitor : public DispatchVisitor {
     
     virtual void visit(OpenboxInst* inst)
     {
+        switch (inst->fOrient) {
+            case OpenboxInst::kVerticalBox:
+                pushLabel("v:" + inst->fName);
+                break;
+            case OpenboxInst::kHorizontalBox:
+                pushLabel("h:" + inst->fName);
+                break;
+            case OpenboxInst::kTabBox:
+                pushLabel("t:" + inst->fName);
+                break;
+        }
         fMetaAux.clear();
     }
     
     virtual void visit(CloseboxInst* inst)
     {
+        popLabel();
         fMetaAux.clear();
     }
+    
 };
 
 class SOULInstVisitor : public TextInstVisitor {
@@ -180,6 +208,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
+        gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
@@ -214,6 +243,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["rint"]      = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
@@ -403,21 +433,48 @@ class SOULInstVisitor : public TextInstVisitor {
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(bool (";
-
         fIntAsBool = true;
         inst->fCond->accept(this);
         fIntAsBool = false;
         *fOut << ") ? ";
-
         inst->fThen->accept(this);
         *fOut << " : ";
         inst->fElse->accept(this);
         *fOut << ")";
     }
+    
+    virtual void visit(IfInst* inst)
+    {
+        *fOut << "if ";
+        *fOut << "(bool ";
+        fIntAsBool = true;
+        visitCond(inst->fCond);
+        fIntAsBool = false;
+        *fOut << ")";
+        *fOut << " {";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fThen->accept(this);
+        fTab--;
+        back(1, *fOut);
+        if (inst->fElse->fCode.size() > 0) {
+            *fOut << "} else {";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fElse->accept(this);
+            fTab--;
+            back(1, *fOut);
+            *fOut << "}";
+        } else {
+            *fOut << "}";
+        }
+        tab(fTab, *fOut);
+    }
 
     virtual void visit(BinopInst* inst)
     {
-        if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
+        bool int_as_bool = fIntAsBool;
+        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
             *fOut << "int (";
         }
         *fOut << "(";
@@ -451,7 +508,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
 
         *fOut << ")";
-        if (isBoolOpcode(inst->fOpcode) && !fIntAsBool) {
+        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
             *fOut << ")";
         }
     }
@@ -496,7 +553,7 @@ class SOULInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
     }

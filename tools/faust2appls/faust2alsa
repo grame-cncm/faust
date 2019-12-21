@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2013                                #
+#               (c) Grame, 2009-2019                                #
 #                                                                   #
 #####################################################################
 
@@ -11,8 +11,13 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE=$FAUSTARCH/alsa-gtk.cpp
 OSCDEFS=""
+
+if [[ $(uname -s) != Darwin ]]; then
+	LFLAGS+="-no-pie"
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -23,7 +28,6 @@ OSCDEFS=""
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-CXX=g++
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -85,7 +89,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS $LFLAGS -o "${f%.dsp}"
 	)> /dev/null  || exit
 	rm "$f.cpp"
 

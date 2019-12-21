@@ -82,7 +82,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			- or it \c propose the message to its subnodes when \c addrTail is not empty. 
 			  In this case a new \c regexp is computed with the head of \c addrTail and a new \c addrTail as well.
 		*/
-		virtual void	propose(const Message* msg, const OSCRegexp* regexp, const std::string addrTail);
+		virtual void	propose(const Message* msg, const OSCRegexp* regexp, const std::string& addrTail);
 
 		/*!
 			\brief accept an OSC message. 
@@ -115,7 +115,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			- a terminal node send its state on \c 'get' request to the IP address given as parameter.
 			The \c get method is basically called by the accept method.
 		*/
-		virtual void	get (unsigned long ipdest, const std::string & what) const {}
+		virtual void	get(unsigned long ipdest, const std::string& what) const {}
 
 		void			add(SMessageDriven node)	{ fSubNodes.push_back (node); }
 		const char*		getName() const				{ return fName.c_str(); }

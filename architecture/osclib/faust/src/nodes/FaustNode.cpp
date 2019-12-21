@@ -31,14 +31,14 @@ using namespace std;
 namespace oscfaust
 {
 
-static const char* kAliasMsg      		= "alias";
+static const char* kAliasMsg = "alias";
 
 //--------------------------------------------------------------------------
 template<> void FaustNode<float>::sendOSC() const 
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         try {
-            std::vector<std::pair<std::string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
+            vector<pair<string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
             // If aliases are present
             if (aliases.size() > 0) {  
                 for (size_t i = 0; i < aliases.size(); i++) {
@@ -64,7 +64,7 @@ template<> void FaustNode<double>::sendOSC() const
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         try {
-            std::vector<std::pair<std::string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
+            vector<pair<string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
             // If aliases are present
             if (aliases.size() > 0) { 
                 for (size_t i = 0; i < aliases.size(); i++) {
@@ -108,16 +108,18 @@ template<> void FaustNode<double>::get(unsigned long ipdest) const		///< handler
 //--------------------------------------------------------------------------
 template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for the 'accept' message
 {
-	string str;						// check for alias message first
+    string str;						// check for alias message first
     if ((msg->size() >= 1) && msg->param(0, str) && (str == kAliasMsg))
-		return fRoot->aliasMsg(msg, fMapping.fMinOut, fMapping.fMaxOut);
-
+        return fRoot->aliasMsg(msg, fMapping.fMinOut, fMapping.fMaxOut);
+    
     if (msg->size() == 1) {			// check the message parameters count
-                                    // messages with a param count other than 1 are rejected
-        int ival; float fval;
+        // messages with a param count other than 1 are rejected
+        int ival; float fval; double dval;
         if ((OSCControler::gXmit == kNoXmit) || (OSCControler::gXmit == kAll) || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
             if (msg->param(0, fval)) {
-                return store(float(fval));	// accepts float values
+                return store(fval);         // accepts float values
+            } else if (msg->param(0, dval)) {
+                return store(dval);         // accepts double values
             } else if (msg->param(0, ival)) {
                 return store(float(ival));  // but accepts also int value
             }
@@ -129,18 +131,20 @@ template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for 
 //--------------------------------------------------------------------------
 template<> bool FaustNode<double>::accept(const Message* msg)			///< handler for the 'accept' message
 {
-	string str;						// check for alias message first
+    string str;						// check for alias message first
     if ((msg->size() >= 1) && msg->param(0, str) && (str == kAliasMsg))
-		return fRoot->aliasMsg (msg, float(fMapping.fMinOut), float(fMapping.fMaxOut));
-
+        return fRoot->aliasMsg(msg, fMapping.fMinOut, fMapping.fMaxOut);
+    
     if (msg->size() == 1) {			// check the message parameters count
-                                    // messages with a param count other than 1 are rejected
-        int ival; float fval;
+        // messages with a param count other than 1 are rejected
+        int ival; float fval; double dval;
         if ((OSCControler::gXmit == kNoXmit) || (OSCControler::gXmit == kAll) || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
-           if (msg->param(0, fval)) {
-                return store(double(fval));	// accepts float values
+            if (msg->param(0, fval)) {
+                return store(fval);         // accepts float values
+            } else if (msg->param(0, dval)) {
+                return store(dval);         // accepts double values
             } else if (msg->param(0, ival)) {
-                return store(double(ival));  // but accepts also int value
+                return store(float(ival));  // but accepts also int value
             }
         }
     }

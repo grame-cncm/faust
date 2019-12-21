@@ -1,19 +1,15 @@
 /************************************************************************
-
  IMPORTANT NOTE : this file contains two clearly delimited sections :
  the ARCHITECTURE section (in two parts) and the USER section. Each section
  is governed by its own copyright and license. Please check individually
  each section for license and copyright information.
-
- If there is no copyright and license information in the USER section,
- the user should place there copyright and license information of their
- choice.
+ *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2010-2011 V. Lazzarini and GRAME
+ Copyright (C) 2010-2019 V. Lazzarini and GRAME
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -80,16 +76,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
 
-/******************************************************************************
- *******************************************************************************
-
- VECTOR INTRINSICS
-
- *******************************************************************************
- *******************************************************************************/
-
-<<includeIntrinsic>>
-
 /**
  * A UI that simply collects the active zones in a vector
  * and provides a method to copy the csound controls
@@ -117,21 +103,31 @@ public:
 
     // -- passive widgets
 
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)            {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)              {}
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)   {}
 
     virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
     void copyfrom(MYFLT* mem[]) {
-        for (unsigned int i=0; i<vZone.size(); i++) {
+        for (unsigned int i = 0; i < vZone.size(); i++) {
             if (*(mem[i]) != FL(-1.)) {
                 *vZone[i] = *(mem[i]);
             }
         }
     }
 
-    int size()                  { return vZone.size(); }
+    int size() { return vZone.size(); }
 };
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -148,10 +144,10 @@ struct dataspace {
 #if (FAUST_OUTPUTS > 0)                   /* omit 0 size array */
     MYFLT*    aout[FAUST_OUTPUTS];        /* output buffers    */
 #endif
-#if (FAUST_INPUTS > 0)                     /* omit 0 size array */
+#if (FAUST_INPUTS > 0)                    /* omit 0 size array */
     MYFLT*    ain[FAUST_INPUTS];          /* input buffers     */
 #endif
-#if (FAUST_ACTIVES > 0)                   /* omit 0 size array  */
+#if (FAUST_ACTIVES > 0)                   /* omit 0 size array */
     MYFLT*    ktl[FAUST_ACTIVES];         /* controls          */
 #endif
     dsp*      DSP;                        /* the Faust generated object */
@@ -174,12 +170,12 @@ struct dataspace {
  * Creates a "aaakkkk" CSound description string. Note that
  * these string will never be released. Potential memory leak
  */
-static char* makeDescription(int numa, int numk=0)
+static char* makeDescription(int numa, int numk = 0)
 {
     char* str = (char*)malloc(numa+numk+1); // NEED TO BE CHANGED ?
     if (str) {
-        for (int i=0; i<numa; i++) str[i] = 'a';
-        for (int i=0; i<numk; i++) str[numa+i] = 'J';
+        for (int i = 0; i < numa; i++) str[i] = 'a';
+        for (int i = 0; i < numk; i++) str[numa+i] = 'J';
         str[numa+numk] = 0;
     }
     return str;
@@ -189,12 +185,12 @@ static char* makeDescription(int numa, int numk=0)
  * CSOUND callback that allocates and initializes
  * the FAUST generated DSP object and it's CSound interface
  */
-static int init(CSOUND *csound, dataspace *p)
+static int init(CSOUND* csound, dataspace* p)
 {
     if (p->dspmem.auxp == NULL)
         csound->AuxAlloc(csound, sizeof(mydsp), &p->dspmem);
 
-    if(p->intmem.auxp == NULL)
+    if (p->intmem.auxp == NULL)
         csound->AuxAlloc(csound, sizeof(CSUI), &p->intmem);
 
     p->DSP = new (p->dspmem.auxp) mydsp;
@@ -213,7 +209,7 @@ static int init(CSOUND *csound, dataspace *p)
  * the controls values and calling the compute() method
  * of the DSP object. (Assume MYFLT = FAUSTFLOAT)
  */
-static int process32bits(CSOUND *csound, dataspace *p)
+static int process32bits(CSOUND* csound, dataspace* p)
 {
     AVOIDDENORMALS;
 
@@ -232,8 +228,4 @@ extern "C" {
     LINKAGE
 }
 
-
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-
-

@@ -23,9 +23,11 @@
 #define _JSON_INSTRUCTIONS_H
 
 #include <string>
+#include <set>
 
 #include "faust/gui/JSONUI.h"
 #include "instructions.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -37,105 +39,121 @@ using namespace std;
  FIR visitor to prepare the JSON representation.
 */
 
-struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
-    map<string, string> fPathTable;  // Table : field_name, complete path
-
+template <typename REAL>
+struct JSONInstVisitor : public DispatchVisitor, public JSONUIAux<REAL> {
+    map<string, string> fPathTable; // Table : field_name, complete path
+    set<string> fControlPathSet;    // Set of already used control paths
+ 
     using DispatchVisitor::visit;
-
+    
+    const string& checkPath(set<string>& table, const string& path)
+    {
+        if (table.find(path) != table.end()) {
+            throw faustexception("ERROR : path '" + path + "' is already used\n");
+        } else {
+            table.insert(path);
+        }
+        return path;
+    }
+  
     JSONInstVisitor(const std::string& name, const std::string& filename, int inputs, int outputs, int sr_index,
                     const std::string& sha_key, const std::string& dsp_code, const std::string& version,
                     const std::string& compile_options, const std::vector<std::string>& library_list,
-                    const std::vector<std::string>& include_pathnames, const std::string& size,
+                    const std::vector<std::string>& include_pathnames, int size,
                     const std::map<std::string, int>& path_table)
-        : JSONUI(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
+        : JSONUIAux<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
                  include_pathnames, size, path_table)
     {
     }
 
-    JSONInstVisitor(int inputs, int outputs) : JSONUI(inputs, outputs) {}
+    JSONInstVisitor(int inputs, int outputs) : JSONUIAux<REAL>(inputs, outputs) {}
 
-    JSONInstVisitor() : JSONUI() {}
+    JSONInstVisitor() : JSONUIAux<REAL>() {}
 
     virtual ~JSONInstVisitor() {}
 
-    virtual void visit(AddMetaDeclareInst* inst) { declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
+    virtual void visit(AddMetaDeclareInst* inst) { this->declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
 
     virtual void visit(OpenboxInst* inst)
     {
         switch (inst->fOrient) {
-            case 0:
-                openVerticalBox(inst->fName.c_str());
+            case OpenboxInst::kVerticalBox:
+                this->openVerticalBox(inst->fName.c_str());
                 break;
-            case 1:
-                openHorizontalBox(inst->fName.c_str());
+            case OpenboxInst::kHorizontalBox:
+                this->openHorizontalBox(inst->fName.c_str());
                 break;
-            case 2:
-                openTabBox(inst->fName.c_str());
+            case OpenboxInst::kTabBox:
+                this->openTabBox(inst->fName.c_str());
+                break;
+        }
+    }
+
+    virtual void visit(CloseboxInst* inst) { this->closeBox(); }
+
+    virtual void visit(AddButtonInst* inst)
+    {
+        switch (inst->fType) {
+            case AddButtonInst::kDefaultButton:
+                this->addButton(inst->fLabel.c_str(), nullptr);
+                break;
+            case AddButtonInst::kCheckButton:
+                this->addCheckButton(inst->fLabel.c_str(), nullptr);
                 break;
             default:
                 faustassert(false);
                 break;
         }
-    }
-
-    virtual void visit(CloseboxInst* inst) { closeBox(); }
-
-    virtual void visit(AddButtonInst* inst)
-    {
-        if (inst->fType == AddButtonInst::kDefaultButton) {
-            addButton(inst->fLabel.c_str(), nullptr);
-        } else {
-            addCheckButton(inst->fLabel.c_str(), nullptr);
-        }
-
-        fPathTable[inst->fZone] = buildPath(inst->fLabel);
+        faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
+        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSliderInst* inst)
     {
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kVertical:
-                addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kNumEntry:
-                addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                this->addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             default:
                 faustassert(false);
                 break;
         }
-
-        fPathTable[inst->fZone] = buildPath(inst->fLabel);
+        faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
+        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                addHorizontalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
+                this->addHorizontalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
                 break;
             case AddBargraphInst::kVertical:
-                addVerticalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
+                this->addVerticalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
                 break;
             default:
                 faustassert(false);
                 break;
         }
-
-        fPathTable[inst->fZone] = buildPath(inst->fLabel);
+        faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
+        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
-        fPathTable[inst->fSFZone] = buildPath(inst->fLabel);
+        this->addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
+        faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
+        fPathTable[inst->fSFZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
-    void setInputs(int input) { fInputs = input; }
-    void setOutputs(int output) { fOutputs = output; }
+    void setInputs(int input) { this->fInputs = input; }
+    void setOutputs(int output) { this->fOutputs = output; }
 };
 
 #endif

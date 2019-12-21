@@ -26,7 +26,7 @@ var midi_input = [];
 var dsp_code_url = "http://127.0.0.1:8000/organ.dsp";
 
 //var libraries_url = "https://faust.grame.fr/libraries/";
-var libraries_url = "http://127.0.0.1:8000/libraries/";
+var libraries_url = "http://127.0.0.1:8000/../../libraries/";
 
 // Slider handler to change the 'noise' volume
 function changeVolume(event)
@@ -84,7 +84,7 @@ function midiMessageReceived(ev)
     } else if (cmd === 11) {
         ctrlChange(channel, data1, data2);
     } else if (cmd === 14) {
-        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        pitchWheel(channel, (data2 * 128.0 + data1));
     }
 }
 

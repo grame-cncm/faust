@@ -1,3 +1,4 @@
+/************************** BEGIN JuceParameterUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -98,19 +99,19 @@ class JuceParameterUI : public GUI, public PathBuilder {
         
         virtual void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         virtual void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         virtual void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         virtual void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
         
         // -- active widgets
@@ -154,3 +155,4 @@ class JuceParameterUI : public GUI, public PathBuilder {
 };
 
 #endif
+/**************************  END  JuceParameterUI.h **************************/

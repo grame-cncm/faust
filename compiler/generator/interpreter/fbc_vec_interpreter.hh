@@ -118,7 +118,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
                 case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     if (it->fOffset == -1) {
-                        glue->declare(static_cast<T*>(NULL), it->fKey.c_str(), it->fValue.c_str());
+                        glue->declare(static_cast<T*>(nullptr), it->fKey.c_str(), it->fValue.c_str());
                     } else {
                         glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
                     }
@@ -194,13 +194,13 @@ class FBCVecInterpreter : public FBCExecutor<T> {
 
             // Extended unary math
             &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAsinf, &&do_kAtanf, &&do_kCeilf, &&do_kCosf, &&do_kCoshf,
-            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
+            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRintf, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
             &&do_kTanf, &&do_kTanhf,
 
             // Extended unary math (heap OP heap)
             &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAsinfHeap, &&do_kAtanfHeap, &&do_kCeilfHeap,
             &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap,
-            &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
+            &&do_kRintfHeap, &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
 
             // Extended binary math
             &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf,
@@ -1836,6 +1836,14 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             STACK_UP_REAL();
             dispatchNextVec();
         }
+            
+        do_kRintf : {
+            VEC_LOOP(v1_real[j] = POP_VEC_REAL());
+            STACK_DOWN_REAL();
+            VEC_LOOP(PUSH_VEC_REAL(std::rint(v1_real[j])));
+            STACK_UP_REAL();
+            dispatchNextVec();
+        }
 
         do_kRoundf : {
             VEC_LOOP(v1_real[j] = POP_VEC_REAL());
@@ -1956,6 +1964,12 @@ class FBCVecInterpreter : public FBCExecutor<T> {
 
         do_kLog10fHeap : {
             VEC_LOOP(PUSH_VEC_REAL(std::log10(READ_HEAP_VEC_REAL((*it)->fOffset1))));
+            STACK_UP_REAL();
+            dispatchNextVec();
+        }
+            
+        do_kRintfHeap : {
+            VEC_LOOP(PUSH_VEC_REAL(std::rint(READ_HEAP_VEC_REAL((*it)->fOffset1))));
             STACK_UP_REAL();
             dispatchNextVec();
         }

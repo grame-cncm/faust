@@ -48,7 +48,7 @@ dsp_factory_base* RustCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* RustCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -100,17 +100,15 @@ void RustCodeContainer::produceInternal()
     generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut);
-    tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
 
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
-
+   
     // Fields
     fCodeProducer.Tab(n + 1);
     generateDeclarations(&fCodeProducer);
 
-    tab(n, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     tab(n, *fOut);
@@ -132,7 +130,7 @@ void RustCodeContainer::produceInternal()
     generateInit(&fCodeProducer);
     generateResetUserInterface(&fCodeProducer);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     // Fill
@@ -140,17 +138,17 @@ void RustCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, output: &mut[i32]) {", counter);
+        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, output: &mut[$1]) {", counter, ifloat());
+        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateComputeBlock(&fCodeProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(counter);
     loop->accept(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 
     tab(n, *fOut);
@@ -180,7 +178,7 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "#![allow(non_snake_case)]";
     tab(n, *fOut); *fOut << "#![allow(non_camel_case_types)]";
     */
-    // tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation" ;
+    // tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation";
 
     // Sub containers
     generateSubContainers();
@@ -190,14 +188,9 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    // TODO
-    // tab(n, *fOut); *fOut << "impl dsp<" << ifloat() <<"> for " << fKlassName << " {";
-    tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
-
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
-
+   
     // Dummy field used for 'declare'
     *fOut << "fDummy: " << ifloat() << ",";
     tab(n + 1, *fOut);
@@ -206,7 +199,7 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     generateDeclarations(&fCodeProducer);
 
-    tab(n, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n, *fOut);
 
@@ -220,7 +213,7 @@ void RustCodeContainer::produceClass()
         *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
         tab(n + 2, *fOut);
         fAllocateInstructions->accept(&fCodeProducer);
-        tab(n + 2, *fOut);
+        back(1, *fOut);
         *fOut << "}";
     }
 
@@ -231,9 +224,8 @@ void RustCodeContainer::produceClass()
         *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
         tab(n + 2, *fOut);
         fDestroyInstructions->accept(&fCodeProducer);
-        tab(n + 1, *fOut);
+         back(1, *fOut);
         *fOut << "}";
-        tab(n + 1, *fOut);
         tab(n + 1, *fOut);
     }
 
@@ -254,7 +246,6 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     // Print metadata declaration
-    tab(n + 1, *fOut);
     produceMetadata(n + 1);
 
     // Get sample rate method
@@ -282,10 +273,9 @@ void RustCodeContainer::produceClass()
         codeproducer.Tab(n + 2);
         generateStaticInit(&codeproducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "pub fn instanceResetUserInterface(&mut self) {";
     {
@@ -295,10 +285,9 @@ void RustCodeContainer::produceClass()
         codeproducer.Tab(n + 2);
         generateResetUserInterface(&codeproducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "pub fn instanceClear(&mut self) {";
     {
@@ -308,10 +297,9 @@ void RustCodeContainer::produceClass()
         codeproducer.Tab(n + 2);
         generateClear(&codeproducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "pub fn instanceConstants(&mut self, sample_rate: i32) {";
     {
@@ -321,10 +309,9 @@ void RustCodeContainer::produceClass()
         codeproducer.Tab(n + 2);
         generateInit(&codeproducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "pub fn instanceInit(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
@@ -337,7 +324,6 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
     *fOut << "pub fn init(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     *fOut << fKlassName << "::classInit(sample_rate);";
@@ -348,12 +334,11 @@ void RustCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
     *fOut << "pub fn buildUserInterface(&mut self, ui_interface: &mut UI<" << ifloat() << ">) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     // Compute
@@ -364,25 +349,25 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
 }
 
-void RustCodeContainer::produceMetadata(int tabs)
+void RustCodeContainer::produceMetadata(int n)
 {
-    tab(tabs, *fOut);
+    tab(n, *fOut);
     *fOut << "pub fn metadata(&mut self, m: &mut Meta) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
-            tab(tabs + 1, *fOut);
-            *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+    for (auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
+            tab(n + 1, *fOut);
+            *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
             // "contributor"
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
-                    tab(tabs + 1, *fOut);
-                    *fOut << "m.declare(\"" << *(i->first) << "\", " << **j << ");";
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                if (j == i.second.begin()) {
+                    tab(n + 1, *fOut);
+                    *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {
-                    tab(tabs + 1, *fOut);
+                    tab(n + 1, *fOut);
                     *fOut << "m.declare(\""
                           << "contributor"
                           << "\", " << **j << ");";
@@ -391,7 +376,7 @@ void RustCodeContainer::produceMetadata(int tabs)
         }
     }
 
-    tab(tabs, *fOut);
+    tab(n, *fOut);
     *fOut << "}" << endl;
 }
 
@@ -424,7 +409,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
-    tab(n, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 }
 
@@ -458,7 +443,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     // Generates the DSP loop
     fDAGBlock->accept(&fCodeProducer);
 
-    tab(n, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 }
 
@@ -488,7 +473,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     // Generate it
     fGlobalLoopBlock->accept(&fCodeProducer);
 
-    tab(n, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 }
 

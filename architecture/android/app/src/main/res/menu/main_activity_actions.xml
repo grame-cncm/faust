@@ -1,5 +1,6 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Search, should appear as action button -->
+
     <item android:id="@+id/action_keyboard"
           android:icon="@drawable/ic_keyboardicon"
           android:title="@string/keyboard"
@@ -20,9 +21,9 @@
         android:icon="@drawable/ic_reset"
         android:title="@string/reset"
         android:showAsAction="ifRoom" />
-          <!--
+
     <item android:id="@+id/action_settings"
-          android:title="@string/action_settings"
-          android:showAsAction="never" />
-          -->
+          android:title="@string/setting"
+          android:showAsAction="ifRoom" />
+
 </menu>

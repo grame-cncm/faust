@@ -1,3 +1,4 @@
+/************************** BEGIN dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -153,7 +154,7 @@ class decorator_dsp : public dsp {
 
     public:
 
-        decorator_dsp(dsp* dsp = 0):fDSP(dsp) {}
+        decorator_dsp(dsp* dsp = nullptr):fDSP(dsp) {}
         virtual ~decorator_dsp() { delete fDSP; }
 
         virtual int getNumInputs() { return fDSP->getNumInputs(); }
@@ -217,3 +218,4 @@ class dsp_factory {
 #endif
 
 #endif
+/**************************  END  dsp.h **************************/

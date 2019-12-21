@@ -11,8 +11,9 @@
 #include "rn_base64.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-
 #include "faust/dsp/poly-dsp.h"
+#include "faust/misc.h"
+
 //#include "faust/midi/RtMidi.cpp"
 
 #include <string.h>
@@ -339,7 +340,7 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
                 "", "",
                 std::vector<std::string>(),
                 std::vector<std::string>(),
-                "",
+                0,
                 std::map<std::string, int>());
     tmp_dsp->metadata(&json);
     tmp_dsp->buildUserInterface(&json);

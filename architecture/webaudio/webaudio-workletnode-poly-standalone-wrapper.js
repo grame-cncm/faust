@@ -13,7 +13,7 @@ class mydspPolyNode extends AudioWorkletNode {
     constructor(context, baseURL, options)
     {
         var json_object = JSON.parse(getJSONmydsp());
-
+      
         // Setting values for the input, the output and the channel count.
         options.numberOfInputs = (parseInt(json_object.inputs) > 0) ? 1 : 0;
         options.numberOfOutputs = (parseInt(json_object.outputs) > 0) ? 1 : 0;
@@ -24,7 +24,7 @@ class mydspPolyNode extends AudioWorkletNode {
 
         super(context, 'mydspPoly', options);
         this.baseURL = baseURL;
-
+      
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
         {
@@ -357,30 +357,30 @@ class mydspPoly {
      * Factory constructor.
      *
      * @param context - the audio context
+     * @param polyphony - the number of voices
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseURL = "")
+    constructor(context, polyphony = 16, baseURL = "")
     {
-        // Resume audio context each time...
-        context.resume();
-        
-    	console.log("baseLatency " + context.baseLatency);
-    	console.log("outputLatency " + context.outputLatency);
-    	console.log("sampleRate " + context.sampleRate);
-    
+        console.log("baseLatency " + context.baseLatency);
+        console.log("outputLatency " + context.outputLatency);
+        console.log("sampleRate " + context.sampleRate);
+
         this.context = context;
+        this.polyphony = polyphony;
         this.baseURL = baseURL;
     }
 
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
-    load()
+    async load()
     {
     	return new Promise((resolve, reject) => {   
             let real_url = (this.baseURL === "") ? "mydsp-processor.js" : (this.baseURL + "/mydsp-processor.js");
+            let options = { polyphony: this.polyphony };
             this.context.audioWorklet.addModule(real_url).then(() => {
-            this.node = new mydspPolyNode(this.context, this.baseURL, {});
+            this.node = new mydspPolyNode(this.context, this.baseURL, { processorOptions: options });
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
             }).then((node) => {
@@ -391,7 +391,7 @@ class mydspPoly {
         });
     }
 
-    loadGui() 
+    async loadGui() 
     {
         return new Promise((resolve, reject) => {
             try {
@@ -422,12 +422,20 @@ class mydspPoly {
             }
         });
     };
+    
+    linkExists(url) 
+    {
+    	return document.querySelectorAll(`link[href="${url}"]`).length > 0;
+    }
 }
+
+const dspName = "mydspPoly";
 
 // WAP factory or npm package module
 if (typeof module === "undefined") {
     window.mydspPoly = mydspPoly;
     window.FaustmydspPoly = mydspPoly;
+    window[dspName] = mydspPoly;
 } else {
     module.exports = { mydspPoly };
 }

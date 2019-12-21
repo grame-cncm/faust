@@ -54,7 +54,8 @@ string unquote(const string& s);
 string quote(const string& s);
 
 void   tab(int n, ostream& fout);
-void   printlines(int n, list<string>& lines, ostream& fout, string sep = "");
+void   back(int n, ostream& fout);
+void   printlines(int n, list<string>& lines, ostream& fout, const string& sep = "");
 string rmWhiteSpaces(const string& s);
 
 inline string checkFloat(float val)
@@ -134,29 +135,6 @@ inline bool replaceExtension(const string& str, const string& term, string& res)
     }
 }
 
-inline string flatten(const string& src)
-{
-    stringstream dst;
-    size_t       size = src.size();
-    for (size_t i = 0; i < size; i++) {
-        switch (src[i]) {
-            case '\n':
-            case '\t':
-            case '\r':
-                break;
-            case ' ':
-                if (!(i + 1 < size && src[i + 1] == ' ')) {
-                    dst << src[i];
-                }
-                break;
-            default:
-                dst << src[i];
-                break;
-        }
-    }
-    return dst.str();
-}
-
 inline string pathToContent(const string& path)
 {
     ifstream file(path.c_str(), ifstream::binary);
@@ -181,7 +159,7 @@ inline string pathToContent(const string& path)
 // put a unique file in a {...} list
 inline string prepareURL(const string& url)
 {
-    bool         in_str = false;
+    bool in_str = false;
     stringstream dst;
     for (size_t i = 0; i < url.size(); i++) {
         switch (url[i]) {
@@ -206,6 +184,71 @@ inline string prepareURL(const string& url)
 
     // If unique file, create a list with it
     return (res[0] != '{') ? "{'" + res + "'}" : res;
+}
+
+inline string flatten(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '\n':
+            case '\t':
+            case '\r':
+                break;
+            case ' ':
+                if (!(i + 1 < src.size() && src[i + 1] == ' ')) {
+                    dst += src[i];
+                }
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
+// To be used for WASM or SOUL
+inline string flattenJSON(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '"':
+                dst += "\\\"";
+                break;
+            case '\\':
+                dst += "\\";
+                break;
+            case '\'':
+                dst += "\\'";
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
+// To be used for JavaScript
+inline string flattenJSON1(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '\\':
+                dst += "\\";
+                break;
+            case '\'':
+                dst += "\\'";
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
 }
 
 #endif

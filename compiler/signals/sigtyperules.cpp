@@ -94,7 +94,6 @@ void typeAnnotation(Tree sig, bool causality)
         if (!isRec(hd(l), id, body)) {
             continue;
         }
-
         vrec.push_back(hd(l));
         vdef.push_back(body);
     }
@@ -179,10 +178,11 @@ static void setSigType(Tree sig, Type t)
 static Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*)sig->getType();
-    if (ty == 0)
+    if (ty == 0) {
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " HAS NO TYPE YET" << endl;)
-    else
+    } else {
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
+    }
     return ty;
 }
 

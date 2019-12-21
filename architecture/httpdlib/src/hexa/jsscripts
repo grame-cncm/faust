@@ -3609,7 +3609,7 @@ _f4u$t.getnumspecs = function(dct) {
     step : parser(dct["step"]),
     init : parser(dct["init"]),
     isint : integer,
-    ndec : Math.max(maxsplit[1].length, minsplit[1].length, stepsplit[1].length, initsplit[1].length)
+    ndec : Math.min(2, Math.max(maxsplit[1].length, minsplit[1].length, stepsplit[1].length, initsplit[1].length))
   };
 }
 
@@ -4156,7 +4156,7 @@ _f4u$t.initiate_bargraph = function(axis, fullid, weakaxis, strongaxis, minval, 
   _f4u$t.IDS_TO_ATTRIBUTES[id]["init"] = init;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["unit"] = unit;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["integer"] = false;
-  _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = (maxval-minval) <= 10 ? 2 : (maxval-minval) <= 100 ? 1 : 0;;
+  _f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"] = (maxval-minval) <= 10 ? 2 : (maxval-minval) <= 100 ? 1 : 0;
  _f4u$t.IDS_TO_ATTRIBUTES[id]["label"] = label;
   _f4u$t.IDS_TO_ATTRIBUTES[id]["address"] = address;
   _f4u$t.path_to_id(address, fullid);
@@ -4755,7 +4755,7 @@ _f4u$t.dumb_label_update = function(id, c) {
     c = (c + 0.49999).toString().parseInt();
   }
   else {
-    c = c.toFixed(_f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"]);
+    c = c.toFixed(Math.min(2,_f4u$t.IDS_TO_ATTRIBUTES[id]["ndec"]));
   }
   _f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"] = c;
   _f4u$t.change_label_text(label, id);;

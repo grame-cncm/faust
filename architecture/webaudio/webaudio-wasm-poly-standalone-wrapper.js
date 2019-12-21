@@ -26,15 +26,8 @@
  * @property {boolean} debug - debug mode
  */
 class FaustWasm2ScriptProcessorPoly {
-    static heap2Str(buf) {
-        let str = "";
-        let i = 0;
-        while (buf[i] !== 0) {
-            str += String.fromCharCode(buf[i++]);
-        }
-        return str;
-    }
-    /**
+
+   /**
      * Creates an instance of FaustWasm2ScriptProcessorPoly.
      * @param {string} dspName - dsp name
      * @param {{ [key: string]: any }} dspProps - dsp properties parsed by json
@@ -90,8 +83,10 @@ class FaustWasm2ScriptProcessorPoly {
         sp.fDate = 0;
     
         sp.fPitchwheelLabel = [];
-        sp.fCtrlLabel = new Array(128).fill(null).map(() => []),
-
+        sp.fCtrlLabel = new Array(128).fill(null).map(() => []);
+        
+        sp.remap = (v, mn0, mx0, mn1, mx1) => (v - mn0) / (mx0 - mn0) * (mx1 - mn1) + mn1;
+    
         sp.numIn = inputs;
         sp.numOut = outputs;
     
@@ -239,19 +234,26 @@ class FaustWasm2ScriptProcessorPoly {
                 const dspInput = sp.dspInChannnels[i];
                 dspInput.set(input);
             }
-            // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
-            if (sp.compute_handler) sp.compute_handler(bufferSize);
-            sp.mixer.clearOutput(bufferSize, sp.numOut, sp.outs); // First clear the outputs
-            for (let i = 0; i < polyphony; i++) { // Compute all running voices
-                if (sp.dsp_voices_state[i] === sp.kFreeVoice) continue;
-                sp.factory.compute(sp.dsp_voices[i], bufferSize, sp.ins, sp.mixing); // Compute voice
-                sp.dsp_voices_level[i] = sp.mixer.mixVoice(bufferSize, sp.numOut, sp.mixing, sp.outs); // Mix it in result
-                // Check the level to possibly set the voice in kFreeVoice again
-                if (sp.dsp_voices_level[i] < 0.0005 && sp.dsp_voices_state[i] === sp.kReleaseVoice) {
-                    sp.dsp_voices_state[i] = sp.kFreeVoice;
+            try {
+          
+                // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
+                if (sp.compute_handler) sp.compute_handler(bufferSize);
+                sp.mixer.clearOutput(bufferSize, sp.numOut, sp.outs); // First clear the outputs
+                for (let i = 0; i < polyphony; i++) { // Compute all running voices
+                    if (sp.dsp_voices_state[i] === sp.kFreeVoice) continue;
+                    sp.factory.compute(sp.dsp_voices[i], bufferSize, sp.ins, sp.mixing); // Compute voice
+                    sp.dsp_voices_level[i] = sp.mixer.mixVoice(bufferSize, sp.numOut, sp.mixing, sp.outs); // Mix it in result
+                    // Check the level to possibly set the voice in kFreeVoice again
+                    if (sp.dsp_voices_level[i] < 0.0005 && sp.dsp_voices_state[i] === sp.kReleaseVoice) {
+                        sp.dsp_voices_state[i] = sp.kFreeVoice;
+                    }
                 }
+                
+                if (sp.effect) sp.effect.compute(sp.effect_start, bufferSize, sp.outs, sp.outs); // Apply effect
+            } catch(e) {
+                console.log("ERROR in compute (" + e + ")");
             }
-            if (sp.effect) sp.effect.compute(sp.effect_start, bufferSize, sp.outs, sp.outs); // Apply effect
+            
             sp.update_outputs(); // Update bargraph
             for (let i = 0; i < sp.numOut; i++) { // Write outputs
                 const output = e.outputBuffer.getChannelData(i);
@@ -284,7 +286,11 @@ class FaustWasm2ScriptProcessorPoly {
                     if (!midi) return;
                     const strMidi = midi.trim();
                     if (strMidi === "pitchwheel") {
-                        sp.fPitchwheelLabel.push(item.address);
+                        sp.fPitchwheelLabel.push({
+                            path: item.address,
+                            min: parseFloat(item.min),
+                            max: parseFloat(item.max)
+                        });
                     } else {
                         const matched = strMidi.match(/^ctrl\s(\d+)/);
                         if (!matched) return;
@@ -345,6 +351,7 @@ class FaustWasm2ScriptProcessorPoly {
         sp.getSampleRate = () => audioCtx.sampleRate; // Return current sample rate
         sp.getNumInputs = () => sp.numIn; // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut; // Return instance number of audio outputs.
+
         /**
          * Global init, doing the following initialization:
          * - static tables initialization
@@ -357,6 +364,7 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.factory.init(sp.dsp_voices[i], sampleRate);
             }
         }
+
         /**
          * Init instance state.
          *
@@ -367,6 +375,7 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.factory.instanceInit(sp.dsp_voices[i], sampleRate);
             }
         }
+
         /**
          * Init instance constant state.
          *
@@ -377,18 +386,21 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.factory.instanceConstants(sp.dsp_voices[i], sampleRate);
             }
         }
+
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = () => {
             for (let i = 0; i < polyphony; i++) {
                 sp.factory.instanceResetUserInterface(sp.dsp_voices[i]);
             }
         }
+
         /* Init instance state (delay lines...).*/
         sp.instanceClear = () => {
             for (let i = 0; i < polyphony; i++) {
                 sp.factory.instanceClear(sp.dsp_voices[i]);
             }
         }
+
         /**
          * Trigger the Meta handler with instance specific calls to 'declare' (key, value) metadata.
          *
@@ -399,6 +411,7 @@ class FaustWasm2ScriptProcessorPoly {
                 this.dspProps.meta.forEach(meta => handler.declare(Object.keys(meta)[0], Object.values(meta)[0]));
             }
         }
+
         /**
          * Setup a control output handler with a function of type (path, value)
          * to be used on each generated output value. This handler will be called
@@ -411,6 +424,7 @@ class FaustWasm2ScriptProcessorPoly {
          * Get the current output handler.
          */
         sp.getOutputParamHandler = () => sp.output_handler;
+
         /**
          * Instantiates a new polyphonic voice.
          *
@@ -432,6 +446,7 @@ class FaustWasm2ScriptProcessorPoly {
             }
             sp.dsp_voices_state[voice] = pitch;
         }
+
         /**
          * De-instantiates a polyphonic voice.
          *
@@ -452,6 +467,7 @@ class FaustWasm2ScriptProcessorPoly {
                 this.log("Playing voice not found...");
             }
         }
+
         /**
          * Gently terminates all the active voices.
          */
@@ -463,6 +479,7 @@ class FaustWasm2ScriptProcessorPoly {
                 sp.dsp_voices_state[i] = sp.kReleaseVoice;
             }
         }
+
         /**
          * Control change
          *
@@ -473,13 +490,13 @@ class FaustWasm2ScriptProcessorPoly {
         sp.ctrlChange = (channel, ctrl, value) => {
             if (ctrl === 123 || ctrl === 120) sp.allNotesOff();
             if (!sp.fCtrlLabel[ctrl].length) return;
-            const remap = (v, mn0, mx0, mn1, mx1) => (v - mn0) / (mx0 - mn0) * (mx1 - mn1) + mn1;
-            sp.fCtrlLabel[ctrl].forEach(ctrl => {
+             sp.fCtrlLabel[ctrl].forEach(ctrl => {
                 const path = ctrl.path;
-                sp.setParamValue(path, remap(value, 0, 127, ctrl.min, ctrl.max));
+                sp.setParamValue(path, sp.remap(value, 0, 127, ctrl.min, ctrl.max));
                 if (sp.output_handler) sp.output_handler(path, sp.getParamValue(path));
             })
         }
+
         /**
          * PitchWeel
          *
@@ -487,10 +504,10 @@ class FaustWasm2ScriptProcessorPoly {
          * @param {number} value - the MIDI controller value (-1..1)
          */
         sp.pitchWheel = (channel, wheel) => {
-            sp.fPitchwheelLabel.forEach(path => {
-                sp.setParamValue(path, Math.pow(2, wheel / 12));
-                if (sp.output_handler) sp.output_handler(path, sp.getParamValue(path));
-            })
+            sp.fPitchwheelLabel.forEach(pw => {
+                sp.setParamValue(pw.path, sp.remap(wheel, 0, 16383, pw.min, pw.max));
+                if (sp.output_handler) sp.output_handler(pw.path, sp.getParamValue(pw.path));
+            });
         }
         const findPath = (o, p) => {
             if (typeof o !== "object") return false;
@@ -503,6 +520,7 @@ class FaustWasm2ScriptProcessorPoly {
             }
             return false;
         }
+
         /**
          * Set control value.
          *
@@ -518,10 +536,11 @@ class FaustWasm2ScriptProcessorPoly {
                 }
             }
         }
+
         /**
          * Get control value.
          *
-         * @param {string} path - the path to the wanted control (retrieved using 'controls' method)
+         * @param {string} path - the path to the wanted control (retrieved using 'getParams' method)
          *
          * @return {number} the float value
          */
@@ -532,14 +551,16 @@ class FaustWasm2ScriptProcessorPoly {
                 return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
             }
         }
+
         /**
          * Get the table of all input parameters paths.
          *
          * @return {object} the table of all input parameter paths.
          */
         sp.getParams = () => sp.inputs_items;
+
         /**
-         * Get DSP JSON description with its UI and metadata
+         * Get DSP JSON description with its UI and metadata.
          *
          * @return {string} DSP JSON description
          */
@@ -575,6 +596,7 @@ class FaustWasm2ScriptProcessorPoly {
         sp.initAux();
         return sp;
     }
+
     createMemory(bufferSize, polyphony) {
         // Memory allocator
         const ptrSize = 4;
@@ -594,6 +616,7 @@ class FaustWasm2ScriptProcessorPoly {
         memorySize = Math.max(2, memorySize); // As least 2
         return new WebAssembly.Memory({ initial: memorySize, maximum: memorySize });
     }
+    
     /**
      * Create a ScriptProcessorNode Web Audio object
      * by loading and compiling the Faust wasm file

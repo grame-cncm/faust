@@ -1,3 +1,4 @@
+/************************** BEGIN JuceOSCUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -160,3 +161,4 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
 
 #endif // __juce_osc__
 
+/**************************  END  JuceOSCUI.h **************************/

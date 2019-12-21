@@ -1,3 +1,4 @@
+/************************** BEGIN BelaOSCUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2018 GRAME, Centre National de Creation Musicale
@@ -30,8 +31,8 @@
 #include <iostream>
 #include <map>
 
-#include <OSCServer.h>
-#include <OSCClient.h>
+#include <libraries/OscSender/OscSender.h>
+#include <libraries/OscReceiver/OscReceiver.h>
 
 #include "faust/gui/APIUI.h"
 
@@ -41,24 +42,22 @@ class oscItem : public uiItem {
     
     protected:
         
-        OSCClient* fSender;
-        string fPath;
+        OscSender* fSender;
+        std::string fPath;
         
     public:
         
-        oscItem(OSCClient* sender, GUI* ui, const string& path, FAUSTFLOAT* zone)
+        oscItem(OscSender* sender, GUI* ui, const std::string& path, FAUSTFLOAT* zone)
         :uiItem(ui, zone), fSender(sender), fPath(path) {}
         virtual ~oscItem()
         {}
-        
+    
+        // TO TEST
         virtual void reflectZone()
         {
-            // To test
-            /*
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fSender->queueMessage(fSender->newMessage.to(fPath).add(v));
-            */
+            fSender->newMessage(fPath).add(v).send();
         }
     
 };
@@ -67,65 +66,60 @@ class BelaOSCUI : public GUI {
     
     private:
     
-        string fIP;
+        std::string fIP;
         int fInputPort;
         int fOutputPort;
         APIUI fAPIUI;
     
         vector<oscItem*> fOSCItems; // Pointers are kept and desallocated by the GUI class
-        AuxiliaryTask fOSCTask;
-        OSCServer fReceiver;
-        OSCClient fSender;
-        
-        static void OSCTask(void* arg)
-        {
-            static_cast<BelaOSCUI*>(arg)->oscMessageReceived();
-        }
-        
+        OscReceiver fReceiver;
+        OscSender fSender;
+    
     public:
 
-        BelaOSCUI(const string& ip, int in_port, int out_port)
+        BelaOSCUI(const std::string& ip, int in_port, int out_port)
         :fIP(ip), fInputPort(in_port), fOutputPort(out_port)
         {}
         
         virtual ~BelaOSCUI()
         {}
-        
-        // for auxiliaryTask:
-        void oscMessageReceived()
+    
+        void oscMessageReceivedAux(oscpkt::Message* msg)
         {
-            while (fReceiver.messageWaiting()) {
-                oscpkt::Message msg = fReceiver.popMessage();
-                string msgAdress = msg.addressPattern();
-                int paramIndex = fAPIUI.getParamIndex(msgAdress.c_str());
-                float floatArg;
-                if (msg.match(msgAdress).popFloat(floatArg).isOkNoMoreArgs() && paramIndex != -1) {
-                    fAPIUI.setParamValue(paramIndex, floatArg);
-                // "get" message with correct address
-                } else if (msg.match("/get").isOkNoMoreArgs()) {
-                    for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
-                        // show data to console
-                        rt_printf("%s %f to %f\n", fAPIUI.getParamAddress(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
-                        // set data by OSC
-                        fSender.queueMessage(fSender.newMessage.to(std::string(fAPIUI.getParamAddress(p))).add(fAPIUI.getParamMin(p)).add(fAPIUI.getParamMax(p)).end());
-                    }
-                // "hello" message
-                } else if (msg.match("/hello").isOkNoMoreArgs()) {
-                    // show datat to console.
-                    rt_printf("adresses:%s, in:%i, out:%i\n", fIP.c_str(), fInputPort, fOutputPort);
+            std::string msgAdress = msg->addressPattern();
+            int paramIndex = fAPIUI.getParamIndex(msgAdress.c_str());
+            float floatArg;
+            if (msg->match(msgAdress).popFloat(floatArg).isOkNoMoreArgs() && paramIndex != -1) {
+                fAPIUI.setParamValue(paramIndex, floatArg);
+            // "get" message with correct address
+            } else if (msg->match("/get").isOkNoMoreArgs()) {
+                for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
+                    // show data to console
+                    rt_printf("%s %f to %f\n", fAPIUI.getParamAddress(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
                     // set data by OSC
-                    std::string s = fAPIUI.getParamAddress(0);
-                    s.erase(0, 1);
-                    s = s.substr(0, s.find("/"));
-                    s.insert(0, 1, '/');
-                    fSender.queueMessage(fSender.newMessage.to(s).add(std::string(fIP)).add(fInputPort).add(fOutputPort).end());
+                    fSender.newMessage(std::string(fAPIUI.getParamAddress(p))).add(fAPIUI.getParamMin(p)).add(fAPIUI.getParamMax(p)).send();
                 }
+            // "hello" message
+            } else if (msg->match("/hello").isOkNoMoreArgs()) {
+                // show datat to console.
+                rt_printf("adresses:%s, in:%i, out:%i\n", fIP.c_str(), fInputPort, fOutputPort);
+                // set data by OSC
+                std::string s = fAPIUI.getParamAddress(0);
+                s.erase(0, 1);
+                s = s.substr(0, s.find("/"));
+                s.insert(0, 1, '/');
+                fSender.newMessage(s).add(std::string(fIP)).add(fInputPort).add(fOutputPort).send();
             }
         }
-        
+    
+        static void oscMessageReceived(oscpkt::Message* msg, void* arg)
+        {
+            static_cast<BelaOSCUI*>(arg)->oscMessageReceivedAux(msg);
+        }
+    
         bool run() override
         {
-            fReceiver.setup(fInputPort);
+            fReceiver.setup(fInputPort, oscMessageReceived, this);
             fSender.setup(fOutputPort, fIP.c_str());
             rt_printf("initconnect\n");
             if (fOSCItems.size() == 0) {
@@ -136,15 +130,9 @@ class BelaOSCUI : public GUI {
                 }
             }
             rt_printf("connected\n");
-            fOSCTask = Bela_createAuxiliaryTask(OSCTask, 50, "bela-osc", this);
             return true;
         }
-        
-        void scheduleOSC()
-        {
-            Bela_scheduleAuxiliaryTask(fOSCTask);
-        }
-        
+    
         // -- widget's layouts
         void openTabBox(const char* label) override { fAPIUI.openTabBox(label); }
         void openHorizontalBox(const char* label) override { fAPIUI.openHorizontalBox(label); }
@@ -158,7 +146,6 @@ class BelaOSCUI : public GUI {
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         { fAPIUI.addVerticalSlider(label, zone, init, min, max, step); }
-        
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         { fAPIUI.addHorizontalSlider(label, zone, init, min, max, step); }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
@@ -179,3 +166,4 @@ class BelaOSCUI : public GUI {
 /***************************END OSC SECTION ***************************/
 
 #endif // __BelaOSCUI__
+/**************************  END  BelaOSCUI.h **************************/

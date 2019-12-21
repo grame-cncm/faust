@@ -76,10 +76,15 @@ void FaustFactory::addAlias(const char* alias, const char* address, float imin, 
 {
 	if (fRoot) fRoot->addAlias(alias, address, imin, imax, omin, omax);
 }
+    
+void FaustFactory::addAlias(const char* alias, const char* address, double imin, double imax, double omin, double omax)
+{
+    if (fRoot) fRoot->addAlias(alias, address, imin, imax, omin, omax);
+}
 
 //--------------------------------------------------------------------------
-std::string FaustFactory::addressFirst(const std::string& address) const    { return OSCAddress::addressFirst(address); }
-std::string FaustFactory::addressTail(const std::string& address) const     { return OSCAddress::addressTail(address); }
+string FaustFactory::addressFirst(const string& address) const    { return OSCAddress::addressFirst(address); }
+string FaustFactory::addressTail(const string& address) const     { return OSCAddress::addressTail(address); }
 
 //--------------------------------------------------------------------------
 void FaustFactory::closegroup()

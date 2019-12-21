@@ -694,7 +694,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
 
         std::cout << "freezeValues Real" << std::endl;
-        typename std::map<int, T>::iterator it2;
         for (auto& it2 : real_map) {
             std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
             this->fRealHeap[it2.first] = it2.second;
@@ -722,12 +721,22 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void classInit(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "classInit " << sample_rate << std::endl;
+        }
+        
         // Execute static init instructions
         fFBCExecutor->ExecuteBlock(fFactory->fStaticInitBlock);
     }
 
     virtual void instanceConstants(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceConstants " << sample_rate << std::endl;
+        }
+        
         // Store sample_rate in 'fSampleRate' variable at correct offset in fIntHeap
         fFBCExecutor->setIntValue(fFactory->fSROffset, sample_rate);
 
@@ -737,18 +746,33 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void instanceResetUserInterface()
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceResetUserInterface " << std::endl;
+        }
+        
         // Execute reset UI instructions
         fFBCExecutor->ExecuteBlock(fFactory->fResetUIBlock);
     }
 
     virtual void instanceClear()
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceClear " << std::endl;
+        }
+        
         // Execute clear instructions
         fFBCExecutor->ExecuteBlock(fFactory->fClearBlock);
     }
 
     virtual void instanceInit(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "instanceInit " << sample_rate << std::endl;
+        }
+        
         instanceConstants(sample_rate);
         instanceResetUserInterface();
         instanceClear();
@@ -756,6 +780,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void init(int sample_rate)
     {
+        if (TRACE > 0) {
+            std::cout << "------------------------" << std::endl;
+            std::cout << "init " << sample_rate << std::endl;
+        }
+        
         fInitialized = true;
         classInit(sample_rate);
         instanceInit(sample_rate);
@@ -805,6 +834,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         if (TRACE > 0 && !fInitialized) {
             std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else {
+            
+            if (TRACE > 0) {
+                std::cout << "------------------------" << std::endl;
+                std::cout << "compute " << count << std::endl;
+            }
+            
             fCycle++;
 
             // std::cout << "compute " << count << std::endl;
@@ -821,13 +856,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
             // Set count in 'count' variable at the correct offset in fIntHeap
             fFBCExecutor->setIntValue(fFactory->fCountOffset, count);
-
-            // Executes the 'control' block
-            fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
-
+            
             try {
+                
+                // Executes the 'control' block
+                fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
+
                 // Executes the 'DSP' block
                 fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+                
             } catch (faustexception& e) {
                 std::cout << e.Message();
                 fFBCExecutor->dumpMemory(fFactory->fComputeDSPBlock, fFactory->getName(),

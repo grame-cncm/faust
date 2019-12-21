@@ -1,3 +1,37 @@
+/************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -70,270 +104,242 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
-/******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
-
-<<includeIntrinsic>>
-
-/******************************************************************************
-*******************************************************************************
-
-								USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
 struct param {
-	float* fZone; float fMin; float fMax;
-	param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
+    float* fZone; float fMin; float fMax;
+    param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
 };
 
 class CMDUI : public UI
 {
-	int					fArgc;
-	char**				fArgv;
-	vector<char*>		fFiles;
-	stack<string>		fPrefix;
-	map<string, param>	fKeyParam;
-
-	void openAnyBox(const char* label)
-	{
-		string prefix;
-
-		if (label && label[0]) {
-			prefix = fPrefix.top() + "-" + label;
-		} else {
-			prefix = fPrefix.top();
-		}
-		fPrefix.push(prefix);
-	}
-
-	string simplify(const string& src)
-	{
-		int		i=0;
-		int		level=0;
-		string	dst;
-
-		while (src[i] ) {
-
-			switch (level) {
-
-				case 0 :
-				case 1 :
-				case 2 :
-					// Skip the begin of the label "--foo-"
-					// until 3 '-' have been read
-					if (src[i]=='-') { level++; }
-					break;
-
-				case 3 :
-					// copy the content, but skip non alphnum
-					// and content in parenthesis
-					switch (src[i]) {
-						case '(' :
-						case '[' :
-							level++;
-							break;
-
-						case '-' :
-							dst += '-';
-							break;
-
-						default :
-							if (isalnum(src[i])) {
-								dst+= tolower(src[i]);
-							}
-
-					}
-					break;
-
-				default :
-					// here we are inside parenthesis and
-					// we skip the content until we are back to
-					// level 3
-					switch (src[i]) {
-
-						case '(' :
-						case '[' :
-							level++;
-							break;
-
-						case ')' :
-						case ']' :
-							level--;
-							break;
-
-						default :
-							break;
-					}
-
-			}
-			i++;
-		}
-		return dst;
-	}
-
+    int                  fArgc;
+    char**               fArgv;
+    vector<char*>        fFiles;
+    stack<string>        fPrefix;
+    map<string, param>   fKeyParam;
+    
+    void openAnyBox(const char* label)
+    {
+        string prefix;
+        
+        if (label && label[0]) {
+            prefix = fPrefix.top() + "-" + label;
+        } else {
+            prefix = fPrefix.top();
+        }
+        fPrefix.push(prefix);
+    }
+    
+    string simplify(const string& src)
+    {
+        int       i = 0;
+        int       level = 0;
+        string    dst;
+        
+        while (src[i] ) {
+            
+            switch (level) {
+                    
+                case 0 :
+                case 1 :
+                case 2 :
+                    // Skip the begin of the label "--foo-"
+                    // until 3 '-' have been read
+                    if (src[i] == '-') { level++; }
+                    break;
+                    
+                case 3 :
+                    // copy the content, but skip non alphnum
+                    // and content in parenthesis
+                    switch (src[i]) {
+                        case '(' :
+                        case '[' :
+                            level++;
+                            break;
+                            
+                        case '-' :
+                            dst += '-';
+                            break;
+                            
+                        default :
+                            if (isalnum(src[i])) {
+                                dst+= tolower(src[i]);
+                            }
+                    }
+                    break;
+                    
+                default :
+                    // here we are inside parenthesis and
+                    // we skip the content until we are back to
+                    // level 3
+                    switch (src[i]) {
+                            
+                        case '(' :
+                        case '[' :
+                            level++;
+                            break;
+                            
+                        case ')' :
+                        case ']' :
+                            level--;
+                            break;
+                            
+                        default :
+                            break;
+                    }
+            }
+            i++;
+        }
+        return dst;
+    }
+    
 public:
-
-	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
-	virtual ~CMDUI() {}
-
-	void addOption(const char* label, float* zone, float init, float min, float max)
-	{
-		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
-		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
-	}
-
-	virtual void addButton(const char* label, float* zone)
-	{
-		addOption(label,zone,0,0,1);
-	}
-
-	virtual void addToggleButton(const char* label, float* zone)
-	{
-		addOption(label,zone,0,0,1);
-	}
-
-	virtual void addCheckButton(const char* label, float* zone)
-	{
-		addOption(label,zone,0,0,1);
-	}
-
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,init,min,max);
-	}
-
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,init,min,max);
-	}
-
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,init,min,max);
-	}
-
-	// -- passive widgets
-
-	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) 	{}
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
-
+    
+    CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
+    virtual ~CMDUI() {}
+    
+    void addOption(const char* label, float* zone, float init, float min, float max)
+    {
+        string fullname = "-" + simplify(fPrefix.top() + "-" + label);
+        fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
+    }
+    
+    virtual void addButton(const char* label, float* zone)
+    {
+        addOption(label,zone,0,0,1);
+    }
+    
+    virtual void addToggleButton(const char* label, float* zone)
+    {
+        addOption(label,zone,0,0,1);
+    }
+    
+    virtual void addCheckButton(const char* label, float* zone)
+    {
+        addOption(label,zone,0,0,1);
+    }
+    
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addOption(label,zone,init,min,max);
+    }
+    
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addOption(label,zone,init,min,max);
+    }
+    
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addOption(label,zone,init,min,max);
+    }
+    
+    // -- passive widgets
+    
+    virtual void addNumDisplay(const char* label, float* zone, int precision)                         {}
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max)     {}
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)             {}
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)             {}
+    
     // -- soundfiles
     
     virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
-	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
-	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
-	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(const char* label)		{ openAnyBox(label); }
-
-	virtual void closeBox() 							{ fPrefix.pop(); }
-
-	virtual void show() {}
-	virtual void run() 	{}
-
-	void printhelp()
-	{
-		map<string, param>::iterator i;
-		cout << fArgc << "\n";
-		cout << fArgv[0] << " option list : ";
-		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
-			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
-		}
-		cout << " infile outfile\n";
-	}
-
-	void process_command()
-	{
-		map<string, param>::iterator p;
-		for (int i = 1; i < fArgc; i++) {
-			if (fArgv[i][0] == '-') {
-				if (	(strcmp(fArgv[i], "-help") == 0)
-					 || (strcmp(fArgv[i], "-h") == 0)
-					 || (strcmp(fArgv[i], "--help") == 0) ) 	{
-					printhelp();
-					exit(1);
-				}
-				p = fKeyParam.find(fArgv[i]);
-				if (p == fKeyParam.end()) {
-					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					printhelp();
-					exit(1);
-				}
-				char*	end;
-				*(p->second.fZone) = float(strtod(fArgv[i+1], &end));
-				i++;
-			} else {
-				fFiles.push_back(fArgv[i]);
-			}
-		}
-	}
-
-	int 	files()			{ return fFiles.size(); }
-	char* 	file (int n)	{ return fFiles[n]; }
-
+    virtual void openFrameBox(const char* label)        { openAnyBox(label); }
+    virtual void openTabBox(const char* label)            { openAnyBox(label); }
+    virtual void openHorizontalBox(const char* label)    { openAnyBox(label); }
+    virtual void openVerticalBox(const char* label)        { openAnyBox(label); }
+    
+    virtual void closeBox()                             { fPrefix.pop(); }
+    
+    virtual void show() {}
+    virtual void run()     {}
+    
+    void printhelp()
+    {
+        map<string, param>::iterator i;
+        cout << fArgc << "\n";
+        cout << fArgv[0] << " option list : ";
+        for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
+            cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
+        }
+        cout << " infile outfile\n";
+    }
+    
+    void process_command()
+    {
+        map<string, param>::iterator p;
+        for (int i = 1; i < fArgc; i++) {
+            if (fArgv[i][0] == '-') {
+                if (    (strcmp(fArgv[i], "-help") == 0)
+                    || (strcmp(fArgv[i], "-h") == 0)
+                    || (strcmp(fArgv[i], "--help") == 0) )     {
+                    printhelp();
+                    exit(1);
+                }
+                p = fKeyParam.find(fArgv[i]);
+                if (p == fKeyParam.end()) {
+                    cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+                    printhelp();
+                    exit(1);
+                }
+                char*    end;
+                *(p->second.fZone) = float(strtod(fArgv[i+1], &end));
+                i++;
+            } else {
+                fFiles.push_back(fArgv[i]);
+            }
+        }
+    }
+    
+    int     files()            { return fFiles.size(); }
+    char*     file (int n)    { return fFiles[n]; }
+    
 };
-
-//----------------------------------------------------------------------------
-// 	FAUST generated code
-//----------------------------------------------------------------------------
-
-<<includeclass>>
-
-mydsp DSP;
 
 class channels
 {
-
- protected:
-
-	int 	fNumFrames;
-	int		fNumChannels;
+    
+protected:
+    
+    int     fNumFrames;
+    int     fNumChannels;
     int*    fRates;
-	float*	fBuffers[256];
-
-  public:
-
-	channels(int nframes, int nchannels, int* rates)
-	{
-		fNumFrames		= nframes;
-		fNumChannels 	= nchannels;
+    float*  fBuffers[256];
+    
+public:
+    
+    channels(int nframes, int nchannels, int* rates)
+    {
+        fNumFrames       = nframes;
+        fNumChannels     = nchannels;
         fRates = rates;
-
-		// allocate audio  channels
-		for (int chan = 0; chan < fNumChannels; chan++) {
-			fBuffers[chan] = (float*)calloc(fNumFrames * fRates[chan], sizeof(float));
-		}
-	}
-
-	~channels()
-	{
-		// free separate input channels
-		for (int i = 0; i < fNumChannels; i++) {
-		//	free(fBuffers[i]);
-		}
-	}
-
-	float**	buffers()		{ return fBuffers; }
-
+        
+        // allocate audio  channels
+        for (int chan = 0; chan < fNumChannels; chan++) {
+            fBuffers[chan] = (float*)calloc(fNumFrames * fRates[chan], sizeof(float));
+        }
+    }
+    
+    ~channels()
+    {
+        // free separate input channels
+        for (int i = 0; i < fNumChannels; i++) {
+            //    free(fBuffers[i]);
+        }
+    }
+    
+    float** buffers() { return fBuffers; }
+    
 };
 
 class input_channels : public channels
 {
-    public:
-
-	input_channels(int nframes, int nchannels, int* rates)
-        :channels(nframes, nchannels, rates)
+public:
+    
+    input_channels(int nframes, int nchannels, int* rates)
+    :channels(nframes, nchannels, rates)
     {}
-
+    
     void dirac()
     {
         cout << "dirac: chan " << fNumChannels << " frames: " << fNumFrames << endl;
@@ -342,32 +348,54 @@ class input_channels : public channels
             fBuffers[0][0] = 1.f;
         }
     }
-
+    
     void step()
     {
         cout << "step: chan " << fNumChannels << " frames: " << fNumFrames << endl;
         for (int chan = 0; chan < fNumChannels; chan++) {
-           for (int frame = 0; frame < fNumFrames * fRates[chan]; frame++) {
+            for (int frame = 0; frame < fNumFrames * fRates[chan]; frame++) {
                 fBuffers[chan][frame] = 1.0;
             }
-         }
+        }
     }
-
+    
     void ramp()
     {
         cout << "ramp: chan " << fNumChannels << " frames: " << fNumFrames << endl;
         for (int chan = 0; chan < fNumChannels; chan++) {
-           for (int frame = 0; frame < fNumFrames * fRates[chan]; frame++) {
+            for (int frame = 0; frame < fNumFrames * fRates[chan]; frame++) {
                 fBuffers[chan][frame] = (float(frame)/float(fNumFrames * fRates[chan]));
             }
         }
     }
-
+    
 };
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
+<<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
+mydsp DSP;
 
 #define kFrames 128
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	float fnbsamples;
     float signal_test_type;
@@ -504,3 +532,6 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+

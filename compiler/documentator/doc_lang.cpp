@@ -36,15 +36,14 @@
 #include "exception.hh"
 #include "global.hh"
 #include "lateq.hh"
+#include "files.hh"
 
 static void     importDocStrings(const string& filename);
 static void     getKey(const string& s, string& key, size_t& pt1);
 static void     getText(const string& s, size_t pt1, string& text);
 static void     storePair(const string& key, const string& text);
 static void     printStringMapContent(map<string, string>& map, const string& name);
-static istream* openArchFile(const string& filename);
-static void     getCurrentDir();
-static int      cholddir();
+static unique_ptr<ifstream> openArchFile(const string& filename);
 
 /*****************************************************************************
                             Public functions
@@ -87,7 +86,7 @@ static void importDocStrings(const string& filename)
 {
     string   s;
     string   key, text;
-    istream* file = openArchFile(filename);
+    unique_ptr<ifstream> file = openArchFile(filename);
 
     while (getline(*file, s)) {
         size_t pt1;  // Text pointer.
@@ -113,8 +112,6 @@ static void importDocStrings(const string& filename)
     printStringMapContent(gGlobal->gDocAutodocStringMap, "gGlobal->gDocAutodocStringMap");
     printStringMapContent(gGlobal->gDocMathStringMap, "gGlobal->gDocMathStringMap");
     printStringMapContent(gGlobal->gDocMetadatasStringMap, "gGlobal->gDocMetadatasStringMap");
-
-    delete (file);
 }
 
 static void getKey(const string& s, string& key, size_t& pt1)
@@ -176,8 +173,9 @@ static void printStringMapContent(map<string, string>& m, const string& name)
         cout << name << ".size() = " << m.size() << endl;
         map<string, string>::iterator it;
         int                           i = 1;
-        for (it = m.begin(); it != m.end(); ++it)
+        for (it = m.begin(); it != m.end(); ++it) {
             cout << i++ << ".\t" << name << "[" << it->first << "] \t= '" << it->second << "'" << endl;
+        }
     }
 }
 
@@ -186,40 +184,15 @@ static void printStringMapContent(map<string, string>& m, const string& name)
 /**
  * Open architecture file.
  */
-static istream* openArchFile(const string& filename)
+static unique_ptr<ifstream> openArchFile(const string& filename)
 {
-    istream* file;
     getCurrentDir();  // Save the current directory.
-    if ((file = openArchStream(filename.c_str()))) {
-        // cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
-    } else {
+    unique_ptr<ifstream> file = openArchStream(filename.c_str());
+    if (!file) {
         stringstream error;
         error << "ERROR : can't open architecture file " << filename << endl;
         throw faustexception(error.str());
     }
-    cholddir();  // Return to current directory.
+    choldDir();  // Return to current directory.
     return file;
-}
-
-/**
- * Switch back to the previously stored current directory
- */
-static int cholddir()
-{
-    if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
-        return 0;
-    } else {
-        stringstream error;
-        error << "ERROR in cholddir " << strerror(errno) << endl;
-        throw faustexception(error.str());
-    }
-}
-
-/**
- * Get current directory and store it in gCurrentDir.
- */
-static void getCurrentDir()
-{
-    char buffer[FAUST_PATH_MAX];
-    gGlobal->gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
 }

@@ -8,65 +8,65 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
     var output_handler = null;
     var ins, outs;
-    
+
     var dspInChannnels = [];
     var dspOutChannnels = [];
-   
+
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
-    
+
     var numIn = parseInt(json_object.inputs);
     var numOut = parseInt(json_object.outputs);
-     
+
     // Memory allocator
     var ptr_size = 8;
     var sample_size = 8;  // double
-    
+
     function pow2limit (x)
     {
         var n = 65536; // Minimum = 64 kB
         while (n < x) { n = 2 * n; }
         return n;
     }
-     
+
     var memory_size = pow2limit(parseInt(json_object.size) + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
-   
+
     var factory = instance.exports;
-    
+
     var HEAP = instance.exports.memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF = new Float64Array(HEAP);
-  
+
     // bargraph
     var outputs_timer = 5;
     var outputs_items = [];
-     
+
     // input items
     var inputs_items = [];
-    
+
     // buttons items
     var buttons_items = [];
-    
+
     // default values
     var default_values = [];
-    
+
     // DSP is placed first with index 0. Audio buffer start at the end of DSP.
     var audio_heap_ptr = parseInt(json_object.size);
-  
+
     // Setup pointers offset
-    var audio_heap_ptr_inputs = audio_heap_ptr; 
+    var audio_heap_ptr_inputs = audio_heap_ptr;
     var audio_heap_ptr_outputs = audio_heap_ptr_inputs + (numIn * ptr_size);
-     
+
     // Setup buffer offset
     var audio_heap_inputs = audio_heap_ptr_outputs + (numOut * ptr_size);
     var audio_heap_outputs = audio_heap_inputs + (numIn * buffer_size * sample_size);
-    
+
     // Start of DSP memory : DSP is placed first with index 0
     var dsp = 0;
-    
+
     var pathTable = [];
-    
-    function update_outputs () 
+
+    function update_outputs ()
     {
         if (outputs_items.length > 0 && output_handler && outputs_timer-- === 0) {
             outputs_timer = 5;
@@ -75,24 +75,24 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             }
         }
     }
-    
+
     function computeAux (inputs, outputs)
     {
         var i, j;
-        
+
         // Read inputs
         for (i = 0; i < numIn; i++) {
             var input = inputs[i];
             var dspInput = dspInChannnels[i];
             dspInput.set(input);
         }
-        
+
         // Compute
         factory.compute(dsp, buffer_size, ins, outs);
-       
+
         // Update bargraph
         update_outputs();
-        
+
         // Write outputs
         for (i = 0; i < numOut; i++) {
             var output = outputs[i];
@@ -100,45 +100,45 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             output.set(dspOutput);
         }
     };
-         
+
     // JSON parsing
-    function parse_ui (ui) 
+    function parse_ui (ui)
     {
         for (var i = 0; i < ui.length; i++) {
             parse_group(ui[i]);
         }
     }
-    
-    function parse_group (group) 
+
+    function parse_group (group)
     {
         if (group.items) {
             parse_items(group.items);
         }
     }
-    
-    function parse_items (items) 
+
+    function parse_items (items)
     {
         var i;
         for (i = 0; i < items.length; i++) {
             parse_item(items[i]);
         }
     }
-    
-    function parse_item (item) 
+
+    function parse_item (item)
     {
-        if (item.type === "vgroup" 
-        	|| item.type === "hgroup" 
+        if (item.type === "vgroup"
+        	|| item.type === "hgroup"
         	|| item.type === "tgroup") {
             parse_items(item.items);
-        } else if (item.type === "hbargraph" 
+        } else if (item.type === "hbargraph"
         	|| item.type === "vbargraph") {
             // Keep bargraph adresses
             outputs_items.push(item.address);
             pathTable[item.address] = parseInt(item.index);
-        } else if (item.type === "vslider" 
-        	|| item.type === "hslider" 
-        	|| item.type === "button" 
-        	|| item.type === "checkbox" 
+        } else if (item.type === "vslider"
+        	|| item.type === "hslider"
+        	|| item.type === "button"
+        	|| item.type === "checkbox"
         	|| item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);
@@ -153,129 +153,129 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             }
         }
     }
-      
+
     function init ()
     {
         var i;
-        
+
         if (numIn > 0) {
-            ins = audio_heap_ptr_inputs; 
-            for (i = 0; i < numIn; i++) { 
+            ins = audio_heap_ptr_inputs;
+            for (i = 0; i < numIn; i++) {
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
            }
-     
+
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF.subarray(dspInChans[i] >> 3, (dspInChans[i] + buffer_size * sample_size) >> 3);
             }
         }
-        
+
         if (numOut > 0) {
-            outs = audio_heap_ptr_outputs; 
-            for (i = 0; i < numOut; i++) { 
+            outs = audio_heap_ptr_outputs;
+            for (i = 0; i < numOut; i++) {
                 HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
             }
-          
+
             // Prepare Out buffer tables
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF.subarray(dspOutChans[i] >> 3, (dspOutChans[i] + buffer_size * sample_size) >> 3);
             }
         }
-                                
+
         // bargraph
         parse_ui(json_object.ui);
-        
+
         // Init DSP
         factory.init(dsp, sample_rate);
     }
-     
+
     init();
-    
+
     // External API
     return {
-     	
-        getSampleRate : function () 
+
+        getSampleRate : function ()
         {
             return factory.getSampleRate(dsp);
         },
-        
-        getNumInputs : function () 
+
+        getNumInputs : function ()
         {
             return numIn;
         },
-        
-        getNumOutputs : function () 
+
+        getNumOutputs : function ()
         {
             return numOut;
         },
-               
-        init : function (sample_rate) 
+
+        init : function (sample_rate)
         {
             factory.init(dsp, sample_rate);
         },
-        
-        instanceInit : function (sample_rate) 
+
+        instanceInit : function (sample_rate)
         {
             factory.instanceInit(dsp, sample_rate);
         },
-        
-        instanceConstants : function (sample_rate) 
+
+        instanceConstants : function (sample_rate)
         {
             factory.instanceConstants(dsp, sample_rate);
         },
-        
-        instanceResetUserInterface : function () 
+
+        instanceResetUserInterface : function ()
         {
             factory.instanceResetUserInterface(dsp);
         },
-        
-        instanceClear : function () 
+
+        instanceClear : function ()
         {
             factory.instanceClear(dsp);
         },
-        
+
         setOutputParamHandler : function (handler)
         {
             output_handler = handler;
         },
-        
+
         getOutputParamHandler : function ()
         {
             return output_handler;
         },
-        
+
         setParamValue : function (path, val)
         {
             factory.setParamValue(dsp, pathTable[path], val);
         },
 
-        getParamValue : function (path) 
+        getParamValue : function (path)
         {
             return factory.getParamValue(dsp, pathTable[path]);
         },
-        
+
         getParams : function()
         {
             return inputs_items;
         },
-        
+
         getButtonsParams : function()
         {
             return buttons_items;
         },
-        
+
         getJSON : function ()
         {
             return getJSONmydsp();
         },
-        
+
         compute : function (inputs, outputs)
         {
             computeAux(inputs, outputs);
         },
-        
+
         checkDefaults : function ()
 		{
 			for (var i = 0; i < default_values.length; i++) {
@@ -283,7 +283,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 			}
 			return true;
 		},
-	
+
 		initRandom : function ()
 		{
 			for (var i = 0; i < default_values.length; i++) {
@@ -295,7 +295,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
 // Helper functions
 
-var create = function(ins, outs, buffer_size) 
+var create = function(ins, outs, buffer_size)
 {
     for (var i = 0; i < ins; i++) {
         inputs.push(new Float64Array(buffer_size));
@@ -305,7 +305,7 @@ var create = function(ins, outs, buffer_size)
     }
 }
 
-var impulse = function(ins, buffer_size) 
+var impulse = function(ins, buffer_size)
 {
     for (var i = 0; i < ins; i++) {
         inputs[i][0] = 1.0;
@@ -315,7 +315,7 @@ var impulse = function(ins, buffer_size)
     }
 }
 
-var zero = function(ins, buffer_size) 
+var zero = function(ins, buffer_size)
 {
     for (var i = 0; i < ins; i++) {
         for (var f = 0; f < buffer_size; f++) {
@@ -400,7 +400,7 @@ function startDSP(instance, buffer_size)
     }
 
     DSP.init(sample_rate);
-    
+
     // Read control parameters
     try {
         control_data = fs.readFileSync('mydsprc', 'utf8');
@@ -449,10 +449,10 @@ var importObject = {
     env: {
         memoryBase: 0,
         tableBase: 0,
-        
+
         // Integer version
         _abs: Math.abs,
-        
+
         // Float version
         _acosf: Math.acos,
         _asinf: Math.asin,
@@ -479,7 +479,7 @@ var importObject = {
         _cosh: Math.cosh,
         _sinh: Math.sinh,
         _tanh: Math.tanh,
-           
+
         // Double version
         _acos: Math.acos,
         _asin: Math.asin,
@@ -506,7 +506,7 @@ var importObject = {
         _cosh: Math.cosh,
         _sinh: Math.sinh,
         _tanh: Math.tanh,
-        
+
         table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
     }
 };
@@ -515,6 +515,8 @@ var response = toUint8Array(fs.readFileSync('DSP.wasm'));
 var bytes = response.buffer;
 
 var res = WebAssembly.compile(bytes)
-        .then(m => { WebAssembly.instantiate(m, importObject)
-        .then(instance => { startDSP(instance, buffer_size); })});
-
+        .then(m => {
+          WebAssembly.instantiate(m, importObject)
+          .then(instance => { startDSP(instance, buffer_size); })
+          .catch(function(e1) { console.error(e1); console.error("WebAssembly.instantiate ERROR"); process.exit(1); });})
+        .catch(function(e2) { console.error(e2); console.error("WebAssembly.compile ERROR"); process.exit(1);});

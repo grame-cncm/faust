@@ -84,7 +84,7 @@ bool isEnvBarrier(Tree lenv)
 static void addLayerDef(Tree id, Tree def, Tree lenv)
 {
     // check for multiple definitions of a symbol in the same layer
-    Tree olddef = NULL;
+    Tree olddef = nullptr;
     if (getProperty(lenv, id, olddef)) {
         if (def == olddef) {
             // evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);

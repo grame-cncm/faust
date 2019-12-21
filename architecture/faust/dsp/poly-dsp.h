@@ -1,3 +1,4 @@
+/************************** BEGIN poly-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -40,6 +41,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
+#include "faust/gui/JSONControl.h"
 
 #define kActiveVoice      0
 #define kFreeVoice        -1
@@ -99,19 +101,19 @@ class GroupUI : public GUI, public PathBuilder
         // -- widget's layouts
         void openTabBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openHorizontalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void openVerticalBox(const char* label)
         {
-            fControlsLevel.push_back(label);
+            pushLabel(label);
         }
         void closeBox()
         {
-            fControlsLevel.pop_back();
+            popLabel();
         }
 
         // -- active widgets
@@ -156,6 +158,8 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     int fNote;                          // Playing note actual pitch
     int fDate;                          // KeyOn date
+    int fRelease;                       // Current number of samples used in release mode to detect end of note
+    int fMinRelease;                    // Max of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain' control
@@ -167,6 +171,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
+        fMinRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
@@ -222,6 +227,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             fNote = kFreeVoice;
         } else {
             // Release voice
+            fRelease = fMinRelease;
             fNote = kReleaseVoice;
         }
     }
@@ -312,18 +318,115 @@ struct dsp_voice_group {
  * Base class for MIDI controllable DSP.
  */
 
-class dsp_poly : public decorator_dsp, public midi {
+#ifdef EMCC
+#include "faust/gui/JSONUI.h"
+#include "faust/gui/MidiUI.h"
+#endif
 
+class dsp_poly : public decorator_dsp, public midi, public JSONControl {
+
+    protected:
+    
+    #ifdef EMCC
+        MapUI fMapUI;
+        std::string fJSON;
+        midi_handler fMIDIHandler;
+        MidiUI fMIDIUI;
+    #endif
+    
     public:
     
+    #ifdef EMCC
+        dsp_poly(dsp* dsp):decorator_dsp(dsp), fMIDIUI(&fMIDIHandler)
+        {
+            JSONUI jsonui(getNumInputs(), getNumOutputs());
+            buildUserInterface(&jsonui);
+            fJSON = jsonui.JSON(true);
+            buildUserInterface(&fMapUI);
+            buildUserInterface(&fMIDIUI);
+        }
+    #else
         dsp_poly(dsp* dsp):decorator_dsp(dsp)
         {}
+    #endif
     
         virtual ~dsp_poly() {}
     
+        // Reimplemented for EMCC
+    #ifdef EMCC
+        virtual int getNumInputs() { return decorator_dsp::getNumInputs(); }
+        virtual int getNumOutputs() { return decorator_dsp::getNumOutputs(); }
+        virtual void buildUserInterface(UI* ui_interface) { decorator_dsp::buildUserInterface(ui_interface); }
+        virtual int getSampleRate() { return decorator_dsp::getSampleRate(); }
+        virtual void init(int sample_rate) { decorator_dsp::init(sample_rate); }
+        virtual void instanceInit(int sample_rate) { decorator_dsp::instanceInit(sample_rate); }
+        virtual void instanceConstants(int sample_rate) { decorator_dsp::instanceConstants(sample_rate); }
+        virtual void instanceResetUserInterface() { decorator_dsp::instanceResetUserInterface(); }
+        virtual void instanceClear() { decorator_dsp::instanceClear(); }
+        virtual dsp_poly* clone() { return new dsp_poly(fDSP->clone()); }
+        virtual void metadata(Meta* m) { decorator_dsp::metadata(m); }
+    
+        // Additional API
+        std::string getJSON()
+        {
+            return fJSON;
+        }
+    
+        virtual void setParamValue(const std::string& path, FAUSTFLOAT value)
+        {
+            fMapUI.setParamValue(path, value);
+            GUI::updateAllGuis();
+        }
+        
+        virtual FAUSTFLOAT getParamValue(const std::string& path) { return fMapUI.getParamValue(path); }
+
+        virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs)
+        {
+            decorator_dsp::compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs),reinterpret_cast<FAUSTFLOAT**>(outputs));
+        }
+    #endif
+    
+        virtual MapUI* keyOn(int channel, int pitch, int velocity)
+        {
+            return midi::keyOn(channel, pitch, velocity);
+        }
+        virtual void keyOff(int channel, int pitch, int velocity)
+        {
+            midi::keyOff(channel, pitch, velocity);
+        }
+        virtual void keyPress(int channel, int pitch, int press)
+        {
+            midi::keyPress(channel, pitch, press);
+        }
+        virtual void chanPress(int channel, int press)
+        {
+            midi::chanPress(channel, press);
+        }
+        virtual void ctrlChange(int channel, int ctrl, int value)
+        {
+            midi::ctrlChange(channel, ctrl, value);
+        }
+        virtual void ctrlChange14bits(int channel, int ctrl, int value)
+        {
+            midi::ctrlChange14bits(channel, ctrl, value);
+        }
+        virtual void pitchWheel(int channel, int wheel)
+        {
+        #ifdef EMCC
+            fMIDIUI.pitchWheel(0., channel, wheel);
+            GUI::updateAllGuis();
+        #else
+            midi::pitchWheel(channel, wheel);
+        #endif
+        }
+        virtual void progChange(int channel, int pgm)
+        {
+            midi::progChange(channel, pgm);
+        }
+    
         // Group API
-        virtual void setGroup(bool group) = 0;
-        virtual bool getGroup() = 0;
+        virtual void setGroup(bool group) {}
+        virtual bool getGroup() { return false; }
 
 };
 
@@ -341,7 +444,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         FAUSTFLOAT** fMixBuffer;
         int fDate;
 
-        FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+        FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
         {
             FAUSTFLOAT level = 0;
             for (int i = 0; i < getNumOutputs(); i++) {
@@ -353,6 +456,17 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 }
             }
             return level;
+        }
+    
+        void mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+        {
+            for (int i = 0; i < getNumOutputs(); i++) {
+                FAUSTFLOAT* mixChannel = mixBuffer[i];
+                FAUSTFLOAT* outChannel = outputBuffer[i];
+                for (int j = 0; j < count; j++) {
+                    mixChannel[j] += outChannel[j];
+                }
+            }
         }
 
         void clearOutput(int count, FAUSTFLOAT** mixBuffer)
@@ -464,7 +578,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          * Constructor.
          *
          * @param dsp - the dsp to be used for one voice. Beware: mydsp_poly will use and finally delete the pointer.
-         * @param nvoices - number of polyphony voices
+         * @param nvoices - number of polyphony voices, should be at least 1
          * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler).
          *                If false all voices are always running.
          * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
@@ -581,9 +695,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     if (voice->fNote != kFreeVoice) {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
-                        voice->fLevel = mixVoice(count, fMixBuffer, outputs);
+                        voice->fLevel = mixCheckVoice(count, fMixBuffer, outputs);
                         // Check the level to possibly set the voice in kFreeVoice again
-                        if ((voice->fLevel < VOICE_STOP_LEVEL) && (voice->fNote == kReleaseVoice)) {
+                        voice->fRelease -= count;
+                        if ((voice->fNote == kReleaseVoice)
+                            && (voice->fRelease < 0)
+                            && (voice->fLevel < VOICE_STOP_LEVEL)) {
                             voice->fNote = kFreeVoice;
                         }
                     }
@@ -626,6 +743,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Group API
         void setGroup(bool group) { fGroupControl = group; }
         bool getGroup() { return fGroupControl; }
 
@@ -653,9 +771,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
-        void pitchWheel(int channel, int wheel)
-        {}
-
         void ctrlChange(int channel, int ctrl, int value)
         {
             if (ctrl == ALL_NOTES_OFF || ctrl == ALL_SOUND_OFF) {
@@ -663,39 +778,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
-        void progChange(int channel, int pgm)
-        {}
-
-        void keyPress(int channel, int pitch, int press)
-        {}
-
-        void chanPress(int channel, int press)
-        {}
-
-        void ctrlChange14bits(int channel, int ctrl, int value)
-        {}
-
 };
-
-static std::string pathToContent(const std::string& path)
-{
-    std::ifstream file(path.c_str(), std::ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    std::string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
 
 /**
  * Polyphonic DSP with an integrated effect. fPolyDSP will respond to MIDI messages.
@@ -807,7 +890,7 @@ struct dsp_poly_factory : public dsp_factory {
     
     /* Create a new polyphonic DSP instance with global effect, to be deleted with C++ 'delete'
      *
-     * @param nvoices - number of polyphony voices
+     * @param nvoices - number of polyphony voices, should be at least 1
      * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler).
      *                If false all voices are always running.
      * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
@@ -834,3 +917,4 @@ struct dsp_poly_factory : public dsp_factory {
 };
 
 #endif // __poly_dsp__
+/**************************  END  poly-dsp.h **************************/

@@ -147,18 +147,18 @@ BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
     return gGlobal->gTypeTable[new_type];
 }
 
-int BasicTyped::getSize()
+int BasicTyped::getSize() const
 {
     faustassert(gGlobal->gTypeSizeMap.find(fType) != gGlobal->gTypeSizeMap.end());
     return gGlobal->gTypeSizeMap[fType];
 }
 
-int FunTyped::getSize()
+int FunTyped::getSize() const
 {
     return gGlobal->gTypeSizeMap[Typed::kVoid_ptr];
 }
 
-int ArrayTyped::getSize()
+int ArrayTyped::getSize() const
 {
     if (fSize == 0) {
         // Array of zero size are treated as pointer in the corresponding type
@@ -206,7 +206,7 @@ Typed* BasicCloneVisitor::visit(BasicTyped* typed)
     return gGlobal->gTypeTable[typed->fType];
 }
 
-bool BlockInst::hasReturn()
+bool BlockInst::hasReturn() const
 {
     list<StatementInst*>::const_iterator it = fCode.end();
     it--;
@@ -438,7 +438,7 @@ static Typed* sharedTypeToFirType(Tree t)
         return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);
     } else {
         faustassert(false);
-        return NULL;
+        return nullptr;
     }
 }
 

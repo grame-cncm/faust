@@ -87,11 +87,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
                            : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_size + "]" + "\"";
-                /*
-                return (array_typed->fSize == 0)
-                    ? fTypeDirectTable[basic_typed1->fType]
-                    : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
-                */
             } else if (array_typed1) {
                 return generateType(array_typed1) + "[" + num_size + "]";
             } else if (named_typed1) {
@@ -134,7 +129,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (named_typed) {
             // TODO : break code with subclasses
             // return named_typed->fName + generateType(named_typed->fType) + ", " + name;
-            return named_typed->fName + ", " + name;
+            return "\"" + named_typed->fName + "\", " + name;
         } else if (fun_typed) {
             return "Function type";
         } else if (array_typed) {
@@ -146,11 +141,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 return (array_typed->fSize == 0)
                            ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
                            : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_size + "]";
-                /*
-                 ? fTypeDirectTable[basic_typed1->fType] + "*, " + name
-                 : fTypeDirectTable[basic_typed1->fType] + ", " + name + "[" + num_str.str() + "]";
-                 */
-                //: "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
             } else if (array_typed1) {
                 return generateType(array_typed1) + "[" + num_size + "]";
             } else if (named_typed1) {
@@ -189,13 +179,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         string name;
         switch (inst->fOrient) {
-            case 0:
+            case OpenboxInst::kVerticalBox:
                 name = "OpenVerticalBox(";
                 break;
-            case 1:
+            case OpenboxInst::kHorizontalBox:
                 name = "OpenHorizontalBox(";
                 break;
-            case 2:
+            case OpenboxInst::kTabBox:
                 name = "OpenTabBox(";
                 break;
         }
@@ -345,6 +335,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             tab(fTab, *fOut);
             inst->fCode->accept(this);
             fTab--;
+            back(1, *fOut);
             *fOut << "EndDeclare";
             tab(fTab, *fOut);
         }
@@ -352,7 +343,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(NamedAddress* named)
     {
-        *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")";
+        *fOut << "Address(" << named->fName << ", " << Address::dumpString(named->fAccess) << ")";
     }
 
     virtual void visit(IndexedAddress* indexed)
@@ -360,7 +351,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
@@ -512,6 +503,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             inst->fElse->accept(this);
             fTab--;
         }
+        back(1, *fOut);
         *fOut << "EndIf";
         tab(fTab, *fOut);
     }
@@ -531,6 +523,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
+        back(1, *fOut);
         *fOut << "EndForLoop";
         tab(fTab, *fOut);
     }
@@ -543,6 +536,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
+        back(1, *fOut);
         *fOut << "EndWhileLoop";
         tab(fTab, *fOut);
     }
@@ -556,6 +550,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             it->accept(this);
         }
         fTab--;
+        back(1, *fOut);
         *fOut << "EndBlock";
         tab(fTab, *fOut);
     }
@@ -575,11 +570,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             fTab++;
             tab(fTab, *fOut);
             (it.second)->accept(this);
-            *fOut << "EndCase";
             fTab--;
+            back(1, *fOut);
+            *fOut << "EndCase";
             tab(fTab, *fOut);
         }
         fTab--;
+        back(1, *fOut);
         *fOut << "EndSWitch";
         tab(fTab, *fOut);
     }

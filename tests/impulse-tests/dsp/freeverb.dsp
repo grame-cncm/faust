@@ -97,7 +97,7 @@ stereoReverb(fb1, fb2, damp, spread)
 // fxctrl : add an input gain and a wet-dry control to a stereo FX
 //----------------------------------------------------------------
 
-fxctrl(g,w,Fx) =  _,_ <: (*(g),*(g) : Fx : *(w),*(w)), *(1-w), *(1-w) +> _,_;
+fxctrl(g,w,Fx) = _,_ <: (*(g),*(g) : Fx : *(w),*(w)), *(1-w), *(1-w) +> _,_;
 
 
 // Freeverb

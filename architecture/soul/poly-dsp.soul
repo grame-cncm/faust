@@ -1,10 +1,8 @@
  
  <<includeIntrinsic>>
-
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
-
 <<includeclass>>
 
 // Decode MIDI events and send freq, gain, gate values to the processor
@@ -12,8 +10,8 @@ processor dsp_wrapper
 {
     input event
     {
-        soul::NoteEvents::NoteOn   	noteOn;
-        soul::NoteEvents::NoteOff  	noteOff;
+        soul::NoteEvents::NoteOn    noteOn;
+        soul::NoteEvents::NoteOff   noteOff;
         soul::NoteEvents::PitchBend pitchBend;
     }
 
@@ -33,6 +31,7 @@ processor dsp_wrapper
     
     event pitchBend (soul::NoteEvents::PitchBend e) 
     {
+    	// TODO
     }
      
     void run()
@@ -169,16 +168,15 @@ processor RoundRobinVoiceAllocator (int voiceCount)
 }
 
 // Allocates voices, does dynamic voice management, connect to MIDI parser
-graph mydsp_poly
+graph mydsp_poly [[ main ]]
 {
-    input event int midiIn;
+    input event midi::Message midiIn;
     output stream float audioOut0;
     output stream float audioOut1;
     
     let
     {
-        midiParser = soul::NoteEvents::MPEParser;
-        // Works if array size > 1
+        midiParser = midi::MPEParser;
         voices = dsp_voice[NVOICES];
         voiceAllocator = RoundRobinVoiceAllocator (NVOICES);
     }
@@ -186,10 +184,10 @@ graph mydsp_poly
     connection
     {
         midiIn -> midiParser.parseMIDI;
-
-        midiParser.noteOn    -> voiceAllocator.noteOn;
-        midiParser.noteOff   -> voiceAllocator.noteOff;
-        midiParser.pitchBend -> voiceAllocator.pitchBend;
+   
+        midiParser.eventOut -> voiceAllocator.noteOn, 
+                               voiceAllocator.noteOff,
+                               voiceAllocator.pitchBend;
 
         // Plumb the voice allocator to the voices array
         voiceAllocator.voiceNoteOn    -> voices.noteOn;

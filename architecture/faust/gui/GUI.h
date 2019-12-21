@@ -1,3 +1,4 @@
+/************************** BEGIN GUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -28,6 +29,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <assert.h>
 
 #ifdef _WIN32
 # pragma warning (disable: 4100)
@@ -53,7 +55,11 @@ typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 struct uiItemBase
 {
     
-    uiItemBase(GUI* ui, FAUSTFLOAT* zone) {}
+    uiItemBase(GUI* ui, FAUSTFLOAT* zone)
+    {
+        assert(ui);
+        assert(zone);
+    }
     
     virtual ~uiItemBase()
     {}
@@ -102,9 +108,8 @@ class GUI : public UI
         virtual ~GUI() 
         {   
             // delete all items
-            zmap::iterator it;
-            for (it = fZoneMap.begin(); it != fZoneMap.end(); it++) {
-                delete (*it).second;
+            for (auto& it : fZoneMap) {
+                delete it.second;
             }
             // suppress 'this' in static fGuiList
             fGuiList.remove(this);
@@ -118,34 +123,33 @@ class GUI : public UI
             fZoneMap[z]->push_back(c);
         }
  
-        void updateAllZones()
-        {
-            for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
-                FAUSTFLOAT* z = m->first;
-                clist*	l = m->second;
-                if (z) {
-                    FAUSTFLOAT v = *z;
-                    for (clist::iterator c = l->begin(); c != l->end(); c++) {
-                        if ((*c)->cache() != v) (*c)->reflectZone();
-                    }
-                }
-            }
-        }
-        
         void updateZone(FAUSTFLOAT* z)
         {
             FAUSTFLOAT v = *z;
-            clist* l = fZoneMap[z];
-            for (clist::iterator c = l->begin(); c != l->end(); c++) {
-                if ((*c)->cache() != v) (*c)->reflectZone();
+            clist* cl = fZoneMap[z];
+            for (auto& c : *cl) {
+                if (c->cache() != v) c->reflectZone();
+            }
+        }
+    
+        void updateAllZones()
+        {
+            for (auto& m : fZoneMap) {
+                updateZone(m.first);
             }
         }
     
         static void updateAllGuis()
         {
-            std::list<GUI*>::iterator g;
-            for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
-                (*g)->updateAllZones();
+            for (auto& g : fGuiList) {
+                g->updateAllZones();
+            }
+        }
+    
+        static void runAllGuis()
+        {
+            for (auto& g : fGuiList) {
+                g->run();
             }
         }
     
@@ -157,13 +161,6 @@ class GUI : public UI
         virtual void show() {};	
         virtual bool run() { return false; };
 
-        static void runAllGuis() {
-            std::list<GUI*>::iterator g;
-            for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
-                (*g)->run();
-            }
-        }
-    
         virtual void stop() { fStopped = true; }
         bool stopped() { return fStopped; }
     
@@ -384,9 +381,8 @@ class uiGroupItem : public uiItem
             fCache = v;
             
             // Update all zones of the same group
-            std::vector<FAUSTFLOAT*>::iterator it;
-            for (it = fZoneMap.begin(); it != fZoneMap.end(); it++) {
-                (*(*it)) = v;
+            for (auto& it : fZoneMap) {
+                *it = v;
             }
         }
         
@@ -403,14 +399,14 @@ static void createUiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void
 
 static void deleteClist(clist* cl)
 {
-    std::list<uiItemBase*>::iterator it;
-    for (it = cl->begin(); it != cl->end(); it++) {
-        uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(*it);
+    for (auto& it : *cl) {
+        uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(it);
         // owned items are deleted by external code
         if (!owned) {
-            delete (*it);
+            delete it;
         }
     }
 }
 
 #endif
+/**************************  END  GUI.h **************************/

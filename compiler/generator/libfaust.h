@@ -36,7 +36,7 @@
 
 // Signed variables are for wimps
 #define uchar unsigned char
-#define uint unsigned int
+#define uint1 unsigned int
 
 // DBL_INT_ADD treats two unsigned ints a and b as one 64-bit integer and adds c to it
 #define ROTLEFT(a, b) ((a << b) | (a >> (32 - b)))
@@ -46,15 +46,15 @@
 
 typedef struct {
     uchar data[64];
-    uint  datalen;
-    uint  bitlen[2];
-    uint  state[5];
-    uint  k[4];
+    uint1  datalen;
+    uint1  bitlen[2];
+    uint1  state[5];
+    uint1  k[4];
 } SHA1_CTX;
 
 inline void sha1_transform(SHA1_CTX* ctx, uchar data[])
 {
-    uint a, b, c, d, e, i, j, t, m[80];
+    uint1 a, b, c, d, e, i, j, t, m[80];
 
     for (i = 0, j = 0; i < 16; ++i, j += 4) {
         m[i] = (data[j] << 24) + (data[j + 1] << 16) + (data[j + 2] << 8) + (data[j + 3]);
@@ -126,9 +126,9 @@ inline void sha1_init(SHA1_CTX* ctx)
     ctx->k[3]      = 0xca62c1d6;
 }
 
-inline void sha1_update(SHA1_CTX* ctx, uchar data[], uint len)
+inline void sha1_update(SHA1_CTX* ctx, uchar data[], uint1 len)
 {
-    uint i;
+    uint1 i;
 
     for (i = 0; i < len; ++i) {
         ctx->data[ctx->datalen] = data[i];
@@ -143,7 +143,7 @@ inline void sha1_update(SHA1_CTX* ctx, uchar data[], uint len)
 
 static void sha1_final(SHA1_CTX* ctx, uchar hash[])
 {
-    uint i;
+    uint1 i;
 
     i = ctx->datalen;
 

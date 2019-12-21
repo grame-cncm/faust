@@ -84,7 +84,7 @@ bool isBoxWaveform(Tree t);
 /*****************************************************************************
                                     route
     route (n, m,...(si,di),...)
-    a n-imputs, m-outputs routing object
+    a n-inputs, m-outputs routing object
 *****************************************************************************/
 
 Tree boxRoute(Tree n, Tree m, Tree r);

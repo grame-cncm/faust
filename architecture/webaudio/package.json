@@ -1,0 +1,14 @@
+{
+  "name": "faust_mydsp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "mydsp.js",
+  "scripts": {
+    "test": ""
+  },
+  "keywords": [
+    "faust", "mydsp"
+  ],
+  "author": "GRAME",
+  "license": "ISC"
+}

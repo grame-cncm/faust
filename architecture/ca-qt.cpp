@@ -1,6 +1,15 @@
 /************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -73,8 +82,6 @@ static void osc_compute_callback(void* arg)
 #define stringify_literal(x) #x
 #define stringify_expanded(x) stringify_literal(x)
 
-/**************************BEGIN USER SECTION **************************/
-
 /******************************************************************************
  *******************************************************************************
  
@@ -82,9 +89,18 @@ static void osc_compute_callback(void* arg)
  
  *******************************************************************************
  *******************************************************************************/
+
 <<includeIntrinsic>>
 
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
 <<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 #include "faust/dsp/poly-dsp.h"
 
@@ -94,10 +110,6 @@ static void osc_compute_callback(void* arg)
 #endif
 
 dsp* DSP;
-
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -109,6 +121,7 @@ ztimedmap GUI::gTimedZoneMap;
  
  *******************************************************************************
  *******************************************************************************/
+
 #ifdef IOS
 #include <QAccelerometer>
 #include <QGyroscope>
@@ -222,7 +235,7 @@ int main(int argc, char *argv[])
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
-    int control = 0;
+    bool control = true;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -237,7 +250,7 @@ int main(int argc, char *argv[])
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
-    if (isopt(argv, "-h")) {
+    if (isopt(argv, "-help") || isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
@@ -323,15 +336,6 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 #endif
     
-#ifdef SOUNDFILE
-    // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
-    DSP->buildUserInterface(&soundinterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
-#endif
-    
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif
@@ -353,6 +357,17 @@ int main(int argc, char *argv[])
     coreaudio audio(srate, fpb);
     audio.init(name, DSP);
     audio.start();
+   
+// After audio init to get SR
+#ifdef SOUNDFILE
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"), audio.getSampleRate());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
+    DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
+#endif
+    
 #ifdef IOS
     sensors.start();
 #endif
@@ -400,3 +415,6 @@ int main(int argc, char *argv[])
     
     return 0;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+

@@ -4,20 +4,15 @@
 'use strict';
 
 // Faust part
-//var contextOptions = { latencyHint: 0.001 };
-var contextOptions = { latencyHint: "interactive" };
-//var contextOptions = { latencyHint: "playback" };
-
-var isWasm = (typeof(WebAssembly) !== "undefined");
-var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var context = (isWebKitAudio) ? new webkitAudioContext(contextOptions) : new AudioContext(contextOptions);
-var factory = null;
-var node = null;
+const isWasm = (typeof(WebAssembly) !== "undefined");
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let factory = null;
+let node = null;
 
 function workletAvailable()
 {
     if (typeof (OfflineAudioContext) === "undefined") return false;
-    var context = new OfflineAudioContext(1, 1, 44100);
+    const context = new OfflineAudioContext(1, 1, 44100);
     return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
 }
 
@@ -49,7 +44,7 @@ function midiMessageReceived(ev)
     } else if (cmd === 11) {
         ctrlChange(channel, data1, data2);
     } else if (cmd === 14) {
-        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        pitchWheel(channel, (data2 * 128.0 + data1));
     }
 }
 
@@ -107,7 +102,7 @@ function activateAudioInput()
 function getDevice(device)
 {
     // Connect the input to the destination.
-    context.createMediaStreamSource(device).connect(node);
+    audioCtx.createMediaStreamSource(device).connect(node);
 }
 
 // Save/Load functions using local storage
@@ -176,7 +171,7 @@ function startDSPAux(aw_node)
         activateAudioInput();
     }
     
-    node.connect(context.destination);
+    node.connect(audioCtx.destination);
     console.log(node.getJSON());
     console.log(node.getParams());
 
@@ -200,7 +195,7 @@ function startDSP()
 function startNewDSP()
 {
     if (isWasm && workletAvailable()) {
-        factory = new window.DSP(context, "");
+        factory = new FaustDSP(audioCtx, "");
         factory.load()
         .then((aw_node) => startDSPAux(aw_node))
         .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
@@ -210,20 +205,21 @@ function startNewDSP()
 }
 
 // To activate audio on iOS
-window.addEventListener('touchstart', function() {
-
-                        // create empty buffer
-                        var buffer = context.createBuffer(1, 1, 22050);
-                        var source = context.createBufferSource();
-                        source.buffer = buffer;
-
-                        // connect to output (your speakers)
-                        source.connect(context.destination);
-
-                        // play the file
-                        source.start();
-
-                        }, false);
+window.addEventListener("touchstart", () => {
+        if (audioCtx.state !== "suspended") return;
+        const buffer = audioCtx.createBuffer(1, 1, 22050);
+        const source = audioCtx.createBufferSource(); // create empty buffer
+        source.buffer = buffer;
+        source.connect(audioCtx.destination); // connect to output (your speakers)
+        source.start(); // play the file
+        audioCtx.resume().then(() => console.log("Audio resumed"));
+        }, false);
+        
+// On desktop
+window.addEventListener("mousedown", () => {
+    if (audioCtx.state !== "suspended") return;
+    audioCtx.resume().then(() => console.log("Audio resumed"))
+});
 
 // Start monophonic instrument
 if (typeof (Module) !== "undefined") {

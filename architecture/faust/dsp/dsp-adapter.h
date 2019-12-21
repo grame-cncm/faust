@@ -1,3 +1,4 @@
+/************************** BEGIN dsp-adapter.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -26,6 +27,7 @@
 
 #include <string.h>
 #include <iostream>
+
 #include "faust/dsp/dsp.h"
 
 // Adapts a DSP for a different number of inputs/outputs
@@ -172,3 +174,4 @@ class dsp_sample_adapter : public decorator_dsp {
 };
 
 #endif
+/**************************  END  dsp-adapter.h **************************/

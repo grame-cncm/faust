@@ -86,7 +86,7 @@ static char* xmlcode(const char* name, char* name2)
 SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
     double gScale = 0.5;
-    if ((fic_repr = fopen(ficName, "w+")) == NULL) {
+    if ((fic_repr = fopen(ficName, "w+")) == nullptr) {
         stringstream error;
         error << "ERROR : impossible to create or open " << ficName << endl;
         throw faustexception(error.str());

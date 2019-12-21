@@ -85,7 +85,7 @@ bool MessageDriven::accept(const Message* msg)
 }
 
 //--------------------------------------------------------------------------
-void MessageDriven::propose(const Message* msg, const OSCRegexp* r, const std::string addrTail)
+void MessageDriven::propose(const Message* msg, const OSCRegexp* r, const string& addrTail)
 {
 	if (r->match(getName())) {			// try to match the regular expression with the object name. 
 		if (addrTail.empty()) {			// it matches and the tail is empty

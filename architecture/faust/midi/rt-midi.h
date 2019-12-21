@@ -1,3 +1,4 @@
+/************************** BEGIN rt-midi.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -42,6 +43,7 @@ class rt_midi : public midi_handler {
         std::vector<RtMidiIn*> fInput;
         std::vector<RtMidiOut*> fOutput;
         bool fIsVirtual;
+        bool fPolling;
     
         static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
@@ -80,7 +82,9 @@ class rt_midi : public midi_handler {
                 midi_in->ignoreTypes(true, false, true);
                 fInput.push_back(midi_in);
                 midi_in->openPort(i);
-                midi_in->setCallback(&midiCallback, this);
+                if (!fPolling) {
+                    midi_in->setCallback(&midiCallback, this);
+                }
                 //std::cout << "Input port #" << i << ": " << midi_in->getPortName(i) << '\n';
             }
             return true;
@@ -111,7 +115,9 @@ class rt_midi : public midi_handler {
             RtMidiIn* midi_in = new RtMidiIn();
             midi_in->ignoreTypes(true, false, true);
             fInput.push_back(midi_in);
-            midi_in->setCallback(&midiCallback, this);
+            if (!fPolling) {
+                midi_in->setCallback(&midiCallback, this);
+            }
             midi_in->openVirtualPort(name);
         }
         
@@ -124,15 +130,17 @@ class rt_midi : public midi_handler {
         
         void sendMessage(std::vector<unsigned char>& message)
         {
-            std::vector<RtMidiOut*>::iterator it;
-            for (it = fOutput.begin(); it != fOutput.end(); it++) {
-                (*it)->sendMessage(&message);
+            for (auto& it : fOutput) {
+                it->sendMessage(&message);
             }
         }
     
     public:
     
-        rt_midi(const std::string& name = "RtMidi", bool is_virtual = false):midi_handler(name), fIsVirtual(is_virtual)
+        rt_midi(const std::string& name = "RtMidi",
+                bool is_virtual = false,
+                bool is_polling = false)
+        :midi_handler(name), fIsVirtual(is_virtual), fPolling(is_polling)
         {}
         
         virtual ~rt_midi()
@@ -153,7 +161,7 @@ class rt_midi : public midi_handler {
                     chooseMidiOutPort(fName);
                 } else {
                     if (!openMidiInputPorts())  { stopMidi(); return false; }
-                    //std::cout << "Warning : MIDI outputs are not started in this mode !\n";
+                    std::cerr << "Warning : MIDI outputs are not started in this mode !\n";
                 }
             #endif
                 return true;
@@ -167,17 +175,47 @@ class rt_midi : public midi_handler {
         
         void stopMidi()
         {
-            std::vector<RtMidiIn*>::iterator it1;
-            for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
-                delete (*it1);
+            for (auto& it1 : fInput) {
+                delete it1;
             }
             fInput.clear();
-            
-            std::vector<RtMidiOut*>::iterator it2;
-            for (it2 = fOutput.begin(); it2 != fOutput.end(); it2++) {
-                delete (*it2);
+            for (auto& it2 : fOutput) {
+                delete it2;
             }
             fOutput.clear();
+        }
+    
+        // To be used in polling mode
+        int recvMessages(std::vector<MIDIMessage>* messages)
+        {
+            int count = 0;
+            double first_time_stamp = 0.;
+            for (auto& it : fInput) {
+                std::vector<unsigned char> message;
+                double time_stamp = (uint32_t)it->getMessage(&message);
+                // Small messages
+                if (message.size() > 0) {
+                    if (count == 0) first_time_stamp = time_stamp;
+                    MIDIMessage& mes = messages->at(count++);
+                    mes.frameIndex = (uint32_t)(time_stamp - first_time_stamp);
+                    mes.byte0 = message[0];
+                    mes.byte1 = message[1];
+                    mes.byte2 = message[2];
+                }
+            }
+            return count;
+        }
+    
+        void sendMessages(std::vector<MIDIMessage>* messages, int count)
+        {
+            for (int i = 0; i < count; ++i) {
+                MIDIMessage mes1 = (*messages)[i];
+                std::vector<unsigned char> mes2;
+                mes2.push_back(mes1.byte0);
+                mes2.push_back(mes1.byte1);
+                mes2.push_back(mes1.byte2);
+                sendMessage(mes2);
+            }
         }
     
         // MIDI output API
@@ -275,3 +313,4 @@ class rt_midi : public midi_handler {
 
 
 #endif // __rt_midi__
+/**************************  END  rt-midi.h **************************/

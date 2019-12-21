@@ -1,3 +1,4 @@
+/************************** BEGIN opensles-android-dsp.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -627,3 +628,4 @@ void destroyThreadLock(void *lock) {
 	pthread_mutex_destroy(&(p->m));
 	free(p);
 }
+/**************************  END  opensles-android-dsp.h **************************/

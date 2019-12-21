@@ -130,7 +130,7 @@ static void       initCompilationDate();
 static struct tm* getCompilationDate();
 
 /* Files functions */
-static istream* openArchFile(const string& filename);
+static unique_ptr<ifstream> openArchFile(const string& filename);
 static char*    legalFileName(const Tree t, int n, char* dst);
 static void     copyFaustSources(const char* projname, const vector<string>& pathnames);
 vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlices);
@@ -232,27 +232,27 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
     // gGlobal->gFaustSuperSuperDirectory << "'" << endl;  cerr << "Documentator : printDoc : gCurrentDir = '" <<
     // gCurrentDir << "'" << endl;
 
-    makedir(projname);  // create a top directory to store files
+    makeDir(projname);  // create a top directory to store files
 
     string svgTopDir = subst("$0/svg", projname);
-    makedir(svgTopDir.c_str());  // create a directory to store svg-* subdirectories.
+    makeDir(svgTopDir.c_str());  // create a directory to store svg-* subdirectories.
 
     string cppdir = subst("$0/cpp", projname);
-    makedir(cppdir.c_str());  // create a cpp directory.
+    makeDir(cppdir.c_str());  // create a cpp directory.
 
     string pdfdir = subst("$0/pdf", projname);
-    makedir(pdfdir.c_str());  // create a pdf directory.
+    makeDir(pdfdir.c_str());  // create a pdf directory.
 
     /* Copy all Faust source files into an 'src' sub-directory. */
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
     copyFaustSources(projname, pathnames);
 
     string texdir = subst("$0/tex", projname);
-    mkchdir(texdir.c_str());  // create a directory and move into.
+    mkchDir(texdir.c_str());  // create a directory and move into.
 
     /** Create THE mathdoc tex file. */
     ofstream docout(subst("$0.$1", gGlobal->gDocName, docdev).c_str());
-    cholddir();  // return to current directory
+    choldDir();  // return to current directory
 
     /** Init and load translation file. */
     loadTranslationFile(gGlobal->gDocLang);
@@ -264,12 +264,11 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 
     /** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
     printFaustdocStamp(faustversion, docout);  ///< Faust version and compilation date (comment).
-    istream* latexheader = openArchFile(gGlobal->gLatexheaderfilename);
+    unique_ptr<istream> latexheader = openArchFile(gGlobal->gLatexheaderfilename);
     printLatexHeader(*latexheader, faustversion, docout);  ///< Static LaTeX header (packages and setup).
     printDocContent(svgTopDir.c_str(), gGlobal->gDocVector, faustversion,
                     docout);   ///< Generate math contents (main stuff!).
     printLatexFooter(docout);  ///< Static LaTeX footer.
-    delete (latexheader);
 }
 
 /*****************************************************************************
@@ -953,9 +952,9 @@ static bool doesFileBeginWithCode(const string& faustfile)
 /*
  * Open architecture file.
  */
-static istream* openArchFile(const string& filename)
+static unique_ptr<ifstream> openArchFile(const string& filename)
 {
-    istream* file;
+    unique_ptr<ifstream> file;
     getCurrentDir();  // Save the current directory.
     // cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
     if ((file = openArchStream(filename.c_str()))) {
@@ -965,7 +964,7 @@ static istream* openArchFile(const string& filename)
         error << "ERROR : can't open architecture file " << filename << endl;
         throw faustexception(error.str());
     }
-    cholddir();  // Return to current directory.
+    choldDir();  // Return to current directory.
     return file;
 }
 
@@ -1014,7 +1013,7 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
 {
     string srcdir = subst("$0/src", projname);
     // cerr << "Documentator : copyFaustSources : Creating directory '" << srcdir << "'" << endl;
-    makedir(srcdir.c_str());  // create a directory.
+    makeDir(srcdir.c_str());  // create a directory.
 
     for (unsigned int i = 0; i < pathnames.size(); i++) {
         ifstream src;

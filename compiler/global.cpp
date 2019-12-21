@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <limits.h>
+#include <cstdint>
 
 #include "absprim.hh"
 #include "acosprim.hh"
@@ -109,6 +110,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gScaledSVG        = false;
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
     gFoldThreshold    = 25;
+    gFoldComplexity   = 2;
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
@@ -137,9 +139,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
 
-    gDSPStruct = false;
-    gLightMode = false;
-    gClang     = false;
+    gDSPStruct  = false;
+    gLightMode  = false;
+    gClang      = false;
+    gCheckTable = false;
 
     gClassName      = "mydsp";
     gSuperClassName = "dsp";
@@ -150,7 +153,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gInputString = 0;
 
     // Backend configuration : default values
-    gGenerateSelectWithIf = true;
     gAllowForeignFunction = true;
     gComputeIOTA          = false;
     gFAUSTFLOATToInternal = false;
@@ -166,6 +168,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gOneSample            = false;
     gOneSampleControl     = false;
     gFastMathLib          = "default";
+    gNameSpace            = "";
 
     // Fastmath mapping float version
     gFastMathLibTable["acosf"]      = "fast_acosf";
@@ -228,6 +231,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gBoxSlotNumber = 0;
     gMemoryManager = false;
+
+    gLocalCausalityCheck = false;
+    gCausality           = false;
 
     gOccurrences = 0;
     gFoldingFlag = false;
@@ -384,6 +390,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = sizeof(nullptr);
+#if defined(ANDROID) && INTPTR_MAX == INT32_MAX
+    // Hack for 32Bit Android Architectures ; sizeof(nullptr) == 4 but LLVM DataLayout.GetPointerSize() == 8
+    gMachinePtrSize *= 2;
+#endif
 
     gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
     gOutputLang          = "";
@@ -502,6 +512,99 @@ void global::init()
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
+    gCurrentLocal = setlocale(LC_ALL, NULL);
+    if (gCurrentLocal != NULL) {
+        gCurrentLocal = strdup(gCurrentLocal);
+    }
+
+    // Setup standard "C" local
+    // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
+    setlocale(LC_ALL, "C");
+
+    // Source file injection
+    gInjectFlag = false;  // inject an external source file into the architecture file
+    gInjectFile = "";     // instead of a compiled dsp file
+
+    // Create type declaration for external 'soundfile' type
+    vector<NamedTyped*> sf_type_fields;
+    sf_type_fields.push_back(
+        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fSR", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fOffset", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
+    gExternalStructTypes[Typed::kSound] =
+        InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
+
+    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
+
+    gMathForeignFunctions["acoshf"] = true;
+    gMathForeignFunctions["acosh"]  = true;
+    gMathForeignFunctions["acoshl"] = true;
+
+    gMathForeignFunctions["asinhf"] = true;
+    gMathForeignFunctions["asinh"]  = true;
+    gMathForeignFunctions["asinhl"] = true;
+
+    gMathForeignFunctions["atanhf"] = true;
+    gMathForeignFunctions["atanh"]  = true;
+    gMathForeignFunctions["atanhl"] = true;
+
+    gMathForeignFunctions["coshf"] = true;
+    gMathForeignFunctions["cosh"]  = true;
+    gMathForeignFunctions["coshl"] = true;
+
+    gMathForeignFunctions["sinhf"] = true;
+    gMathForeignFunctions["sinh"]  = true;
+    gMathForeignFunctions["sinhl"] = true;
+
+    gMathForeignFunctions["tanhf"] = true;
+    gMathForeignFunctions["tanh"]  = true;
+    gMathForeignFunctions["tanhl"] = true;
+}
+
+void global::printCompilationOptions(ostream& dst, bool backend)
+{
+    if (backend) {
+#ifdef LLVM_BUILD
+        if (gOutputLang == "llvm") {
+            dst << "-lang " << gOutputLang << " " << LLVM_VERSION << " ";
+        } else {
+            dst << "-lang " << gOutputLang << " ";
+        }
+#else
+        dst << "-lang " << gOutputLang << " ";
+#endif
+    }
+    if (gInPlace) dst << "-inpl ";
+    if (gOneSample) dst << "-os ";
+    if (gLightMode) dst << "-light ";
+    if (gSchedulerSwitch) {
+        dst << "-sch"
+            << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
+            << ((gDeepFirstSwitch) ? " -dfs" : "")
+            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+    } else if (gVectorSwitch) {
+        dst << "-vec"
+            << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
+            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
+            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+    } else if (gOpenMPSwitch) {
+        dst << "-omp"
+            << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
+            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
+            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+    } else {
+        dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
+            << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
+    }
+}
+
+void global::initTypeSizeMap()
+{
     // Init type size table
     gTypeSizeMap[Typed::kFloat]         = gMachineFloatSize;
     gTypeSizeMap[Typed::kFloat_ptr]     = gMachinePtrSize;
@@ -541,95 +644,6 @@ void global::init()
     gTypeSizeMap[Typed::kObj_ptr]   = gMachinePtrSize;
     gTypeSizeMap[Typed::kSound_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kUint_ptr]  = gMachinePtrSize;
-
-    gCurrentLocal = setlocale(LC_ALL, NULL);
-    if (gCurrentLocal != NULL) {
-        gCurrentLocal = strdup(gCurrentLocal);
-    }
-
-    // Setup standard "C" local
-    // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
-    setlocale(LC_ALL, "C");
-
-    // Source file injection
-    gInjectFlag = false;  // inject an external source file into the architecture file
-    gInjectFile = "";     // instead of a compiled dsp file
-
-    // Create type declaration for external 'soundfile' type
-    vector<NamedTyped*> sf_type_fields;
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fLength", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fSR", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped(
-        "fOffset", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), MAX_SOUNDFILE_PARTS)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
-    gExternalStructTypes[Typed::kSound] =
-        InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
-
-    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
-    
-    gMathForeignFunctions["acoshf"] = true;
-    gMathForeignFunctions["acosh"]  = true;
-    gMathForeignFunctions["acoshl"] = true;
-
-    gMathForeignFunctions["asinhf"] = true;
-    gMathForeignFunctions["asinh"]  = true;
-    gMathForeignFunctions["asinhl"] = true;
-
-    gMathForeignFunctions["atanhf"] = true;
-    gMathForeignFunctions["atanh"]  = true;
-    gMathForeignFunctions["atanhl"] = true;
-  
-    gMathForeignFunctions["coshf"] = true;
-    gMathForeignFunctions["cosh"]  = true;
-    gMathForeignFunctions["coshl"] = true;
-
-    gMathForeignFunctions["sinhf"] = true;
-    gMathForeignFunctions["sinh"]  = true;
-    gMathForeignFunctions["sinhl"] = true;
-
-    gMathForeignFunctions["tanhf"] = true;
-    gMathForeignFunctions["tanh"]  = true;
-    gMathForeignFunctions["tanhl"] = true;
-}
-
-void global::printCompilationOptions(ostream& dst, bool backend)
-{
-    if (backend) {
-#ifdef LLVM_BUILD
-        if (gOutputLang == "llvm") {
-            dst << gOutputLang << " " << LLVM_VERSION << ", ";
-        }
-#else
-        dst << gOutputLang << ", ";
-#endif
-    }
-    if (gInPlace) dst << "-inpl ";
-    if (gSchedulerSwitch) {
-        dst << "-sch"
-            << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
-            << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
-    } else if (gVectorSwitch) {
-        dst << "-vec"
-            << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
-            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
-    } else if (gOpenMPSwitch) {
-        dst << "-omp"
-            << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
-            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
-    } else {
-        dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
-            << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
-    }
 }
 
 int global::audioSampleSize()
@@ -674,7 +688,7 @@ void global::destroy()
 #ifdef EMCC
     if (faustexception::gJSExceptionMsg) {
         free((void*)faustexception::gJSExceptionMsg);
-        faustexception::gJSExceptionMsg = NULL;
+        faustexception::gJSExceptionMsg = nullptr;
     }
 #endif
     delete gGlobal;

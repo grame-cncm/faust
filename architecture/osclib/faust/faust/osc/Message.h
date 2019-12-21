@@ -153,11 +153,19 @@ class Message
         \param val the parameter value
     */
     void	add(float val)					{ add<float>(val); }
+    
+    /*!
+     \brief adds a double parameter to the message
+     \param val the parameter value
+     */
+    void	add(double val)					{ add<double>(val); }
+    
     /*!
         \brief adds an int parameter to the message
         \param val the parameter value
     */
     void	add(int val)					{ add<int>(val); }
+    
     /*!
         \brief adds a string parameter to the message
         \param val the parameter value
@@ -219,6 +227,15 @@ class Message
         \return false when types don't match
     */
     bool	param(int i, float& val) const		{ val = params()[i]->value<float>(val); return params()[i]->isType<float>(); }
+    
+    /*!
+     \brief gives a message double parameter
+     \param i the parameter index (0 <= i < size())
+     \param val on output: the parameter value when the parameter type matches
+     \return false when types don't match
+     */
+    bool	param(int i, double& val) const		{ val = params()[i]->value<double>(val); return params()[i]->isType<double>(); }
+    
     /*!
         \brief gives a message int parameter
         \param i the parameter index (0 <= i < size())

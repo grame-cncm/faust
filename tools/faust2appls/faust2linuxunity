@@ -17,6 +17,8 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 NVOICES=-1
 
 #-------------------------------------------------------------------
@@ -59,13 +61,7 @@ CXX="g++"
 #-------------------------------------------------------------------
 # Compiler settings
 
-if [[ $(uname) == Darwin ]]; then
-    MARCH=""
-else
-    MARCH="-march=native"
-fi
-
-CXXFLAGS="-O3 -fPIC $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+CXXFLAGS+=" -fPIC"
 LIB="-shared"
 EXT=".so"
 

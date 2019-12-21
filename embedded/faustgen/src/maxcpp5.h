@@ -232,9 +232,13 @@ public:
     maxmethodperform m_perform;
     maxmethodinit m_init;
     double m_samplerate;
+    void* m_control_outlet;
     
-    MspCpp5():m_siginlets(0), m_sigoutlets(0)
-    {}
+    MspCpp5():m_siginlets(0), m_sigoutlets(0), m_perform(NULL), m_init(NULL), m_samplerate(0)
+    {
+        // Additional control output
+        m_control_outlet = outlet_append((t_object*)this, NULL, NULL); // Can send any message
+    }
 	
 	static t_class * makeMaxClass(const char * name);
 	static void * create(t_symbol * sym, long ac, t_atom * av);
@@ -265,7 +269,7 @@ public:
 };
 
 // Note: only include this file once to prevent linker errors!
-template<typename T> t_class * MaxCppBase<T>::m_class = 0;
+template<typename T> t_class * MaxCppBase<T>::m_class = NULL;
 
 template<typename T> t_class * MaxCpp5<T>::makeMaxClass(const char * name) {
 	common_symbols_init();
@@ -294,7 +298,7 @@ template<typename T> void MaxCpp5<T>::setupIO(unsigned int numinlets, unsigned i
 		m_inlets = (long)numinlets - 1;
 		m_inletproxy = (void **)sysmem_newptr(sizeof(void *) * m_inlets);
 		for (long i = 1; i <= m_inlets; i++) {
-			m_inletproxy[i] = proxy_new(this, i, &this->m_whichinlet); // generic outlet
+			m_inletproxy[i] = proxy_new(this, i, &this->m_whichinlet); // generic inlet
         }
 	}
 	
@@ -370,20 +374,33 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
         dsp_resize((t_pxobject*)this, siginlets);
         m_siginlets = siginlets;
       
+        // Update outlets by keeping the same left outlets, so that to keep existing connections as much as possible
         if (sigoutlets > m_sigoutlets) {
+            
+            // Delete the m_control_outlet at 'm_sigoutlets' index
+            outlet_delete(outlet_nth((t_object*)this, m_sigoutlets));
+            
             for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
                 outlet_append((t_object*)this, NULL, gensym("signal"));
             }
             
-            // Additional output
-            // outlet_append((t_object*)this, NULL, NULL);
+            // Additional control output
+            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);  // Can send any message
+            
         } else if (sigoutlets < m_sigoutlets) {
+            
+            // Delete the m_control_outlet at 'm_sigoutlets' index
+            outlet_delete(outlet_nth((t_object*)this, m_sigoutlets));
+            
             for (unsigned int i = m_sigoutlets; i > sigoutlets && i > 0; i--) {
                 outlet_delete(outlet_nth((t_object*)this, i-1));
             }
+            
+            // Additional control output
+            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);  // Can send any message
         }
-     
-        // end the transaction
+        
+        // End the transaction
         m_sigoutlets = sigoutlets;
         object_method(b, gensym("dynlet_end"));
         

@@ -3,13 +3,13 @@ import("stdfaust.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Additive synthesizer, must be used with OSC message to program sound.
-// It as 8 harmonics. Each have it's own volume envelope.
+// It as 8 harmonics. Each have it's own volume envelop.
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // OSC messages (see BELA console for precise adress)
 // For each harmonics (%rang indicate harmonic number, starting at 0) :
-// vol%rang	: General Volume		(vol0 control the volume of the fundamental)
+// vol%rang	: General Volume (vol0 control the volume of the fundamental)
 // A%rang : Attack
 // D%rang : Decay
 // S%rang : Sustain
@@ -23,9 +23,9 @@ midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain = nentry("gain", 0.5, 0, 10, 0.01);
 
 // pitchwheel
-pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
 
-gFreq = midifreq * pitchwheel;
+gFreq = midifreq * bend;
 
 partiel(rang) = os.oscrs(gFreq*(rang+1))*volume
     with {

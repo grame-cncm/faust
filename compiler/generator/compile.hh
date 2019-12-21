@@ -44,7 +44,7 @@
 
 #define kMaxHeight 1024
 
-class Compiler {
+class Compiler : public virtual Garbageable {
    protected:
     Klass*       fClass;
     bool         fNeedToDeleteClass;

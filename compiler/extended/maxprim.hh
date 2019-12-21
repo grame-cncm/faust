@@ -34,7 +34,7 @@ class MaxPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector< ::Type>& types)
+    virtual ::Type infereSigType(const vector<::Type>& types)
     {
         faustassert(types.size() == arity());
         interval i = types[0]->getInterval();
@@ -81,16 +81,14 @@ class MaxPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+                                    vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Typed::VarType         result_type;
+        Typed::VarType         result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
         vector<Typed::VarType> arg_types;
         list<ValueInst*>       casted_args;
-
-        result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
 
         // generates code compatible with overloaded max
         int n0 = types[0]->nature();
@@ -170,7 +168,7 @@ class MaxPrim : public xtended {
         }
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -215,7 +213,7 @@ class MaxPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

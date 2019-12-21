@@ -109,7 +109,8 @@ struct global {
     bool   gShadowBlur;      // note: svg2pdf doesn't like the blur filter
     bool   gScaledSVG;       // to draw scaled SVG files
     bool   gStripDocSwitch;  // Strip <mdoc> content from doc listings.
-    int    gFoldThreshold;
+    int    gFoldThreshold;   // global complexity threshold before activating folding
+    int    gFoldComplexity;  // individual complexity threshold before folding
     int    gMaxNameSize;
     bool   gSimpleNames;
     bool   gSimplifyDiagrams;
@@ -143,6 +144,7 @@ struct global {
     bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
                       // for JavaScript)
     bool gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gCheckTable; // whether to check RDTable and RWTable index range
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -150,7 +152,6 @@ struct global {
 
     // Backend configuration
     string gOutputLang;            // Chosen backend
-    bool   gGenerateSelectWithIf;  // Generates select with an 'if'
     bool   gAllowForeignFunction;  // Can use foreign functions
     bool   gComputeIOTA;           // Cache some computation done with IOTA variable
     bool   gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
@@ -166,6 +167,7 @@ struct global {
     bool   gOneSample;             // Generate one sample computation
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     string gFastMathLib;           // The fastmath code mapping file
+    string gNameSpace;             // Wrapping namespace used with the C++ backend
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
     map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
@@ -562,6 +564,8 @@ struct global {
     }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
+
+    void initTypeSizeMap();
 
     int audioSampleSize();
 };

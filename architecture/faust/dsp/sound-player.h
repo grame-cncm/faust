@@ -1,3 +1,4 @@
+/************************** BEGIN sound-player.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -304,7 +305,7 @@ class sound_dtd_player : public sound_base_player {
             }
         }
         
-        size_t readAndwrite(FAUSTFLOAT* buffer, size_t size)
+        size_t readAndWrite(FAUSTFLOAT* buffer, size_t size)
         {
             size_t nbf = fReaderFun(fFile, buffer, size);
             ringbuffer_write(fBuffer, (char*)buffer, convertFromFrames(nbf));
@@ -333,12 +334,12 @@ class sound_dtd_player : public sound_base_player {
             if (write_space_frames > HALF_RING_BUFFER_SIZE) {
                 FAUSTFLOAT buffer[HALF_RING_BUFFER_SIZE * fInfo.channels];
                 // Tries to read and write HALF_RING_BUFFER_SIZE frames
-                size_t nbf = readAndwrite(buffer, HALF_RING_BUFFER_SIZE);
+                size_t nbf = readAndWrite(buffer, HALF_RING_BUFFER_SIZE);
                 // End of file is reached
                 if (nbf < HALF_RING_BUFFER_SIZE) {
                     // Read RING_BUFFER_SIZE/2 - nbf frame from the beginning of file
                     sf_seek(fFile, 0, SEEK_SET);
-                    readAndwrite(buffer, HALF_RING_BUFFER_SIZE - nbf);
+                    readAndWrite(buffer, HALF_RING_BUFFER_SIZE - nbf);
                 }
             }
         }
@@ -368,7 +369,7 @@ class sound_dtd_player : public sound_base_player {
 };
 
 /**
- PositionManager is a GUI : changing the slider position of a sound_base_player
+ PositionManager is a GUI: changing the slider position of a sound_base_player
  (sound_memory_player or sound_dtd_player) will be reflected in the internal buffer
  position using the GUI::updateAllGuis mecanism.
  */
@@ -410,7 +411,7 @@ class PositionManager : public GUI {
  dsp* player1 = new sound_dtd_player("toto.wav");
  dsp* player2 = new sound_memory_player("titi.flac");
  
- // Add sound_plays to the manager, so that position changes are reflected in the internal buffer
+ // Add sound players to the manager, so that position changes are reflected in the internal buffer
  manager->addDSP(player1);
  manager->addDSP(player2);
  
@@ -424,3 +425,4 @@ class PositionManager : public GUI {
  */
 
 #endif
+/**************************  END  sound-player.h **************************/

@@ -185,9 +185,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 
     bool getFactory(const std::string& sha_key, factory_iterator& res)
     {
-        factory_iterator it;
-
-        for (it = this->begin(); it != this->end(); it++) {
+        for (factory_iterator it = this->begin(); it != this->end(); it++) {
             if ((*it).first->getSHAKey() == sha_key) {
                 res = it;
                 return true;
@@ -293,67 +291,6 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
         this->clear();
     }
 };
-
-// We take the largest sample size here, to cover 'float' and 'double' cases
-#define LLVM_FAUSTFLOAT double
-
-#define BUFFER_SIZE 1024
-#define SAMPLE_RATE 44100
-#define MAX_CHAN 64
-#define MAX_SOUNDFILE_PARTS 256
-
-#ifdef _MSC_VER
-#define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
-#define POST_PACKED_STRUCTURE \
-    ;                         \
-    __pragma(pack(pop))
-#else
-#define PRE_PACKED_STRUCTURE
-#define POST_PACKED_STRUCTURE __attribute__((__packed__))
-#endif
-
-PRE_PACKED_STRUCTURE
-struct Soundfile {
-    LLVM_FAUSTFLOAT** fBuffers;
-    int               fLength[MAX_SOUNDFILE_PARTS];  // length of each part
-    int               fSR[MAX_SOUNDFILE_PARTS];      // sample rate of each part
-    int               fOffset[MAX_SOUNDFILE_PARTS];  // offset of each part in the global buffer
-    int               fChannels;                     // max number of channels of all concatenated files
-
-    Soundfile(int max_chan)
-    {
-        fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
-
-        for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
-            fLength[part] = BUFFER_SIZE;
-            fSR[part]     = SAMPLE_RATE;
-            fOffset[part] = 0;
-        }
-
-        // Allocate 1 channel
-        fChannels   = 1;
-        fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
-        faustassert(fBuffers[0]);
-        memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
-
-        // Share the same buffer for all other channels so that we have max_chan channels available
-        for (int chan = fChannels; chan < max_chan; chan++) {
-            fBuffers[chan] = fBuffers[0];
-        }
-    }
-
-    ~Soundfile()
-    {
-        // Free the real channels only
-        for (int chan = 0; chan < fChannels; chan++) {
-            delete fBuffers[chan];
-        }
-        delete[] fBuffers;
-    }
-
-} POST_PACKED_STRUCTURE;
-
-extern Soundfile* dynamic_defaultsound;
 
 #ifdef __cplusplus
 extern "C" {

@@ -198,7 +198,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CC $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
    	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

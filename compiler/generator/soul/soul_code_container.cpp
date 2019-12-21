@@ -40,7 +40,7 @@ using namespace std;
 dsp_factory_base* SOULCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((static_cast<ostringstream*>(fOut)) ? static_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* SOULCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -84,7 +84,7 @@ void SOULCodeContainer::produceInternal()
     struct_visitor.Tab(n + 2);
     generateDeclarations(&struct_visitor);
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 
     // Inits
@@ -97,7 +97,7 @@ void SOULCodeContainer::produceInternal()
     generateInit(&struct_visitor);
     generateResetUserInterface(&struct_visitor);
     generateClear(&struct_visitor);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     // Fill
@@ -130,12 +130,11 @@ void SOULCodeContainer::produceInternal()
             generateComputeBlock(&struct_visitor);
             ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
             loop->accept(&struct_visitor);
-            tab(n + 1, *fOut);
+            back(1, *fOut);
             *fOut << "}";
         }
     }
 
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << fKlassName << " new" << fKlassName << "() { " << fKlassName << " obj; return obj; }";
     tab(n + 1, *fOut);
@@ -146,9 +145,11 @@ void SOULCodeContainer::produceInternal()
 void SOULCodeContainer::produceInit(int tabs)
 {
     tab(tabs, *fOut);
-    *fOut << "void init (int sample_rate)";
+    *fOut << "void init ()";
     tab(tabs, *fOut);
     *fOut << "{";
+    tab(tabs + 1, *fOut);
+    *fOut << "let sample_rate = int(processor.frequency);";
     tab(tabs + 1, *fOut);
     *fOut << "classInit (sample_rate);";
     tab(tabs + 1, *fOut);
@@ -189,24 +190,47 @@ void SOULCodeContainer::produceClass()
     // Fields
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
+    
+    if (gGlobal->gOutputLang == "soul-dsp") {
+        string json;
+        if (gGlobal->gFloatSize == 1) {
+            json = generateJSON<float>();
+        } else {
+            json = generateJSON<double>();
+        }
+        *fOut << "// Event used to call additional methods";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventbuildUserInterface [[json: \"" << flattenJSON(json) << "\"]];";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventclassInit;";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventinstanceConstants;";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventinstanceResetUserInterface;";
+        tab(n + 1, *fOut);
+        *fOut << "input event int eventinstanceClear;";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+    }
+    
     SOULInstUIVisitor ui_visitor(n + 1);
     generateUserInterface(&ui_visitor);
     *fOut << ui_visitor.fOut.str();
     generateDeclarations(&fCodeProducer);
-
+  
     // Control
     if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "bool fUpdated; ";
+        *fOut << "bool fUpdated;";
         tab(n + 1, *fOut);
     }
 
     // For control computation
     if (fInt32ControlNum > 0) {
-        *fOut << "int32[" << fInt32ControlNum << "] icontrol;";
+        *fOut << "int32[" << fInt32ControlNum << "] iControl;";
         tab(n + 1, *fOut);
     }
     if (fRealControlNum > 0) {
-        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControlNum << "] fcontrol;";
+        *fOut << fCodeProducer.getTypeManager()->fTypeDirectTable[itfloat()] << "[" << fRealControlNum << "] fControl;";
     }
 
     // Global declarations
@@ -222,12 +246,27 @@ void SOULCodeContainer::produceClass()
         fCodeProducer.Tab(n + 1);
         generateUserInterface(&fCodeProducer);
     }
-
+    
+    if (gGlobal->gOutputLang == "soul-dsp") {
+        *fOut << "// Event handler used to call additional methods";
+        tab(n + 1, *fOut);
+        *fOut << "event eventbuildUserInterface (int dummy) {}";
+        tab(n + 1, *fOut);
+        *fOut << "event eventclassInit (int sample_rate) { classInit(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceConstants (int sample_rate) { instanceConstants(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceResetUserInterface (int dummy) { instanceResetUserInterface(); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceClear (int dummy) { instanceClear(); }";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+    }
+  
     // Sub containers
     generateSubContainers();
 
     // inputs/outputs
-    tab(n + 1, *fOut);
     *fOut << "int getNumInputs() { return " << fNumInputs << "; }";
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
@@ -248,7 +287,7 @@ void SOULCodeContainer::produceClass()
         BlockInst* block2 = fill_funcall.getCode(fPostStaticInitInstructions);
         block2->accept(&fCodeProducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -266,7 +305,7 @@ void SOULCodeContainer::produceClass()
         BlockInst* block2 = fill_funcall.getCode(fPostInitInstructions);
         block2->accept(&fCodeProducer);
     }
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -284,7 +323,7 @@ void SOULCodeContainer::produceClass()
 
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -295,7 +334,7 @@ void SOULCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
 
@@ -312,7 +351,7 @@ void SOULCodeContainer::produceClass()
         fCodeProducer.Tab(n + 2);
         // Generates local variables declaration and setup
         generateComputeBlock(&fCodeProducer);
-        tab(n + 1, *fOut);
+        back(1, *fOut);
         *fOut << "}" << endl;
     }
 
@@ -327,12 +366,6 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "void run()";
     tab(n, *fOut);
     *fOut << "{";
-    tab(n + 1, *fOut);
-    *fOut << "// 'init' called once before starting the DSP loop";
-    tab(n + 1, *fOut);
-    *fOut << "init (int(processor.frequency));";
-
-    tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "// DSP loop running forever...";
     tab(n + 1, *fOut);
@@ -408,5 +441,5 @@ void SOULVectorCodeContainer::generateCompute(int n)
     *fOut << "}";
 
     tab(n, *fOut);
-    *fOut << "}" << endl;
+    *fOut << "}" << endl << endl;
 }

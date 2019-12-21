@@ -23,7 +23,7 @@ var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var dsp_code = "import(\"stdfaust.lib\"); vol = hslider(\"volume [unit:dB]\", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; freq = hslider(\"freq [unit:Hz]\", 1000, 20, 24000, 1); process = vgroup(\"Oscillator\", os.osc(freq) * vol);";
 var osc = null;
-var libraries_url = "http://127.0.0.1:8000/libraries/";
+var libraries_url = "http://127.0.0.1:8000/../../libraries/";
 //var libraries_url = "https://faust.grame.fr/libraries/";
 
 // Slider handler to change the 'osc' frequency

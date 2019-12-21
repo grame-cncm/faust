@@ -1,0 +1,86 @@
+
+faust addSynth
+{
+    import("stdfaust.lib");
+
+    vol = hslider("volume [unit:dB]", -20, -96, 0, 0.1) : ba.db2linear : si.smoo;
+    freq = hslider("freq [unit:Hz]", 500, 100, 2000, 1);
+
+    process = vgroup("addSynth", (os.osc(freq) + 0.5*os.osc(2.*freq) + 0.25*os.osc(3.*freq)) * vol);
+}
+
+processor ClassicRingtone
+{
+    output stream float out;
+
+    void run()
+    {
+        int[] pitches    = (76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69);
+        int[] durations  = ( 1,  1,  2,  2,  1,  1,  2,  2,  1,  1,  2,  2,  4);
+
+        let samplesPerQuarterNote = int (processor.frequency / 7);
+        float sinewavePhase;
+
+        loop {
+            for (int noteIndex = 0; noteIndex < pitches.size; ++noteIndex)
+            {
+                let noteFrequency  = soul::noteNumberToFrequency (pitches.at (noteIndex));
+                let noteLength     = samplesPerQuarterNote * durations.at (noteIndex);
+                let phaseIncrement = float (noteFrequency * twoPi * processor.period);
+
+                loop (noteLength)  // play our next note...
+                {
+                    out << 0.9f * sin (sinewavePhase);
+                    sinewavePhase = addModulo2Pi (sinewavePhase, phaseIncrement);
+                    advance();
+                }
+            }
+        }
+    }
+}
+
+faust stereoEcho
+{
+    import("stdfaust.lib");
+    
+    gain = hslider("gain", 0.5, 0, 1, 0.01);
+    feedback = hslider("feedback", 0.8, 0, 1, 0.01);
+ 
+    echo(del_sec, fb, g) = + ~ de.delay(50000, del_samples) * fb * g
+    with {
+        del_samples = del_sec*ma.SR;
+    };
+
+    process = echo(1.6, 0.6, 0.7), echo(0.7, feedback, gain);
+}
+
+graph sequence [[main]]
+{
+    // Events to control Faust Synth
+    input event float32 eventfHslider1 [[ name: "freq", path: "/addSynth/freq", min: 100.0f, max: 2000.0f, init: 500.0f, step: 0.01f, unit: "Hz" ]];
+    input event float32 eventfHslider0 [[ name: "volume", path: "/addSynth/volume", min: -96.0f, max: 0.0f, init: -20.0f, step: 0.100000001f, unit: "dB" ]];
+
+    // Events to control Faust Echo
+    input event float32 eventfHslider2 [[ name: "gain", path: "/stereoEcho/gain", min: 0.0f, max: 1.0f, init: 0.5, step: 0.01f ]];
+    input event float32 eventfHslider3 [[ name: "feedback", path: "/stereoEcho/feedback", min: 0.0f, max: 1.0f, init: 0.8, step: 0.01f ]];
+
+    output stream float audioOut0;
+    output stream float audioOut1;
+
+    connection 
+    {
+        // Connect to Faust addSynth
+        eventfHslider0 -> addSynth.eventfHslider0;
+        eventfHslider1 -> addSynth.eventfHslider1;
+
+        // Connect to Faust stereoEcho
+        eventfHslider3 -> stereoEcho.eventfHslider0;
+        eventfHslider2 -> stereoEcho.eventfHslider1;
+
+        addSynth.output0 -> stereoEcho.input0;
+        ClassicRingtone.out -> stereoEcho.input1;
+
+        stereoEcho.output0 -> audioOut0;
+        stereoEcho.output1 -> audioOut1;
+    }
+}
