@@ -64,6 +64,11 @@
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 
+#if defined(LLVM_100)
+#include <llvm/InitializePasses.h>
+#include <llvm/Support/CodeGen.h>
+#endif
+
 using namespace llvm;
 using namespace std;
 
@@ -109,7 +114,7 @@ void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
     string             res;
     raw_string_ostream out_str(res);
     if (binary) {
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
         WriteBitcodeToFile(*fModule, out_str);
 #else
         WriteBitcodeToFile(fModule, out_str);
@@ -126,7 +131,7 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
     string res;
     
     raw_string_ostream out(res);
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -143,7 +148,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bi
         cerr << "ERROR : writeDSPFactoryToBitcodeFile could not open file : " << err.message();
         return false;
     }
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -280,7 +285,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
     targetOptions.NoTrappingFPMath      = true;
-#if defined(LLVM_90)
+#if defined(LLVM_90) || defined(LLVM_100)
     targetOptions.NoSignedZerosFPMath   = true;
 #endif
     targetOptions.FPDenormalMode        = FPDenormal::IEEE;
@@ -513,7 +518,9 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
 
     legacy::PassManager pass;
  
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
+#if defined(LLVM_100)
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CGFT_ObjectFile)) {
+#elif defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, TargetMachine::CGFT_ObjectFile)) {
 #else
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, TargetMachine::CGFT_ObjectFile, true)) {
