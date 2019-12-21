@@ -235,6 +235,11 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     void stopLLVMLibrary();
 
     std::string writeDSPFactoryToMachineAux(const std::string& target);
+    
+    void checkDecoder()
+    {
+        if (!fDecoder) fDecoder = createJSONUIDecoder(fGetJSON());
+    }
 
    public:
     llvm_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,

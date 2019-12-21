@@ -255,11 +255,10 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fCompute           = (computeFun)loadOptimize("compute" + fClassName);
         fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
         
-        fDecoder = createJSONUIDecoder(fGetJSON());
         endTiming("initJIT");
         return true;
-    } catch (
-        faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...
+    // Module does not contain the Faust entry points, or external symbol was not found...
+    } catch (faustexception& e) {
         error_msg = e.Message();
         endTiming("initJIT");
         return false;
@@ -287,11 +286,13 @@ int llvm_dsp_factory_aux::getOptlevel()
 
 void llvm_dsp_factory_aux::metadata(Meta* m)
 {
+    checkDecoder();
     fDecoder->metadata(m);
 }
 
 void llvm_dsp_factory_aux::metadata(MetaGlue* glue)
 {
+    checkDecoder();
     fDecoder->metadata(glue);
 }
 
@@ -299,7 +300,8 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory_aux)
 {
     llvm_dsp_factory* factory = static_cast<llvm_dsp_factory*>(factory_aux);
     faustassert(factory);
-
+    checkDecoder();
+    
     if (factory->getFactory()->getMemoryManager()) {
         dsp_imp* dsp = static_cast<dsp_imp*>(factory->getFactory()->allocate(fDecoder->getDSPSize()));
         return (dsp) ? new (factory->getFactory()->allocate(sizeof(llvm_dsp))) llvm_dsp(factory, dsp) : nullptr;
@@ -312,14 +314,19 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory_aux)
 
 string llvm_dsp_factory_aux::getCompileOptions()
 {
+    checkDecoder();
     return fDecoder->getCompileOptions();
 }
+
 vector<string> llvm_dsp_factory_aux::getLibraryList()
 {
+    checkDecoder();
     return fDecoder->getLibraryList();
 }
+
 vector<string> llvm_dsp_factory_aux::getIncludePathnames()
 {
+    checkDecoder();
     return fDecoder->getIncludePathnames();
 }
 
@@ -349,12 +356,12 @@ llvm_dsp::~llvm_dsp()
 
 void llvm_dsp::metadata(Meta* m)
 {
-    fFactory->getFactory()->metadata(m);
+    fFactory->getFactory()->fDecoder->metadata(m);
 }
 
 void llvm_dsp::metadata(MetaGlue* glue)
 {
-    fFactory->getFactory()->metadata(glue);
+    fFactory->getFactory()->fDecoder->metadata(glue);
 }
 
 int llvm_dsp::getNumInputs()
