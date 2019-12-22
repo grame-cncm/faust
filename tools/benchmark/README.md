@@ -17,6 +17,27 @@ Here are the available options:
 - `-o foo.mc to generate an LLVM machine code file`
 - `-o foo.o to generate an object code file`
 
+## faust2object
+
+The **faust2object** tool uses the dynamic compilation chain to compile a Faust DSP to an object code (.o) output file and wrapper C++ file for different CPUs. The DSP name is used  in the generated C++ and the object code files, thus allowing to generate distinct version of the code that can finally be linked together in a single binary.
+
+`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake-avx512] [cannonlake] [generic] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+
+Here are the available options:
+
+- `core2 to compile for Core2 CPU`
+- `penryn to compile for Penryn CPU`
+- `nehalem to compile for Nehalem CPU`
+- `westmere to compile for Westmere CPU`
+- `sandybridge to compile for Sandybridge CPU`
+- `ivybridge to compile for Ivybridge CPU`
+- `haswell to compile for Haswell CPU`
+- `broadwell to compile for Broadwell CPU`
+- `skylake to compile for Skylake CPU`
+- `skylake-avx512 to compile for Skylake-avx512 CPU`
+- `cannonlake to compile for Cannonlake CPU`
+- `generic to compile for Generic CPU`
+
 ## dynamic-jack-gtk
 
 The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend. It can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.bc) when using the Interpreter backend.

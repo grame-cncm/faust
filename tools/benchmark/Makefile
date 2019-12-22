@@ -45,6 +45,7 @@ emcc: $(FASTMATH)
 
 install:
 
+	cp faust2object $(prefix)/bin
 	cp faustbench-wasm $(prefix)/bin
 	cp faust2benchwasm $(prefix)/bin
 	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js wasm-bench-jsmem.js $(prefix)/share/faust/webaudio

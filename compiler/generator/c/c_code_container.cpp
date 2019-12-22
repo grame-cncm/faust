@@ -562,6 +562,9 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", xfloat());
+    // staticInit has to be called for each instance since the tables are actually not shared between instances
+    tab(n + 1, *fOut);
+    *fOut << "staticInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
@@ -574,8 +577,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", xfloat());
-    tab(n + 1, *fOut);
-    *fOut << "staticInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n, *fOut);

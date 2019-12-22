@@ -320,8 +320,14 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
         cerr << "ERROR runDSP in checkDefaults after 'instanceInit'" << std::endl;
     }
     
-    // Init again
-    DSP->init(44100);
+    // To test that instanceInit properly init a cloned DSP
+    DSP = DSP->clone();
+    DSP->instanceInit(44100);
+    
+    // Init UIs on cloned DSP
+    DSP->buildUserInterface(&finterface);
+    DSP->buildUserInterface(&sound_ui);
+    DSP->buildUserInterface(&midi_ui);
     
     int nins = DSP->getNumInputs();
     int nouts = DSP->getNumOutputs();

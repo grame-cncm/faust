@@ -773,6 +773,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             std::cout << "instanceInit " << sample_rate << std::endl;
         }
         
+        // classInit has to be called for each instance since the tables are actually not shared between instances
+        classInit(sample_rate);
+        
         instanceConstants(sample_rate);
         instanceResetUserInterface();
         instanceClear();
@@ -786,7 +789,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
         
         fInitialized = true;
-        classInit(sample_rate);
+        
+        // classInit is not called here since the tables are actually not shared between instances
         instanceInit(sample_rate);
         /*
     #ifdef MACHINE

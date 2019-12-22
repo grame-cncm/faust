@@ -192,13 +192,14 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
+    FunTyped* fun_type1 = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kLocal);
+    FunTyped* fun_type2 = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
 
-    InstBuilder::genDeclareFunInst(fun2, fun_type)->accept(fCodeProducer);
+    InstBuilder::genDeclareFunInst(fun2, fun_type2)->accept(fCodeProducer);
     if (body) {
         BlockInst* block = InstBuilder::genBlockInst();
         block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst(fun2, args2)));
-        InstBuilder::genDeclareFunInst(fun1, fun_type, block)->accept(fCodeProducer);
+        InstBuilder::genDeclareFunInst(fun1, fun_type1, block)->accept(fCodeProducer);
     }
 }
 
