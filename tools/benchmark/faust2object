@@ -49,7 +49,7 @@ for p in $FILES; do
 
 	for cpu in $CPU; do
 		echo $cpu
-		sed -e "s/mydsp/$dspName$cpu/g" $ADAPTER >> $dspName$cpu".h"
+		sed -e "s/mydsp/$dspName$cpu/g" $ADAPTER > $dspName$cpu".h"
 		dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
 	done
 

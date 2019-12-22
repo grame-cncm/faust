@@ -250,6 +250,9 @@ struct JSONUIDecoderAux {
     {
         // MANDATORY: to be sure floats or double are correctly parsed
         char* tmp_local = setlocale(LC_ALL, nullptr);
+        if (tmp_local != NULL) {
+            tmp_local = strdup(tmp_local);
+        }
         setlocale(LC_ALL, "C");
         
         int countIn = 0;
@@ -318,13 +321,19 @@ struct JSONUIDecoderAux {
             }
         }
         
-        setlocale(LC_ALL, tmp_local);
+        if (tmp_local != NULL) {
+            setlocale(LC_ALL, tmp_local);
+            free(tmp_local);
+        }
     }
     
     void buildUserInterface(UI* ui_interface, char* memory_block)
     {
         // MANDATORY: to be sure floats or double are correctly parsed
         char* tmp_local = setlocale(LC_ALL, nullptr);
+        if (tmp_local != NULL) {
+            tmp_local = strdup(tmp_local);
+        }
         setlocale(LC_ALL, "C");
         
         for (auto& it : fUiItems) {
@@ -382,7 +391,10 @@ struct JSONUIDecoderAux {
             }
         }
         
-        setlocale(LC_ALL, tmp_local);
+        if (tmp_local != NULL) {
+            setlocale(LC_ALL, tmp_local);
+            free(tmp_local);
+        }
     }
     
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)

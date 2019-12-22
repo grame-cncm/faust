@@ -603,6 +603,9 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         return sfactory;
     } else {
         char* tmp_local = setlocale(LC_ALL, NULL);
+        if (tmp_local != NULL) {
+            tmp_local = strdup(tmp_local);
+        }
         setlocale(LC_ALL, "C");
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
@@ -612,8 +615,10 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             error_msg = "ERROR : " + string(err.getMessage().data()) + "\n";
             return nullptr;
         }
-
-        setlocale(LC_ALL, tmp_local);
+        if (tmp_local != NULL) {
+            setlocale(LC_ALL, tmp_local);
+            free(tmp_local);
+        }
         string error_msg;
 
         llvm_dynamic_dsp_factory_aux* factory_aux =

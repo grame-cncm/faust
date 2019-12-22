@@ -19,7 +19,7 @@ Here are the available options:
 
 ## faust2object
 
-The **faust2object** tool uses the dynamic compilation chain to compile a Faust DSP to an object code (.o) output file and wrapper C++ file for different CPUs. The DSP name is used  in the generated C++ and the object code files, thus allowing to generate distinct version of the code that can finally be linked together in a single binary.
+The **faust2object** tool uses the dynamic compilation chain to compile a Faust DSP to an object code (.o) output file and wrapper C++ file for different CPUs. The DSP name is used  in the generated C++ and the object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
 
 `faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake-avx512] [cannonlake] [generic] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
