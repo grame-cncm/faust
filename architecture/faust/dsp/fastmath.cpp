@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2017-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -42,6 +42,7 @@ extern "C" {
 #endif
     
     // float version
+    EXPORT float fast_fabsf(float x) { return fabsf(x); }
     EXPORT float fast_acosf(float x) { return acosf(x); }
     EXPORT float fast_asinf(float x) { return asinf(x); }
     EXPORT float fast_atanf(float x) { return atanf(x); }
@@ -58,12 +59,14 @@ extern "C" {
     EXPORT float fast_log10f(float x);
     EXPORT float fast_powf(float x, float y);
     EXPORT float fast_remainderf(float x, float y) { return remainderf(x, y); }
+    EXPORT float fast_rintf(float x) { return rintf(x); }
     EXPORT float fast_roundf(float x) { return roundf(x); }
     EXPORT float fast_sinf(float x) { return sinf(x); }
     EXPORT float fast_sqrtf(float x) { return sqrtf(x); }
     EXPORT float fast_tanf(float x) { return tanf(x); }
     
     // double version
+    EXPORT double fast_fabs(double x) { return fabs(x); }
     EXPORT double fast_acos(double x) { return acos(x); }
     EXPORT double fast_asin(double x) { return asin(x); }
     EXPORT double fast_atan(double x) { return atan(x); }
@@ -80,6 +83,7 @@ extern "C" {
     EXPORT double fast_log10(double x);
     EXPORT double fast_pow(double x, double y);
     EXPORT double fast_remainder(double x, double y) { return remainder(x, y); }
+    EXPORT double fast_rint(double x) { return rint(x); }
     EXPORT double fast_round(double x) { return round(x); }
     EXPORT double fast_sin(double x) { return sin(x); }
     EXPORT double fast_sqrt(double x) { return sqrt(x); }

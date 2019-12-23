@@ -150,6 +150,7 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
 void LLVMCodeContainer::generateFunMaps()
 {
     if (gGlobal->gFastMath) {
+        generateFunMap("fabs", "fast_fabs", 1);
         generateFunMap("acos", "fast_acos", 1);
         generateFunMap("asin", "fast_asin", 1);
         generateFunMap("atan", "fast_atan", 1);
@@ -166,6 +167,7 @@ void LLVMCodeContainer::generateFunMaps()
         generateFunMap("log10", "fast_log10", 1);
         generateFunMap("pow", "fast_pow", 2);
         generateFunMap("remainder", "fast_remainder", 2);
+        generateFunMap("rint", "fast_rint", 1);
         generateFunMap("round", "fast_round", 1);
         generateFunMap("sin", "fast_sin", 1);
         generateFunMap("sqrt", "fast_sqrt", 1);

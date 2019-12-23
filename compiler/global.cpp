@@ -171,6 +171,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gNameSpace            = "";
 
     // Fastmath mapping float version
+    gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
     gFastMathLibTable["asinf"]      = "fast_asinf";
     gFastMathLibTable["atanf"]      = "fast_atanf";
@@ -187,12 +188,14 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["log10f"]     = "fast_log10f";
     gFastMathLibTable["powf"]       = "fast_powf";
     gFastMathLibTable["remainderf"] = "fast_remainderf";
+    gFastMathLibTable["rintf"]      = "fast_rintf";
     gFastMathLibTable["roundf"]     = "fast_roundf";
     gFastMathLibTable["sinf"]       = "fast_sinf";
     gFastMathLibTable["sqrtf"]      = "fast_sqrtf";
     gFastMathLibTable["tanf"]       = "fast_tanf";
 
     // Fastmath mapping double version
+    gFastMathLibTable["fabs"]      = "fast_fabs";
     gFastMathLibTable["acos"]      = "fast_acos";
     gFastMathLibTable["asin"]      = "fast_asin";
     gFastMathLibTable["atan"]      = "fast_atan";
@@ -209,6 +212,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["log10"]     = "fast_log10";
     gFastMathLibTable["pow"]       = "fast_pow";
     gFastMathLibTable["remainder"] = "fast_remainder";
+    gFastMathLibTable["rint"]      = "fast_rint";
     gFastMathLibTable["round"]     = "fast_round";
     gFastMathLibTable["sin"]       = "fast_sin";
     gFastMathLibTable["sqrt"]      = "fast_sqrt";
