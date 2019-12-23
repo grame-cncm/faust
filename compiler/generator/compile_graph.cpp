@@ -383,10 +383,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -682,7 +680,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         // force type annotation of transformed expressions
         Type ty = getSimpleType(content);
 
-        string ctype{(nature == kInt) ? "int" : "float"};
+        string ctype = nature2ctype(nature);
         string vname{tree2str(id)};
 
         K->addDeclCode(subst("$0 \t$1;", ctype, vname));
@@ -698,7 +696,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
         Type ty = getSimpleType(content);
 
-        string ctype{(nature == kInt) ? "int" : "float"};
+        string ctype = nature2ctype(nature);
         string vname{tree2str(id)};
 
         K->addFirstPrivateDecl(vname);
@@ -775,7 +773,7 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
 
         faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
 
-        string ctype{(nature == kInt) ? "int" : "float"};
+        string ctype = nature2ctype(nature);
         string vname{tree2str(id)};
 
         K->addDeclCode(subst("$0 \t$1;", ctype, vname));
@@ -790,7 +788,6 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
 
         faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
 
-        string ctype{(nature == kInt) ? "int" : "float"};
         string vname{tree2str(id)};
 
         K->addFirstPrivateDecl(vname);
