@@ -557,9 +557,9 @@ string GraphCompiler::CS(Tree sig)
          contextRecursivness.set(getRecursivness(sig));
          }
          */
-        cerr << "compiling " << ppsig(sig) << " -> " << endl;
+        // cerr << "compiling " << ppsig(sig) << " -> " << endl;
         code = generateCode(sig);
-        cerr << "compiling " << ppsig(sig) << " <- " << code << endl;
+        // cerr << "compiling " << ppsig(sig) << " <- " << code << endl;
         setCompiledExpression(sig, code);
     }
     return code;

@@ -269,7 +269,7 @@ static bool processCmdline(int argc, const char* argv[])
         printf("processCmdline i = %d cmd = %s\n", i, argv[i]);
     }
     */
-
+    gGlobal->gOutputLang = "ocpp";  // By default during tests (YO)
     while (i < argc) {
         if (isCmd(argv[i], "-h", "--help")) {
             gGlobal->gHelpSwitch = true;
