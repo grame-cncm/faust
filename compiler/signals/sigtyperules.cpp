@@ -529,6 +529,15 @@ static Type infereSigType(Tree sig, Tree env)
         return getCertifiedSigType(u);
     }
 
+    // TODO caster en float ????
+    else if (isSigInstructionBargraphWrite(sig, id, u, &nat, x)) {
+        return T(x, env);
+    }
+
+    else if (isSigInstructionBargraphRead(sig, id, u, &nat)) {
+        return getCertifiedSigType(u);
+    }
+
     else if (isSigOutput(sig, &i, x)) {
         return T(x, env);
     }

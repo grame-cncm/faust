@@ -250,6 +250,11 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 1;
     } else if (isSigInstructionControlRead(sig, id, origin, &nat)) {
         return 0;
+    } else if (isSigInstructionBargraphWrite(sig, id, origin, &nat, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigInstructionBargraphRead(sig, id, origin, &nat)) {
+        return 0;
     }
 
     else if (isList(sig)) {

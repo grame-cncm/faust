@@ -69,16 +69,6 @@ class CommonSubexpr : public SignalIdentity {
         int  nature, i, dmax, dmin;
         Tree label, minv, maxv, val;
 
-        /*    if (isSigVBargraph(sig, label, minv, maxv, val) || isSigHBargraph(sig, label, minv, maxv, val)) {
-                // string varname = getFreshID("fbargraph");
-                // fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-                // addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-                Tree id = uniqueID("fbargraph", sig);
-                fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, kReal, self(val)));
-                Tree inst = sigInstructionControlRead(id, sig, kReal);
-                return inst;
-
-            } else */
         if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) &&
             !(isSigInstructionControlRead(sig, id, origin, &nature)) && !(isSigTime(sig)) &&
             !(isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) &&

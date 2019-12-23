@@ -403,6 +403,9 @@ struct global {
     Sym SIGINSTRUCTIONTABLEWRITE;
     Sym SIGINSTRUCTIONTABLEREAD;
 
+    Sym SIGINSTRUCTIONBARGRAPHWRITE;
+    Sym SIGINSTRUCTIONBARGRAPHREAD;
+
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
 

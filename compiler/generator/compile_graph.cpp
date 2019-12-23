@@ -733,6 +733,14 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         } else if (isSigOutput(sig, &i, content)) {
             K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
 
+        } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
+            Tree path, vmin, vmax, exp;
+            faustassert(isSigVBargraph(origin, path, vmin, vmax, exp) || isSigHBargraph(origin, path, vmin, vmax, exp));
+            string varname{tree2str(id)};
+            K->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
+            K->addExecCode(Statement("", subst("$0 = ($1)$2;", varname, xfloat(), CS(content))));
+            addUIWidget(reverse(tl(path)), uiWidget(hd(path), id, origin));
+
         } else {
             std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
             faustassert(false);
@@ -905,6 +913,8 @@ string GraphCompiler::generateCode(Tree sig)
         return tree2str(id);
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {
         return tree2str(id);
+    } else if (isSigInstructionBargraphRead(sig, id, origin, &nature)) {
+        return tree2str(id);
 
     } else if (isSigInt(sig, &i)) {
         return T(i);
@@ -951,13 +961,13 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
         return generateNumEntry(sig, label, c, x, y, z);
     }
-
-    else if (isSigVBargraph(sig, label, x, y, z)) {
-        return generateVBargraph(sig, label, x, y, CS(z));
-    } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return generateHBargraph(sig, label, x, y, CS(z));
-    }
-
+    /*
+        else if (isSigVBargraph(sig, label, x, y, z)) {
+            return generateVBargraph(sig, label, x, y, CS(z));
+        } else if (isSigHBargraph(sig, label, x, y, z)) {
+            return generateHBargraph(sig, label, x, y, CS(z));
+        }
+    */
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
     } else if (isSigSoundfileLength(sig, sf, x)) {
@@ -970,8 +980,9 @@ string GraphCompiler::generateCode(Tree sig)
     }
 
     else if (isSigAttach(sig, x, y)) {
-        CS(y);
-        return generateCacheCode(sig, CS(x));
+        string codex = generateCacheCode(sig, CS(x));
+        string codey = CS(y);
+        return codex;
     } else if (isSigEnable(sig, x, y)) {
         return generateEnable(sig, x, y);
     }
@@ -1196,6 +1207,32 @@ string GraphCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, 
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
+/*
+string GraphCompiler::generateInstructionBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+{
+    string varname = getFreshID("fbargraph");
+    fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
+    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+
+    Type t = getCertifiedSigType(sig);
+    switch (t->variability()) {
+        case kKonst:
+            fClass->addInitUICode(subst("$0 = $1;", varname, exp));
+            break;
+
+        case kBlock:
+            fClass->addZone2(subst("$0 = $1;", varname, exp));
+            break;
+
+        case kSamp:
+            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", varname, exp)));
+            break;
+    }
+
+    // return varname;
+    return generateCacheCode(sig, varname);
+}
+*/
 string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
     string varname = getFreshID("fbargraph");

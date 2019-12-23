@@ -87,7 +87,7 @@ Tree SignalSplitter::transformation(Tree sig)
     faustassert(sig);
     int             n;
     double          v;
-    Tree            id, x, y, tbl, tblsize, idx, ridx, wtbl, widx, wsig, itbl, init, gexp;
+    Tree            minv, maxv, label, val, id, x, y, tbl, tblsize, idx, ridx, wtbl, widx, wsig, itbl, init, gexp;
     Type            t   = getCertifiedSigType(sig);
     old_Occurences* occ = fOccMarkup->retrieve(sig);
 
@@ -138,6 +138,16 @@ Tree SignalSplitter::transformation(Tree sig)
             Tree w = self(y);
             return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
         }
+
+    } else if (isSigVBargraph(sig, label, minv, maxv, val) || isSigHBargraph(sig, label, minv, maxv, val)) {
+        // string varname = getFreshID("fbargraph");
+        // fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
+        // addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+        Tree id = uniqueID("fbargraph", sig);
+        fSplittedSignals.insert(sigInstructionBargraphWrite(id, sig, kReal, self(val)));
+        Tree inst = sigInstructionBargraphRead(id, sig, kReal);
+        return inst;
+
     } else if (isSigTable(sig, id, tblsize, init)) {
         // nothing to transform on sigtables, we keep init signal untransformed
         return sig;

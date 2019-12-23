@@ -358,7 +358,9 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 // create a tuple of signals
 Tree sigCartesianProd(Tree s1, Tree s2);
 
+//*****************************************************************************
 // Instructions (signals read and write into memory)
+//*****************************************************************************
 
 Tree sigInstructionDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig);
 bool isSigInstructionDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig);
@@ -390,6 +392,14 @@ bool isSigInstructionControlWrite(Tree s, Tree& id, Tree& origin, int* nature, T
 
 Tree sigInstructionControlRead(Tree id, Tree origin, int nature);
 bool isSigInstructionControlRead(Tree s, Tree& id, Tree& origin, int* nature);
+
+//
+
+Tree sigInstructionBargraphWrite(Tree id, Tree origin, int nature, Tree sig);
+bool isSigInstructionBargraphWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
+
+Tree sigInstructionBargraphRead(Tree id, Tree origin, int nature);
+bool isSigInstructionBargraphRead(Tree s, Tree& id, Tree& origin, int* nature);
 
 /*****************************************************************************
                              FTZ wrapping

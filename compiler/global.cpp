@@ -377,6 +377,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGINSTRUCTIONCONTROLWRITE   = symbol("SigInstructionControlWrite");
     SIGINSTRUCTIONTABLEREAD      = symbol("SigInstructionTableRead");
     SIGINSTRUCTIONTABLEWRITE     = symbol("SigInstructionTableWrite");
+    SIGINSTRUCTIONBARGRAPHREAD   = symbol("SigInstructionBargraphRead");
+    SIGINSTRUCTIONBARGRAPHWRITE  = symbol("SigInstructionBargraphWrite");
     SIMPLETYPE                   = symbol("SimpleType");
     TABLETYPE                    = symbol("TableType");
     TUPLETTYPE                   = symbol("TupletType");

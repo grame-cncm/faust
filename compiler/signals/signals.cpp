@@ -879,7 +879,7 @@ bool isSigInstructionSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tr
 }
 
 /**
- * @brief a control read "instruction"
+ * @brief a shared read "instruction"
  *
  * @param id: unique identifier of the shared signal
  * @return a shared read instruction
@@ -939,6 +939,54 @@ bool isSigInstructionControlRead(Tree s, Tree& id, Tree& origin, int* nature)
 {
     Tree tnat;
     if (isTree(s, gGlobal->SIGINSTRUCTIONCONTROLREAD, id, origin, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//
+
+/**
+ * @brief a bargraph write "instruction"
+ *
+ * @param id: unique identifier of the control signal
+ * @param sig: the control signal
+ * @return a control write instruction
+ */
+Tree sigInstructionBargraphWrite(Tree id, Tree origin, int nature, Tree sig)
+{
+    return tree(gGlobal->SIGINSTRUCTIONBARGRAPHWRITE, id, origin, tree(nature), sig);
+}
+
+bool isSigInstructionBargraphWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONBARGRAPHWRITE, id, origin, tnat, sig)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief a control read "instruction"
+ *
+ * @param id: unique identifier of the control signal
+ * @param nature: kInt or kReal (type of samples)
+ * @return a control read instruction
+ */
+Tree sigInstructionBargraphRead(Tree id, Tree origin, int nature)
+{
+    return tree(gGlobal->SIGINSTRUCTIONBARGRAPHREAD, id, origin, tree(nature));
+}
+
+bool isSigInstructionBargraphRead(Tree s, Tree& id, Tree& origin, int* nature)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONBARGRAPHREAD, id, origin, tnat)) {
         *nature = tree2int(tnat);
         return true;
     } else {

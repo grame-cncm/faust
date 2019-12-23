@@ -208,6 +208,13 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigInstructionControlWrite(x, u, nature, self(y));
     }
 
+    // Read and Write
+    else if (isSigInstructionBargraphRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
+        return sig;
+    } else if (isSigInstructionBargraphWrite(sig, x, u, &nature, y)) {  // x is used as an id, we don't go into it
+        return sigInstructionBargraphWrite(x, u, nature, self(y));
+    }
+
     else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
         return sigInstructionTableWrite(id, origin, nature, dmax, self(init), self(idx), self(exp));
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &tblsize, idx)) {

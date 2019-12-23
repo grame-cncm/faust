@@ -69,6 +69,10 @@ class SignalDependencies : public SignalVisitor {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
+        } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
+            fRoot = id;
+            fGraph.add(fRoot);
+            self(content);
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, exp)) {
             fRoot = id;
             fGraph.add(fRoot);
@@ -107,6 +111,8 @@ class SignalDependencies : public SignalVisitor {
             fGraph.add(fRoot, id);
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
+        } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
+            fGraph.add(fRoot, id);
         } else {
             SignalVisitor::visit(t);
         }
@@ -123,7 +129,8 @@ void Dictionnary::add(Tree sig)
     if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
         isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, content) ||
         isSigInstructionSharedWrite(sig, id, origin, &nature, content) ||
-        isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
+        isSigInstructionControlWrite(sig, id, origin, &nature, content) ||
+        isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
         // cerr << "Dictionnary::add " << id << "@" << *id << endl;  //" := " << ppsig(sig) << endl;
         fDefinitions[id] = sig;
     } else if (isSigOutput(sig, &i, content)) {

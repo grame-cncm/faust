@@ -358,6 +358,15 @@ ostream& ppsig::print(ostream& fout) const
         // fout << *x;
     }
 
+    else if (isSigInstructionBargraphWrite(sig, x, c, &nat, y)) {
+        // fout << "sigInstructionBargraphWrite(" << *x << " := " << ppsig(y) << ")";
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << " " << *x << " :BGW= " << ppsig(y) << ";";
+    } else if (isSigInstructionBargraphRead(sig, x, c, &nat)) {
+        fout << "BargraphRead(" << *x << ")";
+        // fout << *x;
+    }
+
     else {
         cerr << "[[" << *sig << "]]";
     }
