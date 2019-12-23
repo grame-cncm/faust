@@ -15,20 +15,20 @@
  and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 3 of
  the License, or (at your option) any later version.
-
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
+ 
  You should have received a copy of the GNU General Public License
  along with this program; If not, see <http://www.gnu.org/licenses/>.
-
+ 
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
-
+ 
  ************************************************************************
  ************************************************************************/
 
@@ -37,13 +37,13 @@
 #include <iostream>
 #include <list>
 
-#include "faust/audio/alsa-dsp.h"
 #include "faust/dsp/timed-dsp.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/gui/PathBuilder.h"
-#include "faust/gui/QTUI.h"
 #include "faust/misc.h"
+#include "faust/gui/QTUI.h"
+#include "faust/audio/alsa-dsp.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -57,25 +57,25 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/RtMidi.cpp"
 #include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
 #endif
 
 /******************************************************************************
  *******************************************************************************
-
+ 
  VECTOR INTRINSICS
-
+ 
  *******************************************************************************
  *******************************************************************************/
 
-<< includeIntrinsic >>
+<<includeIntrinsic>>
 
-    /********************END ARCHITECTURE SECTION (part 1/2)****************/
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-    /**************************BEGIN USER SECTION **************************/
+/**************************BEGIN USER SECTION **************************/
 
-    << includeclass >>
+<<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
@@ -85,10 +85,10 @@
 #include "faust/dsp/poly-dsp.h"
 #endif
 
-    dsp* DSP;
+dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
-ztimedmap       GUI::gTimedZoneMap;
+ztimedmap GUI::gTimedZoneMap;
 
 static bool hasMIDISync()
 {
@@ -97,25 +97,26 @@ static bool hasMIDISync()
     tmp_dsp->buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
     delete tmp_dsp;
-
+    
     return ((json.find("midi") != std::string::npos) &&
-            ((json.find("start") != std::string::npos) || (json.find("stop") != std::string::npos) ||
-             (json.find("clock") != std::string::npos)));
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
 }
 
 //-------------------------------------------------------------------------
 //                                     MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    char*     name = basename(argv[0]);
-    char char rcfilename[512];
-    char*     home = getenv("HOME");
-    snprintf(rcfilename, 512, "%s/.%src", home, name);
+    char* name = basename (argv [0]);
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
 
 #ifdef POLY
-    int poly  = lopt(argv, "--poly", 4);
+    int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
@@ -149,14 +150,14 @@ int main(int argc, char* argv[])
 
     QApplication myApp(argc, argv);
 
-    QTGUI* interface  = new QTGUI();
-    FUI*   finterface = new FUI();
+    QTGUI* interface = new QTGUI();
+    FUI* finterface = new FUI();
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(finterface);
 
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
-    MidiUI  midiinterface(&midi_handler);
+    MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
@@ -172,9 +173,9 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(oscinterface);
 #endif
 
-    alsaaudio audio(argc, argv, DSP);
+    alsaaudio audio (argc, argv, DSP);
     audio.init(name, DSP);
-    finterface->recallState(rcfilename);
+    finterface->recallState(rcfilename);	
     audio.start();
 
 #ifdef HTTPCTRL
@@ -217,3 +218,4 @@ int main(int argc, char* argv[])
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
+

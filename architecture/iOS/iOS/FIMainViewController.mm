@@ -71,7 +71,7 @@ static void osc_compute_callback(void* arg)
 #endif
 
 MY_Meta metadata;
-char char rcfilename[512 ];
+char rcfilename[256];
 
 int sample_rate = 0;
 int buffer_size = 0;
@@ -230,7 +230,7 @@ int uiCocoaItem::gItemCount = 0;
     // Start OSC
     [self setOSCParameters:oscTransmit output:oscIPOutputText inputport:oscInputPortText outputport:oscOutputPortText];
     
-    snprintf(rcfilename, 512, "%s/Library/Caches/%s", home, _name);
+    snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
     
     [self updateGui];

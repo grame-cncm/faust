@@ -1613,9 +1613,9 @@ int main(int argc, char *argv[] )
 {
 	UI* interface = new GTKUI(argv[0], &argc, &argv);
     // compute rcfilename to (re)store application state
-    char    char rcfilename[512 ];
+    char    rcfilename[256];
     char*   home = getenv("HOME");
-    snprintf(rcfilename, 512, "%s/.%src", home, basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
 	
 	AudioInterface	audio (
 		AudioParam().frequency(lopt(argv, "--frequency", 44100)) 
