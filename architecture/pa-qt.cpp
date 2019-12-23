@@ -15,33 +15,33 @@
  and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 3 of
  the License, or (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
+
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
- 
+
  ************************************************************************
  ************************************************************************/
 
 #include <libgen.h>
 #include <iostream>
 
+#include "faust/audio/portaudio-dsp.h"
 #include "faust/dsp/timed-dsp.h"
-#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/QTUI.h"
 #include "faust/misc.h"
-#include "faust/audio/portaudio-dsp.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -55,25 +55,25 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+#include "faust/midi/rt-midi.h"
 #endif
 
 /******************************************************************************
  *******************************************************************************
- 
+
  VECTOR INTRINSICS
- 
+
  *******************************************************************************
  *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
 /***************************END USER SECTION ***************************/
 
@@ -82,18 +82,18 @@
 #include "faust/dsp/poly-dsp.h"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.h"
+#include "faust/dsp/dsp-combiner.h"
 #endif
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-dsp* DSP;
+    dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+ztimedmap       GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -105,38 +105,39 @@ ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
-    char name[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-    bool midi_sync = false;
-    int nvoices = 0;
-    bool control = true;
-    mydsp_poly* dsp_poly = NULL;
-    
+    char        name[256];
+    char        rcfilename[258];
+    char*       home      = getenv("HOME");
+    bool        midi_sync = false;
+    int         nvoices   = 0;
+    bool        control   = true;
+    mydsp_poly* dsp_poly  = NULL;
+
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
 
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
-    
+
     if (isopt(argv, "-h")) {
-        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <num>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <num>] [--control <0/1>] [--group <0/1>] "
+                     "[--virtual-midi <0/1>]\n";
         exit(1);
     }
 
-    long srate = (long)lopt(argv, "--frequency", 44100);
-    int fpb = lopt(argv, "--buffer", 128);
+    long srate      = (long)lopt(argv, "--frequency", 44100);
+    int  fpb        = lopt(argv, "--buffer", 128);
     bool is_virtual = lopt(argv, "--virtual-midi", false);
-     
+
 #ifdef POLY2
-    nvoices = lopt(argv, "--nvoices", nvoices);
-    control = lopt(argv, "--control", control);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
+    control   = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
-    
+
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
-    
+
 #if MIDICTRL
     if (midi_sync) {
         DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
@@ -146,13 +147,13 @@ int main(int argc, char* argv[])
 #else
     DSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
-    
+
 #else
-    nvoices = lopt(argv, "--nvoices", nvoices);
-    control = lopt(argv, "--control", control);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
+    control   = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     std::cout << "nvoices  " << nvoices << " voices\n";
-    
+
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
@@ -165,7 +166,7 @@ int main(int argc, char* argv[])
 #else
         DSP = dsp_poly;
 #endif
-        
+
     } else {
 #if MIDICTRL
         if (midi_sync) {
@@ -185,9 +186,9 @@ int main(int argc, char* argv[])
         DSP = new mydsp();
 #endif
     }
-    
+
 #endif
-    
+
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
@@ -195,8 +196,8 @@ int main(int argc, char* argv[])
 
     QApplication myApp(argc, argv);
 
-    QTGUI* interface = new QTGUI();
-    FUI* finterface	= new FUI();
+    QTGUI* interface  = new QTGUI();
+    FUI*   finterface = new FUI();
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(finterface);
 
@@ -226,7 +227,11 @@ int main(int argc, char* argv[])
 
     std::cout << "ins " << audio.getNumInputs() << std::endl;
     std::cout << "outs " << audio.getNumOutputs() << std::endl;
-    
+
+
+
+
+
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL

@@ -15,20 +15,20 @@
  and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 3 of
  the License, or (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
+
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
- 
+
  ************************************************************************
  ************************************************************************/
 
@@ -37,13 +37,13 @@
 #include <iostream>
 #include <list>
 
+#include "faust/audio/jack-dsp.h"
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/FUI.h"
-#include "faust/gui/PrintUI.h"
-#include "faust/misc.h"
 #include "faust/gui/GTKUI.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/audio/jack-dsp.h"
+#include "faust/gui/PrintUI.h"
+#include "faust/misc.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -65,8 +65,8 @@ static void osc_compute_callback(void* arg)
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+#include "faust/midi/rt-midi.h"
 #endif
 
 #ifdef OCVCTRL
@@ -75,19 +75,19 @@ static void osc_compute_callback(void* arg)
 
 /******************************************************************************
  *******************************************************************************
- 
+
  VECTOR INTRINSICS
- 
+
  *******************************************************************************
  *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
 /***************************END USER SECTION ***************************/
 
@@ -96,48 +96,48 @@ static void osc_compute_callback(void* arg)
 #include "faust/dsp/poly-dsp.h"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.h"
+#include "faust/dsp/dsp-combiner.h"
 #endif
 
-dsp* DSP;
+    dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+ztimedmap       GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-    char name[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-    bool midi_sync = false;
-    int nvoices = 0;
-    bool control = true;
-    mydsp_poly* dsp_poly = NULL;
-    
+    char        name[256];
+    char        rcfilename[512];
+    char*       home      = getenv("HOME");
+    bool        midi_sync = false;
+    int         nvoices   = 0;
+    bool        control   = true;
+    mydsp_poly* dsp_poly  = NULL;
+
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-    
+
     snprintf(name, 256, "%s", basename(argv[0]));
-    snprintf(rcfilename, 256, "%s/.%src", home, name);
-    
+    snprintf(rcfilename, 512, "%s/.%src", home, name);
+
     if (isopt(argv, "-h")) {
         std::cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
         exit(1);
     }
-    
+
 #ifdef POLY2
-    nvoices = lopt(argv, "--nvoices", nvoices);
-    control = lopt(argv, "--control", control);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
+    control   = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
-    
+
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
-    
+
 #if MIDICTRL
     if (midi_sync) {
         DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
@@ -147,16 +147,16 @@ int main(int argc, char* argv[])
 #else
     DSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
-    
+
 #else
-    nvoices = lopt(argv, "--nvoices", nvoices);
-    control = lopt(argv, "--control", control);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
+    control   = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
-    
+
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
-        
+
 #if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(dsp_poly);
@@ -178,14 +178,14 @@ int main(int argc, char* argv[])
 #endif
     }
 #endif
-    
+
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
-    
+
     GTKUI interface(name, &argc, &argv);
-    FUI finterface;
+    FUI   finterface;
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 #ifdef HTTPCTRL
@@ -193,13 +193,13 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
 #endif
-    
+
 #ifdef OCVCTRL
     OCVUI ocvinterface;
     DSP->buildUserInterface(&ocvinterface);
     std::cout << "OCVCTRL defined" << std::endl;
 #endif
-    
+
 #ifdef MIDICTRL
     jackaudio_midi audio;
     audio.init(name, DSP);
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
     jackaudio audio;
     audio.init(name, DSP);
 #endif
-    
+
 // After audio init to get SR
 #if SOUNDFILE
     SoundUI soundinterface("", audio.getSampleRate());
@@ -223,10 +223,10 @@ int main(int argc, char* argv[])
     std::cout << "OSC is on" << std::endl;
     audio.addControlCallback(osc_compute_callback, &oscinterface);
 #endif
-    
+
 #ifdef MIDICTRL
     bool rtmidi = isopt(argv, "--rtmidi");
-    
+
     MidiUI* midiinterface;
     if (rtmidi) {
         rt_midi midi_handler(name);
@@ -238,39 +238,38 @@ int main(int argc, char* argv[])
         audio.addMidiIn(dsp_poly);
         printf("JACK MIDI is used\n");
     }
-    
+
     DSP->buildUserInterface(midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
-    
+
     audio.start();
-    
+
 #ifdef HTTPCTRL
     httpdinterface.run();
 #endif
-    
+
 #ifdef OCVCTRL
     ocvinterface.run();
 #endif
-    
+
 #ifdef OSCCTRL
     oscinterface.run();
 #endif
-    
+
     // After the allocation of controllers
     finterface.recallState(rcfilename);
     /* call run all GUI instances */
     GUI::runAllGuis();
-    
+
     audio.stop();
     finterface.saveState(rcfilename);
-    
+
 #ifdef MIDICTRL
     midiinterface->stop();
 #endif
-    
+
     return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
