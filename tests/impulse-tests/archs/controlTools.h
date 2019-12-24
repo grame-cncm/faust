@@ -13,7 +13,6 @@
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/channels.h"
-#include "faust/audio/fpe.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/MidiUI.h"
@@ -29,32 +28,6 @@ using namespace std;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
-
-//----------------------------------------------------------------------------
-// me_dsp:  A decorator to check math exceptions
-//----------------------------------------------------------------------------
-
-class me_dsp : public decorator_dsp {
-    
-    public:
-    
-        me_dsp(dsp* dsp):decorator_dsp(dsp) {}
-        
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            TRY_FPE
-            fDSP->compute(count, inputs, outputs);
-            CATCH_FPE
-        }
-        
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            TRY_FPE
-            fDSP->compute(date_usec, count, inputs, outputs);
-            CATCH_FPE
-        }
-  
-};
 
 //----------------------------------------------------------------------------
 // Test MemoryReader

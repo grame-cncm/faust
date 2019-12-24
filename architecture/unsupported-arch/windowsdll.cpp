@@ -45,6 +45,7 @@
 using namespace std;
 
 #include "faust/gui/GUI.h"
+#include "faust/gui/meta.h"
 #include "faust/misc.h"
 #include "faust/dsp/dsp.h"
 
@@ -70,13 +71,23 @@ using namespace std;
 
 #define EXPORT __declspec(dllexport)
 
-extern "C" EXPORT dsp* newDsp() 									{ return new mydsp(); }
-extern "C" EXPORT void EXPORT deleteDsp(dsp* self) 					{ delete self; }
+extern "C" EXPORT dsp* newDsp() { return new mydsp(); }
+extern "C" EXPORT void EXPORT deleteDsp(dsp* self) { delete self; }
 
-extern "C" EXPORT int getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
-extern "C" EXPORT int getNumOutputs(dsp* self) 						{ return self->getNumOutputs(); }
-extern "C" EXPORT void buildUserInterface(dsp* self,UI* interface) 	{ self->buildUserInterface(interface); }
-extern "C" EXPORT void init(dsp* self, int freq) 					{ self->init(freq); }
-extern "C" EXPORT void compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
+extern "C" EXPORT int getNumInputs(dsp* self) { return self->getNumInputs(); }
+extern "C" EXPORT int getNumOutputs(dsp* self) { return self->getNumOutputs(); }
+
+extern "C" EXPORT void buildUserInterface(dsp* self, UI* interface) { self->buildUserInterface(interface); }
+
+extern "C" EXPORT void init(dsp* self, int sample_rate) { self->init(sample_rate); }
+extern "C" EXPORT void instanceInit(dsp* self, int sample_rate) { self->instanceInit(sample_rate); }
+extern "C" EXPORT void instanceConstants(dsp* self, int sample_rate) { self->instanceConstants(sample_rate); }
+extern "C" EXPORT void instanceClear(dsp* self) { self->instanceClear(); }
+
+extern "C" EXPORT dsp* clone(dsp* self) { return self->clone(); }
+
+extern "C" EXPORT void metadata(dsp* self, Meta* m) { return self->metadata(m); }
+
+extern "C" EXPORT void compute(dsp* self, int count, float** inputs, float** outputs) { self->compute(count, inputs, outputs); }
 
 /***END ARCHITECTURE SECTION (part 2/2)****************/

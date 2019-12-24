@@ -208,8 +208,7 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
 void LLVMCodeContainer::produceInternal()
 {
     // Generate DSP structure
-    llvm::PointerType* dsp_ptr = generateDspStruct();
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
 
     /// Memory methods
     generateCalloc()->accept(fCodeProducer);
@@ -233,8 +232,8 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Sub containers
     generateSubContainers();
 
-    llvm::PointerType* dsp_ptr = generateDspStruct();
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
+    // Generate DSP structure
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
 
     generateFunMaps();
 
@@ -260,9 +259,9 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Link LLVM modules defined in 'ffunction'
     set<string> S;
-    string      error;
-
     collectLibrary(S);
+    string error;
+    
     if (S.size() > 0) {
         for (auto& f : S) {
             string module_name = unquote(f);

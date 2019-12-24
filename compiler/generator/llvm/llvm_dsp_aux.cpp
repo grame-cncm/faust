@@ -839,7 +839,7 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
 
 EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
 {
-    return (dsp) ? dsp->clone() : 0;
+    return (dsp) ? dsp->clone() : nullptr;
 }
 
 EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
@@ -851,7 +851,7 @@ EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {
-    return (factory) ? factory->createDSPInstance() : 0;
+    return (factory) ? factory->createDSPInstance() : nullptr;
 }
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)

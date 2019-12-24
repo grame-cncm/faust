@@ -1,7 +1,7 @@
 /************************** BEGIN dsp-checker.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -29,6 +29,11 @@
 #include <cmath>
 
 #include "faust/dsp/dsp.h"
+#include "faust/audio/fpe.h"
+
+//----------------------------------------------------------------------------
+// dsp_checker: a DSP decorator to check math SUBNORMAL, INFINITE, NAN
+//----------------------------------------------------------------------------
 
 class dsp_checker : public decorator_dsp
 {
@@ -48,7 +53,7 @@ class dsp_checker : public decorator_dsp
                         fFP_NAN++;
                     } else if (std::isinf(value)) {
                         fFP_INFINITE++;
-                    } else if (std::fpclassify(val) == FP_SUBNORMAL) {
+                    } else if (std::fpclassify(value) == FP_SUBNORMAL) {
                         fFP_SUBNORMAL++;
                     }
                 }
@@ -57,12 +62,8 @@ class dsp_checker : public decorator_dsp
     
     public:
     
-        dsp_checker(dsp* dsp):decorator_dsp(dsp)
-        {
-            fFP_SUBNORMAL = 0;
-            fFP_INFINITE = 0;
-            fFP_NAN = 0;
-        }
+        dsp_checker(dsp* dsp):decorator_dsp(dsp), fFP_SUBNORMAL(0), fFP_INFINITE(0), fFP_NAN(0)
+        {}
     
         virtual ~dsp_checker() {}
     
@@ -79,12 +80,36 @@ class dsp_checker : public decorator_dsp
     
         void printStats()
         {
-            std::cout << "-------------------------------"<< std::endl;
+            std::cout << "-------------------------------" << std::endl;
             std::cout << "FP_SUBNORMAL: " << fFP_SUBNORMAL << std::endl;
             std::cout << "FP_INFINITE: " << fFP_INFINITE << std::endl;
             std::cout << "FP_NAN: " << fFP_NAN << std::endl;
-            std::cout << "-------------------------------"<< std::endl;
+            std::cout << "-------------------------------" << std::endl;
         }
+    
+};
+
+//----------------------------------------------------------------------------
+// dsp_me: a DSP decorator to check math exceptions
+//----------------------------------------------------------------------------
+
+struct dsp_me : public decorator_dsp {
+    
+    dsp_me(dsp* dsp):decorator_dsp(dsp) {}
+    
+    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        TRY_FPE
+        fDSP->compute(count, inputs, outputs);
+        CATCH_FPE
+    }
+    
+    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        TRY_FPE
+        fDSP->compute(date_usec, count, inputs, outputs);
+        CATCH_FPE
+    }
     
 };
 
