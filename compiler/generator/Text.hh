@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -54,6 +55,7 @@ string quote(const string& s);
 
 void   tab(int n, ostream& fout);
 void   printlines(int n, list<string>& lines, ostream& fout, string sep = "");
+void   printlines(int n, set<string>& lines, ostream& fout, string sep = "");
 string rmWhiteSpaces(const string& s);
 
 inline string checkFloat(float val)

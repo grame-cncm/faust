@@ -68,7 +68,7 @@ class Klass  //: public Target
 
     list<Klass*> fSubClassList;
 
-    list<string> fDeclCode;
+    set<string>  fDeclCode;           ///< was list, transformed into a set to avoid multiple declarations
     list<string> fStaticInitCode;     ///< static init code for class constant tables
     list<string> fStaticDestroyCode;  ///< static destroy code for class constant tables
     list<string> fStaticFields;       ///< static fields after class
@@ -155,7 +155,7 @@ class Klass  //: public Target
 
     void addSubKlass(Klass* son) { fSubClassList.push_back(son); }
 
-    void addDeclCode(const string& str) { fDeclCode.push_back(str); }
+    void addDeclCode(const string& str) { fDeclCode.insert(str); }
 
     void addInitCode(const string& str) { fInitCode.push_back(str); }
     void addInitUICode(const string& str) { fInitUICode.push_back(str); }

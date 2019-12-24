@@ -274,6 +274,20 @@ void printlines(int n, list<string>& lines, ostream& fout, string sep)
     }
 }
 
+void printlines(int n, set<string>& lines, ostream& fout, string sep)
+{
+    set<string>::iterator s;
+    for (s = lines.begin(); s != lines.end(); s++) {
+        if (s == lines.begin()) {
+            tab(n, fout);
+            fout << *s;  // No separator before first one
+        } else {
+            tab(n, fout);
+            fout << sep << *s;
+        }
+    }
+}
+
 /**
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
  * (but not those in the middle of the string)
