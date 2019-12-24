@@ -72,7 +72,7 @@ class CommonSubexpr : public SignalIdentity {
         if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) &&
             !(isSigInstructionControlRead(sig, id, origin, &nature)) && !(isSigTime(sig)) &&
             !(isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) &&
-            !(isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx))) {
+            !(isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) && !(isSigGen(sig))) {
             Tree r = SignalIdentity::transformation(sig);
             // if (isSigInstructionTableRead(r, id, origin, &nature, &dmin, idx)) {
             //     cerr << "SPECIAL RETURN CASE " << ppsig(r) << endl;
