@@ -383,8 +383,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -707,7 +709,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         // We compile
         Tree sig = S.fDic[instr];
 
-        Tree id, origin, content, init, idx;
+        Tree id, origin, content, init, initval, idx;
         int  i, nature, dmax, tblsize;
 
         if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
@@ -716,13 +718,19 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
             K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
 
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
-            Type ty = getSimpleType(content);
-            Type tz = getSimpleType(idx);
+            Type   ty = getSimpleType(content);
+            Type   tz = getSimpleType(idx);
+            int    ival;
+            double rval;
 
             string vname{tree2str(id)};
             K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
-            if (isZero(init)) {
-                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
+            // cerr << "init is " << ppsig(init) << endl;
+            faustassert(isSigGen(init, initval));
+            if (isSigInt(initval, &ival)) {
+                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = $2;", vname, T(tblsize), T(ival)));
+            } else if (isSigReal(initval, &rval)) {
+                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = $2;", vname, T(tblsize), T(rval)));
             } else {
                 // cerr << "Table init needed here for " << *id << endl;
             }
