@@ -117,9 +117,13 @@ set<Tree> splitCommonSubexpr(const set<Tree>& I)
  */
 void addOccurrences(map<Tree, int>& O, Tree e)
 {
-    int n = ++O[e];
-    if (n == 1) {
-        // first occurrence of e, we visit its subexpressions
+    Tree id, origin, idx;
+    int  nature, dmin;
+    int  n = ++O[e];
+
+    if ((n == 1) || isSigInstructionTableRead(e, id, origin, &nature, &dmin, idx)) {
+        // first occurrence of e or e is tableRead (tableread are not cached)
+        // we visit its subexpressions
         tvec S;
         getSubSignals(e, S, false);
         for (Tree f : S) addOccurrences(O, f);
