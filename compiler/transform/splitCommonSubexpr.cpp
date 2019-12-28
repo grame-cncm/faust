@@ -77,7 +77,7 @@ class CommonSubexpr : public SignalIdentity {
             // if (isSigInstructionTableRead(r, id, origin, &nature, &dmin, idx)) {
             //     cerr << "SPECIAL RETURN CASE " << ppsig(r) << endl;
             // }
-            Tree id = uniqueID("V", sig);
+            Tree id = (nature == kInt) ? uniqueID("iVar", sig) : uniqueID("fVar", sig);
             fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, t->nature(), r));
             Tree inst = sigInstructionSharedRead(id, sig, t->nature());
             return inst;
