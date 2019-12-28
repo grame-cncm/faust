@@ -60,6 +60,18 @@ class CommonSubexpr : public SignalIdentity {
     explicit CommonSubexpr(const map<Tree, int>& occ) : fOcc(occ) {}
 
    protected:
+    bool needCache(Tree sig)
+    {
+        Tree   id, origin, dl, idx;
+        int    nature, i, dmax, dmin;
+        double r;
+        Tree   label, minv, maxv, val;
+        return /*!(isSigInput(sig, &i)) && */ !isSigInstructionControlRead(sig, id, origin, &nature) &&
+               !isSigTime(sig) && !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
+               !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) && !isSigGen(sig) &&
+               !isSigInt(sig, &i) && !isSigReal(sig, &r);
+    }
+
     Tree transformation(Tree sig) override
     {
         faustassert(sig);
@@ -69,10 +81,7 @@ class CommonSubexpr : public SignalIdentity {
         int  nature, i, dmax, dmin;
         Tree label, minv, maxv, val;
 
-        if ((n > 1) && (t->variability() >= kSamp) && !(isSigInput(sig, &i)) &&
-            !(isSigInstructionControlRead(sig, id, origin, &nature)) && !(isSigTime(sig)) &&
-            !(isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) &&
-            !(isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) && !(isSigGen(sig))) {
+        if ((n > 1) && (t->variability() >= kSamp) && needCache(sig)) {
             Tree r = SignalIdentity::transformation(sig);
             // if (isSigInstructionTableRead(r, id, origin, &nature, &dmin, idx)) {
             //     cerr << "SPECIAL RETURN CASE " << ppsig(r) << endl;
