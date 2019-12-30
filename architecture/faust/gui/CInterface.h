@@ -46,7 +46,7 @@ struct Soundfile;
 typedef void (* openTabBoxFun) (void* ui_interface, const char* label);
 typedef void (* openHorizontalBoxFun) (void* ui_interface, const char* label);
 typedef void (* openVerticalBoxFun) (void* ui_interface, const char* label);
-typedef void (*closeBoxFun) (void* ui_interface);
+typedef void (* closeBoxFun) (void* ui_interface);
 
 // -- active widgets
 

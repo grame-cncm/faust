@@ -45,9 +45,10 @@
 //  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
 
-#define REAL_UI(ui_interface)  reinterpret_cast<UIReal<REAL>*>(ui_interface)
-#define REAL_ADR(offset)       reinterpret_cast<REAL*>(&memory_block[offset])
-#define SOUNDFILE_ADR(offset)  reinterpret_cast<Soundfile**>(&memory_block[offset])
+#define REAL_UI(ui_interface) reinterpret_cast<UIReal<REAL>*>(ui_interface)
+#define REAL_ADR(offset)      reinterpret_cast<REAL*>(&memory_block[offset])
+#define REAL_EXT_ADR(offset)  reinterpret_cast<FAUSTFLOAT*>(&memory_block[offset])
+#define SOUNDFILE_ADR(offset) reinterpret_cast<Soundfile**>(&memory_block[offset])
 
 typedef std::function<void(double)> ReflectFunction;
 typedef std::function<double()> ModifyFunction;
@@ -399,7 +400,72 @@ struct JSONUIDecoderAux {
     
     void buildUserInterface(UIGlue* ui_interface, char* memory_block)
     {
-        // TODO
+        // MANDATORY: to be sure floats or double are correctly parsed
+        char* tmp_local = setlocale(LC_ALL, nullptr);
+        if (tmp_local != NULL) {
+            tmp_local = strdup(tmp_local);
+        }
+        setlocale(LC_ALL, "C");
+        
+        for (auto& it : fUiItems) {
+            
+            std::string type = it.type;
+            int offset = it.index;
+            REAL init = REAL(it.init);
+            REAL min = REAL(it.min);
+            REAL max = REAL(it.max);
+            REAL step = REAL(it.step);
+            
+            // Meta data declaration for input items
+            if (isInput(type)) {
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    ui_interface->declare(ui_interface->uiInterface, REAL_EXT_ADR(offset), it.meta[i].first.c_str(), it.meta[i].second.c_str());
+                }
+            }
+            // Meta data declaration for output items
+            else if (isOutput(type)) {
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    ui_interface->declare(ui_interface->uiInterface, REAL_EXT_ADR(offset), it.meta[i].first.c_str(), it.meta[i].second.c_str());
+                }
+            }
+            // Meta data declaration for group opening or closing
+            else {
+                for (size_t i = 0; i < it.meta.size(); i++) {
+                    ui_interface->declare(ui_interface->uiInterface, 0, it.meta[i].first.c_str(), it.meta[i].second.c_str());
+                }
+            }
+            
+            if (type == "hgroup") {
+                ui_interface->openHorizontalBox(ui_interface->uiInterface, it.label.c_str());
+            } else if (type == "vgroup") {
+                ui_interface->openVerticalBox(ui_interface->uiInterface, it.label.c_str());
+            } else if (type == "tgroup") {
+                ui_interface->openTabBox(ui_interface->uiInterface, it.label.c_str());
+            } else if (type == "vslider") {
+                ui_interface->addVerticalSlider(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset), init, min, max, step);
+            } else if (type == "hslider") {
+                ui_interface->addHorizontalSlider(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset), init, min, max, step);
+            } else if (type == "checkbox") {
+                ui_interface->addCheckButton(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset));
+            } else if (type == "soundfile") {
+                ui_interface->addSoundfile(ui_interface->uiInterface, it.label.c_str(), it.url.c_str(), SOUNDFILE_ADR(offset));
+            } else if (type == "hbargraph") {
+                ui_interface->addHorizontalBargraph(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset), min, max);
+            } else if (type == "vbargraph") {
+                ui_interface->addVerticalBargraph(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset), min, max);
+            } else if (type == "nentry") {
+                ui_interface->addNumEntry(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset), init, min, max, step);
+            } else if (type == "button") {
+                ui_interface->addButton(ui_interface->uiInterface, it.label.c_str(), REAL_EXT_ADR(offset));
+            } else if (type == "close") {
+                ui_interface->closeBox(ui_interface->uiInterface);
+            }
+        }
+        
+        if (tmp_local != NULL) {
+            setlocale(LC_ALL, tmp_local);
+            free(tmp_local);
+        }
     }
     
     bool hasCompileOption(const std::string& option)
