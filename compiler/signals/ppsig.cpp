@@ -320,10 +320,11 @@ ostream& ppsig::print(ostream& fout) const
     else if (isSigInstructionDelayLineWrite(sig, x, c, &nat, &dmax, y)) {
         // fout << "sigInstructionDelayLineWrite(" << *x << '[' << i << ']' << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
-        fout << tname << '[' << dmax << "] " << *x << " := " << ppsig(y) << ";";
+        fout << tname << '<' << dmax << ">" << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionDelayLineRead(sig, x, c, &nat, &dmax, &dmin, y)) {
         // fout << "sigInstructionDelayLineRead(" << *x << '<' << i << '>' << ", " << ppsig(y) << ")";
-        fout << *x << "<" << dmax << ">@[" << ppsig(y) << "]";
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << '<' << dmax << ">" << *x << "@[" << dmin << "|" << ppsig(y) << "]";
     }
 
     else if (isSigInstructionTableWrite(sig, id, origin, &nat, &tblsize, init, idx, exp)) {
