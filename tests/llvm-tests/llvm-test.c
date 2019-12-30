@@ -33,6 +33,85 @@ static bool isopt(char* argv[], const char* name)
     return false;
 }
 
+static void meta_declare(void *iface __unused, const char *key, const char *val)
+{
+    printf("meta_declare %s, %s\n", key, val);
+}
+
+static void ui_open_tab_box(void* iface __unused, const char* label)
+{
+    printf("ui_open_tab_box %s \n", label);
+}
+
+static void ui_open_horizontal_box(void* iface __unused, const char* label)
+{
+    printf("ui_open_horizontal_box %s \n", label);
+}
+
+static void ui_open_vertical_box(void* iface __unused, const char* label)
+{
+    printf("ui_open_vertical_box %s \n", label);
+}
+
+static void ui_close_box(void* iface __unused)
+{
+    printf("ui_close_box\n");
+}
+
+static void ui_add_button(void* iface __unused, const char* label, FAUSTFLOAT* zone)
+{
+     printf("ui_add_button %s \n", label);
+}
+
+static void ui_add_check_button(void* iface __unused, const char* label, FAUSTFLOAT* zone)
+{
+    printf("ui_add_check_button %s \n", label);
+}
+
+static void ui_add_vertical_slider(void* iface __unused, const char* label,
+                                   FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                   FAUSTFLOAT max, FAUSTFLOAT step)
+{
+    printf("ui_add_vertical_slider %s %f %f %f %f\n", label, init, min, max, step);
+}
+
+static void ui_add_horizontal_slider(void *iface __unused, const char *label,
+                                     FAUSTFLOAT *zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                     FAUSTFLOAT max, FAUSTFLOAT step)
+{
+    printf("ui_add_vertical_slider %s %f %f %f %f\n", label, init, min, max, step);
+}
+
+static void ui_add_num_entry(void* iface __unused, const char* label,
+                             FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                             FAUSTFLOAT max, FAUSTFLOAT step)
+{
+    printf("ui_add_num_entry %s %f %f %f %f\n", label, init, min, max, step);
+}
+
+static void ui_add_horizontal_bargraph(void* iface __unused, const char* label,
+                                       FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+{
+    printf("ui_add_horizontal_bargraph %s %f %f\n", label, min, max);
+}
+
+static void ui_add_vertical_bargraph(void* iface __unused, const char* label,
+                                     FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+{
+    printf("ui_add_horizontal_bargraph %s %f %f\n", label, min, max);
+}
+
+static void ui_add_sound_file(void* iface __unused, const char* label __unused,
+                              const char* filename __unused, struct Soundfile** sf_zone __unused)
+{
+}
+
+static void ui_declare(void *iface, FAUSTFLOAT *zone __unused,
+                       const char *key, const char *val)
+{
+    printf("ui_declare %s, %s\n", key, val);
+}
+
 int main(int argc, const char** argv)
 {
     if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help")) {
@@ -46,9 +125,18 @@ int main(int argc, const char** argv)
     argv1[argc1] = 0;
     
     char err[4096];
-    llvm_dsp_factory* factory = createCDSPFactoryFromString("score",
-                                           "process = +;",
-                                           argc1, argv1, "", err, -1);
+    const char* code =
+        "import(\"stdfaust.lib\");\n"
+        "\n"
+        "f0 = hslider(\"[foo:bar]f0\", 110, 110, 880, 1);\n"
+        "\n"
+        "n = 2;\n"
+        "\n"
+        "inst = par(i, n, os.oscs(f0 * (n+i) / n)) :> /(n);\n"
+        "\n"
+        "process = inst, inst;\n";
+    
+    llvm_dsp_factory* factory = createCDSPFactoryFromString("score", code, argc1, argv1, "", err, -1);
     if (!factory) {
         printf("Cannot create factory : %s\n", err);
         exit(EXIT_FAILURE);
@@ -60,6 +148,33 @@ int main(int argc, const char** argv)
         } else {
             printf("getNumInputs : %d\n", getNumInputsCDSPInstance(dsp));
             printf("getNumOutputs : %d\n", getNumOutputsCDSPInstance(dsp));
+            
+            MetaGlue mglue = {
+                .metaInterface = NULL,
+                .declare = meta_declare
+            };
+            
+            metadataCDSPInstance(dsp, &mglue);
+            
+            UIGlue uglue = {
+                .uiInterface = NULL,
+                .openTabBox = ui_open_tab_box,
+                .openHorizontalBox = ui_open_horizontal_box,
+                .openVerticalBox = ui_open_vertical_box,
+                .closeBox = ui_close_box,
+                .addButton = ui_add_button,
+                .addCheckButton = ui_add_check_button,
+                .addVerticalSlider = ui_add_vertical_slider,
+                .addHorizontalSlider = ui_add_horizontal_slider,
+                .addNumEntry = ui_add_num_entry,
+                .addHorizontalBargraph = ui_add_horizontal_bargraph,
+                .addVerticalBargraph = ui_add_vertical_bargraph,
+                .addSoundfile = ui_add_sound_file,
+                .declare = ui_declare
+            };
+            
+            buildUserInterfaceCDSPInstance(dsp, &uglue);
+            
             // Cleanup
             deleteCDSPInstance(dsp);
             deleteCDSPFactory(factory);
