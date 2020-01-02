@@ -395,17 +395,40 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
     for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
     for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
 
-    // b) for the sample level graph we have (probably) cycles
-    digraph<digraph<Tree>> DG = graph2dag(E);
-    vector<digraph<Tree>>  VG = serialize(DG);
-    for (digraph<Tree> g : VG) {
-        vector<Tree> v = serialize(cut(g, 1));
+    if (gGlobal->gCodeMode == 0) {
+        // b) for the sample level graph we have (probably) cycles
+        digraph<digraph<Tree>> DG = graph2dag(E);
+        vector<digraph<Tree>>  VG = serialize(DG);
+        for (digraph<Tree> g : VG) {
+            vector<Tree> v = serialize(cut(g, 1));
+            for (Tree i : v) {
+                S.fExecLevel.push_back(i);
+            }
+        }
+
+        cerr << "Schedule 0 is \n" << S << endl;
+        return S;
+
+    } else if (gGlobal->gCodeMode == 1) {
+        // If we cut all connexions > 0 we should not have any cycles
+        vector<Tree> v = serialize(cut(E, 1));
         for (Tree i : v) {
             S.fExecLevel.push_back(i);
         }
-    }
 
-    return S;
+        cerr << "Schedule 1 is \n" << S << endl;
+        return S;
+
+    } else /*if (gGlobal->gCodeMode == 2) */ {
+        // If we cut all connexions > 0 we should not have any cycles
+        vector<vector<Tree>> P = parallelize(cut(E, 1));
+        for (auto l : P) {
+            for (Tree i : l) S.fExecLevel.push_back(i);
+        }
+
+        cerr << "Schedule 2 is \n" << S << endl;
+        return S;
+    }
 }
 
 /*****************************************************************************
@@ -1586,20 +1609,6 @@ int GraphCompiler::pow2limit(int x)
         n = 2 * n;
     }
     return n;
-}
-
-/**
- * Generate code for a unique IOTA variable increased at each sample
- * and used to index ring buffers.
- */
-void GraphCompiler::ensureIotaCode()
-{
-    if (!fHasIota) {
-        fHasIota = true;
-        fClass->addDeclCode("int \tIOTA;");
-        fClass->addClearCode("IOTA = 0;");
-        fClass->addPostCode(Statement("", "IOTA = IOTA+1;"));
-    }
 }
 
 /*****************************************************************************

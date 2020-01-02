@@ -121,6 +121,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
+    gCodeMode          = 0;
 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
@@ -588,22 +589,22 @@ void global::printCompilationOptions(ostream& dst, bool backend)
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
             << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     } else if (gVectorSwitch) {
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     } else if (gOpenMPSwitch) {
         dst << "-omp"
             << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     } else {
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
-            << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
+            << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     }
 }
 

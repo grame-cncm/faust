@@ -420,6 +420,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVecSize = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-cm", "--code-mode") && (i + 1 < argc)) {
+            gGlobal->gCodeMode = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i + 1 < argc)) {
             gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
@@ -830,6 +834,7 @@ static void printHelp()
          << "-inpl      --in-place                   generates code working when input and output buffers are the same "
             "(scalar mode only)."
          << endl;
+    cout << tab << "-cm        --code-mode <n>              'ocpp' scheduling mode." << endl;
     cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;

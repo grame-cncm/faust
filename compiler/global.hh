@@ -121,6 +121,7 @@ struct global {
     bool gDeepFirstSwitch;
     int  gVecSize;
     int  gVectorLoopVariant;
+    int  gCodeMode;
 
     bool gOpenMPSwitch;
     bool gOpenMPLoop;
