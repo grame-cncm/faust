@@ -510,36 +510,6 @@ string GraphCompiler::setCompiledExpression(Tree sig, const string& cexp)
     return cexp;
 }
 
-/*****************************************************************************
- vector name property
- *****************************************************************************/
-
-/**
- * Set the vector name property of a signal, the name of the vector used to
- * store the previous values of the signal to implement a delay.
- * @param sig the signal expression.
- * @param vecname the string representing the vector name.
- * @return true is already compiled
- */
-void GraphCompiler::setVectorNameProperty(Tree sig, const string& vecname)
-{
-    faustassert(vecname.size() > 0);
-    fVectorProperty.set(sig, vecname);
-}
-
-/**
- * Get the vector name property of a signal, the name of the vector used to
- * store the previous values of the signal to implement a delay.
- * @param sig the signal expression.
- * @param vecname the string where to store the vector name.
- * @return true if the signal has this property, false otherwise
- */
-
-bool GraphCompiler::getVectorNameProperty(Tree sig, string& vecname)
-{
-    return fVectorProperty.get(sig, vecname);
-}
-
 /**
  * Compile a signal
  * @param sig the signal expression to compile.
@@ -594,59 +564,56 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 
             // get the init expression (how to compute the initial content of the table) of table id
             Tree init;
-            faustassert(fTableInitExpression.get(id, init));  //
 
-            // convert this init expression into a set J of instructions and a scheduling
-            set<Tree> J;
-            if (!fTableInitInstructions.get(init, J)) {
-                J = expression2Instructions(init);
-                fTableInitInstructions.set(init, J);
-                fTableInitScheduling.set(init, schedule(J));
-            }
-
-            // compute the set D of tables needed to initialise id
-            set<Tree> D = collectTableIDs(J);
-            for (Tree dst : D) {
-                fTableInitGraph.add(id, dst);
-                if ((TID.count(dst) == 0) || (R.count(dst) == 0)) {
-                    N.insert(dst);  // dst is unseen
+            if (fTableInitExpression.get(id, init)) {
+                // convert this init expression into a set J of instructions and a scheduling
+                set<Tree> J;
+                if (!fTableInitInstructions.get(init, J)) {
+                    J = expression2Instructions(init);
+                    fTableInitInstructions.set(init, J);
+                    fTableInitScheduling.set(init, schedule(J));
                 }
+
+                // compute the set D of tables needed to initialise id
+                set<Tree> D = collectTableIDs(J);
+                for (Tree dst : D) {
+                    fTableInitGraph.add(id, dst);
+                    if ((TID.count(dst) == 0) || (R.count(dst) == 0)) {
+                        N.insert(dst);  // dst is unseen
+                    }
+                }
+
+            } else {
+                faustassert(false);
             }
         }
-        R = N;  // Unseen are remaining to treat
+        R = N;  // process unseen IDs
     }
 
     // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
     // cerr << "Table order" << endl;
     for (Tree id : S) {
-        Tree       init;
+        Tree       init = nullptr;
         int        tblsize;
         int        nature;
         Scheduling s;
 
-        faustassert(fTableInitExpression.get(id, init));
-        faustassert(fTableInitSize.get(id, tblsize));
-        faustassert(fTableInitNature.get(id, nature));
-        faustassert(fTableInitScheduling.get(init, s));
-
-        // cerr << "table " << *id << " has init expression " << ppsig(init) << endl;
-        // cerr << s << endl;
-        // Klass* k = new SigFloatGenKlass(nullptr, tree2str(id));
-        Klass* k = nullptr;
-        if (nature == kInt) {
-            k = new SigIntFillMethod(nullptr, tree2str(id));
+        if (fTableInitExpression.get(id, init) && fTableInitSize.get(id, tblsize) && fTableInitNature.get(id, nature) &&
+            fTableInitScheduling.get(init, s)) {
+            Klass* k = nullptr;
+            if (nature == kInt) {
+                k = new SigIntFillMethod(nullptr, tree2str(id));
+            } else {
+                k = new SigFloatFillMethod(nullptr, tree2str(id));
+            }
+            SchedulingToMethod(s, C, k);
+            fClass->addMethod(k);
+            string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
+            fClass->addClearCode(tmp);
         } else {
-            k = new SigFloatFillMethod(nullptr, tree2str(id));
+            faustassert(false);
         }
-        SchedulingToMethod(s, C, k);
-        fClass->addMethod(k);
-        string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
-        // cerr << tmp << endl;
-        fClass->addClearCode(tmp);
-        // cerr << "The corresponding Klass:" << endl;
-        // k->println(1, cerr);
-        // cerr << "\n\n" << endl;
     }
 }
 /**
@@ -760,7 +727,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
  * @param C a set of ID
  * @param K
  */
-void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& C, Klass* K)
+void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K)
 {
     // for (int i = 0; i < K->inputs(); i++) {
     //     K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
@@ -929,8 +896,8 @@ string GraphCompiler::generateCode(Tree sig)
         return generateWaveform(sig);
     } else if (isSigInput(sig, &i)) {
         return generateInput(sig, T(i));
-    } else if (isSigOutput(sig, &i, x)) {
-        return generateOutput(sig, T(i), CS(x));
+        // } else if (isSigOutput(sig, &i, x)) {
+        //     return generateOutput(sig, T(i), CS(x));
     }
 
     else if (isSigBinOp(sig, &i, x, y)) {
@@ -966,26 +933,19 @@ string GraphCompiler::generateCode(Tree sig)
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
         return generateNumEntry(sig, label, c, x, y, z);
     }
-    /*
-        else if (isSigVBargraph(sig, label, x, y, z)) {
-            return generateVBargraph(sig, label, x, y, CS(z));
-        } else if (isSigHBargraph(sig, label, x, y, z)) {
-            return generateHBargraph(sig, label, x, y, CS(z));
-        }
-    */
+
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
     } else if (isSigSoundfileLength(sig, sf, x)) {
-        return generateCacheCode(sig, subst("$0cache->fLength[$1]", CS(sf), CS(x)));
+        return subst("$0cache->fLength[$1]", CS(sf), CS(x));
     } else if (isSigSoundfileRate(sig, sf, x)) {
-        return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
+        return subst("$0cache->fSR[$1]", CS(sf), CS(x));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        return generateCacheCode(sig,
-                                 subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z)));
+        return subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z));
     }
 
     else if (isSigAttach(sig, x, y)) {
-        string codex = generateCacheCode(sig, CS(x));
+        string codex = CS(x);
         string codey = CS(y);
         return codex;
     } else if (isSigEnable(sig, x, y)) {
@@ -1014,13 +974,12 @@ string GraphCompiler::generateCode(Tree sig)
  FOREIGN CONSTANTS
  *****************************************************************************/
 
-string GraphCompiler::generateFConst(Tree sig, const string& file, const string& exp_aux)
+string GraphCompiler::generateFConst(Tree /*sig*/, const string& file, const string& exp_aux)
 {
     // Special case for 02/25/19 renaming
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
 
-    string          ctype, vname;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    string ctype, vname;
 
     addIncludeFile(file);
 
@@ -1031,19 +990,19 @@ string GraphCompiler::generateFConst(Tree sig, const string& file, const string&
  FOREIGN VARIABLES
  *****************************************************************************/
 
-string GraphCompiler::generateFVar(Tree sig, const string& file, const string& exp)
+string GraphCompiler::generateFVar(Tree /*sig*/, const string& file, const string& exp)
 {
     string ctype, vname;
 
     addIncludeFile(file);
-    return generateCacheCode(sig, exp);
+    return exp;
 }
 
 /*****************************************************************************
  INPUTS - OUTPUTS
  *****************************************************************************/
 
-string GraphCompiler::generateInput(Tree sig, const string& idx)
+string GraphCompiler::generateInput(Tree /*sig*/, const string& idx)
 {
     if (gGlobal->gInPlace) {
         // TODO inputs must be cached for in-place transformations
@@ -1053,7 +1012,7 @@ string GraphCompiler::generateInput(Tree sig, const string& idx)
     }
 }
 
-string GraphCompiler::generateOutput(Tree sig, const string& idx, const string& arg)
+string GraphCompiler::generateOutput(Tree /*sig*/, const string& idx, const string& arg)
 {
     string dst = subst("output$0[i]", idx);
     fClass->addExecCode(Statement("", subst("$0 = $2$1;", dst, arg, xcast())));
@@ -1064,7 +1023,7 @@ string GraphCompiler::generateOutput(Tree sig, const string& idx, const string& 
  BINARY OPERATION
  *****************************************************************************/
 
-string GraphCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
+string GraphCompiler::generateBinOp(Tree /*sig*/, int opcode, Tree arg1, Tree arg2)
 {
     if (opcode == kDiv) {
         // special handling for division, we always want a float division
@@ -1081,20 +1040,16 @@ string GraphCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         }
 
         if (t1->nature() == kInt && t2->nature() == kInt) {
-            return generateCacheCode(
-                sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat());
         } else if (t1->nature() == kInt && t2->nature() == kReal) {
-            return generateCacheCode(sig,
-                                     subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat());
         } else if (t1->nature() == kReal && t2->nature() == kInt) {
-            return generateCacheCode(sig,
-                                     subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat());
         } else {
-            return generateCacheCode(sig,
-                                     subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat());
         }
     } else {
-        return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+        return subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2));
     }
 }
 
@@ -1102,7 +1057,7 @@ string GraphCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
  Primitive Operations
  *****************************************************************************/
 
-string GraphCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
+string GraphCompiler::generateFFun(Tree /*sig*/, Tree ff, Tree largs)
 {
     addIncludeFile(ffincfile(ff));  // printf("inc file %s\n", ffincfile(ff));
     addLibrary(fflibfile(ff));      // printf("lib file %s\n", fflibfile(ff));
@@ -1116,7 +1071,7 @@ string GraphCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         sep = ", ";
     }
     code += ')';
-    return generateCacheCode(sig, code);
+    return code;
 }
 
 /*****************************************************************************
@@ -1134,23 +1089,18 @@ void GraphCompiler::getTypedNames(Type t, const string& prefix, string& ctype, s
     }
 }
 
-string GraphCompiler::generateCacheCode(Tree sig, const string& exp)
-{
-    return exp;
-}
-
 /*****************************************************************************
  CASTING
  *****************************************************************************/
 
-string GraphCompiler::generateIntCast(Tree sig, Tree x)
+string GraphCompiler::generateIntCast(Tree /*sig*/, Tree x)
 {
-    return generateCacheCode(sig, subst("int($0)", CS(x)));
+    return subst("int($0)", CS(x));
 }
 
-string GraphCompiler::generateFloatCast(Tree sig, Tree x)
+string GraphCompiler::generateFloatCast(Tree /*sig*/, Tree x)
 {
-    return generateCacheCode(sig, subst("$1($0)", CS(x), ifloat()));
+    return subst("$1($0)", CS(x), ifloat());
 }
 
 /*****************************************************************************
@@ -1164,8 +1114,7 @@ string GraphCompiler::generateButton(Tree sig, Tree path)
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
-    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
+    return subst("$1($0)", varname, ifloat());
 }
 
 string GraphCompiler::generateCheckbox(Tree sig, Tree path)
@@ -1175,45 +1124,40 @@ string GraphCompiler::generateCheckbox(Tree sig, Tree path)
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
-    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
+    return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string GraphCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
-    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
+    return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string GraphCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
-    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
+    return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string GraphCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
 {
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
-    return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
+    return subst("$1($0)", varname, ifloat());
 }
 
-/*
-string GraphCompiler::generateInstructionBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree /*min*/, Tree /*max*/, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1235,10 +1179,10 @@ string GraphCompiler::generateInstructionBargraph(Tree sig, Tree path, Tree min,
     }
 
     // return varname;
-    return generateCacheCode(sig, varname);
+    return varname;
 }
-*/
-string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+
+string GraphCompiler::generateHBargraph(Tree sig, Tree path, Tree /*min*/, Tree /*max*/, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1259,33 +1203,7 @@ string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max,
             break;
     }
 
-    // return varname;
-    return generateCacheCode(sig, varname);
-}
-
-string GraphCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
-{
-    string varname = getFreshID("fbargraph");
-    fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-
-    Type t = getCertifiedSigType(sig);
-    switch (t->variability()) {
-        case kKonst:
-            fClass->addInitUICode(subst("$0 = $1;", varname, exp));
-            break;
-
-        case kBlock:
-            fClass->addZone2(subst("$0 = $1;", varname, exp));
-            break;
-
-        case kSamp:
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", varname, exp)));
-            break;
-    }
-
-    // return varname;
-    return generateCacheCode(sig, varname);
+    return varname;
 }
 
 string GraphCompiler::generateSoundfile(Tree sig, Tree path)
@@ -1322,7 +1240,7 @@ string GraphCompiler::generateSoundfile(Tree sig, Tree path)
                         sigGen : initial table content
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateSigGen(Tree sig, Tree content)
+string GraphCompiler::generateSigGen(Tree /*sig*/, Tree content)
 {
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
@@ -1334,7 +1252,7 @@ string GraphCompiler::generateSigGen(Tree sig, Tree content)
     return signame;
 }
 
-string GraphCompiler::generateStaticSigGen(Tree sig, Tree content)
+string GraphCompiler::generateStaticSigGen(Tree /*sig*/, Tree content)
 {
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
@@ -1350,7 +1268,7 @@ string GraphCompiler::generateStaticSigGen(Tree sig, Tree content)
                         sigTable : table declaration
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateTable(Tree sig, Tree tsize, Tree content)
+string GraphCompiler::generateTable(Tree /*sig*/, Tree tsize, Tree content)
 {
     int size;
     if (!isSigInt(tsize, &size)) {
@@ -1397,7 +1315,7 @@ string GraphCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     return vname;
 }
 
-string GraphCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
+string GraphCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree content)
 {
     int size;
     if (!isSigInt(tsize, &size)) {
@@ -1472,7 +1390,7 @@ string GraphCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
                         sigRDTable : table access
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
+string GraphCompiler::generateRDTbl(Tree /*sig*/, Tree tbl, Tree idx)
 {
     // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
     // et donc le code était dupliqué (dans tester.dsp par exemple)
@@ -1486,9 +1404,9 @@ string GraphCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
         if (!getCompiledExpression(tbl, tblname)) {
             tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
         }
-        return generateCacheCode(sig, subst("$0[$1]", tblname, CS(idx)));
+        return subst("$0[$1]", tblname, CS(idx));
     } else {
-        return generateCacheCode(sig, subst("$0[$1]", CS(tbl), CS(idx)));
+        return subst("$0[$1]", CS(tbl), CS(idx));
     }
 }
 
@@ -1496,11 +1414,10 @@ string GraphCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
 
-string GraphCompiler::generateEnable(Tree sig, Tree x, Tree y)
+string GraphCompiler::generateEnable(Tree /*sig*/, Tree x, Tree y)
 {
     CS(y);
-    return generateCacheCode(x, CS(x));
-    // return CS(x);
+    return CS(x);
 }
 
 string GraphCompiler::generatePrefix(Tree sig, Tree x, Tree e)
@@ -1530,7 +1447,7 @@ static bool isPowerOf2(int n)
     return !(n & (n - 1));
 }
 
-string GraphCompiler::generateIota(Tree sig, Tree n)
+string GraphCompiler::generateIota(Tree /*sig*/, Tree n)
 {
     int size;
     if (!isSigInt(n, &size)) {
@@ -1554,9 +1471,9 @@ string GraphCompiler::generateIota(Tree sig, Tree n)
  SELECT
  *****************************************************************************/
 
-string GraphCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
+string GraphCompiler::generateSelect2(Tree /*sig*/, Tree sel, Tree s1, Tree s2)
 {
-    return generateCacheCode(sig, subst("(($0)?$1:$2)", CS(sel), CS(s2), CS(s1)));
+    return subst("(($0)?$1:$2)", CS(sel), CS(s2), CS(s1));
 }
 
 /**
@@ -1564,9 +1481,9 @@ string GraphCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
  * ((int n = sel==0)? s0 : ((sel==1)? s1 : s2))
  * int nn; ((nn=sel) ? ((nn==1)? s1 : s2) : s0);
  */
-string GraphCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
+string GraphCompiler::generateSelect3(Tree /*sig*/, Tree sel, Tree s1, Tree s2, Tree s3)
 {
-    return generateCacheCode(sig, subst("(($0==0)? $1 : (($0==1)?$2:$3) )", CS(sel), CS(s1), CS(s2), CS(s3)));
+    return subst("(($0==0)? $1 : (($0==1)?$2:$3) )", CS(sel), CS(s1), CS(s2), CS(s3));
 }
 
 #if 0
@@ -1671,181 +1588,6 @@ int GraphCompiler::pow2limit(int x)
     return n;
 }
 
-/*****************************************************************************
- N-SAMPLE FIXED DELAY : sig = exp@delay
-
- case 1-sample max delay :
- Y(t-0)	Y(t-1)
- Temp	Var                     gLessTempSwitch = false
- V[0]	V[1]                    gLessTempSwitch = true
-
- case max delay < gMaxCopyDelay :
- Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...     gLessTempSwitch = false
- V[0]	V[1]	V[2]	...     gLessTempSwitch = true
-
- case max delay >= gMaxCopyDelay :
- Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...
- V[0]	V[1]	V[2]	...
-
-
- *****************************************************************************/
-
-// /**
-//  * Generate code for accessing a delayed signal. The generated code depend of
-//  * the maximum delay attached to exp and the gLessTempSwitch.
-//  */
-
-// string GraphCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
-// {
-//     // cerr << "GraphCompiler::generateFixDelay sig = " << *sig << endl;
-//     // cerr << "GraphCompiler::generateFixDelay exp = " << *exp << endl;
-//     // cerr << "GraphCompiler::generateFixDelay del = " << *delay << endl;
-
-//     string code = CS(exp);  // ensure exp is compiled to have a vector name
-//     int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
-//     string vecname;
-
-//     if (!getVectorNameProperty(exp, vecname)) {
-//         if (mxd == 0) {
-//             // cerr << "it is a pure zero delay : " << code << endl;
-//             return code;
-//         } else {
-//             cerr << "No vector name for : " << ppsig(exp) << endl;
-//             faustassert(0);
-//         }
-//     }
-
-//     if (mxd == 0) {
-//         // not a real vector name but a scalar name
-//         return vecname;
-
-//     } else if (mxd < gGlobal->gMaxCopyDelay) {
-//         int d;
-//         if (isSigInt(delay, &d)) {
-//             return subst("$0[$1]", vecname, CS(delay));
-//         } else {
-//             return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
-//         }
-
-//     } else {
-//         // long delay : we use a ring buffer of size 2^x
-//         int N = pow2limit(mxd + 1);
-//         return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
-//     }
-// }
-
-// /**
-//  * Generate code for the delay mecchanism. The generated code depend of the
-//  * maximum delay attached to exp and the "less temporaries" switch
-//  */
-
-// string GraphCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int
-// mxd)
-// {
-//     string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
-//     if (getCertifiedSigType(sig)->variability() < kSamp) {
-//         return exp;
-//     } else {
-//         return s;
-//     }
-// }
-
-// /**
-//  * Generate code for the delay mecchanism without using temporary variables
-//  */
-
-// string GraphCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-//                                              int mxd)
-// {
-//     faustassert(mxd > 0);
-
-//     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
-//     string ccs = getConditionCode(sig);
-
-//     if (mxd < gGlobal->gMaxCopyDelay) {
-//         // short delay : we copy
-//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-//         fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-
-//         // generate post processing copy code to update delay values
-//         if (mxd == 1) {
-//             fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-//         } else if (mxd == 2) {
-//             // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-//             fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-//         } else {
-//             fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-//         }
-//         setVectorNameProperty(sig, vname);
-//         return subst("$0[0]", vname);
-
-//     } else {
-//         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-//         int N = pow2limit(mxd + 1);
-
-//         // we need a iota index
-//         ensureIotaCode();
-
-//         // declare and init
-//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-//         // execute
-//         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-//         setVectorNameProperty(sig, vname);
-//         return subst("$0[IOTA&$1]", vname, T(N - 1));
-//     }
-// }
-
-// /**
-//  * Generate code for the delay mecchanism without using temporary variables
-//  */
-
-// void GraphCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-//                                       const string& ccs)
-// {
-//     // faustassert(mxd > 0);
-//     if (mxd == 0) {
-//         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
-//         // no need for a real vector
-//         fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
-
-//     } else if (mxd < gGlobal->gMaxCopyDelay) {
-//         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
-
-//         // short delay : we copy
-//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-//         fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-
-//         // generate post processing copy code to update delay values
-//         if (mxd == 1) {
-//             fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
-//         } else if (mxd == 2) {
-//             fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
-//         } else {
-//             fClass->addPostCode(Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
-//         }
-
-//     } else {
-//         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-//         int N = pow2limit(mxd + 1);
-
-//         // we need a iota index
-//         ensureIotaCode();
-
-//         // declare and init
-//         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-//         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-//         // execute
-//         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-//     }
-// }
-
 /**
  * Generate code for a unique IOTA variable increased at each sample
  * and used to index ring buffers.
@@ -1901,7 +1643,7 @@ string GraphCompiler::generateWaveform(Tree sig)
 
     declareWaveform(sig, vname, size);
     fClass->addPostCode(Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + 1) % $1;", vname, T(size))));
-    return generateCacheCode(sig, subst("$0[idx$0]", vname));
+    return subst("$0[idx$0]", vname);
 }
 
 //------------------------------------------------------------------------------
@@ -2007,7 +1749,7 @@ void GraphCompiler::conditionStatistics(Tree l)
 }
 #endif
 
-void GraphCompiler::conditionStatistics(Tree l)
+void GraphCompiler::conditionStatistics(Tree /*l*/)
 {
     map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
     for (const auto& p : fConditionProperty) {

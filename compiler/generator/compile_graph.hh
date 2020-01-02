@@ -88,15 +88,14 @@ class GraphCompiler : public Compiler {
    protected:
     property<string>               fCompileProperty;
     property<string>               fSoundfileVariableProperty;  // variable associated to a soundfile
-    property<string>               fVectorProperty;
-    property<pair<string, string>> fStaticInitProperty;     // property added to solve 20101208 kjetil bug
-    property<pair<string, string>> fInstanceInitProperty;   // property added to solve 20101208 kjetil bug
-    property<Tree>                 fTableInitExpression;    // init expression associated with each table ID
-    property<int>                  fTableInitSize;          // init size associated with each table ID
-    property<int>                  fTableInitNature;        // init nature associated with each table ID
-    property<set<Tree>>            fTableInitInstructions;  // init expression associated with each table ID
-    property<Scheduling>           fTableInitScheduling;    // instruction scheduling for each init expression
-    digraph<Tree>                  fTableInitGraph;         // Graph of table IDs
+    property<pair<string, string>> fStaticInitProperty;         // property added to solve 20101208 kjetil bug
+    property<pair<string, string>> fInstanceInitProperty;       // property added to solve 20101208 kjetil bug
+    property<Tree>                 fTableInitExpression;        // init expression associated with each table ID
+    property<int>                  fTableInitSize;              // init size associated with each table ID
+    property<int>                  fTableInitNature;            // init nature associated with each table ID
+    property<set<Tree>>            fTableInitInstructions;      // init expression associated with each table ID
+    property<Scheduling>           fTableInitScheduling;        // instruction scheduling for each init expression
+    digraph<Tree>                  fTableInitGraph;             // Graph of table IDs
 
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
@@ -119,9 +118,6 @@ class GraphCompiler : public Compiler {
    protected:
     virtual string CS(Tree sig);
     virtual string generateCode(Tree sig);
-    virtual string generateCacheCode(Tree sig, const string& exp);
-    // virtual string forceCacheCode(Tree sig, const string& exp);
-    // virtual string generateVariableStore(Tree sig, const string& exp);
 
     void   SchedulingToClass(Scheduling& S, Klass* K);
     string getFreshID(const string& prefix);
@@ -138,9 +134,6 @@ class GraphCompiler : public Compiler {
     void       generateTime();
     bool       getCompiledExpression(Tree sig, string& name);
     string     setCompiledExpression(Tree sig, const string& name);
-
-    void setVectorNameProperty(Tree sig, const string& vecname);
-    bool getVectorNameProperty(Tree sig, string& vecname);
 
     int       getSharingCount(Tree t);
     void      setSharingCount(Tree t, int count);
