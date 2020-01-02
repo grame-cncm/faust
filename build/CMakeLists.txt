@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faust)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #######################################
 # versions management
