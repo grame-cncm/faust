@@ -384,8 +384,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -428,7 +430,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         // cerr << "Schedule 2 is \n" << S << endl;
         return S;
 
-    } else /*if (gGlobal->gCodeMode == 3)*/ {
+    } else if (gGlobal->gCodeMode == 3) {
         // we serialize from a set of output instructions
         set<Tree> Outputs;
         for (Tree instr : E.nodes()) {
@@ -442,6 +444,36 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         }
 
         // cerr << "Schedule 3 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 4) {
+        // we serialize from a set of table write instructions
+        set<Tree> tables;
+        for (Tree instr : E.nodes()) {
+            int  nature, tblsize;
+            Tree id, origin, init, idx, content;
+            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
+                tables.insert(instr);
+        }
+        vector<Tree> v = serialize2(cut(E, 1), tables);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+
+        // cerr << "Schedule 4 is \n" << S << endl;
+        return S;
+    } else /*if (gGlobal->gCodeMode == 5)*/ {
+        // we serialize from a set of output instructions
+        set<Tree> Outputs;
+        for (Tree instr : E.nodes()) {
+            int  n;
+            Tree exp;
+            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+        }
+        vector<Tree> v = serialize3(E, Outputs);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+
         return S;
     }
 }

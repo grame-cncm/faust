@@ -291,6 +291,59 @@ inline vector<N> serialize2(const digraph<N>& g, const set<N>& E)
 
 //===========================================================
 //===========================================================
+// serialize3 : transfoms a G into a sequence of nodes
+// using a topological sort and a set E of entry nodes.
+//===========================================================
+//===========================================================
+
+template <typename N>
+inline vector<N> serialize3(const digraph<N>& g, const set<N>& E)
+{
+    //------------------------------------------------------------------------
+    // visit : a local function (simulated using a lambda) to visit a graph
+    // g : the graph
+    // n : the node
+    // V : set of already visited nodes
+    // L : set of related nodes (but not visited yet)
+    // S : serialized vector of nodes
+    //------------------------------------------------------------------------
+    using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, set<N>&, vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, set<N>& L, vector<N>& S) {
+        if (V.find(n) == V.end()) {
+            V.insert(n);
+            for (const auto& p : g.connections(n)) {
+                if (p.second > 0) {
+                    // don't follow delayed connexions
+                    L.insert(p.first);
+                } else {
+                    visit(g, p.first, V, L, S);
+                }
+            }
+            S.push_back(n);
+        }
+    };
+
+    vector<N> S;
+    set<N>    V;
+
+    for (const N& n : E) {
+        set<N> L1;
+        visit(g, n, V, L1, S);
+        // visit related
+        for (const N& m : L1) {
+            set<N> L2;
+            visit(g, m, V, L2, S);
+        }
+    }
+    for (const N& n : g.nodes()) {
+        set<N> L;
+        visit(g, n, V, L, S);
+    }
+    return S;
+}
+
+//===========================================================
+//===========================================================
 // mapgraph(foo) : transfoms a graph  by applying foo:N->M
 // to each node of graph. The connections are preserved.
 //===========================================================
