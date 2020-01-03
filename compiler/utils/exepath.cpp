@@ -62,7 +62,7 @@ string exepath::dirup(const string& path)
 string exepath::stripPath(const string& path)
 {
     regex  e("/[^/]*/\\.\\.");  // matches sequence like /path/..
-    string stripped = regex_replace(path, e, "");
+    string stripped = regex_replace(path, e, std::string(""));
     if (stripped == path) return path;
     return stripPath(stripped);
 }
