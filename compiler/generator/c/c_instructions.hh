@@ -432,7 +432,16 @@ class CInstVisitor1 : public CInstVisitor {
             if (fStructVisitor.hasField(named->fName, type)) {
                 // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
-                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
+                string zone;
+                int zone_size;
+                if (type == Typed::kInt32) {
+                    zone = "iZone";
+                    zone_size = sizeof(int);
+                } else {
+                    zone = "fZone";
+                    zone_size = ifloatsize();
+                }
+                *fOut << zone << "[" << fStructVisitor.getFieldOffset(named->fName)/zone_size;
                 if (!fIndexedAddress) { *fOut << "]"; }
             } else {
                 fZoneAddress = false;
@@ -464,8 +473,8 @@ class CInstVisitor1 : public CInstVisitor {
             }
         }
     
-        int getIntZoneSize() { return fStructVisitor.fStructIntOffset; }
-        int getRealZoneSize() { return fStructVisitor.fStructRealOffset; }
+        int getIntZoneSize() { return fStructVisitor.getStructIntSize()/sizeof(int); }
+        int getRealZoneSize() { return fStructVisitor.getStructRealSize()/ifloatsize(); }
    
 };
 

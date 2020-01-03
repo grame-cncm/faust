@@ -54,7 +54,7 @@ struct MemoryDesc {
 };
 
 /*
- Compute all fields info and the DSP size
+ Compute all field info and the DSP size
  */
 struct StructInstVisitor : public DispatchVisitor {
     int        fStructOffset;  // Keep the offset in bytes
@@ -151,7 +151,7 @@ struct StructInstVisitor : public DispatchVisitor {
 };
 
 /*
- Compute all fields info, the DSP size and separate 'int' and 'real' types
+ Compute all field info, the DSP size and separate 'int' and 'real' types
  */
 struct StructInstVisitor1 : public DispatchVisitor {
     int        fStructIntOffset;    // Keep the offset in bytes

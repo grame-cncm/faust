@@ -35,6 +35,7 @@ const char* isuffix();
 const char* inumix();
 double      inummin();
 
+int            ifloatsize();
 const char*    ifloat();
 Typed::VarType itfloat();
 Typed::VarType itfloatptr();

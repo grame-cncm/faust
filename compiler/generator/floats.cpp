@@ -70,6 +70,21 @@ const char* xcast()
     return castname[0];
 }
 
+int ifloatsize()
+{
+    switch (gGlobal->gFloatSize) {
+        case 1:
+            return 4;
+        case 2:
+            return 8;
+        case 3:
+            return 16;
+        default:
+            faustassert(false);
+            return 0;
+    }
+}
+
 Typed::VarType itfloat()
 {
     switch (gGlobal->gFloatSize) {
