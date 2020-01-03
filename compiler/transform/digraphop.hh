@@ -252,6 +252,45 @@ inline vector<N> serialize(const digraph<N>& g)
 
 //===========================================================
 //===========================================================
+// serialize2 : transfoms a DAG into a sequence of nodes
+// using a topological sort and a set E of entry nodes.
+//===========================================================
+//===========================================================
+
+template <typename N>
+inline vector<N> serialize2(const digraph<N>& g, const set<N>& E)
+{
+    //------------------------------------------------------------------------
+    // visit : a local function (simulated using a lambda) to visit a graph
+    // g : the graph
+    // n : the node
+    // V : set of already visited nodes
+    // S : serialized vector of nodes
+    //------------------------------------------------------------------------
+    using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, vector<N>& S) {
+        if (V.find(n) == V.end()) {
+            V.insert(n);
+            for (const auto& p : g.connections(n)) {
+                visit(g, p.first, V, S);
+            }
+            S.push_back(n);
+        }
+    };
+
+    vector<N> S;
+    set<N>    V;
+    for (const N& n : E) {
+        visit(g, n, V, S);
+    }
+    for (const N& n : g.nodes()) {
+        visit(g, n, V, S);
+    }
+    return S;
+}
+
+//===========================================================
+//===========================================================
 // mapgraph(foo) : transfoms a graph  by applying foo:N->M
 // to each node of graph. The connections are preserved.
 //===========================================================

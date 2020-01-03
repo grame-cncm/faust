@@ -33,6 +33,7 @@
 #include <vector>
 #include "compatibility.hh"
 #include "compile.hh"
+#include "compile_graph.hh"
 #include "compile_scal.hh"
 #include "delayLineSimplifier.hh"
 #include "floats.hh"
@@ -383,10 +384,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -406,7 +405,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
             }
         }
 
-        cerr << "Schedule 0 is \n" << S << endl;
+        // cerr << "Schedule 0 is \n" << S << endl;
         return S;
 
     } else if (gGlobal->gCodeMode == 1) {
@@ -416,17 +415,33 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
             S.fExecLevel.push_back(i);
         }
 
-        cerr << "Schedule 1 is \n" << S << endl;
+        // cerr << "Schedule 1 is \n" << S << endl;
         return S;
 
-    } else /*if (gGlobal->gCodeMode == 2) */ {
+    } else if (gGlobal->gCodeMode == 2) {
         // If we cut all connexions > 0 we should not have any cycles
         vector<vector<Tree>> P = parallelize(cut(E, 1));
         for (auto l : P) {
             for (Tree i : l) S.fExecLevel.push_back(i);
         }
 
-        cerr << "Schedule 2 is \n" << S << endl;
+        // cerr << "Schedule 2 is \n" << S << endl;
+        return S;
+
+    } else /*if (gGlobal->gCodeMode == 3)*/ {
+        // we serialize from a set of output instructions
+        set<Tree> Outputs;
+        for (Tree instr : E.nodes()) {
+            int  n;
+            Tree exp;
+            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+        }
+        vector<Tree> v = serialize2(cut(E, 1), Outputs);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+
+        // cerr << "Schedule 3 is \n" << S << endl;
         return S;
     }
 }
