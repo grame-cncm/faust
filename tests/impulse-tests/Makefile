@@ -106,7 +106,12 @@ cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -os"
 
 ocpp:
-	$(MAKE) -f Make.gcc outdir=ocpp/double           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/cm0           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -cm 0"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/cm1           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -cm 1"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/cm2           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -cm 2"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/cm3           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -cm 3"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/cm4           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -cm 4"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/cm5           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -cm 5"
 
 c:
 	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"
