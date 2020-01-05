@@ -100,7 +100,7 @@ uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
         return fun;
     } else {
         stringstream error;
-        error << "ERROR : loadOptimize failed for '" << function << "'";
+        error << "ERROR : loadOptimize failed for '" << function << "'\n";
         throw faustexception(error.str());
     }
 }

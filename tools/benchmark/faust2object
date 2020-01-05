@@ -7,6 +7,7 @@ CPU=""
 HASWELL=false
 OPTERON=false
 ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
+dspName=""
 
 while [ $1 ]
 do
@@ -33,6 +34,9 @@ do
         CPU="$CPU $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
+    elif [ $p = "-cn" ]; then
+        shift
+        dspName=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     else
@@ -45,7 +49,10 @@ done
 for p in $FILES; do
 
     f=$(basename "$p")
-    dspName="${f%.dsp}"   
+    
+    if [ -z $dspName ]; then
+    	dspName="${f%.dsp}" 
+    fi  
 
 	for cpu in $CPU; do
 		echo $cpu
