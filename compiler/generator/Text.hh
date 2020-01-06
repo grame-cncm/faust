@@ -22,6 +22,8 @@
 #ifndef _Text_H
 #define _Text_H
 
+#include <string.h>
+
 #include <fstream>
 #include <iostream>
 #include <list>
