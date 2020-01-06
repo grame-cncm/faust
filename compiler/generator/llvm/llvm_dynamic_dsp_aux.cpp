@@ -357,15 +357,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     return initJITAux(error_msg);
 }
 
-static bool testArg(const char* arg)
-{
-    vector<const char*> filter_argv = { "-tg", "-sg", "-ps", "-svg", "-mdoc", "-mdlang", "-stripdoc", "-sd", "-xml", "-json" };
-    for (size_t i = 0; i < filter_argv.size(); i++) {
-        if (strcmp(filter_argv[i], arg) == 0) return true;
-    }
-    return false;
-}
-
 // Public C++ API
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
@@ -418,7 +409,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             argv1[argc1] = nullptr;  // NULL terminated argv
             
             llvm_dynamic_dsp_factory_aux* factory_aux = nullptr;
-            
             try {
                 factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
                     compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true));

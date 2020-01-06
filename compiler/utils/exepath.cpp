@@ -61,10 +61,9 @@ string exepath::dirup(const string& path)
 // recursively removes expressions like /a_name/.. from a path
 string exepath::stripPath(const string& path)
 {
-    regex  e("/[^/]*/\\.\\.");  // matches sequence like /path/..
-    string stripped = regex_replace(path, e, std::string(""));
-    if (stripped == path) return path;
-    return stripPath(stripped);
+    regex e("/[^/]*/\\.\\.");  // matches sequence like /path/..
+    string stripped = regex_replace(path, e, string(""));
+    return (stripped == path) ? path : stripPath(stripped);
 }
 
 #ifdef WIN32
@@ -85,8 +84,7 @@ string exepath::resolvelink(const string& path)
         bool relative = (buff[0] != '/');
         if (relative) {  // this is a relative link
             string tmp = dirup(path);
-            if (tmp[0] == '/') return stripPath(tmp + "/" + buff);
-            return relative2absolute(buff);
+            return (tmp[0] == '/') ? stripPath(tmp + "/" + buff) : relative2absolute(buff);
         }
         return buff;
     }

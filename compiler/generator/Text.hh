@@ -251,4 +251,15 @@ inline string flattenJSON1(const string& src)
     return dst;
 }
 
+// To filter compilation arguments in 'createDSPFactoryFromString' and 'createInterpreterDSPFactoryFromString'
+inline bool testArg(const char* arg)
+{
+    vector<const char*> filter_argv = { "-tg", "-sg", "-ps", "-svg", "-mdoc", "-mdlang", "-stripdoc", "-sd", "-xml", "-json" };
+    for (size_t i = 0; i < filter_argv.size(); i++) {
+        if (strcmp(filter_argv[i], arg) == 0) return true;
+    }
+    return false;
+}
+
+
 #endif

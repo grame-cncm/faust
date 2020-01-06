@@ -69,8 +69,9 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
             argv1[argc1++] = "interp";
             argv1[argc1++] = "-o";
             argv1[argc1++] = "string";
+            // Filter arguments
             for (int i = 0; i < argc; i++) {
-                argv1[argc1++] = argv[i];
+                if (!testArg(argv[i])) argv1[argc1++] = argv[i];
             }
             argv1[argc1] = nullptr;  // NULL terminated argv
             
