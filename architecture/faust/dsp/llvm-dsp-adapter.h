@@ -27,6 +27,7 @@
 #include "faust/gui/SoundUI.h"
 #endif
 
+#include "faust/dsp/dsp.h"
 #include "faust/gui/JSONUIDecoder.h"
 
 /*
