@@ -442,7 +442,6 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         for (Tree i : v) {
             S.fExecLevel.push_back(i);
         }
-
         // cerr << "Schedule 3 is \n" << S << endl;
         return S;
     } else if (gGlobal->gCodeMode == 4) {
@@ -458,7 +457,6 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         for (Tree i : v) {
             S.fExecLevel.push_back(i);
         }
-
         // cerr << "Schedule 4 is \n" << S << endl;
         return S;
     } else /*if (gGlobal->gCodeMode == 5)*/ {
@@ -473,7 +471,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         for (Tree i : v) {
             S.fExecLevel.push_back(i);
         }
-
+        // cerr << "Schedule 5 is \n" << S << endl;
         return S;
     }
 }

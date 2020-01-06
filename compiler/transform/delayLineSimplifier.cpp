@@ -37,17 +37,18 @@
 
 /*
  We simplify delay lines based on the equivalence rule: @(k):@(d) = @(k+d)
- if we have an instruction <dmax1>DL1:=<dmax2>DL2(k)
- we can replace <dmax1>DL1(d) with <dmax2'>DL2(k+d)
- with dmax2' = max (dmax2, k+dmax1)
+ For every definition of type <dmax1>DL1:=<dmax2>DL2(k) we replace
+ all occurrences <dmax1>DL1(d) with <(dmax2,k+dmax1)>DL2(k+d)
  */
 
 // Make explicit automatic promotion to float
 
 /**
- * @brief ReplaceDelay. When we have D1<dmax1>(0):=D2<dmin2>(dl2)
- * we replace all occurrences of D1<dmin1>(dl1) with equivalent
- * D2<dmin1+dmin2>(dl1+dl2)
+ * @brief ReplaceDelay. An expression tranformation that removes
+ * all definitions of type <dmax1>DL1:=<dmax2>DL2(k) and replaces
+ * all occurrences <dmax1>DL1(d) with <(dmax2,k+dmax1)>DL2(k+d).
+ * Please note that k must be constant for the substitution to be
+ * correct.
  */
 class ReplaceDelay : public SignalIdentity {
     bool fValid;
