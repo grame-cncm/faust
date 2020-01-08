@@ -37,8 +37,8 @@ Here are the available options:
 - `skylake-avx512 to compile for Skylake-avx512 CPU`
 - `cannonlake to compile for Cannonlake CPU`
 - `generic to compile for Generic CPU`
-- `-opt native' to activate the best compilation options for the native CPU`
-- `-opt generic' to activate the best compilation options for a generic CPU`
+- `-opt native to activate the best compilation options for the native CPU`
+- `-opt generic to activate the best compilation options for a generic CPU`
 
 ## dynamic-jack-gtk
 
