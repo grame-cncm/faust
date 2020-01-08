@@ -178,7 +178,7 @@ format :
 
 # the target 'lib' can be used to init and update the libraries submodule
 updatesubmodules :
-	if test -d .git; then git submodule update --init; fi
+	if test -d .git; then git submodule update --init --recursive; fi
 
 
 doclib : updatesubmodules

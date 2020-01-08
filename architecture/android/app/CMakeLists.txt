@@ -18,7 +18,6 @@ endif(OSCCTRL)
 add_library( dsp_faust SHARED src/main/cpp/java_interface_wrap.cpp src/main/cpp/DspFaust.cpp )
 find_library( log-lib log )
 
-
 # Set the path to the Oboe directory.
 set (OBOE_DIR oboe)
 
