@@ -4,3 +4,6 @@
 [submodule "architecture/android/app/oboe"]
 	path = architecture/android/app/oboe
 	url = https://github.com/google/oboe
+[submodule "architecture/smartKeyboard/android/app/oboe"]
+	path = architecture/smartKeyboard/android/app/oboe
+	url = https://github.com/google/oboe
