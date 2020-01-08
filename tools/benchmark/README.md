@@ -21,7 +21,7 @@ Here are the available options:
 
 The **faust2object** tool uses the dynamic compilation chain to compile a Faust DSP to an object code file (.o) and wrapper C++ file for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
 
-`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake-avx512] [cannonlake] [generic] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake-avx512] [cannonlake] [generic] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
@@ -37,6 +37,8 @@ Here are the available options:
 - `skylake-avx512 to compile for Skylake-avx512 CPU`
 - `cannonlake to compile for Cannonlake CPU`
 - `generic to compile for Generic CPU`
+- `-opt native' to activate the best compilation options for the native CPU`
+- `-opt generic' to activate the best compilation options for a generic CPU`
 
 ## dynamic-jack-gtk
 

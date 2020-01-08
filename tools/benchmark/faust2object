@@ -4,8 +4,7 @@
 
 FILES=""
 CPU=""
-HASWELL=false
-OPTERON=false
+OPT=""
 ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
 dspName=""
 
@@ -14,7 +13,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake-avx512] [cannonlake] [generic] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake-avx512] [cannonlake] [generic] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'core2' to compile for Core2 CPU"
         echo "Use 'penryn' to compile for Penryn CPU"
         echo "Use 'nehalem' to compile for Nehalem CPU"
@@ -27,16 +26,21 @@ do
         echo "Use 'skylake-avx512' to compile for Skylake-avx512 CPU"
         echo "Use 'cannonlake' to compile for Cannonlake CPU"
         echo "Use 'generic' to compile for Generic CPU"
+        echo "Use '-opt native' to activate the best compilation options for the native CPU"
+        echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         exit
     fi
 
     if [ "$p" = "core2" ] || [ "$p" = "penryn" ] || [ "$p" = "nehalem" ] || [ "$p" = "westmere" ] || [ "$p" = "sandybridge" ] || [ "$p" = "ivybridge" ] || [ "$p" = "haswell" ] || [ "$p" = "skylake" ] || [ "$p" = "skylake-avx512" ] || [ "$p" = "cannonlake" ] || [ "$p" = "generic" ]; then
         CPU="$CPU $p"
-    elif [[ -f "$p" ]]; then
-        FILES="$FILES $p"
+    elif [ $p = "-opt" ]; then
+        shift
+        OPT=$1
     elif [ $p = "-cn" ]; then
         shift
         dspName=$1
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     else
@@ -53,7 +57,19 @@ for p in $FILES; do
     if [ -z $dspName ]; then
     	dspName="${f%.dsp}" 
     fi  
-
+    
+    # discover best compilation options
+    if [ "$OPT" = "generic" ]; then
+        echo "Look for best compilation options in 'generic' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace -generic $f)"
+        echo $OPTIONS
+    elif [ "$OPT" = "native" ]; then
+        echo "Look for best compilation options in 'native' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace $f)"
+        echo $OPTIONS
+    fi
+	
+	# compile for each CPU
 	for cpu in $CPU; do
 		echo $cpu
 		sed -e "s/mydsp/$dspName$cpu/g" $ADAPTER > $dspName$cpu".h"

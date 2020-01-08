@@ -230,10 +230,10 @@ mkdir "$APIFOLDER"
 #---------------------------------------------------------
 # discover best compilation options
 if [ "$OPT" = "generic" ]; then
-    echo "Look for best compilation options in generic mode..."
+    echo "Look for best compilation options in 'generic' mode..."
     OPTIONS="$(faustbench-llvm -notrace -generic $FILE)"
 elif [ "$OPT" = "native" ]; then
-    echo "Look for best compilation options in native mode..."
+    echo "Look for best compilation options in 'native' mode..."
     OPTIONS="$(faustbench-llvm -notrace $FILE)"
     echo $OPTIONS
 fi
