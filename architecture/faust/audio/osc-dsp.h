@@ -108,7 +108,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
                 int frame = i / inChans;
                 fInBuffers[c][frame] = val[i];
             }
-            compute (nvalues / inChans);
+            compute(nvalues / inChans);
         }
 
         int	getNumInputs() const	{ return fDsp ? fDsp->getNumInputs() : 0; }

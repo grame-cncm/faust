@@ -26,6 +26,7 @@
 #define __dsp_tools__
 
 #include <assert.h>
+#include <string.h>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -150,9 +151,9 @@ class AudioChannels
     
     protected:
         
-        const unsigned int  fNumFrames;
-        const unsigned int  fNumChannels;
-        FAUSTFLOAT**        fChannels;
+        const unsigned int fNumFrames;
+        const unsigned int fNumChannels;
+        FAUSTFLOAT** fChannels;
         
     public:
         
@@ -163,9 +164,7 @@ class AudioChannels
             // allocate audio channels
             for (unsigned int i = 0; i < fNumChannels; i++) {
                 fChannels[i] = new FAUSTFLOAT[fNumFrames];
-                for (unsigned int j = 0; j < fNumFrames; j++) {
-                    fChannels[i][j] = 0;
-                }
+                memset(fChannels[i], 0, sizeof(FAUSTFLOAT) * fNumFrames);
             }
         }
         

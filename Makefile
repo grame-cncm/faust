@@ -1,4 +1,4 @@
-version := 2.21.3
+version := 2.21.4
 
 system	?= $(shell uname -s)
 
@@ -198,7 +198,7 @@ uninstall :
 devinstall:
 	$(MAKE) -C tools/benchmark install
 
-# make a faust distribution tarball
+# make a Faust distribution tarball
 dist = faust-$(version)
 submodules = libraries
 dist :

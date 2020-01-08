@@ -68,8 +68,7 @@
 #elif IOS_DRIVER
     #include "faust/audio/coreaudio-ios-dsp.h"
 #elif ANDROID_DRIVER
-    #include <android/log.h>
-    #include "faust/audio/android-dsp.h"
+    #include "faust/audio/oboe-dsp.h"
 #elif ALSA_DRIVER
     #include "faust/audio/alsa-dsp.h"
 #elif JACK_DRIVER
@@ -136,7 +135,7 @@ DspFaust::DspFaust(bool auto_connect)
     // JUCE audio device has its own sample rate and buffer size
     driver = new juceaudio();
 #else
-    std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
+    std::cerr << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
     throw std::bad_alloc();
 #endif
     init(NULL, driver);
@@ -180,12 +179,14 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
 #elif IOS_DRIVER
     audio* driver = new iosaudio(sample_rate, buffer_size);
 #elif ANDROID_DRIVER
-    audio* driver = new androidaudio(sample_rate, buffer_size);
+    // OBOE has its own and buffer size
+    std::cerr << "You are setting 'buffer_size' with a driver that does not need it !\n";
+    audio* driver = new oboeaudio(-1);
 #elif ALSA_DRIVER
     audio* driver = new alsaaudio(sample_rate, buffer_size);
 #elif JACK_DRIVER
     // JACK has its own sample rate and buffer size
-    std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+    std::cerr << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
 #if MIDICTRL
     audio* driver = new jackaudio_midi(auto_connect);
 #else
@@ -199,7 +200,7 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
     audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+    std::cerr << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
     audio* driver = new juceaudio();
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);

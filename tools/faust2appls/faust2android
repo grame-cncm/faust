@@ -2,9 +2,9 @@
 
 #####################################################################
 #                                                                   #
-#               Compile a Faust program to an android app           #
+#               Compile a Faust program to an Android app           #
 #               (c) Romain Michon CCRMA and Grame, 2014             #
-#               (c) Yann Orlarey Grame, 2015             			#
+#               (c) Yann Orlarey Grame, 2015                        #
 #                                                                   #
 #####################################################################
 
@@ -155,17 +155,17 @@ faust $OPTIONS -i -json -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp"
 # Add soundfile support if needed
 if [ $SOUNDFILE -eq 1 ]; then
 	cat $FILE.json | awk '
-									BEGIN { FS=":"; SOFI=0; }
-											/"soundfile"/ { SOFI=1; }
-											/"url"/ {
-											if (SOFI) {
-													match($2, /"[^"]*/);
-                                                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
-                                                    for (x in res) print substr(res[x], 2, length(res[x])-2);
-													SOFI=0;
-											}
-									}
-							' > $APPNAME-tmp.txt
+                        BEGIN { FS=":"; SOFI=0; }
+                                /"soundfile"/ { SOFI=1; }
+                                /"url"/ {
+                                if (SOFI) {
+                                        match($2, /"[^"]*/);
+                                        split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                        for (x in res) print substr(res[x], 2, length(res[x])-2);
+                                        SOFI=0;
+                                }
+                        }
+                        ' > $APPNAME-tmp.txt
 	for snd in $(cat $APPNAME-tmp.txt); do
 			if [ -f $snd ]; then
 					if [ ${snd:0:1} = "/" ]; then
