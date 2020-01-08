@@ -402,9 +402,9 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             argv1[argc1++] = "llvm";
             argv1[argc1++] = "-o";
             argv1[argc1++] = "string";
-            // Filter arguments
+            // Copy arguments
             for (int i = 0; i < argc; i++) {
-                if (!testArg(argv[i])) argv1[argc1++] = argv[i];
+                argv1[argc1++] = argv[i];
             }
             argv1[argc1] = nullptr;  // NULL terminated argv
             
