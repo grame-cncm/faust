@@ -249,8 +249,8 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
     try {
         fAllocate          = (allocateDspFun)loadOptimize("allocate" + fClassName);
         fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
-        fInstanceConstants = (initFun)loadOptimize("instanceConstants" + fClassName);
-        fInstanceClear     = (clearFun)loadOptimize("instanceClear" + fClassName);
+        fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);
+        fInstanceClear     = (instanceClearFun)loadOptimize("instanceClear" + fClassName);
         fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
         fCompute           = (computeFun)loadOptimize("compute" + fClassName);
         fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
@@ -842,7 +842,7 @@ EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
     return (dsp) ? dsp->clone() : nullptr;
 }
 
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager)
 {
     if (factory) {
         factory->setMemoryManager(manager);
