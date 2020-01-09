@@ -477,7 +477,7 @@ class DspFaust
         void setGyrConverter(int, int, int, float, float, float);
 
         //------------------`float getCPULoad()`------------------
-        // Returns the CPU load.
+        // Returns the CPU load (between 0 and 1.0).
         //--------------------------------------------------------
         float getCPULoad();
 
