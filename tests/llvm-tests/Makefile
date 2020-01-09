@@ -15,7 +15,7 @@ llvm-test: llvm-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-test.cpp -I $(INC) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` -o llvm-test
 
 llvm-test-c: llvm-test.c $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -g llvm-test.c -I $(INC) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` -o llvm-test-c
+	$(CXX) llvm-test.c -I $(INC) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` -o llvm-test-c
 
 llvm-algebra-test: llvm-algebra-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 llvm-algebra-test.cpp -I $(INC) $(LIB)/libfaust.a -lpthread `llvm-config --ldflags --libs all --system-libs` -o llvm-algebra-test

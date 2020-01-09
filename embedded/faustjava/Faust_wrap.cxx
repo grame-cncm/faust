@@ -1435,13 +1435,13 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_computeCDSPInstance(JNIEnv
 
 SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_setCMemoryManager(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   llvm_dsp_factory *arg1 = (llvm_dsp_factory *) 0 ;
-  ManagerGlue *arg2 = (ManagerGlue *) 0 ;
+  MemoryManagerGlue *arg2 = (MemoryManagerGlue *) 0 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(llvm_dsp_factory **)&jarg1; 
-  arg2 = *(ManagerGlue **)&jarg2; 
+  arg2 = *(MemoryManagerGlue **)&jarg2;
   setCMemoryManager(arg1,arg2);
 }
 

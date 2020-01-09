@@ -426,7 +426,7 @@ extern "C"
     void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
     /* Set custom memory manager to be used when creating instances */
-    void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager);
+    void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
     
     /**
      * Create a Faust DSP instance.
