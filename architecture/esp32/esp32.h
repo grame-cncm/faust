@@ -31,28 +31,31 @@
 #include "freertos/task.h"
 #include "driver/i2s.h"
 
-
 class dsp;
 class MapUI;
 
 class AudioFaust
 {
+    private:
     
-public:
-    AudioFaust(int,int);
-    ~AudioFaust();
-    bool start();
-    void stop();
-    void setParamValue(const std::string&, float);
-private:
-    void configureI2S(int, int, i2s_pin_config_t);
-    dsp* fDSP;
-    MapUI* fUI;
-    float **fInChannel, **fOutChannel;
-    int fBS;
-    void audioTask();
-    static void audioTaskHandler(void*);
-    TaskHandle_t fHandle;
+        void configureI2S(int, int, i2s_pin_config_t);
+        dsp* fDSP;
+        MapUI* fUI;
+        float **fInChannel, **fOutChannel;
+        int fBS;
+    
+        void audioTask();
+        static void audioTaskHandler(void*);
+        TaskHandle_t fHandle;
+    
+    public:
+    
+        AudioFaust(int, int);
+        ~AudioFaust();
+    
+        bool start();
+        void stop();
+        void setParamValue(const std::string&, float);
 };
 
 #endif

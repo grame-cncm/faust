@@ -115,6 +115,7 @@ class CScalarCodeContainer : public CCodeContainer {
     void generateCompute(int tab);
 };
 
+// Special version for -os generation mode
 class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
    protected:
     virtual void produceClass();

@@ -104,12 +104,17 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
         for (int i = 0; i < fDSP->getNumInputs(); i++) {
             fInChannel[i] = new float[fBS];
         }
+    } else {
+        fInChannel = NULL;
     }
+    
     if (fDSP->getNumOutputs() > 0) {
         fOutChannel = new float*[fDSP->getNumOutputs()];
         for (int i = 0; i < fDSP->getNumOutputs(); i++) {
             fOutChannel[i] = new float[fBS];
         }
+    } else {
+        fOutChannel = NULL;
     }
 }
 
@@ -192,12 +197,14 @@ void AudioFaust::audioTask()
             i2s_read((i2s_port_t)0, &samples_data_in, 8*fBS, &bytes_read, portMAX_DELAY);
             
             // Convert and copy inputs
-            if (fDSP->getNumInputs() == 2) { // if stereo
+            if (fDSP->getNumInputs() == 2) {
+                // if stereo
                 for (int i = 0; i < fBS; i++) {
                     fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
                     fInChannel[1][i] = (float)samples_data_in[i*2+1]*DIV_S32;
                 }
             } else {
+                // otherwise only first channel
                 for (int i = 0; i < fBS; i++) {
                     fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
                 }
@@ -224,8 +231,8 @@ void AudioFaust::audioTask()
         }
         
         // Write to the card
-        size_t bytes_writen = 0;
-        i2s_write((i2s_port_t)0, &samples_data_out, 8*fBS, &bytes_writen, portMAX_DELAY);
+        size_t bytes_written = 0;
+        i2s_write((i2s_port_t)0, &samples_data_out, 8*fBS, &bytes_written, portMAX_DELAY);
     }
 }
 

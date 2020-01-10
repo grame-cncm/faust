@@ -473,6 +473,7 @@ class CInstVisitor1 : public CInstVisitor {
             }
         }
     
+        // Size is expressed in unit of the actual type (so 'int' or 'float/double')
         int getIntZoneSize() { return fStructVisitor.getStructIntSize()/sizeof(int); }
         int getRealZoneSize() { return fStructVisitor.getStructRealSize()/ifloatsize(); }
    

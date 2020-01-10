@@ -30,6 +30,7 @@
 #endif
 
 #include <vector>
+#include <string>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"

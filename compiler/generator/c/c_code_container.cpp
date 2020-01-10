@@ -361,6 +361,7 @@ void CCodeContainer::produceClass()
     *fOut << "#endif" << endl;
 }
 
+// Special version for -os generation mode
 void CScalarOneSampleCodeContainer::produceInternal()
 {
     generateGlobalDeclarations(fCodeProducer);
@@ -700,6 +701,7 @@ void CScalarCodeContainer::generateCompute(int n)
     *fOut << "}" << endl;
 }
 
+// Special version for -os generation mode
 void CScalarOneSampleCodeContainer::generateCompute(int n)
 {
     // Generates declaration

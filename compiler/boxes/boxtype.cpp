@@ -78,7 +78,6 @@ bool getBoxType(Tree box, int* inum, int* onum)
     }
 }
 
-
 /**
  * Produces "1 output" or "n outputs" according to n
  * \param n: the number of outputs
@@ -91,7 +90,6 @@ static string outputs(int n)
     msg << n << ((n == 1) ? " output" : " outputs");
     return msg.str();
 }
-
 
 /**
  * Produces "1 input" or "n inputs" according to n
@@ -134,7 +132,6 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
           << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(i) << endl;
     return error.str();
 }
-
 
 /**
  * Compute a parametric type error message for recursions

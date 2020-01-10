@@ -1,7 +1,7 @@
 /************************** BEGIN llvm-dsp-adapter.h **************************/
 /************************************************************************
  ************************************************************************
- Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
  
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@
 #include "faust/gui/JSONUIDecoder.h"
 
 /*
- Wraps a LLVM module compiled as object code in a 'dsp' class.
+ Wraps a LLVM module compiled as object code in a C++ 'dsp' class.
  */
 
 #ifdef __cplusplus
@@ -45,15 +45,11 @@ extern "C"
     // Used in -sch mode
     void allocatemydsp(comp_llvm_mydsp* dsp);
     void destroymydsp(comp_llvm_mydsp* dsp);
-   
     void instanceConstantsmydsp(comp_llvm_mydsp* dsp, int sample_rate);
     void instanceClearmydsp(comp_llvm_mydsp* dsp);
-    
     void classInitmydsp(int sample_rate);
-    
-    char* getJSONmydsp();
-    
     void computemydsp(comp_llvm_mydsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    char* getJSONmydsp();
     
 #ifdef __cplusplus
 }

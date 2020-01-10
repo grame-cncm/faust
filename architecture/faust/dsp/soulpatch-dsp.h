@@ -33,13 +33,13 @@
 #include <map>
 #include <algorithm>
 
+#include <soul/API/soul_patch.h>
+
 #include "faust/dsp/dsp.h"
 #include "faust/midi/midi.h"
 #include "faust/GUI/UI.h"
 #include "faust/GUI/JSONUIDecoder.h"
 #include "faust/dsp/libfaust.h"
-
-#include "soul/API/soul_patch.h"
 
 class soul_dsp_factory;
 
