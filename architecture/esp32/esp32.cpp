@@ -39,6 +39,18 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
 
+// we require macro declarations
+#define FAUST_UIMACROS
+
+// but we will ignore most of them
+#define FAUST_ADDBUTTON(l,f)
+#define FAUST_ADDCHECKBOX(l,f)
+#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
+#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
+#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+
 /******************************************************************************
  *******************************************************************************
  
@@ -98,7 +110,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     };
 #endif
     configureI2S(sample_rate, buffer_size, pin_config);
-    
+
     if (fDSP->getNumInputs() > 0) {
         fInChannel = new float*[fDSP->getNumInputs()];
         for (int i = 0; i < fDSP->getNumInputs(); i++) {
@@ -186,18 +198,18 @@ void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t
     REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
 }
 
+template <int INPUTS, int OUTPUTS>
 void AudioFaust::audioTask()
 {
     while (true) {
-        if (fDSP->getNumInputs() > 0) {
-            
+        if (INPUTS > 0) {
             // Read from the card
             int32_t samples_data_in[2*fBS];
             size_t bytes_read = 0;
             i2s_read((i2s_port_t)0, &samples_data_in, 8*fBS, &bytes_read, portMAX_DELAY);
             
             // Convert and copy inputs
-            if (fDSP->getNumInputs() == 2) {
+            if (INPUTS == 2) {
                 // if stereo
                 for (int i = 0; i < fBS; i++) {
                     fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
@@ -216,7 +228,7 @@ void AudioFaust::audioTask()
         
         // Convert and copy outputs
         int32_t samples_data_out[2*fBS];
-        if (fDSP->getNumOutputs() == 2) {
+        if (OUTPUTS == 2) {
             // if stereo
             for (int i = 0; i < fBS; i++) {
                 samples_data_out[i*2] = clip(fOutChannel[0][i]);
@@ -239,7 +251,7 @@ void AudioFaust::audioTask()
 void AudioFaust::audioTaskHandler(void* arg)
 {
     AudioFaust* audio = (AudioFaust*)arg;
-    audio->audioTask();
+    audio->audioTask<FAUST_INPUTS, FAUST_OUTPUTS>();
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
