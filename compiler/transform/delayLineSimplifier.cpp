@@ -172,3 +172,43 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
 
     return R;
 }
+
+/**
+ * @brief isSDLCandidate(exp)
+ *
+ * @param exp
+ * @return true
+ * @return false
+ */
+static bool isSDLCandidate(Tree exp)
+{
+    Tree id, origin, content;
+    int  nature, dmax;
+
+    return isSigInstructionDelayLineWrite(exp, id, origin, &nature, &dmax, content) && (dmax == 1);
+}
+
+/**
+ * @brief
+ *
+ * @param I
+ * @return set<Tree>
+ */
+set<Tree> ShortDelayLineSimplifier(const set<Tree>& I)
+{
+    // compute the short ddelay lines candidates
+    set<Tree> C;
+
+    for (Tree i : I) {
+        Tree id, origin, content;
+        int  nature, dmax;
+
+        if (isSDLCandidate(i)) C.insert(i);  // candidate for a shortDLine
+    }
+
+    for (Tree i : I) {
+        removeFalseSDL rfsdl(i, C);
+        rfsdl.self(i);
+    }
+    return C;  // temporaire
+}

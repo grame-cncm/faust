@@ -346,17 +346,17 @@ ostream& ppsig::print(ostream& fout) const
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << " " << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionSharedRead(sig, x, c, &nat)) {
-        fout << "ShareRead(" << *x << ")";
-        // fout << *x;
+        // fout << "ShareRead(" << *x << ")";
+        fout << *x;
     }
 
     else if (isSigInstructionControlWrite(sig, x, c, &nat, y)) {
         // fout << "sigInstructionControlWrite(" << *x << " := " << ppsig(y) << ")";
         const char* tname = (nat == kInt) ? "int" : "float";
-        fout << tname << " " << *x << " :CW= " << ppsig(y) << ";";
+        fout << tname << " " << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionControlRead(sig, x, c, &nat)) {
-        fout << "ControlRead(" << *x << ")";
-        // fout << *x;
+        // fout << "ControlRead(" << *x << ")";
+        fout << *x;
     }
 
     else if (isSigInstructionBargraphWrite(sig, x, c, &nat, y)) {

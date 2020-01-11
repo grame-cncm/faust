@@ -900,6 +900,53 @@ bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature)
     }
 }
 
+///////////////////
+
+/**
+ * @brief a shared write "instruction"
+ *
+ * @param id: unique identifier of the shared signal
+ * @param sig: the shared signal
+ * @return a shared write instruction
+ */
+Tree sigInstructionShortDLineWrite(Tree id, Tree origin, int nature, Tree sig)
+{
+    return tree(gGlobal->SIGINSTRUCTIONSHORTDLINEWRITE, id, origin, tree(nature), sig);
+}
+
+bool isSigInstructionShortDLineWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONSHORTDLINEWRITE, id, origin, tnat, sig)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief a shared read "instruction"
+ *
+ * @param id: unique identifier of the shared signal
+ * @return a shared read instruction
+ */
+Tree sigInstructionShortDLineRead(Tree id, Tree origin, int nature)
+{
+    return tree(gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tree(nature));
+}
+
+bool isSigInstructionShortDLineRead(Tree s, Tree& id, Tree& origin, int* nature)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 /**
  * @brief a control write "instruction"
  *
