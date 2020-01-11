@@ -43,10 +43,12 @@ class AudioFaust
         MapUI* fUI;
         float **fInChannel, **fOutChannel;
         int fBS;
-    
-        void audioTask();
-        static void audioTaskHandler(void*);
         TaskHandle_t fHandle;
+    
+        template <int INPUTS, int OUTPUTS>
+        void audioTask();
+    
+        static void audioTaskHandler(void*);
     
     public:
     

@@ -79,7 +79,7 @@ MODULENAME="${BASENAME%.dsp}"
 
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
-    faust -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
+    faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
     if [ "$DRIVER" = "-wm8978" ] || [ "$DRIVER" = "-WM8978" ]; then
     		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
