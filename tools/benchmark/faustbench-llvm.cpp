@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
             
             dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, opt);
             if (!factory) {
-                cerr << "Cannot create factory : " << error_msg;
+                cerr << error_msg;
                 exit(EXIT_FAILURE);
             }
             

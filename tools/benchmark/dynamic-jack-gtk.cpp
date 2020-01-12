@@ -178,20 +178,20 @@ int main(int argc, char* argv[])
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
         
         if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
+            cerr << error_msg;
             cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
             factory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
         }
         
         if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
+            cerr << error_msg;
             cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
             factory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
         }
         
         
         if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
+            cerr << error_msg;
             cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
             factory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
         }
@@ -218,14 +218,14 @@ int main(int argc, char* argv[])
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         
         if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
+            cerr << error_msg;
             cout << "Trying to use createInterpreterDSPFactoryFromFile..." << endl;
             factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
         }
     }
     
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
+        cerr << error_msg;
         exit(EXIT_FAILURE);
     }
     

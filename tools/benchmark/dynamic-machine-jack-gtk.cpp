@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
     
     factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
+        cerr << error_msg;
         exit(EXIT_FAILURE);
     }
     

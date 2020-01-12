@@ -15,7 +15,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake-avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'core2' to compile for Core2 CPU"
         echo "Use 'penryn' to compile for Penryn CPU"
         echo "Use 'nehalem' to compile for Nehalem CPU"

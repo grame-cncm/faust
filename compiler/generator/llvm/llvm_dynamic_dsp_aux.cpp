@@ -303,7 +303,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     fJIT = builder.create(tm);
     if (!fJIT) {
         endTiming("initJIT");
-        error_msg = "ERROR : cannot create LLVM JIT : " + buider_error;
+        error_msg = "ERROR : cannot create LLVM JIT : " + buider_error + "\n";
         return false;
     }
 

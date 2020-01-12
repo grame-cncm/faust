@@ -44,12 +44,12 @@ int main(int argc, char* argv[])
     dsp_factory* factory2 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg2);
     
     if (!factory1) {
-        cout << "Cannot create factory : " << error_msg1;
+        cerr << error_msg1;
         exit(1);
     }
     
     if (!factory2) {
-        cout << "Cannot create factory : " << error_msg2;
+        cerr << error_msg2;
         exit(1);
     }
     

@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         
         if (!factory) {
-            cerr << "Cannot create factory : " << error_msg;
+            cerr << error_msg;
             exit(EXIT_FAILURE);
         }
         

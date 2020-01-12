@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
     }
     
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
+        cerr << error_msg;
         exit(EXIT_FAILURE);
     }
     
