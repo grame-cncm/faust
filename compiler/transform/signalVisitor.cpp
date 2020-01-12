@@ -262,7 +262,17 @@ void SignalVisitor::visit(Tree sig)
     } else if (isSigInstructionControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
-    } else if (isNil(sig)) {
+    }
+
+    // Read and Write
+    else if (isSigInstructionShortDLineRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+        return;
+    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, y)) {
+        self(y);
+        return;
+    }
+
+    else if (isNil(sig)) {
         // now nil can appear in table write instructions
         return;
     } else {

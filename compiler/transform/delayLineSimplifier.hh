@@ -31,3 +31,5 @@
  * @return set<Tree> the transformed set of instructions
  */
 set<Tree> delayLineSimplifier(const set<Tree>& instr);
+
+void ShortDelayLineSimplifier(const set<Tree>& I, set<Tree>& C);

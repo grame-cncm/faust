@@ -29,6 +29,7 @@
 #include "property.hh"
 #include "sigConstantPropagation.hh"
 #include "sigIdentity.hh"
+#include "signalVisitor.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 #include "tlib.hh"
@@ -173,6 +174,42 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     return R;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class removeFalseSDL : public SignalVisitor {
+    bool       fInsideDef;
+    Tree       fID;
+    set<Tree>& fCandidates;
+
+   public:
+    /**
+     * @brief Construct a new Replace Delay object
+     *
+     * @param instr
+     */
+    removeFalseSDL(bool b, Tree ID, set<Tree>& candidates) : fInsideDef(b), fID(ID), fCandidates(candidates) {}
+
+   protected:
+    void visit(Tree sig) override
+    {
+        Tree ID1, origin, dl1;
+        int  nature, dmax1, dmin1;
+
+        if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax1, &dmin1, dl1) && (ID1 != fID) &&
+            (dmax1 == 1) && !isZero(dl1)) {
+            fCandidates.erase(ID1);  // ID1 can't be compiled as a short dline (used delayed outside its definition)
+            cerr << "ID removed from candidates: " << *ID1 << endl;
+            self(dl1);
+        } else {
+            SignalVisitor::visit(sig);
+        }
+    }
+};
+
 /**
  * @brief isSDLCandidate(exp)
  *
@@ -180,12 +217,26 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
  * @return true
  * @return false
  */
-static bool isSDLCandidate(Tree exp)
+static bool isSDLCandidate(Tree exp, Tree& id)
 {
-    Tree id, origin, content;
+    Tree origin, content;
     int  nature, dmax;
 
-    return isSigInstructionDelayLineWrite(exp, id, origin, &nature, &dmax, content) && (dmax == 1);
+    return (isSigInstructionDelayLineWrite(exp, id, origin, &nature, &dmax, content) && (dmax == 1));
+}
+
+/**
+ * @brief
+ *
+ * @param i instruction to visite
+ * @param C set of candidate to filter
+ */
+static void filterCandidate(Tree i, set<Tree>& C)
+{
+    Tree           id;
+    bool           b = isSDLCandidate(i, id);
+    removeFalseSDL rfsdl(b, id, C);
+    rfsdl.self(i);
 }
 
 /**
@@ -194,21 +245,20 @@ static bool isSDLCandidate(Tree exp)
  * @param I
  * @return set<Tree>
  */
-set<Tree> ShortDelayLineSimplifier(const set<Tree>& I)
+void ShortDelayLineSimplifier(const set<Tree>& I, set<Tree>& C)
 {
-    // compute the short ddelay lines candidates
-    set<Tree> C;
-
     for (Tree i : I) {
-        Tree id, origin, content;
-        int  nature, dmax;
-
-        if (isSDLCandidate(i)) C.insert(i);  // candidate for a shortDLine
+        Tree id;
+        if (isSDLCandidate(i, id)) {
+            cerr << "Add potential candidate: " << *id << endl;
+            C.insert(id);  // candidate for a shortDLine
+        }
     }
 
     for (Tree i : I) {
-        removeFalseSDL rfsdl(i, C);
-        rfsdl.self(i);
+        filterCandidate(i, C);
     }
-    return C;  // temporaire
+    cerr << "Remaining candidates {";
+    for (Tree idd : C) cerr << *idd << " ";
+    cerr << "}" << endl;
 }
