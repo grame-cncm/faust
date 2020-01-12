@@ -121,6 +121,7 @@ static string read_real_type(istream* in)
     stringstream type_reader(type_line);
     string       dummy, type;
     type_reader >> dummy;  // Read "interpreter_dsp_factory" token
+    checkToken(dummy, "interpreter_dsp_factory");
     type_reader >> type;
 
     return type;
