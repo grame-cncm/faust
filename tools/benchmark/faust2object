@@ -60,11 +60,11 @@ done
 for p in $FILES; do
 
     f=$(basename "$p")
-    
+
     if [ -z $dspName ]; then
-    	dspName="${f%.dsp}" 
-    fi  
-    
+        dspName="${f%.dsp}"
+    fi
+
     # discover best compilation options
     if [ "$OPT" = "generic" ]; then
         echo "Look for best compilation options in 'generic' mode..."
@@ -75,23 +75,24 @@ for p in $FILES; do
         OPTIONS="$OPTIONS $(faustbench-llvm -notrace $f)"
         echo $OPTIONS
     fi
-	
-	# compile for each CPU
-	for cpu in $CPU; do
-		echo $cpu
-		sed -e "s/mydsp/$dspName$cpu/g" $ADAPTER > $dspName$cpu".h"
-		dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
-	done
+
+    # compile for each CPU
+    for cpu in $CPU; do
+        echo $cpu
+        sed -e "s/mydsp/$dspName$cpu/g" $ADAPTER > $dspName$cpu".h"
+        dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+    done
 
     # possibly aggregate in a unique multi file
     if [ $MULTI = true ]; then
         # create file
-        echo "" > $dspName"multi.cpp"
+        echo "" > $dspName"multi.h"
         # add conditional #define 'cpu'
         for cpu in $CPU; do
-            echo "#define "$cpu >> $dspName"multi.cpp"
+            echo "#define "$cpu >> $dspName"multi.h"
         done
-        sed -e "s/mydsp/$dspName/g" $MULTI_ADAPTER >> $dspName"multi.cpp"
+        # class naming
+        sed -e "s/mydsp/$dspName/g" $MULTI_ADAPTER >> $dspName"multi.h"
     fi
 
 done
