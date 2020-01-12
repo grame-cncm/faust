@@ -80,7 +80,7 @@
 
 // Reference: https://apple.stackexchange.com/questions/238777/how-do-i-identify-which-cpu-a-macbook-uses
 
-class llvm_mydsp_multi : public decorator_dsp {
+class mydspmulti : public decorator_dsp {
     
     private:
     
@@ -107,7 +107,7 @@ class llvm_mydsp_multi : public decorator_dsp {
     
     public:
     
-        llvm_mydsp_multi()
+        mydspmulti()
         {
             std::string name = getCPUModel();
             std::stringstream reader(name);
@@ -201,7 +201,7 @@ class llvm_mydsp_multi : public decorator_dsp {
             }
         }
         
-        virtual ~llvm_mydsp_multi()
+        virtual ~mydspmulti()
         {}
   
 };
@@ -213,7 +213,7 @@ class llvm_mydsp_multi : public decorator_dsp {
 #ifdef TEST
 int main()
 {
-    llvm_mydsp_multi multi;
+    mydspmulti multi;
     std::cout << multi.getNumInputs() << std::endl;
     std::cout << multi.getNumOutputs() << std::endl;
 }
