@@ -233,10 +233,14 @@ static bool isSDLCandidate(Tree exp, Tree& id)
  */
 static void filterCandidate(Tree i, set<Tree>& C)
 {
-    Tree           id;
-    bool           b = isSDLCandidate(i, id);
-    removeFalseSDL rfsdl(b, id, C);
-    rfsdl.self(i);
+    Tree id;
+    if (isSDLCandidate(i, id)) {
+        removeFalseSDL rfsdl(true, id, C);
+        rfsdl.self(i);
+    } else {
+        removeFalseSDL rfsdl(false, gGlobal->nil, C);
+        rfsdl.self(i);
+    }
 }
 
 /**
