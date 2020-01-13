@@ -92,7 +92,7 @@ class mydspmulti : public decorator_dsp {
     
     private:
     
-        bool is_cpu(const std::string name) { return llvm::sys::getHostCPUName().str() == name; }
+        bool is_cpu(const std::string& name) { return llvm::sys::getHostCPUName().str() == name; }
     
     public:
     

@@ -37,6 +37,7 @@ Here are the available options:
 - `skylake_avx512 to compile for Skylake-avx512 CPU`
 - `cannonlake to compile for Cannonlake CPU`
 - `generic to compile for Generic CPU`
+- `-all to compile for all CPUs`
 - `-multi to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime`
 - `-opt native to activate the best compilation options for the native CPU`
 - `-opt generic to activate the best compilation options for a generic CPU`

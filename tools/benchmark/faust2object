@@ -13,7 +13,7 @@ dspName=""
 while [ $1 ]
 do
     p=$1
-
+ 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'core2' to compile for Core2 CPU"
@@ -28,6 +28,7 @@ do
         echo "Use 'skylake_avx512' to compile for Skylake-avx512 CPU"
         echo "Use 'cannonlake' to compile for Cannonlake CPU"
         echo "Use 'generic' to compile for Generic CPU"
+        echo "Use '-all' to compile for all CPUs"
         echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
@@ -46,6 +47,8 @@ do
         MULTI=true
         #generic is always added
         CPU="$CPU generic"
+    elif [ $p = "-all" ]; then
+	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
