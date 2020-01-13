@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    string target = lopts(argv, "-target", "");
+    string target = lopts(argv, "-target", getDSPMachineTarget().c_str());
     bool is_opt = isopt(argv, "-opt");
     string opt = lopts(argv, "-opt", "generic");
     bool is_double = isopt(argv, "-double");

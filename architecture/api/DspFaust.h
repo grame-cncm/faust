@@ -20,6 +20,8 @@
 #ifndef __faust_api__
 #define __faust_api__
 
+#include <cstdint>
+
 //===============API Reference==============
 //==========================================
 

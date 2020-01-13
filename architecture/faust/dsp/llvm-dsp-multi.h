@@ -78,117 +78,96 @@
 // Always included
 #include "mydspgeneric.h"
 
+// For 'llvm::sys::getHostCPUName'
+#include <llvm/Support/Host.h>
+
 // Reference: https://apple.stackexchange.com/questions/238777/how-do-i-identify-which-cpu-a-macbook-uses
+
+// compilation: c++ -std=c++11 FOOmulti.cpp  -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` FOO*.o -dead_strip -o FOOmulti
 
 class mydspmulti : public decorator_dsp {
     
     private:
     
-        std::string fCPU;
-    
-        std::string getCPUModel()
-        {
-            char name[65] = {0};
-            size_t size = sizeof(name) - 1;
-            return (sysctlbyname("machdep.cpu.brand_string", &name, &size, nullptr, 0) >= 0) ? name : "";
-        }
-    
-        bool is_core2() { return false; }
-        bool is_penryn() { return false; }
-        bool is_nehalem() { return false; }
-        bool is_westmere() { return false; }
-        bool is_sandybridge() { return (fCPU == "i3-2") || (fCPU == "i5-2") || (fCPU == "i7-2"); }
-        bool is_ivybridge() { return (fCPU == "i3-3") || (fCPU == "i5-3") || (fCPU == "i7-3"); }
-        bool is_haswell() { return (fCPU == "i3-4") || (fCPU == "i5-4") || (fCPU == "i7-4"); }
-        bool is_broadwell() { return (fCPU == "i3-5") || (fCPU == "i5-5") || (fCPU == "i7-5"); }
-        bool is_skylake() { return (fCPU == "i3-6") || (fCPU == "i5-6") || (fCPU == "i7-6"); }
-        bool is_skylake_avx512() { return (fCPU == "i3-7") || (fCPU == "i5-7") || (fCPU == "i7-7"); }
-        bool is_cannonlake() { return (fCPU == "i3-8") || (fCPU == "i5-8") || (fCPU == "i7-8"); }
+        bool is_cpu(const std::string name) { return llvm::sys::getHostCPUName().str() == name; }
     
     public:
     
         mydspmulti()
         {
-            std::string name = getCPUModel();
-            std::stringstream reader(name);
-            std::string tok1, tok2, tok3;
-            reader >> tok1;
-            reader >> tok2;
-            reader >> tok3;
-            fCPU = tok3.substr(0,4);
             
         #ifdef core2
-            if (!fDSP && is_core2()) {
+            if (!fDSP && is_cpu("core2")) {
                 std::cout << "Allocate for core2" << std::endl;
                 fDSP = new mydspcore2();
             }
         #endif
             
         #ifdef penryn
-            if (!fDSP && is_penryn()) {
+            if (!fDSP && is_cpu("penryn")) {
                 std::cout << "Allocate for penryn" << std::endl;
                 fDSP = new mydsppenryn();
             }
         #endif
             
         #ifdef nehalem
-            if (!fDSP && is_nehalem()) {
+            if (!fDSP && is_cpu("nehalem")) {
                 std::cout << "Allocate for nehalem" << std::endl;
                 fDSP = new mydspnehalem();
             }
         #endif
             
         #ifdef westmere
-            if (!fDSP && is_westmere()) {
+            if (!fDSP && is_cpu("westmere")) {
                 std::cout << "Allocate for westmere" << std::endl;
                 fDSP = new mydspwestmere();
             }
         #endif
             
         #ifdef sandybridge
-            if (!fDSP && is_sandybridge()) {
+            if (!fDSP && is_cpu("sandybridge")) {
                 std::cout << "Allocate for sandybridge" << std::endl;
                 fDSP = new mydspsandybridge();
             }
         #endif
             
         #ifdef ivybridge
-            if (!fDSP && is_ivybridge()) {
+            if (!fDSP && is_cpu("ivybridge")) {
                 std::cout << "Allocate for ivybridge" << std::endl;
                 fDSP = new mydspivybridge();
             }
         #endif
             
         #ifdef haswell
-            if (!fDSP && is_haswell()) {
+            if (!fDSP && is_cpu("haswell")) {
                 std::cout << "Allocate for haswell" << std::endl;
                 fDSP = new mydsphaswell();
             }
         #endif
             
         #ifdef broadwell
-            if (!fDSP && is_broadwell()) {
+            if (!fDSP && is_cpu("broadwell")) {
                 std::cout << "Allocate for broadwell" << std::endl;
                 fDSP = new mydspbroadwell();
             }
         #endif
             
         #ifdef skylake
-            if (!fDSP && is_skylake()) {
+            if (!fDSP && is_cpu("skylake")) {
                 std::cout << "Allocate for skylake" << std::endl;
                 fDSP = new mydspskylake();
             }
         #endif
             
         #ifdef skylake_avx512
-            if (!fDSP && is_skylake_avx512()) {
+            if (!fDSP && is_cpu("skylake-avx512")) {
                 std::cout << "Allocate for skylake_avx512" << std::endl;
                 fDSP = new mydspskylake_avx512();
             }
         #endif
             
         #ifdef cannonlake
-            if (!fDSP && is_cannonlake()) {
+            if (!fDSP && is_cpu("cannonlake")) {
                 std::cout << "Allocate for cannonlake" << std::endl;
                 fDSP = new mydspcannonlake();
             }
