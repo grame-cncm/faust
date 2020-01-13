@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #    Generates an API for Android or iOS based on a Faust object    #
-#               (c) Romain Michon CCRMA and Grame, 2016-2018        #
+#               (c) Romain Michon CCRMA and Grame, 2016-2020        #
 #                                                                   #
 #####################################################################
 
@@ -229,12 +229,14 @@ mkdir "$APIFOLDER"
 
 #---------------------------------------------------------
 # discover best compilation options
+# discover best compilation options
 if [ "$OPT" = "generic" ]; then
     echo "Look for best compilation options in 'generic' mode..."
-    OPTIONS="$(faustbench-llvm -notrace -generic $FILE)"
+    OPTIONS="$OPTIONS $(faustbench-llvm -notrace -generic $OPTIONS $f)"
+    echo $OPTIONS
 elif [ "$OPT" = "native" ]; then
     echo "Look for best compilation options in 'native' mode..."
-    OPTIONS="$(faustbench-llvm -notrace $FILE)"
+    OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
     echo $OPTIONS
 fi
 
