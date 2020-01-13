@@ -113,7 +113,7 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
                     int32_t framesRead = res.value();
                     fInputs->interleavedRead(inbuffer, framesWrite, fDSP->getNumInputs());
                 
-                    // Call compute only when read frames == frames to write
+                    // Call compute only when 'read frames' == 'frames to write'
                     if (framesRead == framesWrite) {
                         fDSP->compute(framesWrite, fInputs->buffers(), fOutputs->buffers());
                         fOutputs->interleavedWrite(static_cast<float*>(outbuffer), framesWrite, fDSP->getNumOutputs());
@@ -168,21 +168,38 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
                     ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
                     ->setSharingMode(oboe::SharingMode::Exclusive)
                     ->openManagedStream(fInputStream) != oboe::Result::OK) return false;
+                // Allocate the stream adapter
                 fInputs = new AudioChannels(4096, fDSP->getNumInputs());
+                // Keep the input SR
                 fSampleRate = fInputStream->getSampleRate();
             } else {
                 fInputs = nullptr;
             }
             
             if (fDSP->getNumOutputs() > 0) {
-                if (builder.setDirection(oboe::Direction::Output)
+                
+                // Common setup
+                builder.setDirection(oboe::Direction::Output)
                     ->setCallback(this)
                     ->setFormat(oboe::AudioFormat::Float)
                     ->setChannelCount(fDSP->getNumOutputs())
                     ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-                    ->setSharingMode(oboe::SharingMode::Exclusive)
-                    ->openManagedStream(fOutputStream) != oboe::Result::OK) return false;
+                    ->setSharingMode(oboe::SharingMode::Exclusive);
+                
+                // If fSampleRate was given at initialisation time, or has been set when opening the input
+                if (fSampleRate != -1) {
+                    // Force output to use the same SR as input, and possibly setup resampler
+                    if (builder.setSampleRate(fSampleRate)
+                        ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Fastest)
+                        ->openManagedStream(fOutputStream) != oboe::Result::OK) return false;
+                } else {
+                    // Open with the native SR
+                    if (builder.openManagedStream(fOutputStream) != oboe::Result::OK) return false;
+                }
+                
+                // Allocate the stream adapter
                 fOutputs = new AudioChannels(4096, fDSP->getNumOutputs());
+                // Keep the output SR
                 fSampleRate = fOutputStream->getSampleRate();
             } else {
                 fOutputs = nullptr;
