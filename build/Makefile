@@ -187,7 +187,7 @@ winpack:
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
-	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake
+	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake  CMAKEOPT="-DDEPLOYMENT_TARGET=on"
 	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
@@ -213,7 +213,7 @@ release: APATH=$(shell pwd)
 release:
 	git pull --rebase
 	@echo "################## Building faust package ###################"
-	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake CMAKEOPT="-DDEPLOYMENT_TARGET=on"
 	$(MAKE) all
 	$(MAKE) package
 	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)

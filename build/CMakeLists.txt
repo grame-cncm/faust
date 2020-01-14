@@ -39,7 +39,7 @@ option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY	"Don't search system architecture files." off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
-	set ( DEPLOYMENT_TARGET_VERSION  10.11)
+	set ( DEPLOYMENT_TARGET_VERSION  10.12)
 endif()
 
 #######################################
@@ -111,6 +111,7 @@ if(APPLE)
 	else()
 		if (DEPLOYMENT_TARGET)
 			set (CMAKE_OSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET_VERSION})
+			message (STATUS "Deployment target is ${DEPLOYMENT_TARGET_VERSION}")
 		endif()
 		set (MACSDK /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 		if (EXISTS ${MACSDK})
