@@ -344,6 +344,16 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
+####################################
+# install examples
+install (
+    DIRECTORY     ${ROOT}/examples DESTINATION ${CMAKE_INSTALL_PREFIX}//share/faust
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    PATTERN ".DS_Store" EXCLUDE
+)
+
 # install faust libraries
 file (GLOB FAUSTDSPLIBS ${ROOT}/libraries/*.lib ${ROOT}/libraries/old/*.lib)
 # install various files from the architecture root folder
