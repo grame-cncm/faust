@@ -25,6 +25,7 @@
 #ifndef __dsp_bench__
 #define __dsp_bench__
 
+#include <cmath>
 #include <limits.h>
 #include <sys/time.h>
 #include <iostream>
@@ -35,8 +36,10 @@
 #include <string.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
+#include "faust/GUI/DecoratorUI.h"
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
@@ -274,6 +277,60 @@ class time_bench {
 };
 
 /*
+ A class to randomly change control values
+ */
+
+struct RandomControlUI : public GenericUI {
+    
+    struct Range {
+        const char* fLabel;
+        FAUSTFLOAT* fZone;
+        FAUSTFLOAT fInit;
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        Range(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init = 0, FAUSTFLOAT min = 0, FAUSTFLOAT max = 0)
+        :fLabel(label), fZone(zone), fInit(init), fMin(min), fMax(max)
+        {}
+    };
+    
+    std::vector<Range> fControls;
+    
+    RandomControlUI()
+    {
+        /* initialize random seed: */
+        srand(time(NULL));
+    }
+    
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        fControls.push_back(Range(label, zone, 1, 0, 1));
+    }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        fControls.push_back(Range(label, zone, 1, 0, 1));
+    }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControls.push_back(Range(label, zone, init, min, max));
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControls.push_back(Range(label, zone, init, min, max));
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControls.push_back(Range(label, zone, init, min, max));
+    }
+    
+    void updateRandom()
+    {
+        for (auto& it : fControls) {
+            *it.fZone = it.fMin + (FAUSTFLOAT(rand())/FAUSTFLOAT(RAND_MAX)) * std::abs(it.fMax - it.fMin);
+        }
+    }
+};
+
+/*
     A class to measure DSP CPU use.
 */
 
@@ -290,10 +347,12 @@ class measure_dsp : public decorator_dsp {
         int fInputIndex;
         int fOutputIndex;
         int fCount;
+        RandomControlUI fRandomUI;
     
         void init()
         {
             fDSP->init(BENCH_SAMPLE_RATE);
+            fDSP->buildUserInterface(&fRandomUI);
             
             fInputIndex = 0;
             fOutputIndex = 0;
@@ -413,6 +472,7 @@ class measure_dsp : public decorator_dsp {
         {
             AVOIDDENORMALS;
             fBench->startMeasure();
+            fRandomUI.updateRandom();
             fDSP->compute(count, inputs, outputs);
             fBench->stopMeasure();
         }
