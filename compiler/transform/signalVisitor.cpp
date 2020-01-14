@@ -246,6 +246,16 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    // Read and Write
+    else if (isSigInstructionShortDLineRead(sig, id, origin, &nature,
+                                            &dmin)) {  // x is used as an id, we don't go into it
+        return;
+    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature,
+                                               y)) {  // x is used as an id, we don't go into it
+        self(y);
+        return;
+    }
+
     else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
         self(init);
         self(idx);
@@ -265,9 +275,9 @@ void SignalVisitor::visit(Tree sig)
     }
 
     // Read and Write
-    else if (isSigInstructionShortDLineRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+    else if (isSigInstructionBargraphRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, y)) {
+    } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, y)) {
         self(y);
         return;
     }

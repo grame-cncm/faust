@@ -538,6 +538,15 @@ static Type infereSigType(Tree sig, Tree env)
         return getCertifiedSigType(u);
     }
 
+    // TODO check types are correct
+    else if (isSigInstructionShortDLineWrite(sig, id, u, &nat, x)) {
+        return T(x, env);
+    }
+
+    else if (isSigInstructionShortDLineRead(sig, id, u, &nat, &dmin)) {
+        return getCertifiedSigType(u);
+    }
+
     else if (isSigOutput(sig, &i, x)) {
         return T(x, env);
     }

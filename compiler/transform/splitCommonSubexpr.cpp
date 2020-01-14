@@ -68,7 +68,7 @@ class CommonSubexpr : public SignalIdentity {
         Tree   label, minv, maxv, val;
         return /*!(isSigInput(sig, &i)) && */ !isSigInstructionControlRead(sig, id, origin, &nature) &&
                !isSigTime(sig) && !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
-               !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) && !isSigGen(sig) &&
+               !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) && !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) &&
                !isSigInt(sig, &i) && !isSigReal(sig, &r);
     }
 

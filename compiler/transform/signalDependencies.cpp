@@ -65,6 +65,10 @@ class SignalDependencies : public SignalVisitor {
             fRoot = id;
             fGraph.add(fRoot);
             self(content);
+        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
+            fRoot = id;
+            fGraph.add(fRoot);
+            self(content);
         } else if (isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
             fRoot = id;
             fGraph.add(fRoot);
@@ -109,6 +113,8 @@ class SignalDependencies : public SignalVisitor {
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
+        } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
+            fGraph.add(fRoot, id, dmin);
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, id);
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
@@ -127,6 +133,7 @@ void Dictionnary::add(Tree sig)
     int  nature, dmax, i;
     // Analyzed signals are supposed to be DelayLines, Controls or Outputs
     if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
+        isSigInstructionShortDLineWrite(sig, id, origin, &nature, content) ||
         isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, content) ||
         isSigInstructionSharedWrite(sig, id, origin, &nature, content) ||
         isSigInstructionControlWrite(sig, id, origin, &nature, content) ||

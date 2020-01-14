@@ -931,16 +931,18 @@ bool isSigInstructionShortDLineWrite(Tree s, Tree& id, Tree& origin, int* nature
  * @param id: unique identifier of the shared signal
  * @return a shared read instruction
  */
-Tree sigInstructionShortDLineRead(Tree id, Tree origin, int nature)
+Tree sigInstructionShortDLineRead(Tree id, Tree origin, int nature, int dmin)
 {
-    return tree(gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tree(nature));
+    return tree(gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tree(nature), tree(dmin));
 }
 
-bool isSigInstructionShortDLineRead(Tree s, Tree& id, Tree& origin, int* nature)
+bool isSigInstructionShortDLineRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmin)
 {
-    Tree tnat;
-    if (isTree(s, gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tnat)) {
+    Tree tnat, tdmin;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tnat, tdmin)) {
         *nature = tree2int(tnat);
+        *dmin = tree2int(tdmin);
+        //cerr << "ShortDLine tree2int of dmin " << *tdmin << " has int: " << *dmin << endl; 
         return true;
     } else {
         return false;

@@ -334,10 +334,11 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
 
     // list short dline candidates (IN PROGRESS)
     set<Tree> CCC;
-    ShortDelayLineSimplifier(INSTR2, CCC);
+    set<Tree> INSTR2b = ShortDelayLineSimplifier(INSTR2, CCC);
+    if (gGlobal->gDebugSwitch) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
 
     // cerr << ">>transformDelayToTable\n" << endl;
-    set<Tree> INSTR3 = transformDelayToTable(INSTR2);
+    set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
     typeAnnotateInstructionSet(INSTR3);
     if (gGlobal->gDebugSwitch) signalGraph("phase3-afterTable.dot", INSTR3);
 
@@ -388,10 +389,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -756,6 +755,17 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
             string vname{tree2str(id)};
             K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
 
+        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
+            // we use 'l' to prefix the local variable name
+            Type   ty    = getSimpleType(content);
+            string ctype = nature2ctype(nature);
+            string vname{tree2str(id)};
+            K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+            K->addInitCode(subst("$0 = 0;", vname));
+            K->addZone3(subst("$0 \tl$1 = $1;", ctype, vname));  // create the local version of the dline
+            K->addExecCode(Statement("", subst("l$0 = $1;", vname, CS(content))));  // update the local variable
+            K->addZone4(subst("$0 = l$0;", vname));
+
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             Type   ty = getSimpleType(content);
             Type   tz = getSimpleType(idx);
@@ -787,7 +797,7 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
             addUIWidget(reverse(tl(path)), uiWidget(hd(path), id, origin));
 
         } else {
-            std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
+            std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(sig) << endl;
             faustassert(false);
         }
     }
@@ -852,6 +862,17 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
             string vname{tree2str(id)};
             K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
 
+        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
+            // we use 'l' to prefix the local variable name
+            Type   ty    = getSimpleType(content);
+            string ctype = nature2ctype(nature);
+            string vname{tree2str(id)};
+            K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+            K->addInitCode(subst("$0 = 0;", vname));
+            K->addZone2(subst("$0 \tl$1 = $1;", ctype, vname));  // create the local version of the dline
+            K->addExecCode(Statement("", subst("l$0 = $1;", vname, CS(content))));  // update the local variable
+            K->addZone4(subst("$0 = l$0;", vname));
+
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
             string vname{tree2str(id)};
             fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
@@ -868,7 +889,7 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
             K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
 
         } else {
-            std::cerr << "ERROR, not a valid sample instruction : " << ppsig(sig) << endl;
+            std::cerr << "ERROR, not a valid sample instruction 2 : " << ppsig(sig) << endl;
             faustassert(false);
         }
     }
@@ -955,6 +976,8 @@ string GraphCompiler::generateCode(Tree sig)
         return subst("$0[$1]", tree2str(id), CS(idx));
     } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {
         return tree2str(id);
+    } else if (isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin)) {
+        return subst("l$0", tree2str(id));
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {
         return tree2str(id);
     } else if (isSigInstructionBargraphRead(sig, id, origin, &nature)) {

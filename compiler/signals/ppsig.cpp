@@ -368,6 +368,15 @@ ostream& ppsig::print(ostream& fout) const
         // fout << *x;
     }
 
+    else if (isSigInstructionShortDLineWrite(sig, x, c, &nat, y)) {
+        // fout << "sigInstructionControlWrite(" << *x << " := " << ppsig(y) << ")";
+        const char* tname = (nat == kInt) ? "int" : "float";
+        fout << tname << " " << *x << "# := " << ppsig(y) << ";";
+    } else if (isSigInstructionShortDLineRead(sig, x, c, &nat, &dmin)) {
+        // fout << "ShareRead(" << *x << ")";
+        fout << *x << "#[" << dmin << "]";
+    }
+
     else {
         cerr << "[[" << *sig << "]]";
     }

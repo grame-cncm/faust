@@ -255,7 +255,13 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 1;
     } else if (isSigInstructionBargraphRead(sig, id, origin, &nat)) {
         return 0;
+    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nat, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigInstructionShortDLineRead(sig, id, origin, &nat, &dmin)) {
+        return 0;
     }
+
 
     else if (isList(sig)) {
         vsigs.push_back(hd(sig));
