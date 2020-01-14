@@ -213,24 +213,26 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
     
         virtual bool start()
         {
-            if (fDSP->getNumInputs() > 0) {
-                if (fInputStream->requestStart() != oboe::Result::OK) return false;
-            }
+            // Start output first
             if (fDSP->getNumOutputs() > 0) {
                 if (fOutputStream->requestStart() != oboe::Result::OK) return false;
+            }
+            if (fDSP->getNumInputs() > 0) {
+                if (fInputStream->requestStart() != oboe::Result::OK) return false;
             }
             return true;
         }
         
         virtual void stop()
         {
-            if (fDSP->getNumInputs() > 0) {
-                fInputStream->requestStop();
-                fInputStream->close();
-            }
+            // Stop output first (since the output stream calls the onAudioReady callback)
             if (fDSP->getNumOutputs() > 0) {
                 fOutputStream->requestStop();
                 fOutputStream->close();
+            }
+            if (fDSP->getNumInputs() > 0) {
+                fInputStream->requestStop();
+                fInputStream->close();
             }
         }
     
