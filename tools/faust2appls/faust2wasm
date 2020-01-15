@@ -53,7 +53,9 @@ do
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
         echo "Use '-npm' to add a package.json file for npm package distribution"
         exit
-    elif [ $p = "-comb" ]; then
+    fi
+    
+    if [ $p = "-comb" ]; then
         COMB="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
@@ -74,7 +76,7 @@ do
         NPM="true"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        

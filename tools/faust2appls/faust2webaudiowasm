@@ -43,7 +43,9 @@ do
         echo "Use '-worklet' to generate AudioWorklet compatible code"
         echo "Use '-emcc' to use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
-    elif [ $p = "-links" ]; then
+    fi
+     
+    if [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>
@@ -68,8 +70,8 @@ do
     elif [ $p = "-emcc" ]; then
         EMCC="true"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+ 	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
