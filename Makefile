@@ -4,6 +4,7 @@ system	?= $(shell uname -s)
 
 DESTDIR ?=
 PREFIX ?= /usr/local
+INSTALL_LIBDIR ?= lib
 CROSS=i586-mingw32msvc-
 BUILDLOCATION := build
 DEBUGFOLDER := faustdebug
