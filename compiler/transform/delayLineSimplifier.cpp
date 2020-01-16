@@ -291,9 +291,11 @@ static void filterCandidate(Tree i, set<Tree>& C)
  * @param I
  * @return set<Tree>
  */
-set<Tree> ShortDelayLineSimplifier(const set<Tree>& I, set<Tree>& C)
+set<Tree> ShortDelayLineSimplifier(const set<Tree>& I)
 {
-    for (Tree i : I) {
+    set<Tree> C; 
+    for (Tree i : I)
+    {
         Tree id;
         if (isSDLCandidate(i, id)) {
             // cerr << "Add potential candidate: " << *id << endl;

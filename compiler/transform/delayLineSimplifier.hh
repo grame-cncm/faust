@@ -32,4 +32,4 @@
  */
 set<Tree> delayLineSimplifier(const set<Tree>& instr);
 
-set<Tree> ShortDelayLineSimplifier(const set<Tree>& I, set<Tree>& C);
+set<Tree> ShortDelayLineSimplifier(const set<Tree>& I);
