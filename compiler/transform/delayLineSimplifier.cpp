@@ -134,7 +134,7 @@ set<Tree> delayLineSimplifier(const set<Tree>& I)
     for (Tree instr : I) {
         ReplaceDelay rule(instr);
         if (rule.valid()) {
-            cerr << "Substituable def : " << ppsig(instr) << endl;
+            // cerr << "Substituable def : " << ppsig(instr) << endl;
             S.push_back(instr);
         } else {
             // cerr << "Normal definition: " << ppsig(instr) << endl;

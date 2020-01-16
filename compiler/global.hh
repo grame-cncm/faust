@@ -167,6 +167,7 @@ struct global {
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
+    bool   gOptShortDLines;        // Optimise short dlines
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions

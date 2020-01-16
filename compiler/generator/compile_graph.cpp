@@ -334,7 +334,7 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
 
     // list short dline candidates (IN PROGRESS)
     set<Tree> CCC;
-    set<Tree> INSTR2b = ShortDelayLineSimplifier(INSTR2, CCC);
+    set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2, CCC) : INSTR2;
     if (gGlobal->gDebugSwitch) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
 
     // cerr << ">>transformDelayToTable\n" << endl;

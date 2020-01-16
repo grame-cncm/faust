@@ -424,6 +424,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gCodeMode = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-osd", "--optimize-short-dlines")) {
+            gGlobal->gOptShortDLines = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i + 1 < argc)) {
             gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
@@ -835,6 +839,7 @@ static void printHelp()
             "(scalar mode only)."
          << endl;
     cout << tab << "-cm        --code-mode <n>              'ocpp' scheduling mode." << endl;
+    cout << tab << "-osd       --optimize-short-dlines      'ocpp' optimize one-sample delays." << endl;
     cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
