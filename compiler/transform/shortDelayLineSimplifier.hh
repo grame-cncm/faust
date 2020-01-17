@@ -24,10 +24,4 @@
 #include <set>
 #include "signals.hh"
 
-/**
- * @brief remove the useless delaylines from a set of instructions
- *
- * @param instr a set of instructions
- * @return set<Tree> the transformed set of instructions
- */
-set<Tree> delayLineSimplifier(const set<Tree>& instr);
+set<Tree> ShortDelayLineSimplifier(const set<Tree>& I);

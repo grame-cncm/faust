@@ -42,6 +42,7 @@
 #include "privatise.hh"
 #include "recursivness.hh"
 #include "scalarScheduling.hh"
+#include "shortDelayLineSimplifier.hh"
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
