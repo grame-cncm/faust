@@ -424,7 +424,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
     if (!fPlayer->isPlayable()) {
         soul::patch::Span<soul::patch::CompilationMessage> errors = fPlayer->getCompileMessages();
         error_msg = "getCompileError";
@@ -444,7 +444,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
 void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
     fMIDIInputMessages.resize(1024);
     fMIDIOutputMessages.resize(1024);
     

@@ -1051,6 +1051,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     fDSPUI = NULL;
     fMidiUI = NULL;
     fOSCUI = NULL;
+    fSavedUI = NULL;
     fDSPfactory = NULL;
     fEditor = NULL;
     fMute = false;
@@ -1112,7 +1113,7 @@ faustgen::~faustgen()
 void faustgen::free_dsp()
 {
     // Save controller state
-    fSavedUI.save();
+    fSavedUI->save();
     
     // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
     remove_midihandler();
@@ -1122,6 +1123,9 @@ void faustgen::free_dsp()
     
     delete fOSCUI;
     fOSCUI = NULL;
+    
+    delete fSavedUI;
+    fSavedUI = NULL;
     
     delete fDSPUI;
     fDSPUI = NULL;
@@ -1279,7 +1283,7 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
 void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Reset internal state
-    fSavedUI.reset();
+    fSavedUI->reset();
     
     // Input controllers
     for (mspUI::iterator it = fDSPUI->begin1(); it != fDSPUI->end1(); it++) {
@@ -1610,6 +1614,11 @@ void faustgen::init_controllers()
         fDSP->buildUserInterface(fMidiUI);
     }
     
+    // State handling
+    if (!fSavedUI) {
+        fSavedUI = new SaveLabelUI();
+    }
+    
     // Soundfile handling
     if (fDSPfactory->fSoundUI) {
         if (fDSPfactory->fPolyphonic) {
@@ -1650,7 +1659,7 @@ void faustgen::create_dsp(bool init)
         setupIO(&faustgen::perform, &faustgen::init, fDSP->getNumInputs(), fDSP->getNumOutputs(), init);
         
         // Load old controller state
-        fDSP->buildUserInterface(&fSavedUI);
+        fDSP->buildUserInterface(fSavedUI);
         
         // Possibly restart IO
         if (dspstate) {
@@ -1775,7 +1784,7 @@ extern "C" void ext_main(void* r)
     t_class * mclass = faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
-    post("Copyright (c) 2012-2019 Grame");
+    post("Copyright (c) 2012-2020 Grame");
     
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
