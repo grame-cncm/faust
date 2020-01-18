@@ -57,7 +57,7 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
         AudioChannels* fOutputs;
     
         std::vector<int> fCpuIds;
-        std::atomic<bool> fIsThreadAffinitySet { false };
+        bool fIsThreadAffinitySet;
     
         void setThreadAffinity()
         {
@@ -141,7 +141,14 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
  
     public:
     
-        oboeaudio(long srate): fDSP(NULL), fSampleRate(srate), fBufferSize(512), fCPUTableIndex(0)
+        oboeaudio(long srate):
+        fDSP(NULL),
+        fSampleRate(srate),
+        fBufferSize(512),
+        fCPUTableIndex(0),
+        fInputs(nullptr),
+        fOutputs(nullptr),
+        fIsThreadAffinitySet(false)
         {}
 
         virtual ~oboeaudio()

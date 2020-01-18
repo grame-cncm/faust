@@ -15,7 +15,7 @@ NVOICES=-1
 
 JSFILE_PATH="ui.js"
 
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 while [ $1 ]
 do
     p=$1
@@ -43,7 +43,7 @@ shift
 
 done
 
-#look for polyphonic "nvoices" metadata in the DSP file
+# look for polyphonic "nvoices" metadata in the DSP file
 
 grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 

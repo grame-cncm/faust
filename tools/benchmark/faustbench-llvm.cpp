@@ -100,7 +100,6 @@ int main(int argc, char* argv[])
     // Add library
     argv1[argc1++] = "-I";
     argv1[argc1++] = "/usr/local/share/faust";
- 
     argv1[argc1] = nullptr;  // NULL terminated argv
     
     //FAUSTBENCH_LOG<string>("faustbench LLVM");

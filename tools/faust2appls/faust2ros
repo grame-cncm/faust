@@ -47,7 +47,6 @@ done
 NEW_NAMES=($NEW_NAMES)
 WORKSPACES=($WORKSPACES)
 
-
 # Get parameters tables size 
 NAMES_LENGTH=${#NEW_NAMES[@]}
 WS_LENGTH=${#WORKSPACES[@]}

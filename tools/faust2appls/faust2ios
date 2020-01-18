@@ -45,9 +45,7 @@ do
     	exit
     fi
 
-    if [ "$p" = -icc ]; then
-        ignore=" "
-    elif [ $p = "-osc" ]; then
+    if [ $p = "-osc" ]; then
         OSCCTRL="1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"

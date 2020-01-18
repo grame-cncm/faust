@@ -32,16 +32,7 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 while [ $1 ]
 do
     p=$1
@@ -54,17 +45,8 @@ do
         echo "Use '-osc' to activate OSC control"
     	exit
     fi
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
   
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-osc" ]; then
+  	if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"

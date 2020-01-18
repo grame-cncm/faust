@@ -10,7 +10,7 @@ The **dynamic-faust** tool uses the dynamic compilation chain, and compiles a Fa
 
 Here are the available options:
 
-- `-target xxx to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')`
+- `-target xxx to cross-compile the code for a different architecture (like 'x86_64-apple-darwin15.6.0:haswell')`
 - `-opt (native|generic) to discover and compile with the best compilation parameters`
 - `-o foo.ll to generate an LLVM IR textual file`
 - `-o foo.bc to generate an LLVM bitcode file`

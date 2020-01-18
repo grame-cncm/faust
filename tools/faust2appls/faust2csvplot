@@ -13,7 +13,6 @@
 CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE=$FAUSTARCH/csvplot.cpp
-
 FAUSTFLOAT=float
 SOUNDFILELIBS=""
 
@@ -24,16 +23,7 @@ SOUNDFILELIBS=""
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -41,18 +31,8 @@ for p in $@; do
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive"
         exit
     fi
-
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-        ignore=" "
-    elif [ $p = "-arch32" ]; then
+ 
+    if [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
@@ -75,7 +55,7 @@ done
 
 for f in $FILES; do
 	
-	# compile faust to c++
+	# compile Faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary

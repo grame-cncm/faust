@@ -16,7 +16,7 @@ CXXFLAGS=$MYGCCFLAGS
 ARCHFILE=$FAUSTARCH/soul/minimal.soul
 
 #-------------------------------------------------------------------
-#PHASE 1 : dispatch command arguments
+# dispatch command arguments
 #-------------------------------------------------------------------
 
 POLY="POLY"

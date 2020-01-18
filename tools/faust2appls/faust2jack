@@ -52,17 +52,7 @@ do
         exit
     fi
 
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-nvoices" ]; then
+	if [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
         NVOICES=$1

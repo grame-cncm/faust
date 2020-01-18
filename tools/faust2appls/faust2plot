@@ -21,18 +21,8 @@ FAUSTFLOAT=float
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
-#
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -43,18 +33,8 @@ for p in $@; do
         echo "Use -r to change the sample rate (default is 44100 Hz)"
         exit
     fi
-
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-        ignore=" "
-    elif [ $p = "-arch32" ]; then
+	
+	if [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"

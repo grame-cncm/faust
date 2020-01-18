@@ -22,16 +22,7 @@ ARCHFILE=$FAUSTARCH/puredata.cpp
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 for p in $@; do
 
 	if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -43,17 +34,7 @@ for p in $@; do
         exit
     fi
     
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-arch32" ]; then
+    if [ $p = "-arch32" ]; then
 		PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-poly" ]; then
 		F2PDPOLY="-n 8"

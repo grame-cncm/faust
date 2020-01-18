@@ -32,16 +32,7 @@ DEBUG=false
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 
 OSCINC=""
 QTDEFS=""
@@ -58,15 +49,7 @@ for p in $@; do
         echo "Use '-debug' to print all the build steps"
         exit
     fi
-    
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
+   
     if [ "$p" = -debug ]; then
     	DEBUG=true
     elif [ "$p" = -icc ]; then

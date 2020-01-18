@@ -39,7 +39,7 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 
 OSCINC=""
 QTDEFS=""
@@ -59,9 +59,8 @@ do
         echo "Use '-osc' to activate OSC control"
         exit
     fi
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-nvoices" ]; then
+    
+    if [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
         NVOICES=$1

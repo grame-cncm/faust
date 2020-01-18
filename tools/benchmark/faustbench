@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#####################################################################
+#                                                                   #
+#               Bench several versions of a Faust DSP program       #
+#               usign different compilation options                 #
+#               (c) Grame, 2020                                     #
+#                                                                   #
+#####################################################################
+
 . faustpath
 
 FILES=""

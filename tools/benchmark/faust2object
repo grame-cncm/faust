@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#####################################################################
+#                                                                   #
+#               Compiles Faust DSP to machine code                  #
+#               for several CPUs using dynamic-faust                #
+#               (c) Grame, 2020                                     #
+#                                                                   #
+#####################################################################
+
 . faustpath
 
 FILES=""

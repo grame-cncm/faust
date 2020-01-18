@@ -81,10 +81,7 @@ int main(int argc, char* argv[])
     string opt = lopts(argv, "-opt", "generic");
     bool is_double = isopt(argv, "-double");
     
-    string in_filename = "";
-    string out_filename = "";
-    string error_msg;
-    
+    string in_filename, out_filename, error_msg;
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
     int argc1 = 0;
@@ -110,7 +107,6 @@ int main(int argc, char* argv[])
         cout << argv[i] << " ";
     }
     cout << endl;
-
     argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (out_filename == "") {
@@ -136,7 +132,6 @@ int main(int argc, char* argv[])
         
         cout << "Looking for optimal parameters... \n";
         int buffer_size = 512;
-        
         try {
             if (is_double) {
                 optimal_options = bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);

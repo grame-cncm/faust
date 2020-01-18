@@ -40,6 +40,7 @@ do
         echo "Use '-osc' to activate OSC control"
         exit
     fi
+    
     if [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift

@@ -150,7 +150,6 @@ int main(int argc, char* argv[])
         cout << argv[i] << " ";
     }
     cout << endl;
-    
     argv1[argc1] = nullptr;  // NULL terminated argv
     
     cout << "Using interpreter backend" << endl;
@@ -171,7 +170,7 @@ int main(int argc, char* argv[])
     try {
     
         string error_msg;
-        // argc : without the filename (last element);
+        // argc : without the filename (last element)
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         
         if (!factory) {

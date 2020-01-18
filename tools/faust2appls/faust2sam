@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #************************************************************************
-# Copyright (c) 2017 Analog Devices, Inc.  All rights reserved.
+# Copyright (c) 2017 Analog Devices, Inc. All rights reserved.
 #************************************************************************
 
 #####################################################################
-#     Generates inline faust objects for the SHARC Audio Module     #
+#     Generates inline Faust objects for the SHARC Audio Module     #
 #           Gregory Pat Scandalis, moForte, ADI                     #
 #           based on faust2api by Romain Michon                     #
 #####################################################################

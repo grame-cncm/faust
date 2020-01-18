@@ -41,19 +41,9 @@ CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib -lasound"
 INCLUDES_DIR="-L$LINUX_KERNEL_INSTALL_DIR_INCLUDE/include/"
 
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 for p in $@; do
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-osc" ]; then
+    if [ $p = "-osc" ]; then
 	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
 	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust -lmicrohttpd"
