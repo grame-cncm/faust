@@ -389,8 +389,10 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(
+        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
     // 3) fill the scheduling
 
@@ -706,9 +708,12 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
     }
 
-    K->addDeclCode("int \ttime;");
-    K->addClearCode("time = 0;");
+    // Handling global time 'gTime' with a local version 'time'
+    K->addDeclCode("int \tgTime;");
+    K->addClearCode("gTime = 0;");
+    K->addZone3("int \ttime = gTime;");
     K->addPostCode(Statement("", "++time;"));
+    K->addZone4("gTime = time;");
 
     for (Tree i : S.fInitLevel) {
         // We compile
@@ -818,9 +823,12 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
     //     K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
     // }
 
-    K->addDeclCode("int \ttime;");
-    K->addClearCode("time = 0;");
+    // Handling global time 'gTime' with a local version 'time'
+    K->addDeclCode("int \tgTime;");
+    K->addClearCode("gTime = 0;");
+    K->addZone3("int \ttime = gTime;");
     K->addPostCode(Statement("", "++time;"));
+    K->addZone4("gTime = time;");
 
     for (Tree i : S.fInitLevel) {
         // We compile
