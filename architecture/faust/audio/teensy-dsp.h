@@ -63,14 +63,13 @@ class teensyaudio : public AudioStream, public audio {
         {
             /// Check running state
             if (!fRunning) return;
-            int32_t val;
             
             if (INPUTS > 0) {
                 audio_block_t* inBlock[INPUTS]
                 for(int channel = 0; channel < INPUTS; channel++) {
                     inBlock[channel] = receiveReadOnly(channel);
                     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-                        val = inBlock[channel]->data[i] << 16;
+                        int32_t val = inBlock[channel]->data[i] << 16;
                         fInChannel[channel][i] = val*DIV_16;
                     }
                     release(inBlock[channel]);
@@ -84,7 +83,7 @@ class teensyaudio : public AudioStream, public audio {
                 outBlock[channel] = allocate();
                 if (outBlock[channel]) {
                     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-                        val = fOutChannel[channel][i]*MULT_16;
+                        int32_t val = fOutChannel[channel][i]*MULT_16;
                         outBlock[channel]->data[i] = val >> 16;
                     }
                     transmit(outBlock[channel], channel);
