@@ -390,6 +390,13 @@ class midi_handler : public midi {
                 fMidiInputs[i]->pitchWheel(time, channel, (data2 << 7) + data1);
             }
         }
+    
+        void handlePitchWheel(double time, int channel, int bend)
+        {
+            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                fMidiInputs[i]->pitchWheel(time, channel, bend);
+            }
+        }
         
         void handlePolyAfterTouch(double time, int channel, int data1, int data2)
         {

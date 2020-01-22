@@ -33,6 +33,10 @@
 
 class dsp;
 class MapUI;
+#if MIDICTRL
+class MidiUI;
+class esp32_midi;
+#endif
 
 class AudioFaust
 {
@@ -44,7 +48,11 @@ class AudioFaust
         float **fInChannel, **fOutChannel;
         int fBS;
         TaskHandle_t fHandle;
-    
+    #if MIDICTRL
+        esp32_midi* fMIDIHandler;        
+        MidiUI* fMIDIInterface;
+    #endif
+
         template <int INPUTS, int OUTPUTS>
         void audioTask();
     
