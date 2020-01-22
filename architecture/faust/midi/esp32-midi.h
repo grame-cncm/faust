@@ -89,25 +89,25 @@ class esp32_midi : public midi_handler {
                         unsigned char type = message.GetType();
                         switch (type) {
                             case 0x80: // Note Off
-                                midi->handleKeyOff(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
+                                handleKeyOff(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
                                 break;
                             case 0x90: // Note On
-                                midi->handleKeyOn(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
+                                handleKeyOn(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
                                 break;
                             case 0xA0: // Poly Key Pressure
-                                midi->handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte3());
+                                handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte3());
                                 break;
                             case 0xB0: // Control Change
-                                midi->handleCtrlChange(time, message.GetChannel(), message.GetController(), message.GetControllerValue());
+                                handleCtrlChange(time, message.GetChannel(), message.GetController(), message.GetControllerValue());
                                 break;
                             case 0xC0: // Program Change // No Bank Select in faust?
-                                midi->handleProgChange(time, message.GetChannel(), message.GetPGValue());
+                                handleProgChange(time, message.GetChannel(), message.GetPGValue());
                                 break;
                             case 0xD0: // Channel Pressure
-                                midi->handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
+                                handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
                                 break;
                             case 0xE0: // Pitch Bend
-                                midi->handlePitchWheel(time, message.GetChannel(), message.GetBenderValue())
+                                handlePitchWheel(time, message.GetChannel(), message.GetBenderValue())
                                 break;
                             default:
                                 break;
@@ -116,17 +116,17 @@ class esp32_midi : public midi_handler {
                         switch (status) // TODO
                         {
                             case 0xF8: // Timing Clock
-                                midi->handleClock(time);
+                                handleClock(time);
                                 break;
                             case 0xFA: // Start
-                                midi->handleStart(time);
+                                handleStart(time);
                                 break;
                             case 0xFB: // Continue
                                 // We can consider start and continue as identical messages.
-                                midi->handleStart(time);
+                                handleStart(time);
                                 break;
                             case 0xFC: // Stop
-                                midi->handleStop(time);
+                                handleStop(time);
                                 break;
                             case 0xF0: // Sys-Ex Start
                                 // TODO
