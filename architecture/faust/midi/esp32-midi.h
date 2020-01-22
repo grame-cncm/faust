@@ -126,7 +126,7 @@ class esp32_midi : public midi_handler {
                                 midi->handleStart(time);
                                 break;
                             case 0xFC: // Stop
-                                midi->handleStop(0);
+                                midi->handleStop(time);
                                 break;
                             case 0xF0: // Sys-Ex Start
                                 // TODO

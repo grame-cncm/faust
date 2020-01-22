@@ -85,7 +85,7 @@ class bela_midi : public midi_handler {
                                 midi->handleStart(time);
                                 break;
                             case MIDI_STOP:
-                                midi->handleStop(0);
+                                midi->handleStop(time);
                                 break;
                             case MIDI_SYSEX_START:
                         #if 0 // this is not implemented on Bela yet
