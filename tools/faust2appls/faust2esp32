@@ -17,6 +17,8 @@ set -e
 
 # global option variables
 LIB="0"
+DRIVER="-wm8978"
+OPTIONS=
 
 echoHelp ()
 {
@@ -38,15 +40,19 @@ echoHelp ()
 
 while [ $1 ]
 do
-	p=$1
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-		echoHelp
-		exit 0
-    elif [[ -f "$p" ]]; then
-		FILE="$p"
+        echoHelp
+        exit 0
+    elif [ $p = "-wm8978" ] || [ $p = "-ac101" ]; then
+        DRIVER=$p
     elif [ $p = "-lib" ]; then
-		LIB=1
+        LIB=1
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILE="$p"
     else
         OPTIONS="$OPTIONS $p"
     fi
@@ -75,10 +81,10 @@ if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     faust -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
-    if [ "$OPTIONS" = "-wm8978" ] || [ "$OPTIONS" = "-WM8978" ]; then
+    if [ "$DRIVER" = "-wm8978" ] || [ "$DRIVER" = "-WM8978" ]; then
     		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
     		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
-    elif [ "$OPTIONS" = "-ac101" ] || [ "$OPTIONS" = "-AC101" ]; then
+    elif [ "$DRIVER" = "-ac101" ] || [ "$DRIVER" = "-AC101" ]; then
     		cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
     		cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME 
     else
