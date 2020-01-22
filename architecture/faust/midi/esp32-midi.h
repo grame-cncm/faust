@@ -36,6 +36,8 @@
 #include "jdksmidi/sysex.h"
 #include "jdksmidi/parser.h"
 
+#include "faust/midi/midi.h"
+
 using namespace jdksmidi;
 
 #ifndef RX1
@@ -128,10 +130,10 @@ class esp32_midi : public midi_handler {
                             case 0xFC: // Stop
                                 handleStop(time);
                                 break;
-                            case 0xF0: // Sys-Ex Start
+                            case 0xF0: // SysEx Start
                                 // TODO
                                 break;
-                            case 0xF7: // Sys-Ex Stop
+                            case 0xF7: // SysEx Stop
                                 // TODO
                                 break;
                             default:
@@ -139,14 +141,14 @@ class esp32_midi : public midi_handler {
                         }
                     }
                 }
-                // TODO : should be moved in a global task at some point
+                // TODO: should be moved in a global task at some point
                 GUI::updateAllGuis();
             }
         }
   
-        static void processMidiHandler(void *arg)
+        static void processMidiHandler(void* arg)
         {
-            esp32_midi* midi = (esp32_midi *)midi;
+            esp32_midi* midi = (esp32_midi*)midi;
             midi->processMidi();
         }
     
