@@ -2,7 +2,7 @@
 # How to compile
 
 ### Prerequisites
-- you must have [cmake](https://cmake.org/) version 3.4.0 or greater installed.
+- you must have [cmake](https://cmake.org/) version 3.7.2 or greater installed.
 - you must have [LLVM](http://llvm.org/) version 3.8 or greater installed to compile the llvm backend.
 - you must have [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) installed to compile the http library.
 - on Windows, you have the option to use MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See Windows specific notes.
@@ -26,7 +26,7 @@ The Makefile includes 2 kind of targets, addressing the 2 phases of the compilat
 By default, you can simply type `make` in the `build` folder to compile the **Faust** compiler and the **OSC and HTTP** libraries.
 On output, you'll find applications in the `build/bin` folder and libraries in the `build/lib` folder.
 
-Type `make help` for details on targets and options.
+**Type `make help` for details on targets and options.**
 
 ## Customizing the embedded backends
 The `backends` folder contains a set of files describing the Faust backends to be embedded into  each possible output (compiler, static library, dynamic library). By default, the project makes use of `backends.cmake`.
@@ -47,6 +47,35 @@ You can directly invoke `cmake` with the appropriate options. In this case, it i
 You can have a look at the `Makefile` for examples of cmake invocations and at the `CMakeLists.txt` file for the available cmake options.
 
 **Warning**: running cmake from the build folder may override the existing Makefile.
+
+
+## Installing on Linux
+
+The default install directory is `/usr/local`:
+
+`> sudo make install`  
+
+#### Custom installation
+
+To install in another folder:
+
+`> make install PREFIX=/your_folder/folder`  
+
+
+#### Faust libraries location
+By default, all faust libraries are installed in a `lib` folder.
+Some system may require to have the 64 bits libraries installed in a `lib64` folder.
+To specify another destination folder for libraries, use the LIBSDIR option e.g.:
+
+`> make LIBSDIR=lib64`  
+
+or when your project is already generated:
+
+`> make cmake LIBSDIR=lib64`  
+
+
+**WARNING**: all the compilation chain must be aware of the libraries destination folder. Indeed, `faust --libdir` must give the correct location.
+
 
 ## Compiling on Windows
 #### Using MSYS2

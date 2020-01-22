@@ -727,9 +727,12 @@ static bool processCmdline(int argc, const char* argv[])
 #define kPSEP '/'
 #endif
 
+#ifndef LIBDIR
+#define LIBDIR "lib"
+#endif
 static void printLibDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "lib" << endl;
+    cout << gGlobal->gFaustRootDir << kPSEP << LIBDIR << endl;
 }
 static void printIncludeDir()
 {
