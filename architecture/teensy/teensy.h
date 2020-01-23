@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2010 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -41,11 +41,18 @@ class teensy_midi;
 class AudioFaust : public AudioStream
 {
     public:
+    
         AudioFaust();
         ~AudioFaust();
+    
+        template <int INPUTS, int OUTPUTS>
+        void updateImp(void);
         virtual void update(void);
+    
         void setParamValue(const std::string& path, float value);
+    
     private:
+    
         float** fInChannel;
         float** fOutChannel;
         MapUI* fUI;
