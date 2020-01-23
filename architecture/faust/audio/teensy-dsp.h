@@ -62,7 +62,7 @@ class teensyaudio : public AudioStream, public audio {
         void updateImp()
         {
             if (INPUTS > 0) {
-                audio_block_t* inBlock[INPUTS]
+                audio_block_t* inBlock[INPUTS];
                 for(int channel = 0; channel < INPUTS; channel++) {
                     inBlock[channel] = receiveReadOnly(channel);
                     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
