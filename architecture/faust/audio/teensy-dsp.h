@@ -59,11 +59,8 @@ class teensyaudio : public AudioStream, public audio {
         bool fRunning;
     
         template <int INPUTS, int OUTPUTS>
-        void updateImp(void)
+        void updateImp()
         {
-            /// Check running state
-            if (!fRunning) return;
-            
             if (INPUTS > 0) {
                 audio_block_t* inBlock[INPUTS]
                 for(int channel = 0; channel < INPUTS; channel++) {
@@ -92,7 +89,8 @@ class teensyaudio : public AudioStream, public audio {
             }
         }
     
-        void update(void) { updateImp<FAUST_INPUTS, FAUST_OUTPUTS>(); }
+        // Check running state
+        void update(void) { if (fRunning) updateImp<FAUST_INPUTS, FAUST_OUTPUTS>(); }
     
     public:
     
@@ -115,7 +113,6 @@ class teensyaudio : public AudioStream, public audio {
         {
             fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
             
-            // allocating Faust inputs
             if (fDSP->getNumInputs() > 0) {
                 fInChannel = new float*[fDSP->getNumInputs()];
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
@@ -125,7 +122,6 @@ class teensyaudio : public AudioStream, public audio {
                 fInChannel = NULL;
             }
             
-            // allocating Faust outputs
             if (fDSP->getNumOutputs() > 0) {
                 fOutChannel = new float*[fDSP->getNumOutputs()];
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
