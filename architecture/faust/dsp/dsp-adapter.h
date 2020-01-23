@@ -31,7 +31,6 @@
 #include "faust/dsp/dsp.h"
 
 // Adapts a DSP for a different number of inputs/outputs
-
 class dsp_adapter : public decorator_dsp {
     
     private:
@@ -101,7 +100,6 @@ class dsp_adapter : public decorator_dsp {
 };
 
 // Adapts a DSP for a different sample size
-
 template <typename TYPE_INT, typename TYPE_EXT>
 class dsp_sample_adapter : public decorator_dsp {
     
@@ -171,6 +169,73 @@ class dsp_sample_adapter : public decorator_dsp {
             fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
             adaptOutputsBuffers(count, outputs);
        }
+};
+
+// Basic down sample rate adapter (TODO : filtering/interpolation...)
+class dsp_down_sampler : public decorator_dsp {
+    
+    private:
+    
+        int fDownFactor;
+    
+    public:
+    
+        dsp_down_sampler(dsp* dsp, float down_factor):decorator_dsp(dsp), fDownFactor(down_factor)
+        {}
+    
+        virtual void init(int sample_rate)
+        {
+            fDSP->init(sample_rate / fDownFactor);
+        }
+    
+        virtual void instanceInit(int sample_rate)
+        {
+            fDSP->instanceInit(sample_rate / fDownFactor);
+        }
+    
+        virtual void instanceConstants(int sample_rate)
+        {
+            fDSP->instanceConstants(sample_rate / fDownFactor);
+        }
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            int real_count = count/fDownFactor;
+            
+            // Allocate fInputs with 'real_count' frames
+            FAUSTFLOAT* fInputs[fDSP->getNumInputs()];
+            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+                fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+            }
+            
+            // Allocate ; with 'real_count' frames
+            FAUSTFLOAT* fOutputs[fDSP->getNumOutputs()];
+            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+                fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+            }
+            
+            // Adapts inputs (TODO: filtering)
+            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+                for (int frame = 0; frame < real_count; frame++) {
+                    fInputs[chan][frame] = inputs[chan][frame*fDownFactor];
+                }
+            }
+            
+            fDSP->compute(real_count, fInputs, fOutputs);
+            
+            // Adapts outputs (TODO: interpolation)
+            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+                for (int frame = 0; frame < real_count; frame++) {
+                    FAUSTFLOAT sample = fOutputs[chan][frame];
+                    // For now: copy the same sample several times
+                    for (int step = 0; step < fDownFactor; step++) {
+                        outputs[chan][frame * fDownFactor + step] = sample;
+                    }
+                }
+            }
+        }
+    
+        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 };
 
 #endif

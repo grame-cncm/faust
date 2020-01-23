@@ -35,7 +35,6 @@
 
 #include "faust/audio/coreaudio-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-llvm-dsp.h"
 #include "faust/dsp/poly-interpreter-dsp.h"

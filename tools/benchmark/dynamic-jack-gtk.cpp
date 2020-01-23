@@ -39,7 +39,6 @@
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
-#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/meta.h"
