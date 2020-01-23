@@ -26,6 +26,7 @@
 #define faust_teensy_h_
 
 #include <string>
+
 #include "Arduino.h"
 #include "AudioStream.h"
 #include "Audio.h"

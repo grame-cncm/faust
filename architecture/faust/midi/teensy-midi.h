@@ -28,6 +28,7 @@
 #include <iostream>
 #include <cstdlib>
 
+#include "Arduino.h"
 #include "faust/midi/midi.h"
 
 extern usb_midi_class gUSBMIDI;

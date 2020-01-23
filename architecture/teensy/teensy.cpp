@@ -32,7 +32,6 @@
 // MIDI support
 #if MIDICTRL
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/UI.h"
 #include "faust/midi/teensy-midi.h"
 #endif
 
