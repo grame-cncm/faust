@@ -31,30 +31,25 @@
 #include "AudioStream.h"
 #include "Audio.h"
 
-class dsp;
+#include "faust/audio/teensy-dsp.h"
+
 class MapUI;
-class MidiUI;
+
 #if MIDICTRL
+class MidiUI;
 class teensy_midi;
 #endif
 
-class AudioFaust : public AudioStream
+class AudioFaust : public teensyaudio
 {
     public:
     
         AudioFaust();
         ~AudioFaust();
-    
-        template <int INPUTS, int OUTPUTS>
-        void updateImp(void);
-        virtual void update(void);
-    
         void setParamValue(const std::string& path, float value);
     
     private:
     
-        float** fInChannel;
-        float** fOutChannel;
         MapUI* fUI;
     #if MIDICTRL
         teensy_midi* fMIDIHandler;

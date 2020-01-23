@@ -22,45 +22,56 @@
  
  ************************************************************************/
 
-#ifndef faust_teensy_h_
-#define faust_teensy_h_
+#include "teensy.h"
 
-#include <string>
+// IMPORTANT: in order for MapUI to work, the teensy linker must be g++
+#include "faust/gui/MapUI.h"
+#include "faust/gui/meta.h"
+#include "faust/dsp/dsp.h"
 
-#include "Arduino.h"
-#include "AudioStream.h"
-#include "Audio.h"
-
-class dsp;
-class MapUI;
-class MidiUI;
+// MIDI support
 #if MIDICTRL
-class teensy_midi;
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/teensy-midi.h"
 #endif
 
-class AudioFaust : public AudioStream
+<<includeIntrinsic>>
+
+<<includeclass>>
+
+#if MIDICTRL
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+#endif
+
+AudioFaust::AudioFaust() : teensyaudio()
 {
-    public:
+    fDSP = new mydsp();
+    fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
     
-        AudioFaust();
-        ~AudioFaust();
+    fUI = new MapUI();
+    fDSP->buildUserInterface(fUI);
     
-        template <int INPUTS, int OUTPUTS>
-        void updateImp(void);
-        virtual void update(void);
-    
-        void setParamValue(const std::string& path, float value);
-    
-    private:
-    
-        float** fInChannel;
-        float** fOutChannel;
-        MapUI* fUI;
-    #if MIDICTRL
-        teensy_midi* fMIDIHandler;
-        MidiUI* fMIDIInterface;
-    #endif
-        dsp* fDSP;
-};
-
+#if MIDICTRL
+    fMIDIHandler = new teensy_midi();
+    fMIDIInterface = new MidiUI(fMIDIHandler);
+    fDSP->buildUserInterface(fMIDIInterface);
+    fMIDIInterface->run();
 #endif
+}
+
+AudioFaust::~AudioFaust()
+{
+    delete fDSP;
+    delete fUI;
+  
+#if MIDICTRL
+    delete fMIDIInterface;
+    delete fMIDIHandler;
+#endif
+}
+
+void AudioFaust::setParamValue(const std::string& path, float value)
+{
+    fUI->setParamValue(path, value);
+}
