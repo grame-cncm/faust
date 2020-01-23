@@ -28,6 +28,8 @@
 #include <set>
 #include <utility>
 
+#include "faust/dsp/dsp.h"
+
 #include "Arduino.h"
 #include "AudioStream.h"
 #include "Audio.h"
