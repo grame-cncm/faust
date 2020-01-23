@@ -34,7 +34,6 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/UI.h"
 #include "faust/midi/teensy-midi.h"
-extern usb_midi_class usbMIDI;
 #endif
 
 <<includeIntrinsic>>
@@ -85,8 +84,8 @@ AudioFaust::AudioFaust() : AudioStream((fDSP = new mydsp())->getNumInputs(), new
 void AudioFaust::update(void)
 {
 #if MIDICTRL
-    // Pass the MIDI messages received by the Teensy
-    fMIDIHandler->processMidi(usbMIDI);
+    // Process the MIDI messages received by the Teensy
+    fMIDIHandler->processMidi();
     // Synchronize all GUI controllers
     GUI::updateAllGuis();
 #endif
