@@ -30,20 +30,22 @@
 
 #include "faust/midi/midi.h"
 
+extern usb_midi_class gUSBMIDI;
+
 class teensy_midi : public midi_handler {
     
     public:
         
-        void processMidi(usb_midi_class usbMIDI)
+        void processMidi()
         {
-            while (usbMIDI.read()) {
+            while (gUSBMIDI.read()) {
                 
-                int type = usbMIDI.getType();       // which MIDI message, 128-255
-                int channel = usbMIDI.getChannel(); // which MIDI channel, 0-15
-                double time = (double)usbMIDI.Clock;
+                int type = gUSBMIDI.getType();       // which MIDI message, 128-255
+                int channel = gUSBMIDI.getChannel(); // which MIDI channel, 0-15
+                double time = (double)gUSBMIDI.Clock;
                 
                 switch(type) {
-                    case usbMIDI.Clock:
+                    case gUSBMIDI.Clock:
                         handleClock(time);
                         break;
                     case usbMIDI.Start:
@@ -51,29 +53,29 @@ class teensy_midi : public midi_handler {
                     case usbMIDI.Continue:
                         handleStart(time);
                         break;
-                    case usbMIDI.Stop:
+                    case gUSBMIDI.Stop:
                         handleStop(time);
                         break;
-                    case usbMIDI.ProgramChange:
-                        handleProgChange(time, channel, usbMIDI.getData1());
+                    case gUSBMIDI.ProgramChange:
+                        handleProgChange(time, channel, gUSBMIDI.getData1());
                         break;
-                    case usbMIDI.AfterTouchChannel:
-                        handleAfterTouch(time, channel, usbMIDI.getData1());
+                    case gUSBMIDI.AfterTouchChannel:
+                        handleAfterTouch(time, channel, gUSBMIDI.getData1());
                         break;
-                    case usbMIDI.NoteOff:
-                        handleKeyOff(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
+                    case gUSBMIDI.NoteOff:
+                        handleKeyOff(time, channel, gUSBMIDI.getData1(), gUSBMIDI.getData2());
                         break;
-                    case usbMIDI.NoteOn:
-                        handleKeyOn(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
+                    case gUSBMIDI.NoteOn:
+                        handleKeyOn(time, channel, gUSBMIDI.getData1(), gUSBMIDI.getData2());
                         break;
-                    case usbMIDI.ControlChange:
-                        handleCtrlChange(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
+                    case gUSBMIDI.ControlChange:
+                        handleCtrlChange(time, channel, gUSBMIDI.getData1(), gUSBMIDI.getData2());
                         break;
-                    case usbMIDI.PitchBend:
-                        handlePitchWheel(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
+                    case gUSBMIDI.PitchBend:
+                        handlePitchWheel(time, channel, gUSBMIDI.getData1(), gUSBMIDI.getData2());
                         break;
-                    case usbMIDI.AfterTouchPoly:
-                        handlePolyAfterTouch(time, channel, usbMIDI.getData1(), usbMIDI.getData2());
+                    case gUSBMIDI.AfterTouchPoly:
+                        handlePolyAfterTouch(time, channel, gUSBMIDI.getData1(), gUSBMIDI.getData2());
                         break;
                 }
             }
