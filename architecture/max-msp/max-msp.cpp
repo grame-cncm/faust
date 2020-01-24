@@ -448,7 +448,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_dsp->metadata(&meta3);
     string bundle_path_str = SoundUI::getBinaryPathFrom(meta3.fName);
     if (bundle_path_str == "") {
-        post("Bundle_path cannot be found!");
+        post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
     }
     x->m_soundInterface = new SoundUI(bundle_path_str);
     // SoundUI has to be dispatched on all internal voices

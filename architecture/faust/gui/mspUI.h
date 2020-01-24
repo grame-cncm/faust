@@ -80,10 +80,22 @@ struct Max_Meta2 : Meta
 struct Max_Meta3 : Meta
 {
     string fName;
+    
+    bool endWith(const string& str, const string& suffix)
+    {
+        size_t i = str.rfind(suffix);
+        return (i != string::npos) && (i == (str.length() - suffix.length()));
+    }
+    
     void declare(const char* key, const char* value)
     {
         if ((strcmp("filename", key) == 0)) {
-            fName = "com.grame." + string(value) + "~";
+            string val = value;
+            if (endWith(value, ".dsp")) {
+                fName = "com.grame." + val.substr(0, val.size() - 4) + "~";
+            } else {
+                fName = "com.grame." + val + "~";
+            }
         }
     }
 };
