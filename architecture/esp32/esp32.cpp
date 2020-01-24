@@ -90,31 +90,8 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fUI = new MapUI();
     fDSP->buildUserInterface(fUI);
     fHandle = NULL;
-    
-    i2s_pin_config_t pin_config;
-#if TTGO_TAUDIO
-    pin_config = {
-        .bck_io_num = 33,
-        .ws_io_num = 25,
-        .data_out_num = 26,
-        .data_in_num = 27
-    };
-#elif A1S_BOARD
-    pin_config = {
-        .bck_io_num = 27,
-        .ws_io_num = 26,
-        .data_out_num = 25,
-        .data_in_num = 35
-    };
-#else // Default
-    pin_config = {
-        .bck_io_num = 33,
-        .ws_io_num = 25,
-        .data_out_num = 26,
-        .data_in_num = 27
-    };
-#endif
-    configureI2S(sample_rate, buffer_size, pin_config);
+ 
+    configureI2S(sample_rate, buffer_size);
 
     if (fDSP->getNumInputs() > 0) {
         fInChannel = new float*[fDSP->getNumInputs()];
@@ -187,8 +164,31 @@ void AudioFaust::setParamValue(const std::string& path, float value)
     fUI->setParamValue(path, value);
 }
 
-void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t pin_config)
+void AudioFaust::configureI2S(int sample_rate, int buffer_size)
 {
+    i2s_pin_config_t pin_config;
+#if TTGO_TAUDIO
+    pin_config = {
+        .bck_io_num = 33,
+        .ws_io_num = 25,
+        .data_out_num = 26,
+        .data_in_num = 27
+    };
+#elif A1S_BOARD
+    pin_config = {
+        .bck_io_num = 27,
+        .ws_io_num = 26,
+        .data_out_num = 25,
+        .data_in_num = 35
+    };
+#else // Default
+    pin_config = {
+        .bck_io_num = 33,
+        .ws_io_num = 25,
+        .data_out_num = 26,
+        .data_in_num = 27
+    };
+#endif
     #if A1S_BOARD
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
