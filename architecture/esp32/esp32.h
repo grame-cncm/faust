@@ -42,7 +42,7 @@ class AudioFaust
 {
     private:
     
-        void configureI2S(int, int, i2s_pin_config_t);
+        void configureI2S(int, int);
         dsp* fDSP;
         MapUI* fUI;
         float **fInChannel, **fOutChannel;
