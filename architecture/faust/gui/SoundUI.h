@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/SimpleParser.h"
@@ -123,11 +124,13 @@ class SoundUI : public GenericUI
             std::string bundle_path_str;
         #ifdef __APPLE__
             CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-            if (bundle_ref) {
-                UInt8 bundle_path[512];
-                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                    bundle_path_str = std::string((char*)bundle_path) + folder;
-                }
+            if (!bundle_ref) { std::cerr << "getBinaryPathFrom CFBundleCopyBundleURL error '" << folder << "'" << std::endl; return ""; }
+      
+            UInt8 bundle_path[1024];
+            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
+                bundle_path_str = std::string((char*)bundle_path) + folder;
+            } else {
+                std::cerr << "getBinaryPathFrom CFURLGetFileSystemRepresentation error\n";
             }
         #endif
         #ifdef ANDROID_DRIVER
@@ -141,12 +144,16 @@ class SoundUI : public GenericUI
             std::string bundle_path_str;
         #ifdef __APPLE__
             CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
+            if (!bundle) { std::cerr << "getBinaryPathFrom CFBundleGetBundleWithIdentifier error '" << path << "'" << std::endl; return ""; }
+         
             CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
-            if (bundle_ref) {
-                UInt8 bundle_path[512];
-                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                    bundle_path_str = std::string((char*)bundle_path);
-                }
+            if (!bundle_ref) { std::cerr << "getBinaryPathFrom CFBundleCopyBundleURL error\n"; return ""; }
+            
+            UInt8 bundle_path[1024];
+            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
+                bundle_path_str = std::string((char*)bundle_path);
+            } else {
+                std::cerr << "getBinaryPathFrom CFURLGetFileSystemRepresentation error\n";
             }
         #endif
         #ifdef ANDROID_DRIVER
