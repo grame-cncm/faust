@@ -62,6 +62,104 @@
 
 using namespace std;
 
+/*
+
+
+
+*/
+
+//===========================================================
+//===========================================================
+// serialize2 : transfoms a DAG into a sequence of nodes
+// using a topological sort and a set E of entry nodes.
+//===========================================================
+//===========================================================
+
+template <typename N>
+inline vector<N> serialize2(const digraph<N>& g, const set<N>& E)
+{
+    //------------------------------------------------------------------------
+    // visit : a local function (simulated using a lambda) to visit a graph
+    // g : the graph
+    // n : the node
+    // V : set of already visited nodes
+    // S : serialized vector of nodes
+    //------------------------------------------------------------------------
+    using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, vector<N>& S) {
+        if (V.find(n) == V.end()) {
+            V.insert(n);
+            for (const auto& p : g.connections(n)) {
+                visit(g, p.first, V, S);
+            }
+            S.push_back(n);
+        }
+    };
+
+    vector<N> S;
+    set<N>    V;
+    for (const N& n : E) {
+        visit(g, n, V, S);
+    }
+    for (const N& n : g.nodes()) {
+        visit(g, n, V, S);
+    }
+    return S;
+}
+
+//===========================================================
+//===========================================================
+// serialize3 : transfoms a G into a sequence of nodes
+// using a topological sort and a set E of entry nodes.
+//===========================================================
+//===========================================================
+
+template <typename N>
+inline vector<N> serialize3(const digraph<N>& g, const set<N>& E)
+{
+    //------------------------------------------------------------------------
+    // visit : a local function (simulated using a lambda) to visit a graph
+    // g : the graph
+    // n : the node
+    // V : set of already visited nodes
+    // L : set of related nodes (but not visited yet)
+    // S : serialized vector of nodes
+    //------------------------------------------------------------------------
+    using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, set<N>&, vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, set<N>& L, vector<N>& S) {
+        if (V.find(n) == V.end()) {
+            V.insert(n);
+            for (const auto& p : g.connections(n)) {
+                if (p.second > 0) {
+                    // don't follow delayed connexions
+                    L.insert(p.first);
+                } else {
+                    visit(g, p.first, V, L, S);
+                }
+            }
+            S.push_back(n);
+        }
+    };
+
+    vector<N> S;
+    set<N>    V;
+
+    for (const N& n : E) {
+        set<N> L1;
+        visit(g, n, V, L1, S);
+        // visit related
+        for (const N& m : L1) {
+            set<N> L2;
+            visit(g, m, V, L2, S);
+        }
+    }
+    for (const N& n : g.nodes()) {
+        set<N> L;
+        visit(g, n, V, L, S);
+    }
+    return S;
+}
+
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
 {
     Type t = getCertifiedSigType(sig);  //, NULLENV);
@@ -364,6 +462,61 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     return INSTR5;
 }
 
+/**
+ * @brief Look for chains in the dependency graph of a set of instructions
+ *
+ * @param I the set of instructions
+ *
+ */
+
+static void lookForChains(const set<Tree>& I)
+{
+    digraph<Tree> G;  // the signal graph
+    Scheduling    S;
+
+    // 1) build the graph and the dictionnary
+    for (auto i : I) {
+        G.add(dependencyGraph(i));
+        S.fDic.add(i);
+    }
+
+    digraph<Tree> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree> K;  // the subgraph of init-time instructions
+    digraph<Tree> B;  // the subgraph of block-time instructions
+    digraph<Tree> E;  // the subgraph at sample-time instructions
+
+    // 2) split in three sub-graphs: K, B, E
+    // G <: T, E
+    // T <: K, B
+
+    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+
+    // 3) fill the scheduling
+
+    // a) for the init and block level graph we know they don't have cycles
+    // and can be directly serialized
+    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
+    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
+
+    // We are interested in the sample-time instruction graph
+    // this is where we would like to find chains.
+    // Chain = E : T1 ... : Tn : S
+    /*
+        Ti:Tj are a chain if Succ(ti) = {Tj} et Pred(Tj) = {ti}
+        On peut faire le graphe des dépendances qui sont des chainages
+        C'est un sous ensemble du graphe des dépendances. Il faut calculer le
+        graphe inverse (a ajouter dans la librairie).
+    */
+    digraph<digraph<Tree>> DG = graph2dag(E);
+    vector<digraph<Tree>>  VG = serialize(DG);
+    for (digraph<Tree> g : VG) {
+        vector<Tree> v = serialize(cut(g, 1));
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+    }
+}
 /**
  * @brief Schedule a set of instructions into init, block and
  * exec instruction sequences
@@ -909,6 +1062,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
     set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
     Scheduling S     = schedule(INSTR);
 
+    lookForChains(INSTR);
     SchedulingToClass(S, fClass);
     tableDependenciesGraph(INSTR);
 
