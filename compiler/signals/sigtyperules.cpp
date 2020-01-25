@@ -87,7 +87,7 @@ void typeAnnotation(Tree sig, bool causality)
     vector<Tree> vrec, vdef;
     vector<Type> vtype;
 
-    // cerr << "Symlist " << *sl << endl;
+    cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
         faustassert(isRec(hd(l), id, body));
@@ -108,7 +108,7 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert(int(vdef.size()) == n);
     faustassert(int(vtype.size()) == n);
 
-    // find least fixpoint
+    cerr << "find least fixpoint" << endl;
     for (bool finished = false; !finished;) {
         // init recursive types
         CTree::startNewVisit();
@@ -125,7 +125,7 @@ void typeAnnotation(Tree sig, bool causality)
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
-            // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+                        cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             finished = finished && (getSigType(vrec[i]) == vtype[i]);
         }
     }
