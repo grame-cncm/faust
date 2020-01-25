@@ -139,7 +139,8 @@ struct global {
 
     bool gPrintFileListSwitch;
     bool gInlineArchSwitch;
-    bool gDebugSwitch;  // in debug mode activate transformation's traces
+    bool gDebugSwitch;   // in debug mode activate transformation's traces
+    bool gDebugDiagram;  // activates .dot diagrams
 
     bool gDSPStruct;
     bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module

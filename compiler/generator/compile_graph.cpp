@@ -62,12 +62,6 @@
 
 using namespace std;
 
-/*
-
-
-
-*/
-
 //===========================================================
 //===========================================================
 // serialize2 : transfoms a DAG into a sequence of nodes
@@ -424,31 +418,31 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     startTiming("Transformation into Instructions");
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
     typeAnnotateInstructionSet(INSTR1);
-    if (gGlobal->gDebugSwitch) signalGraph("phase1-beforeSimplification.dot", INSTR1);
+    if (gGlobal->gDebugDiagram) signalGraph("phase1-beforeSimplification.dot", INSTR1);
 
     // cerr << ">>delayLineSimplifier\n" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
     typeAnnotateInstructionSet(INSTR2);
-    if (gGlobal->gDebugSwitch) signalGraph("phase2-afterSimplification.dot", INSTR2);
+    if (gGlobal->gDebugDiagram) signalGraph("phase2-afterSimplification.dot", INSTR2);
 
     // list short dline candidates (IN PROGRESS)
     set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2) : INSTR2;
-    if (gGlobal->gDebugSwitch) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
+    if (gGlobal->gDebugDiagram) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
 
     // cerr << ">>transformDelayToTable\n" << endl;
     set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
     typeAnnotateInstructionSet(INSTR3);
-    if (gGlobal->gDebugSwitch) signalGraph("phase3-afterTable.dot", INSTR3);
+    if (gGlobal->gDebugDiagram) signalGraph("phase3-afterTable.dot", INSTR3);
 
     // cerr << ">>transformOld2NewTables\n" << endl;
     set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
     typeAnnotateInstructionSet(INSTR4);
-    if (gGlobal->gDebugSwitch) signalGraph("phase4-afterTableTransform.dot", INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph("phase4-afterTableTransform.dot", INSTR4);
 
     // cerr << ">>splitCommonSubexpr\n" << endl;
     set<Tree> INSTR5 = splitCommonSubexpr(INSTR4);
     typeAnnotateInstructionSet(INSTR5);
-    if (gGlobal->gDebugSwitch) signalGraph("phase5-afterCSE.dot", INSTR5);
+    if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
 
 #if 0
     cerr << "Start scalarscheduling" << endl;
@@ -492,31 +486,12 @@ static void lookForChains(const set<Tree>& I)
     splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
     splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
 
-    // 3) fill the scheduling
-
-    // a) for the init and block level graph we know they don't have cycles
-    // and can be directly serialized
-    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
-    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
-
-    // We are interested in the sample-time instruction graph
-    // this is where we would like to find chains.
-    // Chain = E : T1 ... : Tn : S
-    /*
-        Ti:Tj are a chain if Succ(ti) = {Tj} et Pred(Tj) = {ti}
-        On peut faire le graphe des dépendances qui sont des chainages
-        C'est un sous ensemble du graphe des dépendances. Il faut calculer le
-        graphe inverse (a ajouter dans la librairie).
-    */
     digraph<digraph<Tree>> DG = graph2dag(E);
-    vector<digraph<Tree>>  VG = serialize(DG);
-    for (digraph<Tree> g : VG) {
-        vector<Tree> v = serialize(cut(g, 1));
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-    }
+    digraph<digraph<Tree>> DC = chain(DG, true);
+
+    cerr << "CHAIN: " << DC << endl;
 }
+
 /**
  * @brief Schedule a set of instructions into init, block and
  * exec instruction sequences

@@ -311,6 +311,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gDebugSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-dd", "--debug-diagram")) {
+            gGlobal->gDebugDiagram = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-a", "--architecture") && (i + 1 < argc)) {
             gGlobal->gArchFile = argv[i + 1];
             i += 2;

@@ -104,6 +104,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gDetailsSwitch    = false;
     gDebugSwitch      = false;
+    gDebugDiagram     = false;
     gDrawSignals      = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
