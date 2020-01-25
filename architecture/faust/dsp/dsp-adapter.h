@@ -171,133 +171,256 @@ class dsp_sample_adapter : public decorator_dsp {
        }
 };
 
+// Generated with process = fi.lowpass(3, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
+template <int fVslider0, typename REAL>
+struct LowPass3 {
+    
+    REAL fVec0[2];
+    REAL fRec1[2];
+    REAL fRec0[3];
+    
+    static REAL mydsp_faustpower2_f(REAL value)
+    {
+        return (value * value);
+    }
+    
+    LowPass3()
+    {
+        for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
+            fVec0[l0] = 0.0f;
+        }
+        for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
+            fRec1[l1] = 0.0f;
+        }
+        for (int l2 = 0; (l2 < 3); l2 = (l2 + 1)) {
+            fRec0[l2] = 0.0f;
+        }
+    }
+    
+    inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
+    {
+        // Will be computed at template specialization time
+        REAL fSlow0 = std::tan((1.5707963267948966 / REAL(fVslider0)));
+        REAL fSlow1 = (1.0 / fSlow0);
+        REAL fSlow2 = (1.0 / (((fSlow1 + 1.0000000000000002) / fSlow0) + 1.0));
+        REAL fSlow3 = (1.0 / (fSlow1 + 1.0));
+        REAL fSlow4 = (1.0 - fSlow1);
+        REAL fSlow5 = (((fSlow1 + -1.0000000000000002) / fSlow0) + 1.0);
+        REAL fSlow6 = (2.0 * (1.0 - (1.0 / mydsp_faustpower2_f(fSlow0))));
+        
+        // Computed at runtime
+        for (int i = 0; (i < count); i = (i + 1)) {
+            REAL fTemp0 = REAL(input0[i]);
+            fVec0[0] = fTemp0;
+            fRec1[0] = (0.0 - (fSlow3 * ((fSlow4 * fRec1[1]) - (fTemp0 + fVec0[1]))));
+            fRec0[0] = (fRec1[0] - (fSlow2 * ((fSlow5 * fRec0[2]) + (fSlow6 * fRec0[1]))));
+            output0[i] = FAUSTFLOAT((fSlow2 * (fRec0[2] + (fRec0[0] + (2.0 * fRec0[1])))));
+            fVec0[1] = fVec0[0];
+            fRec1[1] = fRec1[0];
+            fRec0[2] = fRec0[1];
+            fRec0[1] = fRec0[0];
+        }
+    }
+};
+
+// Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
+template <int fVslider0, typename REAL>
+struct LowPass4 {
+    
+    REAL fRec1[3];
+    REAL fRec0[3];
+    
+    static REAL mydsp_faustpower2_f(REAL value)
+    {
+        return (value * value);
+    }
+    
+    LowPass4()
+    {
+        for (int l0 = 0; (l0 < 3); l0 = (l0 + 1)) {
+            fRec1[l0] = 0.0f;
+        }
+        for (int l1 = 0; (l1 < 3); l1 = (l1 + 1)) {
+            fRec0[l1] = 0.0f;
+        }
+    }
+    
+    inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
+    {
+        // Will be computed at template specialization time
+        REAL fSlow0 = std::tan((1.5707963267948966 / REAL(fVslider0)));
+        REAL fSlow1 = (1.0 / fSlow0);
+        REAL fSlow2 = (1.0 / (((fSlow1 + 0.76536686473017945) / fSlow0) + 1.0));
+        REAL fSlow3 = (1.0 / (((fSlow1 + 1.8477590650225735) / fSlow0) + 1.0));
+        REAL fSlow4 = (((fSlow1 + -1.8477590650225735) / fSlow0) + 1.0);
+        REAL fSlow5 = (2.0 * (1.0 - (1.0 / mydsp_faustpower2_f(fSlow0))));
+        REAL fSlow6 = (((fSlow1 + -0.76536686473017945) / fSlow0) + 1.0);
+        
+        // Computed at runtime
+        for (int i = 0; (i < count); i = (i + 1)) {
+            fRec1[0] = (REAL(input0[i]) - (fSlow3 * ((fSlow4 * fRec1[2]) + (fSlow5 * fRec1[1]))));
+            fRec0[0] = ((fSlow3 * (fRec1[2] + (fRec1[0] + (2.0 * fRec1[1])))) - (fSlow2 * ((fSlow6 * fRec0[2]) + (fSlow5 * fRec0[1]))));
+            output0[i] = FAUSTFLOAT((fSlow2 * (fRec0[2] + (fRec0[0] + (2.0 * fRec0[1])))));
+            fRec1[2] = fRec1[1];
+            fRec1[1] = fRec1[0];
+            fRec0[2] = fRec0[1];
+            fRec0[1] = fRec0[0];
+        }
+    }
+};
+
+// Generated with process = fi.lowpass3e(ma.SR*0.45/vslider("Factor", 2, 2, 8, 1));
+template <int fVslider0, typename REAL>
+struct LowPass3e {
+    
+    REAL fRec1[3];
+    REAL fVec0[2];
+    REAL fRec0[2];
+    
+    static REAL mydsp_faustpower2_f(REAL value)
+    {
+        return (value * value);
+    }
+    
+    LowPass3e()
+    {
+        for (int l0 = 0; (l0 < 3); l0 = (l0 + 1)) {
+            fRec1[l0] = 0.0;
+        }
+        for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
+            fVec0[l1] = 0.0;
+        }
+        for (int l2 = 0; (l2 < 2); l2 = (l2 + 1)) {
+            fRec0[l2] = 0.0;
+        }
+    }
+    
+    inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
+    {
+        // Will be computed at template specialization time
+        REAL fSlow0 = std::tan((1.4137166941154069 / REAL(fVslider0)));
+        REAL fSlow1 = (1.0 / fSlow0);
+        REAL fSlow2 = (1.0 / (fSlow1 + 0.82244590899881598));
+        REAL fSlow3 = (0.82244590899881598 - fSlow1);
+        REAL fSlow4 = (1.0 / (((fSlow1 + 0.80263676416103003) / fSlow0) + 1.4122708937742039));
+        REAL fSlow5 = mydsp_faustpower2_f(fSlow0);
+        REAL fSlow6 = (0.019809144837788999 / fSlow5);
+        REAL fSlow7 = (fSlow6 + 1.1615164189826961);
+        REAL fSlow8 = (((fSlow1 + -0.80263676416103003) / fSlow0) + 1.4122708937742039);
+        REAL fSlow9 = (2.0 * (1.4122708937742039 - (1.0 / fSlow5)));
+        REAL fSlow10 = (2.0 * (1.1615164189826961 - fSlow6));
+        
+        // Computed at runtime
+        for (int i = 0; (i < count); i = (i + 1)) {
+            fRec1[0] = (REAL(input0[i]) - (fSlow4 * ((fSlow8 * fRec1[2]) + (fSlow9 * fRec1[1]))));
+            REAL fTemp0 = (fSlow4 * (((fSlow7 * fRec1[0]) + (fSlow10 * fRec1[1])) + (fSlow7 * fRec1[2])));
+            fVec0[0] = fTemp0;
+            fRec0[0] = (0.0 - (fSlow2 * ((fSlow3 * fRec0[1]) - (fTemp0 + fVec0[1]))));
+            output0[i] = FAUSTFLOAT(fRec0[0]);
+            fRec1[2] = fRec1[1];
+            fRec1[1] = fRec1[0];
+            fVec0[1] = fVec0[0];
+            fRec0[1] = fRec0[0];
+        }
+        
+    }
+};
+
+// Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
+template <int fVslider0, typename REAL>
+struct LowPass6e {
+    
+    REAL fRec2[3];
+    REAL fRec1[3];
+    REAL fRec0[3];
+    
+    static REAL mydsp_faustpower2_f(REAL value)
+    {
+        return (value * value);
+    }
+    
+    LowPass6e()
+    {
+        for (int l0 = 0; (l0 < 3); l0 = (l0 + 1)) {
+            fRec2[l0] = 0.0;
+        }
+        for (int l1 = 0; (l1 < 3); l1 = (l1 + 1)) {
+            fRec1[l1] = 0.0;
+        }
+        for (int l2 = 0; (l2 < 3); l2 = (l2 + 1)) {
+            fRec0[l2] = 0.0;
+        }
+    }
+    
+    inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
+    {
+        // Will be computed at template specialization time
+        REAL fSlow0 = std::tan((1.4137166941154069 / REAL(fVslider0)));
+        REAL fSlow1 = (1.0 / fSlow0);
+        REAL fSlow2 = (1.0 / (((fSlow1 + 0.16840487111358901) / fSlow0) + 1.0693584077073119));
+        REAL fSlow3 = mydsp_faustpower2_f(fSlow0);
+        REAL fSlow4 = (1.0 / fSlow3);
+        REAL fSlow5 = (fSlow4 + 53.536152954556727);
+        REAL fSlow6 = (1.0 / (((fSlow1 + 0.51247864188914105) / fSlow0) + 0.68962136448467504));
+        REAL fSlow7 = (fSlow4 + 7.6217312988706034);
+        REAL fSlow8 = (1.0 / (((fSlow1 + 0.78241304682164503) / fSlow0) + 0.24529150870616001));
+        REAL fSlow9 = (9.9999997054999994e-05 / fSlow3);
+        REAL fSlow10 = (fSlow9 + 0.00043322720055500002);
+        REAL fSlow11 = (((fSlow1 + -0.78241304682164503) / fSlow0) + 0.24529150870616001);
+        REAL fSlow12 = (2.0 * (0.24529150870616001 - fSlow4));
+        REAL fSlow13 = (2.0 * (0.00043322720055500002 - fSlow9));
+        REAL fSlow14 = (((fSlow1 + -0.51247864188914105) / fSlow0) + 0.68962136448467504);
+        REAL fSlow15 = (2.0 * (0.68962136448467504 - fSlow4));
+        REAL fSlow16 = (2.0 * (7.6217312988706034 - fSlow4));
+        REAL fSlow17 = (((fSlow1 + -0.16840487111358901) / fSlow0) + 1.0693584077073119);
+        REAL fSlow18 = (2.0 * (1.0693584077073119 - fSlow4));
+        REAL fSlow19 = (2.0 * (53.536152954556727 - fSlow4));
+        
+        // Computed at runtime
+        for (int i = 0; (i < count); i = (i + 1)) {
+            fRec2[0] = (REAL(input0[i]) - (fSlow8 * ((fSlow11 * fRec2[2]) + (fSlow12 * fRec2[1]))));
+            fRec1[0] = ((fSlow8 * (((fSlow10 * fRec2[0]) + (fSlow13 * fRec2[1])) + (fSlow10 * fRec2[2]))) - (fSlow6 * ((fSlow14 * fRec1[2]) + (fSlow15 * fRec1[1]))));
+            fRec0[0] = ((fSlow6 * (((fSlow7 * fRec1[0]) + (fSlow16 * fRec1[1])) + (fSlow7 * fRec1[2]))) - (fSlow2 * ((fSlow17 * fRec0[2]) + (fSlow18 * fRec0[1]))));
+            output0[i] = FAUSTFLOAT((fSlow2 * (((fSlow5 * fRec0[0]) + (fSlow19 * fRec0[1])) + (fSlow5 * fRec0[2]))));
+            fRec2[2] = fRec2[1];
+            fRec2[1] = fRec2[0];
+            fRec1[2] = fRec1[1];
+            fRec1[1] = fRec1[0];
+            fRec0[2] = fRec0[1];
+            fRec0[1] = fRec0[0];
+        }
+    }
+};
+
 // Base class for sample-rate adapter
-template <int Factor, typename REAL>
+template <int Factor, typename FILTER>
 class sr_sampler : public decorator_dsp {
 
     protected:
     
-        // Generated with process = fi.lowpass(3, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
-        template <int fVslider0>
-        struct LowPass3 {
-            
-            REAL fVec0[2];
-            REAL fRec1[2];
-            REAL fRec0[3];
-            
-            static REAL mydsp_faustpower2_f(REAL value)
-            {
-                return (value * value);
-            }
-            
-            LowPass3()
-            {
-                for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
-                    fVec0[l0] = 0.0f;
-                }
-                for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
-                    fRec1[l1] = 0.0f;
-                }
-                for (int l2 = 0; (l2 < 3); l2 = (l2 + 1)) {
-                    fRec0[l2] = 0.0f;
-                }
-            }
-            
-            inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
-            {
-                // Will be computed at template specialization time
-                REAL fSlow0 = std::tan((1.5707963267948966 / REAL(fVslider0)));
-                REAL fSlow1 = (1.0 / fSlow0);
-                REAL fSlow2 = (1.0 / (((fSlow1 + 1.0000000000000002) / fSlow0) + 1.0));
-                REAL fSlow3 = (1.0 / (fSlow1 + 1.0));
-                REAL fSlow4 = (1.0 - fSlow1);
-                REAL fSlow5 = (((fSlow1 + -1.0000000000000002) / fSlow0) + 1.0);
-                REAL fSlow6 = (2.0 * (1.0 - (1.0 / mydsp_faustpower2_f(fSlow0))));
-                
-                // Computed at runtime
-                for (int i = 0; (i < count); i = (i + 1)) {
-                    REAL fTemp0 = REAL(input0[i]);
-                    fVec0[0] = fTemp0;
-                    fRec1[0] = (0.0 - (fSlow3 * ((fSlow4 * fRec1[1]) - (fTemp0 + fVec0[1]))));
-                    fRec0[0] = (fRec1[0] - (fSlow2 * ((fSlow5 * fRec0[2]) + (fSlow6 * fRec0[1]))));
-                    output0[i] = FAUSTFLOAT((fSlow2 * (fRec0[2] + (fRec0[0] + (2.0 * fRec0[1])))));
-                    fVec0[1] = fVec0[0];
-                    fRec1[1] = fRec1[0];
-                    fRec0[2] = fRec0[1];
-                    fRec0[1] = fRec0[0];
-                }
-            }
-        };
-    
-        // Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
-        template <int fVslider0>
-        struct LowPass4 {
-            
-            REAL fRec1[3];
-            REAL fRec0[3];
-            
-            static REAL mydsp_faustpower2_f(REAL value)
-            {
-                return (value * value);
-            }
-            
-            LowPass4()
-            {
-                for (int l0 = 0; (l0 < 3); l0 = (l0 + 1)) {
-                    fRec1[l0] = 0.0f;
-                }
-                for (int l1 = 0; (l1 < 3); l1 = (l1 + 1)) {
-                    fRec0[l1] = 0.0f;
-                }
-            }
-            
-            inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
-            {
-                // Will be computed at template specialization time
-                REAL fSlow0 = std::tan((1.5707963267948966 / REAL(fVslider0)));
-                REAL fSlow1 = (1.0 / fSlow0);
-                REAL fSlow2 = (1.0 / (((fSlow1 + 0.76536686473017945) / fSlow0) + 1.0));
-                REAL fSlow3 = (1.0 / (((fSlow1 + 1.8477590650225735) / fSlow0) + 1.0));
-                REAL fSlow4 = (((fSlow1 + -1.8477590650225735) / fSlow0) + 1.0);
-                REAL fSlow5 = (2.0 * (1.0 - (1.0 / mydsp_faustpower2_f(fSlow0))));
-                REAL fSlow6 = (((fSlow1 + -0.76536686473017945) / fSlow0) + 1.0);
-                
-                // Computed at runtime
-                 for (int i = 0; (i < count); i = (i + 1)) {
-                    fRec1[0] = (REAL(input0[i]) - (fSlow3 * ((fSlow4 * fRec1[2]) + (fSlow5 * fRec1[1]))));
-                    fRec0[0] = ((fSlow3 * (fRec1[2] + (fRec1[0] + (2.0 * fRec1[1])))) - (fSlow2 * ((fSlow6 * fRec0[2]) + (fSlow5 * fRec0[1]))));
-                    output0[i] = FAUSTFLOAT((fSlow2 * (fRec0[2] + (fRec0[0] + (2.0 * fRec0[1])))));
-                    fRec1[2] = fRec1[1];
-                    fRec1[1] = fRec1[0];
-                    fRec0[2] = fRec0[1];
-                    fRec0[1] = fRec0[0];
-                }
-            }
-        };
-    
-        std::vector<LowPass4<Factor>> fInputLowPass;
-        std::vector<LowPass4<Factor>> fOutputLowPass;
+        std::vector<FILTER> fInputLowPass;
+        std::vector<FILTER> fOutputLowPass;
     
     public:
     
         sr_sampler(dsp* dsp):decorator_dsp(dsp)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-                fInputLowPass.push_back(LowPass4<Factor>());
+                fInputLowPass.push_back(FILTER());
             }
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
-                fOutputLowPass.push_back(LowPass4<Factor>());
+                fOutputLowPass.push_back(FILTER());
             }
         }
 };
 
 // Down sample-rate adapter
-template <int DownFactor, typename REAL>
-class dsp_down_sampler : public sr_sampler<DownFactor, REAL> {
+template <int DownFactor, typename FILTER>
+class dsp_down_sampler : public sr_sampler<DownFactor, FILTER> {
     
     public:
     
-        dsp_down_sampler(dsp* dsp):sr_sampler<DownFactor, REAL>(dsp)
+        dsp_down_sampler(dsp* dsp):sr_sampler<DownFactor, FILTER>(dsp)
         {}
     
         virtual void init(int sample_rate)
@@ -350,7 +473,7 @@ class dsp_down_sampler : public sr_sampler<DownFactor, REAL> {
                     // Puts zeros
                     memset(outputs[chan], 0, sizeof(FAUSTFLOAT) * count);
                     for (int frame = 0; frame < real_count; frame++) {
-                        // Copy one sample
+                        // Copy one sample every 'DownFactor'
                         outputs[chan][frame * DownFactor] = fOutputs[chan][frame];
                     }
                     // Lowpass filtering in place on 'outputs'
@@ -363,12 +486,12 @@ class dsp_down_sampler : public sr_sampler<DownFactor, REAL> {
 };
 
 // Up sample-rate adapter
-template <int UpFactor, typename REAL>
-class dsp_up_sampler : public sr_sampler<UpFactor, REAL> {
+template <int UpFactor, typename FILTER>
+class dsp_up_sampler : public sr_sampler<UpFactor, FILTER> {
     
     public:
     
-        dsp_up_sampler(dsp* dsp):sr_sampler<UpFactor, REAL>(dsp)
+        dsp_up_sampler(dsp* dsp):sr_sampler<UpFactor, FILTER>(dsp)
         {}
     
         virtual void init(int sample_rate)
@@ -403,7 +526,7 @@ class dsp_up_sampler : public sr_sampler<UpFactor, REAL> {
                     // Puts zeros
                     memset(fInputs[chan], 0, sizeof(FAUSTFLOAT) * real_count);
                     for (int frame = 0; frame < count; frame++) {
-                        // Copy one sample
+                        // Copy one sample every 'UpFactor'
                         fInputs[chan][frame * UpFactor] = inputs[chan][frame];
                     }
                     // Lowpass filtering in place on 'fInputs'
