@@ -22,9 +22,9 @@
 #ifndef __signals_intervals__
 #define __signals_intervals__
 
-#include <assert.h>
 #include <math.h>
 #include <iostream>
+#include "exception.hh"
 
 #ifdef _WIN32
 inline double log2(double e)
@@ -62,28 +62,28 @@ struct interval : public virtual Garbageable {
     {
         if (isnan(n)) {
             cerr << "ERROR1, n is NAN in an Interval" << endl;
-            assert(false);
+            faustassert(false);
         }
     }
     interval(bool v, double n, double m) : valid(v), lo(n), hi(m)
     {
         if (isnan(n) || isnan(m)) {
             cerr << "ERROR2, n or m is NAN in an Interval" << endl;
-            assert(false);
+            faustassert(false);
         }
     }
     interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m))
     {
         if (isnan(n) || isnan(m)) {
             cerr << "ERROR3, n or m is NAN in an Interval" << endl;
-            assert(false);
+            faustassert(false);
         }
     }
     interval(const interval& r) : valid(r.valid), lo(r.lo), hi(r.hi)
     {
         if (isnan(r.lo) || isnan(r.hi)) {
             cerr << "ERROR4, r.lo or r.hi is NAN in an Interval" << endl;
-            assert(false);
+            faustassert(false);
         }
     }
 
