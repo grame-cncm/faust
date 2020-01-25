@@ -171,11 +171,11 @@ class dsp_sample_adapter : public decorator_dsp {
        }
 };
 
-// Down sample rate adapter
-template <int DownFactor>
-class dsp_down_sampler : public decorator_dsp {
-    
-    private:
+// Base class for sample-rate adapter
+template <int Factor>
+class sr_sampler : public decorator_dsp {
+
+    protected:
     
         // Generated with process = fi.lowpass(3, ma.SR*0.5/vslider("DownFactor", 2, 2, 16, 1));
         template <int fVslider0>
@@ -189,7 +189,7 @@ class dsp_down_sampler : public decorator_dsp {
             {
                 return (value * value);
             }
-       
+            
             LowPass3()
             {
                 for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
@@ -228,7 +228,7 @@ class dsp_down_sampler : public decorator_dsp {
                 }
             }
         };
-    
+
         // Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("DownFactor", 2, 2, 16, 1));
         template <int fVslider0>
         struct LowPass4 {
@@ -275,45 +275,55 @@ class dsp_down_sampler : public decorator_dsp {
             }
         };
     
-        std::vector<LowPass4<DownFactor>> fInputLowPass;
-        std::vector<LowPass4<DownFactor>> fOutputLowPass;
+        std::vector<LowPass4<Factor>> fInputLowPass;
+        std::vector<LowPass4<Factor>> fOutputLowPass;
     
     public:
     
-        dsp_down_sampler(dsp* dsp):decorator_dsp(dsp)
+        sr_sampler(dsp* dsp):decorator_dsp(dsp)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-               fInputLowPass.push_back(LowPass4<DownFactor>());
+                fInputLowPass.push_back(LowPass4<Factor>());
             }
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
-                fOutputLowPass.push_back(LowPass4<DownFactor>());
+                fOutputLowPass.push_back(LowPass4<Factor>());
             }
         }
+};
+
+// Down sample-rate adapter
+template <int DownFactor>
+class dsp_down_sampler : public sr_sampler<DownFactor> {
+    
+    public:
+    
+        dsp_down_sampler(dsp* dsp):sr_sampler<DownFactor>(dsp)
+        {}
     
         virtual void init(int sample_rate)
         {
-            fDSP->init(sample_rate/DownFactor);
+            this->fDSP->init(sample_rate/DownFactor);
         }
     
         virtual void instanceInit(int sample_rate)
         {
-            fDSP->instanceInit(sample_rate/DownFactor);
+            this->fDSP->instanceInit(sample_rate/DownFactor);
         }
     
         virtual void instanceConstants(int sample_rate)
         {
-            fDSP->instanceConstants(sample_rate/DownFactor);
+            this->fDSP->instanceConstants(sample_rate/DownFactor);
         }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             int real_count = count/DownFactor;
            
-            // Adapts inputs
-            FAUSTFLOAT* fInputs[fDSP->getNumInputs()];
-            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-                // Lowpass filtering in place on the inputs
-                fInputLowPass[chan].compute(count, inputs[chan], inputs[chan]);
+            // Adapt inputs
+            FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
+            for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
+                // Lowpass filtering in place on 'inputs'
+                this->fInputLowPass[chan].compute(count, inputs[chan], inputs[chan]);
                 // Allocate fInputs with 'real_count' frames
                 fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
                 // Decimate
@@ -323,26 +333,95 @@ class dsp_down_sampler : public decorator_dsp {
             }
             
             // Allocate fOutputs with 'real_count' frames
-            FAUSTFLOAT* fOutputs[fDSP->getNumOutputs()];
-            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+            FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
                 fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
             }
             
             // Compute at lower rate
-            fDSP->compute(real_count, fInputs, fOutputs);
+            this->fDSP->compute(real_count, fInputs, fOutputs);
             
-            // Adapts outputs
-            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+            // Adapt outputs
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
                 for (int frame = 0; frame < real_count; frame++) {
                     // Copy one sample
-                    outputs[chan][frame*DownFactor] = fOutputs[chan][frame];
+                    outputs[chan][frame * DownFactor] = fOutputs[chan][frame];
                     // Then write 0 (DownFactor - 1) times
                     for (int step = 1; step < DownFactor; step++) {
                         outputs[chan][frame * DownFactor + step] = 0;
                     }
                 }
-                // Lowpass filtering in place on the output
-                fOutputLowPass[chan].compute(count, outputs[chan], outputs[chan]);
+                // Lowpass filtering in place on 'outputs'
+                this->fOutputLowPass[chan].compute(count, outputs[chan], outputs[chan]);
+            }
+        }
+    
+        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+};
+
+// Up sample-rate adapter
+template <int UpFactor>
+class dsp_up_sampler : public sr_sampler<UpFactor> {
+    
+    public:
+    
+        dsp_up_sampler(dsp* dsp):sr_sampler<UpFactor>(dsp)
+        {}
+    
+        virtual void init(int sample_rate)
+        {
+            this->fDSP->init(sample_rate*UpFactor);
+        }
+    
+        virtual void instanceInit(int sample_rate)
+        {
+            this->fDSP->instanceInit(sample_rate*UpFactor);
+        }
+    
+        virtual void instanceConstants(int sample_rate)
+        {
+            this->fDSP->instanceConstants(sample_rate*UpFactor);
+        }
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            int real_count = count*UpFactor;
+            
+            // Adapt inputs
+            FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
+            
+            for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
+                // Allocate fInputs with 'real_count' frames
+                fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+                for (int frame = 0; frame < count; frame++) {
+                    // Copy one sample
+                    fInputs[chan][frame * UpFactor] = inputs[chan][frame];
+                    // Then write 0 (UpFactor - 1) times
+                    for (int step = 1; step < UpFactor; step++) {
+                        fInputs[chan][frame * UpFactor + step] = 0;
+                    }
+                }
+                // Lowpass filtering in place on 'fInputs'
+                this->fInputLowPass[chan].compute(real_count, fInputs[chan], fInputs[chan]);
+            }
+            
+            // Allocate fOutputs with 'real_count' frames
+            FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
+                fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+            }
+            
+            // Compute at upper rate
+            this->fDSP->compute(real_count, fInputs, fOutputs);
+            
+            // Adapt outputs
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
+                // Lowpass filtering in place on 'fOutputs'
+                this->fOutputLowPass[chan].compute(real_count, fOutputs[chan], fOutputs[chan]);
+                // Decimate
+                for (int frame = 0; frame < count; frame++) {
+                    outputs[chan][frame] = fOutputs[chan][frame * UpFactor];
+                }
             }
         }
     
