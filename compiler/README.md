@@ -1,4 +1,5 @@
-% man(1) Version 2.21.8 (24-January-2020) | Faust man page
+make[3] : on entre dans le répertoire « /home/orlarey/FaustInstall/faust/documentation/man »
+% man(1) Version 2.21.9 (25-January-2020) | Faust man page
 
 NAME
 ====
@@ -217,3 +218,4 @@ AUTHOR
 Copyright (C) 2002-2019, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 
+make[3] : on quitte le répertoire « /home/orlarey/FaustInstall/faust/documentation/man »
