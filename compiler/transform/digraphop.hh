@@ -9,8 +9,7 @@
  *******************************************************************************
  ******************************************************************************/
 
-#ifndef digraphop_hh
-#define digraphop_hh
+#pragma once
 
 #include <functional>
 #include <iostream>
@@ -214,6 +213,22 @@ inline vector<vector<N>> parallelize(const digraph<N>& g)
     return v;
 }
 
+template <typename N>
+inline vector<vector<N>> rparallelize(const digraph<N>& G)
+{
+    vector<vector<N>> P = parallelize(G);
+    int               i = 0;
+    int               j = P.size() - 1;
+
+    while (i < j) {
+        swap(P[i], P[j]);
+        ++i;
+        --j;
+    }
+
+    return P;
+}
+
 //===========================================================
 //===========================================================
 // serialize : transfoms a DAG into a sequence of nodes
@@ -222,7 +237,7 @@ inline vector<vector<N>> parallelize(const digraph<N>& g)
 //===========================================================
 
 template <typename N>
-inline vector<N> serialize(const digraph<N>& g)
+inline vector<N> serialize(const digraph<N>& G)
 {
     //------------------------------------------------------------------------
     // visit : a local function (simulated using a lambda) to visit a graph
@@ -244,8 +259,8 @@ inline vector<N> serialize(const digraph<N>& g)
 
     vector<N> S;
     set<N>    V;
-    for (const N& n : g.nodes()) {
-        visit(g, n, V, S);
+    for (const N& n : G.nodes()) {
+        visit(G, n, V, S);
     }
     return S;
 }
@@ -273,6 +288,28 @@ inline digraph<M> mapnodes(const digraph<N>& g, function<M(const N&)> foo)
     for (const auto& n : g.nodes()) {
         for (const auto& cnx : g.connections(n)) {
             r.add(cache[n], cache[cnx.first], cnx.second);
+        }
+    }
+    return r;
+}
+
+//===========================================================
+//===========================================================
+// reverse(g) : reverse all the connections of a graph. The
+// connections keep their value.
+// Property : reverse(reverse(g)) = g;
+//===========================================================
+//===========================================================
+
+template <typename N>
+inline digraph<N> reverse(const digraph<N>& g)
+{
+    digraph<N> r;
+    // copy the connections
+    for (const auto& n : g.nodes()) {
+        r.add(n);
+        for (const auto& cnx : g.connections(n)) {
+            r.add(cnx.first, n, cnx.second);
         }
     }
     return r;
@@ -387,6 +424,34 @@ template <typename N>
 inline digraph<N> cut(const digraph<N>& G, int dm)
 {
     return mapconnections<N>(G, [dm](const N&, const N&, int d) -> bool { return d < dm; });
+}
+
+//===========================================================
+//===========================================================
+// chain(g) -> g'
+// Keep only the chain connections, that is connections
+// (n1 -d-> n2) such that dst(n1) == {n2} && src(n2) == {n1}
+// If strict is true, only the nodes that are part of a chain
+// are kept.
+//===========================================================
+//===========================================================
+
+template <typename N>
+inline digraph<N> chain(const digraph<N>& g, bool strict)
+{
+    const digraph<N> h = reverse(g);
+    digraph<N>       r;
+    for (const auto& n : g.nodes()) {
+        if (!strict) r.add(n);
+        if (g.connections(n).size() == 1) {
+            for (const auto& m : g.connections(n)) {
+                if (h.connections(m.first).size() == 1) {
+                    r.add(n, m.first, m.second);
+                }
+            }
+        }
+    }
+    return r;
 }
 
 /*******************************************************************************
@@ -531,5 +596,3 @@ inline ostream& operator<<(ostream& file, const pair<N, M>& V)
 {
     return file << "pair {" << V.first << ", " << V.second << "}";
 }
-
-#endif /* digraphop_hpp */
