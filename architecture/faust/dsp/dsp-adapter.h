@@ -171,67 +171,178 @@ class dsp_sample_adapter : public decorator_dsp {
        }
 };
 
-// Basic down sample rate adapter (TODO : filtering/interpolation...)
+// Down sample rate adapter
+template <int DownFactor>
 class dsp_down_sampler : public decorator_dsp {
     
     private:
     
-        int fDownFactor;
+        // Generated with process = fi.lowpass(3, ma.SR*0.5/vslider("DownFactor", 2, 2, 16, 1));
+        template <int fVslider0>
+        struct LowPass3 {
+            
+            float fVec0[2];
+            float fRec1[2];
+            float fRec0[3];
+            
+            static float mydsp_faustpower2_f(float value)
+            {
+                return (value * value);
+            }
+       
+            LowPass3()
+            {
+                for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
+                    fVec0[l0] = 0.0f;
+                }
+                for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
+                    fRec1[l1] = 0.0f;
+                }
+                for (int l2 = 0; (l2 < 3); l2 = (l2 + 1)) {
+                    fRec0[l2] = 0.0f;
+                }
+            }
+            
+            inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
+            {
+                // Will be computed at template specialization time
+                float fSlow0 = std::tan((1.57079637f / float(fVslider0)));
+                float fSlow1 = (1.0f / fSlow0);
+                float fSlow2 = (1.0f / (((fSlow1 + 1.0f) / fSlow0) + 1.0f));
+                float fSlow3 = (1.0f / (fSlow1 + 1.0f));
+                float fSlow4 = (1.0f - fSlow1);
+                float fSlow5 = (((fSlow1 + -1.0f) / fSlow0) + 1.0f);
+                float fSlow6 = (2.0f * (1.0f - (1.0f / mydsp_faustpower2_f(fSlow0))));
+                
+                // Computed at runtime
+                for (int i = 0; (i < count); i = (i + 1)) {
+                    float fTemp0 = float(input0[i]);
+                    fVec0[0] = fTemp0;
+                    fRec1[0] = (0.0f - (fSlow3 * ((fSlow4 * fRec1[1]) - (fTemp0 + fVec0[1]))));
+                    fRec0[0] = (fRec1[0] - (fSlow2 * ((fSlow5 * fRec0[2]) + (fSlow6 * fRec0[1]))));
+                    output0[i] = FAUSTFLOAT((fSlow2 * (fRec0[2] + (fRec0[0] + (2.0f * fRec0[1])))));
+                    fVec0[1] = fVec0[0];
+                    fRec1[1] = fRec1[0];
+                    fRec0[2] = fRec0[1];
+                    fRec0[1] = fRec0[0];
+                }
+            }
+        };
+    
+        // Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("DownFactor", 2, 2, 16, 1));
+        template <int fVslider0>
+        struct LowPass4 {
+            
+            float fRec1[3];
+            float fRec0[3];
+            
+            static float mydsp_faustpower2_f(float value)
+            {
+                return (value * value);
+            }
+            
+            LowPass4()
+            {
+                for (int l0 = 0; (l0 < 3); l0 = (l0 + 1)) {
+                    fRec1[l0] = 0.0f;
+                }
+                for (int l1 = 0; (l1 < 3); l1 = (l1 + 1)) {
+                    fRec0[l1] = 0.0f;
+                }
+            }
+            
+            inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
+            {
+                // Will be computed at template specialization time
+                float fSlow0 = std::tan((1.57079637f / float(fVslider0)));
+                float fSlow1 = (1.0f / fSlow0);
+                float fSlow2 = (1.0f / (((fSlow1 + 0.765366852f) / fSlow0) + 1.0f));
+                float fSlow3 = (1.0f / (((fSlow1 + 1.84775901f) / fSlow0) + 1.0f));
+                float fSlow4 = (((fSlow1 + -1.84775901f) / fSlow0) + 1.0f);
+                float fSlow5 = (2.0f * (1.0f - (1.0f / mydsp_faustpower2_f(fSlow0))));
+                float fSlow6 = (((fSlow1 + -0.765366852f) / fSlow0) + 1.0f);
+                
+                // Computed at runtime
+                for (int i = 0; (i < count); i = (i + 1)) {
+                    fRec1[0] = (float(input0[i]) - (fSlow3 * ((fSlow4 * fRec1[2]) + (fSlow5 * fRec1[1]))));
+                    fRec0[0] = ((fSlow3 * (fRec1[2] + (fRec1[0] + (2.0f * fRec1[1])))) - (fSlow2 * ((fSlow6 * fRec0[2]) + (fSlow5 * fRec0[1]))));
+                    output0[i] = FAUSTFLOAT((fSlow2 * (fRec0[2] + (fRec0[0] + (2.0f * fRec0[1])))));
+                    fRec1[2] = fRec1[1];
+                    fRec1[1] = fRec1[0];
+                    fRec0[2] = fRec0[1];
+                    fRec0[1] = fRec0[0];
+                }
+            }
+        };
+    
+        std::vector<LowPass4<DownFactor>> fInputLowPass;
+        std::vector<LowPass4<DownFactor>> fOutputLowPass;
     
     public:
     
-        dsp_down_sampler(dsp* dsp, float down_factor):decorator_dsp(dsp), fDownFactor(down_factor)
-        {}
+        dsp_down_sampler(dsp* dsp):decorator_dsp(dsp)
+        {
+            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+               fInputLowPass.push_back(LowPass4<DownFactor>());
+            }
+            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+                fOutputLowPass.push_back(LowPass4<DownFactor>());
+            }
+        }
     
         virtual void init(int sample_rate)
         {
-            fDSP->init(sample_rate / fDownFactor);
+            fDSP->init(sample_rate/DownFactor);
         }
     
         virtual void instanceInit(int sample_rate)
         {
-            fDSP->instanceInit(sample_rate / fDownFactor);
+            fDSP->instanceInit(sample_rate/DownFactor);
         }
     
         virtual void instanceConstants(int sample_rate)
         {
-            fDSP->instanceConstants(sample_rate / fDownFactor);
+            fDSP->instanceConstants(sample_rate/DownFactor);
         }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            int real_count = count/fDownFactor;
-            
-            // Allocate fInputs with 'real_count' frames
+            int real_count = count/DownFactor;
+           
+            // Adapts inputs
             FAUSTFLOAT* fInputs[fDSP->getNumInputs()];
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+                // Lowpass filtering in place on the inputs
+                fInputLowPass[chan].compute(count, inputs[chan], inputs[chan]);
+                // Allocate fInputs with 'real_count' frames
                 fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+                // Decimate
+                for (int frame = 0; frame < real_count; frame++) {
+                    fInputs[chan][frame] = inputs[chan][frame * DownFactor];
+                }
             }
             
-            // Allocate ; with 'real_count' frames
+            // Allocate fOutputs with 'real_count' frames
             FAUSTFLOAT* fOutputs[fDSP->getNumOutputs()];
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
             }
             
-            // Adapts inputs (TODO: filtering)
-            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-                for (int frame = 0; frame < real_count; frame++) {
-                    fInputs[chan][frame] = inputs[chan][frame*fDownFactor];
-                }
-            }
-            
+            // Compute at lower rate
             fDSP->compute(real_count, fInputs, fOutputs);
             
-            // Adapts outputs (TODO: interpolation)
+            // Adapts outputs
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 for (int frame = 0; frame < real_count; frame++) {
-                    FAUSTFLOAT sample = fOutputs[chan][frame];
-                    // For now: copy the same sample several times
-                    for (int step = 0; step < fDownFactor; step++) {
-                        outputs[chan][frame * fDownFactor + step] = sample;
+                    // Copy one sample
+                    outputs[chan][frame*DownFactor] = fOutputs[chan][frame];
+                    // Then write 0 (DownFactor - 1) times
+                    for (int step = 1; step < DownFactor; step++) {
+                        outputs[chan][frame * DownFactor + step] = 0;
                     }
                 }
+                // Lowpass filtering in place on the output
+                fOutputLowPass[chan].compute(count, outputs[chan], outputs[chan]);
             }
         }
     

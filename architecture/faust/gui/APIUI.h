@@ -422,7 +422,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
    
         /**
-         * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
+         * Set a new value coming from an accelerometer, propagate it to all relevant FAUSTFLOAT* zones.
          *
          * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
          * @param value - the new value

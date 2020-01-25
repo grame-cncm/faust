@@ -124,13 +124,13 @@ class SoundUI : public GenericUI
             std::string bundle_path_str;
         #ifdef __APPLE__
             CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-            if (!bundle_ref) { std::cerr << "getBinaryPathFrom CFBundleCopyBundleURL error '" << folder << "'" << std::endl; return ""; }
+            if (!bundle_ref) { std::cerr << "getBinaryPath CFBundleCopyBundleURL error '" << folder << "'" << std::endl; return ""; }
       
             UInt8 bundle_path[1024];
             if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
                 bundle_path_str = std::string((char*)bundle_path) + folder;
             } else {
-                std::cerr << "getBinaryPathFrom CFURLGetFileSystemRepresentation error\n";
+                std::cerr << "getBinaryPath CFURLGetFileSystemRepresentation error\n";
             }
         #endif
         #ifdef ANDROID_DRIVER
