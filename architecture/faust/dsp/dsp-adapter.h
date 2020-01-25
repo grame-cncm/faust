@@ -171,7 +171,7 @@ class dsp_sample_adapter : public decorator_dsp {
        }
 };
 
-// Generated with process = fi.lowpass(3, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
+// Generated with process = fi.lowpass(3, ma.SR*0.45/vslider("Factor", 2, 2, 16, 1));
 template <int fVslider0, typename REAL>
 struct LowPass3 {
     
@@ -179,7 +179,7 @@ struct LowPass3 {
     REAL fRec1[2];
     REAL fRec0[3];
     
-    static REAL mydsp_faustpower2_f(REAL value)
+    inline REAL mydsp_faustpower2_f(REAL value)
     {
         return (value * value);
     }
@@ -200,7 +200,7 @@ struct LowPass3 {
     inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
     {
         // Will be computed at template specialization time
-        REAL fSlow0 = std::tan((1.5707963267948966 / REAL(fVslider0)));
+        REAL fSlow0 = std::tan((1.4137166941154069 / REAL(fVslider0)));
         REAL fSlow1 = (1.0 / fSlow0);
         REAL fSlow2 = (1.0 / (((fSlow1 + 1.0000000000000002) / fSlow0) + 1.0));
         REAL fSlow3 = (1.0 / (fSlow1 + 1.0));
@@ -223,14 +223,14 @@ struct LowPass3 {
     }
 };
 
-// Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
+// Generated with process = fi.lowpass(4, ma.SR*0.45/vslider("Factor", 2, 2, 16, 1));
 template <int fVslider0, typename REAL>
 struct LowPass4 {
     
     REAL fRec1[3];
     REAL fRec0[3];
     
-    static REAL mydsp_faustpower2_f(REAL value)
+    inline REAL mydsp_faustpower2_f(REAL value)
     {
         return (value * value);
     }
@@ -248,7 +248,7 @@ struct LowPass4 {
     inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
     {
         // Will be computed at template specialization time
-        REAL fSlow0 = std::tan((1.5707963267948966 / REAL(fVslider0)));
+        REAL fSlow0 = std::tan((1.4137166941154069 / REAL(fVslider0)));
         REAL fSlow1 = (1.0 / fSlow0);
         REAL fSlow2 = (1.0 / (((fSlow1 + 0.76536686473017945) / fSlow0) + 1.0));
         REAL fSlow3 = (1.0 / (((fSlow1 + 1.8477590650225735) / fSlow0) + 1.0));
@@ -277,7 +277,7 @@ struct LowPass3e {
     REAL fVec0[2];
     REAL fRec0[2];
     
-    static REAL mydsp_faustpower2_f(REAL value)
+    inline REAL mydsp_faustpower2_f(REAL value)
     {
         return (value * value);
     }
@@ -322,7 +322,6 @@ struct LowPass3e {
             fVec0[1] = fVec0[0];
             fRec0[1] = fRec0[0];
         }
-        
     }
 };
 
@@ -334,7 +333,7 @@ struct LowPass6e {
     REAL fRec1[3];
     REAL fRec0[3];
     
-    static REAL mydsp_faustpower2_f(REAL value)
+    inline REAL mydsp_faustpower2_f(REAL value)
     {
         return (value * value);
     }
