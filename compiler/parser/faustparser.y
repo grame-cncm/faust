@@ -75,6 +75,7 @@ Tree unquote(char* str)
 	char* str;
 	string* cppstr;
 	bool b;
+	int numvariant;
 }
 
 %start program
@@ -208,6 +209,11 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
+%token FLOATMODE
+%token DOUBLEMODE
+%token QUADMODE
+
+
 
  /* Begin and End tags for documentations, equations and diagrams */
 %token BDOC
@@ -308,6 +314,8 @@ Tree unquote(char* str)
 %type <exp> lstattrdef
 %type <b> lstattrval
 
+%type <numvariant> variant
+
 
 
 
@@ -318,9 +326,11 @@ program         : stmtlist 						{ $$ = $1; gGlobal->gResult = formatDefinitions
 				;
 
 stmtlist        : /*empty*/                     { $$ = gGlobal->nil; }
+				| stmtlist variant statement    { if ($2==gGlobal->gFloatSize) $$ = cons ($3,$1); else $$=$1; }
 				| stmtlist statement            { $$ = cons ($2,$1); }
 
 deflist         : /*empty*/                     { $$ = gGlobal->nil; }
+				| deflist variant definition    { if ($2==gGlobal->gFloatSize) $$ = cons ($3,$1); else $$=$1;}
 				| deflist definition            { $$ = cons ($2,$1); }
 				;
 
@@ -395,6 +405,11 @@ lstattrval		: LSTTRUE								{ $$ = true; }
 				;
 
 docmtd          : BMETADATA name EMETADATA				{ $$ = $2; }
+				;
+
+variant			: FLOATMODE							{ $$ = 1;}
+				| DOUBLEMODE							{ $$ = 2;}
+				| QUADMODE							{ $$ = 3;}
 				;
 
 definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); setDefProp($1, yyfilename, yylineno); }
