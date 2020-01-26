@@ -96,6 +96,11 @@ int main(int argc, char* argv[])
     
     // modify the UI values according to the command-line options:
     interface->process_command();
+    
+    if ((down_sample != 1.0) && (up_sample != 1.0)) {
+        cerr << "ERROR : -down-sample '" << down_sample << "' and -up-sample '" << up_sample << "' cannot be used at the same time !\n";
+        exit(1);
+    }
    
     // Setup up/down sampling
     int filter = int(filter_type);
