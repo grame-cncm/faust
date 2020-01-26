@@ -29,7 +29,6 @@ extern crate libm;
 pub trait Meta {
 
     // -- metadata declarations
-
     fn declare(&mut self, key: &str, value: &str) -> ();
 
 }
@@ -37,14 +36,12 @@ pub trait Meta {
 pub trait UI<T> {
 
     // -- widget's layouts
-
     fn openTabBox(&mut self, label: &str) -> ();
     fn openHorizontalBox(&mut self, label: &str) -> ();
     fn openVerticalBox(&mut self, label: &str) -> ();
     fn closeBox(&mut self) -> ();
 
     // -- active widgets
-
     fn addButton(&mut self, label: &str, zone: &mut T) -> ();
     fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ();
     fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
@@ -52,12 +49,10 @@ pub trait UI<T> {
     fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
 
     // -- passive widgets
-
     fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
     fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
 
     // -- metadata declarations
-
     fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
 
 }

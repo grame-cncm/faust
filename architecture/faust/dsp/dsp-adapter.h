@@ -172,9 +172,15 @@ class dsp_sample_adapter : public decorator_dsp {
        }
 };
 
+// Base class for filters
+template <int fVslider0>
+struct Filter {
+        inline int getFactor() { return fVslider0; }
+};
+
 // Generated with process = fi.lowpass(3, ma.SR*0.45/vslider("Factor", 2, 2, 16, 1));
 template <int fVslider0, typename REAL>
-struct LowPass3 {
+struct LowPass3 : public Filter<fVslider0> {
     
     REAL fVec0[2];
     REAL fRec1[2];
@@ -226,7 +232,7 @@ struct LowPass3 {
 
 // Generated with process = fi.lowpass(4, ma.SR*0.45/vslider("Factor", 2, 2, 16, 1));
 template <int fVslider0, typename REAL>
-struct LowPass4 {
+struct LowPass4 : public Filter<fVslider0> {
     
     REAL fRec1[3];
     REAL fRec0[3];
@@ -272,7 +278,7 @@ struct LowPass4 {
 
 // Generated with process = fi.lowpass3e(ma.SR*0.45/vslider("Factor", 2, 2, 8, 1));
 template <int fVslider0, typename REAL>
-struct LowPass3e {
+struct LowPass3e : public Filter<fVslider0> {
     
     REAL fRec1[3];
     REAL fVec0[2];
@@ -328,7 +334,7 @@ struct LowPass3e {
 
 // Generated with process = fi.lowpass(4, ma.SR*0.5/vslider("Factor", 2, 2, 16, 1));
 template <int fVslider0, typename REAL>
-struct LowPass6e {
+struct LowPass6e : public Filter<fVslider0> {
     
     REAL fRec2[3];
     REAL fRec1[3];
@@ -393,13 +399,15 @@ struct LowPass6e {
 };
 
 // Base class for sample-rate adapter
-template <int Factor, typename FILTER>
+template <typename FILTER>
 class sr_sampler : public decorator_dsp {
 
     protected:
     
         std::vector<FILTER> fInputLowPass;
         std::vector<FILTER> fOutputLowPass;
+    
+        inline int getFactor() { return this->fOutputLowPass[0].getFactor(); }
     
     public:
     
@@ -412,73 +420,68 @@ class sr_sampler : public decorator_dsp {
                 fOutputLowPass.push_back(FILTER());
             }
         }
-};
+ };
 
 // Down sample-rate adapter
-template <int DownFactor, typename FILTER>
-class dsp_down_sampler : public sr_sampler<DownFactor, FILTER> {
+template <typename FILTER>
+class dsp_down_sampler : public sr_sampler<FILTER> {
     
     public:
     
-        dsp_down_sampler(dsp* dsp):sr_sampler<DownFactor, FILTER>(dsp)
+        dsp_down_sampler(dsp* dsp):sr_sampler<FILTER>(dsp)
         {}
     
         virtual void init(int sample_rate)
         {
-            this->fDSP->init(sample_rate/DownFactor);
+            this->fDSP->init(sample_rate / this->getFactor());
         }
     
         virtual void instanceInit(int sample_rate)
         {
-            this->fDSP->instanceInit(sample_rate/DownFactor);
+            this->fDSP->instanceInit(sample_rate / this->getFactor());
         }
     
         virtual void instanceConstants(int sample_rate)
         {
-            this->fDSP->instanceConstants(sample_rate/DownFactor);
+            this->fDSP->instanceConstants(sample_rate / this->getFactor());
         }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            // Identity case (choice done at compile time...)
-            if (DownFactor == 1) {
-                this->fDSP->compute(count, inputs, outputs);
-            } else {
-                int real_count = count/DownFactor;
-               
-                // Adapt inputs
-                FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
-                for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
-                    // Lowpass filtering in place on 'inputs'
-                    this->fInputLowPass[chan].compute(count, inputs[chan], inputs[chan]);
-                    // Allocate fInputs with 'real_count' frames
-                    fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
-                    // Decimate
-                    for (int frame = 0; frame < real_count; frame++) {
-                        fInputs[chan][frame] = inputs[chan][frame * DownFactor];
-                    }
+            int real_count = count / this->getFactor();
+           
+            // Adapt inputs
+            FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
+            for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
+                // Lowpass filtering in place on 'inputs'
+                this->fInputLowPass[chan].compute(count, inputs[chan], inputs[chan]);
+                // Allocate fInputs with 'real_count' frames
+                fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+                // Decimate
+                for (int frame = 0; frame < real_count; frame++) {
+                    fInputs[chan][frame] = inputs[chan][frame * this->getFactor()];
                 }
-                
-                // Allocate fOutputs with 'real_count' frames
-                FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
-                for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
-                    fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+            }
+            
+            // Allocate fOutputs with 'real_count' frames
+            FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
+                fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+            }
+            
+            // Compute at lower rate
+            this->fDSP->compute(real_count, fInputs, fOutputs);
+            
+            // Adapt outputs
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
+                // Puts zeros
+                memset(outputs[chan], 0, sizeof(FAUSTFLOAT) * count);
+                for (int frame = 0; frame < real_count; frame++) {
+                    // Copy one sample every 'DownFactor'
+                    outputs[chan][frame * this->getFactor()] = fOutputs[chan][frame];
                 }
-                
-                // Compute at lower rate
-                this->fDSP->compute(real_count, fInputs, fOutputs);
-                
-                // Adapt outputs
-                for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
-                    // Puts zeros
-                    memset(outputs[chan], 0, sizeof(FAUSTFLOAT) * count);
-                    for (int frame = 0; frame < real_count; frame++) {
-                        // Copy one sample every 'DownFactor'
-                        outputs[chan][frame * DownFactor] = fOutputs[chan][frame];
-                    }
-                    // Lowpass filtering in place on 'outputs'
-                    this->fOutputLowPass[chan].compute(count, outputs[chan], outputs[chan]);
-                }
+                // Lowpass filtering in place on 'outputs'
+                this->fOutputLowPass[chan].compute(count, outputs[chan], outputs[chan]);
             }
         }
     
@@ -486,70 +489,65 @@ class dsp_down_sampler : public sr_sampler<DownFactor, FILTER> {
 };
 
 // Up sample-rate adapter
-template <int UpFactor, typename FILTER>
-class dsp_up_sampler : public sr_sampler<UpFactor, FILTER> {
+template <typename FILTER>
+class dsp_up_sampler : public sr_sampler<FILTER> {
     
     public:
     
-        dsp_up_sampler(dsp* dsp):sr_sampler<UpFactor, FILTER>(dsp)
+        dsp_up_sampler(dsp* dsp):sr_sampler<FILTER>(dsp)
         {}
     
         virtual void init(int sample_rate)
         {
-            this->fDSP->init(sample_rate*UpFactor);
+            this->fDSP->init(sample_rate * this->getFactor());
         }
     
         virtual void instanceInit(int sample_rate)
         {
-            this->fDSP->instanceInit(sample_rate*UpFactor);
+            this->fDSP->instanceInit(sample_rate * this->getFactor());
         }
     
         virtual void instanceConstants(int sample_rate)
         {
-            this->fDSP->instanceConstants(sample_rate*UpFactor);
+            this->fDSP->instanceConstants(sample_rate * this->getFactor());
         }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            // Identity case (choice done at compile time...)
-            if (UpFactor == 1) {
-                this->fDSP->compute(count, inputs, outputs);
-            } else {
-                int real_count = count*UpFactor;
-                
-                // Adapt inputs
-                FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
-                
-                for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
-                    // Allocate fInputs with 'real_count' frames
-                    fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
-                    // Puts zeros
-                    memset(fInputs[chan], 0, sizeof(FAUSTFLOAT) * real_count);
-                    for (int frame = 0; frame < count; frame++) {
-                        // Copy one sample every 'UpFactor'
-                        fInputs[chan][frame * UpFactor] = inputs[chan][frame];
-                    }
-                    // Lowpass filtering in place on 'fInputs'
-                    this->fInputLowPass[chan].compute(real_count, fInputs[chan], fInputs[chan]);
+            int real_count = count * this->getFactor();
+            
+            // Adapt inputs
+            FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
+            
+            for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
+                // Allocate fInputs with 'real_count' frames
+                fInputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+                // Puts zeros
+                memset(fInputs[chan], 0, sizeof(FAUSTFLOAT) * real_count);
+                for (int frame = 0; frame < count; frame++) {
+                    // Copy one sample every 'UpFactor'
+                    fInputs[chan][frame * this->getFactor()] = inputs[chan][frame];
                 }
-                
-                // Allocate fOutputs with 'real_count' frames
-                FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
-                for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
-                    fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
-                }
-                
-                // Compute at upper rate
-                this->fDSP->compute(real_count, fInputs, fOutputs);
-                
-                // Adapt outputs
-                for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
-                    // Lowpass filtering in place on 'fOutputs'
-                    this->fOutputLowPass[chan].compute(real_count, fOutputs[chan], fOutputs[chan]);
-                    // Decimate
-                    for (int frame = 0; frame < count; frame++) {
-                        outputs[chan][frame] = fOutputs[chan][frame * UpFactor];
-                    }
+                // Lowpass filtering in place on 'fInputs'
+                this->fInputLowPass[chan].compute(real_count, fInputs[chan], fInputs[chan]);
+            }
+            
+            // Allocate fOutputs with 'real_count' frames
+            FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
+                fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
+            }
+            
+            // Compute at upper rate
+            this->fDSP->compute(real_count, fInputs, fOutputs);
+            
+            // Adapt outputs
+            for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
+                // Lowpass filtering in place on 'fOutputs'
+                this->fOutputLowPass[chan].compute(real_count, fOutputs[chan], fOutputs[chan]);
+                // Decimate
+                for (int frame = 0; frame < count; frame++) {
+                    outputs[chan][frame] = fOutputs[chan][frame * this->getFactor()];
                 }
             }
         }
