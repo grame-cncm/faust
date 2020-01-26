@@ -165,12 +165,13 @@ Here is the available options:
 
 The **faust-tester** tool allows to test a Faust effect DSP with test input signals, like dirac impulse or periodic pulses.
 
-`faust-tester [-imp] [-pulse] foo.dsp` 
+`faust-tester [-imp] [-pulse <num (in samples)] [-display <num>] foo.dsp` 
 
 Here is the available options:
 
 - `-imp to test with an dirac impulse`
-- `-pulse to test with a periodic pulse`
+- `-pulse <num (in samples)> to test with a periodic pulse generated every 'num' samples`
+- `-display <num> to diplay <num> samples (default 44100)`
 
 ## faust-osc-controller
 

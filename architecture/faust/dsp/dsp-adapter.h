@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <cmath>
 
 #include "faust/dsp/dsp.h"
 

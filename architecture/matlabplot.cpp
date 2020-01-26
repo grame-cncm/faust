@@ -48,7 +48,7 @@
 #include "faust/gui/console.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/channels.h"
-#include "faust/dsp/dsp.h"
+#include "faust/dsp/dsp-adapter.h"
 
 using namespace std;
 
@@ -72,36 +72,107 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+dsp* DSP;
 
 #define kFrames 512
 
 int main(int argc, char* argv[])
 {
-    FAUSTFLOAT fStartAtSample;
-    FAUSTFLOAT fnbsamples;
-    FAUSTFLOAT srate;
+    FAUSTFLOAT start_at_sample, nb_samples, sample_rate, down_sample, up_sample, filter_type;
+    
+    DSP = new mydsp();
 
     CMDUI* interface = new CMDUI(argc, argv);
-    DSP.buildUserInterface(interface);
+    DSP->buildUserInterface(interface);
 
-    interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
-    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
-    interface->addOption("-r", &srate, 44100.0, 1.0, 100000000.0);
-
-    // init signal processor and the user interface values:
-    DSP.init(int(srate));
-
+    interface->addOption("-s", &start_at_sample, 0, 0.0, 100000000.0);
+    interface->addOption("-n", &nb_samples, 16, 0.0, 100000000.0);
+    interface->addOption("-r", &sample_rate, 44100.0, 1.0, 100000000.0);
+    
+    // For up/down sampling
+    interface->addOption("-down-sample", &down_sample, 1.0, 1.0, 16.0);
+    interface->addOption("-up-sample", &up_sample, 1.0, 1.0, 16.0);
+    interface->addOption("-filter", &filter_type, 1.0, 1.0, 4.0);
+    
     // modify the UI values according to the command-line options:
     interface->process_command();
+   
+    // Setup up/down sampling
+    int filter = int(filter_type);
+    if (down_sample != 1.0) {
+        int ds = int(down_sample);
+        switch (filter) {
+            case 1:
+                if (ds == 2) DSP = new dsp_down_sampler<2, LowPass3<2, float> >(DSP);
+                else if (ds == 4) DSP = new dsp_down_sampler<4, LowPass3<4, float>>(DSP);
+                else if (ds == 8) DSP = new dsp_down_sampler<8, LowPass3<8, float>>(DSP);
+                else if (ds == 16) DSP = new dsp_down_sampler<16, LowPass3<16, float>>(DSP);
+            break;
+            case 2:
+                if (ds == 2) DSP = new dsp_down_sampler<2, LowPass4<2, float> >(DSP);
+                else if (ds == 4) DSP = new dsp_down_sampler<4, LowPass4<4, float>>(DSP);
+                else if (ds == 8) DSP = new dsp_down_sampler<8, LowPass4<8, float>>(DSP);
+                else if (ds == 16) DSP = new dsp_down_sampler<16, LowPass4<16, float>>(DSP);
+            break;
+            case 3:
+                if (ds == 2) DSP = new dsp_down_sampler<2, LowPass3e<2, float> >(DSP);
+                else if (ds == 4) DSP = new dsp_down_sampler<4, LowPass3e<4, float>>(DSP);
+                else if (ds == 8) DSP = new dsp_down_sampler<8, LowPass3e<8, float>>(DSP);
+                else if (ds == 16) DSP = new dsp_down_sampler<16, LowPass3e<16, float>>(DSP);
+            break;
+            case 4:
+                if (ds == 2) DSP = new dsp_down_sampler<2, LowPass6e<2, float> >(DSP);
+                else if (ds == 4) DSP = new dsp_down_sampler<4, LowPass6e<4, float>>(DSP);
+                else if (ds == 8) DSP = new dsp_down_sampler<8, LowPass6e<8, float>>(DSP);
+                else if (ds == 16) DSP = new dsp_down_sampler<16, LowPass6e<16, float>>(DSP);
+            break;
+            default:
+            cerr << "Incorrect filter type : " << filter << endl;
+            break;
+        }
+    } else if (up_sample != 1.0) {
+        int up = int(up_sample);
+        switch (filter) {
+            case 1:
+                if (up == 2) DSP = new dsp_up_sampler<2, LowPass3<2, float> >(DSP);
+                else if (up == 4) DSP = new dsp_up_sampler<4, LowPass3<4, float>>(DSP);
+                else if (up == 8) DSP = new dsp_up_sampler<8, LowPass3<8, float>>(DSP);
+                else if (up == 16) DSP = new dsp_up_sampler<16, LowPass3<16, float>>(DSP);
+            break;
+            case 2:
+                if (up == 2) DSP = new dsp_up_sampler<2, LowPass4<2, float> >(DSP);
+                else if (up == 4) DSP = new dsp_up_sampler<4, LowPass4<4, float>>(DSP);
+                else if (up == 8) DSP = new dsp_up_sampler<8, LowPass4<8, float>>(DSP);
+                else if (up == 16) DSP = new dsp_up_sampler<16, LowPass4<16, float>>(DSP);
+            break;
+            case 3:
+                if (up == 2) DSP = new dsp_up_sampler<2, LowPass3e<2, float> >(DSP);
+                else if (up == 4) DSP = new dsp_up_sampler<4, LowPass3e<4, float>>(DSP);
+                else if (up == 8) DSP = new dsp_up_sampler<8, LowPass3e<8, float>>(DSP);
+                else if (up == 16) DSP = new dsp_up_sampler<16, LowPass3e<16, float>>(DSP);
+            break;
+            case 4:
+                if (up == 2) DSP = new dsp_up_sampler<2, LowPass6e<2, float> >(DSP);
+                else if (up == 4) DSP = new dsp_up_sampler<4, LowPass6e<4, float>>(DSP);
+                else if (up == 8) DSP = new dsp_up_sampler<8, LowPass6e<8, float>>(DSP);
+                else if (up == 16) DSP = new dsp_up_sampler<16, LowPass6e<16, float>>(DSP);
+            break;
+            default:
+            cerr << "Incorrect filter type : " << filter << endl;
+            break;
+        }
+    }
+    
+    // init signal processor and the user interface values:
+    DSP->init(int(sample_rate));
 
     // prepare input channels (if any) with an impulse
-    int nins = DSP.getNumInputs();
+    int nins = DSP->getNumInputs();
     channels inchan(kFrames, nins);
     inchan.impulse(); // after each compute we will zero them
 
     // prepare output channels
-    int nouts = DSP.getNumOutputs();
+    int nouts = DSP->getNumOutputs();
     channels outchan (kFrames, nouts);
 
     // print usage info:
@@ -111,22 +182,22 @@ int main(int argc, char* argv[])
     printf("faustout = [ ...\n");
 
     // skip <start> samples
-    int start = int(fStartAtSample);
+    int start = int(start_at_sample);
     while (start > kFrames) {
-        DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
+        DSP->compute(kFrames, inchan.buffers(), outchan.buffers());
         inchan.zero();
         start -= kFrames;
     }
     if (start > 0) {
-        DSP.compute(start, inchan.buffers(), outchan.buffers());
+        DSP->compute(start, inchan.buffers(), outchan.buffers());
     }
     // end skip
 
-    int nbsamples = int(fnbsamples);
+    int nbsamples = int(nb_samples);
     cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
 
     while (nbsamples > kFrames) {
-        DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
+        DSP->compute(kFrames, inchan.buffers(), outchan.buffers());
         inchan.zero();
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
@@ -142,7 +213,7 @@ int main(int argc, char* argv[])
     }
 
     if (nbsamples) { // Write out partial-chunk buffer:
-        DSP.compute(nbsamples, inchan.buffers(), outchan.buffers());
+        DSP->compute(nbsamples, inchan.buffers(), outchan.buffers());
         inchan.zero();
         for (int i = 0; i < nbsamples; i++) {
             for (int c = 0; c < nouts; c++) {
@@ -165,6 +236,8 @@ int main(int argc, char* argv[])
         printf(");\n");
         printf("print -dpdf %s.pdf;\n", argv[0]);
     }
+    
+    delete DSP;
     return 0;
 }
 
