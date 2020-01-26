@@ -41,6 +41,14 @@ inline char replaceCR(char c)
 	return (c!='\n') ? c : ' ';
 }
 
+// A defintion is accepted if the prefixset is empty or if
+// the current float precision is member of the prefix set
+bool acceptdefinition(int prefixset)
+{
+	int precisions[] = {0, 1, 2, 4};
+	return (prefixset==0) || (prefixset & precisions[gGlobal->gFloatSize]);
+}
+
 Tree unquote(char* str)
 {
     size_t size = strlen(str) + 1;
@@ -315,6 +323,7 @@ Tree unquote(char* str)
 %type <b> lstattrval
 
 %type <numvariant> variant
+%type <numvariant> variantlist
 
 
 
@@ -322,16 +331,24 @@ Tree unquote(char* str)
 
 %% /* grammar rules and actions follow */
 
-program         : stmtlist 						{ $$ = $1; gGlobal->gResult = formatDefinitions($$); }
+program         : stmtlist 							{ $$ = $1; gGlobal->gResult = formatDefinitions($$); }
 				;
 
-stmtlist        : /*empty*/                     { $$ = gGlobal->nil; }
-				| stmtlist variant statement    { if ($2==gGlobal->gFloatSize) $$ = cons ($3,$1); else $$=$1; }
-				| stmtlist statement            { $$ = cons ($2,$1); }
+stmtlist        : /*empty*/                     	{ $$ = gGlobal->nil; }
+				| stmtlist variantlist statement    { if (acceptdefinition($2)) $$ = cons ($3,$1); else $$=$1; }
+				;
 
-deflist         : /*empty*/                     { $$ = gGlobal->nil; }
-				| deflist variant definition    { if ($2==gGlobal->gFloatSize) $$ = cons ($3,$1); else $$=$1;}
-				| deflist definition            { $$ = cons ($2,$1); }
+deflist         : /*empty*/                     	{ $$ = gGlobal->nil; }
+				| deflist variantlist definition    { if (acceptdefinition($2)) $$ = cons ($3,$1); else $$=$1;}
+				;
+
+variantlist     : /*empty*/                     	{ $$ = 0; }
+				| variantlist variant    			{ $$ = $1 | $2;}
+				;
+
+variant			: FLOATMODE							{ $$ = 1;}
+				| DOUBLEMODE						{ $$ = 2;}
+				| QUADMODE							{ $$ = 4;}
 				;
 
 
@@ -405,11 +422,6 @@ lstattrval		: LSTTRUE								{ $$ = true; }
 				;
 
 docmtd          : BMETADATA name EMETADATA				{ $$ = $2; }
-				;
-
-variant			: FLOATMODE							{ $$ = 1;}
-				| DOUBLEMODE							{ $$ = 2;}
-				| QUADMODE							{ $$ = 3;}
 				;
 
 definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); setDefProp($1, yyfilename, yylineno); }
