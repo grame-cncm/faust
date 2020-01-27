@@ -398,6 +398,57 @@ struct LowPass6e : public Filter<fVslider0> {
     }
 };
 
+// A "si.bus(N)" like hard-coded class
+struct dsp_bus : public dsp {
+    
+    int fChannels;
+    int fSampleRate;
+    
+    dsp_bus(int channels):fChannels(channels), fSampleRate(-1)
+    {}
+    
+    virtual int getNumInputs() { return fChannels; }
+    virtual int getNumOutputs() { return fChannels; }
+    
+    virtual int getSampleRate() { return fSampleRate; }
+    
+    virtual void buildUserInterface(UI* ui_interface) {}
+    virtual void init(int sample_rate)
+    {
+        //classInit(sample_rate);
+        instanceInit(sample_rate);
+    }
+    
+    virtual void instanceInit(int sample_rate)
+    {
+        fSampleRate = sample_rate;
+        instanceConstants(sample_rate);
+        instanceResetUserInterface();
+        instanceClear();
+    }
+    
+    virtual void instanceConstants(int sample_rate) {}
+    virtual void instanceResetUserInterface() {}
+    virtual void instanceClear() {}
+    
+    virtual dsp* clone() { return new dsp_bus(fChannels); }
+    
+    virtual void metadata(Meta* m) {}
+    
+    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        for (int chan = 0; chan < fChannels; chan++) {
+            memcpy(outputs[chan], inputs[chan], sizeof(FAUSTFLOAT) * count);
+        }
+    }
+    
+    virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        compute(count, inputs, outputs);
+    }
+    
+};
+
 // Base class for sample-rate adapter
 template <typename FILTER>
 class sr_sampler : public decorator_dsp {
