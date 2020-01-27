@@ -30,17 +30,20 @@ IS_LLVM="0"
 JUCE_POLY="0"
 FAUSTFLOAT="float"
 JUCER=""
+JUCE_MODULES_DIR_DEFAULT="\.\.\/\.\.\/modules" # keep in sync with ../../architecture/juce/*/*.jucer
+JUCE_MODULES_DIR=JUCE_MODULES_DIR_DEFAULT
 
 while [ $1 ]
 do
     p=$1
 
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-llvm] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-standalone' to produce a standalone project, otherwise a plugin project is generated"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
+        echo "Use '-jucemodulesdir <dir>' to set JUCE modules directory to <dir>, such as ~/JUCE/modules"
         echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
@@ -61,6 +64,9 @@ do
         POLY="POLY2"
         shift
         EFFECT=$1
+    elif [ $p = "-jucemodulesdir" ]; then
+	shift
+	JUCE_MODULES_DIR=$1
     elif [ $p = "-jsynth" ]; then
         DEF+="JUCE_POLY "
         JUCE_POLY="1"
@@ -157,11 +163,14 @@ for p in $FILES; do
     # FAUSTFLOAT
     sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$SRCDIR/$dspName/$dspName-temp3.jucer" >> "$SRCDIR/$dspName/$dspName-temp4.jucer"
 
+    # JUCE_MODULES_DIR
+    sed -e "s!$JUCE_MODULES_DIR_DEFAULT!$JUCE_MODULES_DIR!g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName-temp5.jucer"
+
     # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
-        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
-        cp "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName.jucer"
+        cp "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
     # standalone or plugin mode
@@ -175,6 +184,7 @@ for p in $FILES; do
     rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer" 
     rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" 
+    rm "$SRCDIR/$dspName/$dspName-temp5.jucer"
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
