@@ -24,7 +24,7 @@ Two different achitecture files will be used to glue the previously described fi
 
 **faust2juce** is used with the following command: 
 
-`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-llvm] [-soundfile] [additional Faust options (-vec -vs 8...)] file.dsp` 
+`faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jucemodulesdir <dir>] [-jsynth] [-midi] [-osc] [-llvm] [-soundfile] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
@@ -36,16 +36,17 @@ The resulting folder has to be moved on the "examples" folder of your JUCE insta
 
 The following options are available: 
 
- - `-standalone`            : to produce a standalone project, otherwise a plugin project is generated
- - `-nvoices <num>`         : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC
- - `-effect <effect.dsp>`   : to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC
- - `-effect auto`           : to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC 
- - `-jsynth`                : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
- - `-midi`                  : activates MIDI control
- - `-osc`                   : activates OSC control
- - `-llvm`                  : to use the LLVM compilation chain (OSX and Linux for now)
- - `-soundfile`             : when compiling DSP using 'soundfile' primitive, to add needed resources
- - `-help or -h`            : shows the different options 
+ - `-standalone` : to produce a standalone project, otherwise a plugin project is generated
+ - `-nvoices <num>` : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC
+ - `-effect <effect.dsp>` : to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC
+ - `-effect auto` : to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC 
+ - `-jucemodulesdir <dir>` : to set JUCE modules directory to <dir>, such as ~/JUCE/modules
+ - `-jsynth` : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
+ - `-midi` : activates MIDI control
+ - `-osc` : activates OSC control
+ - `-llvm` : to use the LLVM compilation chain (OSX and Linux for now)
+ - `-soundfile` : when compiling DSP using 'soundfile' primitive, to add needed resources
+ - `-help or -h` : shows the different options 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-cn name` to give a name to the generated DSP class, or `-vec -lv 1 -lv 1` to compile in vector mode...
 
