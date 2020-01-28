@@ -288,7 +288,7 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
     
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
-        
+    
     private:
     
         template <typename FloatType>
@@ -430,6 +430,11 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     fDSP->buildUserInterface(&fParameterUI);
 #endif
     
+    // When no previous state was restored, init DSP controllers with their default values
+    if (!fStateUI.fRestored) {
+        fDSP->instanceResetUserInterface();
+    }
+    
     startTimerHz(25);
 }
 
@@ -533,7 +538,7 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }
    
-    // Setting the DSP control values has already been done by 'buildUserInterface(&fStateUI)', using the saved values.
+    // Setting the DSP control values has already been done by 'buildUserInterface(&fStateUI)', using the saved values or the default ones.
     // What has to be done to finish the DSP initialization is done now.
     mydsp::classInit(int(sampleRate));
     fDSP->instanceConstants(int(sampleRate));
@@ -621,15 +626,15 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 
 //==============================================================================
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
-: AudioProcessorEditor (&p), processor (p), fJuceGUI(false)
+: AudioProcessorEditor (&p), processor (p), fJuceGUI(!p.fStateUI.fRestored)  // When no previous state was restored, setup GUI with default state of controllers
 {
-    addAndMakeVisible(fJuceGUI);
-    
 #ifdef JUCE_POLY
     p.fSynth->buildUserInterface(&fJuceGUI);
 #else
     p.fDSP->buildUserInterface(&fJuceGUI);
 #endif
+    
+    addAndMakeVisible(fJuceGUI);
     
     juce::Rectangle<int> recommendedSize = fJuceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
