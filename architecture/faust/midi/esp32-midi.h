@@ -76,7 +76,7 @@ class esp32_midi : public midi_handler {
         void processMidi()
         {
             double time = 0;
-            uint8_t* data[RX_BUF_SIZE];
+            uint8_t data[RX_BUF_SIZE];
             MIDIParser parser;
             jdksMIDIMessage message;
             
