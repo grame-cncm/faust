@@ -39,6 +39,13 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
 
+// MIDI support
+#if MIDICTRL
+#include "faust/gui/MidiUI.h"
+#include "faust/gui/UI.h"
+#include "faust/midi/esp32-midi.h"
+#endif
+
 // we require macro declarations
 #define FAUST_UIMACROS
 
