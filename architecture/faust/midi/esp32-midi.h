@@ -148,7 +148,7 @@ class esp32_midi : public midi_handler {
   
         static void processMidiHandler(void* arg)
         {
-            esp32_midi* midi = (esp32_midi*)midi;
+            esp32_midi* midi = (esp32_midi*)arg;
             midi->processMidi();
         }
     
