@@ -8,17 +8,26 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
+#LOG="log"
 
 # exit if a command fails
 set -e
 
 # global option variables
 LIB="0"
-DRIVER="-wm8978"
-OPTIONS=
+
+#variables:
+NVOICES=0
+POLY=""
+#EFFECT=""
+MIDIDEFS=""
+#OSCDEFS=""
+DRIVER=""
+#OPTIONS=""
 
 echoHelp ()
 {
@@ -27,11 +36,13 @@ echoHelp ()
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
     echo "USAGE:"
+    echo "faust2esp32 [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
+    echo "Use '-midi' to activate MIDI control"
+    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it needs -midi option to enable midi"
+    echo "Use no arguments for a simple effect."
     echo "faust2esp32 -lib faustFile.dsp: Generates a package containing an object compatible with any ESP32 project."
-    echo ""
     echo "Optional: -wm8978 or -ac101 to choose codec driver."
     echo ""
-    # TODO option for board type
 }
 
 ###########################
@@ -40,19 +51,31 @@ echoHelp ()
 
 while [ $1 ]
 do
-    p=$1
-
+	p=$1
+    # HELP
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echoHelp
-        exit 0
-    elif [ $p = "-wm8978" ] || [ $p = "-ac101" ]; then
-        DRIVER=$p
-    elif [ $p = "-lib" ]; then
-        LIB=1
-    elif [ ${p:0:1} = "-" ]; then
-        OPTIONS="$OPTIONS $p"
+		echoHelp
+		exit 0
+    # -NVOICES:
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+    # -MIDI
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="MIDI"
+    # Get dsp file
     elif [[ -f "$p" ]]; then
-        FILE="$p"
+	FILE="$p"
+    # -lib 
+    elif [ $p = "-lib" ]; then
+	LIB=1
+    # -wm8978 (ttgo t-audio)
+    elif [ $p = "-wm8978" ] || [ $p = "-WM8978" ]; then
+    	DRIVER="wm8978"
+    # -ac101 (Ai-thinker a1s-board)
+    elif [ $p = "-ac101" ] || [ $p = "-AC101" ]; then
+    	DRIVER="ac101"
+    # other compile options
     else
         OPTIONS="$OPTIONS $p"
     fi
@@ -81,10 +104,10 @@ if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
-    if [ "$DRIVER" = "-wm8978" ] || [ "$DRIVER" = "-WM8978" ]; then
+    if [[ $DRIVER = "wm8978" ]]; then
     		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
     		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
-    elif [ "$DRIVER" = "-ac101" ] || [ "$DRIVER" = "-AC101" ]; then
+    elif [[ $DRIVER = "ac101" ]]; then
     		cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
     		cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME 
     else
@@ -99,6 +122,127 @@ if [ $LIB -eq 1 ]; then
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp
     TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
     echo "$TMP" > $MODULENAME/$MODULENAME.h
+    
+    echo '// Options :' > "$MODULENAME/tmp.txt"
+    if [ $NVOICES -gt 0 ]; then
+	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$MIDIDEFS" == *MIDI* ]]; then
+	echo '#define MIDICTRL' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$POLY" == *POLY2* ]]; then
+	echo '#define POLY2' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *ac101* ]]; then
+        echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    #if [[ "$OSCDEFS" == *OSC* ]]; then
+	#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+    #fi
+
+    #if [[ "$GUIDEFS" == *GUI* ]]; then
+	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    #fi
+
+    #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
+        #echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
+        #BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
+    #fi
+
+    cat "$MODULENAME/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
+    mv "$MODULENAME/tmp.txt" "$MODULENAME/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
+
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
+    exit 1
+fi
+
+################################
+# Generating a component package
+################################
+
+if [ $LIB -eq 0 ]; then
+    mkdir -p $MODULENAME/FaustDSP/include
+    faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/FaustDSP/$MODULENAME.cpp
+    cp $FAUSTARCH/esp32/esp32.h $MODULENAME/FaustDSP/include/$MODULENAME.h
+    cp $FAUSTARCH/esp32/component.mk $MODULENAME/FaustDSP/component.mk
+    cp $FAUSTARCH/esp32/CMakeLists.txt $MODULENAME/FaustDSP/CMakeLists.txt
+    if [[ $DRIVER = "wm8978" ]]; then
+            mkdir -p $MODULENAME/WM8978/include
+    		cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
+    		cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
+    elif [[ $DRIVER = "ac101" ]]; then
+            mkdir -p $MODULENAME/AC101/include
+    		cp $FAUSTARCH/esp32/drivers/ac101/CMakeLists.txt $MODULENAME/AC101
+    		cp $FAUSTARCH/esp32/drivers/ac101/component.mk $MODULENAME/AC101
+    		cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME/AC101
+    		cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME/AC101/include 
+    else
+            mkdir -p $MODULENAME/WM8978/include
+    		cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
+    		cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
+    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
+    fi
+
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/FaustDSP/$MODULENAME.cpp)
+    echo "$TMP" > $MODULENAME/FaustDSP/$MODULENAME.cpp
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/FaustDSP/include/$MODULENAME.h)
+    echo "$TMP" > $MODULENAME/FaustDSP/include/$MODULENAME.h
+    TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/FaustDSP/$MODULENAME.cpp)
+    echo "$TMP" > $MODULENAME/FaustDSP/$MODULENAME.cpp
+    TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/FaustDSP/include/$MODULENAME.h)
+    echo "$TMP" > $MODULENAME/FaustDSP/include/$MODULENAME.h
+    
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/esp32/,modName)}1' $MODULENAME/FaustDSP/CMakeLists.txt)
+    echo "$TMP" > $MODULENAME/FaustDSP/CMakeLists.txt
+
+    echo '// Options :' > "$MODULENAME/tmp.txt"
+    if [ $NVOICES -gt 0 ]; then
+	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$MIDIDEFS" == *MIDI* ]]; then
+	echo '#define MIDICTRL true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$POLY" == *POLY2* ]]; then
+	echo '#define POLY2' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *ac101* ]]; then
+        echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *wm8798* ]]; then
+        echo '#define TTGO_TAUDIO true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    #if [[ "$OSCDEFS" == *OSC* ]]; then
+	#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+    #fi
+
+    #if [[ "$GUIDEFS" == *GUI* ]]; then
+	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    #fi
+
+    #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
+        #echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
+        #BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
+    #fi
+
+    cat "$MODULENAME/FaustDSP/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
+    mv "$MODULENAME/tmp.txt" "$MODULENAME/FaustDSP/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
+
+    zip -r $MODULENAME.zip $MODULENAME > $LOG
+    rm -r $MODULENAME
+    exit 1
 fi
