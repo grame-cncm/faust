@@ -78,7 +78,7 @@ class esp32_midi : public midi_handler {
             double time = 0;
             uint8_t* data[RX_BUF_SIZE];
             MIDIParser parser;
-            MIDIMessage message;
+            jdksMIDIMessage message;
             
             while (true) {
                 int rxBytes = uart_read_bytes(UART_NUM_1, data, RX_BUF_SIZE, 1);
@@ -109,7 +109,7 @@ class esp32_midi : public midi_handler {
                                 handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
                                 break;
                             case 0xE0: // Pitch Bend
-                                handlePitchWheel(time, message.GetChannel(), message.GetBenderValue())
+                                handlePitchWheel(time, message.GetChannel(), message.GetByte2(), message.GetByte3());
                                 break;
                             default:
                                 break;
