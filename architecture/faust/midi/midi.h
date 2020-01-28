@@ -318,7 +318,8 @@ class midi_handler : public midi {
         {
             if (type == MIDI_CLOCK) {
                 handleClock(time);
-            } else if (type == MIDI_START) {
+            // We can consider start and continue as identical messages
+            } else if ((type == MIDI_START) || (type == MIDI_CONT)) {
                 handleStart(time);
             } else if (type == MIDI_STOP) {
                 handleStop(time);

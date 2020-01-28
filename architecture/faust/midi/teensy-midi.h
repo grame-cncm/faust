@@ -47,6 +47,8 @@ class teensy_midi : public midi_handler {
                         handleClock(time);
                         break;
                     case usbMIDI.Start:
+                    // We can consider start and continue as identical messages
+                    case usbMIDI.Continue:
                         handleStart(time);
                         break;
                     case usbMIDI.Stop:

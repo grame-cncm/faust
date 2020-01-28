@@ -62,7 +62,8 @@ class juce_midi_handler : public midi_handler {
                 handlePitchWheel(time, channel, data[1], data[2]);
             } else if (message.isMidiClock()) {
                 handleClock(time);
-            } else if (message.isMidiStart()) {
+            // We can consider start and continue as identical messages.
+            } else if (message.isMidiStart() || message.isMidiContinue()) {
                 handleStart(time);
             } else if (message.isMidiStop()) {
                 handleStop(time);
