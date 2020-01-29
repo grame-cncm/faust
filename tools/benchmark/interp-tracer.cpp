@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
         cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp" << endl;
-        cout << "-control to activate min/max control check\n";
+        cout << "-control to activate min/max control check then setting all controllers (inside their range) in a random way\n";
         cout << "-output to display output samples\n";
         cout << "-noui to start the application without UI\n";
         cout << "-timeout <num> when used in -noui mode, to stop the application after a given timeout in seconds (default = 10s)\n";
