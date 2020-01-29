@@ -386,26 +386,41 @@ namespace FaustUtilities_MODEL {
 				do {
 					if (parseDQString(ref fJSON, out key) && parseChar(ref fJSON, ':')) {
                         switch (key.ToString()) {
-						case "name":
-							success = parseDQString(ref fJSON, out value);
-							faustUI.name = value.ToString();
-							break;
-						case "inputs":
-							success = parseDQString(ref fJSON, out value);
-							faustUI.inputs = Convert.ToInt32(value.ToString());
-							break;
-						case "outputs":
-							success = parseDQString(ref fJSON, out value);
-							faustUI.outputs = Convert.ToInt32(value.ToString());
-							break;
-						case "meta":
-							success = parseGlobalMetaData(ref fJSON);
-							break;
-						case "ui":
-                     		faustUI.ui = new List < Group > ();
-							int numitems = 0;
-							success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
-							break;
+                        case "name":
+                            success = parseDQString(ref fJSON, out value);
+                            faustUI.name = value.ToString();
+                            break;
+                        case "filename":            // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "version":             // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "compile_options":     // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "library_list":        // Don't use the result
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "include_pathnames":   // Don't use the result
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "inputs":
+                            success = parseDQString(ref fJSON, out value);
+                            faustUI.inputs = Convert.ToInt32(value.ToString());
+                            break;
+                        case "outputs":
+                            success = parseDQString(ref fJSON, out value);
+                            faustUI.outputs = Convert.ToInt32(value.ToString());
+                            break;
+                        case "meta":
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "ui":
+                            faustUI.ui = new List < Group > ();
+                            int numitems = 0;
+                            success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
+                            break;
 						default:
                             // Unknown items should be parsed
                             success = parseDQString(ref fJSON, out value);

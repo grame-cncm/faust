@@ -362,6 +362,21 @@ namespace FaustUtilities_MODEL {
 							success = parseDQString(ref fJSON, out value);
 							faustUI.name = value.ToString();
 							break;
+                        case "filename":            // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "version":             // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "compile_options":     // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "library_list":        // Don't use the result
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "include_pathnames":   // Don't use the result
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
 						case "inputs":
 							success = parseDQString(ref fJSON, out value);
 							faustUI.inputs = Convert.ToInt32(value.ToString());
@@ -373,13 +388,7 @@ namespace FaustUtilities_MODEL {
 						case "meta":
 							success = parseGlobalMetaData(ref fJSON);
 							break;
-						case "library_list":
-							success = parseGlobalMetaData(ref fJSON);
-							break;
-						case "include_pathnames":
-							success = parseGlobalMetaData(ref fJSON);
-							break;
-						case "ui":
+	                    case "ui":
 							faustUI.ui = new List < Group > ();
 							int numitems = 0;
 							success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
