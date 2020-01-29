@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
         int ds = int(down_sample);
         dsp* busN = new dsp_bus(DSP->getNumOutputs());
         switch (filter) {
+            case 1:
                 if (ds == 2) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<2, float> >(busN));
                 else if (ds == 4) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<4, float> >(busN));
                 else if (ds == 8) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass3<8, float> >(busN));
@@ -142,6 +143,7 @@ int main(int argc, char* argv[])
         int up = int(up_sample);
         dsp* busN = new dsp_bus(DSP->getNumOutputs());
         switch (filter) {
+            case 1:
                 if (up == 2) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<2, float> >(busN));
                 else if (up == 4) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<4, float> >(busN));
                 else if (up == 8) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass3<8, float> >(busN));

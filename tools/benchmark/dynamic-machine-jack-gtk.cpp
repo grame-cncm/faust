@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
     GUI* oscinterface = nullptr;
     jackaudio_midi audio;
     string error_msg;
+    bool midi_sync = false;
     
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
@@ -94,6 +95,8 @@ int main(int argc, char* argv[])
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
   
+    MidiMeta::analyse(DSP, midi_sync, nvoices);
+    
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
         DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, true);

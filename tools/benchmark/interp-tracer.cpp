@@ -32,6 +32,7 @@
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/dsp-bench.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
@@ -166,6 +167,7 @@ int main(int argc, char* argv[])
     dsp_factory* factory = nullptr;
     dsp* DSP = nullptr;
     GUI* interface = nullptr;
+    RandomControlUI random;
     
     try {
     
@@ -271,6 +273,16 @@ int main(int argc, char* argv[])
                     audio.render();
                 }
             }
+            
+            // Generate random values for controllers
+            DSP->buildUserInterface(&random);
+            cout << "------------------------------" << endl;
+            cout << "Use RandomControlUI" << endl;
+            for (int step = 0; step < 1000; step++) {
+                cout << "Set random controllers, step: " << step <<  " until: " << 1000 << endl;
+                random.update();
+                audio.render();
+            }
 
             goto end;
             
@@ -284,7 +296,10 @@ int main(int argc, char* argv[])
             usleep(time_out * 1e6);
         }
         audio.stop();
-    } catch (...) {}
+    } catch (...) {
+        cout << endl;
+        random.display();
+    }
     
 end:
     

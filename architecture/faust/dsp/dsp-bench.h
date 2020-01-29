@@ -39,7 +39,7 @@
 #include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
-#include "faust/GUI/DecoratorUI.h"
+#include "faust/GUI/MapUI.h"
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
@@ -280,7 +280,7 @@ class time_bench {
  A class to randomly change control values
  */
 
-struct RandomControlUI : public GenericUI {
+struct RandomControlUI : public MapUI {
     
     struct Range {
         const char* fLabel;
@@ -303,29 +303,42 @@ struct RandomControlUI : public GenericUI {
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
+        MapUI::addButton(label, zone);
         fControls.push_back(Range(label, zone, 1, 0, 1));
     }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
+        MapUI::addCheckButton(label, zone);
         fControls.push_back(Range(label, zone, 1, 0, 1));
     }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+         MapUI::addVerticalSlider(label, zone, init, min, max, step);
         fControls.push_back(Range(label, zone, init, min, max));
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        MapUI::addHorizontalSlider(label, zone, init, min, max, step);
         fControls.push_back(Range(label, zone, init, min, max));
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        MapUI::addNumEntry(label, zone, init, min, max, step);
         fControls.push_back(Range(label, zone, init, min, max));
     }
     
-    void updateRandom()
+    void update()
     {
         for (auto& it : fControls) {
             *it.fZone = it.fMin + (FAUSTFLOAT(rand())/FAUSTFLOAT(RAND_MAX)) * std::abs(it.fMax - it.fMin);
+        }
+    }
+    
+    void display()
+    {
+        std::cout << "--------- RandomControlUI ---------\n";
+        for (auto& it : fControls) {
+            std::cout << "Path: \"" << getParamAddress(it.fZone) << "\" min: " << it.fMin << " max: " << it.fMax << " cur: " << *it.fZone << std::endl;
         }
     }
 };
@@ -472,7 +485,7 @@ class measure_dsp : public decorator_dsp {
         {
             AVOIDDENORMALS;
             fBench->startMeasure();
-            fRandomUI.updateRandom();
+            fRandomUI.update();
             fDSP->compute(count, inputs, outputs);
             fBench->stopMeasure();
         }
