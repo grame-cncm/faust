@@ -122,13 +122,22 @@ int main(int argc, char* argv[])
                 exit(EXIT_FAILURE);
             }
             
-            measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
-            for (int i = 0; i < run; i++) {
-                mes.measure();
-                if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
-                FAUSTBENCH_LOG<double>(mes.getStats());
+            if (is_double) {
+                measure_dsp_aux<double> mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
+                for (int i = 0; i < run; i++) {
+                    mes.measure();
+                    if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+                    FAUSTBENCH_LOG<double>(mes.getStats());
+                }
+            } else {
+                measure_dsp_aux<float> mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
+                for (int i = 0; i < run; i++) {
+                    mes.measure();
+                    if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+                    FAUSTBENCH_LOG<double>(mes.getStats());
+                }
             }
-
+    
         } else {
             if (is_double) {
                 bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace), in_filename, is_trace);

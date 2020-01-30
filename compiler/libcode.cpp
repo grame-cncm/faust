@@ -455,7 +455,7 @@ static bool processCmdline(int argc, const char* argv[])
 
             // double float options
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
-            if (float_size) {
+            if (float_size && gGlobal->gFloatSize != 1) {
                 throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
             } else {
                 float_size = true;
@@ -464,7 +464,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-double", "--double-precision-floats")) {
-            if (float_size) {
+            if (float_size && gGlobal->gFloatSize != 2) {
                 throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
             } else {
                 float_size = true;
@@ -473,7 +473,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
-            if (float_size) {
+            if (float_size && gGlobal->gFloatSize != 3) {
                 throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
             } else {
                 float_size = true;
