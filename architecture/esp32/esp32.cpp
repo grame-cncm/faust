@@ -42,7 +42,7 @@
 // MIDI support
 #if MIDICTRL
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/UI.h"
+//#include "faust/gui/UI.h"
 #include "faust/midi/esp32-midi.h"
 #endif
 
@@ -78,7 +78,6 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-//#define A1S_BOARD true                  //uncomment for Ai-thinker A1S board
 
 #define MULT_S32 2147483647
 #define DIV_S32 4.6566129e-10
@@ -122,6 +121,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fMIDIHandler = new esp32_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
+    fMIDIInterface->run();
 #endif
 }
 
@@ -149,8 +149,8 @@ AudioFaust::~AudioFaust()
 bool AudioFaust::start()
 {
 #if MIDICTRL
-    fMIDIHandler->startMidi();
-    fMIDIInterface->run();
+    //fMIDIInterface->run();
+    //fMIDIHandler->processStartMidi(); //->startMidi();    
 #endif
     return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 24, &fHandle, 0) == pdPASS);
 }
@@ -162,7 +162,8 @@ void AudioFaust::stop()
         fHandle = NULL;
     }
 #if MIDICTRL
-    fMIDIHandler->stopMidi();
+    fMIDIHandler->processMidiStop();
+    fMIDIInterface->stop();
 #endif
 }
 
@@ -230,6 +231,14 @@ void AudioFaust::configureI2S(int sample_rate, int buffer_size)
 template <int INPUTS, int OUTPUTS>
 void AudioFaust::audioTask()
 {
+
+#if MIDICTRL
+    // Setup UART for MIDI
+    fMIDIHandler->setupMidi();
+    // Start MIDI receive task
+    fMIDIHandler->processMidiStart();    
+#endif
+
     while (true) {
         if (INPUTS > 0) {
             // Read from the card

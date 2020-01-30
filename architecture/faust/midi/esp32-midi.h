@@ -55,23 +55,7 @@ class esp32_midi : public midi_handler {
     
     private:
     
-        TaskHandle_t fHandle;
-    
-        void setupMidi()
-        {
-            const uart_config_t uart_config = {
-                .baud_rate = 31250,
-                .data_bits = UART_DATA_8_BITS,
-                .parity = UART_PARITY_DISABLE,
-                .stop_bits = UART_STOP_BITS_1,
-                .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-                .rx_flow_ctrl_thresh = 122,
-                .use_ref_tick = false};
-            uart_param_config(PORT_NUM, &uart_config);
-            uart_set_pin(PORT_NUM, TX1, RX1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-            // We won't use a buffer for sending data.
-            uart_driver_install(PORT_NUM, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
-        }
+        TaskHandle_t processMidiHandle;
     
         void processMidi()
         {
@@ -109,7 +93,7 @@ class esp32_midi : public midi_handler {
                                 handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
                                 break;
                             case 0xE0: // Pitch Bend
-                                handlePitchWheel(time, message.GetChannel(), message.GetByte2(), message.GetByte3());
+                                handlePitchWheel(time, message.GetChannel(), message.GetBenderValue());
                                 break;
                             default:
                                 break;
@@ -153,20 +137,36 @@ class esp32_midi : public midi_handler {
         }
     
     public:
-   
-        bool startMidi()
+   	
+	void setupMidi()
         {
-            // Setup UART for MIDI
-            setupMidi();
-            // Start MIDI receive task
-            return (xTaskCreatePinnedToCore(processMidiHandler, "Faust MIDI Task", 2048, (void*)this, 5, &fHandle, 1) == pdPASS);
+            const uart_config_t uart_config = {
+                .baud_rate = 31250,
+                .data_bits = UART_DATA_8_BITS,
+                .parity = UART_PARITY_DISABLE,
+                .stop_bits = UART_STOP_BITS_1,
+                .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+                .rx_flow_ctrl_thresh = 122,
+                .use_ref_tick = false};
+            uart_param_config(PORT_NUM, &uart_config);
+            uart_set_pin(PORT_NUM, TX1, RX1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+            // We won't use a buffer for sending data.
+            uart_driver_install(PORT_NUM, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
         }
 
-        void stopMidi()
+        bool processMidiStart()
         {
-            if (fHandle != NULL) {
-                vTaskDelete(fHandle);
-                fHandle = NULL;
+            // Setup UART for MIDI
+            //setupMidi();
+            // Start MIDI receive task
+            return (xTaskCreatePinnedToCore(processMidiHandler, "Faust MIDI Task", 2048, (void*)this, 5, &processMidiHandle, 1) == pdPASS);
+        }
+
+        void processMidiStop()
+        {
+            if (processMidiHandle != NULL) {
+                vTaskDelete(processMidiHandle);
+                processMidiHandle = NULL;
             }
         }
    
