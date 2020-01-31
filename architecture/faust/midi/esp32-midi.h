@@ -81,7 +81,7 @@ class esp32_midi : public midi_handler {
                                 handleKeyOn(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
                                 break;
                             case 0xA0: // Poly Key Pressure
-                                handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte3());
+                                handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte2());
                                 break;
                             case 0xB0: // Control Change
                                 handleCtrlChange(time, message.GetChannel(), message.GetController(), message.GetControllerValue());
@@ -93,7 +93,7 @@ class esp32_midi : public midi_handler {
                                 handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
                                 break;
                             case 0xE0: // Pitch Bend
-                                handlePitchWheel(time, message.GetChannel(), message.GetBenderValue());
+                                handlePitchWheel(time, message.GetChannel(), message.GetByte1(), message.GetByte2());
                                 break;
                             default:
                                 break;
@@ -126,7 +126,7 @@ class esp32_midi : public midi_handler {
                     }
                 }
                 // TODO: should be moved in a global task at some point
-                //GUI::updateAllGuis();
+                //GUI::updateAllGuis(); // moved to AudioFaust::audioTask()
             }
         }
   
