@@ -34,7 +34,7 @@
 //------------------------------------------------------------------------------
 // dsp_me_checker: a DSP decorator to check math Floating Point Exceptions (FPE)
 // - when 'runtime' is true FPE checking is done with signals/exceptions
-// and the programe exit at first exception
+// and the program exit at first exception
 // - when 'runtime' is false FPE checking is done while running and
 // SUBNORMAL, INFINITE, NAN statistics can be displayed with printStats()
 //------------------------------------------------------------------------------

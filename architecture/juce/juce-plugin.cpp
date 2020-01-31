@@ -240,7 +240,6 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
             jassert (isUsingDoublePrecision());
             process (buffer, midiMessages);
         }
-
     
         AudioProcessorEditor* createEditor() override;
         bool hasEditor() const override;

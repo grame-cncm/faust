@@ -337,7 +337,7 @@ class mspUI : public UI, public PathBuilder
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            if (strcmp(key,"multi") == 0) {
+            if (strcmp(key, "multi") == 0) {
                 int index = atoi(val);
                 if (index >= 0 && index < MULTI_SIZE) {
                     fMultiTable[index] = zone;

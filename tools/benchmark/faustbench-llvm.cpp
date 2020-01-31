@@ -28,8 +28,8 @@
 
 using namespace std;
 
-template <typename T>
-static void bench(dsp_optimizer<T> optimizer, const string& name, bool trace)
+template <typename REAL>
+static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool trace)
 {
     pair<double, vector<string> > res = optimizer.findOptimizedParameters();
     if (trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
