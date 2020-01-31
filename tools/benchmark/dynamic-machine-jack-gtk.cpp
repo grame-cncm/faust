@@ -49,6 +49,8 @@ int main(int argc, char* argv[])
     char filename[256];
     char rcfilename[256];
     char* home = getenv("HOME");
+    int nvoices = 0;
+    bool midi_sync = false;
     
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
@@ -57,7 +59,6 @@ int main(int argc, char* argv[])
     bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
     bool is_httpd = isopt(argv, "-httpd");
-    int nvoices = lopt(argv, "-nvoices", -1);
     
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
         cout << "dynamic-machine-jack-gtk [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
@@ -76,7 +77,6 @@ int main(int argc, char* argv[])
     GUI* oscinterface = nullptr;
     jackaudio_midi audio;
     string error_msg;
-    bool midi_sync = false;
     
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
@@ -95,7 +95,9 @@ int main(int argc, char* argv[])
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
   
+    // Before reading the -nvoices parameter
     MidiMeta::analyse(DSP, midi_sync, nvoices);
+    nvoices = lopt(argv, "-nvoices", nvoices);
     
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
