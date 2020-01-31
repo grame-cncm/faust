@@ -121,7 +121,11 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fMIDIHandler = new esp32_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
-    fMIDIInterface->run();
+    //fMIDIInterface->run();
+    // Setup UART for MIDI
+    fMIDIHandler->setupMidi();
+    // Start MIDI receive task
+    //fMIDIHandler->processMidiStart();  
 #endif
 }
 
@@ -149,22 +153,22 @@ AudioFaust::~AudioFaust()
 bool AudioFaust::start()
 {
 #if MIDICTRL
-    //fMIDIInterface->run();
-    //fMIDIHandler->processStartMidi(); //->startMidi();    
+    fMIDIInterface->run();
+    fMIDIHandler->processMidiStart();  
 #endif
     return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 24, &fHandle, 0) == pdPASS);
 }
 
 void AudioFaust::stop()
 {
-    if (fHandle != NULL) {
-        vTaskDelete(fHandle);
-        fHandle = NULL;
-    }
 #if MIDICTRL
     fMIDIHandler->processMidiStop();
     fMIDIInterface->stop();
 #endif
+    if (fHandle != NULL) {
+        vTaskDelete(fHandle);
+        fHandle = NULL;
+    }
 }
 
 void AudioFaust::setParamValue(const std::string& path, float value)
@@ -234,12 +238,18 @@ void AudioFaust::audioTask()
 
 #if MIDICTRL
     // Setup UART for MIDI
-    fMIDIHandler->setupMidi();
+    //fMIDIHandler->setupMidi();
     // Start MIDI receive task
-    fMIDIHandler->processMidiStart();    
+    //fMIDIHandler->processMidiStart();    
 #endif
 
     while (true) {
+
+	#ifdef MIDICTRL
+        // Synchronize all GUI controllers
+        GUI::updateAllGuis();
+        #endif
+
         if (INPUTS > 0) {
             // Read from the card
             int32_t samples_data_in[2*fBS];
