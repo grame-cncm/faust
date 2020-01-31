@@ -42,7 +42,6 @@
 // MIDI support
 #if MIDICTRL
 #include "faust/gui/MidiUI.h"
-//#include "faust/gui/UI.h"
 #include "faust/midi/esp32-midi.h"
 #endif
 
@@ -121,11 +120,8 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fMIDIHandler = new esp32_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
-    //fMIDIInterface->run();
     // Setup UART for MIDI
     fMIDIHandler->setupMidi();
-    // Start MIDI receive task
-    //fMIDIHandler->processMidiStart();  
 #endif
 }
 
@@ -235,13 +231,6 @@ void AudioFaust::configureI2S(int sample_rate, int buffer_size)
 template <int INPUTS, int OUTPUTS>
 void AudioFaust::audioTask()
 {
-
-#if MIDICTRL
-    // Setup UART for MIDI
-    //fMIDIHandler->setupMidi();
-    // Start MIDI receive task
-    //fMIDIHandler->processMidiStart();    
-#endif
 
     while (true) {
 
