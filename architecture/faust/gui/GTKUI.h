@@ -515,6 +515,7 @@ private:
 protected:
     
     GtkWidget*  fWindow;
+    GtkWidget*  fScrolledWindow;
     int         fTop;
     GtkWidget*  fBox[kStackSize];
     int         fMode[kStackSize];
@@ -612,7 +613,6 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
         gtk_init(pargc, pargv);
         fInitialized = true;
     }
-    
     fWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     //gtk_container_set_border_width (GTK_CONTAINER (fWindow), 10);
     gtk_window_set_title(GTK_WINDOW (fWindow), name);
@@ -622,8 +622,17 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
     fTop = 0;
     fBox[fTop] = gtk_vbox_new (homogene, 4);
     fMode[fTop] = kBoxMode;
-    gtk_container_add(GTK_CONTAINER (fWindow), fBox[fTop]);
     fStopped = false;
+    
+    fScrolledWindow = gtk_scrolled_window_new (NULL,NULL);
+    gtk_widget_set_size_request (fScrolledWindow, 250, 200);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (fScrolledWindow),
+                                    GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);                              
+	 gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(fScrolledWindow), fBox[fTop]);    
+    gtk_container_add(GTK_CONTAINER(fWindow), fScrolledWindow);                             
+                                 
+    gtk_widget_show_all (fWindow);                                
+
 }
 
 // empilement des boites
