@@ -126,7 +126,7 @@ class esp32_midi : public midi_handler {
                     }
                 }
                 // TODO: should be moved in a global task at some point
-                GUI::updateAllGuis();
+                //GUI::updateAllGuis();
             }
         }
   
