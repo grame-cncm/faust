@@ -710,11 +710,36 @@ Tree sigCartesianProd(Tree s1, Tree s2)
     return sigTuple(0, concat(l1, l2));
 }
 
+/**********************************************************************************************************
+ *
+ *  Explicit Instructions
+ *
+ **********************************************************************************************************/
+
+// each instruction as a unique ID. These two functions allow to set and retreive the instruction associated
+// and ID
+
 /**
+ * @brief Set the instruction associated to and ID. Should be used only when creating an instruction.
  *
- *  Explicit Cache
- *
+ * @param id
+ * @param instr
  */
+static void setIDInstruction(Tree id, Tree instr)
+{
+    id->setProperty(gGlobal->INSTRUCTIONPROPERTY, instr);
+}
+
+/**
+ * @brief retrieve the instruction associated to an ID
+ *
+ * @param id
+ * @return Tree
+ */
+Tree getIDInstruction(Tree id)
+{
+    return id->getProperty(gGlobal->INSTRUCTIONPROPERTY);
+}
 
 /**
  * @brief A delayline write "instruction"
@@ -728,7 +753,9 @@ Tree sigCartesianProd(Tree s1, Tree s2)
  */
 Tree sigInstructionDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig)
 {
-    return tree(gGlobal->SIGINSTRUCTIONDELAYLINEWRITE, id, origin, tree(nature), tree(dmax), sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONDELAYLINEWRITE, id, origin, tree(nature), tree(dmax), sig);
+    setIDInstruction(id, instr);
+    return instr;
 }
 
 bool isSigInstructionDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig)
@@ -787,7 +814,9 @@ bool isSigInstructionDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, 
 Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig)
 {
     faustassert(isSigGen(init));
-    return tree(gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tree(nature), tree(tblsize), init, idx, sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tree(nature), tree(tblsize), init, idx, sig);
+    setIDInstruction(id, instr);
+    return instr;
 }
 
 /**
@@ -864,7 +893,9 @@ bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int*
  */
 Tree sigInstructionSharedWrite(Tree id, Tree origin, int nature, Tree sig)
 {
-    return tree(gGlobal->SIGINSTRUCTIONSHAREDWRITE, id, origin, tree(nature), sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONSHAREDWRITE, id, origin, tree(nature), sig);
+    setIDInstruction(id, instr);
+    return instr;
 }
 
 bool isSigInstructionSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
@@ -911,7 +942,9 @@ bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature)
  */
 Tree sigInstructionShortDLineWrite(Tree id, Tree origin, int nature, Tree sig)
 {
-    return tree(gGlobal->SIGINSTRUCTIONSHORTDLINEWRITE, id, origin, tree(nature), sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONSHORTDLINEWRITE, id, origin, tree(nature), sig);
+    setIDInstruction(id, instr);
+    return instr;
 }
 
 bool isSigInstructionShortDLineWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
@@ -941,8 +974,8 @@ bool isSigInstructionShortDLineRead(Tree s, Tree& id, Tree& origin, int* nature,
     Tree tnat, tdmin;
     if (isTree(s, gGlobal->SIGINSTRUCTIONSHORTDLINEREAD, id, origin, tnat, tdmin)) {
         *nature = tree2int(tnat);
-        *dmin = tree2int(tdmin);
-        //cerr << "ShortDLine tree2int of dmin " << *tdmin << " has int: " << *dmin << endl; 
+        *dmin   = tree2int(tdmin);
+        // cerr << "ShortDLine tree2int of dmin " << *tdmin << " has int: " << *dmin << endl;
         return true;
     } else {
         return false;
@@ -958,7 +991,9 @@ bool isSigInstructionShortDLineRead(Tree s, Tree& id, Tree& origin, int* nature,
  */
 Tree sigInstructionControlWrite(Tree id, Tree origin, int nature, Tree sig)
 {
-    return tree(gGlobal->SIGINSTRUCTIONCONTROLWRITE, id, origin, tree(nature), sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONCONTROLWRITE, id, origin, tree(nature), sig);
+    setIDInstruction(id, instr);
+    return instr;
 }
 
 bool isSigInstructionControlWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
@@ -1006,7 +1041,9 @@ bool isSigInstructionControlRead(Tree s, Tree& id, Tree& origin, int* nature)
  */
 Tree sigInstructionBargraphWrite(Tree id, Tree origin, int nature, Tree sig)
 {
-    return tree(gGlobal->SIGINSTRUCTIONBARGRAPHWRITE, id, origin, tree(nature), sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONBARGRAPHWRITE, id, origin, tree(nature), sig);
+    setIDInstruction(id, instr);
+    return instr;
 }
 
 bool isSigInstructionBargraphWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)

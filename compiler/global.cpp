@@ -496,23 +496,24 @@ void global::init()
 
     PROCESS = symbol("process");
 
-    BOXTYPEPROP      = tree(symbol("boxTypeProp"));
-    NUMERICPROPERTY  = tree(symbol("NUMERICPROPERTY"));
-    DEFLINEPROP      = tree(symbol("DefLineProp"));
-    USELINEPROP      = tree(symbol("UseLineProp"));
-    SIMPLIFIED       = tree(symbol("sigSimplifiedProp"));
-    DOCTABLES        = tree(symbol("DocTablesProp"));
-    NULLENV          = tree(symbol("NullRenameEnv"));
-    COLORPROPERTY    = tree(symbol("ColorProperty"));
-    ORDERPROP        = tree(symbol("OrderProp"));
-    RECURSIVNESS     = tree(symbol("RecursivnessProp"));
-    NULLTYPEENV      = tree(symbol("NullTypeEnv"));
-    RECDEF           = tree(symbol("RECDEF"));
-    DEBRUIJN2SYM     = tree(symbol("deBruijn2Sym"));
-    DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
-    NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
-    BCOMPLEXITY      = tree("BCOMPLEXITY");
-    LETRECBODY       = boxIdent("RECURSIVEBODY");
+    BOXTYPEPROP         = tree(symbol("boxTypeProp"));
+    NUMERICPROPERTY     = tree(symbol("NUMERICPROPERTY"));
+    DEFLINEPROP         = tree(symbol("DefLineProp"));
+    USELINEPROP         = tree(symbol("UseLineProp"));
+    SIMPLIFIED          = tree(symbol("sigSimplifiedProp"));
+    DOCTABLES           = tree(symbol("DocTablesProp"));
+    NULLENV             = tree(symbol("NullRenameEnv"));
+    COLORPROPERTY       = tree(symbol("ColorProperty"));
+    ORDERPROP           = tree(symbol("OrderProp"));
+    RECURSIVNESS        = tree(symbol("RecursivnessProp"));
+    NULLTYPEENV         = tree(symbol("NullTypeEnv"));
+    RECDEF              = tree(symbol("RECDEF"));
+    DEBRUIJN2SYM        = tree(symbol("deBruijn2Sym"));
+    DEFNAMEPROPERTY     = tree(symbol("DEFNAMEPROPERTY"));
+    NICKNAMEPROPERTY    = tree(symbol("NICKNAMEPROPERTY"));
+    INSTRUCTIONPROPERTY = tree(symbol("INSTRUCTIONPROPERTY"));
+    BCOMPLEXITY         = tree("BCOMPLEXITY");
+    LETRECBODY          = boxIdent("RECURSIVEBODY");
 
     PROPAGATEPROPERTY = symbol("PropagateProperty");
 

@@ -239,6 +239,7 @@ struct global {
     Tree DEBRUIJN2SYM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
+    Tree INSTRUCTIONPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
 
