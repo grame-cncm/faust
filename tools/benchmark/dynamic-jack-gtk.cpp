@@ -35,10 +35,11 @@
 #endif
 */
 
-#include "faust/dsp/dsp-optimizer.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/dsp/dsp-optimizer.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/meta.h"
@@ -269,6 +270,7 @@ int main(int argc, char* argv[])
     
     if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
+        DSP = new dsp_sample_adapter<double, float>(DSP);
     }
    
     GUI* interface = new GTKUI(filename, &argc, &argv);

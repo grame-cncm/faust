@@ -135,6 +135,7 @@ int main(int argc, char* argv[])
                 else if (ds == 4) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<4, float> >(busN));
                 else if (ds == 8) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<8, float> >(busN));
                 else if (ds == 16) DSP = new dsp_sequencer(DSP, new dsp_down_sampler<LowPass6e<16, float> >(busN));
+                break;
             default:
                 cerr << "Incorrect filter type : " << filter << endl;
                 break;
@@ -169,6 +170,7 @@ int main(int argc, char* argv[])
                 else if (up == 4) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<4, float> >(busN));
                 else if (up == 8) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<8, float> >(busN));
                 else if (up == 16) DSP = new dsp_sequencer(DSP, new dsp_up_sampler<LowPass6e<16, float> >(busN));
+                break;
             default:
                 cerr << "Incorrect filter type : " << filter << endl;
                 break;

@@ -59,11 +59,11 @@ template <typename C> class FaustNode : public MessageDriven, public uiTypedItem
 	
 	//---------------------------------------------------------------------
 	// Warning !!!
-	// The cast (C *)fZone is necessary because the real size allocated is
+	// The cast (C*)fZone is necessary because the real size allocated is
 	// only known at execution time. When the library is compiled, fZone is
 	// uniquely defined by FAUSTFLOAT.
 	//---------------------------------------------------------------------
-	bool store(C val) { *(C *)this->fZone = fMapping.clip(val); return true; }
+	bool store(C val) { *(C*)this->fZone = fMapping.clip(val); return true; }
 	void sendOSC() const;
 
 	protected:

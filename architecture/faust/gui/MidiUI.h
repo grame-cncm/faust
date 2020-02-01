@@ -51,8 +51,8 @@
 * Helper code for MIDI meta and polyphonic 'nvoices' parsing
 ******************************************************************************/
 
-struct MidiMeta : public Meta, public std::map<std::string, std::string>
-{
+struct MidiMeta : public Meta, public std::map<std::string, std::string> {
+    
     void declare(const char* key, const char* value)
     {
         (*this)[key] = value;
@@ -214,8 +214,7 @@ class uiMidiStart : public uiMidiTimedItem
         
 };
 
-class uiMidiStop : public uiMidiTimedItem
-{
+class uiMidiStop : public uiMidiTimedItem {
   
     public:
     
@@ -242,8 +241,7 @@ class uiMidiStop : public uiMidiTimedItem
         }
 };
 
-class uiMidiClock : public uiMidiTimedItem
-{
+class uiMidiClock : public uiMidiTimedItem {
 
     private:
         
@@ -278,8 +276,7 @@ class uiMidiClock : public uiMidiTimedItem
 // Standard MIDI events
 //----------------------
 
-class uiMidiProgChange : public uiMidiTimedItem
-{
+class uiMidiProgChange : public uiMidiTimedItem {
     
     private:
         
@@ -304,8 +301,8 @@ class uiMidiProgChange : public uiMidiTimedItem
         
 };
 
-class uiMidiChanPress : public uiMidiTimedItem
-{
+class uiMidiChanPress : public uiMidiTimedItem {
+    
     private:
         
         int fPress;
@@ -329,8 +326,8 @@ class uiMidiChanPress : public uiMidiTimedItem
         
 };
 
-class uiMidiCtrlChange : public uiMidiTimedItem
-{
+class uiMidiCtrlChange : public uiMidiTimedItem {
+    
     private:
     
         int fCtrl;
@@ -366,8 +363,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem
         }
 };
 
-class uiMidiPitchWheel : public uiMidiTimedItem
-{
+class uiMidiPitchWheel : public uiMidiTimedItem {
 
     private:
     
@@ -418,8 +414,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem
  
 };
 
-class uiMidiKeyOn : public uiMidiTimedItem
-{
+class uiMidiKeyOn : public uiMidiTimedItem {
 
     private:
         
@@ -457,8 +452,7 @@ class uiMidiKeyOn : public uiMidiTimedItem
     
 };
 
-class uiMidiKeyOff : public uiMidiTimedItem
-{
+class uiMidiKeyOff : public uiMidiTimedItem {
 
     private:
         
@@ -496,8 +490,7 @@ class uiMidiKeyOff : public uiMidiTimedItem
     
 };
 
-class uiMidiKeyPress : public uiMidiTimedItem
-{
+class uiMidiKeyPress : public uiMidiTimedItem {
 
     private:
     
@@ -535,8 +528,6 @@ class uiMidiKeyPress : public uiMidiTimedItem
     
 };
 
-class MapUI;
-
 /******************************************************************************************
  * MidiUI : Faust User Interface
  * This class decodes MIDI metadata and maps incoming MIDI messages to them.
@@ -550,8 +541,7 @@ class MapUI;
  *  - sending their internal state as MIDI output events
  *******************************************************************************************/
 
-class MidiUI : public GUI, public midi
-{
+class MidiUI : public GUI, public midi {
 
     typedef std::map <int, std::vector<uiMidiCtrlChange*> > TCtrlChangeTable;
     typedef std::map <int, std::vector<uiMidiProgChange*> > TProgChangeTable;
@@ -638,8 +628,8 @@ class MidiUI : public GUI, public midi
             fMetaAux.clear();
         }
     
-        template <typename T>
-        void updateTable1(T& table, double date, int channel, int val1)
+        template <typename TABLE>
+        void updateTable1(TABLE& table, double date, int channel, int val1)
         {
             for (size_t i = 0; i < table.size(); i++) {
                 int channel_aux = table[i]->fChan;
@@ -653,8 +643,8 @@ class MidiUI : public GUI, public midi
             }
         }
         
-        template <typename T>
-        void updateTable2(T& table, double date, int channel, int val1, int val2)
+        template <typename TABLE>
+        void updateTable2(TABLE& table, double date, int channel, int val1, int val2)
         {
             if (table.find(val1) != table.end()) {
                 for (size_t i = 0; i < table[val1].size(); i++) {

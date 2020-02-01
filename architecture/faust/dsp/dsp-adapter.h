@@ -529,6 +529,7 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
                 memset(outputs[chan], 0, sizeof(FAUSTFLOAT) * count);
                 for (int frame = 0; frame < real_count; frame++) {
                     // Copy one sample every 'DownFactor'
+                    //outputs[chan][frame * this->getFactor()] = fOutputs[chan][frame] * this->getFactor();
                     outputs[chan][frame * this->getFactor()] = fOutputs[chan][frame];
                 }
                 // Lowpass filtering in place on 'outputs'
@@ -598,6 +599,7 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
                 this->fOutputLowPass[chan].compute(real_count, fOutputs[chan], fOutputs[chan]);
                 // Decimate
                 for (int frame = 0; frame < count; frame++) {
+                    //outputs[chan][frame] = fOutputs[chan][frame * this->getFactor()] * this->getFactor();
                     outputs[chan][frame] = fOutputs[chan][frame * this->getFactor()];
                 }
             }

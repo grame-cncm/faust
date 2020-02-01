@@ -96,7 +96,7 @@ static void benchDSP(const string& title, const string& code, dsp* combined)
     dsp* dsp = createDSP(code);
     assert(dsp);
   
-    measure_dsp mes1(dsp, 512, 5.);  // Buffer_size and duration in sec of measure
+    measure_dsp mes1(dsp, 512, 5.);       // Buffer_size and duration in sec of measure
     mes1.measure();
     double res1 = mes1.getStats() ;
     cout << res1 << " " << "(DSP CPU % : " << (mes1.getCPULoad() * 100) << ")" << endl;

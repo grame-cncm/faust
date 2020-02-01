@@ -52,6 +52,7 @@
 #include <libgen.h>
 #endif
 
+// Here to be able to use 'post'
 #include "faust/gui/mspUI.h"
 
 #include "jpatcher_api.h"

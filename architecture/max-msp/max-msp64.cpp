@@ -225,9 +225,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
     } else if (mspUI::checkDigit(name)) { // List of values
         
-        int ndigit = 0;
-        int pos;
-        
+        int pos, ndigit = 0;
         for (pos = name.size() - 1; pos >= 0; pos--) {
             if (isdigit(name[pos]) || name[pos] == ' ') {
                 ndigit++;
