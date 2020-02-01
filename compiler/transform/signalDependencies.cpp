@@ -201,7 +201,7 @@ static string format(const string& s)
     }
 }
 
-ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
+ostream& dotfile2(ostream& file, const digraph<Tree>& g)
 {
     // cerr << "\n\nDOT2FILE of graph " << g << "\n" << endl;
 
@@ -210,13 +210,13 @@ ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g)
         stringstream sn, src;
         // cerr << "Handling node: " << n << "@" << ppsig(n) << endl;
         // cerr << "dict[" << *n << "] = " << *dict[n] << endl;
-        src << ppsig(dict[n]);
+        src << ppsig(getIDInstruction(n));
         sn << '"' << format(src.str()) << '"';
         bool hascnx = false;
         for (const auto& c : g.connections(n)) {
             stringstream sm, dst;
             // cerr << "dotfile2: transcribing " << c << endl;
-            dst << ppsig(dict[c.first]);
+            dst << ppsig(getIDInstruction(c.first));
             sm << '"' << format(dst.str()) << '"';
             hascnx = true;
             if (c.second == 0) {

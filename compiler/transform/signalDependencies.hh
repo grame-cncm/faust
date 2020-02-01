@@ -44,7 +44,7 @@ class Dictionnary {
     void add(Tree sig);
     Tree operator[](Tree id);
 };
-ostream& dotfile2(ostream& file, Dictionnary& dict, const digraph<Tree>& g);
+ostream& dotfile2(ostream& file, const digraph<Tree>& g);
 
 /**
  * A bijective function that returns a unique ID, that starts with prefix, associated to sig

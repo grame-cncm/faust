@@ -727,6 +727,7 @@ Tree sigCartesianProd(Tree s1, Tree s2)
  */
 static void setIDInstruction(Tree id, Tree instr)
 {
+    // cerr << "setIDInstruction(" << *id << "," << ppsig(instr) << ")" << endl;
     id->setProperty(gGlobal->INSTRUCTIONPROPERTY, instr);
 }
 
@@ -738,7 +739,13 @@ static void setIDInstruction(Tree id, Tree instr)
  */
 Tree getIDInstruction(Tree id)
 {
-    return id->getProperty(gGlobal->INSTRUCTIONPROPERTY);
+    int  i;
+    Tree exp;
+    if (isSigOutput(id, &i, exp)) return id;  // special case for sigoutputs that ahev no id
+    // cerr << "getIDInstruction(" << *id << ")" << endl;
+    Tree instr = id->getProperty(gGlobal->INSTRUCTIONPROPERTY);
+    // cerr << "detIDInstruction(" << *id << ") -> " << ppsig(instr) << endl;
+    return instr;
 }
 
 /**

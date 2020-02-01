@@ -54,18 +54,19 @@ void signalGraph(const string& filename, const set<Tree>& I)
     // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
     digraph<Tree> G;
-    Dictionnary   Dic;
+    // Dictionnary   Dic;
 
     for (auto i : I) {
         G.add(dependencyGraph(i));
-        Dic.add(i);
+        // Dic.add(i);
     }
 
     ofstream f;
     f.open(filename);
     // cerr << "\n\nCreate dotfile: " << filename << endl;
 
-    dotfile2(f, Dic, G);
+    // dotfile2(f, Dic, G);
+    dotfile2(f, G);
     f.close();
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }

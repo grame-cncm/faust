@@ -904,6 +904,7 @@ static void printHelp()
 
     cout << endl << "Debug options:" << line;
     cout << tab << "-dt         --debug-trace               print debug traces." << endl;
+    cout << tab << "-dd         --debug-diagram             print debug diagrams in .dot format." << endl;
     cout << tab << "-d          --details                   print compilation details." << endl;
     cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
