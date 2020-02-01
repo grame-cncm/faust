@@ -182,6 +182,9 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
     
     public:
     
+        juce_midi():midi_handler("JUCE")
+        {}
+    
         virtual ~juce_midi()
         {
             stopMidi();

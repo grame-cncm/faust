@@ -99,8 +99,7 @@ class esp32_midi : public midi_handler {
                                 break;
                         }
                     } else {
-                        switch (status) 
-                        {
+                        switch (status) {
                             case 0xF8: // Timing Clock
                                 handleClock(time);
                                 break;
@@ -150,10 +149,15 @@ class esp32_midi : public midi_handler {
     
     public:
     
-        esp32_midi()
+        esp32_midi():midi_handler("esp32"):fProcessMidiHandle(NULL)
         {
             // Setup UART for MIDI
             setupMidi();
+        }
+    
+        virtual ~esp32_midi()
+        {
+            stopMidi();
         }
 
         bool startMidi()
