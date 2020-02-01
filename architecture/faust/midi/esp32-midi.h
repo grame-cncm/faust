@@ -55,7 +55,7 @@ class esp32_midi : public midi_handler {
     
     private:
     
-        TaskHandle_t processMidiHandle;
+        TaskHandle_t fProcessMidiHandle;
     
         void processMidi()
         {
@@ -99,16 +99,14 @@ class esp32_midi : public midi_handler {
                                 break;
                         }
                     } else {
-                        switch (status) // TODO
+                        switch (status) 
                         {
                             case 0xF8: // Timing Clock
                                 handleClock(time);
                                 break;
+                            // We can consider start and continue as identical messages.
                             case 0xFA: // Start
-                                handleStart(time);
-                                break;
                             case 0xFB: // Continue
-                                // We can consider start and continue as identical messages.
                                 handleStart(time);
                                 break;
                             case 0xFC: // Stop
@@ -134,9 +132,7 @@ class esp32_midi : public midi_handler {
             midi->processMidi();
         }
     
-    public:
-   	
-	void setupMidi()
+        void setupMidi()
         {
             const uart_config_t uart_config = {
                 .baud_rate = 31250,
@@ -151,20 +147,26 @@ class esp32_midi : public midi_handler {
             // We won't use a buffer for sending data.
             uart_driver_install(PORT_NUM, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
         }
-
-        bool processMidiStart()
+    
+    public:
+    
+        esp32_midi()
         {
             // Setup UART for MIDI
-            //setupMidi();
-            // Start MIDI receive task
-            return (xTaskCreatePinnedToCore(processMidiHandler, "Faust MIDI Task", 2048, (void*)this, 5, &processMidiHandle, 1) == pdPASS);
+            setupMidi();
         }
 
-        void processMidiStop()
+        bool startMidi()
         {
-            if (processMidiHandle != NULL) {
-                vTaskDelete(processMidiHandle);
-                processMidiHandle = NULL;
+            // Start MIDI receive task
+            return (xTaskCreatePinnedToCore(processMidiHandler, "Faust MIDI Task", 2048, (void*)this, 5, &fProcessMidiHandle, 1) == pdPASS);
+        }
+
+        void stopMidi()
+        {
+            if (fProcessMidiHandle != NULL) {
+                vTaskDelete(fProcessMidiHandle);
+                fProcessMidiHandle = NULL;
             }
         }
    
