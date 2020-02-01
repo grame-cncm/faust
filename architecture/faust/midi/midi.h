@@ -282,6 +282,7 @@ class midi_handler : public midi {
             }
         }
 
+        // Those 2 methods have to be implemented by subclasses
         virtual bool startMidi() { return true; }
         virtual void stopMidi() {}
     

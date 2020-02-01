@@ -120,8 +120,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fMIDIHandler = new esp32_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
-    // Setup UART for MIDI
-    fMIDIHandler->setupMidi();
+   
 #endif
 }
 
@@ -149,8 +148,8 @@ AudioFaust::~AudioFaust()
 bool AudioFaust::start()
 {
 #if MIDICTRL
+    if (!fMIDIHandler->startMidi()) return false;
     fMIDIInterface->run();
-    fMIDIHandler->processMidiStart();  
 #endif
     return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 24, &fHandle, 0) == pdPASS);
 }
@@ -158,7 +157,7 @@ bool AudioFaust::start()
 void AudioFaust::stop()
 {
 #if MIDICTRL
-    fMIDIHandler->processMidiStop();
+    fMIDIHandler->stopMidi();
     fMIDIInterface->stop();
 #endif
     if (fHandle != NULL) {
@@ -231,13 +230,12 @@ void AudioFaust::configureI2S(int sample_rate, int buffer_size)
 template <int INPUTS, int OUTPUTS>
 void AudioFaust::audioTask()
 {
-
     while (true) {
 
-	#ifdef MIDICTRL
+    #ifdef MIDICTRL
         // Synchronize all GUI controllers
         GUI::updateAllGuis();
-        #endif
+    #endif
 
         if (INPUTS > 0) {
             // Read from the card
