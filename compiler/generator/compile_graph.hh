@@ -43,7 +43,7 @@
 ///////////////////////////////////////////////////////////////////////
 
 struct Scheduling {
-    Dictionnary  fDic;
+    // Dictionnary  fDic;
     vector<Tree> fInitLevel;
     vector<Tree> fBlockLevel;
     vector<Tree> fExecLevel;
@@ -52,19 +52,19 @@ struct Scheduling {
     {
         f << "// INIT SCHEDULING " << endl;
         for (Tree i : fInitLevel) {
-            f << i << ":\t" << ppsig(fDic[i]) << endl;
+            f << i << ":\t" << ppsig(i) << endl;
         }
         f << endl;
 
         f << "// CONTROL SCHEDULING " << endl;
         for (Tree i : fBlockLevel) {
-            f << i << ":\t" << ppsig(fDic[i]) << endl;
+            f << i << ":\t" << ppsig(i) << endl;
         }
         f << endl;
 
         f << "// SCALAR SCHEDULING " << endl;
         for (Tree i : fExecLevel) {
-            f << i << ":\t" << ppsig(fDic[i]) << endl;
+            f << i << ":\t" << ppsig(i) << endl;
         }
         f << endl;
     }

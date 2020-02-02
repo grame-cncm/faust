@@ -20,7 +20,7 @@ class XYTableDependencies : public SignalVisitor {
 
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
-            fTables.insert(id);
+            fTables.insert(getIDInstruction(id));
             self(dl);
         } else {
             SignalVisitor::visit(t);
@@ -58,27 +58,27 @@ class SignalDependencies : public SignalVisitor {
         // Analyzed signals are supposed to be "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
         if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
-            fRoot = id;
+            fRoot = sig;
             fGraph.add(fRoot);
             self(content);
         } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
-            fRoot = id;
+            fRoot = sig;
             fGraph.add(fRoot);
             self(content);
         } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
-            fRoot = id;
+            fRoot = sig;
             fGraph.add(fRoot);
             self(content);
         } else if (isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
-            fRoot = id;
+            fRoot = sig;
             fGraph.add(fRoot);
             self(content);
         } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
-            fRoot = id;
+            fRoot = sig;
             fGraph.add(fRoot);
             self(content);
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, exp)) {
-            fRoot = id;
+            fRoot = sig;
             fGraph.add(fRoot);
             self(init);
             self(idx);
@@ -106,55 +106,24 @@ class SignalDependencies : public SignalVisitor {
 
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
-            fGraph.add(fRoot, id, dmin);
+            fGraph.add(fRoot, getIDInstruction(id), dmin);
             self(dl);
         } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
-            fGraph.add(fRoot, id, dmin);
+            fGraph.add(fRoot, getIDInstruction(id), dmin);
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, id);
+            fGraph.add(fRoot, getIDInstruction(id));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
-            fGraph.add(fRoot, id, dmin);
+            fGraph.add(fRoot, getIDInstruction(id), dmin);
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, id);
+            fGraph.add(fRoot, getIDInstruction(id));
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, id);
+            fGraph.add(fRoot, getIDInstruction(id));
         } else {
             SignalVisitor::visit(t);
         }
     }
 };
-
-//================================================================
-
-void Dictionnary::add(Tree sig)
-{
-    Tree id, idx, init, origin, content;
-    int  nature, dmax, i;
-    // Analyzed signals are supposed to be DelayLines, Controls or Outputs
-    if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
-        isSigInstructionShortDLineWrite(sig, id, origin, &nature, content) ||
-        isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, content) ||
-        isSigInstructionSharedWrite(sig, id, origin, &nature, content) ||
-        isSigInstructionControlWrite(sig, id, origin, &nature, content) ||
-        isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
-        // cerr << "Dictionnary::add " << id << "@" << *id << endl;  //" := " << ppsig(sig) << endl;
-        fDefinitions[id] = sig;
-    } else if (isSigOutput(sig, &i, content)) {
-        fDefinitions[sig] = sig;
-    } else {
-        std::cerr << "**** BIG ERROR ***" << endl;
-    }
-}
-
-Tree Dictionnary::operator[](Tree id)
-{
-    if (fDefinitions.count(id) == 0) {
-        cerr << "ERROR, no definition for " << *id << endl;
-        faustassert(fDefinitions.count(id) > 0);
-    }
-    return fDefinitions[id];
-}
 
 //================================================================
 // signalDependencies(sig) : Compute the dependencies of a signal
@@ -210,13 +179,13 @@ ostream& dotfile2(ostream& file, const digraph<Tree>& g)
         stringstream sn, src;
         // cerr << "Handling node: " << n << "@" << ppsig(n) << endl;
         // cerr << "dict[" << *n << "] = " << *dict[n] << endl;
-        src << ppsig(getIDInstruction(n));
+        src << ppsig(n);
         sn << '"' << format(src.str()) << '"';
         bool hascnx = false;
         for (const auto& c : g.connections(n)) {
             stringstream sm, dst;
             // cerr << "dotfile2: transcribing " << c << endl;
-            dst << ppsig(getIDInstruction(c.first));
+            dst << ppsig(c.first);
             sm << '"' << format(dst.str()) << '"';
             hascnx = true;
             if (c.second == 0) {

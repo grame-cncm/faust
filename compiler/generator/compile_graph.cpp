@@ -471,7 +471,7 @@ static void lookForChains(const set<Tree>& I)
     // 1) build the graph and the dictionnary
     for (auto i : I) {
         G.add(dependencyGraph(i));
-        S.fDic.add(i);
+        // S.fDic.add(i);
     }
 
     digraph<Tree> T;  // the subgraph of control instructions (temporary)
@@ -483,8 +483,10 @@ static void lookForChains(const set<Tree>& I)
     // G <: T, E
     // T <: K, B
 
-    splitgraph<Tree>(G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
-    splitgraph<Tree>(T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [](Tree id) { return isControl(id); }, T, E);
+    splitgraph<Tree>(
+        T, [](Tree id) { return isInit(id); }, K, B);
 
     digraph<digraph<Tree>> DG = graph2dag(E);
     digraph<digraph<Tree>> DC = chain(DG, true);
@@ -507,7 +509,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
     // 1) build the graph and the dictionnary
     for (auto i : I) {
         G.add(dependencyGraph(i));
-        S.fDic.add(i);
+        // S.fDic.add(i);
     }
 
     digraph<Tree> T;  // the subgraph of control instructions (temporary)
@@ -518,9 +520,9 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
     // 2) split in three sub-graphs: K, B, E
 
     splitgraph<Tree>(
-        G, [&S](Tree id) { return isControl(S.fDic[id]); }, T, E);
+        G, [](Tree instr) { return isControl(instr); }, T, E);
     splitgraph<Tree>(
-        T, [&S](Tree id) { return isInit(S.fDic[id]); }, K, B);
+        T, [](Tree instr) { return isInit(instr); }, K, B);
 
     // 3) fill the scheduling
 
@@ -843,9 +845,9 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
     K->addPostCode(Statement("", "++time;"));
     K->addZone4("gTime = time;");
 
-    for (Tree i : S.fInitLevel) {
+    for (Tree sig : S.fInitLevel) {
+        // cerr << "INIT " << ppsig(sig) << endl;
         // We compile
-        Tree sig = S.fDic[i];
         Tree id, origin, content;
         int  nature;
 
@@ -860,9 +862,9 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         K->addInitCode(subst("$0 = $1;", vname, CS(content)));
     }
 
-    for (Tree i : S.fBlockLevel) {
+    for (Tree sig : S.fBlockLevel) {
+        // cerr << "BLOCK " << ppsig(sig) << endl;
         // We compile
-        Tree sig = S.fDic[i];
         Tree id, origin, content;
         int  nature;
 
@@ -876,10 +878,9 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
         K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
     }
 
-    for (Tree instr : S.fExecLevel) {
+    for (Tree sig : S.fExecLevel) {
+        // cerr << "EXEC " << ppsig(sig) << endl;
         // We compile
-        Tree sig = S.fDic[instr];
-
         Tree id, origin, content, init, initval, idx;
         int  i, nature, dmax, tblsize;
 
@@ -958,9 +959,8 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
     K->addPostCode(Statement("", "++time;"));
     K->addZone4("gTime = time;");
 
-    for (Tree i : S.fInitLevel) {
+    for (Tree sig : S.fInitLevel) {
         // We compile
-        Tree sig = S.fDic[i];
         Tree id, origin, content;
         int  nature;
 
@@ -973,9 +973,8 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
         K->addInitCode(subst("$0 = $1;", vname, CS(content)));
     }
 
-    for (Tree i : S.fBlockLevel) {
+    for (Tree sig : S.fBlockLevel) {
         // We compile
-        Tree sig = S.fDic[i];
         Tree id, origin, content;
         int  nature;
 
@@ -987,10 +986,8 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
         K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
     }
 
-    for (Tree instr : S.fExecLevel) {
+    for (Tree sig : S.fExecLevel) {
         // We compile
-        Tree sig = S.fDic[instr];
-
         Tree id, origin, content, init, idx;
         int  i, nature, dmax, tblsize;
 

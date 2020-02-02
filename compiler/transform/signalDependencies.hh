@@ -37,13 +37,6 @@ using namespace std;
 digraph<Tree> dependencyGraph(Tree sig);
 set<Tree>     listTableDependencies(Tree sig);
 
-class Dictionnary {
-    map<Tree, Tree> fDefinitions;
-
-   public:
-    void add(Tree sig);
-    Tree operator[](Tree id);
-};
 ostream& dotfile2(ostream& file, const digraph<Tree>& g);
 
 /**

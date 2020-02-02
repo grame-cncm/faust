@@ -63,12 +63,12 @@ static bool isControl(Tree i)
 void scalarScheduling(const string& filename, set<Tree> I)
 {
     digraph<Tree> G;  // the signal graph
-    Dictionnary   Dic;
+    // Dictionnary   Dic;
 
     // 1) build the graph
     for (auto i : I) {
         G.add(dependencyGraph(i));
-        Dic.add(i);
+        // Dic.add(i);
     }
 
     // split in two graphs
@@ -77,8 +77,10 @@ void scalarScheduling(const string& filename, set<Tree> I)
     digraph<Tree> B;  // the subgraph of block-time instructions
     digraph<Tree> E;  // the subgraph at sample-time instructions
 
-    splitgraph<Tree>(G, [&Dic](Tree id) { return isControl(Dic[id]); }, T, E);
-    splitgraph<Tree>(T, [&Dic](Tree id) { return isInit(Dic[id]); }, K, B);
+    splitgraph<Tree>(
+        G, [](Tree instr) { return isControl(instr); }, T, E);
+    splitgraph<Tree>(
+        T, [](Tree instr) { return isInit(instr); }, K, B);
 
     // 3) print each subgraph
     ofstream f;
@@ -86,13 +88,13 @@ void scalarScheduling(const string& filename, set<Tree> I)
 
     f << "// INIT SCHEDULING " << endl;
     for (Tree i : serialize(K)) {
-        f << i << ":\t" << ppsig(Dic[i]) << endl;
+        f << i << ":\t" << ppsig(i) << endl;
     }
     f << endl;
 
     f << "// CONTROL SCHEDULING " << endl;
     for (Tree i : serialize(B)) {
-        f << i << ":\t" << ppsig(Dic[i]) << endl;
+        f << i << ":\t" << ppsig(i) << endl;
     }
     f << endl;
 
@@ -105,7 +107,7 @@ void scalarScheduling(const string& filename, set<Tree> I)
 
         vector<Tree> v = serialize(cut(g, 1));
         for (Tree i : v) {
-            f << i << ":\t" << ppsig(Dic[i]) << endl;
+            f << i << ":\t" << ppsig(i) << endl;
         }
     }
 
@@ -121,19 +123,20 @@ void scalarScheduling(const string& filename, set<Tree> I)
 void parallelScheduling(const string& filename, set<Tree> I)
 {
     digraph<Tree> G;
-    Dictionnary   Dic;
+    // Dictionnary   Dic;
 
     // 1) build the graph
     for (auto i : I) {
         G.add(dependencyGraph(i));
-        Dic.add(i);
+        // Dic.add(i);
     }
 
     // split in two graphs
     digraph<Tree> L;  // the control graph
     digraph<Tree> R;  // the signal graph
 
-    splitgraph<Tree>(G, [&Dic](Tree id) { return isControl(Dic[id]); }, L, R);
+    splitgraph<Tree>(
+        G, [](Tree instr) { return isControl(instr); }, L, R);
 
     // 2) create a vector of subgraphs
     digraph<digraph<Tree>>        DG = graph2dag(R);
@@ -144,8 +147,8 @@ void parallelScheduling(const string& filename, set<Tree> I)
     f.open(filename);
 
     f << "// CONTROL SCHEDULING " << endl;
-    for (Tree i : serialize(L)) {
-        f << i << ":\t" << ppsig(Dic[i]) << endl;
+    for (Tree instr : serialize(L)) {
+        f << instr << ":\t" << ppsig(instr) << endl;
     }
     f << endl;
 
@@ -156,7 +159,7 @@ void parallelScheduling(const string& filename, set<Tree> I)
             f << "\n// begin task: " << g << endl;
             vector<Tree> v = serialize(cut(g, 1));
             for (Tree i : v) {
-                f << i << ":\t" << ppsig(Dic[i]) << endl;
+                f << i << ":\t" << ppsig(i) << endl;
             }
             f << "// end   task" << endl;
         }
