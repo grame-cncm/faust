@@ -548,7 +548,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
             
         result:
-            // So that envelop is always re-initialized
+            // So that DSP state is always re-initialized
             fVoiceTable[voice]->instanceClear();
             fVoiceTable[voice]->fDate = fDate++;
             fVoiceTable[voice]->fNote = kActiveVoice;
