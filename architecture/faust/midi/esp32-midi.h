@@ -149,7 +149,7 @@ class esp32_midi : public midi_handler {
     
     public:
     
-        esp32_midi():midi_handler("esp32"):fProcessMidiHandle(NULL)
+        esp32_midi():midi_handler("esp32"),fProcessMidiHandle(NULL)
         {
             // Setup UART for MIDI
             setupMidi();
