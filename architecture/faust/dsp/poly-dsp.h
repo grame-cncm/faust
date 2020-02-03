@@ -738,7 +738,10 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // Additional polyphonic API
         MapUI* newVoice()
         {
-            return fVoiceTable[getFreeVoice()];
+            int voice = getFreeVoice();
+            // So that DSP state is always re-initialized
+            fVoiceTable[voice]->instanceClear();
+            return fVoiceTable[voice];
         }
 
         void deleteVoice(MapUI* voice)
