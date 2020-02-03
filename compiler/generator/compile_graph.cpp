@@ -54,6 +54,7 @@
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
+#include "splitAddBranches.hh"
 #include "splitCommonSubexpr.hh"
 #include "timing.hh"
 #include "transformDelayToTable.hh"
@@ -320,11 +321,9 @@ Tree GraphCompiler::prepare3(Tree L1)
     recursivnessAnnotation(L1);  // Annotate L0 with recursivness information
     typeAnnotation(L1, true);    // Annotate L0 with type information
 
-    SignalPromotion SP;
-    Tree            L1b = SP.mapself(L1);
-
-    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
-
+    SignalPromotion           SP;
+    Tree                      L1b = SP.mapself(L1);
+    Tree                      L2  = simplify(L1b);  // simplify by executing every computable operation
     SignalConstantPropagation SK;
     Tree                      L2b = SK.mapself(L2);
 
@@ -444,6 +443,11 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     typeAnnotateInstructionSet(INSTR5);
     if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
 
+    // cerr << ">>splitAddBranches\n" << endl;
+    set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
+    typeAnnotateInstructionSet(INSTR6);
+    if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
+
 #if 0
     cerr << "Start scalarscheduling" << endl;
     scalarScheduling("phase5-scalarScheduling.txt", INSTR4);
@@ -453,7 +457,7 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
 
     endTiming("Transformation into Instructions");
 #endif
-    return INSTR5;
+    return INSTR6;
 }
 
 /**

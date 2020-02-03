@@ -169,6 +169,7 @@ struct global {
     bool   gOneSample;             // Generate one sample computation
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     bool   gOptShortDLines;        // Optimise short dlines
+    bool   gSplitAdditions;        // Split addition branches
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions

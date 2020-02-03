@@ -432,6 +432,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gOptShortDLines = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-sa", "--split-addition-branches")) {
+            gGlobal->gSplitAdditions = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i + 1 < argc)) {
             gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
@@ -844,6 +848,7 @@ static void printHelp()
          << endl;
     cout << tab << "-cm        --code-mode <n>              'ocpp' scheduling mode." << endl;
     cout << tab << "-osd       --optimize-short-dlines      'ocpp' optimize one-sample delays." << endl;
+    cout << tab << "-sa       --split-addition-branches     'ocpp' for additional parallelism" << endl;
     cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
