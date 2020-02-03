@@ -483,10 +483,8 @@ static void lookForChains(const set<Tree>& I)
     // G <: T, E
     // T <: K, B
 
-    splitgraph<Tree>(
-        G, [](Tree id) { return isControl(id); }, T, E);
-    splitgraph<Tree>(
-        T, [](Tree id) { return isInit(id); }, K, B);
+    splitgraph<Tree>(G, &isControl, T, E);
+    splitgraph<Tree>(T, &isInit, K, B);
 
     digraph<digraph<Tree>> DG = graph2dag(E);
     digraph<digraph<Tree>> DC = chain(DG, true);
@@ -519,10 +517,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
     // 2) split in three sub-graphs: K, B, E
 
-    splitgraph<Tree>(
-        G, [](Tree instr) { return isControl(instr); }, T, E);
-    splitgraph<Tree>(
-        T, [](Tree instr) { return isInit(instr); }, K, B);
+    splitgraph<Tree>(G, &isControl, T, E);
+    splitgraph<Tree>(T, &isInit, K, B);
 
     // 3) fill the scheduling
 

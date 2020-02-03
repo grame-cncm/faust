@@ -77,10 +77,8 @@ void scalarScheduling(const string& filename, set<Tree> I)
     digraph<Tree> B;  // the subgraph of block-time instructions
     digraph<Tree> E;  // the subgraph at sample-time instructions
 
-    splitgraph<Tree>(
-        G, [](Tree instr) { return isControl(instr); }, T, E);
-    splitgraph<Tree>(
-        T, [](Tree instr) { return isInit(instr); }, K, B);
+    splitgraph<Tree>(G, &isControl, T, E);
+    splitgraph<Tree>(T, &isInit, K, B);
 
     // 3) print each subgraph
     ofstream f;
@@ -135,8 +133,7 @@ void parallelScheduling(const string& filename, set<Tree> I)
     digraph<Tree> L;  // the control graph
     digraph<Tree> R;  // the signal graph
 
-    splitgraph<Tree>(
-        G, [](Tree instr) { return isControl(instr); }, L, R);
+    splitgraph<Tree>(G, &isControl, L, R);
 
     // 2) create a vector of subgraphs
     digraph<digraph<Tree>>        DG = graph2dag(R);
