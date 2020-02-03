@@ -55,7 +55,7 @@ class esp32_midi : public midi_handler {
     
     private:
     
-        TaskHandle_t fProcessMidiHandle;
+        TaskHandle_t fProcessMidiHandle = NULL;
     
         void processMidi()
         {
@@ -149,7 +149,7 @@ class esp32_midi : public midi_handler {
     
     public:
     
-        esp32_midi():midi_handler("esp32"):fProcessMidiHandle(NULL)
+        esp32_midi():midi_handler("esp32")
         {
             // Setup UART for MIDI
             setupMidi();

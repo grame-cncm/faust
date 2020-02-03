@@ -148,7 +148,6 @@ AudioFaust::~AudioFaust()
 bool AudioFaust::start()
 {
 #if MIDICTRL
-    if (!fMIDIHandler->startMidi()) return false;
     fMIDIInterface->run();
 #endif
     return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 24, &fHandle, 0) == pdPASS);
@@ -157,7 +156,6 @@ bool AudioFaust::start()
 void AudioFaust::stop()
 {
 #if MIDICTRL
-    fMIDIHandler->stopMidi();
     fMIDIInterface->stop();
 #endif
     if (fHandle != NULL) {
