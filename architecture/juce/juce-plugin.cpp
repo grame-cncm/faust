@@ -424,15 +424,18 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 #ifdef JUCE_POLY
     fSynth->buildUserInterface(&fStateUI);
     fSynth->buildUserInterface(&fParameterUI);
+    // When no previous state was restored, init DSP controllers with their default values
+    if (!fStateUI.fRestored) {
+        fSynth->instanceResetUserInterface();
+    }
 #else
     fDSP->buildUserInterface(&fStateUI);
     fDSP->buildUserInterface(&fParameterUI);
-#endif
-    
     // When no previous state was restored, init DSP controllers with their default values
     if (!fStateUI.fRestored) {
         fDSP->instanceResetUserInterface();
     }
+#endif
     
     startTimerHz(25);
 }
