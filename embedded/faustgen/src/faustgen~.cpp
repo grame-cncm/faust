@@ -1226,7 +1226,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
     } else {
         // Standard parameter name
-        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : av[0].a_w.w_float;
+        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
         res = fDSPUI->setValue(name, value);
         if (!res) {
             post("Unknown parameter : %s", (s)->s_name);

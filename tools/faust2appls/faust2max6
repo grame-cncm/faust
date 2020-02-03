@@ -146,11 +146,9 @@ shift
 done
 
 #look for polyphonic "nvoices" metadata in the DSP file
-
 grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 
 #customize CXXFLAGS
-
 CXXFLAGS+=" -fbracket-depth=512"
 
 #-------------------------------------------------------------------
@@ -202,8 +200,6 @@ for p in $FILES; do
     if [ "$FAUSTFLOAT" = "double" ]; then
         OPTIONS="$OPTIONS -double"
     fi
-
-echo $OPTIONS
 
     # compile c++ to binary
     (

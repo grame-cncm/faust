@@ -266,7 +266,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
     } else {
         // Standard parameter name
-        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : av[0].a_w.w_float;
+        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
         res = obj->m_dspUI->setValue(name, value);
         if (!res) {
             post("Unknown parameter : %s", (s)->s_name);
