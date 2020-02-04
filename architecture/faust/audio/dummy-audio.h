@@ -70,15 +70,19 @@ class dummyaudio : public audio {
         static void* run(void* ptr)
         {
             dummyaudio* audio = (dummyaudio*)ptr;
-            audio->process();
+            try {
+                audio->process();
+            } catch (...) {}
             return 0;
         }
     #else
         static void run(dummyaudio* audio)
         {
-            audio->process();
+            try {
+                audio->process();
+            } catch (...) {}
         }
-        std::thread* fAudioThread = 0;
+        std::thread* fAudioThread = nullptr;
     #endif
         
         void process()

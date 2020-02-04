@@ -485,8 +485,10 @@ class measure_dsp_aux : public decorator_dsp {
         virtual void compute(int count, REAL** inputs, REAL** outputs)
         {
             AVOIDDENORMALS;
-            fBench->startMeasure();
+            // Update all controllers
             fRandomUI.update();
+            fBench->startMeasure();
+            // Only measure the 'compute' method
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             fBench->stopMeasure();
         }
