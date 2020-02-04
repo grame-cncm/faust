@@ -120,7 +120,9 @@ class GraphCompiler : public Compiler {
     virtual string CS(Tree sig);
     virtual string generateCode(Tree sig);
 
-    void   SchedulingToClass(Scheduling& S, Klass* K);
+    void SchedulingToClass(Scheduling& S, Klass* K);
+    void compileSingleInstruction(Klass* K, Tree sig);
+
     void   InstructionsToClass(const set<Tree>& I, Klass* K);
     string getFreshID(const string& prefix);
 
