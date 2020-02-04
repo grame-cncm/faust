@@ -114,12 +114,14 @@ class GraphCompiler : public Compiler {
 
     void compileMultiSignal(Tree lsig) override;
     void compileSingleSignal(Tree lsig) override;
+    void compileMultiSignalVec(Tree L);  // experimental vector mode
 
    protected:
     virtual string CS(Tree sig);
     virtual string generateCode(Tree sig);
 
     void   SchedulingToClass(Scheduling& S, Klass* K);
+    void   InstructionsToClass(const set<Tree>& I, Klass* K);
     string getFreshID(const string& prefix);
 
     void       compilePreparedSignalList(Tree lsig);
