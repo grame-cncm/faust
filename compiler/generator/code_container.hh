@@ -172,7 +172,7 @@ class CodeContainer : public virtual Garbageable {
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
-
+    
    public:
     CodeContainer();
     void initialize(int numInputs, int numOutputs);
@@ -224,6 +224,7 @@ class CodeContainer : public virtual Garbageable {
 
     void setLoopProperty(Tree sig, CodeLoop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, CodeLoop*& l);  ///< Returns the loop used to compute a signal
+    void listAllLoopProperties(Tree sig, set<CodeLoop*>&, set<Tree>& visited);  ///< Returns all the loop used to compute a signal
 
     void printGraphDotFormat(ostream& fout);
 

@@ -102,6 +102,24 @@ bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
     return fLoopProperty.get(sig, l);
 }
 
+void CodeContainer::listAllLoopProperties(Tree sig, set<CodeLoop*>& L, set<Tree>& visited)
+{
+    if (visited.count(sig) == 0) {
+        visited.insert(sig);
+        CodeLoop* l;
+        if (getLoopProperty(sig, l)) {
+            L.insert(l);
+        } else {
+            // we go down the expression
+            vector<Tree> subsigs;
+            int          n = getSubSignals(sig, subsigs, false);
+            for (int i = 0; i < n; i++) {
+                listAllLoopProperties(subsigs[i], L, visited);
+            }
+        }
+    }
+}
+
 /**
  * Open a non-recursive loop on top of the stack of open loops.
  * @param size the number of iterations of the loop
@@ -128,6 +146,15 @@ void CodeContainer::openLoop(Tree recsymbol, const string& index_name, int size)
 void CodeContainer::closeLoop(Tree sig)
 {
     faustassert(fCurLoop);
+    
+    // fix the missing dependencies
+    set<CodeLoop*> L;
+    set<Tree> V;
+    listAllLoopProperties(sig, L, V);
+    for (CodeLoop* l : L) {
+        fCurLoop->fBackwardLoopDependencies.insert(l);
+    }
+    
     CodeLoop* l = fCurLoop;
     fCurLoop    = l->fEnclosingLoop;
     faustassert(fCurLoop);

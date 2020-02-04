@@ -1,0 +1,5 @@
+digraph mygraph {
+	"Graph {0x25ff070-1->0x25ff070}";
+	"Graph {0x25ff8e0}"->"Graph {0x25ff070-1->0x25ff070}";
+	"Graph {0x25ffc70}"->"Graph {0x25ff070-1->0x25ff070}";
+}

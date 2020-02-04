@@ -87,6 +87,24 @@ void Klass::openLoop(Tree recsymbol, const string& size)
     // cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
+void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
+{
+    if (visited.count(sig)==0) {
+        visited.insert(sig);
+        Loop* l;
+        if (getLoopProperty(sig, l)) {
+            L.insert(l);
+        } else {
+            // we go down the expression
+            vector<Tree> subsigs;
+            int          n = getSubSignals(sig, subsigs, false);
+            for (int i = 0; i < n; i++) {
+                listAllLoopProperties(subsigs[i], L, visited);
+            }
+        }
+    }
+}
+
 /**
  * Close the top loop and either keep it
  * or absorb it within its enclosing loop.
@@ -94,6 +112,15 @@ void Klass::openLoop(Tree recsymbol, const string& size)
 void Klass::closeLoop(Tree sig)
 {
     faustassert(fTopLoop);
+    
+    // fix the missing dependencies
+    set<Loop*> L;
+    set<Tree> V;
+    listAllLoopProperties(sig, L, V);
+    for (Loop* l : L) {
+        fTopLoop->fBackwardLoopDependencies.insert(l);
+    }
+  
     Loop* l  = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     faustassert(fTopLoop);
@@ -102,7 +129,7 @@ void Klass::closeLoop(Tree sig)
     // cerr << endl;
 
     Tree S = symlist(sig);
-    // cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
+    // cerr << "CLOSE LOOP :" << l << " with symbols " << *S << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // cout << " will absorb" << endl;
         // empty or dependent loop -> absorbed by enclosing one
