@@ -22,16 +22,17 @@ ext    ?= cpp
 
 version := $(shell $(FAUST) --version | grep Version | sed -e 's/^..*Version //')
 
-dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v TODO | grep -v old | grep -v faust-stk)
+dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM" )
 regressionfiles = $(shell find $(REGRESSION)/codegen-tests -name "*.dsp")
 
 examplesout 	:= $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(lang)/%.$(ext))
-regressionout 	:= $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(lang)/%.$(ext)))
+regressionout 	:= $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(lang)/%.$(ext))
 
 
 all: $(version)/$(outdir) $(examplesout) $(regressionout)
 
 test:
+#	@echo $(regressionfiles)
 	@echo $(regressionout)
 
 help:
@@ -63,9 +64,7 @@ $(version)/$(outdir):
 $(version)/$(outdir)/%.$(ext): $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -lang $(lang) -I $(FAUSTLIBS) $(FAUSTOPTIONS) $<  -o $@ 
+	
 $(version)/$(outdir)/%.$(ext): $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -lang $(lang) -I $(FAUSTLIBS) $(FAUSTOPTIONS) $<  -o $@ 
-
-
-
