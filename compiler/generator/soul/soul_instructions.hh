@@ -28,7 +28,6 @@
 #include <utility>
 #include <cctype>
 
-#include "Text.hh"
 #include "text_instructions.hh"
 #include "faust/gui/PathBuilder.h"
 
@@ -177,6 +176,15 @@ class SOULInstVisitor : public TextInstVisitor {
 
     // Whether to consider an 'int' as a 'boolean' later on in code generation
     bool fIntAsBool;
+    
+    inline string checkFloat(float val)
+    {
+        return (isinf(val)) ? "inf" : T(val);
+    }
+    inline string checkDouble(double val)
+    {
+        return (isinf(val)) ? "inf" : T(val);
+    }
 
    public:
     SOULInstVisitor(std::ostream* out, int tab = 0)
@@ -389,6 +397,8 @@ class SOULInstVisitor : public TextInstVisitor {
             EndLine();
         }
     }
+    
+    virtual void visit(FloatNumInst* inst) { *fOut << checkFloat(inst->fNum); }
 
     virtual void visit(FloatArrayNumInst* inst)
     {
@@ -410,6 +420,8 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ')';
     }
 
+    virtual void visit(DoubleNumInst* inst) { *fOut << checkDouble(inst->fNum); }
+    
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '(';

@@ -26,8 +26,6 @@
 
 #include "was_instructions.hh"
 
-using namespace std;
-
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
 #define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
 
@@ -79,9 +77,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     template <class T>
     string checkReal(T val)
     {
-        std::stringstream num;
-        num << setprecision(numeric_limits<T>::max_digits10) << val;
-        return ensureFloat(num.str());
+        if (std::isinf(val)) {
+            return "inf";
+        } else {
+            std::stringstream num;
+            num << setprecision(numeric_limits<T>::max_digits10) << val;
+            return ensureFloat(num.str());
+        }
     }
 
    public:

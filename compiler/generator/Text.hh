@@ -30,6 +30,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -62,11 +63,11 @@ string rmWhiteSpaces(const string& s);
 
 inline string checkFloat(float val)
 {
-    return T(val);
+    return (isinf(val)) ? "INFINITY" : T(val);
 }
 inline string checkDouble(double val)
 {
-    return T(val);
+    return (isinf(val)) ? "INFINITY" : T(val);
 }
 string checkReal(double val);
 

@@ -61,28 +61,28 @@ struct interval : public virtual Garbageable {
     interval(double n) : valid(true), lo(n), hi(n)
     {
         if (isnan(n)) {
-            cerr << "ERROR1, n is NAN in an Interval" << endl;
+            cerr << "ERROR1 : n is NAN in an Interval" << endl;
             faustassert(false);
         }
     }
     interval(bool v, double n, double m) : valid(v), lo(n), hi(m)
     {
         if (isnan(n) || isnan(m)) {
-            cerr << "ERROR2, n or m is NAN in an Interval" << endl;
+            cerr << "ERROR2 : n or m is NAN in an Interval" << endl;
             faustassert(false);
         }
     }
     interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m))
     {
         if (isnan(n) || isnan(m)) {
-            cerr << "ERROR3, n or m is NAN in an Interval" << endl;
+            cerr << "ERROR3 : n or m is NAN in an Interval" << endl;
             faustassert(false);
         }
     }
     interval(const interval& r) : valid(r.valid), lo(r.lo), hi(r.hi)
     {
         if (isnan(r.lo) || isnan(r.hi)) {
-            cerr << "ERROR4, r.lo or r.hi is NAN in an Interval" << endl;
+            cerr << "ERROR4 : r.lo or r.hi is NAN in an Interval" << endl;
             faustassert(false);
         }
     }
