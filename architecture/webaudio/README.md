@@ -265,5 +265,5 @@ The same for the **faust2webaudiowasm** tool:
 
 For dynamic compilation, the *-ftz v* flag will have to be added in the *argv* parameter in **faust.createDSPFactory** or **faust.createPolyDSPFactory**, like for instance:
 
-    faust.createPolyFactory(dsp_code, ['-ftz', '2'], callback);
+    faust.createPolyDSPFactory(dsp_code, ['-ftz', '2'], callback);
 

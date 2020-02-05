@@ -19,7 +19,7 @@ Here are the available options:
 
 ## faust2object
 
-The **faust2object** tool uses the dynamic compilation chain to compile a Faust DSP to an object code file (.o) and wrapper C++ file for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
+The **faust2object** tool uses the dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
 
 `faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake_avx512] [cannonlake] [generic] [-all] [-multi] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
@@ -41,6 +41,11 @@ Here are the available options:
 - `-multi to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime`
 - `-opt native to activate the best compilation options for the native CPU`
 - `-opt generic to activate the best compilation options for a generic CPU`
+
+A set of  header and object code files will be created, and will have to be added in the final project.
+The `-multi` mode creates an additional header file (like `foomulti.h`) that will dynamically load and instantiate the correct code for the machine CPU (or  a generic vesion if the given CPU is not supported). 
+Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  The LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with  `-dead_strip ` to only keep what is really mandatory in the final binary.
+
 
 ## dynamic-jack-gtk
 
@@ -93,7 +98,7 @@ Here are the available options:
 
 ## interp-tracer
 
-The **interp-tracer** tool runs and instruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN or INTEGER_OVERFLOW values are produced. The *-control* mode allows to check control parameters, by explicitly setting their *min* and *max* values, then running the DSP and setting all controllers (inside their range) in a random way.
+The **interp-tracer** tool runs and instruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN or INTEGER_OVERFLOW values are produced. The *-control* mode allows to check control parameters, by explicitly setting their *min* and *max* values, then running the DSP and setting all controllers (inside their range) in a random way. Mode 4 up to 7 also check LOAD/STORE errors, and are typically used by the Faust compiler developers to check the generated code. 
 
 `interp-tracer [-trace <1-7>] [-control] [-output] [additional Faust options (-ftz xx)] foo.dsp`
 
