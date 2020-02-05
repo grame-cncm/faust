@@ -948,89 +948,16 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
     K->addPostCode(Statement("", "++time;"));
     K->addZone4("gTime = time;");
 
-    for (Tree sig : S.fInitLevel) {
-        // cerr << "INIT " << ppsig(sig) << endl;
-        // We compile
-        Tree id, origin, content;
-        int  nature;
-
-        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
-        // force type annotation of transformed expressions
-
-        string ctype = nature2ctype(nature);
-        string vname{tree2str(id)};
-
-        K->addDeclCode(subst("$0 \t$1;", ctype, vname));
-        K->addInitCode(subst("$0 = $1;", vname, CS(content)));
+    for (Tree instr : S.fInitLevel) {
+        compileSingleInstruction(K, instr);
     }
 
-    for (Tree sig : S.fBlockLevel) {
-        // cerr << "BLOCK " << ppsig(sig) << endl;
-        // We compile
-        Tree id, origin, content;
-        int  nature;
-
-        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
-
-        string ctype = nature2ctype(nature);
-        string vname{tree2str(id)};
-
-        K->addFirstPrivateDecl(vname);
-        K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+    for (Tree instr : S.fBlockLevel) {
+        compileSingleInstruction(K, instr);
     }
 
-    for (Tree sig : S.fExecLevel) {
-        // cerr << "EXEC " << ppsig(sig) << endl;
-        // We compile
-        Tree id, origin, content, init, initval, idx;
-        int  i, nature, dmax, tblsize;
-
-        if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
-            string vname{tree2str(id)};
-            K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
-
-        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
-            // we use 'l' to prefix the local variable name
-            string ctype = nature2ctype(nature);
-            string vname{tree2str(id)};
-            K->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            K->addInitCode(subst("$0 = 0;", vname));
-            K->addZone3(subst("$0 \tl$1 = $1;", ctype, vname));  // create the local version of the dline
-            K->addExecCode(Statement("", subst("l$0 = $1;", vname, CS(content))));  // update the local variable
-            K->addZone4(subst("$0 = l$0;", vname));
-
-        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
-            int    ival;
-            double rval;
-
-            string vname{tree2str(id)};
-            K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
-            // cerr << "init is " << ppsig(init) << endl;
-            faustassert(isSigGen(init, initval));
-            if (isSigInt(initval, &ival)) {
-                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = $2;", vname, T(tblsize), T(ival)));
-            } else if (isSigReal(initval, &rval)) {
-                K->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = $2;", vname, T(tblsize), T(rval)));
-            } else {
-                // cerr << "Table init needed here for " << *id << endl;
-            }
-            if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
-
-        } else if (isSigOutput(sig, &i, content)) {
-            K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
-
-        } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
-            Tree path, vmin, vmax, exp;
-            faustassert(isSigVBargraph(origin, path, vmin, vmax, exp) || isSigHBargraph(origin, path, vmin, vmax, exp));
-            string varname{tree2str(id)};
-            K->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-            K->addExecCode(Statement("", subst("$0 = ($1)$2;", varname, xfloat(), CS(content))));
-            addUIWidget(reverse(tl(path)), uiWidget(hd(path), id, origin));
-
-        } else {
-            std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(sig) << endl;
-            faustassert(false);
-        }
+    for (Tree instr : S.fExecLevel) {
+        compileSingleInstruction(K, instr);
     }
 }
 /**
@@ -1056,72 +983,16 @@ void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K
     K->addPostCode(Statement("", "++time;"));
     K->addZone4("gTime = time;");
 
-    for (Tree sig : S.fInitLevel) {
-        // We compile
-        Tree id, origin, content;
-        int  nature;
-
-        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
-
-        string ctype = nature2ctype(nature);
-        string vname{tree2str(id)};
-
-        K->addDeclCode(subst("$0 \t$1;", ctype, vname));
-        K->addInitCode(subst("$0 = $1;", vname, CS(content)));
+    for (Tree instr : S.fInitLevel) {
+        compileSingleInstruction(K, instr);
     }
 
-    for (Tree sig : S.fBlockLevel) {
-        // We compile
-        Tree id, origin, content;
-        int  nature;
-
-        faustassert(isSigInstructionControlWrite(sig, id, origin, &nature, content));
-
-        string vname{tree2str(id)};
-
-        K->addFirstPrivateDecl(vname);
-        K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+    for (Tree instr : S.fBlockLevel) {
+        compileSingleInstruction(K, instr);
     }
 
-    for (Tree sig : S.fExecLevel) {
-        // We compile
-        Tree id, origin, content, init, idx;
-        int  i, nature, dmax, tblsize;
-
-        if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
-            string vname{tree2str(id)};
-            K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
-
-        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
-            // we use 'l' to prefix the local variable name
-            Type   ty    = getSimpleType(content);
-            string ctype = nature2ctype(nature);
-            string vname{tree2str(id)};
-            K->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            K->addInitCode(subst("$0 = 0;", vname));
-            K->addZone2(subst("$0 \tl$1 = $1;", ctype, vname));  // create the local version of the dline
-            K->addExecCode(Statement("", subst("l$0 = $1;", vname, CS(content))));  // update the local variable
-            K->addZone4(subst("$0 = l$0;", vname));
-
-        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
-            string vname{tree2str(id)};
-            fClass->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
-            Tree iexp;  // init expression
-            faustassert(isSigGen(init, iexp));
-            if (isZero(iexp)) {
-                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(tblsize)));
-            } else {
-                // cerr << "Instruction Table Write " << *id << " has init " << ppsig(init) << endl;
-            }
-            if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
-
-        } else if (isSigOutput(sig, &i, content)) {
-            K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
-
-        } else {
-            std::cerr << "ERROR, not a valid sample instruction 2 : " << ppsig(sig) << endl;
-            faustassert(false);
-        }
+    for (Tree instr : S.fExecLevel) {
+        compileSingleInstruction(K, instr);
     }
 }
 
