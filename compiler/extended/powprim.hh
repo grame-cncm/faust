@@ -87,20 +87,20 @@ class PowPrim : public xtended {
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
             
-            list<ValueInst*>::const_iterator it = args.begin();
-            it++;
+            list<ValueInst*>::const_iterator it1 = args.begin();
+            it1++;
             
-            Int32NumInst* arg1             = dynamic_cast<Int32NumInst*>(*it);
-            string        faust_power_name = container->getFaustPowerName() + to_string(arg1->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
+            Int32NumInst* arg2             = dynamic_cast<Int32NumInst*>(*it1);
+            string        faust_power_name = container->getFaustPowerName() + to_string(arg2->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
             
             list<NamedTyped*> named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(arg_types[0])));
             
-            if (arg1->fNum == 0) {
+            if (arg2->fNum == 0) {
                 block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(1)));
             } else {
                 ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
-                for (int i = 0; i < arg1->fNum - 1; i++) {
+                for (int i = 0; i < arg2->fNum - 1; i++) {
                     res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
                 }
                 block->pushBackInst(InstBuilder::genRetInst(res));

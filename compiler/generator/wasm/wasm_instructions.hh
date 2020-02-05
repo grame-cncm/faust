@@ -42,7 +42,7 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
     bool debug;
 
    public:
-    BufferWithRandomAccess(bool debug = false) : debug(debug) {}
+    BufferWithRandomAccess(bool dbg = false) : debug(dbg) {}
 
     BufferWithRandomAccess& operator<<(int8_t x)
     {

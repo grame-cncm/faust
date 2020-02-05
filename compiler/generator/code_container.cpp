@@ -46,6 +46,7 @@ CodeContainer::CodeContainer()
       fNumOutputs(-1),
       fNumActives(0),
       fNumPassives(0),
+      fSubContainerType(kInt),
       fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fDeclarationInstructions(InstBuilder::genBlockInst()),
@@ -62,7 +63,6 @@ CodeContainer::CodeContainer()
       fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst()),
-      fSubContainerType(kInt),
       fGeneratedSR(false),
       fInt32ControlNum(0),
       fRealControlNum(0)
@@ -277,7 +277,6 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
                                        const list<ValueInst*>& args)
 {
-    list<ValueInst*>::const_iterator it = args.begin();
     list<NamedTyped*> named_args;
     for (size_t i = 0; i < types.size(); i++) {
         named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
@@ -703,21 +702,21 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        args.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("classInit", args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("classInit", args1));
     }
 
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        args.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceInit", args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceInit", args1));
     }
 
     // Creates function
@@ -735,28 +734,28 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        args.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceConstants", args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceConstants", args1));
     }
 
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceResetUserInterface", args));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceResetUserInterface", args1));
     }
 
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceClear", args));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceClear", args1));
     }
 
     // Creates function

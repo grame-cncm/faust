@@ -44,7 +44,7 @@
 #include "fbc_interpreter.hh"
 //#include "fbc_vec_interpreter.hh"
 
-static void checkToken(const std::string& token, const std::string& expected)
+static inline void checkToken(const std::string& token, const std::string& expected)
 {
     if (token != expected) throw faustexception("ERROR : unrecognized file format [" + token + "] [" + expected + "]\n");
 }

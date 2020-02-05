@@ -450,7 +450,6 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         sfactory->addReference();
         return sfactory;
     } else {
-        string       error_msg;
         LLVMContext* context = new LLVMContext();
         Module*      module  = ParseBitcodeFile(buffer, *context, &error_msg);
         if (!module) return nullptr;
@@ -679,8 +678,8 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
         // Otherwise use import directories
         for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
             string file_name = gGlobal->gImportDirList[i] + '/' + module_name;
-            if (ModulePTR module = loadSingleModule(file_name, context)) {
-                return module;
+            if (ModulePTR module1 = loadSingleModule(file_name, context)) {
+                return module1;
             }
         }
         return nullptr;

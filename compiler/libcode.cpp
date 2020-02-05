@@ -1240,7 +1240,7 @@ static void includeFile(const string& file, ostream& dst)
     }
 }
 
-static void injectCode(unique_ptr<ifstream>& enrobage, ostream& dst)
+static void injectCode(unique_ptr<ifstream>& enrobage1, ostream& dst)
 {
     /****************************************************************
      1.7 - Inject code instead of compile
@@ -1253,11 +1253,11 @@ static void injectCode(unique_ptr<ifstream>& enrobage, ostream& dst)
             error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
             throw faustexception(error.str());
         } else {
-            streamCopyUntil(*enrobage.get(), dst, "<<includeIntrinsic>>");
+            streamCopyUntil(*enrobage1.get(), dst, "<<includeIntrinsic>>");
             container->printMacros(dst, 0);
-            streamCopyUntil(*enrobage.get(), dst, "<<includeclass>>");
+            streamCopyUntil(*enrobage1.get(), dst, "<<includeclass>>");
             streamCopyUntilEnd(*injcode.get(), dst);
-            streamCopyUntilEnd(*enrobage.get(), dst);
+            streamCopyUntilEnd(*enrobage1.get(), dst);
         }
         throw faustexception("");
     }
