@@ -850,21 +850,35 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 }
 
 /**
- * @brief Compile an instruction sig into a Klass K.
+ * @brief Compile an instruction  into a Klass K.
  *
  * @param K the class
- * @param sig the signal to compile
+ * @param instr the signal to compile
  */
-void GraphCompiler::compileSingleInstruction(Klass* K, Tree sig)
+void GraphCompiler::compileSingleInstruction(Klass* K, Tree instr)
 {
     Tree id, origin, content, init, initval, idx;
     int  i, nature, dmax, tblsize;
 
-    if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
+    if (isSigInstructionControlWrite(instr, id, origin, &nature, content)) {
+        string ctype = nature2ctype(nature);
+        string vname{tree2str(id)};
+        Type   t = getCertifiedSigType(origin);
+        if (t->variability() == kKonst) {
+            // init level
+            K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+            K->addInitCode(subst("$0 = $1;", vname, CS(content)));
+        } else {
+            // block level
+            K->addFirstPrivateDecl(vname);
+            K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content)));
+        }
+
+    } else if (isSigInstructionSharedWrite(instr, id, origin, &nature, content)) {
         string vname{tree2str(id)};
         K->addExecCode(Statement("", subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(content))));
 
-    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
+    } else if (isSigInstructionShortDLineWrite(instr, id, origin, &nature, content)) {
         // we use 'l' to prefix the local variable name
         Type   ty    = getSimpleType(content);
         string ctype = nature2ctype(nature);
@@ -875,7 +889,7 @@ void GraphCompiler::compileSingleInstruction(Klass* K, Tree sig)
         K->addExecCode(Statement("", subst("l$0 = $1;", vname, CS(content))));  // update the local variable
         K->addZone4(subst("$0 = l$0;", vname));
 
-    } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, content)) {
+    } else if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content)) {
         int    ival;
         double rval;
 
@@ -892,10 +906,10 @@ void GraphCompiler::compileSingleInstruction(Klass* K, Tree sig)
         }
         if (!isNil(idx)) K->addExecCode(Statement("", subst("$0[$1] = $2;", vname, CS(idx), CS(content))));
 
-    } else if (isSigOutput(sig, &i, content)) {
+    } else if (isSigOutput(instr, &i, content)) {
         K->addExecCode(Statement("", subst("output$0[i] = $1$2;", T(i), xcast(), CS(content))));
 
-    } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
+    } else if (isSigInstructionBargraphWrite(instr, id, origin, &nature, content)) {
         Tree path, vmin, vmax, exp;
         faustassert(isSigVBargraph(origin, path, vmin, vmax, exp) || isSigHBargraph(origin, path, vmin, vmax, exp));
         string varname{tree2str(id)};
@@ -904,7 +918,7 @@ void GraphCompiler::compileSingleInstruction(Klass* K, Tree sig)
         addUIWidget(reverse(tl(path)), uiWidget(hd(path), id, origin));
 
     } else {
-        std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(sig) << endl;
+        std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(instr) << endl;
         faustassert(false);
     }
 }
