@@ -839,7 +839,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
             } else {
                 k = new SigFloatFillMethod(nullptr, tree2str(id));
             }
-            SchedulingToMethod(s, C, k);
+            SchedulingToMethod(s, k);
             fClass->addMethod(k);
             string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
             fClass->addClearCode(tmp);
@@ -922,6 +922,26 @@ void GraphCompiler::compileSingleInstruction(Klass* K, Tree instr)
         faustassert(false);
     }
 }
+
+static void compileInsOuts(Klass* K)
+{
+    for (int i = 0; i < K->inputs(); i++) {
+        K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+    }
+    for (int i = 0; i < K->outputs(); i++) {
+        K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+    }
+}
+
+static void compileGlobalTime(Klass* K)
+{
+    // Handling global time 'gTime' with a local version 'time'
+    K->addDeclCode("int \tgTime;");
+    K->addClearCode("gTime = 0;");
+    K->addZone3("int \ttime = gTime;");
+    K->addPostCode(Statement("", "++time;"));
+    K->addZone4("gTime = time;");
+}
 /**
  * @brief Transform a scheduling into a C++ class
  *
@@ -932,33 +952,10 @@ void GraphCompiler::compileSingleInstruction(Klass* K, Tree instr)
  * @param S
  * @return Klass
  */
-void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
+void GraphCompiler::SchedulingToClass(const Scheduling& S, Klass* K)
 {
-    for (int i = 0; i < K->inputs(); i++) {
-        K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
-    }
-    for (int i = 0; i < K->outputs(); i++) {
-        K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
-    }
-
-    // Handling global time 'gTime' with a local version 'time'
-    K->addDeclCode("int \tgTime;");
-    K->addClearCode("gTime = 0;");
-    K->addZone3("int \ttime = gTime;");
-    K->addPostCode(Statement("", "++time;"));
-    K->addZone4("gTime = time;");
-
-    for (Tree instr : S.fInitLevel) {
-        compileSingleInstruction(K, instr);
-    }
-
-    for (Tree instr : S.fBlockLevel) {
-        compileSingleInstruction(K, instr);
-    }
-
-    for (Tree instr : S.fExecLevel) {
-        compileSingleInstruction(K, instr);
-    }
+    compileInsOuts(K);
+    SchedulingToMethod(S, K);
 }
 /**
  * @brief Transforms a scheduling into method (a special klass)
@@ -967,21 +964,9 @@ void GraphCompiler::SchedulingToClass(Scheduling& S, Klass* K)
  * @param C a set of ID
  * @param K
  */
-void GraphCompiler::SchedulingToMethod(Scheduling& S, set<Tree>& /*C*/, Klass* K)
+void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 {
-    // for (int i = 0; i < K->inputs(); i++) {
-    //     K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
-    // }
-    // for (int i = 0; i < K->outputs(); i++) {
-    //     K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
-    // }
-
-    // Handling global time 'gTime' with a local version 'time'
-    K->addDeclCode("int \tgTime;");
-    K->addClearCode("gTime = 0;");
-    K->addZone3("int \ttime = gTime;");
-    K->addPostCode(Statement("", "++time;"));
-    K->addZone4("gTime = time;");
+    compileGlobalTime(K);
 
     for (Tree instr : S.fInitLevel) {
         compileSingleInstruction(K, instr);
