@@ -38,6 +38,13 @@ all:
 	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 	$(MAKE) gcc
 
+
+c:
+	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp 	FAUSTOPTIONS=" -a ./min.cpp"
+	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
+	$(MAKE) -f Make.lang outdir=c 	lang=c   ext=c 		FAUSTOPTIONS=" -a ./min.c"
+
+
 soul:
 	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 
