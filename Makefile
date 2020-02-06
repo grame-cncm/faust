@@ -136,6 +136,7 @@ help :
 	@echo " 'dist'             : make a Faust distribution as a .zip file"
 	@echo " 'log'              : make a changelog file"
 	@echo " 'format'           : clang-format all src files"
+	@echo " 'check'            : use clang-tidy to check the code"
 	@echo
 
 readme:
@@ -167,6 +168,9 @@ format :
 	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format -i -style=file {} \;
 	find compiler -path compiler/parser -prune -o -iname '*.hh' -execdir clang-format -i -style=file {} \;
 	find compiler -path compiler/parser -prune -o -iname '*.h' -execdir clang-format -i -style=file {} \;
+
+check :
+	clang-tidy -p build/faustdir/compile_commands.json -checks=*,-readability-isolate-declaration,-modernize-use-trailing-return-type,-readability-else-after-return,-google-runtime-references,-google-build-using-namespace,-fuchsia-default-arguments-calls,-readability-braces-around-statements,-hicpp-braces-around-statements -extra-arg=-std=c++11 compiler/transform/splitCommonSubexpr.cpp
 
 # the target 'lib' can be used to init and update the libraries submodule
 updatesubmodules :
