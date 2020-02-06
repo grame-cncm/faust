@@ -58,7 +58,7 @@ class old_OccMarkup {
 
    public:
     old_OccMarkup() : fPropKey(tree(unique("OCCURRENCES"))) {}
-    old_OccMarkup(map<Tree, Tree> conditions) : fConditions(conditions), fPropKey(tree(unique("OCCURRENCES"))) {}
+    old_OccMarkup(map<Tree, Tree> conditions) : fPropKey(tree(unique("OCCURRENCES"))), fConditions(conditions) {}
 
     void            mark(Tree root);       ///< start markup of root tree with new unique key
     void            marksubexp(Tree exp);  ///< mark an additional expression with the same key
