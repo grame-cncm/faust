@@ -120,10 +120,11 @@ class GraphCompiler : public Compiler {
     virtual string CS(Tree sig);
     virtual string generateCode(Tree sig);
 
-    void SchedulingToClass(const Scheduling& S, Klass* K);
+    void InstructionsToClass(const set<Tree>& I, Klass* K);
+    void InstructionsToMethod(const set<Tree>& I, Klass* K);
+    void SchedulingToMethod(const Scheduling& S, Klass* K);
     void compileSingleInstruction(Klass* K, Tree instr);
 
-    void   InstructionsToClass(const set<Tree>& I, Klass* K);
     string getFreshID(const string& prefix);
 
     void       compilePreparedSignalList(Tree lsig);
@@ -134,7 +135,6 @@ class GraphCompiler : public Compiler {
     set<Tree>  expression2Instructions(Tree L3);
     Scheduling schedule(const set<Tree>& Instr);
     void       tableDependenciesGraph(const set<Tree>& I);
-    void       SchedulingToMethod(const Scheduling& S, Klass* K);
     void       generateTime();
     bool       getCompiledExpression(Tree sig, string& name);
     string     setCompiledExpression(Tree sig, const string& name);

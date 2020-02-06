@@ -933,10 +933,10 @@ static void compileGlobalTime(Klass* K)
  * @param S
  * @return Klass
  */
-void GraphCompiler::SchedulingToClass(const Scheduling& S, Klass* K)
+void GraphCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
 {
     compileInsOuts(K);
-    SchedulingToMethod(S, K);
+    InstructionsToMethod(I, K);
 }
 /**
  * @brief Transforms a scheduling into method (a special klass)
@@ -969,7 +969,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
     Scheduling S     = schedule(INSTR);
 
     lookForChains(INSTR);
-    SchedulingToClass(S, fClass);
+    InstructionsToClass(INSTR, fClass);
     tableDependenciesGraph(INSTR);
 
     generateMetaData();
@@ -989,10 +989,10 @@ void GraphCompiler::compileMultiSignalVec(Tree L)
 {
     L                = prepare(L);  // optimize, share and annotate expressions
     set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
-    Scheduling S     = schedule(INSTR);
+    
 
     lookForChains(INSTR);
-    SchedulingToClass(S, fClass);
+    InstructionsToClass(INSTR, fClass);
     tableDependenciesGraph(INSTR);
 
     generateMetaData();
@@ -1007,6 +1007,26 @@ void GraphCompiler::compileMultiSignalVec(Tree L)
         xout << fJSON.JSON();
     }
 }
+
+
+void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
+{
+    compileGlobalTime(K);
+    Scheduling S     = schedule(I);
+    for (Tree instr : S.fInitLevel) {
+        compileSingleInstruction(K, instr);
+    }
+
+    for (Tree instr : S.fBlockLevel) {
+        compileSingleInstruction(K, instr);
+    }
+
+    for (Tree instr : S.fExecLevel) {
+        compileSingleInstruction(K, instr);
+    }
+}
+
+///
 
 /*****************************************************************************
  compileSingleSignal
