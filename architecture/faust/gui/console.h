@@ -90,7 +90,7 @@ class CMDUI : public UI
                 case 2 :
                     // Skip the begin of the label "--foo-"
                     // until 3 '-' have been read
-                    if (src[i]=='-') { level++; }
+                    if (src[i] == '-') { level++; }
                     break;
                     
                 case 3 :
@@ -290,5 +290,4 @@ public:
 
 #endif
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
 /**************************  END  console.h **************************/

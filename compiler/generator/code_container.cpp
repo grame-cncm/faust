@@ -829,11 +829,11 @@ DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genInt64NumInst(1));
-        args.push_back(InstBuilder::genInt64NumInst(size));
+        list<ValueInst*> args1;
+        args1.push_back(InstBuilder::genInt64NumInst(1));
+        args1.push_back(InstBuilder::genInt64NumInst(size));
         block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(
-            InstBuilder::genFunCallInst("calloc", args), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
+            InstBuilder::genFunCallInst("calloc", args1), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
     }
 
     // Creates function
@@ -848,10 +848,10 @@ DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const strin
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
+        list<ValueInst*> args1;
+        args1.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
                                                 InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args)));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args1)));
     }
 
     // Explicit return

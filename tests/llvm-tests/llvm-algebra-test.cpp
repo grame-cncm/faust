@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
     
     dsp1 = createDSP("process = (1,1);");
     dsp2 = createDSP("process = (2,2);");
-    combined1 = createDSPParallelize(dsp1, dsp2, error_msg);
+    combined1 = createDSPParallelizer(dsp1, dsp2, error_msg);
     printError(combined1, error_msg);
     
     if ((dsp1->getNumInputs() + dsp2->getNumInputs()) != combined1->getNumInputs()) {

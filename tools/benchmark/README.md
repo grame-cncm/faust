@@ -43,8 +43,8 @@ Here are the available options:
 - `-opt generic to activate the best compilation options for a generic CPU`
 
 A set of  header and object code files will be created, and will have to be added in the final project.
-The `-multi` mode creates an additional header file (like `foomulti.h`) that will dynamically load and instantiate the correct code for the machine CPU (or  a generic vesion if the given CPU is not supported). 
-Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  The LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with  `-dead_strip ` to only keep what is really mandatory in the final binary.
+The `-multi` mode creates an additional header file (like `foomulti.h`) that will dynamically load and instantiate the correct code for the machine CPU (or  a generic version if the given CPU is not supported). 
+Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
 
 
 ## dynamic-jack-gtk
