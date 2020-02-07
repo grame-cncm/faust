@@ -41,6 +41,14 @@ inline char replaceCR(char c)
 	return (c!='\n') ? c : ' ';
 }
 
+// A defintion is accepted if the prefixset is empty or if
+// the current float precision is member of the prefix set
+bool acceptdefinition(int prefixset)
+{
+	int precisions[] = {0, 1, 2, 4};
+	return (prefixset==0) || (prefixset & precisions[gGlobal->gFloatSize]);
+}
+
 Tree unquote(char* str)
 {
     size_t size = strlen(str) + 1;
@@ -75,6 +83,7 @@ Tree unquote(char* str)
 	char* str;
 	string* cppstr;
 	bool b;
+	int numvariant;
 }
 
 %start program
@@ -208,6 +217,11 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
+%token FLOATMODE
+%token DOUBLEMODE
+%token QUADMODE
+
+
 
  /* Begin and End tags for documentations, equations and diagrams */
 %token BDOC
@@ -308,20 +322,33 @@ Tree unquote(char* str)
 %type <exp> lstattrdef
 %type <b> lstattrval
 
+%type <numvariant> variant
+%type <numvariant> variantlist
+
 
 
 
 
 %% /* grammar rules and actions follow */
 
-program         : stmtlist 						{ $$ = $1; gGlobal->gResult = formatDefinitions($$); }
+program         : stmtlist 							{ $$ = $1; gGlobal->gResult = formatDefinitions($$); }
 				;
 
-stmtlist        : /*empty*/                     { $$ = gGlobal->nil; }
-				| stmtlist statement            { $$ = cons ($2,$1); }
+stmtlist        : /*empty*/                     	{ $$ = gGlobal->nil; }
+				| stmtlist variantlist statement    { if (acceptdefinition($2)) $$ = cons ($3,$1); else $$=$1; }
+				;
 
-deflist         : /*empty*/                     { $$ = gGlobal->nil; }
-				| deflist definition            { $$ = cons ($2,$1); }
+deflist         : /*empty*/                     	{ $$ = gGlobal->nil; }
+				| deflist variantlist definition    { if (acceptdefinition($2)) $$ = cons ($3,$1); else $$=$1;}
+				;
+
+variantlist     : /*empty*/                     	{ $$ = 0; }
+				| variantlist variant    			{ $$ = $1 | $2;}
+				;
+
+variant			: FLOATMODE							{ $$ = 1;}
+				| DOUBLEMODE						{ $$ = 2;}
+				| QUADMODE							{ $$ = 4;}
 				;
 
 

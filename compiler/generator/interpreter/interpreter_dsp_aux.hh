@@ -44,7 +44,7 @@
 #include "fbc_interpreter.hh"
 //#include "fbc_vec_interpreter.hh"
 
-static void checkToken(const std::string& token, const std::string& expected)
+static inline void checkToken(const std::string& token, const std::string& expected)
 {
     if (token != expected) throw faustexception("ERROR : unrecognized file format [" + token + "] [" + expected + "]\n");
 }
@@ -929,7 +929,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 std::ofstream code_out("DumpCode-" + fFactory->getName() + ".txt");
                 fFactory->write(&code_out, false);
                 // If needed we exit
-                if (e.Message() == "Interpreter exit\n") exit(1);
+                if (e.Message() == "Interpreter exit\n") throw std::exception();
             }
 
             if ((TRACE == 7) && (fCycle < 4)) {
@@ -1145,99 +1145,6 @@ class interpreter_dsp_aux_pe : public interpreter_dsp_aux<T, TRACE> {
             this->fFBCExecutor->ExecuteBlock(this->fComputeDSPBlock, true);
 #endif
         }
-    }
-};
-
-/*
-Computing using on a down-sampled version of signals
-
-TODO:
-
-- anti alias filter at input
-- interpolation at output
-
-*/
-
-template <class T, int TRACE>
-class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
-   private:
-    int fDownSamplingFactor;
-
-   public:
-    interpreter_dsp_aux_down(interpreter_dsp_factory_aux<T, TRACE>* factory, int down_sampling_factor)
-        : interpreter_dsp_aux<T, TRACE>(factory), fDownSamplingFactor(down_sampling_factor)
-    {
-        // TODO
-        /*
-        // Allocate and set downsampled inputs/outputs
-        for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-            this->fInputs[i] = (this->fFactory->getMemoryManager())
-                                   ? static_cast<T*>(this->fFactory->allocate(sizeof(T) * 2048))
-                                   : new T[2048];
-        }
-        for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-            this->fOutputs[i] = (this->fFactory->getMemoryManager())
-                                    ? static_cast<T*>(this->fFactory->allocate(sizeof(T) * 2048))
-                                    : new T[2048];
-        }
-        */
-    }
-
-    virtual ~interpreter_dsp_aux_down()
-    {
-        // TODO
-        /*
-        // Delete downsampled inputs/outputs
-        for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-            (this->fFactory->getMemoryManager()) ? this->fFactory->destroy(this->fInputs[i])
-                                                 : delete[] this->fInputs[i];
-        }
-        for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-            (this->fFactory->getMemoryManager()) ? this->fFactory->destroy(this->fOutputs[i])
-                                                 : delete[] this->fOutputs[i];
-        }
-        */
-    }
-
-    virtual void init(int sample_rate)
-    {
-        this->classInit(sample_rate / fDownSamplingFactor);
-        this->instanceInit(sample_rate / fDownSamplingFactor);
-    }
-
-    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
-    {
-        if (count == 0) return;  // Beware: compiled loop don't work with an index of 0
-
-        T** inputs  = reinterpret_cast<T**>(inputs_aux);
-        T** outputs = reinterpret_cast<T**>(outputs_aux);
-
-        // Downsample inputs
-        for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-            for (int j = 0; j < count / fDownSamplingFactor; j++) {
-                this->fInputs[i][j] = inputs[i][j * fDownSamplingFactor];
-            }
-        }
-
-        // Executes the 'control' block
-        this->fFBCExecutor->ExecuteBlock(this->fFactory->fComputeBlock);
-
-        // Set count in 'count' variable at the correct offset in fIntHeap
-        this->fFBCExecutor->setIntValue(this->fFactory->fCountOffset, count / fDownSamplingFactor);
-
-        // Executes the 'DSP' block
-        this->fFBCExecutor->ExecuteBlock(this->fFactory->fComputeDSPBlock);
-
-        // Upsample ouputs
-        for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-            for (int j = 0; j < count / fDownSamplingFactor; j++) {
-                T sample                                  = this->fOutputs[i][j];
-                outputs[i][j * fDownSamplingFactor]       = sample;
-                outputs[i][(j * fDownSamplingFactor) + 1] = sample;
-            }
-        }
-
-        // std::cout << "sample " << outputs[0][0] << std::endl;
     }
 };
 

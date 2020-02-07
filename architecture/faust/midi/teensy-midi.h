@@ -50,6 +50,8 @@ class teensy_midi : public midi_handler {
                         handleClock(time);
                         break;
                     case gUSBMIDI.Start:
+                    // We can consider start and continue as identical messages
+                    case gUSBMIDI.Continue:
                         handleStart(time);
                         break;
                     case gUSBMIDI.Stop:

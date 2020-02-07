@@ -215,16 +215,16 @@ void CPPOpenCLCodeContainer::produceClass()
         // Separate control and non-controls fields in 2 structures
         tab(n + 1, *fOut);
         *fOut << "typedef struct {";
-        DSPInstVisitor dsp_visitor(fOut, n + 2);
-        fDeclarationInstructions->accept(&dsp_visitor);
+        DSPInstVisitor dsp_visitor1(fOut, n + 2);
+        fDeclarationInstructions->accept(&dsp_visitor1);
         tab(n + 1, *fOut);
         *fOut << "} faustdsp;";
         tab(n + 1, *fOut);
 
         tab(n + 1, *fOut);
         *fOut << "typedef struct {";
-        ControlInstVisitor control_visitor(fOut, n + 2);
-        fDeclarationInstructions->accept(&control_visitor);
+        ControlInstVisitor control_visitor1(fOut, n + 2);
+        fDeclarationInstructions->accept(&control_visitor1);
         tab(n + 1, *fOut);
         *fOut << "} faustcontrol;";
 

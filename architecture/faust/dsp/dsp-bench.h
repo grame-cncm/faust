@@ -1,7 +1,7 @@
 /************************** BEGIN dsp-bench.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2016-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -39,7 +39,7 @@
 #include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
-#include "faust/GUI/DecoratorUI.h"
+#include "faust/GUI/MapUI.h"
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
@@ -280,7 +280,7 @@ class time_bench {
  A class to randomly change control values
  */
 
-struct RandomControlUI : public GenericUI {
+struct RandomControlUI : public MapUI {
     
     struct Range {
         const char* fLabel;
@@ -303,45 +303,59 @@ struct RandomControlUI : public GenericUI {
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
+        MapUI::addButton(label, zone);
         fControls.push_back(Range(label, zone, 1, 0, 1));
     }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
+        MapUI::addCheckButton(label, zone);
         fControls.push_back(Range(label, zone, 1, 0, 1));
     }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+         MapUI::addVerticalSlider(label, zone, init, min, max, step);
         fControls.push_back(Range(label, zone, init, min, max));
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        MapUI::addHorizontalSlider(label, zone, init, min, max, step);
         fControls.push_back(Range(label, zone, init, min, max));
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        MapUI::addNumEntry(label, zone, init, min, max, step);
         fControls.push_back(Range(label, zone, init, min, max));
     }
     
-    void updateRandom()
+    void update()
     {
         for (auto& it : fControls) {
             *it.fZone = it.fMin + (FAUSTFLOAT(rand())/FAUSTFLOAT(RAND_MAX)) * std::abs(it.fMax - it.fMin);
         }
     }
+    
+    void display()
+    {
+        std::cout << "--------- RandomControlUI ---------\n";
+        for (auto& it : fControls) {
+            std::cout << "Path: \"" << getParamAddress(it.fZone) << "\" min: " << it.fMin << " max: " << it.fMax << " cur: " << *it.fZone << std::endl;
+        }
+    }
 };
 
 /*
-    A class to measure DSP CPU use.
+A class to measure DSP CPU use
 */
 
-class measure_dsp : public decorator_dsp {
+template <typename REAL>
+class measure_dsp_aux : public decorator_dsp {
     
     protected:
     
-        FAUSTFLOAT** fInputs;
-        FAUSTFLOAT** fAllInputs;
-        FAUSTFLOAT** fOutputs;
-        FAUSTFLOAT** fAllOutputs;
+        REAL** fInputs;
+        REAL** fAllInputs;
+        REAL** fOutputs;
+        REAL** fAllOutputs;
         time_bench* fBench;
         int fBufferSize;
         int fInputIndex;
@@ -357,27 +371,27 @@ class measure_dsp : public decorator_dsp {
             fInputIndex = 0;
             fOutputIndex = 0;
             
-            fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
-            fAllInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fInputs = new REAL*[fDSP->getNumInputs()];
+            fAllInputs = new REAL*[fDSP->getNumInputs()];
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fAllInputs[i] = new FAUSTFLOAT[fBufferSize * NV];
+                fAllInputs[i] = new REAL[fBufferSize * NV];
                 fInputs[i] = fAllInputs[i];
                 // Write noise in inputs (to avoid 'speedup' effect due to null values)
                 int R0_0 = 0;
                 for (int j = 0; j < fBufferSize * NV; j++) {
                     int R0temp0 = (12345 + (1103515245 * R0_0));
-                    fAllInputs[i][j] = FAUSTFLOAT(4.656613e-10f * R0temp0);
+                    fAllInputs[i][j] = REAL(4.656613e-10f * R0temp0);
                     R0_0 = R0temp0;
                 }
             }
             
-            fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
-            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            fOutputs = new REAL*[fDSP->getNumOutputs()];
+            fAllOutputs = new REAL*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
+                fAllOutputs[i] = new REAL[fBufferSize * NV];
                 fOutputs[i] = fAllOutputs[i];
                 // Write zero in outputs
-                memset(fAllOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
+                memset(fAllOutputs[i], 0, sizeof(REAL) * fBufferSize * NV);
             }
         }
     
@@ -415,7 +429,7 @@ class measure_dsp : public decorator_dsp {
          * @param count - the number of cycles using in 'computeAll'
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, int count, bool trace = true)
+        measure_dsp_aux(dsp* dsp, int buffer_size, int count, bool trace = true)
             :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count)
         {
             init();
@@ -430,7 +444,7 @@ class measure_dsp : public decorator_dsp {
          * @param duration_in_sec - the wanted durection used in 'computeAll'
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true)
+        measure_dsp_aux(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true)
             :decorator_dsp(dsp), fBufferSize(buffer_size)
         {
             init();
@@ -447,7 +461,7 @@ class measure_dsp : public decorator_dsp {
             fBench = new time_bench(fCount, 10);
         }
     
-        virtual ~measure_dsp()
+        virtual ~measure_dsp_aux()
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete [] fAllInputs[i];
@@ -468,16 +482,18 @@ class measure_dsp : public decorator_dsp {
         /**
          *  Measure the duration of the compute call
          */
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, REAL** inputs, REAL** outputs)
         {
             AVOIDDENORMALS;
+            // Update all controllers
+            fRandomUI.update();
             fBench->startMeasure();
-            fRandomUI.updateRandom();
-            fDSP->compute(count, inputs, outputs);
+            // Only measure the 'compute' method
+            fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             fBench->stopMeasure();
         }
     
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, REAL** inputs, REAL** outputs)
         {
             compute(count, inputs, outputs);
         }
@@ -489,12 +505,12 @@ class measure_dsp : public decorator_dsp {
         {
             do {
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                    FAUSTFLOAT* allinputs = fAllInputs[i];
+                    REAL* allinputs = fAllInputs[i];
                     fInputs[i] = &allinputs[fInputIndex * fBufferSize];
                     fInputIndex = (1 + fInputIndex) % NV;
                 }
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                    FAUSTFLOAT* alloutputs = fAllOutputs[i];
+                    REAL* alloutputs = fAllOutputs[i];
                     fOutputs[i] = &alloutputs[fOutputIndex * fBufferSize];
                     fOutputIndex = (1 + fOutputIndex) % NV;
                 }
@@ -511,7 +527,6 @@ class measure_dsp : public decorator_dsp {
          *  Terminate measurement
          */
         void closeMeasure() { fBench->closeMeasure(); }
-    
     
         double measureDurationUsec()
         {
@@ -551,6 +566,19 @@ class measure_dsp : public decorator_dsp {
         }
     
         int getCount() { return fCount; }
+    
+};
+
+struct measure_dsp : measure_dsp_aux<FAUSTFLOAT> {
+
+    measure_dsp(dsp* dsp,
+                int buffer_size,
+                double duration_in_sec,
+                bool trace = true)
+        :measure_dsp_aux(dsp, buffer_size, duration_in_sec, trace)
+    {}
+    virtual~ measure_dsp()
+    {}
     
 };
 

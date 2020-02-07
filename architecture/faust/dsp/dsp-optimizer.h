@@ -2,7 +2,7 @@
 
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2016-2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
@@ -40,7 +40,7 @@
 /*
     A class to find optimal Faust compiler parameters for a given DSP.
 */
-template <typename SAMPLE_TYPE>
+template <typename REAL>
 class dsp_optimizer {
 
     private:
@@ -70,13 +70,13 @@ class dsp_optimizer {
         {
             // First call with fCount = -1 will be used to estimate fCount by giving the wanted measure duration
             if (fCount == -1) {
-                measure_dsp mes(fDSP, fBufferSize, 5., fTrace);
+                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, 5., fTrace);
                 mes.measure();
                 // fCount is kept from the first duration measure
                 fCount = mes.getCount();
                 return mes.getStats();
             } else {
-                measure_dsp mes(fDSP, fBufferSize, fCount, fTrace);
+                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, fCount, fTrace);
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (fTrace) std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
@@ -90,118 +90,93 @@ class dsp_optimizer {
         {
             // Scalar mode
             std::vector <std::string> t0;
-            if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t0.push_back("-double"); }
             t0.push_back("-scal");
             fOptionsTable.push_back(t0);
             
             // Scalar mode with exp10
             std::vector <std::string> t0_exp10;
-            if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t0_exp10.push_back("-double"); }
             t0_exp10.push_back("-scal");
             t0_exp10.push_back("-exp10");
             fOptionsTable.push_back(t0_exp10);
-       
-            SAMPLE_TYPE var;
-            
+          
             // vec -lv 0
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 fOptionsTable.push_back(t1);
             }
             
             // vec -lv 0
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-fun");
                 t1.push_back("-lv");
                 t1.push_back("0");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 fOptionsTable.push_back(t1);
             }
             
             // vec -lv 0 -g
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 t1.push_back("-g");
                 fOptionsTable.push_back(t1);
             }
             
             // vec -lv 0 -dfs
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 t1.push_back("-dfs");
                 fOptionsTable.push_back(t1);
             }
       
             // vec -lv 1
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 fOptionsTable.push_back(t1);
             }
             
             // vec -lv 1 -g
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 t1.push_back("-g");
                 fOptionsTable.push_back(t1);
             }
          
             // vec -lv 1 -dfs
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::stringstream num;
-                num << size;
                 std::vector <std::string> t1;
-                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");
                 t1.push_back("-vs");
-                t1.push_back(num.str());
+                t1.push_back(std::to_string(size));
                 t1.push_back("-dfs");
                 fOptionsTable.push_back(t1);
             }
@@ -209,12 +184,10 @@ class dsp_optimizer {
             /*
             // sch
             for (int size = 4; size <= fBufferSize; size *= 2) {
-                 std::stringstream num;
-                 num << size;
                  std::vector <std::string> t1;
                  t1.push_back("-sch");
                  t1.push_back("-vs");
-                 t1.push_back(num.str());
+                 t1.push_back(std::to_string(size));
                  fOptionsTable.push_back(t1);
              }
              */
@@ -244,7 +217,7 @@ class dsp_optimizer {
             for (int i = 0; i < item.size(); i++) {
                 argv[argc++] = item[i].c_str();
             }
-            argv[argc] = 0;  // NULL terminated argv
+            argv[argc] = nullptr;  // NULL terminated argv
             
             if (fInput == "") {
                 fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, fOptLevel);

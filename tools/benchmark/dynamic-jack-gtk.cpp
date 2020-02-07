@@ -35,8 +35,8 @@
 #endif
 */
 
-#include "faust/dsp/dsp-optimizer.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/dsp/dsp-optimizer.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
@@ -96,11 +96,13 @@ int main(int argc, char* argv[])
     char filename[256];
     char rcfilename[256];
     char* home = getenv("HOME");
+    int nvoices = 0;
+    bool midi_sync = false;
     
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
-    
+  
     bool is_llvm = isopt(argv, "-llvm");
     bool is_interp = isopt(argv, "-interp");
     bool is_midi = isopt(argv, "-midi");
@@ -109,7 +111,6 @@ int main(int argc, char* argv[])
     bool is_generic = isopt(argv, "-generic");
     bool is_httpd = isopt(argv, "-httpd");
     bool is_resample = isopt(argv, "-resample");
-    int nvoices = lopt(argv, "-nvoices", -1);
     
     malloc_memory_manager manager;
     
@@ -257,6 +258,10 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
+    
+    // Before reading the -nvoices parameter
+    MidiMeta::analyse(DSP, midi_sync, nvoices);
+    nvoices = lopt(argv, "-nvoices", nvoices);
    
     if (nvoices > 0) {
         cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
@@ -265,6 +270,7 @@ int main(int argc, char* argv[])
     
     if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
+        DSP = new dsp_sample_adapter<double, float>(DSP);
     }
    
     GUI* interface = new GTKUI(filename, &argc, &argv);

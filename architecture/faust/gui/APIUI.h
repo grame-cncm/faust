@@ -249,21 +249,11 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual ~APIUI()
         {
-            std::vector<ValueConverter*>::iterator it1;
-            for (it1 = fConversion.begin(); it1 != fConversion.end(); it1++) {
-                delete(*it1);
-            }
-
-            std::vector<ZoneControl*>::iterator it2;
+            for (auto& it : fConversion) delete it;
             for (int i = 0; i < 3; i++) {
-                for (it2 = fAcc[i].begin(); it2 != fAcc[i].end(); it2++) {
-                    delete(*it2);
-                }
-                for (it2 = fGyr[i].begin(); it2 != fGyr[i].end(); it2++) {
-                    delete(*it2);
-                }
+                for (auto& it : fAcc[i]) delete it;
+                for (auto& it : fGyr[i]) delete it;
             }
-            
             delete fRedReader;
             delete fGreenReader;
             delete fBlueReader;
@@ -271,10 +261,10 @@ class APIUI : public PathBuilder, public Meta, public UI
     
         // -- widget's layouts
 
-        virtual void openTabBox(const char* label)          { pushLabel(label); }
-        virtual void openHorizontalBox(const char* label)   { pushLabel(label); }
-        virtual void openVerticalBox(const char* label)     { pushLabel(label); }
-        virtual void closeBox()                             { popLabel(); }
+        virtual void openTabBox(const char* label) { pushLabel(label); }
+        virtual void openHorizontalBox(const char* label) { pushLabel(label); }
+        virtual void openVerticalBox(const char* label) { pushLabel(label); }
+        virtual void closeBox() { popLabel(); }
 
         // -- active widgets
 
@@ -432,7 +422,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
    
         /**
-         * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
+         * Set a new value coming from an accelerometer, propagate it to all relevant FAUSTFLOAT* zones.
          *
          * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
          * @param value - the new value
@@ -510,7 +500,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
     
         /**
-         * Set a new value coming from an gyroscope, propagate it to all relevant float* zones.
+         * Set a new value coming from an gyroscope, propagate it to all relevant FAUSTFLOAT* zones.
          *
          * @param gyr - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope
          * @param value - the new value
@@ -521,6 +511,30 @@ class APIUI : public PathBuilder, public Meta, public UI
             for (size_t i = 0; i < fGyr[gyr].size(); i++) {
                 fGyr[gyr][i]->update(value);
             }
+        }
+    
+        /**
+         * Get the number of FAUSTFLOAT* zones controlled with the accelerometer
+         *
+         * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
+         * @return the number of zones
+         *
+         */
+        int getAccCount(int acc)
+        {
+            return (acc >= 0 && acc < 3) ? int(fAcc[acc].size()) : 0;
+        }
+    
+        /**
+         * Get the number of FAUSTFLOAT* zones controlled with the gyroscope
+         *
+         * @param gyr - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope
+         * @param the number of zones
+         *
+         */
+        int getGyrCount(int gyr)
+        {
+            return (gyr >= 0 && gyr < 3) ? int(fGyr[gyr].size()) : 0;
         }
    
         // getScreenColor() : -1 means no screen color control (no screencolor metadata found)
@@ -536,7 +550,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 return -1;
             }
         }
-
+ 
 };
 
 #endif

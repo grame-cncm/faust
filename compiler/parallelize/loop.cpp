@@ -163,6 +163,7 @@ void Loop::addPostCode(const Statement& stmt)
 void Loop::absorb(Loop* l)
 {
     // the loops must have the same number of iterations
+    //cerr << "Loop absorbtion : " << this << " absorb " << l << endl;
     faustassert(fSize == l->fSize);
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
@@ -182,13 +183,31 @@ void Loop::absorb(Loop* l)
  */
 void Loop::println(int n, ostream& fout)
 {
-    for (list<Loop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
-        (*s)->println(n, fout);
+    for (Loop* l : fExtraLoops) {
+        l->println(n, fout);
     }
 
+    tab(n, fout);
+    fout << "// Extra loops  : ";
+    for (Loop* l : fExtraLoops) fout << l << " ";
+
+    tab(n, fout);
+    fout << "// Backward loops: ";
+    bool emptyflag = true;
+    for (Loop* l : fBackwardLoopDependencies) {
+        emptyflag = false;
+        fout << l << " ";
+    }  ///< Loops that must be computed before this one
+    if (emptyflag) fout << "WARNING EMPTY";
+
+    tab(n, fout);
+    fout << "// Forward loops : ";
+    for (Loop* l : fForwardLoopDependencies) fout << l << " ";
+
+    tab(n, fout);
+    fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
+
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
-        tab(n, fout);
-        fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
         if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "// pre processing";
@@ -209,6 +228,8 @@ void Loop::println(int n, ostream& fout)
             printlines(n, fPostCode, fout);
         }
         tab(n, fout);
+    } else {
+        fout << "// empty loop " << this;
     }
 }
 

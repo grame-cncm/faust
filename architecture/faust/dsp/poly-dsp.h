@@ -202,6 +202,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // Normalized MIDI velocity [0..1]
     void keyOn(int pitch, float velocity, bool trigger)
     {
+        // So that DSP state is always re-initialized
+        fDSP->instanceClear();
+        
         for (size_t i = 0; i < fFreqPath.size(); i++) {
             setParamValue(fFreqPath[i], midiToFreq(pitch));
         }
@@ -281,6 +284,13 @@ struct dsp_voice_group {
         fVoiceGroup->buildUserInterface(&fGroups);
         for (size_t i = 0; i < fVoiceTable.size(); i++) {
             fVoiceTable[i]->buildUserInterface(&fGroups);
+        }
+    }
+    
+    void instanceResetUserInterface()
+    {
+        for (size_t i = 0; i < fVoiceTable.size(); i++) {
+            fVoiceTable[i]->instanceResetUserInterface();
         }
     }
 
@@ -548,8 +558,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
             
         result:
-            // So that envelop is always re-initialized
-            fVoiceTable[voice]->instanceClear();
             fVoiceTable[voice]->fDate = fDate++;
             fVoiceTable[voice]->fNote = kActiveVoice;
             return voice;
@@ -730,7 +738,10 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // Additional polyphonic API
         MapUI* newVoice()
         {
-            return fVoiceTable[getFreeVoice()];
+            int voice = getFreeVoice();
+            // So that DSP state is always re-initialized
+            fVoiceTable[voice]->instanceClear();
+            return fVoiceTable[voice];
         }
 
         void deleteVoice(MapUI* voice)

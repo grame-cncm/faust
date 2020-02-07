@@ -29,12 +29,8 @@
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
-using namespace std;
-
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
-
 #define audioPtrSize gGlobal->audioSampleSize()
-
 #define wasmBlockSize int(pow(2, 16))
 
 /*

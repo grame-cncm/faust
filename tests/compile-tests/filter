@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+
+lang=$1
+shift
+
+case $lang in
+	wasm|wast|soul|interp)
+		;;
+	*) 
+		echo $*; 
+		exit 0;;
+esac
+
+files=$*
+for f in $files
+do
+	grep $f ffexcluded.txt > /dev/null || echo $f
+done

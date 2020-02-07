@@ -240,10 +240,10 @@ struct WasmBinaryReader {
             pos += 3;  // move 3 int8_t
 
             // read JSON size
-            auto size = getU32LEB();
+            auto jsize = getU32LEB();
 
             // read JSON
-            for (size_t j = 0; j < size; j++) {
+            for (size_t j = 0; j < jsize; j++) {
                 json += char(getInt8());
             }
             if (debug) std::cerr << "JSON : " << json << std::endl;

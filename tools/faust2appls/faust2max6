@@ -5,7 +5,7 @@
 #                                                                   #
 #               Compiles Faust programs to Max6 externals           #
 #               using double precision samples                      #
-#               (c) Grame, 2012-2019                                #
+#               (c) Grame, 2012-2020                                #
 #                                                                   #
 #####################################################################
 
@@ -25,6 +25,7 @@ SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 OPT=""
+FAUSTFLOAT="double" # By default since Max6
 
 # path to max SDK
 #SDK=/usr/local/include/c74support/    # now declared in faustpath
@@ -80,6 +81,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "NOTE : -double mode is used by default"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
@@ -129,6 +131,8 @@ do
         NOPATCH="1"
     elif [ $p = "-native" ]; then
         CXXFLAGS=$MYGCCFLAGS
+    elif [ $p = "-single" ]; then
+        FAUSTFLOAT="float"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -142,11 +146,9 @@ shift
 done
 
 #look for polyphonic "nvoices" metadata in the DSP file
-
 grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 
 #customize CXXFLAGS
-
 CXXFLAGS+=" -fbracket-depth=512"
 
 #-------------------------------------------------------------------
@@ -186,19 +188,24 @@ for p in $FILES; do
         echo $OPTIONS
     fi
 
-    # compile faust to c++
+    # compile Faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -double -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -double -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -double -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        faust -i -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+    fi
+
+    # -double is used by default
+    if [ "$FAUSTFLOAT" = "double" ]; then
+        OPTIONS="$OPTIONS -double"
     fi
 
     # compile c++ to binary
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
    	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

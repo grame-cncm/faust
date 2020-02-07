@@ -46,6 +46,7 @@ CodeContainer::CodeContainer()
       fNumOutputs(-1),
       fNumActives(0),
       fNumPassives(0),
+      fSubContainerType(kInt),
       fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fDeclarationInstructions(InstBuilder::genBlockInst()),
@@ -62,7 +63,6 @@ CodeContainer::CodeContainer()
       fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst()),
-      fSubContainerType(kInt),
       fGeneratedSR(false),
       fInt32ControlNum(0),
       fRealControlNum(0)
@@ -102,6 +102,24 @@ bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
     return fLoopProperty.get(sig, l);
 }
 
+void CodeContainer::listAllLoopProperties(Tree sig, set<CodeLoop*>& L, set<Tree>& visited)
+{
+    if (visited.count(sig) == 0) {
+        visited.insert(sig);
+        CodeLoop* l;
+        if (getLoopProperty(sig, l)) {
+            L.insert(l);
+        } else {
+            // we go down the expression
+            vector<Tree> subsigs;
+            int          n = getSubSignals(sig, subsigs, false);
+            for (int i = 0; i < n; i++) {
+                listAllLoopProperties(subsigs[i], L, visited);
+            }
+        }
+    }
+}
+
 /**
  * Open a non-recursive loop on top of the stack of open loops.
  * @param size the number of iterations of the loop
@@ -128,6 +146,15 @@ void CodeContainer::openLoop(Tree recsymbol, const string& index_name, int size)
 void CodeContainer::closeLoop(Tree sig)
 {
     faustassert(fCurLoop);
+    
+    // fix the missing dependencies
+    set<CodeLoop*> L;
+    set<Tree> V;
+    listAllLoopProperties(sig, L, V);
+    for (CodeLoop* l : L) {
+        fCurLoop->fBackwardLoopDependencies.insert(l);
+    }
+    
     CodeLoop* l = fCurLoop;
     fCurLoop    = l->fEnclosingLoop;
     faustassert(fCurLoop);
@@ -250,7 +277,6 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
                                        const list<ValueInst*>& args)
 {
-    list<ValueInst*>::const_iterator it = args.begin();
     list<NamedTyped*> named_args;
     for (size_t i = 0; i < types.size(); i++) {
         named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
@@ -676,21 +702,21 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        args.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("classInit", args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("classInit", args1));
     }
 
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        args.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceInit", args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceInit", args1));
     }
 
     // Creates function
@@ -708,28 +734,28 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        args.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceConstants", args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceConstants", args1));
     }
 
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceResetUserInterface", args));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceResetUserInterface", args1));
     }
 
     {
-        list<ValueInst*> args;
+        list<ValueInst*> args1;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
+            args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceClear", args));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("instanceClear", args1));
     }
 
     // Creates function
@@ -803,11 +829,11 @@ DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genInt64NumInst(1));
-        args.push_back(InstBuilder::genInt64NumInst(size));
+        list<ValueInst*> args1;
+        args1.push_back(InstBuilder::genInt64NumInst(1));
+        args1.push_back(InstBuilder::genInt64NumInst(size));
         block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(
-            InstBuilder::genFunCallInst("calloc", args), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
+            InstBuilder::genFunCallInst("calloc", args1), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
     }
 
     // Creates function
@@ -822,10 +848,10 @@ DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const strin
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
+        list<ValueInst*> args1;
+        args1.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
                                                 InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args)));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args1)));
     }
 
     // Explicit return

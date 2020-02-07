@@ -54,11 +54,7 @@ struct MyMeta : public Meta, public std::map<std::string, std::string>
     }
     const std::string get(const char* key, const char* def)
     {
-        if (this->find(key) != this->end()) {
-            return (*this)[key];
-        } else {
-            return def;
-        }
+        return (this->find(key) != this->end()) ? (*this)[key] : def;
     }
 };
 
@@ -1177,9 +1173,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
     } else if (mspUI::checkDigit(name)) { // List of values
         
-        int ndigit = 0;
-        int pos;
-        
+        int pos, ndigit = 0;
         for (pos = name.size() - 1; pos >= 0; pos--) {
             if (isdigit(name[pos]) || name[pos] == ' ') {
                 ndigit++;
@@ -1232,7 +1226,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         
     } else {
         // Standard parameter name
-        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : av[0].a_w.w_float;
+        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
         res = fDSPUI->setValue(name, value);
         if (!res) {
             post("Unknown parameter : %s", (s)->s_name);

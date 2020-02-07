@@ -42,9 +42,9 @@ bool RootNode::processMessage(const Message* msg, vector<Message*>& outMsg)
 		return accept(msg, outMsg);
 	}
 	else if (addr == kJSONAddr) {
-		Message* msg = new Message(fJson);
-		msg->setMIMEType("application/json");
-		outMsg.push_back(msg);
+		Message* msg1 = new Message(fJson);
+		msg1->setMIMEType("application/json");
+		outMsg.push_back(msg1);
 		return true;
 	}
 	return MessageDriven::processMessage(msg, outMsg);
@@ -56,9 +56,9 @@ bool RootNode::accept(const Message* msg, vector<Message*>& outMsg)
 	string val;
 	// checks for the 'JSON' message first
 	if ((msg->size() == 0) && (msg->address() == "/")) {
-		Message* msg = new Message (fHtml);
-		msg->setMIMEType("text/html");
-		outMsg.push_back(msg);
+		Message* msg1 = new Message (fHtml);
+		msg1->setMIMEType("text/html");
+		outMsg.push_back(msg1);
 		return true;
 	}
 	return MessageDriven::accept(msg, outMsg);

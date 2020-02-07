@@ -19,13 +19,13 @@ int main(int argc, char* argv[])
     int nbsamples = 60000;
     
     // print general informations
-    printHeader(new dsp_me(new mydsp()), nbsamples);
+    printHeader(new dsp_me_checker(new mydsp()), nbsamples);
     
     // linenum is incremented in runDSP and runPolyDSP
-    runDSP(new dsp_me(new mydsp()), argv[0], linenum, nbsamples/4);
-    runDSP(new dsp_me(new mydsp()), argv[0], linenum, nbsamples/4, false, true);
-    runPolyDSP(new dsp_me(new mydsp()), linenum, nbsamples/4, 4);
-    runPolyDSP(new dsp_me(new mydsp()), linenum, nbsamples/4, 1);
+    runDSP(new dsp_me_checker(new mydsp()), argv[0], linenum, nbsamples/4);
+    runDSP(new dsp_me_checker(new mydsp()), argv[0], linenum, nbsamples/4, false, true);
+    runPolyDSP(new dsp_me_checker(new mydsp()), linenum, nbsamples/4, 4);
+    runPolyDSP(new dsp_me_checker(new mydsp()), linenum, nbsamples/4, 1);
     
     return 0;
 }

@@ -135,6 +135,7 @@ class Klass  //: public Target
 
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
+    void listAllLoopProperties(Tree sig, set<Loop*>&, set<Tree>& visited);  ///< Returns all the loop used to compute a signal
 
     const string& getClassName() const { return fKlassName; }  ///< Returns the name of the class
 

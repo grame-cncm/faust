@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.2.4.  */
+/* A Bison parser, made by GNU Bison 3.3.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -154,26 +155,29 @@ extern int yydebug;
     DECLARE = 361,
     CASE = 362,
     ARROW = 363,
-    BDOC = 364,
-    EDOC = 365,
-    BEQN = 366,
-    EEQN = 367,
-    BDGM = 368,
-    EDGM = 369,
-    BLST = 370,
-    ELST = 371,
-    BMETADATA = 372,
-    EMETADATA = 373,
-    DOCCHAR = 374,
-    NOTICE = 375,
-    LISTING = 376,
-    LSTTRUE = 377,
-    LSTFALSE = 378,
-    LSTDEPENDENCIES = 379,
-    LSTMDOCTAGS = 380,
-    LSTDISTRIBUTED = 381,
-    LSTEQ = 382,
-    LSTQ = 383
+    FLOATMODE = 364,
+    DOUBLEMODE = 365,
+    QUADMODE = 366,
+    BDOC = 367,
+    EDOC = 368,
+    BEQN = 369,
+    EEQN = 370,
+    BDGM = 371,
+    EDGM = 372,
+    BLST = 373,
+    ELST = 374,
+    BMETADATA = 375,
+    EMETADATA = 376,
+    DOCCHAR = 377,
+    NOTICE = 378,
+    LISTING = 379,
+    LSTTRUE = 380,
+    LSTFALSE = 381,
+    LSTDEPENDENCIES = 382,
+    LSTMDOCTAGS = 383,
+    LSTDISTRIBUTED = 384,
+    LSTEQ = 385,
+    LSTQ = 386
   };
 #endif
 
@@ -182,14 +186,15 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 73 "faustparser.y" /* yacc.c:1906  */
+#line 81 "faustparser.y" /* yacc.c:1921  */
 
 	CTree* 	exp;
 	char* str;
 	string* cppstr;
 	bool b;
+	int numvariant;
 
-#line 193 "faustparser.hpp" /* yacc.c:1906  */
+#line 198 "faustparser.hpp" /* yacc.c:1921  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -32,6 +32,7 @@
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/dsp-bench.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
@@ -118,7 +119,7 @@ int main(int argc, char* argv[])
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
         cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp" << endl;
-        cout << "-control to activate min/max control check\n";
+        cout << "-control to activate min/max control check then setting all controllers (inside their range) in a random way\n";
         cout << "-output to display output samples\n";
         cout << "-noui to start the application without UI\n";
         cout << "-timeout <num> when used in -noui mode, to stop the application after a given timeout in seconds (default = 10s)\n";
@@ -166,6 +167,7 @@ int main(int argc, char* argv[])
     dsp_factory* factory = nullptr;
     dsp* DSP = nullptr;
     GUI* interface = nullptr;
+    RandomControlUI random;
     
     try {
     
@@ -271,6 +273,16 @@ int main(int argc, char* argv[])
                     audio.render();
                 }
             }
+            
+            // Generate random values for controllers
+            DSP->buildUserInterface(&random);
+            cout << "------------------------------" << endl;
+            cout << "Use RandomControlUI" << endl;
+            for (int step = 0; step < 1000; step++) {
+                cout << "Set random controllers, step: " << step <<  " until: " << 1000 << endl;
+                random.update();
+                audio.render();
+            }
 
             goto end;
             
@@ -284,7 +296,10 @@ int main(int argc, char* argv[])
             usleep(time_out * 1e6);
         }
         audio.stop();
-    } catch (...) {}
+    } catch (...) {
+        cout << endl;
+        random.display();
+    }
     
 end:
     

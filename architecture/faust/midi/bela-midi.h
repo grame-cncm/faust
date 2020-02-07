@@ -24,7 +24,7 @@
  
 #ifndef __bela_midi__
 #define __bela_midi__ 
- 
+  
 #include <iostream>
 #include <cstdlib>
 
@@ -80,10 +80,8 @@ class bela_midi : public midi_handler {
                                 midi->handleClock(time);
                                 break;
                             case MIDI_START:
-                                midi->handleStart(time);
-                                break;
+                            // We can consider start and continue as identical messages
                             case MIDI_CONT:
-                                // We can consider start and continue as identical messages.
                                 midi->handleStart(time);
                                 break;
                             case MIDI_STOP:
