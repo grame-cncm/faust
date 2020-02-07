@@ -63,11 +63,11 @@ string rmWhiteSpaces(const string& s);
 
 inline string checkFloat(float val)
 {
-    return (isinf(val)) ? "INFINITY" : T(val);
+    return (std::isinf(val)) ? "INFINITY" : T(val);
 }
 inline string checkDouble(double val)
 {
-    return (isinf(val)) ? "INFINITY" : T(val);
+    return (std::isinf(val)) ? "INFINITY" : T(val);
 }
 string checkReal(double val);
 

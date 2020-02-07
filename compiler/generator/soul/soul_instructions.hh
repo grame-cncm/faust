@@ -179,11 +179,11 @@ class SOULInstVisitor : public TextInstVisitor {
     
     inline string checkFloat(float val)
     {
-        return (isinf(val)) ? "inf" : T(val);
+        return (std::isinf(val)) ? "inf" : T(val);
     }
     inline string checkDouble(double val)
     {
-        return (isinf(val)) ? "inf" : T(val);
+        return (std::isinf(val)) ? "inf" : T(val);
     }
 
    public:
