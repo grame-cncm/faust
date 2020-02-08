@@ -31,6 +31,9 @@
 #include "freertos/task.h"
 #include "driver/i2s.h"
 
+#include "faust/audio/audio.h"
+#include "faust/dsp/dsp.h"
+
 #define MULT_S32 2147483647
 #define DIV_S32 4.6566129e-10
 #define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
@@ -53,68 +56,12 @@ class esp32audio : public audio {
     
     private:
     
-        float** fInChannel;
-        float** fOutChannel;
         int fSampleRate;
         int fBufferSize;
+        float** fInChannel;
+        float** fOutChannel;
         TaskHandle_t fHandle;
-    
-        void configureI2S()
-        {
-            i2s_pin_config_t pin_config;
-        #if TTGO_TAUDIO
-            pin_config = {
-                .bck_io_num = 33,
-                .ws_io_num = 25,
-                .data_out_num = 26,
-                .data_in_num = 27
-            };
-        #elif A1S_BOARD
-            pin_config = {
-                .bck_io_num = 27,
-                .ws_io_num = 26,
-                .data_out_num = 25,
-                .data_in_num = 35
-            };
-        #else // Default
-            pin_config = {
-                .bck_io_num = 33,
-                .ws_io_num = 25,
-                .data_out_num = 26,
-                .data_in_num = 27
-            };
-        #endif
-            
-        #if A1S_BOARD
-            i2s_config_t i2s_config = {
-                .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
-                .sample_rate = fSampleRate,
-                .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-                .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-                .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
-                .intr_alloc_flags = ESP_INTR_FLAG_LEVEL3, // high interrupt priority
-                .dma_buf_count = 3,
-                .dma_buf_len = fBufferSize,
-                .use_apll = true
-            };
-        #else // default
-            i2s_config_t i2s_config = {
-                .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
-                .sample_rate = fSampleRate,
-                .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-                .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-                .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
-                .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
-                .dma_buf_count = 3,
-                .dma_buf_len = fBufferSize,
-                .use_apll = false
-            };
-        #endif
-            i2s_driver_install((i2s_port_t)0, &i2s_config, 0, NULL);
-            i2s_set_pin((i2s_port_t)0, &pin_config);
-            PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
-            REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
-        }
+        dsp* fDSP;
     
         template <int INPUTS, int OUTPUTS>
         void audioTask()
@@ -166,17 +113,74 @@ class esp32audio : public audio {
             }
         }
     
-        void audioTaskHandler(void* arg)
+        static void audioTaskHandler(void* arg)
         {
-            esp32audio* audio = (esp32audio*)arg;
-            audio->audioTask<FAUST_INPUTS, FAUST_OUTPUTS>();
+            static_cast<esp32audio*>(arg)->audioTask<FAUST_INPUTS, FAUST_OUTPUTS>();
         }
     
     public:
     
-        esp32audio(int srate, int bsize):fSampleRate(srate), fBufferSize(bsize), fHandle(NULL)
+        esp32audio(int srate, int bsize):
+        fSampleRate(srate),
+        fBufferSize(bsize),
+        fInChannel(nullptr),
+        fOutChannel(nullptr),
+        fHandle(nullptr),
+        fDSP(nullptr)
         {
-            configureI2S();
+            i2s_pin_config_t pin_config;
+        #if TTGO_TAUDIO
+            pin_config = {
+                .bck_io_num = 33,
+                .ws_io_num = 25,
+                .data_out_num = 26,
+                .data_in_num = 27
+            };
+        #elif A1S_BOARD
+            pin_config = {
+                .bck_io_num = 27,
+                .ws_io_num = 26,
+                .data_out_num = 25,
+                .data_in_num = 35
+            };
+        #else // Default
+            pin_config = {
+                .bck_io_num = 33,
+                .ws_io_num = 25,
+                .data_out_num = 26,
+                .data_in_num = 27
+            };
+        #endif
+            
+        #if A1S_BOARD
+            i2s_config_t i2s_config = {
+                .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
+                .sample_rate = fSampleRate,
+                .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+                .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+                .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+                .intr_alloc_flags = ESP_INTR_FLAG_LEVEL3, // high interrupt priority
+                .dma_buf_count = 3,
+                .dma_buf_len = fBufferSize,
+                .use_apll = true
+            };
+        #else // default
+            i2s_config_t i2s_config = {
+                .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
+                .sample_rate = fSampleRate,
+                .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+                .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+                .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+                .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
+                .dma_buf_count = 3,
+                .dma_buf_len = fBufferSize,
+                .use_apll = false
+            };
+        #endif
+            i2s_driver_install((i2s_port_t)0, &i2s_config, 0, nullptr);
+            i2s_set_pin((i2s_port_t)0, &pin_config);
+            PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
+            REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
         }
     
         virtual ~esp32audio()
@@ -194,6 +198,7 @@ class esp32audio : public audio {
 
         virtual bool init(const char* name, dsp* dsp)
         {
+            fDSP = dsp;
             fDSP->init(fSampleRate);
             
             if (fDSP->getNumInputs() > 0) {
@@ -202,7 +207,7 @@ class esp32audio : public audio {
                     fInChannel[i] = new float[fBufferSize];
                 }
             } else {
-                fInChannel = NULL;
+                fInChannel = nullptr;
             }
             
             if (fDSP->getNumOutputs() > 0) {
@@ -211,20 +216,21 @@ class esp32audio : public audio {
                     fOutChannel[i] = new float[fBufferSize];
                 }
             } else {
-                fOutChannel = NULL;
+                fOutChannel = nullptr;
             }
+            return true;
         }
     
         virtual bool start()
         {
-            return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 24, &fHandle, 0) == pdPASS);
+            return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 4096, (void*)this, 24, &fHandle, 0) == pdPASS);
         }
     
         virtual void stop()
         {
-            if (fHandle != NULL) {
+            if (fHandle != nullptr) {
                 vTaskDelete(fHandle);
-                fHandle = NULL;
+                fHandle = nullptr;
             }
         }
     
@@ -236,6 +242,7 @@ class esp32audio : public audio {
     
         // Returns the average proportion of available CPU being spent inside the audio callbacks (between 0 and 1.0).
         virtual float getCPULoad() { return 0.f; }
+    
 };
 					
 #endif

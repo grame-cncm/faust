@@ -32,6 +32,7 @@
 #include "driver/i2s.h"
 
 class dsp;
+class esp32audio;
 class MapUI;
 #if MIDICTRL
 class MidiUI;
@@ -42,29 +43,22 @@ class AudioFaust
 {
     private:
     
-        void configureI2S(int, int);
+        esp32audio* fAudio;
         dsp* fDSP;
         MapUI* fUI;
-        float **fInChannel, **fOutChannel;
-        int fBS;
-        TaskHandle_t fHandle;
     #if MIDICTRL
         esp32_midi* fMIDIHandler;        
         MidiUI* fMIDIInterface;
     #endif
 
-        template <int INPUTS, int OUTPUTS>
-        void audioTask();
-    
-        static void audioTaskHandler(void*);
-    
     public:
     
-        AudioFaust(int, int);
+        AudioFaust(int sample_rate, int buffer_size);
         ~AudioFaust();
     
         bool start();
         void stop();
+    
         void setParamValue(const std::string&, float);
 };
 

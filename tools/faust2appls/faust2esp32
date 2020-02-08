@@ -22,6 +22,7 @@ LIB="0"
 
 #variables:
 NVOICES=0
+GRAMOPHONE="0"
 POLY=""
 #EFFECT=""
 MIDIDEFS=""
@@ -36,7 +37,8 @@ echoHelp ()
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
     echo "USAGE:"
-    echo "faust2esp32 [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
+    echo "faust2esp32 [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
+    echo "Use '-gramophone' to generate for GRAME Gramophone"
     echo "Use '-midi' to activate MIDI control"
     echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it needs -midi option to enable midi"
     echo "Use no arguments for a simple effect."
@@ -63,6 +65,9 @@ do
     # -MIDI
     elif [ $p = "-midi" ]; then
         MIDIDEFS="MIDI"
+    # -GRAMEPHONE
+    elif [ $p = "-gramophone" ]; then
+        GRAMOPHONE=1
     # Get dsp file
     elif [[ -f "$p" ]]; then
     	FILE="$p"
@@ -102,8 +107,11 @@ MODULENAME="${BASENAME%.dsp}"
 
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
-    echo $OPTIONS
-    faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    if [ $GRAMOPHONE -eq 1 ]; then
+    	faust -uim -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    else
+    	faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    fi
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
     if [[ $DRIVER = "wm8978" ]]; then
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME

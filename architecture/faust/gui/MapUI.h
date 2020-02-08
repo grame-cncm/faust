@@ -50,8 +50,8 @@ class MapUI : public UI, public PathBuilder
     
     public:
         
-        MapUI() {};
-        virtual ~MapUI() {};
+        MapUI() {}
+        virtual ~MapUI() {}
         
         // -- widget's layouts
         void openTabBox(const char* label)
