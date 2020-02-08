@@ -46,28 +46,19 @@
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
 #include <string>
+#include <stdio.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2s.h"
+#include "driver/adc.h"
+#include "esp_system.h"
+#include "esp_spi_flash.h"
+#include "WM8978.h"
 
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/Esp32UI.h"
-
-// MIDI support
-#if MIDICTRL
-#include "faust/gui/MidiUI.h"
-#include "faust/midi/esp32-midi.h"
-#endif
-
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_spi_flash.h"
-
-#include "WM8978.h"
-#include <driver/adc.h>
 
 /******************************************************************************
  *******************************************************************************
