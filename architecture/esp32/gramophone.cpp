@@ -52,7 +52,6 @@
 
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
-#include "faust/gui/MapUI.h"
 #include "faust/gui/Esp32UI.h"
 
 // MIDI support
@@ -97,18 +96,12 @@
 #define DIV_S32 4.6566129e-10
 #define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
 
-#if MIDICTRL
-std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
-#endif
-
 class Gramophone
 {
     private:
     
         esp32audio* fAudio;
         dsp* fDSP;
-        MapUI* fUI;
         Esp32UI* fControlUI;
     
     public:
@@ -119,16 +112,11 @@ class Gramophone
         bool start();
         void stop();
     
-        void setParamValue(const std::string& path, float value);
-    
 };
 
 Gramophone::Gramophone(int sample_rate, int buffer_size)
 {
     fDSP = new mydsp();
-    
-    fUI = new MapUI();
-    fDSP->buildUserInterface(fUI);
     
     fControlUI = new Esp32UI();
     fDSP->buildUserInterface(fControlUI);
@@ -140,7 +128,6 @@ Gramophone::Gramophone(int sample_rate, int buffer_size)
 Gramophone::~Gramophone()
 {
     delete fDSP;
-    delete fUI;
     delete fControlUI;
     delete fAudio;
 }
@@ -155,11 +142,6 @@ void Gramophone::stop()
 {
     fControlUI->stop();
     fAudio->stop();
-}
-
-void Gramophone::setParamValue(const std::string& path, float value)
-{
-    fUI->setParamValue(path, value);
 }
 
 extern "C" void app_main()
