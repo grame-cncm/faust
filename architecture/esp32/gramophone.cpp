@@ -92,10 +92,6 @@
 // After generated C++ class to that FAUST_INPUTS and FAUST_OUTPUTS are defined
 #include "faust/audio/esp32-dsp.h"
 
-#define MULT_S32 2147483647
-#define DIV_S32 4.6566129e-10
-#define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
-
 class Gramophone
 {
     private:
