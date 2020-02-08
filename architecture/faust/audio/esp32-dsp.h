@@ -38,18 +38,6 @@
 #define DIV_S32 4.6566129e-10
 #define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
 
-// we require macro declarations
-#define FAUST_UIMACROS
-
-// but we will ignore most of them
-#define FAUST_ADDBUTTON(l,f)
-#define FAUST_ADDCHECKBOX(l,f)
-#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
-#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
-#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
-
 #define MAX_CHAN 2
 
 class esp32audio : public audio {
