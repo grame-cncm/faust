@@ -33,18 +33,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include "esp32.h"
-
-#include "faust/gui/meta.h"
-#include "faust/dsp/dsp.h"
-#include "faust/gui/MapUI.h"
-
-// MIDI support
-#if MIDICTRL
-#include "faust/gui/MidiUI.h"
-#include "faust/midi/esp32-midi.h"
-#endif
-
 // we require macro declarations
 #define FAUST_UIMACROS
 
@@ -56,6 +44,31 @@
 #define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+
+#include <string>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/i2s.h"
+
+#include "faust/gui/meta.h"
+#include "faust/dsp/dsp.h"
+#include "faust/gui/MapUI.h"
+#include "faust/gui/Esp32UI.h"
+
+// MIDI support
+#if MIDICTRL
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/esp32-midi.h"
+#endif
+
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_system.h"
+#include "esp_spi_flash.h"
+
+#include "WM8978.h"
+#include <driver/adc.h>
 
 /******************************************************************************
  *******************************************************************************
@@ -89,54 +102,90 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
-AudioFaust::AudioFaust(int sample_rate, int buffer_size)
+class Gramophone
+{
+    private:
+    
+        esp32audio* fAudio;
+        dsp* fDSP;
+        MapUI* fUI;
+        Esp32UI* fControlUI;
+    
+    public:
+    
+        Gramophone(int sample_rate, int buffer_size);
+        ~Gramophone();
+    
+        bool start();
+        void stop();
+    
+        void setParamValue(const std::string& path, float value);
+    
+};
+
+Gramophone::Gramophone(int sample_rate, int buffer_size)
 {
     fDSP = new mydsp();
     
     fUI = new MapUI();
     fDSP->buildUserInterface(fUI);
     
+    fControlUI = new Esp32UI();
+    fDSP->buildUserInterface(fControlUI);
+    
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
-   
-#if MIDICTRL
-    fMIDIHandler = new esp32_midi();
-    fMIDIInterface = new MidiUI(fMIDIHandler);
-    fDSP->buildUserInterface(fMIDIInterface);
-#endif
 }
 
-AudioFaust::~AudioFaust()
+Gramophone::~Gramophone()
 {
     delete fDSP;
     delete fUI;
+    delete fControlUI;
     delete fAudio;
-    
-#if MIDICTRL
-    delete fMIDIInterface;
-    delete fMIDIHandler;
-#endif
 }
 
-bool AudioFaust::start()
+bool Gramophone::start()
 {
-#if MIDICTRL
-    if (!fMIDIInterface->run()) return false;
-#endif
+    if (!fControlUI->start()) return false;
     return fAudio->start();
 }
 
-void AudioFaust::stop()
+void Gramophone::stop()
 {
-#if MIDICTRL
-    fMIDIInterface->stop();
-#endif
+    fControlUI->stop();
     fAudio->stop();
 }
 
-void AudioFaust::setParamValue(const std::string& path, float value)
+void Gramophone::setParamValue(const std::string& path, float value)
 {
     fUI->setParamValue(path, value);
+}
+
+extern "C" void app_main()
+{
+    // Init audio codec
+    WM8978 wm8978;
+    wm8978.init();
+    wm8978.addaCfg(1,1);
+    wm8978.inputCfg(1,0,0);
+    wm8978.outputCfg(1,0);
+    wm8978.micGain(30);
+    wm8978.auxGain(0);
+    wm8978.lineinGain(0);
+    
+    // set gain
+    wm8978.spkVolSet(63); // [0-63]]
+    
+    wm8978.hpVolSet(40,40);
+    wm8978.i2sCfg(2,0);
+    
+    // Allocate and start Faust DSP
+    Gramophone* phone = new Gramophone(48000, 8);
+    phone->start();
+    
+    // Waiting forever
+    vTaskSuspend(nullptr);
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

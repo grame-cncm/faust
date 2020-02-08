@@ -127,24 +127,7 @@ class esp32_midi : public midi_handler {
   
         static void processMidiHandler(void* arg)
         {
-            esp32_midi* midi = (esp32_midi*)arg;
-            midi->processMidi();
-        }
-    
-        void setupMidi()
-        {
-            const uart_config_t uart_config = {
-                .baud_rate = 31250,
-                .data_bits = UART_DATA_8_BITS,
-                .parity = UART_PARITY_DISABLE,
-                .stop_bits = UART_STOP_BITS_1,
-                .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-                .rx_flow_ctrl_thresh = 122,
-                .use_ref_tick = false};
-            uart_param_config(PORT_NUM, &uart_config);
-            uart_set_pin(PORT_NUM, TX1, RX1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-            // We won't use a buffer for sending data.
-            uart_driver_install(PORT_NUM, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
+            static_cast<esp32_midi*>(arg)->processMidi();
         }
     
     public:
@@ -152,7 +135,19 @@ class esp32_midi : public midi_handler {
         esp32_midi():midi_handler("esp32"),fProcessMidiHandle(NULL)
         {
             // Setup UART for MIDI
-            setupMidi();
+            const uart_config_t uart_config = {
+                .baud_rate = 31250,
+                .data_bits = UART_DATA_8_BITS,
+                .parity = UART_PARITY_DISABLE,
+                .stop_bits = UART_STOP_BITS_1,
+                .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+                .rx_flow_ctrl_thresh = 122,
+                .use_ref_tick = false
+            };
+            uart_param_config(PORT_NUM, &uart_config);
+            uart_set_pin(PORT_NUM, TX1, RX1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+            // We won't use a buffer for sending data.
+            uart_driver_install(PORT_NUM, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
         }
     
         virtual ~esp32_midi()
@@ -168,9 +163,9 @@ class esp32_midi : public midi_handler {
 
         void stopMidi()
         {
-            if (fProcessMidiHandle != NULL) {
+            if (fProcessMidiHandle != nullptr) {
                 vTaskDelete(fProcessMidiHandle);
-                fProcessMidiHandle = NULL;
+                fProcessMidiHandle = nullptr;
             }
         }
    

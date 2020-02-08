@@ -110,7 +110,6 @@ esp_err_t AC101::begin()
 
 	res |= SetMode( MODE_DAC );
 
-
     ESP_LOGI(AC101_TAG, "init done");
     ac101_pa_power(true);
 	return res;
@@ -152,13 +151,9 @@ uint8_t AC101::GetVolumeHeadphone()
 esp_err_t AC101::SetVolumeHeadphone(uint8_t volume)
 {
 	if (volume > 63) volume = 63;
-
 	uint16_t val = ReadReg(HPOUT_CTRL);
-
 	val &= ~63 << 4;
-
 	val |= volume << 4;
-
 	return WriteReg(HPOUT_CTRL, val);
 }
 
@@ -361,7 +356,7 @@ esp_err_t AC101::ReadReg_Full(uint8_t reg, uint8_t* data_rd, size_t size)
     esp_err_t ret = ESP_OK;
     if (size == 0) {
     	return ESP_OK;
-    	}
+    }
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     ret |= i2c_master_start(cmd);
     ret |= i2c_master_write_byte(cmd, (AC101_ADDR << 1), ACK_CHECK_EN);
