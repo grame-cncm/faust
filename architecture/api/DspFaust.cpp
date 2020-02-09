@@ -34,6 +34,10 @@
 // Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known
 
 #if SOUNDFILE
+// So that the code uses JUCE audio file loading code
+#if JUCE_DRIVER
+#define JUCE_64BIT 1
+#endif
 #include "faust/gui/SoundUI.h"
 #endif
 
