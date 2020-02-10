@@ -67,6 +67,7 @@
 // but we will ignore most of them
 #define FAUST_ADDBUTTON(l,f)
 #define FAUST_ADDCHECKBOX(l,f)
+#define FAUST_ADDSOUNDFILE(l,s)
 #define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
 #define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
 #define FAUST_ADDNUMENTRY(l,f,i,a,b,s)

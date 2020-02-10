@@ -27,6 +27,8 @@
 
 #include <assert.h>
 
+#include "../JuceLibraryCode/JuceHeader.h"
+
 #include "faust/gui/Soundfile.h"
 
 struct JuceReader : public SoundfileReader {
@@ -34,6 +36,8 @@ struct JuceReader : public SoundfileReader {
     AudioFormatManager fFormatManager;
     
     JuceReader() { fFormatManager.registerBasicFormats(); }
+    virtual ~JuceReader()
+    {}
     
     bool checkFile(const std::string& path_name)
     {
@@ -48,17 +52,16 @@ struct JuceReader : public SoundfileReader {
     
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
-        std::unique_ptr<AudioFormatReader> formatReader = std::make_unique<AudioFormatReader>(fFormatManager.createReaderFor(File(path_name)));
+        AudioFormatReader* formatReader = fFormatManager.createReaderFor(File(path_name));
         assert(formatReader);
         channels = int(formatReader->numChannels);
         length = int(formatReader->lengthInSamples);
+        delete formatReader;
     }
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        std::unique_ptr<AudioFormatReader> formatReader = std::make_unique<AudioFormatReader>(fFormatManager.createReaderFor(File(path_name)));
-        
-        int channels = std::min<int>(max_chan, int(formatReader->numChannels));
+        AudioFormatReader* formatReader = fFormatManager.createReaderFor(File(path_name));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
         soundfile->fSR[part] = int(formatReader->sampleRate);
@@ -83,6 +86,7 @@ struct JuceReader : public SoundfileReader {
             
         // Update offset
         offset += soundfile->fLength[part];
+        delete formatReader;
     }
     
 };
