@@ -65,7 +65,8 @@ struct JuceReader : public SoundfileReader {
         soundfile->fSR[part] = int(formatReader->sampleRate);
         soundfile->fOffset[part] = offset;
         
-        FAUSTFLOAT* buffers[soundfile->fChannels];
+        FAUSTFLOAT** buffers = static_cast<FAUSTFLOAT**>(alloca(soundfile->fChannels * sizeof(FAUSTFLOAT*)));
+                                                             
         getBuffersOffset(soundfile, buffers, offset);
         
         if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels), 0, int(formatReader->lengthInSamples), false)) {
