@@ -52,16 +52,14 @@ struct JuceReader : public SoundfileReader {
     
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
-        AudioFormatReader* formatReader = fFormatManager.createReaderFor(File(path_name));
-        assert(formatReader);
+        std::unique_ptr<AudioFormatReader> formatReader (fFormatManager.createReaderFor (File (path_name)));
         channels = int(formatReader->numChannels);
         length = int(formatReader->lengthInSamples);
-        delete formatReader;
     }
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        AudioFormatReader* formatReader = fFormatManager.createReaderFor(File(path_name));
+        std::unique_ptr<AudioFormatReader> formatReader (fFormatManager.createReaderFor (File (path_name)));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
         soundfile->fSR[part] = int(formatReader->sampleRate);
@@ -86,7 +84,6 @@ struct JuceReader : public SoundfileReader {
             
         // Update offset
         offset += soundfile->fLength[part];
-        delete formatReader;
     }
     
 };
