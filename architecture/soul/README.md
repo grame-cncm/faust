@@ -40,7 +40,7 @@ Or:
 
 # soul-faust-tester 
 
-The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or SOUL runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwith at 44.1 kHz.
+The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or SOUL runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
 
 So for instance:
 
