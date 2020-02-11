@@ -468,16 +468,16 @@ class ZoneControl
 class ConverterZoneControl : public ZoneControl
 {
 
-    private:
+    protected:
 
         ValueConverter* fValueConverter;
 
     public:
 
-        ConverterZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : ZoneControl(zone), fValueConverter(valueConverter) {}
+        ConverterZoneControl(FAUSTFLOAT* zone, ValueConverter* converter) : ZoneControl(zone), fValueConverter(converter) {}
         virtual ~ConverterZoneControl() { delete fValueConverter; } // Assuming fValueConverter is not kept elsewhere...
 
-        void update(double v) { *fZone = fValueConverter->ui2faust(v); }
+        virtual void update(double v) { *fZone = fValueConverter->ui2faust(v); }
 
         ValueConverter* getConverter() { return fValueConverter; }
 

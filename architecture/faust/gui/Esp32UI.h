@@ -39,52 +39,84 @@
  * This class handles Gramophone controllers
  ******************************************************************************/
 
-/*
-Generated with:
-import("stdfaust.lib");
-process = si.smooth(tau2pole(0.2))
-with {
-    SR = 100;   // Control rate
-    tau2pole(tau) = exp(-1.0/(tau*SR));
-};
-*/
+// Value converter using a low-pass filter
+class FilteredConverter : public ConverterZoneControl
+{
+    
+    private:
+    
+        /*
+         Generated with:
+         
+            process = si.smooth(tau2pole(T60))
+            with {
+                SR = 100;   // Control rate is 100 Hz
+                T60 = hslider("T60", 0.2, 0, 1, 0.01);
+                tau2pole(tau) = exp(-1.0/(tau*SR));
+            };
+        */
+    
+        // Template used to specialize double parameters expressed as NUM/DENOM
+        template <int NUM, int DENOM>
+        struct Double {
+            static constexpr double value() { return double(NUM)/double(DENOM); }
+        };
 
-struct CtrlFilter {
+        // Templated filter with T60 expressed as NUM/DENOM
+        template <class fVslider0, typename REAL>
+        struct CtrlFilter {
+            
+            float fRec0[2];
+            
+            CtrlFilter()
+            {
+                for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
+                    fRec0[l0] = 0.0f;
+                }
+            }
+            
+            FAUSTFLOAT compute(FAUSTFLOAT input0)
+            {
+                // Computed at compile time
+                REAL fSlow0 = std::exp((0.0f - (0.00999999978f / REAL(fVslider0::value()))));
+                REAL fSlow1 = (1.0f - fSlow0);
+                // Computed at runtime
+                fRec0[0] = ((fSlow0 * fRec0[1]) + (fSlow1 * REAL(input0)));
+                FAUSTFLOAT output0 = FAUSTFLOAT(fRec0[0]);
+                fRec0[1] = fRec0[0];
+                return output0;
+            }
+            
+        };
     
-    float fRec0[2];
+        // T60 = 2/10 = 0.2s
+        CtrlFilter<Double<2,10>, double> fFilter;
     
-    CtrlFilter()
-    {
-        for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
-            fRec0[l0] = 0.0f;
+    public:
+    
+        FilteredConverter(FAUSTFLOAT* zone,
+                          ValueConverter* converter)
+        : ConverterZoneControl(zone, converter) {}
+        virtual ~FilteredConverter() {}
+    
+        void update(double v)
+        {
+            *fZone = fValueConverter->ui2faust(fFilter.compute(FAUSTFLOAT(v)));
         }
-    }
-    
-    FAUSTFLOAT compute(FAUSTFLOAT input0)
-    {
-        fRec0[0] = ((0.951229453f * fRec0[1]) + ((0.0487705767f * float(input0))));
-        float output0 = FAUSTFLOAT(fRec0[0]);
-        fRec0[1] = fRec0[0];
-        return output0;
-    }
     
 };
 
+// To be used with Gramophone
 class Esp32UI : public GenericUI
 {
     
     private:
     
-        ConverterZoneControl* fGainConverter;
-        CtrlFilter fGainFilter;
+        FilteredConverter* fGainConverter;
+        FilteredConverter* fPhotoResConverter;
+        FilteredConverter* fKnobConverter;
     
-        ConverterZoneControl* fPhotoResConverter;
-        CtrlFilter fPhotoResFilter;
-    
-        ConverterZoneControl* fKnobConverter;
-        CtrlFilter fKnobFilter;
-    
-        FAUSTFLOAT* fButton;
+        FAUSTFLOAT* fPushButton;
         std::string fValue;
     
         TaskHandle_t fProcessHandle;
@@ -95,31 +127,24 @@ class Esp32UI : public GenericUI
                 
                 if (fGainConverter) {
                     int gain = adc1_get_raw(ADC1_CHANNEL_7);
-                    FAUSTFLOAT fgain = fGainFilter.compute(FAUSTFLOAT(gain));
-                    //std::cout << "gain " << gain << " " << fgain << std::endl;
-                    fGainConverter->update(double(fgain));
+                    fGainConverter->update(double(gain));
                 }
                 if (fPhotoResConverter) {
                     int photores = adc1_get_raw(ADC1_CHANNEL_6);
-                    FAUSTFLOAT fphotores = fPhotoResFilter.compute(FAUSTFLOAT(photores));
-                    //std::cout << "photores " << photores << " " << fphotores << std::endl;
-                    fPhotoResConverter->update(double(fphotores));
+                    fPhotoResConverter->update(double(photores));
                 }
                 if (fKnobConverter) {
                     int knob = adc1_get_raw(ADC1_CHANNEL_4);
-                    FAUSTFLOAT fknob = fKnobFilter.compute(FAUSTFLOAT(knob));
-                    //std::cout << "knob " << knob << " " << fknob << std::endl;
-                    fKnobConverter->update(double(fknob));
+                    fKnobConverter->update(double(knob));
                 }
-                if (fButton) {
-                    int button = gpio_get_level(GPIO_NUM_14);
+                if (fPushButton) {
+                    int push_button = gpio_get_level(GPIO_NUM_14);
                     //std::cout << "button " << button << std::endl;
-                    *fButton = FAUSTFLOAT(button);
+                    *fPushButton = FAUSTFLOAT(push_button);
                 }
                 
                 int encoder_dt = gpio_get_level(GPIO_NUM_4);
                 int encoder_clk = gpio_get_level(GPIO_NUM_13);
-                int encoder_button = gpio_get_level(GPIO_NUM_15);
                 
                 vTaskDelay(10 / portTICK_PERIOD_MS);
             }
@@ -135,7 +160,7 @@ class Esp32UI : public GenericUI
         Esp32UI():fGainConverter(nullptr),
                 fPhotoResConverter(nullptr),
                 fKnobConverter(nullptr),
-                fButton(nullptr),
+                fPushButton(nullptr),
                 fProcessHandle(nullptr)
         {
             adc1_config_width(ADC_WIDTH_BIT_12);
@@ -175,7 +200,7 @@ class Esp32UI : public GenericUI
         {
             if (fValue == "button") {
                 std::cout << "addButton " << std::endl;
-                fButton = zone;
+                fPushButton = zone;
             }
             fValue = "";
         }
@@ -183,7 +208,7 @@ class Esp32UI : public GenericUI
         {
             if (fValue == "button") {
                 std::cout << "addCheckButton " << std::endl;
-                fButton = zone;
+                fPushButton = zone;
             }
             fValue = "";
         }
@@ -199,13 +224,13 @@ class Esp32UI : public GenericUI
         {
             if (fValue == "gain") {
                 std::cout << "gain " << min << " " << max << std::endl;
-                fGainConverter = new ConverterZoneControl(zone, new LinearValueConverter(0., 4095., min, max));
+                fGainConverter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
             } else if (fValue == "photores") {
                 std::cout << "photores " << min << " " << max << std::endl;
-                fPhotoResConverter = new ConverterZoneControl(zone, new LinearValueConverter(0., 4095., min, max));
+                fPhotoResConverter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
             } else if (fValue == "knob") {
                 std::cout << "knob " << min << " " << max << std::endl;
-                fKnobConverter = new ConverterZoneControl(zone, new LinearValueConverter(0., 4095., min, max));
+                fKnobConverter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
             }
             fValue = "";
         }
