@@ -1,15 +1,6 @@
 /************************************************************************
- IMPORTANT NOTE : this file contains two clearly delimited sections :
- the ARCHITECTURE section (in two parts) and the USER section. Each section
- is governed by its own copyright and license. Please check individually
- each section for license and copyright information.
- *************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
  FAUST Architecture File
- Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale &
+ Copyright (C) 2020 GRAME, Centre National de Creation Musicale &
  Aalborg University (Copenhagen, Denmark)
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
@@ -60,58 +51,37 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/Esp32UI.h"
 
-/******************************************************************************
- *******************************************************************************
- 
- VECTOR INTRINSICS
- 
- *******************************************************************************
- *******************************************************************************/
-
-<<includeIntrinsic>>
-
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
-
-/**************************BEGIN USER SECTION **************************/
-
-<<includeclass>>
-
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
 // After generated C++ class to that FAUST_INPUTS and FAUST_OUTPUTS are defined
 #include "faust/audio/esp32-dsp.h"
 
-class Gramophone
+class GramophoneMulti
 {
     private:
     
         esp32audio* fAudio;
         dsp* fDSP;
         Esp32UI* fControlUI;
+        int fCurrent;
     
     public:
     
-        Gramophone(int sample_rate, int buffer_size);
-        ~Gramophone();
+        GramophoneMulti(int sample_rate, int buffer_size);
+        ~GramophoneMulti();
     
         bool start();
         void stop();
+        void next();
 };
 
-Gramophone::Gramophone(int sample_rate, int buffer_size)
+GramophoneMulti::GramophoneMulti(int sample_rate, int buffer_size)
 {
-    fDSP = new mydsp();
-    
-    fControlUI = new Esp32UI();
-    fDSP->buildUserInterface(fControlUI);
-    
     fAudio = new esp32audio(sample_rate, buffer_size);
-    fAudio->init("esp32", fDSP);
+    fDSP = nullptr;
+    fControlUI = nullptr;
+    fCurrent = 0;
 }
 
-Gramophone::~Gramophone()
+GramophoneMulti::~GramophoneMulti()
 {
     stop();
     delete fDSP;
@@ -119,16 +89,45 @@ Gramophone::~Gramophone()
     delete fAudio;
 }
 
-bool Gramophone::start()
+bool GramophoneMulti::start()
 {
     if (!fControlUI->start()) return false;
     return fAudio->start();
 }
 
-void Gramophone::stop()
+// Assuming several DSPs are inlcluded with this file
+void GramophoneMulti::next()
 {
-    fControlUI->stop();
-    fAudio->stop();
+    // Delete current resources
+    delete fDSP;
+    delete fControlUI;
+    
+    // Allocate DSP
+    fCurrent = (fCurrent+1) % 5;
+    switch (fCurrent) {
+        case 0:
+            fDSP = new mydsp1();
+            break;
+        case 1:
+            fDSP = new mydsp2();
+            break;
+        case 2:
+            fDSP = new mydsp3();
+            break;
+        case 3:
+            fDSP = new mydsp4();
+            break;
+        case 4:
+            fDSP = new mydsp5();
+            break;
+    }
+    
+    // Allocate control
+    fControlUI = new Esp32UI();
+    fDSP->buildUserInterface(fControlUI);
+    
+    // Connect with audio
+    fAudio->init("esp32", fDSP);
 }
 
 extern "C" void app_main()
@@ -150,11 +149,20 @@ extern "C" void app_main()
     wm8978.i2sCfg(2,0);
     
     // Allocate and start Faust DSP
-    Gramophone* phone = new Gramophone(48000, 8);
+    GramophoneMulti* phone = new GramophoneMulti(48000, 8);
+    phone->next();
     phone->start();
     
-    // Waiting forever
-    vTaskSuspend(nullptr);
+    while (true) {
+        
+        // Switch DSPs
+        int encoder_button = gpio_get_level(GPIO_NUM_15);
+        if (encoder_button == 0) {
+            phone->stop();
+            phone->next();
+            phone->start();
+        }
+        
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
 }
-
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
