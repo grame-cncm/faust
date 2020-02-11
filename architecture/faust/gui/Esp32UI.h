@@ -39,6 +39,16 @@
  * This class handles Gramophone controllers
  ******************************************************************************/
 
+/*
+Generated with:
+import("stdfaust.lib");
+process = si.smooth(tau2pole(0.2))
+with {
+    SR = 100;   // Control rate
+    tau2pole(tau) = exp(-1.0/(tau*SR));
+};
+*/
+
 struct CtrlFilter {
     
     float fRec0[2];
@@ -52,7 +62,7 @@ struct CtrlFilter {
     
     FAUSTFLOAT compute(FAUSTFLOAT input0)
     {
-        fRec0[0] = ((0.94f * fRec0[1]) + (0.06f * float(input0)));
+        fRec0[0] = ((0.951229453f * fRec0[1]) + ((0.0487705767f * float(input0)));
         float output0 = FAUSTFLOAT(fRec0[0]);
         fRec0[1] = fRec0[0];
         return output0;
