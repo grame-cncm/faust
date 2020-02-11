@@ -46,6 +46,8 @@ class esp32audio : public audio {
     
         int fSampleRate;
         int fBufferSize;
+        int fNumInputs;
+        int fNumOutputs;
         float** fInChannel;
         float** fOutChannel;
         TaskHandle_t fHandle;
@@ -101,6 +103,19 @@ class esp32audio : public audio {
             }
         }
     
+        void destroy()
+        {
+            for (int i = 0; i < fNumInputs; i++) {
+                delete[] fInChannel[i];
+            }
+            delete [] fInChannel;
+            
+            for (int i = 0; i < fNumOutputs; i++) {
+                delete[] fOutChannel[i];
+            }
+            delete [] fOutChannel;
+        }
+    
         static void audioTaskHandler(void* arg)
         {
             static_cast<esp32audio*>(arg)->audioTask<FAUST_INPUTS, FAUST_OUTPUTS>();
@@ -111,6 +126,8 @@ class esp32audio : public audio {
         esp32audio(int srate, int bsize):
         fSampleRate(srate),
         fBufferSize(bsize),
+        fNumInputs(0),
+        fNumOutputs(0),
         fInChannel(nullptr),
         fOutChannel(nullptr),
         fHandle(nullptr),
@@ -173,39 +190,37 @@ class esp32audio : public audio {
     
         virtual ~esp32audio()
         {
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                delete[] fInChannel[i];
-            }
-            delete [] fInChannel;
-            
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                delete[] fOutChannel[i];
-            }
-            delete [] fOutChannel;
+            destroy();
         }
-
+    
         virtual bool init(const char* name, dsp* dsp)
         {
+            destroy();
+            
             fDSP = dsp;
+            fNumInputs = fDSP->getNumInputs();
+            fNumOutputs = fDSP->getNumOutputs();
+            
             fDSP->init(fSampleRate);
             
-            if (fDSP->getNumInputs() > 0) {
-                fInChannel = new float*[fDSP->getNumInputs()];
-                for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                    fInChannel[i] = new float[fBufferSize];
+            if (fNumInputs > 0) {
+                fInChannel = new FAUSTFLOAT*[fNumInputs];
+                for (int i = 0; i < fNumInputs; i++) {
+                    fInChannel[i] = new FAUSTFLOAT[fBufferSize];
                 }
             } else {
                 fInChannel = nullptr;
             }
             
-            if (fDSP->getNumOutputs() > 0) {
-                fOutChannel = new float*[fDSP->getNumOutputs()];
-                for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                    fOutChannel[i] = new float[fBufferSize];
+            if (fNumOutputs > 0) {
+                fOutChannel = new FAUSTFLOAT*[fNumOutputs];
+                for (int i = 0; i < fNumOutputs; i++) {
+                    fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
                 }
             } else {
                 fOutChannel = nullptr;
             }
+            
             return true;
         }
     
