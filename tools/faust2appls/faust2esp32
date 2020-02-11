@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#                        Faust2ESP32 generator                      #
+#                        faust2esp32 generator                      #
 #               (c) Romain Michon CCRMA and Grame, 2016-2020        #
 #                                                                   #
 #####################################################################
@@ -32,11 +32,11 @@ DRIVER=""
 
 echoHelp ()
 {
-    echo "FAUST2ESP32 HELP"
+    echo "faust2esp32 help"
     echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects that can be integrated into any ESP32 project. "
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
-    echo "USAGE:"
+    echo "Usage:"
     echo "faust2esp32 [-lib] [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
     echo "Use '-gramophone' to generate for GRAME Gramophone"
     echo "Use '-midi' to activate MIDI control"

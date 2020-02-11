@@ -49,7 +49,8 @@
 
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
-#include "faust/gui/Esp32UI.h"
+#include "faust/gui/Esp32ControlUI.h"
+#include "faust/gui/Esp32SensorUI.h"
 
 // After generated C++ class to that FAUST_INPUTS and FAUST_OUTPUTS are defined
 #include "faust/audio/esp32-dsp.h"
@@ -60,7 +61,8 @@ class GramophoneMulti
     
         esp32audio* fAudio;
         dsp* fDSP;
-        Esp32UI* fControlUI;
+        Esp32ControlUI* fControlUI;
+        Esp32APIUI* fSensorUI;
         int fCurrent;
     
     public:
@@ -78,6 +80,7 @@ GramophoneMulti::GramophoneMulti(int sample_rate, int buffer_size)
     fAudio = new esp32audio(sample_rate, buffer_size);
     fDSP = nullptr;
     fControlUI = nullptr;
+    fSensorUI = nullptr;
     fCurrent = 0;
 }
 
@@ -86,6 +89,7 @@ GramophoneMulti::~GramophoneMulti()
     stop();
     delete fDSP;
     delete fControlUI;
+    delete fSensorUI;
     delete fAudio;
 }
 
@@ -95,15 +99,15 @@ bool GramophoneMulti::start()
     return fAudio->start();
 }
 
-// Assuming several DSPs are inlcluded with this file
+// Instantiate next DSP (assuming several DSPs are included with this file)
 void GramophoneMulti::next()
 {
     // Delete current resources
     delete fDSP;
     delete fControlUI;
+    delete fSensorUI;
     
     // Allocate DSP
-    fCurrent = (fCurrent+1) % 5;
     switch (fCurrent) {
         case 0:
             fDSP = new mydsp1();
@@ -121,10 +125,14 @@ void GramophoneMulti::next()
             fDSP = new mydsp5();
             break;
     }
+    fCurrent = (fCurrent+1) % 5;
     
     // Allocate control
-    fControlUI = new Esp32UI();
+    fControlUI = new Esp32ControlUI();
     fDSP->buildUserInterface(fControlUI);
+    
+    fSensorUI = new Esp32SensorUI();
+    fDSP->buildUserInterface(fSensorUI);
     
     // Connect with audio
     fAudio->init("esp32", fDSP);
@@ -149,13 +157,13 @@ extern "C" void app_main()
     wm8978.i2sCfg(2,0);
     
     // Allocate and start Faust DSP
-    GramophoneMulti* phone = new GramophoneMulti(48000, 8);
+    GramophoneMulti* phone = new GramophoneMulti(48000, 32);
     phone->next();
     phone->start();
     
     while (true) {
         
-        // Switch DSPs
+        // Instantiate next DSP
         int encoder_button = gpio_get_level(GPIO_NUM_15);
         if (encoder_button == 0) {
             phone->stop();
@@ -163,6 +171,6 @@ extern "C" void app_main()
             phone->start();
         }
         
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(100/portTICK_PERIOD_MS);
     }
 }
