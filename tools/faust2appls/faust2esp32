@@ -37,13 +37,13 @@ echoHelp ()
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
     echo "USAGE:"
-    echo "faust2esp32 [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
+    echo "faust2esp32 [-lib] [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
     echo "Use '-gramophone' to generate for GRAME Gramophone"
     echo "Use '-midi' to activate MIDI control"
-    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it needs -midi option to enable midi"
-    echo "Use no arguments for a simple effect."
-    echo "faust2esp32 -lib faustFile.dsp: Generates a package containing an object compatible with any ESP32 project."
-    echo "Optional: -wm8978 or -ac101 to choose codec driver."
+    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it needs -midi option to enable MIDI"
+    echo "Use no arguments for a simple effect"
+    echo "faust2esp32 -lib file.dsp: generates a package containing an object compatible with any ESP32 project"
+    echo "Optional: -wm8978 or -ac101 to choose codec driver"
     echo ""
 }
 
