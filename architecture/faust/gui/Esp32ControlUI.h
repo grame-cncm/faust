@@ -1,4 +1,4 @@
-/************************** BEGIN Esp32UI.h **************************/
+/************************** BEGIN Esp32ControlUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2020 GRAME, Centre National de Creation Musicale
@@ -22,8 +22,8 @@
  architecture section is not modified.
  ************************************************************************/
 
-#ifndef FAUST_ESP32_H
-#define FAUST_ESP32_H
+#ifndef FAUST_ESP32CONTROL_H
+#define FAUST_ESP32CONTROL_H
 
 #include <string>
 #include <iostream>
@@ -35,7 +35,7 @@
 #include "faust/gui/ValueConverter.h"
 
 /*******************************************************************************
- * Esp32UI : Faust User Interface
+ * Esp32ControlUI : Faust User Interface
  * This class handles Gramophone controllers
  ******************************************************************************/
 
@@ -107,7 +107,7 @@ class FilteredConverter : public ConverterZoneControl
 };
 
 // To be used with Gramophone
-class Esp32UI : public GenericUI
+class Esp32ControlUI : public GenericUI
 {
     
     private:
@@ -152,12 +152,12 @@ class Esp32UI : public GenericUI
     
         static void updateHandler(void* arg)
         {
-            static_cast<Esp32UI*>(arg)->update();
+            static_cast<Esp32ControlUI*>(arg)->update();
         }
     
     public:
         
-        Esp32UI():fGainConverter(nullptr),
+        Esp32ControlUI():fGainConverter(nullptr),
                 fPhotoResConverter(nullptr),
                 fKnobConverter(nullptr),
                 fPushButton(nullptr),
@@ -173,7 +173,7 @@ class Esp32UI : public GenericUI
             gpio_config(&io_conf);
         }
     
-        virtual ~Esp32UI()
+        virtual ~Esp32ControlUI()
         {
             delete fGainConverter;
             delete fPhotoResConverter;
@@ -246,5 +246,5 @@ class Esp32UI : public GenericUI
     
 };
 
-#endif // FAUST_ESP32UI_H
-/**************************  END  Esp32UI.h **************************/
+#endif // FAUST_ESP32CONTROL_H
+/**************************  END  Esp32ControlUI.h **************************/

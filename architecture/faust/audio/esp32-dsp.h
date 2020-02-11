@@ -52,11 +52,12 @@ class esp32audio : public audio {
         float** fOutChannel;
         TaskHandle_t fHandle;
         dsp* fDSP;
+        bool fRunning;
     
         template <int INPUTS, int OUTPUTS>
         void audioTask()
         {
-            while (true) {
+            while (fRunning) {
                 if (INPUTS > 0) {
                     // Read from the card
                     int32_t samples_data_in[MAX_CHAN*fBufferSize];
@@ -101,6 +102,9 @@ class esp32audio : public audio {
                 size_t bytes_written = 0;
                 i2s_write((i2s_port_t)0, &samples_data_out, MAX_CHAN*sizeof(float)*fBufferSize, &bytes_written, portMAX_DELAY);
             }
+            
+            // Task has to deletdd itself beforee returning
+            vTaskDelete(nullptr);
         }
     
         void destroy()
@@ -131,7 +135,8 @@ class esp32audio : public audio {
         fInChannel(nullptr),
         fOutChannel(nullptr),
         fHandle(nullptr),
-        fDSP(nullptr)
+        fDSP(nullptr),
+        fRunning(false)
         {
             i2s_pin_config_t pin_config;
         #if TTGO_TAUDIO
@@ -226,13 +231,19 @@ class esp32audio : public audio {
     
         virtual bool start()
         {
-            return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 4096, (void*)this, 24, &fHandle, 0) == pdPASS);
+            if (!fRunning) {
+                fRunning = true;
+                return (xTaskCreatePinnedToCore(audioTaskHandler, "Faust DSP Task", 4096, (void*)this, 24, &fHandle, 0) == pdPASS);
+            } else {
+                return true;
+            }
         }
     
         virtual void stop()
         {
-            if (fHandle != nullptr) {
-                vTaskDelete(fHandle);
+            if (fRunning) {
+                fRunning = false;
+                vTaskDelay(1/portTICK_PERIOD_MS);
                 fHandle = nullptr;
             }
         }

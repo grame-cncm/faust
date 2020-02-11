@@ -58,7 +58,8 @@
 
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
-#include "faust/gui/Esp32UI.h"
+#include "faust/gui/Esp32ControlUI.h"
+#include "faust/gui/Esp32SensorUI.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -89,7 +90,8 @@ class Gramophone
     
         esp32audio* fAudio;
         dsp* fDSP;
-        Esp32UI* fControlUI;
+        Esp32ControlUI* fControlUI;
+        Esp32SensorUI* fSensorUI;
     
     public:
     
@@ -104,8 +106,11 @@ Gramophone::Gramophone(int sample_rate, int buffer_size)
 {
     fDSP = new mydsp();
     
-    fControlUI = new Esp32UI();
+    fControlUI = new Esp32ControlUI();
     fDSP->buildUserInterface(fControlUI);
+    
+    fSensorUI = new Esp32SensorUI();
+    fDSP->buildUserInterface(fSensorUI);
     
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
@@ -116,18 +121,21 @@ Gramophone::~Gramophone()
     stop();
     delete fDSP;
     delete fControlUI;
+    delete fSensorUI;
     delete fAudio;
 }
 
 bool Gramophone::start()
 {
     if (!fControlUI->start()) return false;
+    if (!fSensorUI->start()) return false;
     return fAudio->start();
 }
 
 void Gramophone::stop()
 {
     fControlUI->stop();
+    fSensorUI->stop();
     fAudio->stop();
 }
 
@@ -144,13 +152,13 @@ extern "C" void app_main()
     wm8978.lineinGain(0);
     
     // set gain
-    wm8978.spkVolSet(63); // [0-63]]
+    wm8978.spkVolSet(63); // [0-63]
     
     wm8978.hpVolSet(40,40);
     wm8978.i2sCfg(2,0);
     
     // Allocate and start Faust DSP
-    Gramophone* phone = new Gramophone(48000, 8);
+    Gramophone* phone = new Gramophone(48000, 32);
     phone->start();
     
     // Waiting forever
