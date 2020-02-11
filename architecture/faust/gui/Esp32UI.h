@@ -62,7 +62,7 @@ struct CtrlFilter {
     
     FAUSTFLOAT compute(FAUSTFLOAT input0)
     {
-        fRec0[0] = ((0.951229453f * fRec0[1]) + ((0.0487705767f * float(input0)));
+        fRec0[0] = ((0.951229453f * fRec0[1]) + ((0.0487705767f * float(input0))));
         float output0 = FAUSTFLOAT(fRec0[0]);
         fRec0[1] = fRec0[0];
         return output0;
