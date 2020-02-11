@@ -964,9 +964,8 @@ void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 
 void GraphCompiler::compileMultiSignal(Tree L)
 {
-    L                = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
-    Scheduling S     = schedule(INSTR);
+    L               = prepare(L);  // optimize, share and annotate expressions
+    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
 
     lookForChains(INSTR);
     InstructionsToClass(INSTR, fClass);
@@ -987,9 +986,8 @@ void GraphCompiler::compileMultiSignal(Tree L)
 
 void GraphCompiler::compileMultiSignalVec(Tree L)
 {
-    L                = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
-    
+    L               = prepare(L);  // optimize, share and annotate expressions
+    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
 
     lookForChains(INSTR);
     InstructionsToClass(INSTR, fClass);
@@ -1008,11 +1006,10 @@ void GraphCompiler::compileMultiSignalVec(Tree L)
     }
 }
 
-
 void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
 {
     compileGlobalTime(K);
-    Scheduling S     = schedule(I);
+    Scheduling S = schedule(I);
     for (Tree instr : S.fInitLevel) {
         compileSingleInstruction(K, instr);
     }
