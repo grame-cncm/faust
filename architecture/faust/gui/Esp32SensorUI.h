@@ -33,7 +33,7 @@
 
 #include "faust/gui/APIUI.h"
 
-// To be used with Gramophone for accelerometers and gyroscope
+// To be used with Gramophone for accelerometer and gyroscope
 class Esp32SensorUI : public APIUI
 {
     private:
