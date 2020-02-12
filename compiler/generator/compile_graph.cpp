@@ -884,11 +884,11 @@ void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
     vector<digraph<Tree>>  VG = serialize(DG);
     for (digraph<Tree> g : VG) {
         vector<Tree> v = serialize(cut(g, 1));
-        Kl->openLoop("XYZ");
+        Kl->addExecCode(Statement("", "open for loop"));
         for (Tree i : v) {
             compileSingleInstruction(i, Kl);
         }
-        Kl->closeLoop(gGlobal->nil);
+        Kl->addExecCode(Statement("", "close for loop"));
     }
 }
 
