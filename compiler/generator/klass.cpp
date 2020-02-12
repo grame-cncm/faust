@@ -80,7 +80,7 @@ bool Klass::getLoopProperty(Tree sig, Loop*& l)
 void Klass::openLoop(const string& size)
 {
     fTopLoop = new Loop(fTopLoop, size);
-    // cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
+    cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
