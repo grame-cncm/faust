@@ -136,8 +136,8 @@ endif()
 if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
-	set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wshadow-all -Wno-unused-parameter")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra -Wshadow-all -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wshadow -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra -Wshadow -Wno-unused-parameter")
 endif()
 
 

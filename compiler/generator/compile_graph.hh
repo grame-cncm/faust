@@ -121,9 +121,10 @@ class GraphCompiler : public Compiler {
     virtual string generateCode(Tree sig);
 
     void InstructionsToClass(const set<Tree>& I, Klass* K);
+    void InstructionsToVectorClass(const set<Tree>& I, Klass* K);
     void InstructionsToMethod(const set<Tree>& I, Klass* K);
     void SchedulingToMethod(const Scheduling& S, Klass* K);
-    void compileSingleInstruction(Klass* K, Tree instr);
+    void compileSingleInstruction(Tree instr, Klass* K);
 
     string getFreshID(const string& prefix);
 

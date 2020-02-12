@@ -507,121 +507,6 @@ static Klass* graph2klass(const digraph<Tree>& G)
     return nullptr;
 }
 
-/**
- * @brief Schedule a set of instructions into init, block and
- * exec instruction sequences
- *
- * @param I the set of instructions to schedule
- * @return the sequential Scheduling
- */
-Scheduling GraphCompiler::schedule(const set<Tree>& I)
-{
-    digraph<Tree> G;  // the signal graph
-    Scheduling    S;
-
-    // 1) build the graph and the dictionnary
-    for (auto i : I) {
-        G.add(dependencyGraph(i));
-        // S.fDic.add(i);
-    }
-
-    digraph<Tree> T;  // the subgraph of control instructions (temporary)
-    digraph<Tree> K;  // the subgraph of init-time instructions
-    digraph<Tree> B;  // the subgraph of block-time instructions
-    digraph<Tree> E;  // the subgraph at sample-time instructions
-
-    // 2) split in three sub-graphs: K, B, E
-
-    splitgraph<Tree>(G, &isControl, T, E);
-    splitgraph<Tree>(T, &isInit, K, B);
-
-    // 3) fill the scheduling
-
-    // a) for the init and block level graph we know they don't have cycles
-    // and can be directly serialized
-    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
-    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
-
-    if (gGlobal->gCodeMode == 0) {
-        // b) for the sample level graph we have (probably) cycles
-        digraph<digraph<Tree>> DG = graph2dag(E);
-        vector<digraph<Tree>>  VG = serialize(DG);
-        for (digraph<Tree> g : VG) {
-            vector<Tree> v = serialize(cut(g, 1));
-            for (Tree i : v) {
-                S.fExecLevel.push_back(i);
-            }
-        }
-
-        // cerr << "Schedule 0 is \n" << S << endl;
-        return S;
-
-    } else if (gGlobal->gCodeMode == 1) {
-        // If we cut all connexions > 0 we should not have any cycles
-        vector<Tree> v = serialize(cut(E, 1));
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-
-        // cerr << "Schedule 1 is \n" << S << endl;
-        return S;
-
-    } else if (gGlobal->gCodeMode == 2) {
-        // If we cut all connexions > 0 we should not have any cycles
-        vector<vector<Tree>> P = parallelize(cut(E, 1));
-        for (auto l : P) {
-            for (Tree i : l) S.fExecLevel.push_back(i);
-        }
-
-        // cerr << "Schedule 2 is \n" << S << endl;
-        return S;
-
-    } else if (gGlobal->gCodeMode == 3) {
-        // we serialize from a set of output instructions
-        set<Tree> Outputs;
-        for (Tree instr : E.nodes()) {
-            int  n;
-            Tree exp;
-            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
-        }
-        vector<Tree> v = serialize2(cut(E, 1), Outputs);
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-        // cerr << "Schedule 3 is \n" << S << endl;
-        return S;
-    } else if (gGlobal->gCodeMode == 4) {
-        // we serialize from a set of table write instructions
-        set<Tree> tables;
-        for (Tree instr : E.nodes()) {
-            int  nature, tblsize;
-            Tree id, origin, init, idx, content;
-            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
-                tables.insert(instr);
-        }
-        vector<Tree> v = serialize2(cut(E, 1), tables);
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-        // cerr << "Schedule 4 is \n" << S << endl;
-        return S;
-    } else /*if (gGlobal->gCodeMode == 5)*/ {
-        // we serialize from a set of output instructions
-        set<Tree> Outputs;
-        for (Tree instr : E.nodes()) {
-            int  n;
-            Tree exp;
-            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
-        }
-        vector<Tree> v = serialize3(E, Outputs);
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-        // cerr << "Schedule 5 is \n" << S << endl;
-        return S;
-    }
-}
-
 /*****************************************************************************
  compileMultiSignal
  *****************************************************************************/
@@ -837,7 +722,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
  * @param K the class
  * @param instr the signal to compile
  */
-void GraphCompiler::compileSingleInstruction(Klass* K, Tree instr)
+void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
 {
     Tree id, origin, content, init, initval, idx;
     int  i, nature, dmax, tblsize;
@@ -923,6 +808,51 @@ static void compileGlobalTime(Klass* K)
     K->addPostCode(Statement("", "++time;"));
     K->addZone4("gTime = time;");
 }
+#if 0
+void GraphCompiler::compileMultiSignal(Tree L)
+{
+    L               = prepare(L);  // optimize, share and annotate expressions
+    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
+
+    lookForChains(INSTR);
+    InstructionsToClass(INSTR, fClass);
+    tableDependenciesGraph(INSTR);
+
+    generateMetaData();
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
+    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    if (fDescription) {
+        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
+
+    if (gGlobal->gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    }
+}
+#else
+void GraphCompiler::compileMultiSignal(Tree L)
+{
+    L               = prepare(L);  // optimize, share and annotate expressions
+    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
+
+    InstructionsToVectorClass(INSTR, fClass);
+    tableDependenciesGraph(INSTR);
+
+    generateMetaData();
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
+    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    if (fDescription) {
+        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
+
+    if (gGlobal->gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    }
+}
+#endif
+
 /**
  * @brief Transform a scheduling into a C++ class
  *
@@ -938,6 +868,61 @@ void GraphCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
     compileInsOuts(K);
     InstructionsToMethod(I, K);
 }
+
+void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
+{
+    compileInsOuts(Kl);
+    compileGlobalTime(Kl);
+
+    digraph<Tree> G = instructions2graph(I);
+
+    digraph<Tree> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree> K;  // the subgraph of init-time instructions
+    digraph<Tree> B;  // the subgraph of block-time instructions
+    digraph<Tree> E;  // the subgraph at sample-time instructions
+
+    // 2) split in three sub-graphs: K, B, E
+
+    splitgraph<Tree>(G, &isControl, T, E);
+    splitgraph<Tree>(T, &isInit, K, B);
+
+    // 3) fill the scheduling
+
+    // a) for the init and block level graph we know they don't have cycles
+    // and can be directly serialized
+    for (Tree i : serialize(K)) compileSingleInstruction(i, Kl);
+    for (Tree i : serialize(B)) compileSingleInstruction(i, Kl);
+
+    // b) for the sample level graph we have (probably) cycles
+    digraph<digraph<Tree>> DG = graph2dag(E);
+    vector<digraph<Tree>>  VG = serialize(DG);
+    for (digraph<Tree> g : VG) {
+        vector<Tree> v = serialize(cut(g, 1));
+        Kl->openLoop("XYZ");
+        for (Tree i : v) {
+            compileSingleInstruction(i, Kl);
+        }
+        Kl->closeLoop(gGlobal->nil);
+    }
+}
+
+void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
+{
+    compileGlobalTime(K);
+    Scheduling S = schedule(I);
+    for (Tree instr : S.fInitLevel) {
+        compileSingleInstruction(instr, K);
+    }
+
+    for (Tree instr : S.fBlockLevel) {
+        compileSingleInstruction(instr, K);
+    }
+
+    for (Tree instr : S.fExecLevel) {
+        compileSingleInstruction(instr, K);
+    }
+}
+
 /**
  * @brief Transforms a scheduling into method (a special klass)
  *
@@ -950,79 +935,130 @@ void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
     compileGlobalTime(K);
 
     for (Tree instr : S.fInitLevel) {
-        compileSingleInstruction(K, instr);
+        compileSingleInstruction(instr, K);
     }
 
     for (Tree instr : S.fBlockLevel) {
-        compileSingleInstruction(K, instr);
+        compileSingleInstruction(instr, K);
     }
 
     for (Tree instr : S.fExecLevel) {
-        compileSingleInstruction(K, instr);
+        compileSingleInstruction(instr, K);
     }
 }
 
-void GraphCompiler::compileMultiSignal(Tree L)
+/**
+ * @brief Schedule a set of instructions into init, block and
+ * exec instruction sequences
+ *
+ * @param I the set of instructions to schedule
+ * @return the sequential Scheduling
+ */
+Scheduling GraphCompiler::schedule(const set<Tree>& I)
 {
-    L                = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
-    Scheduling S     = schedule(INSTR);
+    digraph<Tree> G;  // the signal graph
+    Scheduling    S;
 
-    lookForChains(INSTR);
-    InstructionsToClass(INSTR, fClass);
-    tableDependenciesGraph(INSTR);
-
-    generateMetaData();
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-    if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    // 1) build the graph and the dictionnary
+    for (auto i : I) {
+        G.add(dependencyGraph(i));
+        // S.fDic.add(i);
     }
 
-    if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-        xout << fJSON.JSON();
-    }
-}
+    digraph<Tree> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree> K;  // the subgraph of init-time instructions
+    digraph<Tree> B;  // the subgraph of block-time instructions
+    digraph<Tree> E;  // the subgraph at sample-time instructions
 
-void GraphCompiler::compileMultiSignalVec(Tree L)
-{
-    L                = prepare(L);  // optimize, share and annotate expressions
-    set<Tree>  INSTR = ExpressionsListToInstructionsSet(L);
-    
+    // 2) split in three sub-graphs: K, B, E
 
-    lookForChains(INSTR);
-    InstructionsToClass(INSTR, fClass);
-    tableDependenciesGraph(INSTR);
+    splitgraph<Tree>(G, &isControl, T, E);
+    splitgraph<Tree>(T, &isInit, K, B);
 
-    generateMetaData();
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-    if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
-    }
+    // 3) fill the scheduling
 
-    if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-        xout << fJSON.JSON();
-    }
-}
+    // a) for the init and block level graph we know they don't have cycles
+    // and can be directly serialized
+    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
+    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
 
+    if (gGlobal->gCodeMode == 0) {
+        // b) for the sample level graph we have (probably) cycles
+        digraph<digraph<Tree>> DG = graph2dag(E);
+        vector<digraph<Tree>>  VG = serialize(DG);
+        for (digraph<Tree> g : VG) {
+            vector<Tree> v = serialize(cut(g, 1));
+            for (Tree i : v) {
+                S.fExecLevel.push_back(i);
+            }
+        }
 
-void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
-{
-    compileGlobalTime(K);
-    Scheduling S     = schedule(I);
-    for (Tree instr : S.fInitLevel) {
-        compileSingleInstruction(K, instr);
-    }
+        // cerr << "Schedule 0 is \n" << S << endl;
+        return S;
 
-    for (Tree instr : S.fBlockLevel) {
-        compileSingleInstruction(K, instr);
-    }
+    } else if (gGlobal->gCodeMode == 1) {
+        // If we cut all connexions > 0 we should not have any cycles
+        vector<Tree> v = serialize(cut(E, 1));
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
 
-    for (Tree instr : S.fExecLevel) {
-        compileSingleInstruction(K, instr);
+        // cerr << "Schedule 1 is \n" << S << endl;
+        return S;
+
+    } else if (gGlobal->gCodeMode == 2) {
+        // If we cut all connexions > 0 we should not have any cycles
+        vector<vector<Tree>> P = parallelize(cut(E, 1));
+        for (auto l : P) {
+            for (Tree i : l) S.fExecLevel.push_back(i);
+        }
+
+        // cerr << "Schedule 2 is \n" << S << endl;
+        return S;
+
+    } else if (gGlobal->gCodeMode == 3) {
+        // we serialize from a set of output instructions
+        set<Tree> Outputs;
+        for (Tree instr : E.nodes()) {
+            int  n;
+            Tree exp;
+            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+        }
+        vector<Tree> v = serialize2(cut(E, 1), Outputs);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+        // cerr << "Schedule 3 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 4) {
+        // we serialize from a set of table write instructions
+        set<Tree> tables;
+        for (Tree instr : E.nodes()) {
+            int  nature, tblsize;
+            Tree id, origin, init, idx, content;
+            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
+                tables.insert(instr);
+        }
+        vector<Tree> v = serialize2(cut(E, 1), tables);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+        // cerr << "Schedule 4 is \n" << S << endl;
+        return S;
+    } else /*if (gGlobal->gCodeMode == 5)*/ {
+        // we serialize from a set of output instructions
+        set<Tree> Outputs;
+        for (Tree instr : E.nodes()) {
+            int  n;
+            Tree exp;
+            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+        }
+        vector<Tree> v = serialize3(E, Outputs);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+        // cerr << "Schedule 5 is \n" << S << endl;
+        return S;
     }
 }
 
