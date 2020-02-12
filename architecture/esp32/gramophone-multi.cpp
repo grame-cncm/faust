@@ -96,7 +96,15 @@ GramophoneMulti::~GramophoneMulti()
 bool GramophoneMulti::start()
 {
     if (!fControlUI->start()) return false;
+    if (!fSensorUI->start()) return false;
     return fAudio->start();
+}
+
+void GramophoneMulti::stop()
+{
+    fControlUI->stop();
+    fSensorUI->stop();
+    fAudio->stop();
 }
 
 // Instantiate next DSP (assuming several DSPs are included with this file)
