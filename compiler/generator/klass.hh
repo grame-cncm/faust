@@ -100,10 +100,10 @@ class Klass  //: public Target
     Loop*           fTopLoop;       ///< active loops currently open
     property<Loop*> fLoopProperty;  ///< loops used to compute some signals
 
-    bool fVec;
+    // bool fVec;
 
    public:
-    Klass(const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
+    Klass(const string& name, const string& super, int numInputs, int numOutputs, bool __vec)  // = false)
         : fParentKlass(nullptr),
           fKlassName(name),
           fSuperKlassName(super),
@@ -111,8 +111,7 @@ class Klass  //: public Target
           fNumOutputs(numOutputs),
           fNumActives(0),
           fNumPassives(0),
-          fTopLoop(new Loop(nullptr, "count")),
-          fVec(__vec)
+          fTopLoop(new Loop(nullptr, "count"))
     {
     }
 

@@ -449,6 +449,7 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
  *
  */
 
+#if 0
 static void lookForChains(const set<Tree>& I)
 {
     digraph<Tree> G;  // the signal graph
@@ -477,6 +478,7 @@ static void lookForChains(const set<Tree>& I)
 
     cerr << "CHAIN: " << DC << endl;
 }
+#endif
 
 /**
  * @brief convert a set of instructions into a directed graph
@@ -489,22 +491,6 @@ static digraph<Tree> instructions2graph(const set<Tree>& I)
     digraph<Tree> G;  // the signal graph
     for (auto i : I) G.add(dependencyGraph(i));
     return G;
-}
-
-static Klass* graph2klass(const digraph<Tree>& G)
-{
-    // the subgraph of control instructions (temporary)
-    digraph<Tree> K;  // the subgraph of init-time instructions
-    digraph<Tree> B;  // the subgraph of block-time instructions
-    digraph<Tree> E;  // the subgraph at sample-time instructions
-
-    // 1) split in three sub-graphs: K, B, E
-    {
-        digraph<Tree> T;
-        splitgraph<Tree>(G, &isControl, T, E);
-        splitgraph<Tree>(T, &isInit, K, B);
-    }
-    return nullptr;
 }
 
 /*****************************************************************************
@@ -725,7 +711,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
 {
     Tree id, origin, content, init, initval, idx;
-    int  i, nature, dmax, tblsize;
+    int  i, nature, tblsize;
 
     if (isSigInstructionControlWrite(instr, id, origin, &nature, content)) {
         string ctype = nature2ctype(nature);
