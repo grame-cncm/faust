@@ -2,7 +2,7 @@
 
 The ESP32 is a cheap microcontroller developed and distributed by Espressif: <https://www.espressif.com/en/products/hardware/esp32/overview>. It is used at the heart of an increasing number of boards, especially for real-time DSP applications.
 
-## `faust2esp32 [-lib] [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>`
+ `faust2esp32 [-lib] [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>`
 
 `faust2esp32` can be used to turn a Faust program into an DSP engine for the ESP32. While new options are being added to it, the current (and only) way to use `faust2esp32` is by running:
 
@@ -18,7 +18,7 @@ which will generate a `.zip` package containing:
 Here are the available options:
 
 - `-lib to generate a package containing an object compatible with any ESP32 project`
-- `-gramophone to generate for GRAME Gramophone`
+- `-gramophone to generate files for GRAME Gramophone`
 - `-midi to activate MIDI control`
 - `-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices`
 
