@@ -24,17 +24,29 @@
  ************************************************************************
  ************************************************************************/
 
-// we require macro declarations
-#define FAUST_UIMACROS
+#include "faust/gui/meta.h"
+#include "faust/dsp/dsp.h"
+#include "faust/gui/UI.h"
 
-// but we will ignore most of them
-#define FAUST_ADDBUTTON(l,f)
-#define FAUST_ADDCHECKBOX(l,f)
-#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
-#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
-#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+#ifdef class_mydsp1
+#include "mydsp1.h"
+#endif
+
+#ifdef class_mydsp2
+#include "mydsp2.h"
+#endif
+
+#ifdef class_mydsp3
+#include "mydsp3.h"
+#endif
+
+#ifdef class_mydsp4
+#include "mydsp4.h"
+#endif
+
+#ifdef class_mydsp5
+#include "mydsp5.h"
+#endif
 
 #include <string>
 #include <stdio.h>
@@ -47,8 +59,6 @@
 #include "esp_spi_flash.h"
 #include "WM8978.h"
 
-#include "faust/gui/meta.h"
-#include "faust/dsp/dsp.h"
 #include "faust/gui/Esp32ControlUI.h"
 #include "faust/gui/Esp32SensorUI.h"
 
@@ -62,7 +72,7 @@ class GramophoneMulti
         esp32audio* fAudio;
         dsp* fDSP;
         Esp32ControlUI* fControlUI;
-        Esp32APIUI* fSensorUI;
+        Esp32SensorUI* fSensorUI;
         int fCurrent;
     
     public:
@@ -118,22 +128,32 @@ void GramophoneMulti::next()
     // Allocate DSP
     switch (fCurrent) {
         case 0:
+        #ifdef class_mydsp1
             fDSP = new mydsp1();
+        #endif
             break;
         case 1:
+        #ifdef class_mydsp2
             fDSP = new mydsp2();
+        #endif
             break;
         case 2:
+        #ifdef class_mydsp3
             fDSP = new mydsp3();
+        #endif
             break;
         case 3:
+        #ifdef class_mydsp4
             fDSP = new mydsp4();
+        #endif
             break;
         case 4:
+        #ifdef class_mydsp5
             fDSP = new mydsp5();
+        #endif
             break;
     }
-    fCurrent = (fCurrent+1) % 5;
+    fCurrent = (fCurrent+1) % gMydspCount;
     
     // Allocate control
     fControlUI = new Esp32ControlUI();
@@ -159,7 +179,7 @@ extern "C" void app_main()
     wm8978.lineinGain(0);
     
     // set gain
-    wm8978.spkVolSet(63); // [0-63]]
+    wm8978.spkVolSet(30); // [0-63]
     
     wm8978.hpVolSet(40,40);
     wm8978.i2sCfg(2,0);

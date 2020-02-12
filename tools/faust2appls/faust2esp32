@@ -23,6 +23,7 @@ LIB="0"
 #variables:
 NVOICES=0
 GRAMOPHONE="0"
+MULTI="0"
 POLY=""
 #EFFECT=""
 MIDIDEFS=""
@@ -37,8 +38,9 @@ echoHelp ()
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
     echo "Usage:"
-    echo "faust2esp32 [-lib] [-gramophone] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
+    echo "faust2esp32 [-lib] [-gramophone] [-multi] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
     echo "Use '-gramophone' to generate for GRAME Gramophone"
+    echo "Use '-multi' to generate for GRAME Gramophone in multi DSP mode"
     echo "Use '-midi' to activate MIDI control"
     echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it needs -midi option to enable MIDI"
     echo "Use no arguments for a simple effect"
@@ -54,20 +56,23 @@ echoHelp ()
 while [ $1 ]
 do
 	p=$1
-    # HELP
+    # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
 		echoHelp
 		exit 0
-    # -NVOICES:
+    # -nvoices:
     elif [ $p = "-nvoices" ]; then
     	shift
     	NVOICES=$1
-    # -MIDI
+    # -midi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="MIDI"
-    # -GRAMEPHONE
+    # -gramophone
     elif [ $p = "-gramophone" ]; then
         GRAMOPHONE=1
+    # -multi
+    elif [ $p = "-multi" ]; then
+        MULTI=1
     # Get dsp file
     elif [[ -f "$p" ]]; then
     	FILE="$p"
@@ -108,11 +113,33 @@ MODULENAME="${BASENAME%.dsp}"
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     if [ $GRAMOPHONE -eq 1 ]; then
-    	faust -uim -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    	if [ $MULTI -eq 1 ]; then
+    		count=0;
+    		echo "" > $MODULENAME/$MODULENAME.cpp
+    		faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/$MODULENAME.cpp && count=$((count+1))
+    		faust -pn mydsp2 -cn mydsp2 -i $OPTIONS $FILE -o "$MODULENAME/mydsp2.h" 2> /dev/null && echo "#define class_mydsp2" >> $MODULENAME/$MODULENAME.cpp && count=$((count+1))
+    		faust -pn mydsp3 -cn mydsp3 -i $OPTIONS $FILE -o "$MODULENAME/mydsp3.h" 2> /dev/null && echo "#define class_mydsp3" >> $MODULENAME/$MODULENAME.cpp && count=$((count+1))
+    		faust -pn mydsp4 -cn mydsp4 -i $OPTIONS $FILE -o "$MODULENAME/mydsp4.h" 2> /dev/null && echo "#define class_mydsp4" >> $MODULENAME/$MODULENAME.cpp && count=$((count+1))
+    		faust -uim -pn mydsp5 -cn mydsp5 -i $OPTIONS $FILE -o "$MODULENAME/mydsp5.h" 2> /dev/null && echo "#define class_mydsp5" >> $MODULENAME/$MODULENAME.cpp && count=$((count+1))
+    		echo "static int gMydspCount = $count;" >> $MODULENAME/$MODULENAME.cpp
+    		cat $FAUSTARCH/esp32/gramophone-multi.cpp >> $MODULENAME/$MODULENAME.cpp
+    	else
+    		faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    	fi
     else
-    	faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    	faust -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    	cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
+    	
+   		TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+    	echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+    	TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
+    	echo "$TMP" > $MODULENAME/$MODULENAME.h
+    	TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+    	echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+    	TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
+    	echo "$TMP" > $MODULENAME/$MODULENAME.h
     fi
-    cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
+    
     if [[ $DRIVER = "wm8978" ]]; then
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
@@ -123,14 +150,6 @@ if [ $LIB -eq 1 ]; then
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
     fi
-    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
-    echo "$TMP" > $MODULENAME/$MODULENAME.cpp
-    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
-    echo "$TMP" > $MODULENAME/$MODULENAME.h
-    TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
-    echo "$TMP" > $MODULENAME/$MODULENAME.cpp
-    TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
-    echo "$TMP" > $MODULENAME/$MODULENAME.h
     
     echo '// Options :' > "$MODULENAME/tmp.txt"
     if [ $NVOICES -gt 0 ]; then

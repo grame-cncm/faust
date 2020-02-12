@@ -103,7 +103,7 @@ class esp32audio : public audio {
                 i2s_write((i2s_port_t)0, &samples_data_out, MAX_CHAN*sizeof(float)*fBufferSize, &bytes_written, portMAX_DELAY);
             }
             
-            // Task has to deletdd itself beforee returning
+            // Task has to deleted itself beforee returning
             vTaskDelete(nullptr);
         }
     
@@ -122,7 +122,21 @@ class esp32audio : public audio {
     
         static void audioTaskHandler(void* arg)
         {
-            static_cast<esp32audio*>(arg)->audioTask<FAUST_INPUTS, FAUST_OUTPUTS>();
+            esp32audio* audio = static_cast<esp32audio*>(arg);
+            
+            if (audio->fNumInputs == 0 && audio->fNumOutputs == 1) {
+                audio->audioTask<0,1>();
+            } else if (audio->fNumInputs == 0 && audio->fNumOutputs == 2) {
+                audio->audioTask<0,2>();
+            } else if (audio->fNumInputs == 1 && audio->fNumOutputs == 1) {
+                audio->audioTask<1,1>();
+            } else if (audio->fNumInputs == 1 && audio->fNumOutputs == 2) {
+                audio->audioTask<1,2>();
+            } else if (audio->fNumInputs == 2 && audio->fNumOutputs == 1) {
+                audio->audioTask<2,1>();
+            } else if (audio->fNumInputs == 2 && audio->fNumOutputs == 2) {
+                audio->audioTask<2,2>();
+            }
         }
     
     public:
