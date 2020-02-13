@@ -38,6 +38,7 @@
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
+#include "faust/audio/esp32-dsp.h"
 
 // MIDI support
 #if MIDICTRL
@@ -64,9 +65,6 @@
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-// After generated C++ class to that FAUST_INPUTS and FAUST_OUTPUTS are defined
-#include "faust/audio/esp32-dsp.h"
 
 #if MIDICTRL
 std::list<GUI*> GUI::fGuiList;

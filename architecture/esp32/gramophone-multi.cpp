@@ -61,8 +61,6 @@
 
 #include "faust/gui/Esp32ControlUI.h"
 #include "faust/gui/Esp32SensorUI.h"
-
-// After generated C++ class to that FAUST_INPUTS and FAUST_OUTPUTS are defined
 #include "faust/audio/esp32-dsp.h"
 
 class GramophoneMulti
