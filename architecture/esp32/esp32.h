@@ -34,7 +34,7 @@
 class dsp;
 class esp32audio;
 class MapUI;
-#if MIDICTRL
+#ifdef MIDICTRL
 class MidiUI;
 class esp32_midi;
 #endif
@@ -44,9 +44,9 @@ class AudioFaust
     private:
     
         esp32audio* fAudio;
-        dsp* fDSP;
+    	dsp* fDSP;
         MapUI* fUI;
-    #if MIDICTRL
+    #ifdef MIDICTRL
         esp32_midi* fMIDIHandler;        
         MidiUI* fMIDIInterface;
     #endif

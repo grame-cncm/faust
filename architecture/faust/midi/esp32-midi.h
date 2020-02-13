@@ -68,57 +68,63 @@ class esp32_midi : public midi_handler {
                 int rxBytes = uart_read_bytes(UART_NUM_1, data, RX_BUF_SIZE, 1);
                 if (rxBytes > 0) {
                     for (int i = 0; i < rxBytes; i++) {
-                        parser.Parse((uchar)data[i], &message);
-                    }
-                    unsigned char status = message.GetStatus();
-                    if (status < 0xF0) { // channel/system message discriminator.
-                        unsigned char type = message.GetType();
-                        switch (type) {
-                            case 0x80: // Note Off
-                                handleKeyOff(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
-                                break;
-                            case 0x90: // Note On
-                                handleKeyOn(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
-                                break;
-                            case 0xA0: // Poly Key Pressure
-                                handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte2());
-                                break;
-                            case 0xB0: // Control Change
-                                handleCtrlChange(time, message.GetChannel(), message.GetController(), message.GetControllerValue());
-                                break;
-                            case 0xC0: // Program Change // No Bank Select in faust?
-                                handleProgChange(time, message.GetChannel(), message.GetPGValue());
-                                break;
-                            case 0xD0: // Channel Pressure
-                                handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
-                                break;
-                            case 0xE0: // Pitch Bend
-                                handlePitchWheel(time, message.GetChannel(), message.GetByte1(), message.GetByte2());
-                                break;
-                            default:
-                                break;
-                        }
-                    } else {
-                        switch (status) {
-                            case 0xF8: // Timing Clock
-                                handleClock(time);
-                                break;
-                            // We can consider start and continue as identical messages.
-                            case 0xFA: // Start
-                            case 0xFB: // Continue
-                                handleStart(time);
-                                break;
-                            case 0xFC: // Stop
-                                handleStop(time);
-                                break;
-                            case 0xF0: // SysEx Start
-                                // TODO
-                                break;
-                            case 0xF7: // SysEx Stop
-                                // TODO
-                                break;
-                            default:
-                                break;
+                        if (parser.Parse((uchar)data[i], &message)) {
+                            unsigned char status = message.GetStatus();
+                            if (status < 0xF0)
+                            { // channel/system message discriminator.
+                                unsigned char type = message.GetType();
+                                switch (type)
+                                {
+                                case 0x80: // Note Off
+                                    handleKeyOff(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
+                                    break;
+                                case 0x90: // Note On
+                                    handleKeyOn(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
+                                    break;
+                                case 0xA0: // Poly Key Pressure
+                                    handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte2());
+                                    break;
+                                case 0xB0: // Control Change
+                                    handleCtrlChange(time, message.GetChannel(), message.GetController(), message.GetControllerValue());
+                                    break;
+                                case 0xC0: // Program Change // No Bank Select in faust?
+                                    handleProgChange(time, message.GetChannel(), message.GetPGValue());
+                                    break;
+                                case 0xD0: // Channel Pressure
+                                    handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
+                                    break;
+                                case 0xE0: // Pitch Bend
+                                    handlePitchWheel(time, message.GetChannel(), message.GetByte1(), message.GetByte2());
+                                    break;
+                                default:
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                switch (status)
+                                {
+                                case 0xF8: // Timing Clock
+                                    handleClock(time);
+                                    break;
+                                // We can consider start and continue as identical messages.
+                                case 0xFA: // Start
+                                case 0xFB: // Continue
+                                    handleStart(time);
+                                    break;
+                                case 0xFC: // Stop
+                                    handleStop(time);
+                                    break;
+                                case 0xF0: // SysEx Start
+                                    // TODO
+                                    break;
+                                case 0xF7: // SysEx Stop
+                                    // TODO
+                                    break;
+                                default:
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -158,7 +164,7 @@ class esp32_midi : public midi_handler {
         bool startMidi()
         {
             // Start MIDI receive task
-            return (xTaskCreatePinnedToCore(processMidiHandler, "Faust MIDI Task", 2048, (void*)this, 5, &fProcessMidiHandle, 1) == pdPASS);
+            return (xTaskCreatePinnedToCore(processMidiHandler, "Faust MIDI Task", 4096, (void*)this, 5, &fProcessMidiHandle, 1) == pdPASS);
         }
 
         void stopMidi()

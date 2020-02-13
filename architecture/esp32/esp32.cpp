@@ -41,10 +41,16 @@
 #include "faust/audio/esp32-dsp.h"
 
 // MIDI support
-#if MIDICTRL
+#ifdef MIDICTRL
 #include "faust/gui/MidiUI.h"
 #include "faust/midi/esp32-midi.h"
 #endif
+
+// for polyphonic synths
+#ifdef NVOICES
+#include "faust/dsp/poly-dsp.h"
+#endif
+
 
 /******************************************************************************
  *******************************************************************************
@@ -66,23 +72,32 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-#if MIDICTRL
+#ifdef MIDICTRL
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
 AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 {
-    fDSP = new mydsp();
-    
     fUI = new MapUI();
-    fDSP->buildUserInterface(fUI);
-    
     fAudio = new esp32audio(sample_rate, buffer_size);
+    
+#ifdef NVOICES
+    int nvoices = NVOICES;
+    mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+    fDSP = dsp_poly;
+#else
+    fDSP = new mydsp();
+#endif
+    
+    fDSP->buildUserInterface(fUI);
     fAudio->init("esp32", fDSP);
-   
-#if MIDICTRL
+    
+#ifdef MIDICTRL
     fMIDIHandler = new esp32_midi();
+#ifdef NVOICES
+    fMIDIHandler->addMidiIn(dsp_poly);
+#endif
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
 #endif
@@ -93,8 +108,7 @@ AudioFaust::~AudioFaust()
     delete fDSP;
     delete fUI;
     delete fAudio;
-    
-#if MIDICTRL
+#ifdef MIDICTRL
     delete fMIDIInterface;
     delete fMIDIHandler;
 #endif
@@ -102,7 +116,7 @@ AudioFaust::~AudioFaust()
 
 bool AudioFaust::start()
 {
-#if MIDICTRL
+#ifdef MIDICTRL
     if (!fMIDIInterface->run()) return false;
 #endif
     return fAudio->start();
@@ -110,7 +124,7 @@ bool AudioFaust::start()
 
 void AudioFaust::stop()
 {
-#if MIDICTRL
+#ifdef MIDICTRL
     fMIDIInterface->stop();
 #endif
     fAudio->stop();
