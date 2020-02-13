@@ -34,6 +34,9 @@
 class dsp;
 class esp32audio;
 class MapUI;
+#ifdef NVOICES
+class mydsp_poly;
+#endif
 #if MIDICTRL
 class MidiUI;
 class esp32_midi;
@@ -44,7 +47,11 @@ class AudioFaust
     private:
     
         esp32audio* fAudio;
-        dsp* fDSP;
+    #ifdef NVOICES
+        mydsp_poly* dsp_poly;
+    #else
+    	dsp* fDSP;
+    #endif
         MapUI* fUI;
     #if MIDICTRL
         esp32_midi* fMIDIHandler;        

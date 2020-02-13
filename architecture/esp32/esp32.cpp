@@ -45,6 +45,12 @@
 #include "faust/midi/esp32-midi.h"
 #endif
 
+// for polyphonic synths
+#ifdef NVOICES
+#include "faust/dsp/poly-dsp.h"
+#endif
+
+
 /******************************************************************************
  *******************************************************************************
  
@@ -75,24 +81,40 @@ ztimedmap GUI::gTimedZoneMap;
 
 AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 {
-    fDSP = new mydsp();
-    
     fUI = new MapUI();
-    fDSP->buildUserInterface(fUI);
-    
     fAudio = new esp32audio(sample_rate, buffer_size);
+#ifdef NVOICES
+    int nvoices = NVOICES;
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+    dsp_poly->buildUserInterface(fUI);
+    fAudio->init("esp32", dsp_poly);
+#else
+    fDSP = new mydsp();
+    fDSP->buildUserInterface(fUI);
     fAudio->init("esp32", fDSP);
-   
+#endif
 #if MIDICTRL
     fMIDIHandler = new esp32_midi();
+#ifdef NVOICES
+    fMIDIHandler->addMidiIn(dsp_poly);
+#endif
     fMIDIInterface = new MidiUI(fMIDIHandler);
+#ifdef NVOICES
+    dsp_poly->buildUserInterface(fMIDIInterface);
+#else
     fDSP->buildUserInterface(fMIDIInterface);
+#endif
 #endif
 }
 
 AudioFaust::~AudioFaust()
 {
+#ifdef NVOICES
+    delete dsp_poly;
+#else
     delete fDSP;
+#endif
+
     delete fUI;
     delete fAudio;
     
