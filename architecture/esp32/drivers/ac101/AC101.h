@@ -30,7 +30,6 @@
 #include "esp_types.h"
 #include "esp_err.h"
 
-
 #define AC101_TAG  "AC101"
 
 // I2C 

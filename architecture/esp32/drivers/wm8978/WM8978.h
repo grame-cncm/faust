@@ -1,3 +1,9 @@
+/*******************************************************************************
+ I2C Configuration for a Wolfson WM8978 Audio Codec.
+ This file was written based on the information provided in the Codec Specs
+ and on the NuovotonDuino project: https://github.com/DFRobot/NuvotonDuino.
+ *******************************************************************************/
+
 #ifndef __WM8978_H
 #define __WM8978_H
 
@@ -10,24 +16,24 @@
 #define I2C_MASTER_FREQ_HZ 100000
 #define I2C_MASTER_TX_BUF_DISABLE 0
 #define I2C_MASTER_RX_BUF_DISABLE 0
- 
-#define WM8978_ADDR 0X1A	//WM8978
+
+#define WM8978_ADDR 0X1A    //WM8978
 
 #define WRITE_BIT I2C_MASTER_WRITE              /*!< I2C master write */
 #define ACK_CHECK_EN 0x1
- 
+
 #define EQ1_80Hz 0X00
 #define EQ1_105Hz 0X01
 #define EQ1_135Hz 0X02
-#define EQ1_175Hz	0X03
+#define EQ1_175Hz    0X03
 
-#define EQ2_230Hz	0X00
-#define EQ2_300Hz	0X01
-#define EQ2_385Hz	0X02
-#define EQ2_500Hz	0X03
+#define EQ2_230Hz    0X00
+#define EQ2_300Hz    0X01
+#define EQ2_385Hz    0X02
+#define EQ2_500Hz    0X03
 
-#define EQ3_650Hz	0X00
-#define EQ3_850Hz	0X01
+#define EQ3_650Hz    0X00
+#define EQ3_850Hz    0X01
 #define EQ3_1100Hz 0X02
 #define EQ3_14000Hz 0X03
 
@@ -43,7 +49,7 @@
 
 class WM8978
 {
-  public:
+public:
     uint8_t init(void);
     void initI2C(void);
     void addaCfg(uint8_t dacen,uint8_t adcen);
@@ -52,14 +58,14 @@ class WM8978
     void micGain(uint8_t gain);
     void lineinGain(uint8_t gain);
     void auxGain(uint8_t gain);
-    uint8_t writeReg(uint8_t reg,uint16_t val); 
+    uint8_t writeReg(uint8_t reg,uint16_t val);
     uint16_t readReg(uint8_t reg);
     void hpVolSet(uint8_t voll,uint8_t volr);
     void spkVolSet(uint8_t volx);
     void i2sCfg(uint8_t fmt,uint8_t len);
     void threeDSet(uint8_t depth);
-    void eq3DDir(uint8_t dir); 
-    void eq1Set(uint8_t cfreq,uint8_t gain); 
+    void eq3DDir(uint8_t dir);
+    void eq1Set(uint8_t cfreq,uint8_t gain);
     void eq2Set(uint8_t cfreq,uint8_t gain);
     void eq3Set(uint8_t cfreq,uint8_t gain);
     void eq4Set(uint8_t cfreq,uint8_t gain);

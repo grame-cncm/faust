@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+
 //START from WM8978
 #define I2C_MASTER_NUM I2C_NUM_1 /*!< I2C port number for master dev */
 #define I2C_MASTER_SCL_IO (gpio_num_t) 18//these may be wrong

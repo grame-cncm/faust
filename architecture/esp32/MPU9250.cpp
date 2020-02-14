@@ -1,9 +1,10 @@
-#include "MPU9250.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+
 #include "driver/i2c.h"
+#include "MPU9250.h"
 
 //magnetometer addresses
 #define AK8963_ADDRESS  0x0C
