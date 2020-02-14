@@ -651,9 +651,8 @@ faust.deleteDSPFactory = function (factory)
 { 
 	// The JS side is cleared
 	faust.factory_table[factory.sha_key] = null;
-	// The native C++ is cleared each time (freeWasmCModule has been already called in faust.compile)  
-	faust.deleteAllWasmCDSPFactories();
- };
+	// freeWasmCModule has been already called in faust.compile
+};
 
 // 'mono' DSP
 

@@ -39,7 +39,8 @@ declare name "High Order Ambisonics library";
 declare author "Pierre Guillot";
 declare author "Eliott Paris";
 declare author "Julien Colafrancesco";
-declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8";
+declare author "Wargreen";
+declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8, 2019 Wargreen";
 
 ma = library("maths.lib");
 si = library("signals.lib");
@@ -163,14 +164,14 @@ optimBasic(n) = par(i, 2*n+1, _);
 //
 // * `n`: the order
 //-----------------------------------------------------
-optimMaxRe(n)	= par(i, 2*n+1, optim(i, n, _))
+optimMaxRe(n) = par(i, 2*n+1, optim(i, n, _))
  with {
    	optim(i, n, _)= _ * cos(indexabs / (2*n+1) * ma.PI)
 	with {
 		numberOfharmonics = 2 *n + 1;
 		indexabs = (int)((i - 1) / 2 + 1);
 	};
- };
+};
 
 
 //----------------`(ho.)optimInPhase`-------------------------
@@ -195,7 +196,7 @@ with {
 		fact(0) = 1;
 		fact(n) = n * fact(n-1);
 	};
- };
+};
 
 
 //----------------`(ho.)wider`-------------------------
@@ -278,6 +279,149 @@ with {
 		gain3(i, j, a) = (_ * sin(a * indexabs)) * (j+1 == i) * (j != 0) * (i%2 == 0);
 	};
 };
+
+
+//----------------------------------------------------------------------------//
+//---------------------------- 3D functions ----------------------------------//
+//----------------------------------------------------------------------------//
+
+//----------------------`(ho.)encoder3D`---------------------------------
+// Ambisonic encoder. Encodes a signal in the circular harmonics domain
+// depending on an order of decomposition, an angle and an elevation.
+//
+// #### Usage
+//
+// ```
+// encoder3D(n, x, a, e) : _
+// ```
+//
+// Where:
+//
+// * `n`: the order
+// * `x`: the signal
+// * `a`: the angle
+// * `e`: the elevation
+//----------------------------------------------------------------
+
+encoder3D(N, x, theta, phi) = par(i, (N+1) * (N+1), x * y(degree(i), order(i), theta, phi))
+with {
+	// The degree l of the harmonic[l, m]	
+	degree(index)  = int(sqrt(index));
+	// The order m of the harmonic[l, m]	
+	order(index)   = int(index - int(degree(index) * int(degree(index) + 1)));
+
+	// The spherical harmonics
+	y(l, m, theta, phi) =  e(m, theta) * k(l, m) * p(l, m, cos(phi + PI * 0.5))
+	with {	
+		// The associated Legendre polynomial
+		// If l = 0   => p = 1
+		// If l = m   => p = -1 * (2 * (l-1) + 1) * sqrt(1 - cphi*cphi) * p(l-1, l-1, cphi)
+		// If l = m+1 => p = phi * (2 * (l-1) + 1) * p(l-1, l-1, cphi)
+		// Else => p = (cphi * (2 * (l-1) + 1) * p(l-1, abs(m), cphi) - ((l-1) + abs(m)) * p(l-2, abs(m), cphi)) / ((l-1) - abs(m) + 1)
+		p(l, m, cphi) = pcalcul(((l != 0) & (l == abs(m))) + ((l != 0) & (l == abs(m)+1)) * 2 + ((l != 0) & (l != abs(m)) & (l != abs(m)+1)) * 3, l, m, cphi)
+		with {
+			pcalcul(0, l, m, cphi) = 1;
+			pcalcul(1, l, m, cphi) = -1 * (2 * (l-1) + 1) * sqrt(1 - cphi*cphi) * p(l-1, l-1, cphi);
+			pcalcul(2, l, m, cphi) = cphi * (2 * (l-1) + 1) * p(l-1, l-1, cphi);
+			pcalcul(s, l, m, cphi) = (cphi * (2 * (l-1) + 1) * p(l-1, abs(m), cphi) - ((l-1) + abs(m)) * p(l-2, abs(m), cphi)) / ((l-1) - abs(m) + 1);
+		};	
+
+		// The exponential imaginary
+		// If m > 0 => e^i*m*theta = cos(m * theta)
+		// If m < 0 => e^i*m*theta = sin(-m * theta)
+		// If m = 0 => e^i*m*theta = 1
+		e(m, theta) = ecalcul((m > 0) * 2 + (m < 0), m, theta)
+		with {
+			ecalcul(2, m, theta) = cos(m * theta);
+			ecalcul(1, m, theta) = sin(abs(m) * theta);
+			ecalcul(s, m, theta) = 1;
+		}; 
+		
+		// The normalization
+		// If m  = 0 => k(l, m) = 1
+		// If m != 0 => k(l, m) = sqrt((l - abs(m))! / l + abs(m))!) * sqrt(2)
+		k(l, m) = kcalcul((m != 0), l, m)
+		with {	
+			kcalcul(0, l, m) = 1;
+			kcalcul(1, l, m) = sqrt(fact(l - abs(m)) / fact(l + abs(m))) * sqrt(2)
+			with {
+				fact(0) = 1;
+				fact(n) = n * fact(n-1);
+			};
+		};		
+	};
+};
+
+
+//----------------`(ho.)optimBasic3D`-------------------------
+// The basic optimization has no effect and should be used for a perfect
+// sphere of loudspeakers with one listener at the perfect center loudspeakers
+// array.
+//
+// #### Usage
+//
+// ```
+// _ : optimBasic3D(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the order
+//-----------------------------------------------------
+
+optimBasic3D(N) = par(i, (N+1) * (N+1), _);
+
+
+//----------------`(ho.)optimMaxRe3D`-------------------------
+// The maxRe optimization optimize energy vector. It should be used for an
+// auditory confined in the center of the loudspeakers array.
+//
+// #### Usage
+//
+// ```
+// _ : optimMaxRe3D(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the order
+//-----------------------------------------------------
+
+optimMaxRe3D(N) = par(i, (N+1) * (N+1), MaxRe(N, degree(i), _))
+with {
+	// The degree l of the harmonic[l, m]	
+	degree(index)  = int(sqrt(index));
+   	MaxRe(N, l, _)= _ * cos(l  / (2*N+2) * PI);
+};
+
+
+//----------------`(ho.)optimInPhase3D`-------------------------
+//  The inPhase Optimization optimize energy vector and put all loudspeakers signals
+// in phase. It should be used for an auditory.
+//
+// #### Usage
+//
+// ```
+// _ : optimInPhase3D(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the order
+//-----------------------------------------------------
+
+optimInPhase3D(N) = par(i, (N+1) * (N+1), InPhase(N, degree(i), _))
+with {
+	// The degree l of the harmonic[l, m]	
+	degree(index)  = int(sqrt(index));
+   	InPhase(N, l, _)= _ * (fact(N) * fact(N)) / (fact(N - l) * fact(N + l))
+	with {
+		fact(0) = 1;
+		fact(n) = n * fact(n-1);
+	};
+};
+
+
 //#################################### compressors.lib ####################################
 // A library of compressor effects. Its official prefix is `co`.
 //########################################################################################
@@ -317,10 +461,540 @@ closed source license or any other license if you decide so.
 ba = library("basics.lib");
 si = library("signals.lib");
 an = library("analyzers.lib");
-
+ro = library("routes.lib");
 
 declare name "Faust Compressor Effect Library";
 declare version "0.0";
+//=============================Functions Reference========================================
+//========================================================================================
+
+//--------------------`(co.)peak_compression_gain_mono`-------------------
+// Mono dynamic range compressor gain computer.
+// `peak_compression_gain_mono` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// _ : peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost) : _
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+
+// Author: Bart Brouns
+// License: GPLv3
+
+// note: si.lag_ud has a bug where if you compile with standard precision,
+// down is 0 and prePost is 1, you go into infinite GR and stay there
+peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost) =
+  abs:ba.bypass(prePost,si.lag_ud(att,rel)) : ba.linear2db : gain_computer(strength,thresh,knee):ba.bypass((prePost*-1)+1,si.lag_ud(rel,att)) : ba.db2linear
+with {
+  gain_computer(strength,thresh,knee,level) =
+    select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
+            0,
+            ((level-thresh+(knee/2)):pow(2)/(2*knee)) ,
+            (level-thresh)
+           ) : max(0)*-strength;
+};
+
+
+//--------------------`(co.)peak_compression_gain_N_chan`-------------------
+// N channel dynamic range compressor gain computer.
+// `peak_compression_gain_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+// generalise compression gains for N channels.
+// first we define a mono version:
+peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,1) =
+  peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost);
+
+// The actual N-channel version:
+// Calculate the maximum gain reduction of N channels,
+// and then crossfade between that and each channel's own gain reduction,
+// to link/unlink channels
+peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
+  par(i, N, peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost))
+  <:(si.bus(N),(ba.minimum(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(ba.crossfade(link)));
+
+
+//--------------------`(co.)FFcompressor_N_chan`-------------------
+// feed forward N channel dynamic range compressor.
+// `FFcompressor_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : FFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `meter`: a gain reduction meter. It can be implemented like so:
+// meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+// feed forward compressor
+FFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
+  (si.bus(N) <:
+    (peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N),si.bus(N))
+  )
+  :(ro.interleave(N,2):par(i,N,meter*_));
+
+//--------------------`(co.)FBcompressor_N_chan`-------------------
+// feed back N channel dynamic range compressor.
+// `FBcompressor_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `meter`: a gain reduction meter. It can be implemented like so:
+// meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
+  (
+    (peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N),si.bus(N))
+    :(ro.interleave(N,2):par(i,N,meter*_))
+  )~si.bus(N);
+
+//--------------------`(co.)FFFBcompressor_N_chan`-------------------
+// feed forward / feed back N channel dynamic range compressor.
+// the feedback part has a much higher strength, so they end up sounding similar
+// `FFFBcompressor_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : FFFBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `FFFB`: fade between feed forward (0) and feed back (1) compression.
+// * `meter`: a gain reduction meter. It can be implemented like so:
+// meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) =
+  si.bus(N) <: si.bus(N*2):
+  (
+    ((
+      (par(i, 2, peak_compression_gain_N_chan(strength*(1+((i==0)*2)),thresh,att,rel,knee,prePost,link,N)):ro.interleave(N,2):par(i, N, ba.crossfade(FBFF)))
+      ,si.bus(N))
+      :(ro.interleave(N,2):par(i,N,meter*_))
+    )~si.bus(N)
+  );
+
+
+//--------------------`(co.)RMS_compression_gain_mono`-------------------
+// Mono RMS dynamic range compressor gain computer.
+// `RMS_compression_gain_mono` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// _ : RMS_compression_gain_mono(strength,thresh,att,rel,knee,prePost) : _
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+RMS_compression_gain_mono(strength,thresh,att,rel,knee,prePost) =
+  RMS(rel): ba.bypass(prePost,si.lag_ud(att,0)) : ba.linear2db : gain_computer(strength,thresh,knee) : ba.bypass((prePost*-1)+1,si.lag_ud(0,att)) : ba.db2linear
+with {
+  gain_computer(strength,thresh,knee,level) =
+    select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
+            0,
+            ((level-thresh+(knee/2)):pow(2)/(2*knee)) ,
+            (level-thresh)
+           ) : max(0)*-strength;
+  	RMS(time) = ba.slidingRMS(s) with { s = ba.sec2samp(time):int:max(1); };
+};
+
+//--------------------`(co.)RMS_compression_gain_N_chan`-------------------
+// RMS N channel dynamic range compressor gain computer.
+// `RMS_compression_gain_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,1) =
+  RMS_compression_gain_mono(strength,thresh,att,rel,knee,prePost);
+
+RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
+  par(i, N, RMS_compression_gain_mono(strength,thresh,att,rel,knee,prePost))
+  <:(si.bus(N),(ba.minimum(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(ba.crossfade(link)));
+
+
+//--------------------`(co.)RMS_FFFBcompressor_N_chan`-------------------
+// RMS feed forward / feed back N channel dynamic range compressor.
+// the feedback part has a much higher strength, so they end up sounding similar
+// `RMS_FFFBcompressor_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : RMS_FFFBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// * `prePost`: places the level detector either at the input or after the gain computer;
+// this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `FFFB`: fade between feed forward (0) and feed back (1) compression.
+// * `meter`: a gain reduction meter. It can be implemented like so:
+// meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// to save CPU we cheat a bit, in a similar way as in the original libs:
+// instead of crosfading between two sets of gain calculators as above,
+// we take the abs of the audio from both the FF and FB, and crossfade between those,
+// and feed that into one set of gain calculators
+// again the strength is much higher when in FB mode, but implemented differently
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) =
+  si.bus(N) <: si.bus(N*2):
+  (
+    (
+      (
+        (ro.interleave(N,2):par(i, N*2, abs) :par(i, N, ba.crossfade(FBFF)) : RMS_compression_gain_N_chan(strength*(1+(((FBFF*-1)+1)*1)),thresh,att,rel,knee,prePost,link,N))
+        ,si.bus(N)
+      )
+    :(ro.interleave(N,2):par(i,N,meter*_))
+    )~si.bus(N)
+  );
+
+
+//--------------------`(co.)RMS_FBcompressor_peak_limiter_N_chan`-------------------
+// N channel RMS feed back compressor into peak limiter feeding back into the FB compressor.
+// By combining them this way, they complement each other optimally:
+// The RMS compressor doesn't have to deal with the peaks,
+// and the peak limiter get's spared from the steady state signal.
+// the feedback part has a much higher strength, so they end up sounding similar
+// `RMS_FBcompressor_peak_limiter_N_chan` is a standard Faust function
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,N) : si.bus(N)
+// ```
+//
+// Where:
+//
+// * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
+// * `thresh`: dB level threshold above which compression kicks in
+// * `threshLim`: dB level threshold above which the brick wall limiter kicks in
+// * `att`: attack time = time constant (sec) when level & compression going up
+// this is also used as the release time of the limiter
+// * `rel`: release time = time constant (sec) coming out of compression
+// * `knee`: a gradual increase in gain reduction around the threshold:
+// Below thresh-(knee/2) there is no gain reduction,
+// above thresh+(knee/2) there is the same gain reduction as without a knee,
+// and in between there is a gradual increase in gain reduction.
+// the limiter uses a knee half this size
+// * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
+// * `meter`: a gain reduction meter. It can be implemented like so:
+// meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// * `N`: the number of channels of the compressor
+
+// It uses a strength parameter instead of the traditional ratio, in order to be able to
+// function as a hard limiter.
+// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+
+// Sometimes even bigger ratios are usefull:
+// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
+
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * Digital Dynamic Range Compressor Design
+// A Tutorial and Analysis
+// DIMITRIOS GIANNOULIS (Dimitrios.Giannoulis@eecs.qmul.ac.uk)
+// MICHAEL MASSBERG (michael@massberg.org)
+// AND JOSHUA D. REISS (josh.reiss@eecs.qmul.ac.uk)
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+
+RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,N) =
+  (
+    (
+      (
+        (RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,0,link,N))
+        ,si.bus(N)
+      ):(ro.interleave(N,2):par(i,N,meter*_))
+    ):FFcompressor_N_chan(1,threshLim,0,att:min(rel),knee*0.5,0,link,meter,N)
+  )~si.bus(N);
+
+
+//=============================Backward compatibility section=============================
+//========================================================================================
+// These functions are superseded by the ones above.
+// They are included for backward compatibility.
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -506,6 +1180,7 @@ closed source license or any other license if you decide so.
 ma = library("maths.lib");
 ro = library("routes.lib");
 ba = library("basics.lib"); // so functions here can be copy/pasted out
+fi = library("filters.lib");
 
 declare name "Faust Basic Element Library";
 declare version "0.1";
@@ -636,8 +1311,19 @@ Michon and Julius O. Smith III, and are released under the
 //
 // * `tau`: time-constant in seconds
 //-----------------------------
-tau2pole(tau) = exp(-1.0/(tau*ma.SR));
+// tau2pole(tau) = exp(-1.0/(tau*ma.SR));
 
+tau2pole(tau) = ba.if(clipCond, 0.0, exp(-1.0/(tauCenterClipped*float(ma.SR)))) with {
+ clipCond = abs(tau)<ma.EPSILON;
+ tauCenterClipped = ba.if(clipCond, 1.0, tau); // 1.0 can be any nonzero value (not used)
+};
+
+/*
+tau2poleDouble(tau) = ba.if(clipCond, 0.0, exp(-1.0/(tauCenterClipped*float(ma.SR)))) with {
+ clipCond = abs(tau)<2.3e-16;
+ tauCenterClipped = ba.if(clipCond, 1.0, tau); // 1.0 can be any nonzero value (not used)
+};
+*/
 
 //-------`(ba.)pole2tau`----------
 // Returns the time-constant, in seconds, corresponding to the given real,
@@ -783,7 +1469,7 @@ FAUST library file, GRAME section 2
 // * `n`: the starting point of the countdown
 // * `trig`: the trigger signal (1: start at `n`; 0: decrease until 0)
 //-----------------------------------------------------------------------------
-countdown(n, trig)	= \(c).(if(trig>0, n, max(0, c-1))) ~_;
+countdown(n, trig) = \(c).(if(trig>0, n, max(0, c-1))) ~_;
 
 
 //----------------------------`(ba.)countup`--------------------------------
@@ -1131,17 +1817,19 @@ subseq(head, 0, n)         = head;
 //========================================================================================
 
 //-----------------------------`(ba.)if`-----------------------------------
-// if-then-else implemented with a select2.
+// if-then-else implemented with a select2. WARNING : since select2 is strict (always evaluating both branches),
+// the resulting if does not have the usual "lazy" semantic of the C if form, and thus cannot be used to 
+// protect against forbidden computations like division-by-zero for instance.
 //
 // #### Usage
 //
-// *   `if(c, t, e) : _`
+// *   `if(cond, then, else) : _`
 //
 // Where:
 //
-// * `c`: condition
-// * `t`: signal selected while c is true
-// * `e`: signal selected while c is false
+// * `cond`: condition
+// * `cond`: signal selected while c is true
+// * `else`: signal selected while c is false
 //-----------------------------------------------------------------------------
 if(cond,then,else) = select2(cond,else,then);
 // TODO: perhaps it would make more sense to have an if(a,b) and an ifelse(a,b,c)?
@@ -1651,11 +2339,14 @@ selectoutn(n, s) = _ <: par(i, n, *(s==i));
 // Provides various operations on the last N samples using a high order
 // `slidingReduce(op,N,maxN,disabledVal,x)`` fold-like function:
 //
-// * `slidingSumN(n,maxn)`: the sliding sum of the last n input samples
-// * `slidingMaxN(n,maxn)`: the sliding max of the last n input samples
-// * `slidingMinN(n,maxn)`: the sliding min of the last n input samples
-// * `slidingMeanN(n,maxn)`: the sliding mean of the last n input samples
-// * `slidingRMSn(n,maxn)`: the sliding RMS of the last n input samples
+// * `slidingSum(n)`: the sliding sum of the last n input samples, CPU-light
+// * `slidingSump(n,maxn)`: the sliding sum of the last n input samples, numerically stable "forever"
+// * `slidingMax(n,maxn)`: the sliding max of the last n input samples
+// * `slidingMin(n,maxn)`: the sliding min of the last n input samples
+// * `slidingMean(n)`: the sliding mean of the last n input samples, CPU-light
+// * `slidingMeanp(n,maxn)`: the sliding mean of the last n input samples, numerically stable "forever"
+// * `slidingRMS(n)`: the sliding RMS of the last n input samples, CPU-light
+// * `slidingRMSp(n,maxn)`: the sliding RMS of the last n input samples, numerically stable "forever"
 //
 // #### Working Principle
 //
@@ -1854,17 +2545,17 @@ with {
       (1,x) => x;
       (N,x) => op(fixedDelayOp(N/2,x), fixedDelayOp(N/2,x)@(N/2));
     };
-    
+
     // The sum of all the sizes of the previous blocks
     sumOfPrevBlockSizes(N,maxN,0) = 0;
     sumOfPrevBlockSizes(N,maxN,i) = (subseq((allBlockSizes(N,maxN)),0,i):>_);
     allBlockSizes(N,maxN) = par(i, maxNrBits, (pow2(i)) * isUsed(i));
     maxNrBits = int2nrOfBits(maxN);
-    
+
     // Apply <op> to <N> parallel input signals
     combine(2) = op;
     combine(N) = op(combine(N-1),_);
-    
+
     // Decide wether or not to use a certain value, based on N
     // Basically only the second <select2> is needed,
     // but this version also works for N == 0
@@ -1875,7 +2566,7 @@ with {
         select2(isUsed(i), disabledVal,_),
         _
       );
-      
+
     // useVal(i) =
     //     select2(isUsed(i), disabledVal,_);
     isUsed(i) = take(i+1,(int2bin(N,maxN)));
@@ -1891,14 +2582,33 @@ with {
     int2nrOfBits(maxN) = int(floor(log(maxN)/log(2))+1);
 };
 
-
-//------------------------------`(ba.)slidingSumN`------------------------------
+//------------------------------`(ba.)slidingSum`------------------------------
 // The sliding sum of the last n input samples.
+//
+// It will eventually run into numerical trouble when there is a persistent dc component.
+// If that matters in your application, use the more CPU-intensive (ba.)slidingSump.
 //
 // #### Usage
 //
 // ```
-// _ : slidingSumN(N,maxN) : _
+// _ : slidingSum(N) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of values to process
+//------------------------------------------------------------------------------
+slidingSum(n) = fi.integrator <: _, _@int(max(0,n)) :> -;
+
+//------------------------------`(ba.)slidingSump`------------------------------
+// The sliding sum of the last n input samples.
+//
+// It uses a lot more CPU then (ba.)slidingSum(n,maxn), but is numerically stable "forever" in return.
+//
+// #### Usage
+//
+// ```
+// _ : slidingSump(N,maxN) : _
 // ```
 //
 // Where:
@@ -1906,16 +2616,16 @@ with {
 // * `N`: the number of values to process
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
-slidingSumN(n,maxn) = slidingReduce(+,n,maxn,0);
+slidingSump(n,maxn) = slidingReduce(+,n,maxn,0);
 
 
-//----------------------------`(ba.)slidingMaxN`--------------------------------
+//----------------------------`(ba.)slidingMax`--------------------------------
 // The sliding maximum of the last n input samples.
 //
 // #### Usage
 //
 // ```
-// _ : slidingMaxN(N,maxN) : _
+// _ : slidingMax(N,maxN) : _
 // ```
 //
 // Where:
@@ -1923,16 +2633,15 @@ slidingSumN(n,maxn) = slidingReduce(+,n,maxn,0);
 // * `N`: the number of values to process
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
-slidingMaxN(n,maxn) = slidingReduce(max,n,maxn,-(ma.INFINITY));
+slidingMax(n,maxn) = slidingReduce(max,n,maxn,-(ma.INFINITY));
 
-
-//---------------------------`(ba.)slidingSumN`---------------------------------
+//----------------------------`(ba.)slidingMin`--------------------------------
 // The sliding minimum of the last n input samples.
 //
 // #### Usage
 //
 // ```
-// _ : slidingMinN(N,maxN) : _
+// _ : slidingMin(N,maxN) : _
 // ```
 //
 // Where:
@@ -1940,16 +2649,35 @@ slidingMaxN(n,maxn) = slidingReduce(max,n,maxn,-(ma.INFINITY));
 // * `N`: the number of values to process
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
-slidingMinN(n,maxn) = slidingReduce(min,n,maxn,ma.INFINITY);
+slidingMin(n,maxn) = slidingReduce(min,n,maxn,ma.INFINITY);
 
-
-//----------------------------`(ba.)slidingMeanN`-------------------------------
+//----------------------------`(ba.)slidingMean`-------------------------------
 // The sliding mean of the last n input samples.
 //
+// It will eventually run into numerical trouble when there is a persistent dc component.
+// If that matters in your application, use the more CPU-intensive (ba.)slidinRMSp.
+//
 // #### Usage
 //
 // ```
-// _ : slidingMeanN(N,maxN) : _
+// _ : slidingMean(N,maxN) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of values to process
+//------------------------------------------------------------------------------
+slidingMean(n) = slidingSum(n)/n;
+
+//----------------------------`(ba.)slidingMeanp`-------------------------------
+// The sliding mean of the last n input samples.
+//
+// It uses a lot more CPU then (ba.)slidingMean(n,maxn), but is numerically stable "forever" in return.
+//
+// #### Usage
+//
+// ```
+// _ : slidingMeanp(N,maxN) : _
 // ```
 //
 // Where:
@@ -1957,16 +2685,37 @@ slidingMinN(n,maxn) = slidingReduce(min,n,maxn,ma.INFINITY);
 // * `N`: the number of values to process
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
-slidingMeanN(n,maxn) = slidingSumN(n,maxn)/n;
+slidingMeanp(n,maxn) = slidingSump(n,maxn)/n;
 
 
-//---------------------------`(ba.)slidingRMSn`---------------------------------
+//---------------------------`(ba.)slidingRMS`---------------------------------
 // The root mean square of the last n input samples.
 //
+// It will eventually run into numerical trouble when there is a persistent dc component.
+// If that matters in your application, use the more CPU-intensive (ba.)slidinRMSp.
+
+//
 // #### Usage
 //
 // ```
-// _ : slidingRMSn(N,maxN) : _
+// _ : slidingRMS(N) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of values to process
+//------------------------------------------------------------------------------
+slidingRMS(n) = pow(2):slidingMean(n) : sqrt;
+
+//---------------------------`(ba.)slidingRMSp`---------------------------------
+// The root mean square of the last n input samples.
+//
+// It uses a lot more CPU then (ba.)slidingRMS(n,maxn), but is numerically stable "forever" in return.
+//
+// #### Usage
+//
+// ```
+// _ : slidingRMSp(N,maxN) : _
 // ```
 //
 // Where:
@@ -1974,8 +2723,7 @@ slidingMeanN(n,maxn) = slidingSumN(n,maxn)/n;
 // * `N`: the number of values to process
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
-slidingRMSn(n,maxn) = pow(2):slidingMeanN(n,maxn) : sqrt;
-
+slidingRMSp(n,maxn) = pow(2):slidingMeanp(n,maxn) : sqrt;
 
 //////////////////////////////////Deprecated Functions////////////////////////////////////
 // This section implements functions that used to be in music.lib but that are now
@@ -3703,7 +4451,6 @@ with {
 //
 // * `p`: the arbitrary processor
 //----------------------------------------
-// NOTE: where are inputs and outputs declared?
 stereoize(p) = S(inputs(p), outputs(p))
 with {
 	// degenerated processor with no outputs
@@ -3786,7 +4533,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Envelope Library";
-declare version "0.0";
+declare version "0.1";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -3814,6 +4561,7 @@ si = library("signals.lib");
 //----------------------------------------------------------------
 // Author: RM
 smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
+
 
 //-----------------------`(en.)ar`--------------------------
 // AR (Attack, Release) envelope generator (useful to create percussion envelopes).
@@ -3864,18 +4612,6 @@ with {
     
 };
 
-/*
-// Author: RM
-ar(a,r,t) = cnt(totalTime,totalTime,on) : ba.bpf.start(0,0) :
-	ba.bpf.point(attTime,1) : ba.bpf.end(attTime+relTime,0)
-with{
-	cnt(count,init,trig) = \(c).(ba.if(trig>0,0,min(count, c+1)))~+(init-init');
-	on = (t-t')>0;
-	attTime = ma.SR*a;
-	relTime = ma.SR*r;
-	totalTime = attTime+relTime;
-};
-*/
 
 //------------------------`(en.)arfe`----------------------
 // ARFE (Attack and Release-to-Final-value Exponentially) envelope generator.
@@ -3904,6 +4640,7 @@ arfe(attT60,relT60,fv,gate) = envelope with {
   envelope = target : si.smooth(pole);
 };
 
+
 //------------------------`(en.)are`----------------------
 // ARE (Attack, Release) envelope generator with Exponential segments.
 // Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release.
@@ -3924,6 +4661,7 @@ arfe(attT60,relT60,fv,gate) = envelope with {
 // Author: JOS
 // License: STK-4.3
 are(attT60,relT60,gate) = arfe(attT60,relT60,0,gate);
+
 
 //------------------------`(en.)asr`----------------------
 // ASR (Attack, Sustain, Release) envelope generator.
@@ -3972,20 +4710,6 @@ with {
 
 };
 
-/*
-// Author: RM
-asr(a,s,r,t) = on*(as) : ba.sAndH(on) : rel
-with{
-	on = t>0;
-	off = t==0;
-	attTime = ma.SR*a;
-	relTime = ma.SR*r;
-	sustainGain = t*s;
-	as = ba.countup(attTime,off) : ba.bpf.start(0,0) :
-		ba.bpf.end(attTime,sustainGain);
-	rel = _,ba.countup(relTime,on) : ba.bpf.start(0) : ba.bpf.end(relTime,0);
-};
-*/
 
 //------------------------`(en.)adsr`----------------------
 // ADSR (Attack, Decay, Sustain, Release) envelope generator.
@@ -4042,30 +4766,6 @@ with {
 };
 
 
-//-----------------------------------------------------
-// Old version of ADSR (originally from music.lib)...
-/*
-adsr(a,d,s,r,t) = env ~ (_,_) : (!,_) // the 2 'state' signals are fed back
-with {
-    env (p2,y) =
-        (t>0) & (p2|(y>=1)),          // p2 = decay-sustain phase
-        (y + p1*u - (p2&(y>s))*v*y - p3*w*y)	// y  = envelop signal
-	*((p3==0)|(y>=eps)) // cut off tails to prevent denormals
-    with {
-		p1 = (p2==0) & (t>0) & (y<1);         // p1 = attack phase
-		p3 = (t<=0) & (y>0);                  // p3 = release phase
-		// #samples in attack, decay, release, must be >0
-		na = ma.SR*a+(a==0.0); nd = ma.SR*d+(d==0.0); nr = ma.SR*r+(r==0.0);
-		// correct zero sustain level
-		z = s+(s==0.0)*ba.db2linear(-60);
-		// attack, decay and (-60dB) release rates
-		u = 1/na; v = 1-pow(z, 1/nd); w = 1-1/pow(z*ba.db2linear(60), 1/nr);
-		// values below this threshold are considered zero in the release phase
-		eps = ba.db2linear(-120);
-    };
-};
-*/
-
 //------------------------`(en.)adsre`----------------------
 // ADSRE (Attack, Decay, Sustain, Release) envelope generator with Exponential 
 // segments.
@@ -4098,6 +4798,7 @@ adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
   envelope = target : si.smooth(pole);
 };
 
+
 //------------------------`(en.)asre`----------------------
 // ASRE (Attack, Sustain, Release) envelope generator with Exponential segments.
 //
@@ -4125,6 +4826,7 @@ asre(attT60,susLvl,relT60,gate) = envelope with {
   envelope = target : si.smooth(pole);
 };
 
+
 //----------------------`(en.)dx7envelope`----------------------
 // DX7 operator envelope generator with 4 independent rates and levels. It is
 // essentially a 4 points BPF.
@@ -4143,7 +4845,7 @@ asre(attT60,susLvl,relT60,gate) = envelope with {
 //-----------------------------------------------------
 // Author: RM
 dx7envelope(R1,R2,R3,R4,L1,L2,L3,L4,t) = up*on : ba.sAndH(on) : down
-with{
+with {
   on = t>0;
   off = t==0;
   rs1 = R1*ma.SR;
@@ -4201,6 +4903,8 @@ ma = library("maths.lib");
 ba = library("basics.lib");
 fi = library("filters.lib");
 
+// This library contains platform specific constants 
+pl = library("platform.lib");
 
 //=========================Wave-Table-Based Oscillators===================================
 //========================================================================================
@@ -4292,26 +4996,7 @@ with {
 //------------------------------------------------------------
 oscsin(freq) = rdtable(tablesize, sinwaveform(tablesize), int(phasor(tablesize,freq)))
 with {
-	tablesize = 1 << 16;
-};
-
-//-----------------------`(os.)oscsinteensy`------------------------
-// Sine wave oscillator.
-// `oscsinteensy` was made for teensy, it's based on `oscsin` with a shorter tablesize.
-//
-// #### Usage
-//
-// ```
-// oscsinteensy(freq) : _
-// ```
-//
-// Where:
-//
-// * `freq`: the frequency of the wave (Hz)
-//------------------------------------------------------------
-oscsinteensy(freq) = rdtable(tablesize, sinwaveform(tablesize), int(phasor(tablesize,freq)))
-with {
-	tablesize = 1 << 8;
+	tablesize = pl.tablesize;
 };
 
 //-----------------------`(os.)hs_oscsin`------------------------
@@ -4331,7 +5016,7 @@ with {
 // Author: Mike Olsen
 hs_oscsin(freq,c) = rdtable(tablesize, sinwaveform(tablesize), int(hs_phasor(tablesize,freq,c)))
 with {
-        tablesize = 1 << 16;
+	tablesize = pl.tablesize;
 };
 
 //-----------------------`(os.)osccos`------------------------
@@ -4349,7 +5034,7 @@ with {
 //------------------------------------------------------------
 osccos(freq) = rdtable(tablesize, coswaveform(tablesize), int(phasor(tablesize,freq)) )
 with {
-	tablesize = 1 << 16;
+	tablesize = pl.tablesize;
 };
 
 //-----------------------`(os.)oscp`------------------------
@@ -4383,7 +5068,7 @@ oscp(freq,p) = oscsin(freq) * cos(p) + osccos(freq) * sin(p);
 //------------------------------------------------------------
 osci(freq) = s1 + d * (s2 - s1)
 with {
-	tablesize = 1 << 16;
+	tablesize = pl.tablesize;
 	i = int(phasor(tablesize,freq));
 	d = ma.decimal(phasor(tablesize,freq));
 	s1 = rdtable(tablesize+1,sinwaveform(tablesize),i);
@@ -4718,7 +5403,6 @@ saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to 
 //--------------------------------------------------------
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
-
 //------------------`(os.)sawtooth`--------------------------------
 // Alias-free sawtooth wave. 2nd order interpolation (based
 // on `saw2`).
@@ -4756,7 +5440,6 @@ saw2f2 = saw2 : cf2 with {
         0.823765146386639, 0.117420665547108);
 };
 
-
 //------------------`(os.)saw2f4`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
@@ -4766,7 +5449,6 @@ saw2f4 = saw2 : cf4 with {
         (2.156834679164532, 1.559532244409321, 0.423036498118354,
         0.032080681130972));
 };
-
 
 //=========Bandlimited Pulse, Square, and Impulse Trains============
 // Bandlimited Pulse, Square, and Impulse Trains.
@@ -4815,7 +5497,6 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  del = max(0,min(delmax,ddel));
 };
 
-
 //------------------`(os.)pulsetrain`--------------------------------
 // Bandlimited pulse train oscillator. Based on `pulsetrainN(2)`.
 // `pulsetrain` is a standard Faust function.
@@ -4833,12 +5514,10 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
 //--------------------------------------------------------
 pulsetrain = pulsetrainN(2);
 
-
 //------------------`(os.)squareN`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 squareN(N,freq) = pulsetrainN(N,freq,0.5);
-
 
 //------------------`(os.)square`--------------------------------
 // Bandlimited square wave oscillator. Based on `squareN(2)`.
@@ -4856,7 +5535,6 @@ squareN(N,freq) = pulsetrainN(N,freq,0.5);
 //--------------------------------------------------------
 square = squareN(2);
 
-
 //------------------`(os.)impulse`--------------------------------
 // One-time impulse generated when the Faust process is started.
 // `impulse` is a standard Faust function.
@@ -4868,7 +5546,6 @@ square = squareN(2);
 // ```
 //--------------------------------------------------------
 impulse = 1-1';
-
 
 //------------------`(os.)imptrainN`--------------------------------
 // TODO: MarkDown doc in comments
@@ -4892,7 +5569,6 @@ imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 //--------------------------------------------------------
 imptrain = imptrainN(2); // default based on saw2
 
-
 //------------------`(os.)triangleN`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
@@ -4900,7 +5576,6 @@ triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
   gain = 4.0*freq/ma.SR; // for aproximate unit peak amplitude
   p = 0.999;
 };
-
 
 //------------------`(os.)triangle`--------------------------------
 // Bandlimited triangle wave oscillator. Based on `triangleN(2)`.
@@ -4917,7 +5592,6 @@ triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
 // * `freq`: frequency
 //--------------------------------------------------------
 triangle = triangleN(2); // default based on saw2
-
 
 //===============================Filter-Based Oscillators=================================
 // Filter-Based Oscillators
@@ -4974,7 +5648,6 @@ with {
 //------------------------------------------------------------
 oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 
-
 //--------------------------`(os.)oscrs`---------------------------
 // Sinusoidal (sine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
@@ -4995,7 +5668,6 @@ oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
 oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
-
 
 //--------------------------`(os.)oscrc`---------------------------
 // Sinusoidal (cosine) oscillator based on 2D vector rotation,
@@ -5021,7 +5693,6 @@ oscrc(f) = impulse : fi.nlf2(f,1) : !,_; // cosine
 oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for cosine, etc.
 oscr = oscrs; // default = sine (starts without a pop)
 
-
 //--------------------------`(os.)oscs`--------------------------------
 // Sinusoidal oscillator based on the state variable filter
 // = undamped "modified-coupled-form" resonator
@@ -5034,7 +5705,6 @@ with {
   sint(x) = *(x) : + ~ _ ; // frequency-scaled integrator
   sintp(x,y) = *(x) : +(y): + ~ _ ; // same + state input
 };
-
 
 //-----------------------`(os.)osc`------------------------
 // Default sine wave oscillator (same as [oscsin](#oscsin)).
@@ -5051,7 +5721,6 @@ with {
 // * `freq`: the frequency of the wave (Hz)
 //------------------------------------------------------------
 osc	= oscsin;
-
 
 //================ Waveguide-Resonator-Based Oscillators ================
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
@@ -5077,7 +5746,6 @@ osc	= oscsin;
 //------------------------------------------------------------
 oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 
-
 //-----------------`(os.)oscws`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude
 // sine oscillator.
@@ -5098,7 +5766,6 @@ oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 //------------------------------------------------------------
 oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 
-
 //-----------------`(os.)oscwq`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
 // Unit-amplitude cosine and sine (quadrature) oscillator.
@@ -5118,7 +5785,6 @@ oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 // * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
 oscq(fr) = impulse : fi.wgr(fr,1);       // phase quadrature outputs
-
 
 //-----------------`(os.)oscw`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
@@ -5181,7 +5847,6 @@ with {
 	tmp = (.5-(index*.5)):max(0.01):min(0.5);
 };
 
-
 //----------`(os.)CZsquare`----------
 // Oscillator that mimics the Casio CZ square oscillator
 // `CZsquare` is a standard Faust function.
@@ -5205,7 +5870,6 @@ CZsquare(fund, index) = (fund>=0.5), (ma.decimal((fund*2)+1)<:_-min(_,(-1*_+1)*(
 with {
 	INDEX = (index:pow(0.25)) * 0.98;
 };
-
 
 //----------`(os.)CZpulse`----------
 // Oscillator that mimics the Casio CZ pulse oscillator
@@ -5231,7 +5895,6 @@ with {
 	INDEX = index:min(0.99):max(0);
 };
 
-
 //----------`(os.)CZsinePulse`----------
 // Oscillator that mimics the Casio CZ sine/pulse oscillator
 // `CZsinePulse` is a standard Faust function.
@@ -5255,7 +5918,6 @@ CZsinePulse(fund, index) = (min(fund*((0.5-INDEX)/INDEX),(-1*fund+1)*((.5-INDEX)
 with {
 	INDEX = ((index*-0.49)+0.5);
 };
-
 
 //----------`(os.)CZhalfSine`----------
 // Oscillator that mimics the Casio CZ half sine oscillator
@@ -5281,7 +5943,6 @@ with {
 	INDEX = (.5-(index*0.5)):min(.5):max(.01);
 };
 
-
 //----------`(os.)CZresSaw`----------
 // Oscillator that mimics the Casio CZ resonant saw-tooth oscillator
 // `CZresSaw` is a standard Faust function.
@@ -5302,7 +5963,6 @@ with {
 // CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
 
 CZresSaw(fund,res) = (((-1*(1-fund))*((cos((ma.decimal((max(1,res)*fund)+1))*2*ma.PI)*-.5)+.5))*2)+1;
-
 
 //----------`(os.)CZresTriangle`----------
 // Oscillator that mimics the Casio CZ resonant triangle oscillator
@@ -5328,7 +5988,6 @@ with {
 	tmp = ((fund*(res:max(1)))+1:ma.decimal)*2*ma.PI:cos*.5+.5;
 };
 
-
 //----------`(os.)CZresTrap`----------
 // Oscillator that mimics the Casio CZ resonant trapeze oscillator
 // `CZresTrap` is a standard Faust function.
@@ -5349,6 +6008,88 @@ with {
 // CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
 
 CZresTrap(fund, res) = (((1-fund)*2):min(1)*sin(ma.decimal(fund*(res:max(1)))*2*ma.PI));
+
+//===============================PolyBLEP-Based Oscillators=================================
+
+//----------`(os.)polyblep`----------
+// PolyBLEP residual function - used for smoothing steps in the audio signal.
+//
+// #### Usage
+//
+// ```
+// polyblep(Q, phase) : _
+// ```
+//
+// Where:
+//
+// * `Q`: smoothing factor between 0 and 0.5. Determines how far from the ends of the phase interval the quadratic function is used.
+// * `phase`: normalised phase (between 0 and 1)
+//------------------------------------------------------------
+// Author: Jacek Wieczorek
+polyblep(Q, phase) = (0, L(phase / Q), R((phase - 1) / Q)) : select3(sel) 
+with {
+	sel = (phase < Q) + 2*(phase > 1 - Q);
+	L(x) = 2*x - x*x - 1; // Used near the left end of the interval
+	R(x) = 2*x + x*x + 1; // Used near the right end of the interval
+};
+
+//----------`(os.)polyblep_saw`----------
+// Sawtooth oscillator with suppressed aliasing (using polyBLEP)
+//
+// #### Usage
+//
+// ```
+// polyblep_saw(f) : _
+// ```
+//
+// Where:
+//
+// * `f`: frequency in Hz 
+//------------------------------------------------------------
+// Author: Jacek Wieczorek
+polyblep_saw(f) = naive - polyblep(Q , phase)
+with {
+	phase = phasor(1, f);
+	naive = 2 * phase - 1;
+	Q = f / ma.SR;
+};
+
+//----------`(os.)polyblep_square`----------
+// Square wave oscillator with suppressed aliasing (using polyBLEP)
+//
+// #### Usage
+//
+// ```
+// polyblep_square(f) : _
+// ```
+//
+// Where:
+//
+// * `f`: frequency in Hz 
+//------------------------------------------------------------
+// Author: Jacek Wieczorek
+polyblep_square(f) = naive - polyblep(Q, phase) + polyblep(Q, ma.modulo(phase + 0.5, 1))
+with {
+	phase = phasor(1, f);
+	naive = 2 * (phase * 2 : int) - 1;
+	Q = f / ma.SR;
+};
+
+//----------`(os.)polyblep_triangle`----------
+// Triangle wave oscillator with suppressed aliasing (using polyBLEP)
+//
+// #### Usage
+//
+// ```
+// polyblep_triangle(f) : _
+// ```
+//
+// Where:
+//
+// * `f`: frequency in Hz 
+//------------------------------------------------------------
+// Author: Jacek Wieczorek
+polyblep_triangle(f) = polyblep_square(f) : fi.pole(0.999) : *(4 * f / ma.SR);
 
 
 //===============================Filter-Based Oscillators=================================
@@ -6122,33 +6863,67 @@ echo5s  = vgroup("echo  5000", +~(de.delay(262144,  int(hslider("millisecond", 0
 echo10s = vgroup("echo 10000", +~(de.delay(524288,  int(hslider("millisecond", 0, 0,  10000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
 echo21s = vgroup("echo 21000", +~(de.delay(1048576, int(hslider("millisecond", 0, 0,  21000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
 echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0, 0,  43000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+//################################ version.lib ##########################################
+// Semantic versioning for the Faust libraries. Its official prefix is `vl`.
+//########################################################################################
+
+
+//---------------------------`(vl.)version`---------------------------
+// Return the version number of the Faust standard libraries. 
+//
+// #### Usage
+//
+// ```
+// version : _,_,_
+// ```
+//
+//------------------------------------------------------------
+version =   1, // MAJOR version when we make incompatible API changes,
+            0, // MINOR version when we add functionality in a backwards compatible manner,
+            1; // PATCH version when we make backwards compatible bug fixes.
+
+            
 /************************************************************************
- ************************************************************************
-    FAUST library file
-    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2.1 of the
-    License, or (at your option) any later version.
+************************************************************************
+FAUST library file
+Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
+---------------------------------------------------------------------
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with the GNU C Library; if not, write to the Free
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA.
- ************************************************************************
- ************************************************************************/
+You should have received a copy of the GNU Lesser General Public
+License along with the GNU C Library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+02111-1307 USA.
+
+EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
+larger FAUST program which directly or indirectly imports this library
+file and still distribute the compiled code generated by the FAUST
+compiler, or a modified version of this compiled code, under your own
+copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
+grants you the right to freely choose the license for the resulting
+compiled code. In particular the resulting compiled code has no obligation
+to be LGPL or GPL. For example you are free to choose a commercial or
+closed source license or any other license if you decide so.
+************************************************************************
+************************************************************************/
+
+//#################################### webaudio.lib ########################################
+//An implementation of the web audio API filters.  Its official prefix is `wa`.
+//########################################################################################
 
 declare name "WebAudio Library";
 declare author "GRAME";
 declare copyright "GRAME";
 declare version "0.1";
-declare license "LGPL";
+declare license "LGPL with exception";
 
 ma = library("maths.lib");
 fi = library("filters.lib");
@@ -7108,7 +7883,7 @@ dot(n) = interleave(n,2) : par(i,n,*) :> _;
 cross(n) = bus(n) <: par(i,n,selector(n-i-1,n));
 //################################ stdfaust.lib ##########################################
 // The purpose of this library is to give access to all the Faust standard libraries
-// through a series of environment.
+// through a series of environments.
 //########################################################################################
 
 an = library("analyzers.lib");
@@ -7135,7 +7910,9 @@ si = library("signals.lib");
 so = library("soundfiles.lib");
 sy = library("synths.lib");
 ve = library("vaeffects.lib");
+wa = library("webaudio.lib");
 sf = library("all.lib");
+vl = library("version.lib");
 //////////////////////////////////////////////////////////////////////////////////////////
 // WARNING: Deprecated Library!!
 // Read the README file in /libraries for more information
@@ -9420,7 +10197,7 @@ recursivize(p,q) = (_,_,_,_ :> sp.stereoize(p)) ~ sp.stereoize(q);
 /************************************************************************
 ************************************************************************
 FAUST library file
-Copyright (C) 2018-2019 GRAME, Centre National de Creation Musicale
+Copyright (C) 2018-2020 GRAME, Centre National de Creation Musicale
 ----------------------------------------------------------------------
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
@@ -9450,14 +10227,13 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Soundfile Library";
-declare version "0.6";
+declare version "0.7";
 
 ba = library("basics.lib");
 ma = library("maths.lib");
 si = library("signals.lib");
 ro = library("routes.lib");
 it = library("interpolators.lib");
-ru = library("runtime.lib");
 
 //=======================================================================
 // Utility functions added in a 'super' environment (to test the idea...)
@@ -9466,12 +10242,12 @@ ru = library("runtime.lib");
 super = environment {
 
     length(sf, part) = (part, 0) : sf : (_,si.block(outputs(sf)-1));  
-    srate(sf, part) = part, 0 : sf : !,_,si.block(outputs(sf)-2) : float;
+    srate(sf, part) = (part, 0) : sf : (!,_,si.block(outputs(sf)-2)) : float;
     outs(sf, level) = sf : si.block(2), bus(outputs(sf)-2) with { bus(n) = par(i,n,*(level)); };
 
     // Plays a soundfile
     // 'reader' in a function of type \(sf,part).(body) whih produces the (possibly fractional) read index
-    player(sf, part, reader, level) = (part, ru.int_part(reader(sf, part))) : outs(sf, level);
+    player(sf, part, reader, level) = (part, it.int_part(reader(sf, part))) : outs(sf, level);
 
     // Plays a soundfile with configurable interpolation
     player_interp(sf, part, reader, level, selector) = it.interpolator_select(gen, idv, selector)
@@ -9484,14 +10260,14 @@ super = environment {
      // Plays a soundfile with configurable interpolation and a reference frequence 'ref'
     play_interp(sf, part, ref, freq, level, gate, selector) = player_interp(sf, part, reader, level, selector)
     with {
-        reader(sf, part) = ru.raise(gate, step, length(sf, part)) with { step = freq/ref*srate(sf, part)/ma.SR; };
+        reader(sf, part) = it.raise(gate, step, length(sf, part)) with { step = freq/ref*srate(sf, part)/ma.SR; };
     };
 
     // Generic version
     loop_speed_level(sf, part, speed, level) = player(sf, part, reader, level)
     with {
         // A 'reader' which loops the sound with 'speed' and 'level' control
-        reader(sf, part) = ru.raise_modulo(1, step, length(sf, part)) with { step = speed*srate(sf, part)/ma.SR; };
+        reader(sf, part) = it.raise_modulo(1, step, length(sf, part)) with { step = speed*srate(sf, part)/ma.SR; };
     };
 
     // Defines 'loop_speed' as a specialized version of loop_speed_level with level = 1
@@ -9580,13 +10356,13 @@ sound(sf, part) = environment {
     // Play once
     play(level, gate) = super.player(sf, part, reader, level)
     with {
-        reader(sf, part) = ru.raise(gate, super.srate(sf, part)/ma.SR, super.length(sf, part));
+        reader(sf, part) = it.raise(gate, super.srate(sf, part)/ma.SR, super.length(sf, part));
     };
 
     // Play once in reverse
     play_rev(level, gate) = super.player(sf, part, reader, level)
     with {
-        reader(sf, part) = ru.decrease(gate, super.srate(sf, part)/ma.SR, super.length(sf, part));
+        reader(sf, part) = it.decrease(gate, super.srate(sf, part)/ma.SR, super.length(sf, part));
     };
 
     // Play sound once with configurable interpolation and freq control (using a 'ref' value)
@@ -9607,8 +10383,8 @@ sound(sf, part) = environment {
         
         step = super.srate(sf, part)/ma.SR;
         
-        ramp1(sf, part) = ru.raise(gate, step, super.length(sf, part));
-        ramp2(sf, part) = ru.decrease(gate, step, super.length(sf, part));
+        ramp1(sf, part) = it.raise(gate, step, super.length(sf, part));
+        ramp2(sf, part) = it.decrease(gate, step, super.length(sf, part));
         
         lramp = (ramp1, ramp2, ramp2, ramp2, ramp1);
     };
@@ -9625,6 +10401,7 @@ sample1 = so.sound(s1, 0);
 sample2 = so.sound(s1, 1);
 sample3 = so.sound(s1, 2);
 
+// Plays the sound in various ways
 sample1.loop;
 sample1.loop_speed(0.5);
 sample1.loop_speed_level(0.5, 0.5);
@@ -9633,8 +10410,8 @@ sample2.play(0.5, button("gate"));
 sample2.play_rev(0.5, button("gate"));
 sample2.play_alt(0.5, button("gate"), checkbox("alt"));
 
-sample3.play_interp(440.0, 600.0, 0.5, button("gate"), so.linear);
-sample3.play_interp(440.0, 800.0, en.ar(0.1, 0.8, button("gate")), button("gate"), so.cubic);
+sample3.play_interp(440.0, 600.0, 0.5, button("gate"), it.linear);
+sample3.play_interp(440.0, 800.0, en.ar(0.1, 0.8, button("gate")), button("gate"), it.cubic);
 
 play = button("gate");
 sample3.play_interp(440.0,
@@ -10101,81 +10878,6 @@ import("soundfiles.lib");
 import("spats.lib");
 import("synths.lib");
 import("vaeffects.lib");
-//#################################### float.lib ########################################
-// A library to handle float specific code in Faust.
-//########################################################################################
-
-/************************************************************************
-************************************************************************
-FAUST library file
-Copyright (C) 2019 GRAME, Centre National de Creation Musicale
-----------------------------------------------------------------------
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation; either version 2.1 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with the GNU C Library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA.
-
-EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
-larger FAUST program which directly or indirectly imports this library
-file and still distribute the compiled code generated by the FAUST
-compiler, or a modified version of this compiled code, under your own
-copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
-grants you the right to freely choose the license for the resulting
-compiled code. In particular the resulting compiled code has no obligation
-to be LGPL or GPL. For example you are free to choose a commercial or
-closed source license or any other license if you decide so.
-************************************************************************
-************************************************************************/
-
-declare name "Faust float Library";
-declare version "0.1";
-
-/* 
-Simple index signal that is not precise enough in float (OK in double)
-raise(trig, step, length) = (+(step):*(reset(trig)))~_ with { reset(trig) = (trig-trig') <= 0; };
-*/
-
-/*
-The 'idv' parameter is to be used as a read index. In -float mode, we use a technique with a
-pure integer index with a fractional part in [0,1] range, to avoid accumulating errors.
-The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
-*/
-
-int_part(idv) = idv : _,!;
-frac_part(idv) = idv : !,_;
-make_idv(id) = int(id), ma.frac(id);
-
-reset(trig) = (trig-trig') <= 0;
-
-// Infinite raising index
-raise(trig, step, length) = id, dv
-letrec {
-    'id = (id + int(step) + int(dv + ma.frac(step))) * reset(trig);
-    'dv = ma.frac(dv + ma.frac(step)) * reset(trig);
-};
-
-// Modulo based raising index
-raise_modulo(trig, step, length) = id, dv
-letrec {
-    'id = fmod(id + int(step) + int(dv + ma.frac(step)), length) * reset(trig);
-    'dv = ma.frac(dv + ma.frac(step)) * reset(trig);
-};
-
-// Decreasing index starting at 'length'
-decrease(trig, step, length) = raise(trig, -step, length) : (+(length), _);
-
-// Modulo decreasing index starting at 'length'
-decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) : (+(length), _);
 //////////////////////////////////////////////////////////////////////////////////////////
 // WARNING: Deprecated Library!!
 // Read the README file in /libraries for more information
@@ -17477,7 +18179,7 @@ with {
 };
 
 
-//------------------`(fi.)moogLadder`-----------------
+//------------------`(ve.)moogLadder`-----------------
 // Virtual analog model of the 4th-order Moog Ladder, which is arguably the 
 // most well-known ladder filter in analog synthesizers. Several 
 // 1st-order filters are cascaded in series. Feedback is then used, in part, to 
@@ -17526,9 +18228,9 @@ with{
 };
 
 
-//------------------`(fi.)moogHalfLadder`-----------------
+//------------------`(ve.)moogHalfLadder`-----------------
 // Virtual analog model of the 2nd-order Moog Half Ladder (simplified version of
-// `(fi.)moogLadder`). Several 1st-order filters are cascaded in series. 
+// `(ve.)moogLadder`). Several 1st-order filters are cascaded in series. 
 // Feedback is then used, in part, to control the cut-off frequency and the 
 // resonance.
 //
@@ -17577,7 +18279,7 @@ with{
 };
 
 
-//------------------`(fi.)diodeLadder`-----------------
+//------------------`(ve.)diodeLadder`-----------------
 // 4th order virtual analog diode ladder filter. In addition to the individual 
 // states used within each independent 1st-order filter, there are also additional 
 // feedback paths found in the block diagram. These feedback paths are labeled 
@@ -17722,7 +18424,7 @@ with{
 // <https://secretlifeofsynthesizers.com/the-korg-35-filter/>
 //========================================================================================
 
-//------------------`(fi.)korg35LPF`-----------------
+//------------------`(ve.)korg35LPF`-----------------
 // Virtual analog models of the Korg 35 low-pass filter found in the MS-10 and 
 // MS-20 synthesizers.
 //
@@ -17761,7 +18463,7 @@ with{
 };
 
 
-//------------------`(fi.)korg35HPF`-----------------
+//------------------`(ve.)korg35HPF`-----------------
 // Virtual analog models of the Korg 35 high-pass filter found in the MS-10 and 
 // MS-20 synthesizers.
 //
@@ -17813,7 +18515,7 @@ with{
 // the `(ef.)cubicnl` function.
 //========================================================================================
 
-//------------------`(fi.)oberheim`-----------------
+//------------------`(ve.)oberheim`-----------------
 // Generic multi-outputs Oberheim filter (see description above).
 //
 // #### Usage
@@ -17852,7 +18554,7 @@ with{
 };
 
 
-//------------------`(fi.)oberheimBSF`-----------------
+//------------------`(ve.)oberheimBSF`-----------------
 // Band-Stop Oberheim filter (see description above).
 //
 // #### Usage
@@ -17872,7 +18574,7 @@ declare oberheimBSF license "MIT-style STK-4.3 license";
 oberheimBSF(normFreq,Q) = oberheim(normFreq,Q):_,!,!,!;
 
 
-//------------------`(fi.)oberheimBPF`-----------------
+//------------------`(ve.)oberheimBPF`-----------------
 // Band-Pass Oberheim filter (see description above).
 //
 // #### Usage
@@ -17892,7 +18594,7 @@ declare oberheimBPF license "MIT-style STK-4.3 license";
 oberheimBPF(normFreq,Q) = oberheim(normFreq,Q):!,_,!,!;
 
 
-//------------------`(fi.)oberheimHPF`-----------------
+//------------------`(ve.)oberheimHPF`-----------------
 // High-Pass Oberheim filter (see description above).
 //
 // #### Usage
@@ -17912,7 +18614,7 @@ declare oberheimHPF license "MIT-style STK-4.3 license";
 oberheimHPF(normFreq,Q) = oberheim(normFreq,Q):!,!,_,!;
 
 
-//------------------`(fi.)oberheimLPF`-----------------
+//------------------`(ve.)oberheimLPF`-----------------
 // Low-Pass Oberheim filter (see description above).
 //
 // #### Usage
@@ -17955,7 +18657,7 @@ oberheimLPF(normFreq,Q) = oberheim(normFreq,Q):!,!,!,_;
 // <https://www.willpirkle.com/706-2/>
 //========================================================================================
 
-//------------------`(fi.)sallenKeyOnePole`-----------------
+//------------------`(ve.)sallenKeyOnePole`-----------------
 // Sallen-Key generic One Pole filter (see description above).
 //
 // For the Faust implementation of this filter, recursion (`letrec`) is used 
@@ -18005,7 +18707,7 @@ with{
 };
 
 
-//------------------`(fi.)sallenKeyOnePoleLPF`-----------------
+//------------------`(ve.)sallenKeyOnePoleLPF`-----------------
 // Sallen-Key One Pole lowpass filter (see description above).
 //
 // #### Usage
@@ -18024,7 +18726,7 @@ declare sallenKeyOnePoleLPF license "MIT-style STK-4.3 license";
 sallenKeyOnePoleLPF(normFreq) = sallenKeyOnePole(normFreq) : _,!;
 
 
-//------------------`(fi.)sallenKeyOnePoleHPF`-----------------
+//------------------`(ve.)sallenKeyOnePoleHPF`-----------------
 // Sallen-Key One Pole Highpass filter (see description above). The dry input 
 // signal is routed in parallel to the output. The LPF'd signal is subtracted 
 // from the input so that the HPF remains.
@@ -18045,7 +18747,7 @@ declare sallenKeyOnePoleHPF license "MIT-style STK-4.3 license";
 sallenKeyOnePoleHPF(normFreq) = sallenKeyOnePole(normFreq) : !,_;
 
 
-//------------------`(fi.)sallenKey2ndOrder`-----------------
+//------------------`(ve.)sallenKey2ndOrder`-----------------
 // Sallen-Key generic multi-outputs 2nd order filter. 
 //
 // This is a 2nd-order Sallen-Key state-variable filter. The idea is that by 
@@ -18097,7 +18799,7 @@ with{
   alpha0 = 1/(1 + 2*R*g + g*g);
 };
 
-//------------------`(fi.)sallenKey2ndOrderLPF`-----------------
+//------------------`(ve.)sallenKey2ndOrderLPF`-----------------
 // Sallen-Key 2nd order lowpass filter (see description above). 
 //
 //
@@ -18118,7 +18820,7 @@ declare sallenKey2ndOrderLPF license "MIT-style STK-4.3 license";
 sallenKey2ndOrderLPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : _,!,!;
 
 
-//------------------`(fi.)sallenKey2ndOrderBPF`-----------------
+//------------------`(ve.)sallenKey2ndOrderBPF`-----------------
 // Sallen-Key 2nd order bandpass filter (see description above). 
 //
 //
@@ -18139,7 +18841,7 @@ declare sallenKey2ndOrderBPF license "MIT-style STK-4.3 license";
 sallenKey2ndOrderBPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : !,_,!;
 
 
-//------------------`(fi.)sallenKey2ndOrderHPF`-----------------
+//------------------`(ve.)sallenKey2ndOrderHPF`-----------------
 // Sallen-Key 2nd order highpass filter (see description above). 
 //
 //
@@ -18320,32 +19022,41 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 
 // end further further contributions section
 /************************************************************************
- ************************************************************************
-    FAUST library file
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2.1 of the
-    License, or (at your option) any later version.
+************************************************************************
+FAUST library file
+Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
+---------------------------------------------------------------------
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with the GNU C Library; if not, write to the Free
-    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA.
- ************************************************************************
- ************************************************************************/
+You should have received a copy of the GNU Lesser General Public
+License along with the GNU C Library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+02111-1307 USA.
+
+EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
+larger FAUST program which directly or indirectly imports this library
+file and still distribute the compiled code generated by the FAUST
+compiler, or a modified version of this compiled code, under your own
+copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
+grants you the right to freely choose the license for the resulting
+compiled code. In particular the resulting compiled code has no obligation
+to be LGPL or GPL. For example you are free to choose a commerci
+************************************************************************
+************************************************************************/
 
 declare name "MaxMSP compatibility Library";
 declare author "GRAME";
 declare copyright "GRAME";
 declare version "1.1";
-declare license "LGPL";
+declare license "LGPL with exception";
 
 ba = library("basics.lib");
 ma = library("maths.lib");
@@ -18540,6 +19251,62 @@ line(value, time) = state~(_,_):!,_
 			samples = time*ma.SR/1000.0;
 		};
 	};
+//#################################### platform.lib ########################################
+// A library to handle platform specific code in Faust.
+//########################################################################################
+
+/************************************************************************
+************************************************************************
+FAUST library file
+Copyright (C) 2020 GRAME, Centre National de Creation Musicale
+----------------------------------------------------------------------
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with the GNU C Library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+02111-1307 USA.
+
+EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
+larger FAUST program which directly or indirectly imports this library
+file and still distribute the compiled code generated by the FAUST
+compiler, or a modified version of this compiled code, under your own
+copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
+grants you the right to freely choose the license for the resulting
+compiled code. In particular the resulting compiled code has no obligation
+to be LGPL or GPL. For example you are free to choose a commercial or
+closed source license or any other license if you decide so.
+************************************************************************
+************************************************************************/
+
+//#################################### platform.lib ########################################
+//A generic plateform library.  Its official prefix is `pl`.
+//########################################################################################
+// It can be reimplemented to globally change the SR and the tablesize definitions
+
+
+declare name "Generic Platform Library";
+declare version "0.1";
+
+//---------------------------------`(pl.)SR`-----------------------------------
+// Current sampling rate (between 1Hz and 192000Hz). Constant during
+// program execution.
+//-----------------------------------------------------------------------------
+SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+
+
+//---------------------------------`(pl.)tablesize`----------------------------
+// Oscillator table size
+//-----------------------------------------------------------------------------
+tablesize = 1 << 16;
 //################################### synths.lib ##########################################
 // This library contains a collection of synthesizers. Its official
 // prefix is `sy`.
@@ -18796,6 +19563,7 @@ si = sf;
 so = sf;
 sy = sf;
 ve = sf;
+wa = sf;
 //-----
 //#################################### reducemaps.lib ########################################
 // Correct documentation in interpolators.lib, typo in reducemaps.lib, cleanup.
@@ -18803,7 +19571,7 @@ ve = sf;
 //##############################################################################################
 
 /************************************************************************
- ************************************************************************
+************************************************************************
 FAUST library file
 Copyright (C) 2010-2011 GRAME, Centre National de Creation Musicale
 ---------------------------------------------------------------------
@@ -18821,14 +19589,24 @@ You should have received a copy of the GNU Lesser General Public
 License along with the GNU C Library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 02111-1307 USA. 
- ************************************************************************
- ************************************************************************/
+
+EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
+larger FAUST program which directly or indirectly imports this library
+file and still distribute the compiled code generated by the FAUST
+compiler, or a modified version of this compiled code, under your own
+copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
+grants you the right to freely choose the license for the resulting
+compiled code. In particular the resulting compiled code has no obligation
+to be LGPL or GPL. For example you are free to choose a commercial or
+closed source license or any other license if you decide so.
+************************************************************************
+************************************************************************/
 
 declare name "Reduce Library";
 declare author "Yann Orlarey (orlarey at grame.fr)";
 declare copyright "Grame";
 declare version "0.1";
-declare license "LGPL"; 
+declare license "LGPL with exception"; 
 
 ba = library("basics.lib");
 
@@ -19127,52 +19905,6 @@ license disposition, if their license choice is not already indicated
 elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
-//#################################### runtime.lib ########################################
-// A library to handle specific library code in Faust.
-//########################################################################################
-
-/************************************************************************
-************************************************************************
-FAUST library file
-Copyright (C) 2019 GRAME, Centre National de Creation Musicale
-----------------------------------------------------------------------
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation; either version 2.1 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with the GNU C Library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA.
-
-EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
-larger FAUST program which directly or indirectly imports this library
-file and still distribute the compiled code generated by the FAUST
-compiler, or a modified version of this compiled code, under your own
-copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
-grants you the right to freely choose the license for the resulting
-compiled code. In particular the resulting compiled code has no obligation
-to be LGPL or GPL. For example you are free to choose a commercial or
-closed source license or any other license if you decide so.
-************************************************************************
-************************************************************************/
-
-declare name "Runtime Library";
-declare version "0.1";
-
-ma = library("maths.lib");
-
-// Choose the appropriate 'float' or 'double' code for index management, and import it in the 'runtime' environment.
-
-import("float.lib");
-//import("double.lib");
-
 //##################################### filters.lib ########################################
 // Faust Filters library; Its official prefix is `fi`.
 //
@@ -19187,9 +19919,6 @@ import("float.lib");
 // * Ladder/Lattice Allpass Filters
 // * Digital Filter Sections Specified as Analog Filter Sections
 // * Simple Resonator Filters
-// * Korg 35 Filters
-// * Oberheim Filters
-// * Sallen Key Filters
 // * Butterworth Lowpass/Highpass Filters
 // * Special Filter-Bank Delay-Equalizing Allpass Filters
 // * Elliptic (Cauer) Lowpass Filters
@@ -19669,7 +20398,7 @@ fir(b0) = *(b0);
 declare convN author "Julius O. Smith III";
 declare convN copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare convN license "MIT-style STK-4.3 license";
-convN(N,kv)     = sum(i,N, @(i)*take(i+1,kv)); // take() defined in math.lib
+convN(N,kv) = sum(i,N, @(i)*take(i+1,kv)); // take() defined in math.lib
 //conv(kv,x) = sum(i,count(kv),take(i+1,kv) * x@i); // count() from math.lib
 
 declare conv author "Julius O. Smith III";
@@ -19716,9 +20445,9 @@ tf3(b0,b1,b2,b3,a1,a2,a3) = iir((b0,b1,b2,b3),(a1,a2,a3));
 // use tf2 instead
 TF2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
 with {
-	conv3(k0,k1,k2,x) 	= k0*x + k1*x' + k2*x'';
-	conv2(k0,k1,x) 		= k0*x + k1*x';
-	sub(x,y)			= y-x;
+	conv3(k0,k1,k2,x) = k0*x + k1*x' + k2*x'';
+	conv2(k0,k1,x)    = k0*x + k1*x';
+	sub(x,y)          = y-x;
 };
 
 //------------`(fi.)notchw`--------------
@@ -21811,6 +22540,7 @@ closed source license or any other license if you decide so.
 
 ba = library("basics.lib");
 ro = library("routes.lib");
+ma = library("maths.lib");
 si = library("signals.lib");
 
 declare name "Faust Signal Routing Library";
@@ -21893,7 +22623,7 @@ smoo = si.smooth(0.999);
 // #### Usage
 //
 // ```
-// hslider(...) : polysmooth(g,s,d) : _
+// hslider(...) : polySmooth(g,s,d) : _
 // ```
 //
 // Where:
@@ -21936,7 +22666,7 @@ smoothAndH(t,s) = smooth(s*t) : ba.sAndH(t);
 bsmooth(c) = +(i) ~ _
 with {
 	i = (c-c@n)/n;
-	n = min(4096, max(1, fvariable(int count, <math.h>)));
+	n = min(4096, max(1, ma.BS));
 };
 
 //-------------------------------`(si.)dot`--------------------------------------
@@ -22072,7 +22802,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // #### Usage
 //
 // ```
-// _ : lag_ud(up, dn, signal) : _;
+// _ : lag_ud(up, dn) : _;
 // ```
 //----------------------------------------------------
 // Author: Jonatan Liljedahl
@@ -23111,74 +23841,6 @@ with {
 lfnoise0(freq) = ml.noise : fl.latch(oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fl.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshooting lowpass
-//#################################### double.lib ########################################
-// A library to handle double specific code in Faust.
-//########################################################################################
-
-/************************************************************************
-************************************************************************
-FAUST library file
-Copyright (C) 2019 GRAME, Centre National de Creation Musicale
-----------------------------------------------------------------------
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation; either version 2.1 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with the GNU C Library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA.
-
-EXCEPTION TO THE LGPL LICENSE : As a special exception, you may create a
-larger FAUST program which directly or indirectly imports this library
-file and still distribute the compiled code generated by the FAUST
-compiler, or a modified version of this compiled code, under your own
-copyright and license. This EXCEPTION TO THE LGPL LICENSE explicitly
-grants you the right to freely choose the license for the resulting
-compiled code. In particular the resulting compiled code has no obligation
-to be LGPL or GPL. For example you are free to choose a commercial or
-closed source license or any other license if you decide so.
-************************************************************************
-************************************************************************/
-
-declare name "Faust double Library";
-declare version "0.1";
- 
-/*
-The 'idv' parameter is to be used as a read index. In -double mode, we use 
-a standard implementation with fractional index.
-The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
-*/
-
-int_part(idv) = int(idv);
-frac_part(idv) = ma.frac(idv);
-make_idv(id) = id;
-
-reset(trig) = (trig-trig') <= 0;
-
-// Infinite raising index
-raise(trig, step, length) = idv
-letrec {
-    'idv = (idv + step) * reset(trig);
-};
-
-// Modulo based raising index
-raise_modulo(trig, step, length) = idv
-letrec {
-    'idv = fmod(idv + step, length) * reset(trig);
-};
-
-// Decreasing index starting at 'length'
-decrease(trig, step, length) = raise(trig, -step, length) + length;
-
-// Modulo decreasing index starting at 'length'
-decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) + length;
 //#################################### interpolators.lib ########################################
 // A library to handle interpolation in Faust. Its official prefix is `it`.
 //########################################################################################
@@ -23186,7 +23848,7 @@ decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) + length
 /************************************************************************
 ************************************************************************
 FAUST library file
-Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+Copyright (C) 2019-2010 GRAME, Centre National de Creation Musicale
 ----------------------------------------------------------------------
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
@@ -23216,12 +23878,72 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Interpolator Library";
-declare version "0.1";
+declare version "0.2";
 
 ba = library("basics.lib");
 ro = library("routes.lib");
 ma = library("maths.lib");
-ru = library("runtime.lib");
+
+reset(trig) = (trig-trig') <= 0;
+ 
+/*
+The 'idv' parameter is to be used as a read index. In float (= singleprecision) mode, we use a technique with a
+pure integer index and a fractional part in the [0,1] range, to avoid accumulating errors.
+The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
+*/
+
+singleprecision int_part(idv) = idv : _,!;
+singleprecision frac_part(idv) = idv : !,_;
+singleprecision make_idv(id) = int(id), ma.frac(id);
+
+// Infinite raising index
+singleprecision raise(trig, step, length) = id, dv
+letrec {
+    'id = (id + int(step) + int(dv + ma.frac(step))) * reset(trig);
+    'dv = ma.frac(dv + ma.frac(step)) * reset(trig);
+};
+
+// Modulo based raising index
+singleprecision raise_modulo(trig, step, length) = id, dv
+letrec {
+    'id = fmod(id + int(step) + int(dv + ma.frac(step)), length) * reset(trig);
+    'dv = ma.frac(dv + ma.frac(step)) * reset(trig);
+};
+
+// Decreasing index starting at 'length'
+singleprecision decrease(trig, step, length) = raise(trig, -step, length) : (+(length), _);
+
+// Modulo decreasing index starting at 'length'
+singleprecision decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) : (+(length), _);
+
+/*
+The 'idv' parameter is to be used as a read index. In -double (= doubleprecision)/-quad (= quadprecision) modes, 
+we use a standard implementation with a fractional index.
+The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
+*/
+
+doubleprecision quadprecision int_part(idv) = int(idv);
+doubleprecision quadprecision frac_part(idv) = ma.frac(idv);
+doubleprecision quadprecision make_idv(id) = id;
+
+// Infinite raising index
+doubleprecision quadprecision raise(trig, step, length) = idv
+letrec {
+    'idv = (idv + step) * reset(trig);
+};
+
+// Modulo based raising index
+doubleprecision quadprecision raise_modulo(trig, step, length) = idv
+letrec {
+    'idv = fmod(idv + step, length) * reset(trig);
+};
+
+// Decreasing index starting at 'length'
+doubleprecision quadprecision decrease(trig, step, length) = raise(trig, -step, length) + length;
+
+// Modulo decreasing index starting at 'length'
+doubleprecision quadprecision decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) + length;
+ 
 
 // Two points interpolation functions
 
@@ -23311,9 +24033,9 @@ interpolator_two_points(gen, idv, interpolate_two_points) = (gen(id0), gen(id1))
                                                             : ro.interleave(outputs(gen), 2)
                                                             : par(i, outputs(gen), interpolate_two_points(dv))
 with {
-    id0 = ru.int_part(idv); // index integer part
-    id1 = id0 + 1;          // next index
-    dv = ru.frac_part(idv); // index fractional part in [0..1]
+    id0 = int_part(idv); // index integer part
+    id1 = id0 + 1;       // next index
+    dv = frac_part(idv); // index fractional part in [0..1]
 };
 
 
@@ -23328,7 +24050,7 @@ with {
 //
 // Where:
 //
-// * `gen`: a circuit with an idv' reader input that produces N outputs
+// * `gen`: a circuit with an 'idv' reader input that produces N outputs
 // * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
 //
 //--------------------------------------------
@@ -23347,7 +24069,7 @@ interpolator_linear(gen, idv) = interpolator_two_points(gen, idv, interpolate_li
 //
 // Where:
 //
-// * `gen`: a circuit with an idv' reader input that produces N outputs
+// * `gen`: a circuit with an 'idv' reader input that produces N outputs
 // * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
 //
 //--------------------------------------------
@@ -23364,11 +24086,11 @@ interpolator_four_points(gen, idv, interpolate_four_points) = (gen(id0), gen(id1
                                                             : ro.interleave(outputs(gen), 4)
                                                             : par(i, outputs(gen), interpolate_four_points(dv))
 with {
-    id0 = id1 - 1;          // previous index
-    id1 = ru.int_part(idv); // index integer part
-    id2 = id1 + 1;          // next index
-    id3 = id2 + 1;          // next index
-    dv = ru.frac_part(idv); // index fractional part in [0..1]
+    id0 = id1 - 1;       // previous index
+    id1 = int_part(idv); // index integer part
+    id2 = id1 + 1;       // next index
+    id3 = id2 + 1;       // next index
+    dv = frac_part(idv); // index fractional part in [0..1]
 };
 
 
@@ -23383,7 +24105,7 @@ with {
 //
 // Where:
 //
-// * `gen`: a circuit with an idv' reader input that produces N outputs
+// * `gen`: a circuit with an 'idv' reader input that produces N outputs
 // * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
 //
 //--------------------------------------------
@@ -23410,13 +24132,13 @@ nointerp = MAX_INTER-1;
 //
 // Where:
 //
-// * `gen`: a circuit with an idv' reader input that produces N outputs
+// * `gen`: a circuit with an 'idv' reader input that produces N outputs
 // * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
 // * `sel`: an interpolation algorithm selector in [0..3] (0 = linear, 1 = cosine, 2 = cubic, 3 = nointerp)
 //
 //--------------------------------------------
 
-interpolator_select(gen, idv, sel) = ba.selectmulti(interpolators, sel)
+interpolator_select(gen, idv, sel) = ba.selectmulti(ma.SR/10, interpolators, sel)
 with {
 	interpolators = (interpolator_linear(gen, idv),
                     interpolator_cosine(gen, idv),
@@ -23426,14 +24148,14 @@ with {
 
 /*
 
-Use-case with 'waveform'. Here the signal given to 'interpolator_XXX' uses the 'idv' model, see float.lib and double.lib
+Use-case with 'waveform'. Here the signal given to 'interpolator_XXX' uses the 'idv' model.
 
 // waveform and index step
 waveform_interpolator(wf, step, interp) = interp(gen, idv)
 with {
     gen(idx) = wf, (idx:max(0):min(size-1)) : rdtable with { size = wf:(_,!); };   // waveform size
     index = (+(step)~_)-step;  // starting from 0
-    idv = ru.make_idv(index);  // build the signal for interpolation in a generic way
+    idv = it.make_idv(index);  // build the signal for interpolation in a generic way
 };
 
 waveform_linear(wf, step) = waveform_interpolator(wf, step, it.interpolator_linear);
@@ -23476,7 +24198,7 @@ process = waveform_interp1(wf, idv, nentry("algo", 0, 0, 3, 1))
 with {
 	step = 0.1;
 	idv_aux = (+(step)~_)-step;  // starting from 0
-	idv = ru.make_idv(idv_aux);  // build the signal for interpolation in a generic way
+	idv = it.make_idv(idv_aux);  // build the signal for interpolation in a generic way
 };
 
 // Test linear interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
@@ -29323,17 +30045,20 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Math Library";
-declare version "2.1";
+declare version "2.2";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
+
+// This library contains platform specific constants 
+pl = library("platform.lib");
 
 //=============================Functions Reference========================================
 //========================================================================================
 
 
 //---------------------------------`(ma.)SR`---------------------------------------
-// Current sampling rate (between 1000Hz and 192000Hz). Constant during
+// Current sampling rate. Constant during
 // program execution.
 //
 // #### Usage
@@ -29342,8 +30067,7 @@ declare license "LGPL with exception";
 // SR : _
 // ```
 //-----------------------------------------------------------------------------
-SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
-
+SR = pl.SR;
 
 //---------------------------------`(ma.)BS`---------------------------------------
 // Current block-size. Can change during the execution.
@@ -29368,8 +30092,37 @@ BS = fvariable(int count, <math.h>);
 //-----------------------------------------------------------------------------
 PI = 3.1415926535897932385;
 
+
+//---------------------------------`(ma.)EPSILON`---------------------------------------
+// Constant EPSILON in simple/double/quad precision.
+//
+// #### Usage
+//
+// ```
+// EPSILON : _
+// ```
+//-----------------------------------------------------------------------------
+singleprecision EPSILON = 1.192092896e-07;
+doubleprecision EPSILON = 2.2204460492503131e-016;
+quadprecision EPSILON = 2.2204460492503131e-016;
+
+
+//---------------------------------`(ma.)MIN`---------------------------------------
+// Constant MIN in simple/double/quad precision (minimal positive value).
+//
+// #### Usage
+//
+// ```
+// MIN : _
+// ```
+//-----------------------------------------------------------------------------
+singleprecision MIN = 1.175494351e-38;
+doubleprecision MIN = 2.2250738585072014e-308;
+quadprecision MIN = 2.2250738585072014e-308;
+
+
 //---------------------------------`(ma.)INFINITY`------------------------------
-// Constant INFINITY inherited from `math.h`.
+// Constant INFINITY in simple/double/quad precision (maximal positive value).
 //
 // #### Usage
 //
@@ -29377,7 +30130,10 @@ PI = 3.1415926535897932385;
 // INFINITY : _
 // ```
 //-----------------------------------------------------------------------------
-INFINITY = fconstant(float INFINITY, <math.h>);
+singleprecision INFINITY = 3.402823466e+38;
+doubleprecision INFINITY = 1.7976931348623158e+308;
+quadprecision INFINITY = 1.7976931348623158e+308;
+
 
 //---------------------------------`(ma.)FTZ`---------------------------------------
 // Flush to zero: force samples under the "maximum subnormal number"
@@ -29392,7 +30148,7 @@ INFINITY = fconstant(float INFINITY, <math.h>);
 //
 // See : <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html>
 //-----------------------------------------------------------------------------
-FTZ(x) = x * (abs(x) > 1.17549435e-38);
+FTZ(x) = x * (abs(x) > MIN);
 
 
 //---------------------------------`(ma.)neg`---------------------------------------
