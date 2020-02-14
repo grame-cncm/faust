@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "driver/uart.h"
+#include "MPU9250.h"
 
 #include "faust/gui/APIUI.h"
 
@@ -39,11 +40,22 @@ class Esp32SensorUI : public APIUI
     private:
     
         TaskHandle_t fProcessHandle;
+        MPU9250 fMpu9250;
     
         void sensor()
         {
             while (true) {
-                // TODO
+                fMpu9250.accelUpdate();
+                propagateAcc(0, fMpu9250.accelX());
+                propagateAcc(1, fMpu9250.accelY());
+                propagateAcc(2, fMpu9250.accelZ());
+                
+                fMpu9250.gyroUpdate();
+                propagateGyr(0, fMpu9250.gyroX());
+                propagateGyr(1, fMpu9250.gyroY());
+                propagateGyr(2, fMpu9250.gyroZ());
+                
+                vTaskDelay(5 / portTICK_PERIOD_MS);
             }
         }
     
@@ -54,6 +66,13 @@ class Esp32SensorUI : public APIUI
     
     public:
     
+        Esp32SensorUI():fMpu9250(MPU9250_ADDRESS_AD0_HIGH)
+        {
+            fMpu9250.beginAccel();
+            fMpu9250.beginGyro();
+            //fMpu9250.beginMag();
+        }
+    
         bool start()
         {
             if ((getAccCount(0) > 0)
@@ -63,7 +82,7 @@ class Esp32SensorUI : public APIUI
                 || (getGyrCount(1) > 0)
                 || (getGyrCount(2) > 0)) {
                 // Start Sensor receive task
-                return (xTaskCreatePinnedToCore(sensorHandler, "Faust Sensor Task", 1024, (void*)this, 5, &fProcessHandle, 1) == pdPASS);
+                return (xTaskCreatePinnedToCore(sensorHandler, "Faust Sensor Task", 10240, (void*)this, 5, &fProcessHandle, 1) == pdPASS);
             } else {
                 return true;
             }

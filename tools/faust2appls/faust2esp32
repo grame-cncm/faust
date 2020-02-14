@@ -126,6 +126,10 @@ if [ $LIB -eq 1 ]; then
     	else
     		faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
     	fi
+    	
+    	# Copy accelerometer/gyroscope code
+    	cp $FAUSTARCH/esp32/MPU9250.cpp $MODULENAME
+    	cp $FAUSTARCH/esp32/MPU9250.h $MODULENAME
     else
     	faust -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
     	cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
@@ -140,6 +144,7 @@ if [ $LIB -eq 1 ]; then
     	echo "$TMP" > $MODULENAME/$MODULENAME.h
     fi
     
+    # Copy audio codec code
     if [[ $DRIVER = "wm8978" ]]; then
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
     	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
