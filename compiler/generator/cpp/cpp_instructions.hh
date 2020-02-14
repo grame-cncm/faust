@@ -42,7 +42,7 @@ class CPPInstVisitor : public TextInstVisitor {
     using TextInstVisitor::visit;
 
     CPPInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
+        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*"), tab)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;

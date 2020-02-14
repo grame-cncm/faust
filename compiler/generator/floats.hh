@@ -23,13 +23,10 @@
 #define _FAUSTFLOATS_
 
 #include <iostream>
+#include <float.h>
 
 #include "global.hh"
 #include "instructions.hh"
-
-#define FLOATMACRO "FAUSTFLOAT"
-#define FLOATMACROPTR "FAUSTFLOAT*"
-#define FLOATCASTER "(" FLOATMACRO ")"
 
 const char* isuffix();
 const char* inumix();
@@ -43,6 +40,8 @@ const char*    icast();
 
 const char* xfloat();
 const char* xcast();
+
+void initFaustFloat();
 
 void printfloatdef(std::ostream& fout, bool quad);
 

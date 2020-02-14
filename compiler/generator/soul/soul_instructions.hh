@@ -41,7 +41,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     using DispatchVisitor::visit;
 
-    SOULInstUIVisitor(int tab) : fTypeManager(FLOATMACRO, "*"), fTab(tab) {}
+    SOULInstUIVisitor(int tab) : fTypeManager(xfloat(), "*"), fTab(tab) {}
     
     void addMeta()
     {
@@ -188,7 +188,7 @@ class SOULInstVisitor : public TextInstVisitor {
 
    public:
     SOULInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, ".", new SOULStringTypeManager(FLOATMACRO, ""), tab)
+        : TextInstVisitor(out, ".", new SOULStringTypeManager(xfloat(), ""), tab)
     {
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";

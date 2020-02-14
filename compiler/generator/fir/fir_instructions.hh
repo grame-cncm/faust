@@ -46,7 +46,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
    public:
     FIRInstVisitor(std::ostream* out, int tab = 0)
-        : CStringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true)
+        : CStringTypeManager(xfloat(), "*"), fTab(tab), fOut(out), fFinishLine(true)
     {
     }
 

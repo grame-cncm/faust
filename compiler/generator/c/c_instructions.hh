@@ -41,7 +41,7 @@ class CInstVisitor : public TextInstVisitor {
     using TextInstVisitor::visit;
 
     CInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*", struct_name), tab)
+        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;

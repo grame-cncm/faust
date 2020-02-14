@@ -150,9 +150,9 @@ void CPPOpenCLCodeContainer::produceClass()
     tab1(n, *fGPUOut);
     *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
     tab1(n, *fGPUOut);
-    *fGPUOut << "#ifndef " << FLOATMACRO;
+    *fGPUOut << "#ifndef " << xfloat();
     tab1(n, *fGPUOut);
-    *fGPUOut << "#define " << FLOATMACRO << " "
+    *fGPUOut << "#define " << xfloat() << " "
              << "float";
     tab1(n, *fGPUOut);
     *fGPUOut << "#endif  ";
@@ -1272,9 +1272,9 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fGPUOut);
     *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
     tab(n, *fGPUOut);
-    *fGPUOut << "#ifndef " << FLOATMACRO;
+    *fGPUOut << "#ifndef " << xfloat();
     tab(n, *fGPUOut);
-    *fGPUOut << "#define " << FLOATMACRO << " "
+    *fGPUOut << "#define " << xfloat() << " "
              << "float";
     tab(n, *fGPUOut);
     *fGPUOut << "#endif  ";

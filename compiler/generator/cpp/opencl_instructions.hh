@@ -34,7 +34,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
     using TextInstVisitor::visit;
 
     OpenCLInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
+        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*"), tab)
     {
     }
 

@@ -47,6 +47,7 @@ CodeContainer::CodeContainer()
       fNumActives(0),
       fNumPassives(0),
       fSubContainerType(kInt),
+      fGeneratedSR(false),
       fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fDeclarationInstructions(InstBuilder::genBlockInst()),
@@ -63,7 +64,6 @@ CodeContainer::CodeContainer()
       fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst()),
-      fGeneratedSR(false),
       fInt32ControlNum(0),
       fRealControlNum(0)
 {
@@ -71,8 +71,7 @@ CodeContainer::CodeContainer()
 }
 
 CodeContainer::~CodeContainer()
-{
-}
+{}
 
 void CodeContainer::transformDAG(DispatchVisitor* visitor)
 {

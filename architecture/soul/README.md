@@ -1,6 +1,6 @@
 # faust2soul
 
-The **faust2soul** tool compiles a Faust DSP program to SOUL source code and patch as a monophonic DSP or possibly a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)). The resulting SOUL code can be played using the 'soul' runtime  (only available for early developers for now, ask Cesare or Jules...), or by pasting and compiling the code in the [SOUL Playground](https://soul.dev/playground):
+The **faust2soul** tool compiles a Faust DSP program to SOUL source code and patch as a monophonic DSP or possibly a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)). The resulting SOUL code can be played using the *soul* program, or by pasting and compiling the code in the [SOUL Playground](https://soul.dev/playground):
 
 `faust2soul [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-play] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 

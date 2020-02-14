@@ -62,7 +62,7 @@ class TextInstVisitor : public InstVisitor {
     TextInstVisitor(std::ostream* out, const std::string& object_access, int tab = 0)
         : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
     {
-        fTypeManager = new CStringTypeManager(FLOATMACRO, "*");
+        fTypeManager = new CStringTypeManager(xfloat(), "*");
     }
 
     TextInstVisitor(std::ostream* out, const std::string& object_access, const std::string& float_macro_name,

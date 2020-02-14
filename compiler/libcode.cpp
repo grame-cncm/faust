@@ -23,7 +23,6 @@
 #pragma warning(disable : 4996 4146 4244)
 #endif
 
-#include <float.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -112,12 +111,6 @@
 #endif
 
 using namespace std;
-
-extern const char* mathsuffix[4];
-extern const char* numsuffix[4];
-extern const char* floatname[4];
-extern const char* castname[4];
-extern double      floatmin[4];
 
 static unique_ptr<ifstream> injcode;
 static unique_ptr<ifstream> enrobage;
@@ -1030,59 +1023,7 @@ static string fxName(const string& filename)
     return filename.substr(p1, p2 - p1);
 }
 
-static void initFaustFloat()
-{
-    // Using in FIR code generation to code math functions type (float/double/quad), same for Rust and C/C++ backends
-    mathsuffix[0] = "";
-    mathsuffix[1] = "f";
-    mathsuffix[2] = "";
-    mathsuffix[3] = "l";
 
-    // Specific for Rust backend
-    if (gGlobal->gOutputLang == "rust") {
-        numsuffix[0] = "";
-        numsuffix[1] = "";
-        numsuffix[2] = "";
-        numsuffix[3] = "";
-
-        floatname[0] = FLOATMACRO;
-        floatname[1] = "f32";
-        floatname[2] = "f64";
-        floatname[3] = "dummy";
-
-        castname[0] = FLOATCASTER;
-        castname[1] = "as f32";
-        castname[2] = "as f64";
-        castname[3] = "(dummy)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-
-        // Specific for C/C++ backends
-    } else {
-        numsuffix[0] = "";
-        numsuffix[1] = "f";
-        numsuffix[2] = "";
-        numsuffix[3] = "L";
-
-        floatname[0] = FLOATMACRO;
-        floatname[1] = "float";
-        floatname[2] = "double";
-        floatname[3] = "quad";
-
-        castname[0] = FLOATCASTER;
-        castname[1] = "(float)";
-        castname[2] = "(double)";
-        castname[3] = "(quad)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-    }
-}
 
 static void initFaustDirectories(int argc, const char* argv[])
 {

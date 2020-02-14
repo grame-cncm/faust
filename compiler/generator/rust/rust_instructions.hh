@@ -76,7 +76,7 @@ class RustInstVisitor : public TextInstVisitor {
     using TextInstVisitor::visit;
 
     RustInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-        : TextInstVisitor(out, ".", new RustStringTypeManager(FLOATMACRO, "&"), tab)
+        : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab)
     {
         fTypeManager->fTypeDirectTable[Typed::kObj]     = "";
         fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = "";
