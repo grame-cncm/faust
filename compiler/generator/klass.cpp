@@ -175,8 +175,8 @@ void Klass::printLibrary(ostream& fout)
  */
 void Klass::printIncludeFile(ostream& fout)
 {
-    set<string>           S;
-    set<string>::iterator f;
+    set<string> S;
+    // set<string>::iterator f;
 
     if (gGlobal->gOpenMPSwitch) {
         fout << "#include <omp.h>"
@@ -793,8 +793,6 @@ void Klass::printLoopLevelScheduler(int n, int lnum, const lset& L, ostream& fou
  */
 void Klass::println(int n, ostream& fout)
 {
-    list<Klass*>::iterator k;
-
     tab(n, fout);
     fout << "#ifndef FAUSTCLASS " << endl;
     fout << "#define FAUSTCLASS " << fKlassName << endl;
@@ -821,7 +819,9 @@ void Klass::println(int n, ostream& fout)
         fout << "  private:";
     }
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
+    for (auto k : fSubClassList) {
+        k->println(n + 1, fout);
+    }
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1588,4 +1588,8 @@ void SigFloatFillMethod::println(int n, ostream& fout)
 
     tab(n, fout);
     fout << "};\n" << endl;
+}
+
+void Klass::combineInSequence(Klass* src)
+{
 }

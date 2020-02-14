@@ -226,6 +226,9 @@ class Klass  //: public Target
 
     int inputs() { return fNumInputs; }
     int outputs() { return fNumOutputs; }
+
+    // New operation to combine classes
+    virtual void combineInSequence(Klass* src);
 };
 
 class SigIntGenKlass : public Klass {
