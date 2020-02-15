@@ -101,19 +101,19 @@ class dsp_adapter : public decorator_dsp {
 };
 
 // Adapts a DSP for a different sample size
-template <typename TYPE_INT, typename TYPE_EXT>
+template <typename REAL_INT, typename REAL_EXT>
 class dsp_sample_adapter : public decorator_dsp {
     
     protected:
     
-        TYPE_INT** fAdaptedInputs;
-        TYPE_INT** fAdaptedOutputs;
+        REAL_INT** fAdaptedInputs;
+        REAL_INT** fAdaptedOutputs;
     
         void adaptInputBuffers(int count, FAUSTFLOAT** inputs)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    fAdaptedInputs[chan][frame] = TYPE_INT(reinterpret_cast<TYPE_EXT**>(inputs)[chan][frame]);
+                    fAdaptedInputs[chan][frame] = REAL_INT(reinterpret_cast<REAL_EXT**>(inputs)[chan][frame]);
                 }
             }
         }
@@ -122,7 +122,7 @@ class dsp_sample_adapter : public decorator_dsp {
         {
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    reinterpret_cast<TYPE_EXT**>(outputs)[chan][frame] = TYPE_EXT(fAdaptedOutputs[chan][frame]);
+                    reinterpret_cast<REAL_EXT**>(outputs)[chan][frame] = REAL_EXT(fAdaptedOutputs[chan][frame]);
                 }
             }
         }
@@ -131,14 +131,14 @@ class dsp_sample_adapter : public decorator_dsp {
     
         dsp_sample_adapter(dsp* dsp):decorator_dsp(dsp)
         {
-            fAdaptedInputs = new TYPE_INT*[dsp->getNumInputs()];
+            fAdaptedInputs = new REAL_INT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs(); i++) {
-                fAdaptedInputs[i] = new TYPE_INT[4096];
+                fAdaptedInputs[i] = new REAL_INT[4096];
             }
             
-            fAdaptedOutputs = new TYPE_INT*[dsp->getNumOutputs()];
+            fAdaptedOutputs = new REAL_INT*[dsp->getNumOutputs()];
             for (int i = 0; i < dsp->getNumOutputs(); i++) {
-                fAdaptedOutputs[i] = new TYPE_INT[4096];
+                fAdaptedOutputs[i] = new REAL_INT[4096];
             }
         }
     
@@ -158,7 +158,7 @@ class dsp_sample_adapter : public decorator_dsp {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptInputBuffers(count, inputs);
-            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses TYPE_INT
+            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
             adaptOutputsBuffers(count, outputs);
         }
@@ -166,7 +166,7 @@ class dsp_sample_adapter : public decorator_dsp {
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptInputBuffers(count, inputs);
-            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses TYPE_INT
+            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
             adaptOutputsBuffers(count, outputs);
        }
