@@ -126,6 +126,8 @@ class esp32_midi : public midi_handler {
                                 }
                             }
                         }
+                        // Synchronize all GUI controllers
+                        GUI::updateAllGuis();
                     }
                 }
             }
