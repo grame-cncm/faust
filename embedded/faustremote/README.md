@@ -38,21 +38,20 @@ class remote_dsp_server {
 
 Here is the API:
 
-To easily include remote processing in your projects, this API has been created. It has the same prototype as `llvm-dsp` dynamic dsp:
+To easily include remote processing in your projects, this API has been created. It has the similar prototype as `llvm-dsp` dynamic dsp:
 
-* `createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char *argv[],
-const string& ipServer, int portServer, string& error, int opt_level)`
-* `createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-const string& ipServer, int portServer, string& error, int opt_level)`
-* `createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char *argv[], int samplingRate, int bufferSize, string& error)`
+* `createRemoteDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[], const string& ipServer, int portServer, string& error, int opt_level)`
+* `createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ipServer, int portServer, string& error, int opt_level)`
+* `createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char* argv[], int samplingRate, int bufferSize, string& error)`
 
-Use instances as any "static" DSP:
+Use instance as any "static" DSP:
 
 * `virtual int getNumInputs()`
 * `virtual int getNumOutputs()`
 * `virtual void init(int samplingFreq)`
 * `virtual void buildUserInterface(UI* ui)`
 * `virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)`
+
 * `void deleteRemoteDSPInstance(remote_dsp* dsp)`
 * `void deleteRemoteDSPFactory(remote_dsp_factory* factory)`
 
