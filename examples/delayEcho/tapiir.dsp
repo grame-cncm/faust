@@ -36,7 +36,7 @@ matrix(taps,lines) = (si.bus(lines+taps)
 tapiir(taps,lines) = vgroup("Tapiir",
                             si.bus(lines)
                             <: (matrix(taps,lines), si.bus(lines))
-                            <: vgroup( "outputs", par( i, lines, hgroup("output %i", mixer(taps,lines)) ) )
+                            <: vgroup("outputs", par(i, lines, hgroup("output %i", mixer(taps,lines))))
                             );
 
 process = tapiir(6,2);

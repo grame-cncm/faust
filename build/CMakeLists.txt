@@ -181,7 +181,7 @@ if (INCLUDE_STATIC)
 	else()
 		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
 	endif()
-	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB
+	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
 	set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
 	scan_backends (staticlib STATIC)

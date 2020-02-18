@@ -14,7 +14,7 @@ declare copyright 	"(c)GRAME 2007";
 import("stdfaust.lib");
 
 process = vgroup("stereo echo", multi(ef.echo1s, 4))
-	with{ 
+	with { 
 		multi(f,1) = f;
 		multi(f,n) = f,multi(f,n-1);
 	};							

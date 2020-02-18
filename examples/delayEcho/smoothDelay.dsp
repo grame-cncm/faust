@@ -15,8 +15,7 @@ declare license "STK-4.3";
 import("stdfaust.lib");
 
 process = par(i, 2, voice)
-	with 
-	{ 
+	with { 
 		voice 	= (+ : de.sdelay(N, interp, dtime)) ~ *(fback);
 		N 		= int(2^19); 
 		interp 	= hslider("interpolation[unit:ms][style:knob]",10,1,100,0.1)*ma.SR/1000.0; 

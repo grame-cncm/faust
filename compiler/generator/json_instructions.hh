@@ -40,7 +40,7 @@ using namespace std;
 */
 
 template <typename REAL>
-struct JSONInstVisitor : public DispatchVisitor, public JSONUIAux<REAL> {
+struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     map<string, string> fPathTable; // Table : field_name, complete path
     set<string> fControlPathSet;    // Set of already used control paths
  
@@ -61,14 +61,14 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIAux<REAL> {
                     const std::string& compile_options, const std::vector<std::string>& library_list,
                     const std::vector<std::string>& include_pathnames, int size,
                     const std::map<std::string, int>& path_table)
-        : JSONUIAux<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
+        : JSONUIReal<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
                  include_pathnames, size, path_table)
     {
     }
 
-    JSONInstVisitor(int inputs, int outputs) : JSONUIAux<REAL>(inputs, outputs) {}
+    JSONInstVisitor(int inputs, int outputs) : JSONUIReal<REAL>(inputs, outputs) {}
 
-    JSONInstVisitor() : JSONUIAux<REAL>() {}
+    JSONInstVisitor() : JSONUIReal<REAL>() {}
 
     virtual ~JSONInstVisitor() {}
 

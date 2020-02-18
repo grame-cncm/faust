@@ -288,7 +288,7 @@ class CodeContainer : public virtual Garbageable {
     void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
     
     template <typename REAL>
-    void generateMetaData(JSONUIAux<REAL>* json)
+    void generateMetaData(JSONUIReal<REAL>* json)
     {
         // Add global metadata
         for (auto& i : gGlobal->gMetaDataSet) {
