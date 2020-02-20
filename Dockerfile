@@ -7,7 +7,7 @@ COPY . /faust
 
 RUN \
   apt-get update && \
-  apt-get install -y build-essential llvm libncurses5-dev libncurses5 libmicrohttpd-dev git cmake && \
+  apt-get install -y build-essential llvm libncurses5-dev libncurses5 libmicrohttpd-dev git cmake pkg-config && \
   rm -rf /var/lib/apt/lists/*
 
 RUN \
