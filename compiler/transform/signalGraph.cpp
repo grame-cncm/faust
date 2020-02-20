@@ -70,3 +70,34 @@ void signalGraph(const string& filename, const set<Tree>& I)
     f.close();
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
+
+/**
+ * @brief generates a dotfile graph of a set of instructions
+ *
+ * @param "filename.dot" the name of the file
+ * @param instr the set of instructions
+ */
+void signalGraph2(const string& filename, const set<Tree>& I)
+{
+    // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
+
+    digraph<Tree> G;
+    // Dictionnary   Dic;
+
+    for (auto i : I) {
+        if (i)
+        G.add(dependencyGraph(i));
+        // Dic.add(i);
+    }
+
+    digraph<digraph<Tree>> SG = graph2dag2(G);
+
+    ofstream f;
+    f.open(filename);
+    // cerr << "\n\nCreate dotfile: " << filename << endl;
+
+    // dotfile2(f, Dic, G);
+    dotfile(f, SG);
+    f.close();
+    // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
+}

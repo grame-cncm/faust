@@ -169,6 +169,17 @@ static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
         return C.getClass();
     }
 }
+
+// predicates on instructions
+
+/**
+ * @brief Check if a control instruction is executed at init time
+ *
+ * @param i the instruction to test
+ * @return true if it is a control instruction
+ * @return false otherwise
+ */
+
 static bool isInit(Tree i)
 {
     Tree id, origin, exp;
@@ -430,6 +441,8 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
     if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
 
+    signalGraph("SPECIAL1.dot", INSTR6);
+    signalGraph2("SPECIAL2.dot", INSTR6);
 #if 0
     cerr << "Start scalarscheduling" << endl;
     scalarScheduling("phase5-scalarScheduling.txt", INSTR4);

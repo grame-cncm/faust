@@ -37,3 +37,4 @@ using namespace std;
  * @param instr the set of instructions
  */
 void signalGraph(const string& filename, const set<Tree>& instr);
+void signalGraph2(const string& filename, const set<Tree>& instr);
