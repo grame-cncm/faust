@@ -32,11 +32,11 @@ std::string searchIP();
 
 bool isInt(const char* word);
 
-long lopt(const char *argv[], const char* name, long def);
+long lopt(const char* argv[], const char* name, long def);
 
 bool isopt(const char* argv[], const char* name);
 
-bool isopt(int argc, const char *argv[], const char *name);
+bool isopt(int argc, const char* argv[], const char* name);
 
 const char* loptions(const char* argv[], const char* name, const char* def);
 

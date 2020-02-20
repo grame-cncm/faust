@@ -10,7 +10,7 @@ The server launches a compilation service, waiting for DSPs to compile. Dependen
 * `faust`             make + sudo make install at the root of faust project
 * `HTTPDFaust`   make httpd + sudo make install at the root of faust project
 * `microhttpd`   using macport
-* `libjacknet`   download JackOSX package at : https://jackaudio.org
+* `libjacknet`   download JackOSX package at: https://jackaudio.org
 
 Here is te API:
 

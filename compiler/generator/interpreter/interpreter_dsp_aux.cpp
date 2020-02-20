@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#include "interpreter_dsp_aux.hh"
+#include "interpreter_dsp.hh"
 #include "compatibility.hh"
 #include "libfaust.h"
 #include "lock_api.hh"

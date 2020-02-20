@@ -143,18 +143,18 @@ string searchIP()
      struct hostent* host = gethostbyname(host_name);
      string res = "127.0.0.1";
      
-     if (host){
-     for (int i=0; host->h_addr_list[i] != 0; i++){
-     struct in_addr addr;
-     memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-     if (strcmp(inet_ntoa(addr), "127.0.0.1") != 0) {
-     res = inet_ntoa(addr);
-     break;
-     }
-     }
+     if (host) {
+         for (int i=0; host->h_addr_list[i] != 0; i++) {
+            struct in_addr addr;
+            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
+            if (strcmp(inet_ntoa(addr), "127.0.0.1") != 0) {
+                 res = inet_ntoa(addr);
+                 break;
+            }
+         }
      }
      return res;
      #endif
-     */
+    */
 }
 

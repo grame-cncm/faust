@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,8 +27,9 @@
 
 template <class T>
 struct FBCExecutor {
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue){};
-    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false){};
+    
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false) {};
 
     virtual void setIntValue(int offset, int value) {}
     virtual int  getIntValue(int offset) { return -1; }
@@ -39,6 +40,18 @@ struct FBCExecutor {
     virtual ~FBCExecutor() {}
 
     virtual void dumpMemory(FBCBlockInstruction<T>* block, const std::string& name, const std::string& filename) {}
+    
+};
+
+template <class T>
+struct FBCExecuteFun {
+
+    FBCExecuteFun() {}
+    FBCExecuteFun(FBCBlockInstruction<T>* fbc_block) {}
+    virtual ~FBCExecuteFun() {}
+   
+    virtual void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs) {}
+    
 };
 
 #endif

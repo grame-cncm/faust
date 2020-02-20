@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
 #include <llvm-c/Transforms/PassManagerBuilder.h>
 #include <llvm-c/Transforms/Vectorize.h>
 
-#include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
+#include "fbc_executor.hh"
 
 #define dispatchReturn() \
     {                    \
@@ -47,7 +47,8 @@
 
 // FBC LLVM compiler
 template <class T>
-class FBCLLVMCompiler {
+class FBCLLVMCompiler : public FBCExecuteFun<T> {
+
     typedef void (*compiledFun)(int* int_heap, T* real_heap, T** inputs, T** outputs);
 
    protected:
@@ -949,51 +950,6 @@ class FBCLLVMCompiler {
     void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
     {
         fCompiledFun(int_heap, real_heap, inputs, outputs);
-    }
-};
-
-// FBC compiler
-template <class T>
-class FBCCompiler : public FBCInterpreter<T, 0> {
-   public:
-    typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>           CompiledBlocksType;
-    typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>::iterator CompiledBlocksTypeIT;
-
-    FBCCompiler(interpreter_dsp_factory_aux<T, 0>* factory, CompiledBlocksType* map) : FBCInterpreter<T, 0>(factory)
-    {
-        fCompiledBlocks = map;
-
-        // FBC blocks compilation
-        // CompileBlock(factory->fComputeBlock);
-        CompileBlock(factory->fComputeDSPBlock);
-    }
-
-    virtual ~FBCCompiler() {}
-
-    void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile)
-    {
-        if (compile && fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-            CompileBlock(block);
-        }
-
-        // The 'DSP' compute block only is compiled..
-        if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
-            ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
-        } else {
-            FBCInterpreter<T, 0>::ExecuteBlock(block);
-        }
-    }
-
-   protected:
-    CompiledBlocksType* fCompiledBlocks;
-
-    void CompileBlock(FBCBlockInstruction<T>* block)
-    {
-        if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
-        } else {
-            // std::cout << "FBCCompiler: reuse compiled block" << std::endl;
-        }
     }
 };
 
