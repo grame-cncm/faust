@@ -42,7 +42,7 @@ do
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-jucemodulesdir <dir>' to set JUCE modules directory to <dir>, such as ~/JUCE/modules"
+        echo "Use '-jucemodulesdir <folder>' to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
         echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
