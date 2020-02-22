@@ -37,13 +37,14 @@
 #include "signalDependencies.hh"
 #include "sigtyperules.hh"
 
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Compile a list of FAUST signals into a scalar C++ class
  */
 ///////////////////////////////////////////////////////////////////////
 
-class GraphCompiler : public Compiler {
+class GraphVectorCompiler : public Compiler {
    protected:
     property<string>               fCompileProperty;
     property<string>               fSoundfileVariableProperty;  // variable associated to a soundfile
@@ -64,12 +65,12 @@ class GraphCompiler : public Compiler {
     bool                    fHasIota;
 
    public:
-    GraphCompiler(const string& name, const string& super, int numInputs, int numOutputs)
+    GraphVectorCompiler(const string& name, const string& super, int numInputs, int numOutputs)
         : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(nullptr), fHasIota(false)
     {
     }
 
-    GraphCompiler(Klass* k) : Compiler(k), fOccMarkup(nullptr), fHasIota(false) {}
+    GraphVectorCompiler(Klass* k) : Compiler(k), fOccMarkup(nullptr), fHasIota(false) {}
 
     void compileMultiSignal(Tree lsig) override;
     void compileSingleSignal(Tree lsig) override;

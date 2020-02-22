@@ -238,10 +238,18 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
-    // Read and Write
+    // Shared Read and Write
     else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
     } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
+        self(y);
+        return;
+    }
+
+    // Vector Read and Write
+    else if (isSigInstructionVectorRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+        return;
+    } else if (isSigInstructionVectorWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         self(y);
         return;
     }

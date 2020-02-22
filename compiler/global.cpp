@@ -377,6 +377,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGINSTRUCTIONDELAYLINEWRITE  = symbol("SigInstructionDelayLineWrite");
     SIGINSTRUCTIONSHAREDWRITE     = symbol("SigInstructionSharedWrite");
     SIGINSTRUCTIONSHAREDREAD      = symbol("SigInstructionSharedRead");
+    SIGINSTRUCTIONVECTORWRITE     = symbol("SigInstructionVectorWrite");
+    SIGINSTRUCTIONVECTORREAD      = symbol("SigInstructionVectorRead");
     SIGINSTRUCTIONSHORTDLINEWRITE = symbol("SigInstructionShortDLineWrite");
     SIGINSTRUCTIONSHORTDLINEREAD  = symbol("SigInstructionShortDLineRead");
     SIGINSTRUCTIONCONTROLREAD     = symbol("SigInstructionControlRead");

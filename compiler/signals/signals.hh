@@ -388,6 +388,14 @@ bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature);
 
 //
 
+Tree sigInstructionVectorWrite(Tree id, Tree origin, int nature, Tree sig);
+bool isSigInstructionVectorWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
+
+Tree sigInstructionVectorRead(Tree id, Tree origin, int nature);
+bool isSigInstructionVectorRead(Tree s, Tree& id, Tree& origin, int* nature);
+
+//
+
 Tree sigInstructionShortDLineWrite(Tree id, Tree origin, int nature, Tree sig);
 bool isSigInstructionShortDLineWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
 

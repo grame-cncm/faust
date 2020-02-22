@@ -24,7 +24,7 @@
     22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
-#include "compile_graph.hh"
+#include "compile_vector_graph.hh"
 #include <math.h>
 #include <stdio.h>
 #include <fstream>
@@ -221,9 +221,9 @@ static bool isControl(Tree i)
  getFreshID
  *****************************************************************************/
 
-map<string, int> GraphCompiler::fIDCounters;
+map<string, int> GraphVectorCompiler::fIDCounters;
 
-string GraphCompiler::getFreshID(const string& prefix)
+string GraphVectorCompiler::getFreshID(const string& prefix)
 {
     if (fIDCounters.find(prefix) == fIDCounters.end()) {
         fIDCounters[prefix] = 0;
@@ -237,7 +237,7 @@ string GraphCompiler::getFreshID(const string& prefix)
  prepare
  *****************************************************************************/
 
-Tree GraphCompiler::prepare(Tree LS)
+Tree GraphVectorCompiler::prepare(Tree LS)
 {
     startTiming("GraphCompiler::prepare");
     //  startTiming("first simplification");
@@ -303,7 +303,7 @@ Tree GraphCompiler::prepare(Tree LS)
     return L3;
 }
 
-Tree GraphCompiler::prepare2(Tree L0)
+Tree GraphVectorCompiler::prepare2(Tree L0)
 {
     startTiming("GraphCompiler::prepare2");
 
@@ -327,7 +327,7 @@ Tree GraphCompiler::prepare2(Tree L0)
  * @param L1
  * @return Tree
  */
-Tree GraphCompiler::prepare3(Tree L1)
+Tree GraphVectorCompiler::prepare3(Tree L1)
 {
     recursivnessAnnotation(L1);  // Annotate L0 with recursivness information
     typeAnnotation(L1, true);    // Annotate L0 with type information
@@ -349,7 +349,7 @@ Tree GraphCompiler::prepare3(Tree L1)
  * @param exp the expression to transform
  * @return set<Tree>
  */
-set<Tree> GraphCompiler::expression2Instructions(Tree exp)
+set<Tree> GraphVectorCompiler::expression2Instructions(Tree exp)
 {
     Tree L = cons(exp, gGlobal->nil);
     Tree P = prepare3(L);
@@ -362,7 +362,7 @@ set<Tree> GraphCompiler::expression2Instructions(Tree exp)
  * @param I
  * @return set<Tree>
  */
-set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
+set<Tree> GraphVectorCompiler::collectTableIDs(const set<Tree> I)
 {
     set<Tree> IDs;
     for (Tree i : I) {
@@ -396,7 +396,7 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
  * @param L3 a list of expressions
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
+set<Tree> GraphVectorCompiler::ExpressionsListToInstructionsSet(Tree L3)
 {
     // Each expression represent an output. We decorate them with
     // output informations
@@ -510,7 +510,7 @@ static digraph<Tree> instructions2graph(const set<Tree>& I)
  compileMultiSignal
  *****************************************************************************/
 
-string GraphCompiler::dnf2code(Tree cc)
+string GraphVectorCompiler::dnf2code(Tree cc)
 {
     if (cc == gGlobal->nil) return "";
     Tree c1 = hd(cc);
@@ -522,7 +522,7 @@ string GraphCompiler::dnf2code(Tree cc)
     }
 }
 
-string GraphCompiler::and2code(Tree cs)
+string GraphVectorCompiler::and2code(Tree cs)
 {
     if (cs == gGlobal->nil) return "";
     Tree c1 = hd(cs);
@@ -534,7 +534,7 @@ string GraphCompiler::and2code(Tree cs)
     }
 }
 
-string GraphCompiler::cnf2code(Tree cs)
+string GraphVectorCompiler::cnf2code(Tree cs)
 {
     if (cs == gGlobal->nil) return "";
     Tree c1 = hd(cs);
@@ -546,7 +546,7 @@ string GraphCompiler::cnf2code(Tree cs)
     }
 }
 
-string GraphCompiler::or2code(Tree cs)
+string GraphVectorCompiler::or2code(Tree cs)
 {
     if (cs == gGlobal->nil) return "";
     Tree c1 = hd(cs);
@@ -565,7 +565,7 @@ string GraphCompiler::or2code(Tree cs)
 #endif
 
 // temporary implementation for test purposes
-string GraphCompiler::getConditionCode(Tree sig)
+string GraphVectorCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
     if ((cc != nullptr) && (cc != gGlobal->nil)) {
@@ -585,7 +585,7 @@ string GraphCompiler::getConditionCode(Tree sig)
  * @param cexp the string representing the compiled expression.
  * @return true is already compiled
  */
-bool GraphCompiler::getCompiledExpression(Tree sig, string& cexp)
+bool GraphVectorCompiler::getCompiledExpression(Tree sig, string& cexp)
 {
     return fCompileProperty.get(sig, cexp);
 }
@@ -596,7 +596,7 @@ bool GraphCompiler::getCompiledExpression(Tree sig, string& cexp)
  * @param cexp the string representing the compiled expression.
  * @return the cexp (for commodity)
  */
-string GraphCompiler::setCompiledExpression(Tree sig, const string& cexp)
+string GraphVectorCompiler::setCompiledExpression(Tree sig, const string& cexp)
 {
     // cerr << "GraphCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
     string old;
@@ -613,7 +613,7 @@ string GraphCompiler::setCompiledExpression(Tree sig, const string& cexp)
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
  */
-string GraphCompiler::CS(Tree sig)
+string GraphVectorCompiler::CS(Tree sig)
 {
     // contextor contextRecursivness;
     string code;
@@ -649,7 +649,7 @@ static string nature2ctype(int n)
  *
  * @param I the instruction set to analyze
  */
-void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
+void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
     set<Tree> TID;                     // Treated IDs so far
     set<Tree> C = collectTableIDs(I);  // Remaining to be treated
@@ -721,7 +721,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
  * @param K the class
  * @param instr the signal to compile
  */
-void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
+void GraphVectorCompiler::compileSingleInstruction(Tree instr, Klass* K)
 {
     Tree id, origin, content, init, initval, idx;
     int  i, nature, tblsize;
@@ -796,10 +796,10 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
 static void compileInsOuts(Klass* K)
 {
     for (int i = 0; i < K->inputs(); i++) {
-        K->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
+        K->addZone3(subst("$1* input$0 = &input[$0][index];", T(i), xfloat()));
     }
     for (int i = 0; i < K->outputs(); i++) {
-        K->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
+        K->addZone3(subst("$1* output$0 = &output[$0][index];", T(i), xfloat()));
     }
 }
 
@@ -808,12 +808,12 @@ static void compileGlobalTime(Klass* K)
     // Handling global time 'gTime' with a local version 'time'
     K->addDeclCode("int \tgTime;");
     K->addClearCode("gTime = 0;");
-    K->addZone3("int \ttime = gTime;");
+    K->addZone3("int \ttime = gTime+index;");
     K->addPostCode(Statement("", "++time;"));
-    K->addZone4("gTime = time;");
+    K->addZone4("gTime = gTime + fullcount;");
 }
 #if 1
-void GraphCompiler::compileMultiSignal(Tree L)
+void GraphVectorCompiler::compileMultiSignal(Tree L)
 {
     L               = prepare(L);  // optimize, share and annotate expressions
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
@@ -867,13 +867,13 @@ void GraphCompiler::compileMultiSignal(Tree L)
  * @param S
  * @return Klass
  */
-void GraphCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
+void GraphVectorCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
 {
     compileInsOuts(K);
     InstructionsToMethod(I, K);
 }
 
-void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
+void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
 {
     compileInsOuts(Kl);
     compileGlobalTime(Kl);
@@ -910,7 +910,7 @@ void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
     }
 }
 
-void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
+void GraphVectorCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
 {
     compileGlobalTime(K);
     Scheduling S = schedule(I);
@@ -934,7 +934,7 @@ void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
  * @param C a set of ID
  * @param K
  */
-void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
+void GraphVectorCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 {
     compileGlobalTime(K);
 
@@ -958,7 +958,7 @@ void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
  * @param I the set of instructions to schedule
  * @return the sequential Scheduling
  */
-Scheduling GraphCompiler::schedule(const set<Tree>& I)
+Scheduling GraphVectorCompiler::schedule(const set<Tree>& I)
 {
     digraph<Tree> G;  // the signal graph
     Scheduling    S;
@@ -1072,7 +1072,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
  compileSingleSignal
  *****************************************************************************/
 
-void GraphCompiler::compileSingleSignal(Tree sig)
+void GraphVectorCompiler::compileSingleSignal(Tree sig)
 {
     // contextor recursivness(0);
     sig = prepare2(sig);  // optimize and annotate expression
@@ -1088,7 +1088,7 @@ void GraphCompiler::compileSingleSignal(Tree sig)
  * @brief generate sigTime 'time' variable code
  *
  */
-void GraphCompiler::generateTime()
+void GraphVectorCompiler::generateTime()
 {
     fClass->addDeclCode("int \ttime;");
     fClass->addClearCode("time = 0;");
@@ -1104,7 +1104,7 @@ void GraphCompiler::generateTime()
  * @return the C code translation of sig
  */
 
-string GraphCompiler::generateCode(Tree sig)
+string GraphVectorCompiler::generateCode(Tree sig)
 {
 #if 0
     fprintf(stderr, "CALL generateCode(");
@@ -1220,7 +1220,7 @@ string GraphCompiler::generateCode(Tree sig)
  FOREIGN CONSTANTS
  *****************************************************************************/
 
-string GraphCompiler::generateFConst(Tree /*sig*/, const string& file, const string& exp_aux)
+string GraphVectorCompiler::generateFConst(Tree /*sig*/, const string& file, const string& exp_aux)
 {
     // Special case for 02/25/19 renaming
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
@@ -1236,7 +1236,7 @@ string GraphCompiler::generateFConst(Tree /*sig*/, const string& file, const str
  FOREIGN VARIABLES
  *****************************************************************************/
 
-string GraphCompiler::generateFVar(Tree /*sig*/, const string& file, const string& exp)
+string GraphVectorCompiler::generateFVar(Tree /*sig*/, const string& file, const string& exp)
 {
     string ctype, vname;
 
@@ -1248,7 +1248,7 @@ string GraphCompiler::generateFVar(Tree /*sig*/, const string& file, const strin
  INPUTS - OUTPUTS
  *****************************************************************************/
 
-string GraphCompiler::generateInput(Tree /*sig*/, const string& idx)
+string GraphVectorCompiler::generateInput(Tree /*sig*/, const string& idx)
 {
     if (gGlobal->gInPlace) {
         // TODO inputs must be cached for in-place transformations
@@ -1258,7 +1258,7 @@ string GraphCompiler::generateInput(Tree /*sig*/, const string& idx)
     }
 }
 
-string GraphCompiler::generateOutput(Tree /*sig*/, const string& idx, const string& arg)
+string GraphVectorCompiler::generateOutput(Tree /*sig*/, const string& idx, const string& arg)
 {
     string dst = subst("output$0[i]", idx);
     fClass->addExecCode(Statement("", subst("$0 = $2$1;", dst, arg, xcast())));
@@ -1269,7 +1269,7 @@ string GraphCompiler::generateOutput(Tree /*sig*/, const string& idx, const stri
  BINARY OPERATION
  *****************************************************************************/
 
-string GraphCompiler::generateBinOp(Tree /*sig*/, int opcode, Tree arg1, Tree arg2)
+string GraphVectorCompiler::generateBinOp(Tree /*sig*/, int opcode, Tree arg1, Tree arg2)
 {
     if (opcode == kDiv) {
         // special handling for division, we always want a float division
@@ -1303,7 +1303,7 @@ string GraphCompiler::generateBinOp(Tree /*sig*/, int opcode, Tree arg1, Tree ar
  Primitive Operations
  *****************************************************************************/
 
-string GraphCompiler::generateFFun(Tree /*sig*/, Tree ff, Tree largs)
+string GraphVectorCompiler::generateFFun(Tree /*sig*/, Tree ff, Tree largs)
 {
     addIncludeFile(ffincfile(ff));  // printf("inc file %s\n", ffincfile(ff));
     addLibrary(fflibfile(ff));      // printf("lib file %s\n", fflibfile(ff));
@@ -1324,7 +1324,7 @@ string GraphCompiler::generateFFun(Tree /*sig*/, Tree ff, Tree largs)
  CACHE CODE
  *****************************************************************************/
 
-void GraphCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
+void GraphVectorCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
     if (t->nature() == kInt) {
         ctype = "int";
@@ -1339,12 +1339,12 @@ void GraphCompiler::getTypedNames(Type t, const string& prefix, string& ctype, s
  CASTING
  *****************************************************************************/
 
-string GraphCompiler::generateIntCast(Tree /*sig*/, Tree x)
+string GraphVectorCompiler::generateIntCast(Tree /*sig*/, Tree x)
 {
     return subst("int($0)", CS(x));
 }
 
-string GraphCompiler::generateFloatCast(Tree /*sig*/, Tree x)
+string GraphVectorCompiler::generateFloatCast(Tree /*sig*/, Tree x)
 {
     return subst("$1($0)", CS(x), ifloat());
 }
@@ -1353,7 +1353,7 @@ string GraphCompiler::generateFloatCast(Tree /*sig*/, Tree x)
  user interface elements
  *****************************************************************************/
 
-string GraphCompiler::generateButton(Tree sig, Tree path)
+string GraphVectorCompiler::generateButton(Tree sig, Tree path)
 {
     string varname = getFreshID("fbutton");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1363,7 +1363,7 @@ string GraphCompiler::generateButton(Tree sig, Tree path)
     return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateCheckbox(Tree sig, Tree path)
+string GraphVectorCompiler::generateCheckbox(Tree sig, Tree path)
 {
     string varname = getFreshID("fcheckbox");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1373,7 +1373,7 @@ string GraphCompiler::generateCheckbox(Tree sig, Tree path)
     return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
+string GraphVectorCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1383,7 +1383,7 @@ string GraphCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree /*min*
     return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
+string GraphVectorCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1393,7 +1393,7 @@ string GraphCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree /*min*
     return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
+string GraphVectorCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree /*min*/, Tree /*max*/, Tree /*step*/)
 {
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1403,7 +1403,7 @@ string GraphCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree /*min
     return subst("$1($0)", varname, ifloat());
 }
 
-string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree /*min*/, Tree /*max*/, const string& exp)
+string GraphVectorCompiler::generateVBargraph(Tree sig, Tree path, Tree /*min*/, Tree /*max*/, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1428,7 +1428,7 @@ string GraphCompiler::generateVBargraph(Tree sig, Tree path, Tree /*min*/, Tree 
     return varname;
 }
 
-string GraphCompiler::generateHBargraph(Tree sig, Tree path, Tree /*min*/, Tree /*max*/, const string& exp)
+string GraphVectorCompiler::generateHBargraph(Tree sig, Tree path, Tree /*min*/, Tree /*max*/, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -1452,7 +1452,7 @@ string GraphCompiler::generateHBargraph(Tree sig, Tree path, Tree /*min*/, Tree 
     return varname;
 }
 
-string GraphCompiler::generateSoundfile(Tree sig, Tree path)
+string GraphVectorCompiler::generateSoundfile(Tree sig, Tree path)
 {
     string varname = getFreshID("fSoundfile");
 
@@ -1486,7 +1486,7 @@ string GraphCompiler::generateSoundfile(Tree sig, Tree path)
                         sigGen : initial table content
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateSigGen(Tree /*sig*/, Tree content)
+string GraphVectorCompiler::generateSigGen(Tree /*sig*/, Tree content)
 {
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
@@ -1498,7 +1498,7 @@ string GraphCompiler::generateSigGen(Tree /*sig*/, Tree content)
     return signame;
 }
 
-string GraphCompiler::generateStaticSigGen(Tree /*sig*/, Tree content)
+string GraphVectorCompiler::generateStaticSigGen(Tree /*sig*/, Tree content)
 {
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
@@ -1514,7 +1514,7 @@ string GraphCompiler::generateStaticSigGen(Tree /*sig*/, Tree content)
                         sigTable : table declaration
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateTable(Tree /*sig*/, Tree tsize, Tree content)
+string GraphVectorCompiler::generateTable(Tree /*sig*/, Tree tsize, Tree content)
 {
     int size;
     if (!isSigInt(tsize, &size)) {
@@ -1561,7 +1561,7 @@ string GraphCompiler::generateTable(Tree /*sig*/, Tree tsize, Tree content)
     return vname;
 }
 
-string GraphCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree content)
+string GraphVectorCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree content)
 {
     int size;
     if (!isSigInt(tsize, &size)) {
@@ -1625,7 +1625,7 @@ string GraphCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree content
                         sigWRTable : table assignement
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
+string GraphVectorCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     string tblName(CS(tbl));
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
@@ -1636,7 +1636,7 @@ string GraphCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
                         sigRDTable : table access
 ----------------------------------------------------------------------------*/
 
-string GraphCompiler::generateRDTbl(Tree /*sig*/, Tree tbl, Tree idx)
+string GraphVectorCompiler::generateRDTbl(Tree /*sig*/, Tree tbl, Tree idx)
 {
     // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
     // et donc le code était dupliqué (dans tester.dsp par exemple)
@@ -1660,13 +1660,13 @@ string GraphCompiler::generateRDTbl(Tree /*sig*/, Tree tbl, Tree idx)
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
 
-string GraphCompiler::generateEnable(Tree /*sig*/, Tree x, Tree y)
+string GraphVectorCompiler::generateEnable(Tree /*sig*/, Tree x, Tree y)
 {
     CS(y);
     return CS(x);
 }
 
-string GraphCompiler::generatePrefix(Tree sig, Tree x, Tree e)
+string GraphVectorCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
     Type te = getCertifiedSigType(sig);  //, tEnv);
 
@@ -1693,7 +1693,7 @@ static bool isPowerOf2(int n)
     return !(n & (n - 1));
 }
 
-string GraphCompiler::generateIota(Tree /*sig*/, Tree n)
+string GraphVectorCompiler::generateIota(Tree /*sig*/, Tree n)
 {
     int size;
     if (!isSigInt(n, &size)) {
@@ -1717,7 +1717,7 @@ string GraphCompiler::generateIota(Tree /*sig*/, Tree n)
  SELECT
  *****************************************************************************/
 
-string GraphCompiler::generateSelect2(Tree /*sig*/, Tree sel, Tree s1, Tree s2)
+string GraphVectorCompiler::generateSelect2(Tree /*sig*/, Tree sel, Tree s1, Tree s2)
 {
     return subst("(($0)?$1:$2)", CS(sel), CS(s2), CS(s1));
 }
@@ -1727,7 +1727,7 @@ string GraphCompiler::generateSelect2(Tree /*sig*/, Tree sel, Tree s1, Tree s2)
  * ((int n = sel==0)? s0 : ((sel==1)? s1 : s2))
  * int nn; ((nn=sel) ? ((nn==1)? s1 : s2) : s0);
  */
-string GraphCompiler::generateSelect3(Tree /*sig*/, Tree sel, Tree s1, Tree s2, Tree s3)
+string GraphVectorCompiler::generateSelect3(Tree /*sig*/, Tree sel, Tree s1, Tree s2, Tree s3)
 {
     return subst("(($0==0)? $1 : (($0==1)?$2:$3) )", CS(sel), CS(s1), CS(s2), CS(s3));
 }
@@ -1807,7 +1807,7 @@ string GraphCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree
  EXTENDED
  *****************************************************************************/
 
-string GraphCompiler::generateXtended(Tree sig)
+string GraphVectorCompiler::generateXtended(Tree sig)
 {
     auto*          p = (xtended*)getUserData(sig);
     vector<string> args;
@@ -1825,7 +1825,7 @@ string GraphCompiler::generateXtended(Tree sig)
  * Compute the minimal power of 2 greater than x
  */
 
-int GraphCompiler::pow2limit(int x)
+int GraphVectorCompiler::pow2limit(int x)
 {
     int n = 2;
     while (n < x) {
@@ -1842,7 +1842,7 @@ int GraphCompiler::pow2limit(int x)
  * Generate code for a waveform. The waveform will be declared as a static field.
  * The name of the waveform is returned in vname and its size in size.
  */
-void GraphCompiler::declareWaveform(Tree sig, string& vname, int& size)
+void GraphVectorCompiler::declareWaveform(Tree sig, string& vname, int& size)
 {
     // computes C type and unique name for the waveform
     string ctype;
@@ -1868,7 +1868,7 @@ void GraphCompiler::declareWaveform(Tree sig, string& vname, int& size)
         subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
 }
 
-string GraphCompiler::generateWaveform(Tree sig)
+string GraphVectorCompiler::generateWaveform(Tree sig)
 {
     string vname;
     int    size;
@@ -1882,7 +1882,7 @@ string GraphCompiler::generateWaveform(Tree sig)
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
 
-int GraphCompiler::getSharingCount(Tree sig)
+int GraphVectorCompiler::getSharingCount(Tree sig)
 {
     // cerr << "getSharingCount of : " << *sig << " = ";
     Tree c;
@@ -1895,7 +1895,7 @@ int GraphCompiler::getSharingCount(Tree sig)
     }
 }
 
-void GraphCompiler::setSharingCount(Tree sig, int count)
+void GraphVectorCompiler::setSharingCount(Tree sig, int count)
 {
     // cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
     setProperty(sig, fSharingKey, tree(count));
@@ -1905,7 +1905,7 @@ void GraphCompiler::setSharingCount(Tree sig, int count)
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
 
-void GraphCompiler::sharingAnalysis(Tree t)
+void GraphVectorCompiler::sharingAnalysis(Tree t)
 {
     fSharingKey = shprkey(t);
     if (isList(t)) {
@@ -1921,7 +1921,7 @@ void GraphCompiler::sharingAnalysis(Tree t)
 //------------------------------------------------------------------------------
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
-void GraphCompiler::sharingAnnotation(int vctxt, Tree sig)
+void GraphVectorCompiler::sharingAnnotation(int vctxt, Tree sig)
 {
     Tree c, x, y, z;
 
@@ -1981,7 +1981,7 @@ void GraphCompiler::conditionStatistics(Tree l)
 }
 #endif
 
-void GraphCompiler::conditionStatistics(Tree /*l*/)
+void GraphVectorCompiler::conditionStatistics(Tree /*l*/)
 {
     map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
     for (const auto& p : fConditionProperty) {
@@ -1995,7 +1995,7 @@ void GraphCompiler::conditionStatistics(Tree /*l*/)
     }
 }
 
-void GraphCompiler::conditionAnnotation(Tree l)
+void GraphVectorCompiler::conditionAnnotation(Tree l)
 {
     while (isList(l)) {
         conditionAnnotation(hd(l), gGlobal->nil);
@@ -2016,7 +2016,7 @@ void GraphCompiler::conditionAnnotation(Tree l)
 
 #endif
 
-void GraphCompiler::conditionAnnotation(Tree t, Tree nc)
+void GraphVectorCompiler::conditionAnnotation(Tree t, Tree nc)
 {
     // Check if we need to annotate the tree with new conditions
     auto p = fConditionProperty.find(t);

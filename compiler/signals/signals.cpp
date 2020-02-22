@@ -938,6 +938,53 @@ bool isSigInstructionSharedRead(Tree s, Tree& id, Tree& origin, int* nature)
     }
 }
 
+/**
+ * @brief a vector write "instruction" (index is implicit)
+ *
+ * @param id: unique identifier of the shared signal
+ * @param sig: the shared signal
+ * @return a shared write instruction
+ */
+Tree sigInstructionVectorWrite(Tree id, Tree origin, int nature, Tree sig)
+{
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONVECTORWRITE, id, origin, tree(nature), sig);
+    setIDInstruction(id, instr);
+    return instr;
+}
+
+bool isSigInstructionVectorWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONVECTORWRITE, id, origin, tnat, sig)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief a vector read "instruction" (index is implicit)
+ *
+ * @param id: unique identifier of the shared signal
+ * @return a shared read instruction
+ */
+Tree sigInstructionVectorRead(Tree id, Tree origin, int nature)
+{
+    return tree(gGlobal->SIGINSTRUCTIONVECTORREAD, id, origin, tree(nature));
+}
+
+bool isSigInstructionVectorRead(Tree s, Tree& id, Tree& origin, int* nature)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONVECTORREAD, id, origin, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 ///////////////////
 
 /**

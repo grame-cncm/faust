@@ -245,23 +245,35 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 1;
     } else if (isSigInstructionSharedRead(sig, id, origin, &nat)) {
         return 0;
-    } else if (isSigInstructionControlWrite(sig, id, origin, &nat, x)) {
+    }
+
+    else if (isSigInstructionVectorWrite(sig, id, origin, &nat, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigInstructionVectorRead(sig, id, origin, &nat)) {
+        return 0;
+    }
+
+    else if (isSigInstructionControlWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
     } else if (isSigInstructionControlRead(sig, id, origin, &nat)) {
         return 0;
-    } else if (isSigInstructionBargraphWrite(sig, id, origin, &nat, x)) {
+    }
+
+    else if (isSigInstructionBargraphWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
     } else if (isSigInstructionBargraphRead(sig, id, origin, &nat)) {
         return 0;
-    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nat, x)) {
+    }
+
+    else if (isSigInstructionShortDLineWrite(sig, id, origin, &nat, x)) {
         vsigs.push_back(x);
         return 1;
     } else if (isSigInstructionShortDLineRead(sig, id, origin, &nat, &dmin)) {
         return 0;
     }
-
 
     else if (isList(sig)) {
         vsigs.push_back(hd(sig));

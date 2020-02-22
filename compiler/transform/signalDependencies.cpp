@@ -65,6 +65,10 @@ class SignalDependencies : public SignalVisitor {
             fRoot = sig;
             fGraph.add(fRoot);
             self(content);
+        } else if (isSigInstructionVectorWrite(sig, id, origin, &nature, content)) {
+            fRoot = sig;
+            fGraph.add(fRoot);
+            self(content);
         } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
             fRoot = sig;
             fGraph.add(fRoot);

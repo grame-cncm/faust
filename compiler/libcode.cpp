@@ -34,6 +34,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
 #include "Text.hh"
 #include "compatibility.hh"
 #include "dag_instructions_compiler.hh"
@@ -96,6 +97,7 @@
 #include "compile_scal.hh"
 #include "compile_sched.hh"
 #include "compile_vect.hh"
+#include "compile_vector_graph.hh"
 #endif
 
 #ifdef RUST_BUILD
@@ -1397,7 +1399,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gSchedulerSwitch)
                 old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else if (gGlobal->gVectorSwitch)
-                old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+                old_comp =
+                    new GraphVectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else
                 old_comp = new GraphCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
 

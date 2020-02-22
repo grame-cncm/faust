@@ -521,6 +521,14 @@ static Type infereSigType(Tree sig, Tree env)
         return getCertifiedSigType(u);
     }
 
+    else if (isSigInstructionVectorWrite(sig, id, u, &nat, x)) {
+        return T(x, env);
+    }
+
+    else if (isSigInstructionVectorRead(sig, id, u, &nat)) {
+        return getCertifiedSigType(u);
+    }
+
     else if (isSigInstructionControlWrite(sig, id, u, &nat, x)) {
         return T(x, env);
     }
