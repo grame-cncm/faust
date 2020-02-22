@@ -40,7 +40,7 @@ The following options are available:
  - `-nvoices <num>` : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC
  - `-effect <effect.dsp>` : to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC
  - `-effect auto` : to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC 
- - `-jucemodulesdir <folder>` : to set JUCE modules directory to <folder>, such as ~/JUCE/modules
+ - `-jucemodulesdir <folder>` : to set JUCE modules directory to `<folder>`, such as ~/JUCE/modules
  - `-jsynth` : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
  - `-midi` : activates MIDI control
  - `-osc` : activates OSC control
