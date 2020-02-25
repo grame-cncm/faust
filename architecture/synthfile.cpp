@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 	Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
 	
 	// init signal processor
-	DSP.init(kSampleRate);
+	DSP.init(sample_rate);
 	interface->process_init();
 
 	// process all samples
