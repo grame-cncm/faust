@@ -1,37 +1,62 @@
+'use strict';
 
-var context;
-var source;
-var faustdsp;
-var code = "";
-var ui;
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+const context = new AudioContext();
+
+let source = context.createBufferSource();
+let faustdsp = null;
+let ui = null;
+
+window.addEventListener('touchstart', resume, false);
+window.addEventListener('mousedown', resume, false);
+
+// for Autoplay Policy
+function resume(event) 
+{
+    if (context.state !== 'suspended') {
+        window.removeEventListener(event.type, resume, false);
+
+        return;
+    }
+
+    context.resume()
+        .then(() => {
+            console.log('Audio resumed');
+        })
+        .catch(console.error)
+        .finally(() => {
+            window.removeEventListener(event.type, resume, false);
+        });
+}
 
 function loadSample(url) 
 {
     // Load asynchronously
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
-
-    request.onload = function() { 
-        source.buffer = context.createBuffer(request.response, false);
-        source.loop = true;
-        source.noteOn(0);
-    }
-
-    request.send();
+    fetch(url)
+        .then((response) => {
+            return response.arraybuffer();
+        })
+        .then((arraybuffer) => {
+            context.decodeAudioData(arraybuffer, (audiobuffer) => {
+                source.buffer = audiobuffer;
+                source.loop = true;
+                source.start(0);
+            }, console.error);
+        })
+        .catch(console.error);
 }
 
 function loadDSP(url) 
 {
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4) { 
-            code = request.responseText; 
+    fetch(url)
+        .then((response) => {
+            return response.text();
+        })
+        .then((code) => {
             buildFaustNodeSVG(code);
-        }
-    }
-    request.open("GET", url, true);
-    request.send(null);
+        })
+        .catch(console.error);
 }
 
 function buildFaustNode(code)
@@ -43,25 +68,33 @@ function buildFaustNode(code)
         }
         faustdsp.disconnect(context.destination);
     }
-    
+
     // Clear UI
     ui.clear();
-    
+
     faustdsp = context.createFaustNode(code);
-    var controls = faustdsp.numberOfAudioParams();
-   
-    console.log("numberOfAudioParams = %d", controls);    
-    console.log("numberOfInputs = %d", faustdsp.numberOfInputs);
-    console.log("numberOfOutputs = %d", faustdsp.numberOfOutputs);
-    console.log("JSON "+ faustdsp.json);
-    
+    const controls = faustdsp.numberOfAudioParams();
+
+    console.log('numberOfAudioParams = %d', controls);
+    console.log('numberOfInputs = %d', faustdsp.numberOfInputs);
+    console.log('numberOfOutputs = %d', faustdsp.numberOfOutputs);
+    console.log(`JSON ${faustdsp.json}`);
+
+    const handler = (obj) => {
+        return (val) => {
+            obj.value = val;
+        };
+    };
+
     // Build simple UI
-    for (var i = 0; i < controls; i++) {
-        var ctrl = faustdsp.getAudioParam(i);
-        console.log("getAudioParam : name = %s, min = %d, max = %d, default = %d", ctrl.name, ctrl.minValue, ctrl.maxValue, ctrl.defaultValue);
-        ui.addHorizontalSlider(ctrl.name, function handler(obj) { function setval(val) { obj.value = val; } return setval; }(ctrl), ctrl.defaultValue, ctrl.minValue, ctrl.maxValue, Math.abs(ctrl.maxValue - ctrl.minValue)/100);
+    for (let i = 0; i < controls; i++) {
+        const { name, minValue, maxValue, defaultValue } = faustdsp.getAudioParam(i);
+
+        console.log('getAudioParam : name = %s, min = %d, max = %d, default = %d', name, minValue, maxValue, defaultValue);
+
+        ui.addHorizontalSlider(name, handler(ctrl), defaultValue, minValue, maxValue, Math.abs(maxValue - minValue) / 100);
     }
-  
+
     // Connection to output
     faustdsp.connect(context.destination);
 }
@@ -75,40 +108,36 @@ function buildFaustNodeSVG(code)
         }
         faustdsp.disconnect(context.destination);
     }
-    
-    // Clear UI
-    //ui.clear();
-    
+
     faustdsp = context.createFaustNode(code);
-    var controls = faustdsp.numberOfAudioParams();
-   
-    console.log("numberOfAudioParams = %d", controls);    
-    console.log("numberOfInputs = %d", faustdsp.numberOfInputs);
-    console.log("numberOfOutputs = %d", faustdsp.numberOfOutputs);
-    console.log("JSON "+ faustdsp.json);
-  
+
+    const controls = faustdsp.numberOfAudioParams();
+
+    console.log('numberOfAudioParams = %d', controls);
+    console.log('numberOfInputs = %d', faustdsp.numberOfInputs);
+    console.log('numberOfOutputs = %d', faustdsp.numberOfOutputs);
+    console.log(`JSON ${faustdsp.json}`);
+
     // Connection to output
     faustdsp.connect(context.destination);
 }
 
-function initAudio(url) 
+function initAudio(url, id = 'FaustUI') 
 {
-    context = new webkitAudioContext();
-    ui = new JUI(document.getElementById("FaustUI"));
+    ui = new JUI(document.getElementById(id));
     loadDSP(url);
 }
 
-function initDefaultAudio() 
+function initDefaultAudio(id = 'FaustUI') 
 {
-    context = new webkitAudioContext();
-    ui = new JUI(document.getElementById("FaustUI"));
+    ui = new JUI(document.getElementById(id));
 }
 
 function playsound()
 {
-    var url = $("#sound").val();
+    const url = document.getElementById('sound');
     if (source) {
-        source.noteOff(0);
+        source.stop(0);
         source.disconnect(0);
         source = null;
     }
@@ -119,6 +148,6 @@ function playsound()
 
 function stopsound()
 {
-    source.noteOff(0);
+    source.stop(0);
     source.disconnect(0);
 }
