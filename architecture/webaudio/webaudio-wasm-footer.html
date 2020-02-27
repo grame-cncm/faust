@@ -48,20 +48,24 @@
 
     // Audio input handling
     const activateAudioInput = () => {
-        if (!navigator.getUserMedia) {
-            navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const onSuccess = device => {
+                audioInput = audioCtx.createMediaStreamSource(device); // Create an AudioNode from the stream.
+                audioInput.connect(dspNode); // Connect it to the destination.
+            };
+
+            const onError = e => {
+                alert('Error getting audio input');
+                console.error(e);
+                audioInput = null;
+            };
+
+            navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
+                .then(onSuccess)
+                .catch(onError);
+        } else {
+            alert('Audio input API not available');
         }
-        if (!navigator.getUserMedia) alert("Audio input API not available") 
-        const onSuccess = device => {
-            audioInput = audioCtx.createMediaStreamSource(device); // Create an AudioNode from the stream.
-            audioInput.connect(dspNode); // Connect it to the destination.
-        }
-        const onError = e => {
-            alert('Error getting audio input');
-            console.error(e);
-            audioInput = null;
-        }
-        navigator.getUserMedia({ audio: { echoCancellation: false } }, onSuccess, onError);
     }
 
     // Save/Load functions using local storage

@@ -603,16 +603,15 @@
             function activateAudioInput()
             {
                 console.log("activateAudioInput");
-                if (!navigator.getUserMedia) {
-                    navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-                }
 
-                if (navigator.getUserMedia) {
-                    navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
-                                           alert('Error getting audio input');
-                                           console.log(e);
-                                           audio_input = null;
-                                           });
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
+                        .then(getDevice)
+                        .catch((e) => {
+                            alert('Error getting audio input');
+                            console.log(e);
+                            audio_input = null;
+                        });
                 } else {
                     alert('Audio input API not available');
                 }
