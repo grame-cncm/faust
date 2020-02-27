@@ -477,18 +477,16 @@
 			    // Audio input handling
     		function activateAudioInput(){
        			console.log("activateAudioInput");
-		     	if (!navigator.getUserMedia) {
-		            navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-        		}
-        
-		        if (navigator.getUserMedia) {
-        		    navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
-                	    alert('Error getting audio input');
-                    	console.log(e);
-            		});
-		        } else {
-        		    alert('Audio input API not available');
-        		}
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
+                    .then(getDevice)
+                    .catch((e) => {
+                        alert('Error getting audio input');
+                        console.log(e);
+                    });
+            } else {
+                alert('Audio input API not available');
+            }
     		}
 
             function getDevice(device) {
