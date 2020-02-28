@@ -27,7 +27,6 @@
 #include "global.hh"
 #include "interpreter_code_container.hh"
 #include "interpreter_instructions.hh"
-#include "interpreter_optimizer.hh"
 
 using namespace std;
 

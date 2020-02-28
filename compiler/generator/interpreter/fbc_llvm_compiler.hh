@@ -76,12 +76,12 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
     LLVMValueRef genInt64(long long num) { return LLVMConstInt(LLVMInt64Type(), num, true); }
 
     LLVMTypeRef getFloatTy() { return LLVMFloatType(); }
+    LLVMTypeRef getDoubleTy() { return LLVMDoubleType(); }
+    LLVMTypeRef getRealTy() { return (sizeof(T) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
     LLVMTypeRef getInt32Ty() { return LLVMInt32Type(); }
     LLVMTypeRef getInt64Ty() { return LLVMInt64Type(); }
     LLVMTypeRef getInt1Ty() { return LLVMInt1Type(); }
-    LLVMTypeRef getDoubleTy() { return LLVMDoubleType(); }
-    LLVMTypeRef getRealTy() { return (sizeof(T) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
-
+  
     std::string getMathName(const std::string& name) { return (sizeof(T) == sizeof(float)) ? (name + "f") : name; }
 
     void         pushValue(LLVMValueRef val) { fLLVMStack[fLLVMStackIndex++] = val; }

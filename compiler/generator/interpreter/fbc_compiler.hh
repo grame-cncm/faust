@@ -64,8 +64,9 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
     void CompileBlock(FBCBlockInstruction<T>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-            // Test with LLVM interp/compiler
+            // Test with  interp/LLVM compiler
             (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
+            // Test with  interp/MIR compiler
             //(*fCompiledBlocks)[block] = new FBCMIRCompiler<T>(block);
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;

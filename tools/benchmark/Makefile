@@ -17,6 +17,9 @@ faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
 faustbench-interp: faustbench-interp.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-interp.cpp  $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -dead_strip -lz -lncurses -lpthread -o faustbench-interp
 
+faustbench-interp-comp: faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a
+	$(CXX) -std=c++11 -O3 faustbench-interp-comp.cpp  $(LIB)/libfaustmachine.a mir.o mir-gen.o `llvm-config --ldflags --libs all --system-libs` -dead_strip -lz -lncurses -lpthread -o faustbench-interp-comp
+
 dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 dynamic-faust.cpp $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -dead_strip -o dynamic-faust
 
@@ -60,6 +63,7 @@ install:
 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
 	([ -e faustbench-interp ]) && cp faustbench-interp $(prefix)/bin || echo faustbench-interp not found
+	([ -e faustbench-interp-comp ]) && cp faustbench-interp-comp $(prefix)/bin || echo faustbench-interp-comp not found
 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
@@ -75,6 +79,7 @@ clean:
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
 	([ -e faustbench-interp ]) && rm faustbench-interp || echo faustbench-interp not found
+	([ -e faustbench-interp-comp ]) && rm faustbench-interp-comp || echo faustbench-interp-comp not found
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && rm fastmath.wasm || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && rm faust-osc-controller || echo faust-osc-controller not found

@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
     string error_msg;
-    dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
+    dsp_factory* factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
     
     if (!factory) {
         cerr << error_msg;

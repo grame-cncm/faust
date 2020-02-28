@@ -28,7 +28,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
- #include <unistd.h>
+#include <unistd.h>
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"

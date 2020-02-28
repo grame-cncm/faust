@@ -26,7 +26,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 SRCDIR := tools
 
 #########################################################################
-interp1:  impulseinterp1 ir/$(outdir) $(call listfiles,$(outdir))
+interp1: impulseinterp1 ir/$(outdir) $(call listfiles,$(outdir))
 
 test:
 	@echo $(call listfiles,$(outdir))
