@@ -58,13 +58,11 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     std::map<std::string, MIR_item_t> fFunProto;
     std::string fIdent;
     
-    MIR_module_t fModule;
     MIR_context_t fContext;
     MIR_item_t fCompute;
 
     MIR_reg_t fMIRStack[512];
-    InstructionIT fAddressStack[64];
-
+  
     int fMIRStackIndex;
     int fAddrStackIndex;
 
@@ -100,10 +98,6 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
 
     void pushValue(MIR_reg_t val) { fMIRStack[fMIRStackIndex++] = val; }
     MIR_reg_t popValue() { return fMIRStack[--fMIRStackIndex]; }
-
-    void          pushAddr(InstructionIT addr) { fAddressStack[fAddrStackIndex++] = addr; }
-    InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
-    bool          emptyReturn() { return (fAddrStackIndex == 0); }
 
     void pushBinop(MIR_insn_code_t op, MIR_type_t type)
     {
@@ -993,10 +987,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
 
                     // Control
                 case FBCInstruction::kReturn:
-                    // Empty addr stack = end of computation
-                    if (emptyReturn()) {
-                        end = true;
-                    }
+                    end = true;
                     break;
 
                 case FBCInstruction::kIf: {
@@ -1063,7 +1054,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         fAddrStackIndex = 0;
 
         fContext = MIR_init();
-        fModule = MIR_new_module(fContext, "Faust");
+        MIR_module_t module = MIR_new_module(fContext, "Faust");
         
         // Create 'compute' function
         fCompute = MIR_new_func(fContext, "compute", 0,
@@ -1092,7 +1083,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         MIR_finish_module(fContext);
         
         // Load module and link
-        MIR_load_module(fContext, fModule);
+        MIR_load_module(fContext, module);
         MIR_link(fContext, MIR_set_interp_interface, importResolver);
         
         // Code generation

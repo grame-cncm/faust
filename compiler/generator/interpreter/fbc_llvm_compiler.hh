@@ -36,15 +36,6 @@
 #include "interpreter_bytecode.hh"
 #include "fbc_executor.hh"
 
-#define dispatchReturn() \
-    {                    \
-        it = popAddr();  \
-    }
-#define saveReturn()      \
-    {                     \
-        pushAddr(it + 1); \
-    }
-
 // FBC LLVM compiler
 template <class T>
 class FBCLLVMCompiler : public FBCExecuteFun<T> {
@@ -86,10 +77,6 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
 
     void         pushValue(LLVMValueRef val) { fLLVMStack[fLLVMStackIndex++] = val; }
     LLVMValueRef popValue() { return fLLVMStack[--fLLVMStackIndex]; }
-
-    void          pushAddr(InstructionIT addr) { fAddressStack[fAddrStackIndex++] = addr; }
-    InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
-    bool          emptyReturn() { return (fAddrStackIndex == 0); }
 
     void pushBinop(LLVMOpcode op)
     {
@@ -709,12 +696,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
 
                     // Control
                 case FBCInstruction::kReturn:
-                    // Empty addr stack = end of computation
-                    if (emptyReturn()) {
-                        end = true;
-                    } else {
-                        dispatchReturn();
-                    }
+                    end = true;
                     break;
 
                 case FBCInstruction::kIf: {
