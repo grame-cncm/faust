@@ -34,7 +34,6 @@
 #include "dsp_factory.hh"
 #include "export.hh"
 #include "interpreter_bytecode.hh"
-#include "interpreter_optimizer.hh"
 #include "fbc_interpreter.hh"
 
 static inline void checkToken(const std::string& token, const std::string& expected)
@@ -124,22 +123,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         delete fComputeDSPBlock;
     }
 
-    void optimize()
-    {
-        if (!fOptimized) {
-            fOptimized = true;
-            // Bytecode optimization
-            if (TRACE == 0) {
-                fStaticInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
-                fInitBlock       = FBCInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
-                fResetUIBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
-                fClearBlock      = FBCInstructionOptimizer<T>::optimizeBlock(fClearBlock, 1, fOptLevel);
-                fComputeBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
-                fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
-            }
-        }
-    }
-
+    void optimize(); // moved in interpreted_dsp.hh
+ 
     void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << std::setprecision(std::numeric_limits<T>::max_digits10);
@@ -653,12 +638,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         
         // classInit is not called here since the tables are actually not shared between instances
         instanceInit(sample_rate);
-    /*
-    #ifdef MACHINE
-        FBCCPPGenerator<T> cpp_generator(this->fFactory);
-        cpp_generator.generateCode(std::cout);
-    #endif
-    */
     }
 
     virtual void buildUserInterface(UITemplate* glue)
@@ -676,7 +655,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         /*
             Execute the VEC size specialized version of the interpreter
             vec_size == 1 correspond to the scalar interpreter
-         */
+        */
 
         /*
         if (vec_size == 1) {
@@ -699,7 +678,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
-        if (count == 0) return;  // Beware: compiled loop don't work with an index of 0
+        if (count == 0) return;  // Beware: compiled loop does not work with an index of 0
 
         if (TRACE > 0 && !fInitialized) {
             std::cout << "======== DSP is not initialized ! ========" << std::endl;
@@ -712,7 +691,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             
             fCycle++;
 
-            // std::cout << "compute " << count << std::endl;
             T** inputs  = reinterpret_cast<T**>(inputs_aux);
             T** outputs = reinterpret_cast<T**>(outputs_aux);
 

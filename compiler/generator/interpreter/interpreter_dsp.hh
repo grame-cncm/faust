@@ -23,6 +23,9 @@
 #define interpreter_dsp_h
 
 #include "interpreter_comp_dsp_aux.hh"
+#ifndef MACHINE
+#include "interpreter_optimizer.hh"
+#endif
 
 // Factory reader
 template <class T, int TRACE>
@@ -179,6 +182,25 @@ interpreter_dsp_factory_aux<T, TRACE>* interpreter_dsp_factory_aux<T, TRACE>::re
                                                     sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
                                                     init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 #endif
+}
+
+template <class T, int TRACE>
+void interpreter_dsp_factory_aux<T, TRACE>::optimize()
+{
+    if (!fOptimized) {
+        fOptimized = true;
+        // Bytecode optimization
+        if (TRACE == 0) {
+    #ifndef MACHINE
+            fStaticInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
+            fInitBlock       = FBCInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
+            fResetUIBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
+            fClearBlock      = FBCInstructionOptimizer<T>::optimizeBlock(fClearBlock, 1, fOptLevel);
+            fComputeBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
+            fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
+    #endif
+        }
+    }
 }
 
 template <class T, int TRACE>

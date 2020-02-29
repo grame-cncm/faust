@@ -22,23 +22,28 @@
 #ifndef _FBC_COMPILER_H
 #define _FBC_COMPILER_H
 
+//#define MIR 1
+
 #include "fbc_interpreter.hh"
+#ifdef MIR
+#include "fbc_mir_compiler.hh"
+#else
 #include "fbc_llvm_compiler.hh"
-//#include "fbc_mir_compiler.hh"
+#endif
 
 // FBC compiler
 template <class T>
-class FBCCompiler : public FBCInterpreter<T, 0> {
+class FBCCompiler : public FBCInterpreter<T,0> {
    public:
     typedef typename std::map<FBCBlockInstruction<T>*, FBCExecuteFun<T>*>           CompiledBlocksType;
     typedef typename std::map<FBCBlockInstruction<T>*, FBCExecuteFun<T>*>::iterator CompiledBlocksTypeIT;
 
-    FBCCompiler(interpreter_dsp_factory_aux<T, 0>* factory, CompiledBlocksType* map) : FBCInterpreter<T, 0>(factory)
+    FBCCompiler(interpreter_dsp_factory_aux<T,0>* factory, CompiledBlocksType* map) : FBCInterpreter<T,0>(factory)
     {
         fCompiledBlocks = map;
 
         // FBC blocks compilation
-        // CompileBlock(factory->fComputeBlock);
+        //CompileBlock(factory->fComputeBlock);
         CompileBlock(factory->fComputeDSPBlock);
     }
 
@@ -54,7 +59,7 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
             ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         } else {
-            FBCInterpreter<T, 0>::ExecuteBlock(block);
+            FBCInterpreter<T,0>::ExecuteBlock(block);
         }
     }
 
@@ -64,10 +69,13 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
     void CompileBlock(FBCBlockInstruction<T>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-            // Test with  interp/LLVM compiler
+        #ifdef MIR
+            // Test with interp/MIR compiler
+            (*fCompiledBlocks)[block] = new FBCMIRCompiler<T>(block);
+        #else
+            // Test with interp/LLVM compiler
             (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
-            // Test with  interp/MIR compiler
-            //(*fCompiledBlocks)[block] = new FBCMIRCompiler<T>(block);
+        #endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;
         }

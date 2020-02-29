@@ -99,9 +99,9 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     void pushValue(MIR_reg_t val) { fMIRStack[fMIRStackIndex++] = val; }
     MIR_reg_t popValue() { return fMIRStack[--fMIRStackIndex]; }
 
-    void pushBinop(MIR_insn_code_t op, MIR_type_t type)
+    void pushBinop(MIR_insn_code_t op, MIR_type_t type, const std::string& res_name = "binop")
     {
-        MIR_reg_t binop_res = MIR_new_func_reg(fContext, fCompute->u.func, type, getFreshID("binop_res"));
+        MIR_reg_t binop_res = MIR_new_func_reg(fContext, fCompute->u.func, type, getFreshID(res_name));
         MIR_insn_t insn = MIR_new_insn(fContext, op,
                                        MIR_new_reg_op(fContext, binop_res),
                                        MIR_new_reg_op(fContext, popValue()),
@@ -112,24 +112,12 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     
     void pushIntComp(MIR_insn_code_t op)
     {
-        MIR_reg_t comp_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("comp_res_i64"));
-        MIR_insn_t insn = MIR_new_insn(fContext, op,
-                                       MIR_new_reg_op(fContext, comp_res),
-                                       MIR_new_reg_op(fContext, popValue()),
-                                       MIR_new_reg_op(fContext, popValue()));
-        MIR_append_insn(fContext, fCompute, insn);
-        pushValue(comp_res);
+        pushBinop(op, getInt64Ty(), "comp_i64");
     }
     
     void pushRealComp(MIR_insn_code_t op)
     {
-        MIR_reg_t comp_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("comp_res_real"));
-        MIR_insn_t insn = MIR_new_insn(fContext, op,
-                                       MIR_new_reg_op(fContext, comp_res),
-                                       MIR_new_reg_op(fContext, popValue()),
-                                       MIR_new_reg_op(fContext, popValue()));
-        MIR_append_insn(fContext, fCompute, insn);
-        pushValue(comp_res);
+        pushBinop(op, getInt64Ty(), "comp_real");
     }
     
     void pushUnaryCall(const std::string& name_aux, MIR_type_t type, bool rename)
@@ -199,13 +187,15 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         pushValue(call_res);
     }
 
-    void pushBinaryIntCall(const std::string& name, bool rename = true) { pushBinaryCall(name, getInt64Ty(), rename); }
+    void pushBinaryIntCall(const std::string& name, bool rename = true)
+    {
+        pushBinaryCall(name, getInt64Ty(), rename);
+    }
 
-    void pushBinaryRealCall(const std::string& name, bool rename = true) { pushBinaryCall(name, getRealTy(), rename); }
-
-    void pushLoadArray(MIR_op_t array, int index) { pushLoadArray(array, genInt32(index)); }
-
-    void pushStoreArray(MIR_op_t array, int index) { pushStoreArray(array, genInt32(index)); }
+    void pushBinaryRealCall(const std::string& name, bool rename = true)
+    {
+        pushBinaryCall(name, getRealTy(), rename);
+    }
 
     MIR_reg_t createIndexReg(int index)
     {
@@ -228,7 +218,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                                                          genInt64(index)));
         
         // Add offset result
-        MIR_reg_t add_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("add_res"));
+        MIR_reg_t add_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("add_offset"));
         MIR_insn_t insn = MIR_new_insn(fContext, MIR_ADDS,
                                        MIR_new_reg_op(fContext, add_res),
                                        MIR_new_reg_op(fContext, index_reg),
@@ -246,7 +236,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     void pushLoadIntArrayImp(MIR_reg_t index_reg)
     {
         // Create a local res
-        MIR_reg_t load_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("load_res_i64"));
+        MIR_reg_t load_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("load_i64"));
         // Load the int32 value
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
                                                          MIR_new_reg_op(fContext, load_res),
@@ -267,7 +257,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     void pushLoadRealArrayImp(MIR_reg_t index_reg)
     {
         // Create a local res
-        MIR_reg_t load_res = MIR_new_func_reg(fContext, fCompute->u.func, typedReal(MIR_T_F, MIR_T_D), getFreshID("load_res_real"));
+        MIR_reg_t load_res = MIR_new_func_reg(fContext, fCompute->u.func, typedReal(MIR_T_F, MIR_T_D), getFreshID("load_real"));
         // Load the value
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
                                                          MIR_new_reg_op(fContext, load_res),
@@ -317,7 +307,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     {
         // Load index in a local
         MIR_reg_t index_reg = createIndexReg(index);
-        MIR_reg_t load_res_ptr = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("load_res_ptr"));
+        MIR_reg_t load_res_ptr = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("load_ptr"));
         
         // Load the buffer
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
@@ -328,7 +318,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                                                                         sizeof(int64_t))));
         
         // Create a local res
-        MIR_reg_t load_res = MIR_new_func_reg(fContext, fCompute->u.func, typedReal(MIR_T_F, MIR_T_D), getFreshID("load_res_real"));
+        MIR_reg_t load_res = MIR_new_func_reg(fContext, fCompute->u.func, typedReal(MIR_T_F, MIR_T_D), getFreshID("load_real"));
         // Load the value
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
                                                          MIR_new_reg_op(fContext, load_res),
@@ -343,7 +333,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     {
         // Load index in a local
         MIR_reg_t index_reg = createIndexReg(index);
-        MIR_reg_t store_res_ptr = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("store_res_ptr"));
+        MIR_reg_t store_res_ptr = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("store_ptr"));
         
         // Load the buffer
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
@@ -362,13 +352,14 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                                                          MIR_new_reg_op(fContext, popValue())));
     }
    
-    // Select that only computes one branch
-    void createSelectBlock1(InstructionIT it, MIR_reg_t typed_res, MIR_insn_code_t mov_code)
+    // Select that only computes one branch: a local variable is create and written in 'then' and 'else' blocks, and loaded in the 'merge' block
+    void createSelectBlock(InstructionIT it, MIR_reg_t typed_res, MIR_insn_code_t mov_code)
     {
         MIR_label_t then_block = MIR_new_label(fContext);
         MIR_label_t else_block = MIR_new_label(fContext);
         MIR_label_t merge_block = MIR_new_label(fContext);
         
+        // Branch in 'else_block' if false
         MIR_append_insn(fContext, fCompute,
                         MIR_new_insn(fContext, MIR_BFS,
                                      MIR_new_label_op(fContext, else_block),
@@ -377,10 +368,13 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         // Compile then branch (= branch1)
         CompileBlock((*it)->fBranch1, then_block);
         
+        // Keep result in 'typed_res'
         MIR_append_insn(fContext, fCompute,
                         MIR_new_insn(fContext, mov_code,
                                      MIR_new_reg_op(fContext, typed_res),
                                      MIR_new_reg_op(fContext, popValue())));
+        
+        // Branch in 'merge_block'
         MIR_append_insn(fContext, fCompute,
                         MIR_new_insn(fContext, MIR_JMP,
                                      MIR_new_label_op(fContext, merge_block)));
@@ -388,6 +382,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         // Compile else branch (= branch2)
         CompileBlock((*it)->fBranch2, else_block);
         
+        // Keep result in 'typed_res'
         MIR_append_insn(fContext, fCompute,
                         MIR_new_insn(fContext, mov_code,
                                      MIR_new_reg_op(fContext, typed_res),
@@ -659,7 +654,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
 
                     // Cast
                 case FBCInstruction::kCastReal: {
-                    MIR_reg_t var = MIR_new_func_reg(fContext, fCompute->u.func, getRealTy(), getFreshID("var_cast_real"));
+                    MIR_reg_t var = MIR_new_func_reg(fContext, fCompute->u.func, getRealTy(), getFreshID("cast_real"));
                     MIR_insn_t insn = MIR_new_insn(fContext,
                                                    typedReal(MIR_I2F, MIR_I2D),
                                                    MIR_new_reg_op(fContext, var),
@@ -671,7 +666,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                 }
           
                 case FBCInstruction::kCastInt: {
-                    MIR_reg_t var = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("var_cast_i64"));
+                    MIR_reg_t var = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("cast_i64"));
                     MIR_insn_t insn = MIR_new_insn(fContext,
                                                    typedReal(MIR_F2I, MIR_D2I),
                                                    MIR_new_reg_op(fContext, var),
@@ -996,31 +991,29 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                     break;
                 }
                     
-                // We create a local variable that is written in 'then' and 'else' blocks, and loaded in the 'merge' block.
                 case FBCInstruction::kSelectInt: {
                     // Create typed local variable
-                    MIR_reg_t typed_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("var_select_i64"));
-                    createSelectBlock1(it, typed_res, MIR_MOV);
+                    MIR_reg_t typed_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("select_i64"));
+                    createSelectBlock(it, typed_res, MIR_MOV);
                     it++;
                     break;
                 }
                     
                 case FBCInstruction::kSelectReal: {
                     // Create typed local variable
-                    MIR_reg_t typed_res = MIR_new_func_reg(fContext, fCompute->u.func, getRealTy(), getFreshID("var_select_real"));
-                    createSelectBlock1(it, typed_res, typedReal(MIR_FMOV, MIR_DMOV));
+                    MIR_reg_t typed_res = MIR_new_func_reg(fContext, fCompute->u.func, getRealTy(), getFreshID("select_real"));
+                    createSelectBlock(it, typed_res, typedReal(MIR_FMOV, MIR_DMOV));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kCondBranch: {
-                    MIR_reg_t var = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("var_cond_i64"));
-                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, var), genInt64(0)));
-                    
+                    MIR_reg_t cond_res = MIR_new_func_reg(fContext, fCompute->u.func, getInt64Ty(), getFreshID("cond_i64"));
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, cond_res), genInt64(0)));
                     MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
                                                                      MIR_BNES,
                                                                      MIR_new_label_op(fContext, code_block),
-                                                                     MIR_new_reg_op(fContext, var),
+                                                                     MIR_new_reg_op(fContext, cond_res),
                                                                      MIR_new_reg_op(fContext, popValue())));
                     it++;
                     break;
@@ -1064,6 +1057,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                                 MIR_T_P, "inputs",
                                 MIR_T_P, "outputs");
         
+        // Get the 4 function parameters
         fMIRIntHeap = MIR_reg(fContext, "int_heap", fCompute->u.func);
         fMIRRealHeap = MIR_reg(fContext, "real_heap", fCompute->u.func);
         fMIRInputs = MIR_reg(fContext, "inputs", fCompute->u.func);
@@ -1089,13 +1083,14 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         // Code generation
         MIR_gen_init(fContext);
         fCompiledFun = (compiledFun)MIR_gen(fContext, fCompute);
+        MIR_gen_finish(fContext);
         
+        // Print module
         //MIR_output(fContext, stderr);
     }
 
     virtual ~FBCMIRCompiler()
     {
-        MIR_gen_finish(fContext);
         MIR_finish(fContext);
     }
 

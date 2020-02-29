@@ -26,12 +26,12 @@
 #include "fbc_llvm_compiler.hh"
 #include "fbc_compiler.hh"
 
-// Interpreter factory using a LLVM compiler for 'compute' method
+// Interpreter factory using a LLVM or MIR compiler for the 'compute' method
 
 template <class T, int TRACE>
 struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<T,TRACE> {
     
-     // Shared between all DSP instances
+    // Shared between all DSP instances
     typename FBCCompiler<T>::CompiledBlocksType* fCompiledBlocks;
 
     interpreter_comp_dsp_factory_aux(const std::string& name, const std::string& compile_options, const std::string& sha_key,
@@ -67,7 +67,7 @@ struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<T,T
 
 };
 
-// Interpreter instance using a LLVM compiler for 'compute' method
+// Interpreter instance using a LLVM or MIR compiler for the 'compute' method
 
 template <class T, int TRACE>
 struct interpreter_comp_dsp_aux : public interpreter_dsp_aux<T,TRACE> {
