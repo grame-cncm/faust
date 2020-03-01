@@ -19,7 +19,7 @@ arithmetic operations, and define the necessary control structures (`for` and
 `while` loops, `if` structure, etc.). 
 
 To generate various output languages, several backends have been developed: 
-for C, C++, Java, JavaScript, asm.js, LLVM IR, webassemble, etc. The native 
+for C, C++, Java, JavaScript, asm.js, LLVM IR, WebAssembly, etc. The native
 LLVM based compilation chain is particularly interesting: it provides direct 
 compilation of a DSP source into executable code in memory, bypassing the 
 external compiler requirement.
@@ -124,10 +124,10 @@ string or file, generates auxiliary files: SVG, XML, ps, etc. depending of the
 The `libfaust` library is fully integrated to the Faust distribution. You'll 
 have to compile and install it in order to use it. For an exhaustive 
 documentation/description of the API, we advise you to have a look at the code 
-in the [`faust/dsp/llvm-dsp.h`](TODO) header file. Note that 
-`faust/dsp/llvm-c-dsp.h` is a pure C version of the same API. Additional 
-functions are available in `faust/dsp/libfaust.h` and their C version can be
-found in `faust/dsp/libfaust-c.h`.
+in the [`faust/dsp/llvm-dsp.h`](https://github.com/grame-cncm/faust/blob/master/architecture/faust/dsp/llvm-dsp.h)
+header file. Note that `faust/dsp/llvm-c-dsp.h` is a pure C version of the same
+API. Additional functions are available in `faust/dsp/libfaust.h` and their C
+version can be found in `faust/dsp/libfaust-c.h`.
 
 More generally, a "typical" use of `libfaust` could look like:
 
@@ -172,18 +172,19 @@ Thus, very few code is needed to embed Faust to your project!
 
 The dynamic compilation chain has been used in several projects:
 
-* [FaustLive](TODO): an integrated IDE for Faust development offering on-the-fly
-compilation and execution features
+* [FaustLive](https://github.com/grame-cncm/faustlive): an integrated IDE for
+  Faust development offering on-the-fly compilation and execution features
 * [Faustgen](TODO): a generic Faust 
 [Max/MSP](https://cycling74.com/products/max/) object
 * [Faust for CSOUND](TODO): a [CSOUND](https://csound.com/) opcode running the 
 Faust compiler internally
 * [LibAudioStream](TODO): a framework to manipulate audio ressources through 
 the concept of streams
-* [Faust for JUCE](TODO): a tool integrating the Faust compiler to 
-[JUCE](https://juce.com/) developed by Oliver Larkin and available as part of 
-the [pMix2 project](https://github.com/olilarkin/pMix2)
+* [Faust for JUCE](https://github.com/olilarkin/juce_faustllvm): a tool
+integrating the Faust compiler to [JUCE](https://juce.com/) developed by
+Oliver Larkin and available as part of the
+[pMix2 project](https://github.com/olilarkin/pMix2)
 * An experimental integration of Faust in 
 [Antescofo](http://forumnet.ircam.fr/product/antescofo-en/)
-* FaucK: the combination of the 
+* [FaucK](https://ccrma.stanford.edu/~rmichon/fauck/): combination of the
 [ChucK Programming Language](http://chuck.cs.princeton.edu/) and Faust 
