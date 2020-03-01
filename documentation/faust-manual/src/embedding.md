@@ -132,24 +132,35 @@ found in `faust/dsp/libfaust-c.h`.
 More generally, a "typical" use of `libfaust` could look like:
 
 ```
+#include <faust/dsp/llvm-dsp.h>
+
+// ...
+
 // the Faust code to compile (could be in a file too)
-string theCode = "import("stdfaust.lib");process = no.noise;";
-// compiling in memory (createDSPFactoryFromFile could be used alternatively)
+string theCode = "import(\"stdfaust.lib\");process = no.noise;";
+
+// compile in memory (you can also use createDSPFactoryFromFile)
 llvm_dsp_factory *m_factory = createDSPFactoryFromString( 
   "faust", theCode, argc, argv, "", m_errorString, optimize );
-// creating the DSP instance for interfacing
+
+// create the DSP instance for interfacing
 dsp *m_dsp = m_factory->createDSPInstance();
-// creating a generic UI to interact with the DSP
+
+// create a generic UI to interact with the DSP
 my_ui m_ui = new MyUI();
-// linking the interface to the DSP instance
+
+// link the interface to the DSP instance
 m_dsp->buildUserInterface( m_ui );
-// initializing the DSP instance
+
+// initialize the DSP instance
 m_dsp->init( 44100 );
+
 // hypothetical audio callback
 while(...){
   m_dsp->compute( 1, m_input, m_output );
 }
-// cleaning
+
+// cleanup
 delete m_dsp;
 deleteDSPFactory( m_factory );
 m_factory = NULL;
