@@ -100,6 +100,8 @@ if [ $POLY = "true" ]; then
             CODE_WRAPPER1=webaudio-workletprocessor-poly-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
+            echo "The mixer32.wasm code is copied"
+            cp $FAUSTARCH/webaudio/mixer32.wasm .
         fi
     else
         if [ $EMCC = "true" ]; then
@@ -112,6 +114,8 @@ if [ $POLY = "true" ]; then
             WASM="wasm-e"
             CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-footer.html
+            echo "The mixer32.wasm code is copied"
+            cp $FAUSTARCH/webaudio/mixer32.wasm .
         fi
     fi
 else
