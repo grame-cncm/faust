@@ -29,7 +29,7 @@ A full JSON description of the node with the complete UI, can be retrieved with:
 
     var json = node.getJSON(); 
 
-The complete usable API is fully documented in the generated JavaScript file in the *Public API* section. **To properly deallocate ressources at the end of its life, be sure to call the *destroy* function on the node.**
+The complete usable API is fully documented in the generated JavaScript file in the *Public API* section. **To properly deallocate ressources at the end of its life, be sure to call the *destroy* function on the node.**. Use `faust2wasm -h` to see all available options.
 
 ### A simple example Web page
 
@@ -149,7 +149,7 @@ The **faust2webaudiowasm** script can be used to generate a fully working self-c
 
     faust2webaudiowasm -worklet osc.dsp
 
-Assuming that the compiled Faust DSP file is polyphonic ready, the *-poly* parameter can be used to generate a polyphonic MIDI controlable instrument, to be used with a MIDI application or device. 
+Assuming that the compiled Faust DSP file is polyphonic ready, the *-poly* parameter can be used to generate a polyphonic MIDI controllable instrument, to be used with a MIDI application or device. Use `faust2webaudiowasm -h` to see all available options.
 
 
 ## Deploying dynamically compiled Faust WebAudio nodes
