@@ -139,7 +139,7 @@ class Esp32ControlUI : public GenericUI
                 }
                 if (fPushButton) {
                     int push_button = gpio_get_level(GPIO_NUM_14);
-                    //std::cout << "button " << button << std::endl;
+                    //std::cout << "button " << push_button << std::endl;
                     *fPushButton = FAUSTFLOAT(push_button);
                 }
                 
