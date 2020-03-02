@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
     interface->addOption("-s", &start_at_sample, 0, 0.0, 100000000.0);
     interface->addOption("-n", &nb_samples, 16, 0.0, 100000000.0);
-    interface->addOption("-r", &sample_rate, 44100.0, 1.0, 100000000.0);
+    interface->addOption("-r", &sample_rate, 44100.0, 1.0, 192000.0);
     
     // For up/down sampling
     interface->addOption("-down-sample", &down_sample, 1.0, 1.0, 16.0);
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 
     // prepare output channels
     int nouts = DSP->getNumOutputs();
-    channels outchan (kFrames, nouts);
+    channels outchan(kFrames, nouts);
 
     // print usage info:
     printf("%% Usage: octave --persist thisfile.m\n\n");
@@ -210,6 +210,7 @@ int main(int argc, char* argv[])
     int nbsamples = int(nb_samples);
     cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
 
+    // Print by buffer
     while (nbsamples > kFrames) {
         DSP->compute(kFrames, inchan.buffers(), outchan.buffers());
         inchan.zero();
@@ -226,7 +227,8 @@ int main(int argc, char* argv[])
         nbsamples -= kFrames;
     }
 
-    if (nbsamples) { // Write out partial-chunk buffer:
+    // Print remaining frames
+    if (nbsamples) { 
         DSP->compute(nbsamples, inchan.buffers(), outchan.buffers());
         inchan.zero();
         for (int i = 0; i < nbsamples; i++) {
