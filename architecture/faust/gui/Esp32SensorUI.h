@@ -34,26 +34,56 @@
 
 #include "faust/gui/APIUI.h"
 
-// To be used with Gramophone for accelerometer and gyroscope
+#define ONE_G 9.81
+
+// To be used with Gramophone for accelerometer, gyroscope and magnetometer
 class Esp32SensorUI : public APIUI
 {
     private:
     
         TaskHandle_t fProcessHandle;
-        MPU9250 fMpu9250;
+        MPU9250 fMPU9250;
+        bool fHasAcc, fHasGyr, fHasMag;
     
         void sensor()
         {
             while (true) {
-                fMpu9250.accelUpdate();
-                propagateAcc(0, fMpu9250.accelX());
-                propagateAcc(1, fMpu9250.accelY());
-                propagateAcc(2, fMpu9250.accelZ());
                 
-                fMpu9250.gyroUpdate();
-                propagateGyr(0, fMpu9250.gyroX());
-                propagateGyr(1, fMpu9250.gyroY());
-                propagateGyr(2, fMpu9250.gyroZ());
+                if (fHasAcc) {
+                    fMPU9250.accelUpdate();
+                    propagateAcc(0, fMPU9250.accelX() * ONE_G);
+                    propagateAcc(1, fMPU9250.accelY() * ONE_G);
+                    propagateAcc(2, fMPU9250.accelZ() * ONE_G);
+                    /*
+                    std::cout << "======================" << std::endl;
+                    std::cout << "accelX " << fMPU9250.accelX() << std::endl;
+                    std::cout << "accelY " << fMPU9250.accelX() << std::endl;
+                    std::cout << "accelZ " << fMPU9250.accelZ() << std::endl;
+                    */
+                }
+                
+                if (fHasGyr) {
+                    fMPU9250.gyroUpdate();
+                    propagateGyr(0, fMPU9250.gyroX());
+                    propagateGyr(1, fMPU9250.gyroY());
+                    propagateGyr(2, fMPU9250.gyroZ());
+                    /*
+                    std::cout << "======================" << std::endl;
+                    std::cout << "gyroX " << fMPU9250.gyroX() << std::endl;
+                    std::cout << "gyroY " << fMPU9250.gyroY() << std::endl;
+                    std::cout << "gyroZ " << fMPU9250.gyroZ() << std::endl;
+                    */
+                }
+                
+                /*
+                if (fHasMag) {
+                    fMPU9250.magUpdate();
+                    propagateMag(0, fMPU9250.magX());
+                    propagateMag(1, fMPU9250.magY());
+                    propagateMag(2, fMPU9250.magZ());
+                    propagateMag(2, fMPU9250.magHorizDirection());
+                }
+                */
                 
                 vTaskDelay(5 / portTICK_PERIOD_MS);
             }
@@ -66,21 +96,17 @@ class Esp32SensorUI : public APIUI
     
     public:
     
-        Esp32SensorUI():fMpu9250(MPU9250_ADDRESS_AD0_HIGH)
-        {
-            fMpu9250.beginAccel();
-            fMpu9250.beginGyro();
-            //fMpu9250.beginMag();
-        }
+        Esp32SensorUI():fMPU9250(MPU9250_ADDRESS_AD0_HIGH), fHasAcc(false), fHasGyr(false), fHasMag(false)
+        {}
     
         bool start()
         {
-            if ((getAccCount(0) > 0)
-                || (getAccCount(1) > 0)
-                || (getAccCount(2) > 0)
-                || (getGyrCount(0) > 0)
-                || (getGyrCount(1) > 0)
-                || (getGyrCount(2) > 0)) {
+            fHasAcc = (getAccCount(0) > 0) || (getAccCount(1) > 0) || (getAccCount(2) > 0);
+            fHasGyr = (getGyrCount(0) > 0) || (getGyrCount(1) > 0) || (getGyrCount(2) > 0);
+            if (fHasAcc) fMPU9250.beginAccel();
+            if (fHasGyr) fMPU9250.beginGyro();
+            if (fHasMag) fMPU9250.beginMag();
+            if (fHasAcc || fHasGyr || fHasMag) {
                 // Start Sensor receive task
                 return (xTaskCreatePinnedToCore(sensorHandler, "Faust Sensor Task", 10240, (void*)this, 5, &fProcessHandle, 1) == pdPASS);
             } else {

@@ -30,8 +30,9 @@
 #define I2C_TX_BUF_DISABLE 0          /*!< I2C master do not need buffer */
 #define I2C_RX_BUF_DISABLE 0          /*!< I2C master do not need buffer */
 
-//moved constructor from header to cpp file
+const float PI = 3.141592653;
 
+//moved constructor from header to cpp file
 MPU9250::MPU9250(uint8_t addresstmp = MPU9250_ADDRESS_AD0_LOW)
 {
     address = addresstmp;
@@ -60,7 +61,7 @@ uint8_t MPU9250::i2cRead(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint
     //send repeated start. maybe not nessecary
     i2c_master_start(cmd);
     // send device address indicating read & read Data
-    i2c_master_write_byte(cmd, ( Address << 1 ) | READ_BIT, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, (Address << 1) | READ_BIT, ACK_CHECK_EN);
     if (Nbytes > 1) {
         i2c_master_read(cmd, Data, Nbytes - 1, ACK_VAL);
     }
@@ -68,7 +69,6 @@ uint8_t MPU9250::i2cRead(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
-    //printf("Address: %u Register: %u Data: %u\n", Address, Register, *Data);
     return ret;
 }
 
@@ -85,7 +85,6 @@ uint8_t MPU9250::i2cWriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
     i2c_master_stop(cmd);
     esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
-    //printf("Address: %u Register: %u Data: %u\n", Address, Register, Data);
     return ret;
 }
 
@@ -132,7 +131,6 @@ void MPU9250::beginAccel(uint8_t mode)
             return; // Return without writing invalid mode
     }
     i2cWriteByte(address, MPU9250_ADDR_ACCELCONFIG, mode);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void MPU9250::magReadAdjustValues()
@@ -154,38 +152,28 @@ void MPU9250::beginMag(uint8_t mode)
     magReadAdjustValues();
     magSetMode(MAG_MODE_POWERDOWN);
     magSetMode(mode);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void MPU9250::magSetMode(uint8_t mode)
 {
     i2cWriteByte(AK8963_ADDRESS, AK8963_RA_CNTL1, mode);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void MPU9250::magWakeup()
 {
     unsigned char bits;
     i2cRead(address, MPU9250_ADDR_PWR_MGMT_1, 1, &bits);
-    //printf("read mag wakeup: %u\n", bits);
     bits &= ~0x70; // Turn off SLEEP, STANDBY, CYCLE
-    //printf("writing mag wakeup: %u\n", bits);
     i2cWriteByte(address, MPU9250_ADDR_PWR_MGMT_1, bits);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 void MPU9250::magEnableSlaveMode()
 {
     unsigned char bits;
     i2cRead(address, MPU9250_ADDR_INT_PIN_CFG, 1, &bits);
-    //printf("reading mag slave mode: %u\n", bits);
     bits |= 0x02; // Activate BYPASS_EN
-    //printf("writing mag slave mode: %u\n", bits);
     i2cWriteByte(address, MPU9250_ADDR_INT_PIN_CFG, bits);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
-
-const float PI = 3.141592653;
 
 float MPU9250::magHorizDirection()
 {
@@ -204,7 +192,7 @@ int16_t MPU9250::magGet(uint8_t highIndex, uint8_t lowIndex)
 
 float adjustMagValue(int16_t value, uint8_t adjust)
 {
-    return ((float) value * (((((float) adjust - 128) * 0.5) / 128) + 1));
+    return ((float) value * (((((float)adjust - 128) * 0.5) / 128) + 1));
 }
 
 float MPU9250::magX()
@@ -230,7 +218,7 @@ uint8_t MPU9250::accelUpdate()
 float MPU9250::accelGet(uint8_t highIndex, uint8_t lowIndex)
 {
     int16_t v = ((int16_t) accelBuf[highIndex]) << 8 | accelBuf[lowIndex];
-    return ((float) -v) * accelRange / (float) 0x8000; // (float) 0x8000 == 32768.0
+    return ((float)-v) * accelRange / (float)0x8000; // (float)0x8000 == 32768.0
 }
 
 float MPU9250::accelX()
@@ -274,7 +262,6 @@ void MPU9250::beginGyro(uint8_t mode)
             return; // Return without writing invalid mode
     }
     i2cWriteByte(address, 27, mode);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
 }
 
 uint8_t MPU9250::gyroUpdate()
@@ -285,7 +272,7 @@ uint8_t MPU9250::gyroUpdate()
 float MPU9250::gyroGet(uint8_t highIndex, uint8_t lowIndex)
 {
     int16_t v = ((int16_t) gyroBuf[highIndex]) << 8 | gyroBuf[lowIndex];
-    return ((float) -v) * gyroRange / (float) 0x8000;
+    return ((float)-v) * gyroRange / (float)0x8000;
 }
 
 float MPU9250::gyroX()
