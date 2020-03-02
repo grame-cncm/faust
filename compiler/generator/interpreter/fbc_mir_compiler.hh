@@ -56,6 +56,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     
     std::map<std::string, int> fIDCounters;
     std::map<std::string, MIR_item_t> fFunProto;
+    static std::map<std::string, void*> gMathLib;
     std::string fIdent;
     
     MIR_context_t fContext;
@@ -107,11 +108,10 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     void pushBinop(MIR_insn_code_t op, MIR_type_t type, const std::string& res_name = "binop")
     {
         MIR_reg_t binop_res = createVar(type, res_name);
-        MIR_insn_t insn = MIR_new_insn(fContext, op,
-                                       MIR_new_reg_op(fContext, binop_res),
-                                       MIR_new_reg_op(fContext, popValue()),
-                                       MIR_new_reg_op(fContext, popValue()));
-        MIR_append_insn(fContext, fCompute, insn);
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, op,
+                                                         MIR_new_reg_op(fContext, binop_res),
+                                                         MIR_new_reg_op(fContext, popValue()),
+                                                         MIR_new_reg_op(fContext, popValue())));
         pushValue(binop_res);
     }
     
@@ -144,12 +144,11 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         MIR_item_t proto = fFunProto[name_proto];
         
         MIR_item_t fun = MIR_new_import(fContext, name.c_str());
-        MIR_insn_t insn = MIR_new_call_insn(fContext, 4,
-                                            MIR_new_ref_op(fContext, proto),
-                                            MIR_new_ref_op(fContext, fun),
-                                            MIR_new_reg_op(fContext, call_res),
-                                            MIR_new_reg_op(fContext, popValue()));
-        MIR_append_insn(fContext, fCompute, insn);
+        MIR_append_insn(fContext, fCompute, MIR_new_call_insn(fContext, 4,
+                                                              MIR_new_ref_op(fContext, proto),
+                                                              MIR_new_ref_op(fContext, fun),
+                                                              MIR_new_reg_op(fContext, call_res),
+                                                              MIR_new_reg_op(fContext, popValue())));
         pushValue(call_res);
     }
   
@@ -184,13 +183,12 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
         MIR_item_t proto = fFunProto[name_proto];
         
         MIR_item_t fun = MIR_new_import(fContext, name.c_str());
-        MIR_insn_t insn = MIR_new_call_insn(fContext, 5,
-                                            MIR_new_ref_op(fContext, proto),
-                                            MIR_new_ref_op(fContext, fun),
-                                            MIR_new_reg_op(fContext, call_res),
-                                            MIR_new_reg_op(fContext, popValue()),
-                                            MIR_new_reg_op(fContext, popValue()));
-        MIR_append_insn(fContext, fCompute, insn);
+        MIR_append_insn(fContext, fCompute, MIR_new_call_insn(fContext, 5,
+                                                              MIR_new_ref_op(fContext, proto),
+                                                              MIR_new_ref_op(fContext, fun),
+                                                              MIR_new_reg_op(fContext, call_res),
+                                                              MIR_new_reg_op(fContext, popValue()),
+                                                              MIR_new_reg_op(fContext, popValue())));
         pushValue(call_res);
     }
 
@@ -219,11 +217,10 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     {
         // Add offset
         MIR_reg_t index_reg = createIndexReg(index);
-        MIR_insn_t insn = MIR_new_insn(fContext, MIR_ADDS,
-                                       MIR_new_reg_op(fContext, index_reg),
-                                       MIR_new_reg_op(fContext, index_reg),
-                                       MIR_new_reg_op(fContext, popValue()));
-        MIR_append_insn(fContext, fCompute, insn);
+        MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_ADDS,
+                                                         MIR_new_reg_op(fContext, index_reg),
+                                                         MIR_new_reg_op(fContext, index_reg),
+                                                         MIR_new_reg_op(fContext, popValue())));
         return index_reg;
     }
     
@@ -463,75 +460,8 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     
     static void* importResolver(const char* name)
     {
-        // Integer version
-        if (strcmp(name, "mir_abs") == 0) return (void*)mir_abs;
-        
-        if (strcmp(name, "mir_min_i") == 0) return (void*)mir_min_i;
-        if (strcmp(name, "mir_max_i") == 0) return (void*)mir_max_i;
-        
-        // Float versions
-        if (strcmp(name, "mir_fabsf") == 0) return (void*)mir_fabsf;
-        if (strcmp(name, "mir_acosf") == 0) return (void*)mir_acosf;
-        if (strcmp(name, "mir_acoshf") == 0) return (void*)mir_acoshf;
-        if (strcmp(name, "mir_asinf") == 0) return (void*)mir_asinf;
-        if (strcmp(name, "mir_asinhf") == 0) return (void*)mir_asinhf;
-        if (strcmp(name, "mir_atanf") == 0) return (void*)mir_atanf;
-        if (strcmp(name, "mir_atanhf") == 0) return (void*)mir_atanhf;
-        if (strcmp(name, "mir_ceilf") == 0) return (void*)mir_ceilf;
-        if (strcmp(name, "mir_cosf") == 0) return (void*)mir_cosf;
-        if (strcmp(name, "mir_coshf") == 0) return (void*)mir_coshf;
-        if (strcmp(name, "mir_expf") == 0) return (void*)mir_expf;
-        if (strcmp(name, "mir_floorf") == 0) return (void*)mir_floorf;
-        if (strcmp(name, "mir_logf") == 0) return (void*)mir_logf;
-        if (strcmp(name, "mir_log10f") == 0) return (void*)mir_log10f;
-        if (strcmp(name, "mir_rintf") == 0) return (void*)mir_rintf;
-        if (strcmp(name, "mir_roundf") == 0) return (void*)mir_roundf;
-        if (strcmp(name, "mir_sinf") == 0) return (void*)mir_sinf;
-        if (strcmp(name, "mir_sinhf") == 0) return (void*)mir_sinhf;
-        if (strcmp(name, "mir_sqrtf") == 0) return (void*)mir_sqrtf;
-        if (strcmp(name, "mir_tanf") == 0) return (void*)mir_tanf;
-        if (strcmp(name, "mir_tanhf") == 0) return (void*)mir_tanhf;
-        if (strcmp(name, "mir_atan2f") == 0) return (void*)mir_atan2f;
-        if (strcmp(name, "mir_fmodf") == 0) return (void*)mir_fmodf;
-        if (strcmp(name, "mir_powf") == 0) return (void*)mir_powf;
-        if (strcmp(name, "mir_remainderf") == 0) return (void*)mir_remainderf;
-        
-        if (strcmp(name, "mir_minf") == 0) return (void*)mir_minf;
-        if (strcmp(name, "mir_maxf") == 0) return (void*)mir_maxf;
-        
-        // Double versions
-        if (strcmp(name, "mir_fabs") == 0) return (void*)mir_fabs;
-        if (strcmp(name, "mir_acos") == 0) return (void*)mir_acos;
-        if (strcmp(name, "mir_acosh") == 0) return (void*)mir_acosh;
-        if (strcmp(name, "mir_asin") == 0) return (void*)mir_asin;
-        if (strcmp(name, "mir_asinh") == 0) return (void*)mir_asinh;
-        if (strcmp(name, "mir_atan") == 0) return (void*)mir_atan;
-        if (strcmp(name, "mir_atanh") == 0) return (void*)mir_atanh;
-        if (strcmp(name, "mir_ceil") == 0) return (void*)mir_ceil;
-        if (strcmp(name, "mir_cos") == 0) return (void*)mir_cos;
-        if (strcmp(name, "mir_cosh") == 0) return (void*)mir_cosh;
-        if (strcmp(name, "mir_exp") == 0) return (void*)mir_exp;
-        if (strcmp(name, "mir_floor") == 0) return (void*)mir_floor;
-        if (strcmp(name, "mir_log") == 0) return (void*)mir_log;
-        if (strcmp(name, "mir_log10") == 0) return (void*)mir_log10;
-        if (strcmp(name, "mir_rint") == 0) return (void*)mir_rint;
-        if (strcmp(name, "mir_round") == 0) return (void*)mir_round;
-        if (strcmp(name, "mir_sin") == 0) return (void*)mir_sin;
-        if (strcmp(name, "mir_sinh") == 0) return (void*)mir_sinh;
-        if (strcmp(name, "mir_sqrt") == 0) return (void*)mir_sqrt;
-        if (strcmp(name, "mir_tan") == 0) return (void*)mir_tan;
-        if (strcmp(name, "mir_tanh") == 0) return (void*)mir_tanh;
-        if (strcmp(name, "mir_atan2") == 0) return (void*)mir_atan2;
-        if (strcmp(name, "mir_fmod") == 0) return (void*)mir_fmod;
-        if (strcmp(name, "mir_pow") == 0) return (void*)mir_pow;
-        if (strcmp(name, "mir_remainder") == 0) return (void*)mir_remainder;
-        
-        if (strcmp(name, "mir_min") == 0) return (void*)mir_min;
-        if (strcmp(name, "mir_max") == 0) return (void*)mir_max;
-        
-        std::cerr << "importResolver " << name << std::endl;
-        faustassert(false);
-        return nullptr;
+        faustassert(gMathLib.find(name) != gMathLib.end());
+        return gMathLib[name];
     }
     
     void CompileBlock(FBCBlockInstruction<T>* block, MIR_label_t code_block)
@@ -550,11 +480,10 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                     // Numbers
                 case FBCInstruction::kRealValue: {
                     MIR_reg_t var_real = createVar(getRealTy(), "var_real");
-                    MIR_insn_t insn = MIR_new_insn(fContext,
-                                                   typedReal(MIR_FMOV, MIR_DMOV),
-                                                   MIR_new_reg_op(fContext, var_real),
-                                                   genReal((*it)->fRealValue));
-                    MIR_append_insn(fContext, fCompute, insn);
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
+                                                                     typedReal(MIR_FMOV, MIR_DMOV),
+                                                                     MIR_new_reg_op(fContext, var_real),
+                                                                     genReal((*it)->fRealValue)));
                     pushValue(var_real);
                     it++;
                     break;
@@ -562,11 +491,10 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
 
                 case FBCInstruction::kInt32Value: {
                     MIR_reg_t var_i64 = createVar(getInt64Ty(), "var_i64");
-                    MIR_insn_t insn = MIR_new_insn(fContext,
-                                                   MIR_MOV,
-                                                   MIR_new_reg_op(fContext, var_i64),
-                                                   genInt64((*it)->fIntValue));
-                    MIR_append_insn(fContext, fCompute, insn);
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
+                                                                     MIR_MOV,
+                                                                     MIR_new_reg_op(fContext, var_i64),
+                                                                     genInt64((*it)->fIntValue)));
                     pushValue(var_i64);
                     it++;
                     break;
@@ -595,29 +523,25 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
 
                     // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal: {
-                    MIR_reg_t offset_reg = createAddOffsetReg((*it)->fOffset1);
-                    pushLoadRealArrayImp(offset_reg);
+                    pushLoadRealArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kLoadIndexedInt: {
-                    MIR_reg_t offset_reg = createAddOffsetReg((*it)->fOffset1);
-                    pushLoadIntArrayImp(offset_reg);
+                    pushLoadIntArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedReal: {
-                    MIR_reg_t offset_reg = createAddOffsetReg((*it)->fOffset1);
-                    pushStoreRealArrayImp(offset_reg);
+                    pushStoreRealArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedInt: {
-                    MIR_reg_t offset_reg = createAddOffsetReg((*it)->fOffset1);
-                    pushStoreIntArrayImp(offset_reg);
+                    pushStoreIntArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
@@ -655,11 +579,10 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                     // Cast
                 case FBCInstruction::kCastReal: {
                     MIR_reg_t cast_real = createVar(getRealTy(), "cast_real");
-                    MIR_insn_t insn = MIR_new_insn(fContext,
-                                                   typedReal(MIR_I2F, MIR_I2D),
-                                                   MIR_new_reg_op(fContext, cast_real),
-                                                   MIR_new_reg_op(fContext, popValue()));
-                    MIR_append_insn(fContext, fCompute, insn);
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
+                                                                     typedReal(MIR_I2F, MIR_I2D),
+                                                                     MIR_new_reg_op(fContext, cast_real),
+                                                                     MIR_new_reg_op(fContext, popValue())));
                     pushValue(cast_real);
                     it++;
                     break;
@@ -667,11 +590,10 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
           
                 case FBCInstruction::kCastInt: {
                     MIR_reg_t cast_i64 = createVar(getInt64Ty(), "cast_i64");
-                    MIR_insn_t insn = MIR_new_insn(fContext,
-                                                   typedReal(MIR_F2I, MIR_D2I),
-                                                   MIR_new_reg_op(fContext, cast_i64),
-                                                   MIR_new_reg_op(fContext, popValue()));
-                    MIR_append_insn(fContext, fCompute, insn);
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
+                                                                     typedReal(MIR_F2I, MIR_D2I),
+                                                                     MIR_new_reg_op(fContext, cast_i64),
+                                                                     MIR_new_reg_op(fContext, popValue())));
                     pushValue(cast_i64);
                     it++;
                     break;
@@ -993,16 +915,14 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                     
                 case FBCInstruction::kSelectInt: {
                     // Create typed local variable
-                    MIR_reg_t typed_res = createVar(getInt64Ty(), "select_i64");
-                    createSelectBlock(it, typed_res, MIR_MOV);
+                    createSelectBlock(it, createVar(getInt64Ty(), "select_i64"), MIR_MOV);
                     it++;
                     break;
                 }
                     
                 case FBCInstruction::kSelectReal: {
                     // Create typed local variable
-                    MIR_reg_t typed_res = createVar(getRealTy(), "select_real");
-                    createSelectBlock(it, typed_res, typedReal(MIR_FMOV, MIR_DMOV));
+                    createSelectBlock(it, createVar(getRealTy(), "select_real"), typedReal(MIR_FMOV, MIR_DMOV));
                     it++;
                     break;
                 }
@@ -1043,6 +963,76 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
    public:
     FBCMIRCompiler(FBCBlockInstruction<T>* fbc_block)
     {
+        // Integer version
+        gMathLib["mir_abs"] = (void*)mir_abs;
+        
+        gMathLib["mir_min_i"] = (void*)mir_min_i;
+        gMathLib["mir_max_i"] = (void*)mir_max_i;
+        
+        // Float versions
+        if (sizeof(T) == sizeof(float)) {
+            gMathLib["mir_fabsf"] = (void*)mir_fabsf;
+            gMathLib["mir_acosf"] = (void*)mir_acosf;
+            gMathLib["mir_acoshf"] = (void*)mir_acoshf;
+            gMathLib["mir_asinf"] = (void*)mir_asinf;
+            gMathLib["mir_asinhf"] = (void*)mir_asinhf;
+            gMathLib["mir_atanf"] = (void*)mir_atanf;
+            gMathLib["mir_atanhf"] = (void*)mir_atanhf;
+            gMathLib["mir_ceilf"] = (void*)mir_ceilf;
+            gMathLib["mir_cosf"] = (void*)mir_cosf;
+            gMathLib["mir_coshf"] = (void*)mir_coshf;
+            gMathLib["mir_expf"] = (void*)mir_expf;
+            gMathLib["mir_floorf"] = (void*)mir_floorf;
+            gMathLib["mir_logf"] = (void*)mir_logf;
+            gMathLib["mir_log10f"] = (void*)mir_log10f;
+            gMathLib["mir_rintf"] = (void*)mir_rintf;
+            gMathLib["mir_roundf"] = (void*)mir_roundf;
+            gMathLib["mir_sinf"] = (void*)mir_sinf;
+            gMathLib["mir_sinhf"] = (void*)mir_sinhf;
+            gMathLib["mir_sqrtf"] = (void*)mir_sqrtf;
+            gMathLib["mir_tanf"] = (void*)mir_tanf;
+            gMathLib["mir_tanhf"] = (void*)mir_tanhf;
+            gMathLib["mir_atan2f"] = (void*)mir_atan2f;
+            gMathLib["mir_fmodf"] = (void*)mir_fmodf;
+            gMathLib["mir_powf"] = (void*)mir_powf;
+            gMathLib["mir_remainderf"] = (void*)mir_remainderf;
+            
+            gMathLib["mir_minf"] = (void*)mir_minf;
+            gMathLib["mir_maxf"] = (void*)mir_maxf;
+        }
+        
+        // Double versions
+        if (sizeof(T) == sizeof(double)) {
+            gMathLib["mir_fabs"] = (void*)mir_fabs;
+            gMathLib["mir_acos"] = (void*)mir_acos;
+            gMathLib["mir_acosh"] = (void*)mir_acosh;
+            gMathLib["mir_asin"] = (void*)mir_asin;
+            gMathLib["mir_asinh"] = (void*)mir_asinh;
+            gMathLib["mir_atan"] = (void*)mir_atan;
+            gMathLib["mir_atanh"] = (void*)mir_atanh;
+            gMathLib["mir_ceil"] = (void*)mir_ceil;
+            gMathLib["mir_cos"] = (void*)mir_cos;
+            gMathLib["mir_cosh"] = (void*)mir_cosh;
+            gMathLib["mir_exp"] = (void*)mir_exp;
+            gMathLib["mir_floor"] = (void*)mir_floor;
+            gMathLib["mir_log"] = (void*)mir_log;
+            gMathLib["mir_log10"] = (void*)mir_log10;
+            gMathLib["mir_rint"] = (void*)mir_rint;
+            gMathLib["mir_round"] = (void*)mir_round;
+            gMathLib["mir_sin"] = (void*)mir_sin;
+            gMathLib["mir_sinh"] = (void*)mir_sinh;
+            gMathLib["mir_sqrt"] = (void*)mir_sqrt;
+            gMathLib["mir_tan"] = (void*)mir_tan;
+            gMathLib["mir_tanh"] = (void*)mir_tanh;
+            gMathLib["mir_atan2"] = (void*)mir_atan2;
+            gMathLib["mir_fmod"] = (void*)mir_fmod;
+            gMathLib["mir_pow"] = (void*)mir_pow;
+            gMathLib["mir_remainder"] = (void*)mir_remainder;
+            
+            gMathLib["mir_min"] = (void*)mir_min;
+            gMathLib["mir_max"] = (void*)mir_max;
+        }
+        
         fMIRStackIndex = 0;
         fAddrStackIndex = 0;
 
@@ -1111,5 +1101,8 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     }
     
 };
+
+template <class T>
+std::map<std::string, void*> FBCMIRCompiler<T>::gMathLib;
 
 #endif
