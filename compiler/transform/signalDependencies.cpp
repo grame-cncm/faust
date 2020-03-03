@@ -117,6 +117,8 @@ class SignalDependencies : public SignalVisitor {
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, getIDInstruction(id));
+        } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
+            fGraph.add(fRoot, getIDInstruction(id));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
             fGraph.add(fRoot, getIDInstruction(id), dmin);
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {

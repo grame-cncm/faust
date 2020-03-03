@@ -746,8 +746,8 @@ void GraphVectorCompiler::compileSingleInstruction(Tree instr, Klass* K)
 
     } else if (isSigInstructionVectorWrite(instr, id, origin, &nature, content)) {
         string vname{tree2str(id)};
-        K->addZone3(subst("$0 \t$1[vecsize];", nature2ctype(nature), vname));
-        K->addExecCode(Statement("", subst("$1[i] = $2;", vname, CS(content))));
+        K->addZone3(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(gGlobal->gVecSize)));
+        K->addExecCode(Statement("", subst("$0[i] = $1;", vname, CS(content))));
 
     } else if (isSigInstructionShortDLineWrite(instr, id, origin, &nature, content)) {
         // we use 'l' to prefix the local variable name
@@ -1127,6 +1127,8 @@ string GraphVectorCompiler::generateCode(Tree sig)
         return subst("$0[$1]", tree2str(id), CS(idx));
     } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {
         return tree2str(id);
+    } else if (isSigInstructionVectorRead(sig, id, origin, &nature)) {
+        return subst("$0[i]", tree2str(id));
     } else if (isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin)) {
         return subst("l$0", tree2str(id));
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {

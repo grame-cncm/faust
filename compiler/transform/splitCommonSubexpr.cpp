@@ -66,9 +66,12 @@ class CommonSubexpr : public SignalIdentity {
         int    nature, i, dmax, dmin;
         double r;
 
-        return /*!(isSigInput(sig, &i)) && */ !isSigInstructionControlRead(sig, id, origin, &nature) &&
-               !isSigTime(sig) && !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
-               !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) && !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) &&
+        return /*!(isSigInput(sig, &i)) && */ !isSigInstructionSharedRead(sig, id, origin, &nature) &&
+               !isSigInstructionVectorRead(sig, id, origin, &nature) &&
+               !isSigInstructionControlRead(sig, id, origin, &nature) && !isSigTime(sig) &&
+               !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
+               !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) &&
+               !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) &&
                !isSigInt(sig, &i) && !isSigReal(sig, &r);
     }
 
@@ -77,12 +80,17 @@ class CommonSubexpr : public SignalIdentity {
         faustassert(sig);
         Type t = getSimpleType(sig);
         int  n = fOcc[sig];
-        
+
         if ((n > 1) && (t->variability() >= kSamp) && needCache(sig)) {
-            Tree r = SignalIdentity::transformation(sig);
+            Tree r  = SignalIdentity::transformation(sig);
             Tree id = (t->nature() == kInt) ? uniqueID("iVar", sig) : uniqueID("fVar", sig);
+#if 0
             fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, t->nature(), r));
             Tree inst = sigInstructionSharedRead(id, sig, t->nature());
+#else
+            fSplittedSignals.insert(sigInstructionVectorWrite(id, sig, t->nature(), r));
+            Tree inst = sigInstructionVectorRead(id, sig, t->nature());
+#endif
             return inst;
         } else {
             return SignalIdentity::transformation(sig);
