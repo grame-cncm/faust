@@ -59,6 +59,7 @@
 #include "timing.hh"
 #include "transformDelayToTable.hh"
 #include "transformOld2NewTables.hh"
+#include "transformTableToTable.hh"
 #include "xtended.hh"
 
 using namespace std;
@@ -433,8 +434,12 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
     if (gGlobal->gDebugDiagram) signalGraph("phase4-afterTableTransform.dot", INSTR4);
 
+    // cerr << ">>transformTime\n" << endl;
+    set<Tree> INSTR4b = transformTime(INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph("phase4b-afterTimeTransform.dot", INSTR4);
+
     // cerr << ">>splitCommonSubexpr\n" << endl;
-    set<Tree> INSTR5 = splitCommonSubexpr(INSTR4);
+    set<Tree> INSTR5 = splitCommonSubexpr(INSTR4b);
     if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
 
     // cerr << ">>splitAddBranches\n" << endl;
@@ -787,6 +792,13 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
         K->addExecCode(Statement("", subst("$0 = ($1)$2;", varname, xfloat(), CS(content))));
         addUIWidget(reverse(tl(path)), uiWidget(hd(path), id, origin));
 
+    } else if (isSigInstructionTimeWrite(instr)) {
+        K->addDeclCode("int \tgTime;");
+        K->addClearCode("gTime = 0;");
+        K->addZone3("int \ttime = gTime;");
+        K->addPostCode(Statement("", "++time;"));
+        K->addZone4("gTime = time;");
+
     } else {
         std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(instr) << endl;
         faustassert(false);
@@ -803,15 +815,15 @@ static void compileInsOuts(Klass* K)
     }
 }
 
-static void compileGlobalTime(Klass* K)
-{
-    // Handling global time 'gTime' with a local version 'time'
-    K->addDeclCode("int \tgTime;");
-    K->addClearCode("gTime = 0;");
-    K->addZone3("int \ttime = gTime;");
-    K->addPostCode(Statement("", "++time;"));
-    K->addZone4("gTime = time;");
-}
+// static void compileGlobalTime(Klass* K)
+// {
+//     // Handling global time 'gTime' with a local version 'time'
+//     K->addDeclCode("int \tgTime;");
+//     K->addClearCode("gTime = 0;");
+//     K->addZone3("int \ttime = gTime;");
+//     K->addPostCode(Statement("", "++time;"));
+//     K->addZone4("gTime = time;");
+// }
 #if 1
 void GraphCompiler::compileMultiSignal(Tree L)
 {
@@ -876,7 +888,7 @@ void GraphCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
 void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
 {
     compileInsOuts(Kl);
-    compileGlobalTime(Kl);
+    // compileGlobalTime(Kl);
 
     digraph<Tree> G = instructions2graph(I);
 
@@ -912,7 +924,7 @@ void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
 
 void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
 {
-    compileGlobalTime(K);
+    // compileGlobalTime(K);
     Scheduling S = schedule(I);
     for (Tree instr : S.fInitLevel) {
         compileSingleInstruction(instr, K);
@@ -936,7 +948,7 @@ void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
  */
 void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 {
-    compileGlobalTime(K);
+    // compileGlobalTime(K);
 
     for (Tree instr : S.fInitLevel) {
         compileSingleInstruction(instr, K);
@@ -1121,7 +1133,9 @@ string GraphCompiler::generateCode(Tree sig)
 
     if (getUserData(sig)) {
         return generateXtended(sig);
-    } else if (isSigTime(sig)) {
+        // } else if (isSigTime(sig)) {
+        //     return "time";
+    } else if (isSigInstructionTimeRead(sig)) {
         return "time";
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) {
         return subst("$0[$1]", tree2str(id), CS(idx));

@@ -1134,6 +1134,38 @@ bool isSigInstructionBargraphRead(Tree s, Tree& id, Tree& origin, int* nature)
     }
 }
 
+//
+
+/**
+ * @brief a Time write "instruction"
+ *
+ * @return a time write instruction
+ */
+Tree sigInstructionTimeWrite()
+{
+    return tree(gGlobal->SIGINSTRUCTIONTIMEWRITE);
+}
+
+bool isSigInstructionTimeWrite(Tree s)
+{
+    return isTree(s, gGlobal->SIGINSTRUCTIONTIMEWRITE);
+}
+
+/**
+ * @brief a time read "instruction"
+ *
+ * @return a time read instruction
+ */
+Tree sigInstructionTimeRead()
+{
+    return tree(gGlobal->SIGINSTRUCTIONTIMEREAD);
+}
+
+bool isSigInstructionTimeRead(Tree s)
+{
+    return isTree(s, gGlobal->SIGINSTRUCTIONTIMEREAD);
+}
+
 /**
  * Test if exp is very simple that is it
  * can't be considered a real component

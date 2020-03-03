@@ -417,6 +417,9 @@ struct global {
     Sym SIGINSTRUCTIONBARGRAPHWRITE;
     Sym SIGINSTRUCTIONBARGRAPHREAD;
 
+    Sym SIGINSTRUCTIONTIMEWRITE;
+    Sym SIGINSTRUCTIONTIMEREAD;
+
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
 

@@ -282,6 +282,13 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
+    // Time Read and Write
+    else if (isSigInstructionTimeRead(sig)) {  // x is used as an id, we don't go into it
+        return;
+    } else if (isSigInstructionTimeWrite(sig)) {  // x is used as an id, we don't go into it
+        return;
+    }
+
     // Read and Write
     else if (isSigInstructionBargraphRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;

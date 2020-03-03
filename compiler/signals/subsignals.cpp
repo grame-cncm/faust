@@ -275,6 +275,12 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 0;
     }
 
+    else if (isSigInstructionTimeWrite(sig)) {
+        return 0;
+    } else if (isSigInstructionTimeRead(sig)) {
+        return 0;
+    }
+
     else if (isList(sig)) {
         vsigs.push_back(hd(sig));
         vsigs.push_back(tl(sig));

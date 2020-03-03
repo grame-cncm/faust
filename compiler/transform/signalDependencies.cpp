@@ -91,6 +91,9 @@ class SignalDependencies : public SignalVisitor {
             fRoot = sig;
             fGraph.add(fRoot);
             self(content);
+        } else if (isSigInstructionTimeWrite(sig)) {
+            fRoot = sig;
+            fGraph.add(fRoot);
         } else {
             std::cerr << "ERROR, not an instruction: " << ppsig(sig) << endl;
             faustassert(false);
@@ -121,6 +124,8 @@ class SignalDependencies : public SignalVisitor {
             fGraph.add(fRoot, getIDInstruction(id));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
             fGraph.add(fRoot, getIDInstruction(id), dmin);
+        } else if (isSigInstructionTimeRead(t)) {
+            fGraph.add(fRoot, sigInstructionTimeWrite(), 0);  // TODO : a verifier (YO)
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
             fGraph.add(fRoot, getIDInstruction(id));
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {

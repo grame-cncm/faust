@@ -215,6 +215,13 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigInstructionShortDLineWrite(x, u, nature, self(y));
     }
 
+    // Time Read and Write
+    else if (isSigInstructionTimeRead(sig)) {  // x is used as an id, we don't go into it
+        return sig;
+    } else if (isSigInstructionTimeWrite(sig)) {  // x is used as an id, we don't go into it
+        return sig;
+    }
+
     // Control Read and Write
     else if (isSigInstructionControlRead(sig, x, u, &nature)) {  // x is used as an id, we don't go into it
         return sig;

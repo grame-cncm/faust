@@ -34,3 +34,10 @@
  * @return set<Tree> the resulting set of instructions
  */
 set<Tree> transformTableToTable(const set<Tree>& I);
+
+/**
+ * @brief Transform time into time instructions
+ *
+ * @return set<Tree> the resulting set of instructions
+ */
+set<Tree> transformTime(const set<Tree>& I);

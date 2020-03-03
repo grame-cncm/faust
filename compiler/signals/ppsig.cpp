@@ -382,6 +382,12 @@ ostream& ppsig::print(ostream& fout) const
         fout << *x << "#[" << dmin << "]";
     }
 
+    else if (isSigInstructionTimeWrite(sig)) {
+        fout << "Time++;";
+    } else if (isSigInstructionTimeRead(sig)) {
+        fout << "Time";
+    }
+
     else {
         cerr << "[[" << *sig << "]]";
     }

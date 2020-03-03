@@ -418,6 +418,14 @@ bool isSigInstructionBargraphWrite(Tree s, Tree& id, Tree& origin, int* nature, 
 Tree sigInstructionBargraphRead(Tree id, Tree origin, int nature);
 bool isSigInstructionBargraphRead(Tree s, Tree& id, Tree& origin, int* nature);
 
+// sigTime translated into instructions
+
+Tree sigInstructionTimeWrite();
+bool isSigInstructionTimeWrite(Tree s);
+
+Tree sigInstructionTimeRead();
+bool isSigInstructionTimeRead(Tree s);
+
 /*****************************************************************************
                              FTZ wrapping
     Add FTZ wrapping to a signal

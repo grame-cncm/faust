@@ -555,6 +555,19 @@ static Type infereSigType(Tree sig, Tree env)
         return getCertifiedSigType(u);
     }
 
+    // TODO check types are correct
+    else if (isSigInstructionTimeWrite(sig)) {
+        Type t = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval(0, 1 << 30));
+        return t;
+
+    }
+
+    else if (isSigInstructionTimeRead(sig)) {
+        Type t = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval(0, 1 << 30));
+        return t;
+
+    }
+
     else if (isSigOutput(sig, &i, x)) {
         return T(x, env);
     }
