@@ -67,13 +67,13 @@ oscillo(f) = (os.sawtooth(f)*(1-wfFade))+(os.square(f)*wfFade);
 volume = midigain * env;
 
 // Enveloppe
-env	= en.adsre(att,dec,sust,rel,midigate);
+env = en.adsre(att,dec,sust,rel,midigate);
 
 // LFO
 LFO = os.lf_triangle(lfoFreq)*modwheel*10;
 
 // SYNTH ////////////////////////////////////////////////
-synth = (oscillo(allfreq) :ve.moog_vcf(res,cutoff)) * volume;
+synth = (oscillo(allfreq) : ve.moog_vcf(res,cutoff)) * volume;
 
 // PROCESS /////////////////////////////////////////////
 process = synth;

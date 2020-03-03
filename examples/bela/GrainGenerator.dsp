@@ -95,4 +95,4 @@ linrwtable(wf,x) = linterpolation(y0,y1,d)
 routeur(a, b, c, d, e) = a, b, a, c, a, d, a, e;
 
 processus = _, cloc : routeur : (unGrain, unGrain, unGrain, unGrain) :> fi.dcblockerat(20);
-process = _,_: ((+(_,_) :processus) ~(*(feedback))),((+(_,_) :processus) ~(*(feedback)));
+process = _,_: ((+(_,_) :processus) ~ (*(feedback))),((+(_,_) :processus) ~ (*(feedback)));

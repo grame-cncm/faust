@@ -20,9 +20,9 @@ import("all.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GENERAL, Keyboard
-midigate        = button("gate");
-midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain        = nentry("gain", 1, 0, 1, 0.01);
+midigate = button("gate");
+midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
+midigain = nentry("gain", 1, 0, 1, 0.01);
 
 // modwheel:
 feedb = (gFreq-1) * (hslider("feedb[midi:ctrl 1]", 0, 0, 1, 0.001) : si.smoo);
@@ -54,8 +54,8 @@ vol = envelop;
 //============================================ DSP =======================================
 //========================================================================================
 
-FMfeedback(frq) = ( +(_,frq):os.osci ) ~ (* (feedb));
-FMall(f) = os.osci(f+ (FMdepth*FMfeedback(f*modFreqRatio)));
+FMfeedback(frq) = (+(_,frq):os.osci) ~ (* (feedb));
+FMall(f) = os.osci(f + (FMdepth*FMfeedback(f*modFreqRatio)));
 
 //#################################################################################################//
 //##################################### EFFECT SECTION ############################################//
@@ -88,7 +88,7 @@ FMall(f) = os.osci(f+ (FMdepth*FMfeedback(f*modFreqRatio)));
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // VOLUME:
-volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
+volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);	// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
 drive = hslider("drive[midi:ctrl 92]",0.3,0,1,0.001);

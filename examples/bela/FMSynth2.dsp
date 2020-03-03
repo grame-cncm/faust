@@ -54,6 +54,6 @@ vol = envelop;
 //========================================================================================
 
 FMfeedback(frq) = (+(_,frq):os.osci ) ~ (* (feedb));
-FMall(f) = os.osci(f+(FMdepth*FMfeedback(f*modFreqRatio)));
+FMall(f) = os.osci(f + (FMdepth*FMfeedback(f*modFreqRatio)));
 
 process = FMall(gFreq) * vol;

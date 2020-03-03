@@ -31,9 +31,6 @@
 #include <list>
 #include <sstream>
 
-#include "Text.hh"
-#include "compatibility.hh"
-#include "faust/gui/CGlue.h"
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
@@ -432,48 +429,6 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fFactory->getFactory()->fCompute(fDSP, count, input, output);
 }
 
-// Public C++ API
-
-EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
-{
-    LOCK_API
-    return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
-}
-
-EXPORT vector<string> getAllDSPFactories()
-{
-    LOCK_API
-    return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
-}
-
-EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
-{
-    LOCK_API
-    return (factory) ? llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory) : false;
-}
-
-string llvm_dsp_factory_aux::getTarget()
-{
-    return fTarget;
-}
-
-EXPORT string getDSPMachineTarget()
-{
-    return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
-}
-
-EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
-{
-    LOCK_API
-    return factory->getLibraryList();
-}
-
-EXPORT void deleteAllDSPFactories()
-{
-    LOCK_API
-    llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
-}
-
 string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
 {
     if (target == "" || target == getTarget()) {
@@ -533,6 +488,48 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
             return nullptr;
         }
     }
+}
+
+string llvm_dsp_factory_aux::getTarget()
+{
+    return fTarget;
+}
+
+// Public C++ API
+
+EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
+{
+    LOCK_API
+    return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+}
+
+EXPORT vector<string> getAllDSPFactories()
+{
+    LOCK_API
+    return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
+}
+
+EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
+{
+    LOCK_API
+    return (factory) ? llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory) : false;
+}
+
+EXPORT string getDSPMachineTarget()
+{
+    return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
+}
+
+EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
+{
+    LOCK_API
+    return factory->getLibraryList();
+}
+
+EXPORT void deleteAllDSPFactories()
+{
+    LOCK_API
+    llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
 }
 
 // machine <==> string

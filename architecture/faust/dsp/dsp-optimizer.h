@@ -372,16 +372,14 @@ class dsp_optimizer {
             std::vector<std::vector <std::string> > options_table;
             for (int size = 2; size <= 256; size *= 2) {
                 std::vector<std::string> best2 = best1.second;
-                std::stringstream num;
-                num << size;
                 best2.push_back("-mcd");
-                best2.push_back(num.str());
+                best2.push_back(std::to_string(size));
                 options_table.push_back(best2);
             }
             
             if (fNeedExp10) {
                 if (fTrace) std::cout << "Use -exp10" << std::endl;
-                std::vector <std::string> t0_exp10;
+                std::vector<std::string> t0_exp10;
                 t0_exp10.push_back("-exp10");
                 options_table.push_back(t0_exp10);
             }

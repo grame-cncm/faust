@@ -111,7 +111,6 @@ class time_bench {
                 uint32 i32[2];
                 uint64 i64;
             } count;
-            
             __asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
             return count.i64;
         #endif

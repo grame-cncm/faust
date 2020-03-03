@@ -53,7 +53,7 @@ vol = envelop;
 //========================================================================================
 
 FMfeedback(frq) = (+(_,frq):os.osci) ~ (* (feedb));
-FMall(f) = os.osci(f+ (FMdepth*FMfeedback(f*modFreqRatio)));
+FMall(f) = os.osci(f + (FMdepth*FMfeedback(f*modFreqRatio)));
 
 //#################################################################################################//
 //##################################### EFFECT SECTION ############################################//
@@ -110,7 +110,7 @@ flanger = efx
 panno = _ : sp.panner(hslider("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
 
 // REVERB (from freeverb_demo)
-reverb = _,_ <: (*(g)*fixedgain,*(g)*fixedgain :
+reverb = _,_ <: (*(g)*fixedgain, *(g)*fixedgain :
 	re.stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)),
 	*(1-g), *(1-g) :> _,_
     with {

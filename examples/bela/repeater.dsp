@@ -12,12 +12,12 @@
 
 import("all.lib");
 
-process = _, _ , (pathClock : compteurUpReset2(nbRepet): rampePlayer, _) : routageIO : rec_play_table , rec_play_table;
+process = _,_,(pathClock : compteurUpReset2(nbRepet): rampePlayer, _) : routageIO : rec_play_table , rec_play_table;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // General loop duration
-MasterTaille =hslider("MasterTaille[BELA: ANALOG_0]", 500, 200, 2000,0.01);
+MasterTaille = hslider("MasterTaille[BELA: ANALOG_0]", 500, 200, 2000,0.01);
 MasterClocSize = int(MasterTaille*ma.SR/ 1000);
 
 // Depth of repeat fragments
@@ -63,12 +63,12 @@ compteurUpReset2(nb, in, reset) = ((in:trig), reset : (routage : memo2)~_), rese
 RSLatch(R, S) = latch(S,R)
     with {
         trig = _<:_,mem: >;
-        latch(S,R) = _~(ba.if(R>0.5, 0, _) : ba.if(S>0.5,1,_));
+        latch(S,R) = _ ~ (ba.if(R>0.5, 0, _) : ba.if(S>0.5,1,_));
     };
 
 rampePlayer(reset) = rampe
     with {
         rst = reset : trig;
-        rampe = _~(+(1):*(1-rst));
+        rampe = _ ~ (+(1):*(1-rst));
         toZero = _ : ba.if(reset<0.5,0,_);
     };

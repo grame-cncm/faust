@@ -357,85 +357,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     return initJITAux(error_msg);
 }
 
-// Public C++ API
-
-EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
-                                                  const string& target, string& error_msg, int opt_level)
-{
-    string base = basename((char*)filename.c_str());
-    size_t pos  = filename.find(".dsp");
-
-    if (pos != string::npos) {
-        return createDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, target, error_msg,
-                                          opt_level);
-    } else {
-        error_msg = "ERROR : file extension is not the one expected (.dsp expected)\n";
-        return nullptr;
-    }
-}
-
-EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                    const char* argv[], const string& target, string& error_msg,
-                                                    int opt_level)
-{
-    LOCK_API
-    string expanded_dsp_content, sha_key;
-    
-    //if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
-    if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
-        return nullptr;
-    } else {
-        
-        dsp_factory_table<SDsp_factory>::factory_iterator it;
-        llvm_dsp_factory* factory = nullptr;
-
-        if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
-            SDsp_factory sfactory = (*it).first;
-            sfactory->addReference();
-            return sfactory;
-        } else {
-            int         argc1 = 0;
-            const char* argv1[64];
-            argv1[argc1++] = "faust";
-            argv1[argc1++] = "-lang";
-            // argv1[argc1++] = "cllvm";
-            argv1[argc1++] = "llvm";
-            argv1[argc1++] = "-o";
-            argv1[argc1++] = "string";
-            // Copy arguments
-            for (int i = 0; i < argc; i++) {
-                argv1[argc1++] = argv[i];
-            }
-            argv1[argc1] = nullptr;  // NULL terminated argv
-            
-            llvm_dynamic_dsp_factory_aux* factory_aux = nullptr;
-            try {
-                factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
-                    compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true));
-                if (factory_aux) {
-                    factory_aux->setTarget(target);
-                    factory_aux->setOptlevel(opt_level);
-                    factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
-                    factory_aux->setName(name_app);
-                    if (!factory_aux->initJIT(error_msg)) {
-                        goto error;
-                    }
-                    factory = new llvm_dsp_factory(factory_aux);
-                    llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
-                    factory->setSHAKey(sha_key);
-                    factory->setDSPCode(expanded_dsp_content);
-                    return factory;
-                }
-            } catch (faustexception& e) {
-                error_msg = e.what();
-                goto error;
-            }
-        error:
-            delete factory_aux;
-            return nullptr;
-        }
-    }
-}
 
 // Bitcode <==> string
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
@@ -542,41 +463,8 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
         return writeDSPFactoryToObjectcodeFileAux(object_code_path);
     }
 }
-
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
-                                                   int opt_level)
-{
-    LOCK_API
-    return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(bit_code))), target, error_msg,
-                                        opt_level);
-}
-
-EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
-{
-    LOCK_API
-    return (factory) ? factory->writeDSPFactoryToBitcode() : "";
-}
-
-// Bitcode <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target,
-                                                       string& error_msg, int opt_level)
-{
-    LOCK_API
-    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
-    if (error_code ec = buffer.getError()) {
-        error_msg = "ERROR : " + ec.message() + "\n";
-        return nullptr;
-    } else {
-        return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
-    }
-}
-
-EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
-{
-    LOCK_API
-    return (factory) ? factory->writeDSPFactoryToBitcodeFile(bit_code_path) : false;
-}
-
+        
+        
 // IR <==> string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
@@ -585,7 +473,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     
     dsp_factory_table<SDsp_factory>::factory_iterator it;
-
+    
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
         SDsp_factory sfactory = (*it).first;
         sfactory->addReference();
@@ -609,10 +497,10 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             free(tmp_local);
         }
         string error_msg;
-
+        
         llvm_dynamic_dsp_factory_aux* factory_aux =
-            new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
-
+        new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+        
         if (factory_aux->initJIT(error_msg)) {
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
             llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
@@ -624,40 +512,6 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             return nullptr;
         }
     }
-}
-
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, string& error_msg,
-                                              int opt_level)
-{
-    LOCK_API
-    return readDSPFactoryFromIRAux(MEMORY_BUFFER_CREATE(StringRef(ir_code)), target, error_msg, opt_level);
-}
-
-EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
-{
-    LOCK_API
-    return (factory) ? factory->writeDSPFactoryToIR() : "";
-}
-
-// IR <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg,
-                                                  int opt_level)
-{
-    LOCK_API
-    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
-
-    if (error_code ec = buffer.getError()) {
-        error_msg = "ERROR : " + ec.message() + "\n";
-        return nullptr;
-    } else {
-        return readDSPFactoryFromIRAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
-    }
-}
-
-EXPORT bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
-{
-    LOCK_API
-    return (factory) ? factory->writeDSPFactoryToIRFile(ir_code_path) : false;
 }
 
 // Helper functions
@@ -711,6 +565,154 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, string& error)
         }
     }
     return dst;
+}
+        
+// Public C++ API
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
+                                                  const string& target, string& error_msg, int opt_level)
+{
+    string base = basename((char*)filename.c_str());
+    size_t pos  = filename.find(".dsp");
+    
+    if (pos != string::npos) {
+        return createDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, target, error_msg,
+                                          opt_level);
+    } else {
+        error_msg = "ERROR : file extension is not the one expected (.dsp expected)\n";
+        return nullptr;
+    }
+}
+
+EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
+                                                    const char* argv[], const string& target, string& error_msg,
+                                                    int opt_level)
+{
+    LOCK_API
+    string expanded_dsp_content, sha_key;
+    
+    //if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+    if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
+        return nullptr;
+    } else {
+        
+        dsp_factory_table<SDsp_factory>::factory_iterator it;
+        llvm_dsp_factory* factory = nullptr;
+        
+        if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
+            SDsp_factory sfactory = (*it).first;
+            sfactory->addReference();
+            return sfactory;
+        } else {
+            int         argc1 = 0;
+            const char* argv1[64];
+            argv1[argc1++] = "faust";
+            argv1[argc1++] = "-lang";
+            // argv1[argc1++] = "cllvm";
+            argv1[argc1++] = "llvm";
+            argv1[argc1++] = "-o";
+            argv1[argc1++] = "string";
+            // Copy arguments
+            for (int i = 0; i < argc; i++) {
+                argv1[argc1++] = argv[i];
+            }
+            argv1[argc1] = nullptr;  // NULL terminated argv
+            
+            llvm_dynamic_dsp_factory_aux* factory_aux = nullptr;
+            try {
+                factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
+                                                                         compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true));
+                if (factory_aux) {
+                    factory_aux->setTarget(target);
+                    factory_aux->setOptlevel(opt_level);
+                    factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
+                    factory_aux->setName(name_app);
+                    if (!factory_aux->initJIT(error_msg)) {
+                        goto error;
+                    }
+                    factory = new llvm_dsp_factory(factory_aux);
+                    llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
+                    factory->setSHAKey(sha_key);
+                    factory->setDSPCode(expanded_dsp_content);
+                    return factory;
+                }
+            } catch (faustexception& e) {
+                error_msg = e.what();
+                goto error;
+            }
+        error:
+            delete factory_aux;
+            return nullptr;
+        }
+    }
+}
+
+EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
+                                                   int opt_level)
+{
+    LOCK_API
+    return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(bit_code))), target, error_msg,
+                                        opt_level);
+}
+
+EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
+{
+    LOCK_API
+    return (factory) ? factory->writeDSPFactoryToBitcode() : "";
+}
+
+// Bitcode <==> file
+EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target,
+                                                       string& error_msg, int opt_level)
+{
+    LOCK_API
+    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
+    if (error_code ec = buffer.getError()) {
+        error_msg = "ERROR : " + ec.message() + "\n";
+        return nullptr;
+    } else {
+        return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
+    }
+}
+
+EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
+{
+    LOCK_API
+    return (factory) ? factory->writeDSPFactoryToBitcodeFile(bit_code_path) : false;
+}
+
+EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, string& error_msg,
+                                              int opt_level)
+{
+    LOCK_API
+    return readDSPFactoryFromIRAux(MEMORY_BUFFER_CREATE(StringRef(ir_code)), target, error_msg, opt_level);
+}
+
+EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
+{
+    LOCK_API
+    return (factory) ? factory->writeDSPFactoryToIR() : "";
+}
+
+// IR <==> file
+EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg,
+                                                  int opt_level)
+{
+    LOCK_API
+    ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
+
+    if (error_code ec = buffer.getError()) {
+        error_msg = "ERROR : " + ec.message() + "\n";
+        return nullptr;
+    } else {
+        return readDSPFactoryFromIRAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg, opt_level);
+    }
+}
+
+EXPORT bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
+{
+    LOCK_API
+    return (factory) ? factory->writeDSPFactoryToIRFile(ir_code_path) : false;
 }
 
 // Public C interface : lock management is done by called C++ API
