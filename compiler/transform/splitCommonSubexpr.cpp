@@ -72,7 +72,7 @@ class CommonSubexpr : public SignalIdentity {
                !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
                !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) &&
                !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) &&
-               !isSigInt(sig, &i) && !isSigReal(sig, &r);
+               !isSigInt(sig, &i) && !isSigReal(sig, &r) && !isSigInstructionTimeRead(sig);
     }
 
     Tree transformation(Tree sig) override
@@ -84,10 +84,11 @@ class CommonSubexpr : public SignalIdentity {
         if ((n > 1) && (t->variability() >= kSamp) && needCache(sig)) {
             Tree r  = SignalIdentity::transformation(sig);
             Tree id = (t->nature() == kInt) ? uniqueID("iVar", sig) : uniqueID("fVar", sig);
-#if 0
+#if 1
             fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, t->nature(), r));
             Tree inst = sigInstructionSharedRead(id, sig, t->nature());
 #else
+            // simulation of future vector mode
             fSplittedSignals.insert(sigInstructionVectorWrite(id, sig, t->nature(), r));
             Tree inst = sigInstructionVectorRead(id, sig, t->nature());
 #endif
