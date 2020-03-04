@@ -60,45 +60,6 @@ Faust libraries are now in a [separated project](https://github.com/grame-cncm/f
 
 Since release 2.5.18, Faust compilation and installation is based on cmake. For details about compilation, you should look at the [build/README.md](https://github.com/grame-cncm/faust/blob/master-dev/build/README.md) file and have a look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple way](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install. 
 
-
-<!-- ### Getting the source code
-
-In order to compile Faust on your machine you can either download the latest release of the source code <https://github.com/grame-cncm/faust/releases> or clone the git repository. In order to clone the git repository you will have to do the following steps:
-
-	git clone https://github.com/grame-cncm/faust.git
-	cd faust
-	git submodule update --init
-
-The last step `git submodule update --init` is a new one. This is due to the fact that the Faust libraries have been moved to an independent github repository <https://github.com/grame-cncm/faustlibraries.git>. This repository is a submodule of the Faust repository (as well as some other Faust related projects).
-
-### Linux and MacOSX
-
-To build Faust on MacOSX or Linux, just run the following commands from the root of the distribution:
-
-	make
-	sudo make install
-
-This will compile the Faust compiler only, with a set of backends that do not have additional dependencies (so the LLVM backend will **not be compiled**). Use `make help` to see what other targets can be used from the toplevel Makefile.
-
-To refine compilation for more specific cases, go in the build folder and see the [build/README.md](build/README.md) file.
-
-### Windows
-
-You can use either MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See the [build/README.md](build/README.md) file for more details.
-
-### Build & Use Faust with Docker :
-
-	docker build -t faust
-	docker run faust [args...]
-
-For example to display the help:
-
-	docker run faust -h
-
-To use an additional tool, for example faust2pdf:
-
-	docker run --entrypoint faust2pdf faust [args...] -->
-
 ## Using the Faust Examples
 
 The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
