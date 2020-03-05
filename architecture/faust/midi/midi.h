@@ -160,8 +160,7 @@ class midi {
  A class to decode NRPN and RPN messages, adapted from JUCE forum message: https://forum.juce.com/t/14bit-midi-controller-support/11517
 */
 
-class MidiNRPN
-{
+class MidiNRPN {
     
     private:
     

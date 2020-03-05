@@ -578,22 +578,36 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
 
                     // Cast
                 case FBCInstruction::kCastReal: {
+                    MIR_reg_t ext32 = createVar(MIR_T_I64, "ext32");
+                    // Take lower 32 bits
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
+                                                                     MIR_EXT32,
+                                                                     MIR_new_reg_op(fContext, ext32),
+                                                                     MIR_new_reg_op(fContext, popValue())));
+                    // Generate the cast
                     MIR_reg_t cast_real = createVar(getRealTy(), "cast_real");
                     MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
                                                                      typedReal(MIR_I2F, MIR_I2D),
                                                                      MIR_new_reg_op(fContext, cast_real),
-                                                                     MIR_new_reg_op(fContext, popValue())));
+                                                                     MIR_new_reg_op(fContext, ext32)));
+                    
                     pushValue(cast_real);
                     it++;
                     break;
                 }
           
                 case FBCInstruction::kCastInt: {
+                    // Generate the cast
                     MIR_reg_t cast_i64 = createVar(getInt64Ty(), "cast_i64");
                     MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
                                                                      typedReal(MIR_F2I, MIR_D2I),
                                                                      MIR_new_reg_op(fContext, cast_i64),
                                                                      MIR_new_reg_op(fContext, popValue())));
+                    // Take lower 32 bits
+                    MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
+                                                                     MIR_EXT32,
+                                                                     MIR_new_reg_op(fContext, cast_i64),
+                                                                     MIR_new_reg_op(fContext, cast_i64)));
                     pushValue(cast_i64);
                     it++;
                     break;

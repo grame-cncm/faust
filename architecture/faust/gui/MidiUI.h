@@ -543,6 +543,7 @@ class uiMidiKeyPress : public uiMidiTimedItem {
 
 class MidiUI : public GUI, public midi {
 
+    // Add uiItem subclasses objects are deallocated by the inherited GUI class
     typedef std::map <int, std::vector<uiMidiCtrlChange*> > TCtrlChangeTable;
     typedef std::map <int, std::vector<uiMidiProgChange*> > TProgChangeTable;
     typedef std::map <int, std::vector<uiMidiChanPress*> >  TChanPressTable;
@@ -675,7 +676,7 @@ class MidiUI : public GUI, public midi {
             fMidiHandler->removeMidiIn(this);
             if (fDelete) delete fMidiHandler;
         }
-        
+    
         bool run() { return fMidiHandler->startMidi(); }
         void stop() { fMidiHandler->stopMidi(); }
         
