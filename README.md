@@ -58,7 +58,7 @@ Faust libraries are now in a [separated project](https://github.com/grame-cncm/f
 
 ## Compilation and Installation
 
-Since release 2.5.18, Faust compilation and installation is based on cmake. For details about compilation, you should look at the [build/README.md](https://github.com/grame-cncm/faust/blob/master-dev/build/README.md) file and have a look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple way](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install. 
+Since release 2.5.18, Faust compilation and installation is based on [CMake](https://cmake.org/). For details about compilation, you should look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple tutorial](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install.
 
 ## Using the Faust Examples
 
