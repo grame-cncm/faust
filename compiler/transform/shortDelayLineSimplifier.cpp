@@ -80,16 +80,16 @@ class replaceShortDLine : public SignalIdentity {
     replaceShortDLine(const set<Tree>& candidates) : fCandidates(candidates) {}
 
    protected:
+    bool isCandidate(Tree ID) { return fCandidates.find(ID) != fCandidates.end(); }
+
     Tree transformation(Tree sig) override
     {
         Tree ID1, origin, dl1, content;
         int  nature, dmax1, dmin1;
 
-        if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax1, &dmin1, dl1) &&
-            (fCandidates.find(ID1) != fCandidates.end())) {
+        if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax1, &dmin1, dl1) && isCandidate(ID1)) {
             return sigInstructionShortDLineRead(ID1, origin, nature, dmin1);
-        } else if (isSigInstructionDelayLineWrite(sig, ID1, origin, &nature, &dmax1, content) &&
-                   (fCandidates.find(ID1) != fCandidates.end())) {
+        } else if (isSigInstructionDelayLineWrite(sig, ID1, origin, &nature, &dmax1, content) && isCandidate(ID1)) {
             return sigInstructionShortDLineWrite(ID1, origin, nature, self(content));
         } else {
             return SignalIdentity::transformation(sig);
@@ -145,8 +145,17 @@ set<Tree> ShortDelayLineSimplifier(const set<Tree>& I)
     for (Tree i : I)
         if (isSDLCandidate(i, id)) C.insert(id);
 
-    // remove false candidates
+// remove false candidates
+#if 1
     for (Tree i : I) filterCandidate(i, C);
+#endif
+
+    // print ID of remaining candidates for short dlines
+    if (C.size() > 0) {
+        cerr << ">>>>Short dlines: ";
+        for (Tree i : C) cerr << *i << " ";
+        cerr << endl;
+    }
 
     // create a transformation to replace the short dlines
     replaceShortDLine rsdl(C);
