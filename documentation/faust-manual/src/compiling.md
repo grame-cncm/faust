@@ -84,7 +84,9 @@ rights reserved.
 
 As you probably noticed the LLVM backend is not installed in this basic setup. 
 You will typically need LLVM if you want to compile the library version of 
-Faust. A complete installation is described in [the next section](TODO).
+Faust. For more details, run `make help` in the root folder of the distribution
+or see the [advanced compiling](https://github.com/grame-cncm/faust/wiki/Building)
+page on the wiki.
 
 We dont have any audio development package installed, but we can nevertheless 
 use Faust to compile some of the examples to C++, at least to make sure that 
