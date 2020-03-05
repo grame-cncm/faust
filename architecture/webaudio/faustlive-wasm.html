@@ -1018,7 +1018,7 @@
             // Timer to save page and DSP state to local storage
             setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
             
-            // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when code is ready
+            // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when the code is ready
             // (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
             
             faust_module['onRuntimeInitialized'] = init;

@@ -162,6 +162,12 @@ Since the **libfaust** library is available for the Web, it becomes possible to 
 <script src="webaudio-wasm-wrapper.js"></script>
 ```
 
+The **faust_module** global is defined in webaudio-wasm-wrapper.js file, `onRuntimeInitialized` will be called when the code is ready. So something like the folllowing line has to be written:
+
+```
+faust_module['onRuntimeInitialized'] = init;
+```
+
 Then the two following functions are used to generate factories, creating later on *monophonic* or *polyphonic* instances (this is necessary because of the way internal WebAssembly memory is managed): 
 
 ```
