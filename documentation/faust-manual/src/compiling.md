@@ -22,10 +22,10 @@ backends to be included in each target. However, this flexibility is based on a
 set of states (cached by CMake), which can sometimes make the compilation 
 process a bit obscure.
 
-The goal of this chapter is to provide practical information about this 
-building system. The first section explains how to do a basic Faust 
-installation, when LLVM is not required. The second section gives details on 
-all the available options.
+This chapter explains how to do a basic Faust installation, when LLVM is not
+required. For more detailed compilation options, including instructions for
+compiling `libfaust`, the library version of the compiler, refer to the
+[advanced building](https://github.com/grame-cncm/faust/wiki/Building) page on the Faust Github wiki.
 
 ## Basic Faust Installation
 
@@ -134,7 +134,7 @@ available in [this section](#a-quick-tour-of-the-faust-targets).
 
 ### Windows Systems
 
-TODO
+See compilation instructions on the [wiki](https://github.com/grame-cncm/faust/wiki/BuildingSimple)
 
 ## Advanced Faust Build
 
