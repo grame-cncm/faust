@@ -9,6 +9,11 @@ making compromises. In this section, we demonstrate how the Faust dynamic
 compilation chain can be used to embed the Faust compiler technology directly 
 in applications or plugins.
 
+Note that if you have compiled Faust yourself, `libfaust` is not included in
+the default settings. For more details, run `make help` in the root folder of
+the distribution or see the [advanced compiling](https://github.com/grame-cncm/faust/wiki/Building)
+wiki page.
+
 ## Dynamic Compilation Chain
 
 The Faust compiler uses an intermediate FIR representation (Faust Imperative 
