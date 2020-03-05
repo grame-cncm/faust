@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <title>Use of template</title>
-  <link rel="import" href="template/faustTemplate.html" />
   <style>
 	section {
 		margin : 1em;
@@ -12,7 +11,6 @@
 		border-radius: 3em;
 	}
   </style>
-  
 </head>
 <body>
 	<div>
@@ -39,6 +37,34 @@
 		<h1>Faust component without editor</h1>
 		<faust-compiler faustCode="false">process = _*vslider("Volume", 0, 0, 1, 0.1);</faust-compiler>
 	</section>
-	
+  <template id="faustTemplate">
+    <style>
+      #templateContainer {
+        -webkit-display: flex;
+        display: flex;
+        flex-direction: row;
+      }
+
+      #faustCode {
+        width: 50%;
+      }
+
+      #faustSandbox {
+        width: 95%;
+      }
+
+      #container {
+        width: 50%;
+      }
+    </style>
+    <div id="templateContainer">
+      <div id="faustCode">
+        <p>Type your Faust code here :</p>
+        <textarea id="faustSandbox" rows="10"></textarea>
+      </div>
+      <div id="container"></div>
+    </div>
+  </template>
+  <script type="module" src="template/faustTemplate.js"></script>
 </body>
 </html>
