@@ -96,7 +96,11 @@ class Esp32SensorUI : public APIUI
     
     public:
     
-        Esp32SensorUI():fMPU9250(MPU9250_ADDRESS_AD0_HIGH), fHasAcc(false), fHasGyr(false), fHasMag(false)
+        Esp32SensorUI():fProcessHandle(nullptr),
+        fMPU9250(MPU9250_ADDRESS_AD0_HIGH),
+        fHasAcc(false),
+        fHasGyr(false),
+        fHasMag(false)
         {}
     
         bool start()

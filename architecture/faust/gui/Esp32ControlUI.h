@@ -62,6 +62,7 @@ class FilteredConverter : public ConverterZoneControl
             static constexpr double value() { return double(NUM)/double(DENOM); }
         };
 
+        /*
         // Templated filter with T60 expressed as NUM/DENOM
         template <class fVslider0, typename REAL>
         struct CtrlFilter {
@@ -91,6 +92,49 @@ class FilteredConverter : public ConverterZoneControl
     
         // T60 = 2/10 = 0.2s
         CtrlFilter<Double<2,10>, double> fFilter;
+        */
+    
+    
+        /*
+         Generated with:
+         process = _< : (_, @(delay)) : - : + ~_ : /(delay);
+         */
+    
+        template <int fHslider0>
+        struct CtrlFilter {
+            
+            int IOTA;
+            float fVec0[128];
+            float fRec0[2];
+            
+            CtrlFilter()
+            {
+                IOTA = 0;
+                for (int l0 = 0; (l0 < 128); l0 = (l0 + 1)) {
+                    fVec0[l0] = 0.0f;
+                }
+                for (int l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
+                    fRec0[l1] = 0.0f;
+                }
+            }
+            
+            FAUSTFLOAT compute(FAUSTFLOAT input0)
+            {
+                float fSlow0 = float(fHslider0);
+                float fSlow1 = (1.0f / fSlow0);
+                int iSlow2 = int(fSlow0);
+                float fTemp0 = float(input0);
+                fVec0[(IOTA & 127)] = fTemp0;
+                fRec0[0] = ((fTemp0 + fRec0[1]) - fVec0[((IOTA - iSlow2) & 127)]);
+                FAUSTFLOAT output0 = FAUSTFLOAT((fSlow1 * fRec0[0]));
+                IOTA = (IOTA + 1);
+                fRec0[1] = fRec0[0];
+                return output0;
+            }
+            
+        };
+
+        CtrlFilter<10> fFilter;
     
     public:
     
@@ -112,12 +156,13 @@ class Esp32ControlUI : public GenericUI
     
     private:
     
-        FilteredConverter* fGainConverter;
-        FilteredConverter* fPhotoResConverter;
-        FilteredConverter* fKnobConverter;
+        FilteredConverter* fKnob1Converter;
+        FilteredConverter* fKnob2Converter;
+        FilteredConverter* fKnob3Converter;
     
         FAUSTFLOAT* fPushButton;
-        std::string fValue;
+    
+        std::string fKey, fValue;
     
         TaskHandle_t fProcessHandle;
     
@@ -125,21 +170,26 @@ class Esp32ControlUI : public GenericUI
         {
             while (true) {
                 
-                if (fGainConverter) {
-                    int gain = adc1_get_raw(ADC1_CHANNEL_7);
-                    fGainConverter->update(double(gain));
+                // Knob 1
+                if (fKnob1Converter) {
+                    int val = adc1_get_raw(ADC1_CHANNEL_7);
+                    fKnob1Converter->update(double(val));
                 }
-                if (fPhotoResConverter) {
-                    int photores = adc1_get_raw(ADC1_CHANNEL_6);
-                    fPhotoResConverter->update(double(photores));
+                
+                // Knob 2
+                if (fKnob2Converter) {
+                    int val = adc1_get_raw(ADC1_CHANNEL_4);
+                    fKnob2Converter->update(double(val));
                 }
-                if (fKnobConverter) {
-                    int knob = adc1_get_raw(ADC1_CHANNEL_4);
-                    fKnobConverter->update(double(knob));
+                
+                // Photores
+                if (fKnob3Converter) {
+                    int val = adc1_get_raw(ADC1_CHANNEL_6);
+                    fKnob3Converter->update(double(val));
                 }
+                
                 if (fPushButton) {
                     int push_button = gpio_get_level(GPIO_NUM_14);
-                    //std::cout << "button " << push_button << std::endl;
                     *fPushButton = FAUSTFLOAT(push_button);
                 }
                 
@@ -157,14 +207,13 @@ class Esp32ControlUI : public GenericUI
     
     public:
         
-        Esp32ControlUI():fGainConverter(nullptr),
-                fPhotoResConverter(nullptr),
-                fKnobConverter(nullptr),
+        Esp32ControlUI():fKnob1Converter(nullptr),
+                fKnob2Converter(nullptr),
+                fKnob3Converter(nullptr),
                 fPushButton(nullptr),
                 fProcessHandle(nullptr)
         {
             adc1_config_width(ADC_WIDTH_BIT_12);
-            
             gpio_config_t io_conf;
             io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_POSEDGE;
             io_conf.pin_bit_mask = ((1ULL<<4) | (1ULL<<13) | (1ULL<<14) | (1ULL<<15));
@@ -175,9 +224,9 @@ class Esp32ControlUI : public GenericUI
     
         virtual ~Esp32ControlUI()
         {
-            delete fGainConverter;
-            delete fPhotoResConverter;
-            delete fKnobConverter;
+            delete fKnob1Converter;
+            delete fKnob3Converter;
+            delete fKnob2Converter;
             stop();
         }
     
@@ -198,19 +247,19 @@ class Esp32ControlUI : public GenericUI
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            if (fValue == "button") {
+            if (fKey == "switch") {
                 std::cout << "addButton " << std::endl;
                 fPushButton = zone;
             }
-            fValue = "";
+            fValue = fKey = "";
         }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            if (fValue == "button") {
+            if (fKey == "switch") {
                 std::cout << "addCheckButton " << std::endl;
                 fPushButton = zone;
             }
-            fValue = "";
+            fValue = fKey = "";
         }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
@@ -222,24 +271,27 @@ class Esp32ControlUI : public GenericUI
         }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            if (fValue == "gain") {
-                std::cout << "gain " << min << " " << max << std::endl;
-                fGainConverter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
-            } else if (fValue == "photores") {
-                std::cout << "photores " << min << " " << max << std::endl;
-                fPhotoResConverter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
-            } else if (fValue == "knob") {
-                std::cout << "knob " << min << " " << max << std::endl;
-                fKnobConverter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+            if (fKey == "knob") {
+                if (fValue == "1") {
+                    std::cout << "knob1 " << min << " " << max << std::endl;
+                    fKnob1Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+                } else if (fValue == "2") {
+                    std::cout << "knob2 " << min << " " << max << std::endl;
+                    fKnob2Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+                } else if (fValue == "3") {
+                    std::cout << "knob3 " << min << " " << max << std::endl;
+                    fKnob3Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+                }
             }
-            fValue = "";
+            fValue = fKey = "";
         }
     
         // -- metadata declarations
         void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            if (strcmp(key, "esp32") == 0) {
-                std::cout << "val " << val << std::endl;
+            if (strcmp(key, "switch") == 0 || strcmp(key, "knob") == 0) {
+                std::cout << "key " << key << " val " << val << std::endl;
+                fKey = key;
                 fValue = val;
             }
         }
