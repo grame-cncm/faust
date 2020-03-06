@@ -964,6 +964,50 @@ void GraphCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 }
 
 /**
+ * @brief List only the output instructions of a set of instructions
+ *
+ * @param I the set of instructions to analyze
+ * @return set<Tree> the output instructions of I
+ */
+static set<Tree> ListOutputs(const set<Tree>& I)
+{
+    set<Tree> Outputs;
+    for (Tree instr : I) {
+        int  n;
+        Tree exp;
+        if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+    }
+    return Outputs;
+}
+
+/**
+ * @brief schedule recursively an instruction and its zero-dependencies
+ *
+ * @param G
+ * @param i
+ * @param SCHED
+ * @param DONE
+ * @param POSTPONE
+ */
+static void scheduleInstr(const digraph<Tree>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE, set<Tree>& POSTPONE)
+{
+    if (DONE.find(i) == DONE.end()) {
+        // mark i as done
+        DONE.insert(i);
+        // schedule its dependencies
+        for (auto p : G.connections(i)) {
+            if (p.second > 0) {
+                POSTPONE.insert(p.first);
+            } else {
+                scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
+            }
+        }
+        // schedule itself
+        SCHED.push_back(i);
+    }
+}
+
+/**
  * @brief Schedule a set of instructions into init, block and
  * exec instruction sequences
  *
@@ -1061,7 +1105,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         }
         // cerr << "Schedule 4 is \n" << S << endl;
         return S;
-    } else /*if (gGlobal->gCodeMode == 5)*/ {
+    } else if (gGlobal->gCodeMode == 5) {
         // we serialize from a set of output instructions
         set<Tree> Outputs;
         for (Tree instr : E.nodes()) {
@@ -1074,6 +1118,33 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
             S.fExecLevel.push_back(i);
         }
         // cerr << "Schedule 5 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 6) {
+        // we serialize from a set of output instructions
+
+        set<Tree> DONE;
+        set<Tree> TODO = ListOutputs(I);
+        while (TODO.size() > 0) {
+            set<Tree> POSTPONE;
+            for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
+            TODO = POSTPONE;
+        }
+        // cerr << "Schedule 6 is \n" << S << endl;
+        return S;
+    } else /*if (gGlobal->gCodeMode == 7)*/ {
+        // we serialize from a set of output instructions
+
+        set<Tree> DONE;
+        for (Tree o : ListOutputs(I)) {
+            set<Tree> TODO;
+            TODO.insert(o);
+            while (TODO.size() > 0) {
+                set<Tree> POSTPONE;
+                for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
+                TODO = POSTPONE;
+            }
+        }
+        // cerr << "Schedule 7 is \n" << S << endl;
         return S;
     }
 }

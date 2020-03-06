@@ -35,6 +35,7 @@
 #include "tlib.hh"
 #include "tree.hh"
 #include "xtended.hh"
+
 /**
  * A visitor that removes candidates that can't be simplified as short dlines
  *
