@@ -137,7 +137,7 @@ extern "C" void app_main()
     wm8978.auxGain(0);
     wm8978.lineinGain(0);
     
-    // set gain
+    // Set gain
     wm8978.spkVolSet(60); // [0-63]
     
     wm8978.hpVolSet(40,40);

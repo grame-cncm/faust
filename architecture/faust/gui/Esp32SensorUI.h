@@ -107,6 +107,10 @@ class Esp32SensorUI : public APIUI
         {
             fHasAcc = (getAccCount(0) > 0) || (getAccCount(1) > 0) || (getAccCount(2) > 0);
             fHasGyr = (getGyrCount(0) > 0) || (getGyrCount(1) > 0) || (getGyrCount(2) > 0);
+            
+            std::cout << "fHasAcc " << fHasAcc << std::endl;
+            std::cout << "fHasGyr " << fHasGyr << std::endl;
+            
             if (fHasAcc) fMPU9250.beginAccel();
             if (fHasGyr) fMPU9250.beginGyro();
             if (fHasMag) fMPU9250.beginMag();

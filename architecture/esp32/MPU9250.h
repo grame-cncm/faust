@@ -48,7 +48,6 @@ class MPU9250 { //Removed all mentions of wire and asukiaaa
         MPU9250(uint8_t address);
     
         uint8_t readId(uint8_t* id);
-    
         void i2c_master_init();
     
         void beginAccel(uint8_t mode = ACC_FULL_SCALE_16_G);
@@ -73,6 +72,7 @@ class MPU9250 { //Removed all mentions of wire and asukiaaa
         float magHorizDirection();
     
     private:
+    
         uint8_t address;
         uint8_t accelBuf[6];
         float accelRange;
