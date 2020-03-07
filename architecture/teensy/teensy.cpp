@@ -35,16 +35,6 @@
 #include "faust/midi/teensy-midi.h"
 #endif
 
-<<includeIntrinsic>>
-
-<<includeclass>>
-
-#define MULT_16 2147483647
-#define DIV_16 4.6566129e-10
-
-unsigned __exidx_start;
-unsigned __exidx_end;
-
 // we require macro declarations
 #define FAUST_UIMACROS
 
@@ -56,6 +46,16 @@ unsigned __exidx_end;
 #define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+
+<<includeIntrinsic>>
+
+<<includeclass>>
+
+#define MULT_16 2147483647
+#define DIV_16 4.6566129e-10
+
+unsigned __exidx_start;
+unsigned __exidx_end;
 
 #if MIDICTRL
 std::list<GUI*> GUI::fGuiList;
