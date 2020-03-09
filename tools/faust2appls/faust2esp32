@@ -193,7 +193,6 @@ if [ $LIB -eq 1 ]; then
 
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
-    exit 1
 fi
 
 ################################
@@ -278,5 +277,4 @@ if [ $LIB -eq 0 ]; then
 
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
-    exit 1
 fi
