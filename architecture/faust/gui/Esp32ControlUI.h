@@ -280,7 +280,8 @@ class Esp32ControlUI : public GenericUI
                     fKnob2Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
                 } else if (fValue == "3") {
                     std::cout << "knob3 " << min << " " << max << std::endl;
-                    fKnob3Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+                    // This control does not use the full range of [0 4095]
+                    fKnob3Converter = new FilteredConverter(zone, new LinearValueConverter(2400., 4095., min, max));
                 }
             }
             fValue = fKey = "";
