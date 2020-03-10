@@ -125,7 +125,10 @@ if [ $LIB -eq 1 ]; then
     		faust -pn mydsp1 -a $MODULENAME/tmp.cpp -inj $FAUSTARCH/esp32/gramophone-multi.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
     		rm $MODULENAME/tmp.cpp
     	else
-    		faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+    		# Use the volume wrapper
+    		cp $FILE $MODULENAME/mono.dsp
+    		cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
+    		faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS  $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
     	fi
     	
     	# Copy accelerometer/gyroscope code

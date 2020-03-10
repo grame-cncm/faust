@@ -27,6 +27,7 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 #include <string.h>
 
 #include "driver/uart.h"
@@ -156,11 +157,13 @@ class Esp32ControlUI : public GenericUI
     
     private:
     
-        FilteredConverter* fKnob1Converter;
-        FilteredConverter* fKnob2Converter;
-        FilteredConverter* fKnob3Converter;
+        std::vector<FilteredConverter*> fKnob1Converter;
+        std::vector<FilteredConverter*> fKnob2Converter;
+        std::vector<FilteredConverter*> fKnob3Converter;
     
-        FAUSTFLOAT* fPushButton;
+        std::vector<FAUSTFLOAT*> fPushButton;
+        std::vector<FAUSTFLOAT*> fCheckButton;
+        int fLastButton;
     
         std::string fKey, fValue;
     
@@ -171,26 +174,51 @@ class Esp32ControlUI : public GenericUI
             while (true) {
                 
                 // Knob 1
-                if (fKnob1Converter) {
+                if (fKnob1Converter.size() > 0) {
                     int val = adc1_get_raw(ADC1_CHANNEL_7);
-                    fKnob1Converter->update(double(val));
+                    for (int i = 0; i < fKnob1Converter.size(); i++) {
+                        fKnob1Converter[i]->update(double(val));
+                    }
                 }
                 
                 // Knob 2
-                if (fKnob2Converter) {
+                if (fKnob2Converter.size() > 0) {
                     int val = adc1_get_raw(ADC1_CHANNEL_4);
-                    fKnob2Converter->update(double(val));
+                    for (int i = 0; i < fKnob2Converter.size(); i++) {
+                        fKnob2Converter[i]->update(double(val));
+                    }
                 }
                 
                 // Photores
-                if (fKnob3Converter) {
+                if (fKnob3Converter.size() > 0) {
                     int val = adc1_get_raw(ADC1_CHANNEL_6);
-                    fKnob3Converter->update(double(val));
+                    for (int i = 0; i < fKnob3Converter.size(); i++) {
+                        fKnob3Converter[i]->update(double(val));
+                    }
                 }
                 
-                if (fPushButton) {
-                    int push_button = gpio_get_level(GPIO_NUM_14);
-                    *fPushButton = FAUSTFLOAT(push_button);
+                // Button considered as a push button
+                if (fPushButton.size() > 0) {
+                    int button = gpio_get_level(GPIO_NUM_14);
+                    for (int i = 0; i < fPushButton.size(); i++) {
+                        *fPushButton[i] = FAUSTFLOAT(button);
+                    }
+                }
+                
+                // Button considered as a checkbox
+                if (fCheckButton.size() > 0) {
+                    int button = gpio_get_level(GPIO_NUM_14);
+                    for (int i = 0; i < fCheckButton.size(); i++) {
+                        if (button == 1) {
+                            if (fLastButton == 0) {
+                                // Upfront detected
+                                *fCheckButton[i] = !(*fCheckButton[i]);
+                                fLastButton = button;
+                            }
+                        } else {
+                            fLastButton = 0;
+                        }
+                    }
                 }
                 
                 int encoder_dt = gpio_get_level(GPIO_NUM_4);
@@ -207,11 +235,7 @@ class Esp32ControlUI : public GenericUI
     
     public:
         
-        Esp32ControlUI():fKnob1Converter(nullptr),
-                fKnob2Converter(nullptr),
-                fKnob3Converter(nullptr),
-                fPushButton(nullptr),
-                fProcessHandle(nullptr)
+        Esp32ControlUI():fLastButton(0), fProcessHandle(nullptr)
         {
             adc1_config_width(ADC_WIDTH_BIT_12);
             gpio_config_t io_conf;
@@ -224,9 +248,9 @@ class Esp32ControlUI : public GenericUI
     
         virtual ~Esp32ControlUI()
         {
-            delete fKnob1Converter;
-            delete fKnob3Converter;
-            delete fKnob2Converter;
+            for (auto& it : fKnob1Converter) delete it;
+            for (auto& it : fKnob2Converter) delete it;
+            for (auto& it : fKnob3Converter) delete it;
             stop();
         }
     
@@ -249,7 +273,7 @@ class Esp32ControlUI : public GenericUI
         {
             if (fKey == "switch") {
                 std::cout << "addButton " << std::endl;
-                fPushButton = zone;
+                fPushButton.push_back(zone);
             }
             fValue = fKey = "";
         }
@@ -257,7 +281,7 @@ class Esp32ControlUI : public GenericUI
         {
             if (fKey == "switch") {
                 std::cout << "addCheckButton " << std::endl;
-                fPushButton = zone;
+                fCheckButton.push_back(zone);
             }
             fValue = fKey = "";
         }
@@ -274,14 +298,14 @@ class Esp32ControlUI : public GenericUI
             if (fKey == "knob") {
                 if (fValue == "1") {
                     std::cout << "knob1 " << min << " " << max << std::endl;
-                    fKnob1Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+                    fKnob1Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max)));
                 } else if (fValue == "2") {
                     std::cout << "knob2 " << min << " " << max << std::endl;
-                    fKnob2Converter = new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max));
+                    fKnob2Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max)));
                 } else if (fValue == "3") {
                     std::cout << "knob3 " << min << " " << max << std::endl;
                     // This control does not use the full range of [0 4095]
-                    fKnob3Converter = new FilteredConverter(zone, new LinearValueConverter(2400., 4095., min, max));
+                    fKnob3Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(2400., 4095., min, max)));
                 }
             }
             fValue = fKey = "";
