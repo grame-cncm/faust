@@ -1,0 +1,65 @@
+#!/bin/bash -e
+
+#####################################################################
+#                                                                   #
+#                    faust2daisy generator                          #
+#                       (c) Grame, 2020                             #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+ARCHFILE=$FAUSTARCH/daisy/faust.cpp
+
+# exit if a command fails
+set -e
+
+# global option variables
+NVOICES=0
+MULTI="0"
+POLY=""
+
+echoHelp ()
+{
+    echo "faust2daisy [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp> 
+    echo "Use '-midi' to activate MIDI control"
+    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+    echo ""
+}
+
+###########################
+# Processing Arguments
+###########################
+
+while [ $1 ]
+do
+    p=$1
+    # help
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+	echoHelp
+	exit 0
+    # -nvoices:
+    elif [ $p = "-nvoices" ]; then
+    	shift
+    	NVOICES=$1
+    # -midi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="MIDI"
+    elif [[ -f "$p" ]]; then
+    	FILE="$p"
+    # other compile options
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+if [ -z $FILE ]; then
+    echo "Please, provide a Faust file to process"
+    exit 1
+fi
+
+# TODO
