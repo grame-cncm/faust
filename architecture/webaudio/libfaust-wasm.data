@@ -6879,10 +6879,15 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   1, // MAJOR version when we make incompatible API changes,
-            0, // MINOR version when we add functionality in a backwards compatible manner,
-            1; // PATCH version when we make backwards compatible bug fixes.
+            1, // MINOR version when we add functionality in a backwards compatible manner,
+            0; // PATCH version when we make backwards compatible bug fixes.
 
             
+
+//#################################### webaudio.lib ########################################
+//An implementation of the web audio API filters.  Its official prefix is `wa`.
+//########################################################################################
+
 /************************************************************************
 ************************************************************************
 FAUST library file
@@ -6914,10 +6919,6 @@ to be LGPL or GPL. For example you are free to choose a commercial or
 closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
-
-//#################################### webaudio.lib ########################################
-//An implementation of the web audio API filters.  Its official prefix is `wa`.
-//########################################################################################
 
 declare name "WebAudio Library";
 declare author "GRAME";
@@ -7901,6 +7902,7 @@ ef = library("misceffects.lib");
 os = library("oscillators.lib");
 no = library("noises.lib");
 pf = library("phaflangers.lib");
+pl = library("platform.lib");
 pm = library("physmodels.lib");
 rm = library("reducemaps.lib");
 re = library("reverbs.lib");
@@ -10010,8 +10012,7 @@ fdelay10s(d)	= fdelay(524288,d);
 fdelay21s(d)	= fdelay(1048576,d);
 fdelay43s(d)	= fdelay(2097152,d);
 //#################################### routes.lib ########################################
-// A library of basic elements to handle signal routing in Faust. Its official
-// prefix is `ro`.
+// A library to handle signal routing in Faust. Its official prefix is `ro`.
 //########################################################################################
 
 /************************************************************************
@@ -19252,8 +19253,10 @@ line(value, time) = state~(_,_):!,_
 		};
 	};
 //#################################### platform.lib ########################################
-// A library to handle platform specific code in Faust.
+// A library to handle platform specific code in Faust. Its official prefix is `pl`.
 //########################################################################################
+// It can be reimplemented to globally change the SR and the tablesize definitions
+
 
 /************************************************************************
 ************************************************************************
@@ -19286,11 +19289,6 @@ to be LGPL or GPL. For example you are free to choose a commercial or
 closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
-
-//#################################### platform.lib ########################################
-//A generic plateform library.  Its official prefix is `pl`.
-//########################################################################################
-// It can be reimplemented to globally change the SR and the tablesize definitions
 
 
 declare name "Generic Platform Library";
@@ -19566,7 +19564,6 @@ ve = sf;
 wa = sf;
 //-----
 //#################################### reducemaps.lib ########################################
-// Correct documentation in interpolators.lib, typo in reducemaps.lib, cleanup.
 // A library to handle reduce/map kind of operation in Faust. Its official prefix is `rm`.
 //##############################################################################################
 
@@ -19622,9 +19619,7 @@ ba = library("basics.lib");
 //---------------------------------------------------------------
 
 
-//---------------------------------------------------------------
-// reduce(op, n, x)
-//---------------------------------------------------------------
+//--------------------`(rm.)reduce`------------------------------
 // Fold-like high order function. Apply a binary operation <op> 
 // on a block of <n> consecutive samples of a signal <x>. 
 // For example : reduce(max,128) will compute the maximun of each
@@ -19633,6 +19628,14 @@ ba = library("basics.lib");
 // the duration of a block. A new value is only produced 
 // at the end of a block. Note also that blocks should be of at
 // least one sample (n>0). 
+//
+// #### Usage
+//
+// ```
+// reduce(op, n, x)
+// ```
+//-----------------------------------------------------------------------------
+
 reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
     with {
         compute(acc, count, val) =
@@ -19642,13 +19645,19 @@ reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
     };
 
 
-//---------------------------------------------------------------
-// reducemap (op, foo, n, x)
-//---------------------------------------------------------------
+//--------------------`(rm.)reducemap`---------------------------
 // Like reduce but a foo function is applied to the result. From
 // a mathematical point of view :
 // reducemap(op,foo,n) is equivalent to reduce(op,n):foo
 // but more efficient.
+//
+// #### Usage
+//
+// ```
+// reducemap (op, foo, n, x)
+// ```
+//-----------------------------------------------------------------------------
+
 reducemap(op, foo, n, x) = compute ~ (_,_,_) : (!,!,_)
     with {
         compute(acc, count, val) =
