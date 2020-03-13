@@ -98,7 +98,7 @@ class FilteredConverter : public ConverterZoneControl
     
         /*
          Generated with:
-         process = _< : (_, @(delay)) : - : + ~_ : /(delay);
+         process = _ <: (_,@(delay)) : - : + ~ _ : /(delay);
          */
     
         template <int fHslider0>
@@ -221,8 +221,23 @@ class Esp32ControlUI : public GenericUI
                     }
                 }
                 
+                /*
+                int encoder_button = gpio_get_level(GPIO_NUM_15);
                 int encoder_dt = gpio_get_level(GPIO_NUM_4);
                 int encoder_clk = gpio_get_level(GPIO_NUM_13);
+                
+                int encoder_status;
+                if (encoder_button == 0) {
+                    encoder_status = encoder_dt;
+                } else {
+                    encoder_status = encoder_clk;
+                }
+                
+                std::cout << "encoder_button " << encoder_button << std::endl;
+                std::cout << "encoder_dt " << encoder_dt << std::endl;
+                std::cout << "encoder_clk " << encoder_clk << std::endl;
+                std::cout << "encoder_status " << encoder_status << std::endl;
+                */
                 
                 vTaskDelay(10 / portTICK_PERIOD_MS);
             }

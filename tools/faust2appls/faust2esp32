@@ -55,11 +55,11 @@ echoHelp ()
 
 while [ $1 ]
 do
-	p=$1
+    p=$1
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-		echoHelp
-		exit 0
+	echoHelp
+	exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
     	shift
@@ -114,53 +114,54 @@ if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
     if [ $GRAMOPHONE -eq 1 ]; then
     	if [ $MULTI -eq 1 ]; then
-    		count=0;
-    		echo "" > $MODULENAME/tmp.cpp
-    		faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-    		faust -pn mydsp2 -cn mydsp2 -i $OPTIONS $FILE -o "$MODULENAME/mydsp2.h" 2> /dev/null && echo "#define class_mydsp2" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-    		faust -pn mydsp3 -cn mydsp3 -i $OPTIONS $FILE -o "$MODULENAME/mydsp3.h" 2> /dev/null && echo "#define class_mydsp3" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-    		faust -pn mydsp4 -cn mydsp4 -i $OPTIONS $FILE -o "$MODULENAME/mydsp4.h" 2> /dev/null && echo "#define class_mydsp4" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-    		faust -pn mydsp5 -cn mydsp5 -i $OPTIONS $FILE -o "$MODULENAME/mydsp5.h" 2> /dev/null && echo "#define class_mydsp5" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-    		echo "static int gMydspCount = $count;" >> $MODULENAME/tmp.cpp 
-    		faust -pn mydsp1 -a $MODULENAME/tmp.cpp -inj $FAUSTARCH/esp32/gramophone-multi.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
-    		rm $MODULENAME/tmp.cpp
+            count=0;
+            echo "" > $MODULENAME/tmp.cpp
+            faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp2 -cn mydsp2 -i $OPTIONS $FILE -o "$MODULENAME/mydsp2.h" 2> /dev/null && echo "#define class_mydsp2" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp3 -cn mydsp3 -i $OPTIONS $FILE -o "$MODULENAME/mydsp3.h" 2> /dev/null && echo "#define class_mydsp3" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp4 -cn mydsp4 -i $OPTIONS $FILE -o "$MODULENAME/mydsp4.h" 2> /dev/null && echo "#define class_mydsp4" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp5 -cn mydsp5 -i $OPTIONS $FILE -o "$MODULENAME/mydsp5.h" 2> /dev/null && echo "#define class_mydsp5" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            echo "static int gMydspCount = $count;" >> $MODULENAME/tmp.cpp 
+            faust -pn mydsp1 -a $MODULENAME/tmp.cpp -inj $FAUSTARCH/esp32/gramophone-multi.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+            rm $MODULENAME/tmp.cpp
     	else
-    		# Use the volume wrapper
-    		cp $FILE $MODULENAME/mono.dsp
-    		cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
-    		faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS  $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
+            # Use the volume wrapper
+            cp $FILE $MODULENAME/mono.dsp
+            cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
+            faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
+            rm $MODULENAME/volume.dsp $MODULENAME/mono.dsp
     	fi
     	
     	# Copy accelerometer/gyroscope code
     	cp $FAUSTARCH/esp32/MPU9250.cpp $MODULENAME
     	cp $FAUSTARCH/esp32/MPU9250.h $MODULENAME
     else
-    	faust -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
-    	cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
-    	
-   		TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
-    	echo "$TMP" > $MODULENAME/$MODULENAME.cpp
-    	TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
-    	echo "$TMP" > $MODULENAME/$MODULENAME.h
-    	TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
-    	echo "$TMP" > $MODULENAME/$MODULENAME.cpp
-    	TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
-    	echo "$TMP" > $MODULENAME/$MODULENAME.h
+        faust -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+        cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
+
+        TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+        echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+        TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
+        echo "$TMP" > $MODULENAME/$MODULENAME.h
+        TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+        echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+        TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
+        echo "$TMP" > $MODULENAME/$MODULENAME.h
     fi
     
     # Copy audio codec code
     if [[ $DRIVER = "wm8978" ]]; then
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
     elif [[ $DRIVER = "ac101" ]]; then
-    	cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
-    	cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME 
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME
     else
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
     fi
     
-    echo '// Options :' > "$MODULENAME/tmp.txt"
+    echo '// Options:' > "$MODULENAME/tmp.txt"
     if [ $NVOICES -gt 0 ]; then
     	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
     fi
@@ -209,23 +210,23 @@ if [ $LIB -eq 0 ]; then
     cp $FAUSTARCH/esp32/component.mk $MODULENAME/FaustDSP/component.mk
     cp $FAUSTARCH/esp32/CMakeLists.txt $MODULENAME/FaustDSP/CMakeLists.txt
     if [[ $DRIVER = "wm8978" ]]; then
-    	mkdir -p $MODULENAME/WM8978/include
-    	cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
-    	cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
+        mkdir -p $MODULENAME/WM8978/include
+        cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
     elif [[ $DRIVER = "ac101" ]]; then
-    	mkdir -p $MODULENAME/AC101/include
-    	cp $FAUSTARCH/esp32/drivers/ac101/CMakeLists.txt $MODULENAME/AC101
-    	cp $FAUSTARCH/esp32/drivers/ac101/component.mk $MODULENAME/AC101
-    	cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME/AC101
-    	cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME/AC101/include 
+        mkdir -p $MODULENAME/AC101/include
+        cp $FAUSTARCH/esp32/drivers/ac101/CMakeLists.txt $MODULENAME/AC101
+        cp $FAUSTARCH/esp32/drivers/ac101/component.mk $MODULENAME/AC101
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME/AC101
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME/AC101/include
     else
-    	mkdir -p $MODULENAME/WM8978/include
-    	cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
-    	cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
-    	cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
+        mkdir -p $MODULENAME/WM8978/include
+        cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
     fi
 
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/FaustDSP/$MODULENAME.cpp)
@@ -236,7 +237,7 @@ if [ $LIB -eq 0 ]; then
     echo "$TMP" > $MODULENAME/FaustDSP/$MODULENAME.cpp
     TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/FaustDSP/include/$MODULENAME.h)
     echo "$TMP" > $MODULENAME/FaustDSP/include/$MODULENAME.h
-    
+
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/esp32/,modName)}1' $MODULENAME/FaustDSP/CMakeLists.txt)
     echo "$TMP" > $MODULENAME/FaustDSP/CMakeLists.txt
 
