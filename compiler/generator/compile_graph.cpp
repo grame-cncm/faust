@@ -1131,7 +1131,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         }
         // cerr << "Schedule 6 is \n" << S << endl;
         return S;
-    } else /*if (gGlobal->gCodeMode == 7)*/ {
+    } else if (gGlobal->gCodeMode == 7) {
         // we serialize from a set of output instructions
 
         set<Tree> DONE;
@@ -1145,6 +1145,47 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
             }
         }
         // cerr << "Schedule 7 is \n" << S << endl;
+        return S;
+    } else /*if (gGlobal->gCodeMode == 8)*/ {
+        // b) for the sample level graph we have (probably) cycles
+        digraph<digraph<Tree>> DG = graph2dag(E);
+        digraph<digraph<Tree>> RG = reverse(DG);
+
+        // compute the output nodes
+        set<digraph<Tree>> outputs;
+        for (const auto& n : RG.nodes()) {
+            if (RG.connections(n).size() == 0) outputs.insert(n);
+        }
+
+        set<digraph<Tree>>    DONE;
+        vector<digraph<Tree>> SCHED;
+
+        for (const auto& o : outputs) {
+            set<digraph<Tree>> TODO;
+            TODO.insert(o);
+            while (TODO.size() > 0) {
+                set<digraph<Tree>> POSTPONE;
+                for (const auto& i : TODO) {
+                    if (DONE.find(i) == DONE.end()) {
+                        // mark i as done
+                        DONE.insert(i);
+                        SCHED.push_back(i);
+
+                        // schedule its dependencies
+                        for (auto p : DG.connections(i)) {
+                            if (p.second > 0) {
+                                POSTPONE.insert(p.first);
+                            } else {
+                                scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
+                            }
+                        }
+                        // schedule itself
+                    }
+                }
+                TODO = POSTPONE;
+            }
+        }
+
         return S;
     }
 }
