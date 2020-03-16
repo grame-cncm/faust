@@ -51,6 +51,7 @@
 #include "faust/dsp/poly-dsp.h"
 #endif
 
+#include "WM8978.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -133,6 +134,33 @@ void AudioFaust::stop()
 void AudioFaust::setParamValue(const std::string& path, float value)
 {
     fUI->setParamValue(path, value);
+}
+
+// Entry point
+extern "C" void app_main()
+{
+    // Init audio codec
+    WM8978 wm8978;
+    wm8978.init();
+    wm8978.addaCfg(1,1);
+    wm8978.inputCfg(1,0,0);
+    wm8978.outputCfg(1,0);
+    wm8978.micGain(30);
+    wm8978.auxGain(0);
+    wm8978.lineinGain(0);
+
+    // Set gain
+    wm8978.spkVolSet(60); // [0-63]
+    
+    wm8978.hpVolSet(40,40);
+    wm8978.i2sCfg(2,0);
+    
+    // Allocate and start Faust DSP
+    AudioFaust* DSP = new AudioFaust(48000, 32);
+    DSP->start();
+    
+    // Waiting forever
+    vTaskSuspend(nullptr);
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

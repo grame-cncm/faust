@@ -125,6 +125,7 @@ void Gramophone::stop()
     fAudio->stop();
 }
 
+// Entry point
 extern "C" void app_main()
 {
     // Init audio codec

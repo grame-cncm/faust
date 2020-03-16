@@ -295,6 +295,7 @@ struct WaveReader : public SoundfileReader {
         wave_t* wav_file = load_wave_file_header(path_name.c_str());
         channels = wav_file->num_channels;
         length = (wav_file->subchunk_2_size * 8) / (wav_file->num_channels * wav_file->bits_per_sample);
+        close_wave_file(wav_file);
     }
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
@@ -321,6 +322,7 @@ struct WaveReader : public SoundfileReader {
         
         // Update offset
         offset += soundfile->fLength[part];
+        close_wave_file(wav_file);
     }
 };
 
