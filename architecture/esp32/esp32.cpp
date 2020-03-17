@@ -51,7 +51,9 @@
 #include "faust/dsp/poly-dsp.h"
 #endif
 
+#ifdef HAS_MAIN
 #include "WM8978.h"
+#endif
 
 /******************************************************************************
  *******************************************************************************
@@ -137,6 +139,7 @@ void AudioFaust::setParamValue(const std::string& path, float value)
 }
 
 // Entry point
+#ifdef HAS_MAIN
 extern "C" void app_main()
 {
     // Init audio codec
@@ -162,5 +165,6 @@ extern "C" void app_main()
     // Waiting forever
     vTaskSuspend(nullptr);
 }
+#endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

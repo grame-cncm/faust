@@ -24,6 +24,7 @@ LIB="0"
 NVOICES=0
 GRAMOPHONE="0"
 MULTI="0"
+MAIN="0"
 POLY=""
 #EFFECT=""
 MIDIDEFS=""
@@ -38,9 +39,10 @@ echoHelp ()
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     echo ""
     echo "Usage:"
-    echo "faust2esp32 [-lib] [-gramophone] [-multi] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
+    echo "faust2esp32 [-lib] [-gramophone] [-multi] [-main] [-midi] [-nvoices <num>] [-wm8978 or -ac101] <file.dsp>" #[additional Faust options (-vec -vs 8...)]
     echo "Use '-gramophone' to generate for GRAME Gramophone"
     echo "Use '-multi' to generate for GRAME Gramophone in multi DSP mode"
+    echo "Use '-main' to add a 'main' entry point"
     echo "Use '-midi' to activate MIDI control"
     echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it needs -midi option to enable MIDI"
     echo "Use no arguments for a simple effect"
@@ -73,6 +75,9 @@ do
     # -multi
     elif [ $p = "-multi" ]; then
         MULTI=1
+    # -main
+    elif [ $p = "-main" ]; then
+        MAIN=1
     # Get dsp file
     elif [[ -f "$p" ]]; then
     	FILE="$p"
@@ -162,8 +167,13 @@ if [ $LIB -eq 1 ]; then
     fi
     
     echo '// Options:' > "$MODULENAME/tmp.txt"
+
     if [ $NVOICES -gt 0 ]; then
     	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [ $MAIN -eq 1 ]; then
+        echo '#define HAS_MAIN' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$MIDIDEFS" == *MIDI* ]]; then
