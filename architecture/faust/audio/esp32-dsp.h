@@ -38,7 +38,7 @@
 #define DIV_S32 4.6566129e-10
 #define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
 
-#define MAX_CHAN 2
+#define AUDIO_MAX_CHAN 2
 
 class esp32audio : public audio {
     
@@ -60,21 +60,21 @@ class esp32audio : public audio {
             while (fRunning) {
                 if (INPUTS > 0) {
                     // Read from the card
-                    int32_t samples_data_in[MAX_CHAN*fBufferSize];
+                    int32_t samples_data_in[AUDIO_MAX_CHAN*fBufferSize];
                     size_t bytes_read = 0;
-                    i2s_read((i2s_port_t)0, &samples_data_in, MAX_CHAN*sizeof(float)*fBufferSize, &bytes_read, portMAX_DELAY);
+                    i2s_read((i2s_port_t)0, &samples_data_in, AUDIO_MAX_CHAN*sizeof(float)*fBufferSize, &bytes_read, portMAX_DELAY);
                     
                     // Convert and copy inputs
-                    if (INPUTS == MAX_CHAN) {
+                    if (INPUTS == AUDIO_MAX_CHAN) {
                         // if stereo
                         for (int i = 0; i < fBufferSize; i++) {
-                            fInChannel[0][i] = (float)samples_data_in[i*MAX_CHAN]*DIV_S32;
-                            fInChannel[1][i] = (float)samples_data_in[i*MAX_CHAN+1]*DIV_S32;
+                            fInChannel[0][i] = (float)samples_data_in[i*AUDIO_MAX_CHAN]*DIV_S32;
+                            fInChannel[1][i] = (float)samples_data_in[i*AUDIO_MAX_CHAN+1]*DIV_S32;
                         }
                     } else {
                         // otherwise only first channel
                         for (int i = 0; i < fBufferSize; i++) {
-                            fInChannel[0][i] = (float)samples_data_in[i*MAX_CHAN]*DIV_S32;
+                            fInChannel[0][i] = (float)samples_data_in[i*AUDIO_MAX_CHAN]*DIV_S32;
                         }
                     }
                 }
@@ -83,24 +83,24 @@ class esp32audio : public audio {
                 fDSP->compute(fBufferSize, fInChannel, fOutChannel);
                 
                 // Convert and copy outputs
-                int32_t samples_data_out[MAX_CHAN*fBufferSize];
-                if (OUTPUTS == MAX_CHAN) {
+                int32_t samples_data_out[AUDIO_MAX_CHAN*fBufferSize];
+                if (OUTPUTS == AUDIO_MAX_CHAN) {
                     // if stereo
                     for (int i = 0; i < fBufferSize; i++) {
-                        samples_data_out[i*MAX_CHAN] = clip(fOutChannel[0][i]);
-                        samples_data_out[i*MAX_CHAN+1] = clip(fOutChannel[1][i]);
+                        samples_data_out[i*AUDIO_MAX_CHAN] = clip(fOutChannel[0][i]);
+                        samples_data_out[i*AUDIO_MAX_CHAN+1] = clip(fOutChannel[1][i]);
                     }
                 } else {
                     // otherwise only first channel
                     for (int i = 0; i < fBufferSize; i++) {
-                        samples_data_out[i*MAX_CHAN] = clip(fOutChannel[0][i]);
-                        samples_data_out[i*MAX_CHAN+1] = samples_data_out[i*MAX_CHAN];
+                        samples_data_out[i*AUDIO_MAX_CHAN] = clip(fOutChannel[0][i]);
+                        samples_data_out[i*AUDIO_MAX_CHAN+1] = samples_data_out[i*AUDIO_MAX_CHAN];
                     }
                 }
                 
                 // Write to the card
                 size_t bytes_written = 0;
-                i2s_write((i2s_port_t)0, &samples_data_out, MAX_CHAN*sizeof(float)*fBufferSize, &bytes_written, portMAX_DELAY);
+                i2s_write((i2s_port_t)0, &samples_data_out, AUDIO_MAX_CHAN*sizeof(float)*fBufferSize, &bytes_written, portMAX_DELAY);
             }
             
             // Task has to deleted itself beforee returning
@@ -265,8 +265,8 @@ class esp32audio : public audio {
         virtual int getBufferSize() { return fBufferSize; }
         virtual int getSampleRate() { return fSampleRate; }
 
-        virtual int getNumInputs() { return MAX_CHAN; }
-        virtual int getNumOutputs() { return MAX_CHAN; }
+        virtual int getNumInputs() { return AUDIO_MAX_CHAN; }
+        virtual int getNumOutputs() { return AUDIO_MAX_CHAN; }
     
         // Returns the average proportion of available CPU being spent inside the audio callbacks (between 0 and 1.0).
         virtual float getCPULoad() { return 0.f; }

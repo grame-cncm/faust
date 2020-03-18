@@ -50,6 +50,10 @@
 #include "faust/gui/Esp32SensorUI.h"
 #include "faust/audio/esp32-dsp.h"
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 /******************************************************************************
  *******************************************************************************
  
@@ -78,6 +82,9 @@ class Gramophone
         dsp* fDSP;
         Esp32ControlUI* fControlUI;
         Esp32SensorUI* fSensorUI;
+    #ifdef SOUNDFILE
+        SoundUI* fSoundUI;
+    #endif
     
     public:
     
@@ -98,6 +105,11 @@ Gramophone::Gramophone(int sample_rate, int buffer_size)
     fSensorUI = new Esp32SensorUI();
     fDSP->buildUserInterface(fSensorUI);
     
+#ifdef SOUNDFILE
+    fSoundUI = new SoundUI();
+    fDSP->buildUserInterface(fSoundUI);
+#endif
+   
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
 }
@@ -109,6 +121,9 @@ Gramophone::~Gramophone()
     delete fControlUI;
     delete fSensorUI;
     delete fAudio;
+#ifdef SOUNDFILE
+    delete fSoundUI;
+#endif
 }
 
 bool Gramophone::start()

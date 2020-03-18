@@ -71,7 +71,7 @@ struct Soundfile {
 
     Soundfile()
     {
-        fBuffers  = NULL;
+        fBuffers  = nullptr;
         fChannels = -1;
         fLength   = new int[MAX_SOUNDFILE_PARTS];
         fSR       = new int[MAX_SOUNDFILE_PARTS];
@@ -114,20 +114,10 @@ class SoundfileReader {
     Soundfile* createSoundfile(int cur_chan, int length, int max_chan)
     {
         Soundfile* soundfile = new Soundfile();
-        if (!soundfile) {
-            throw std::bad_alloc();
-        }
-        
         soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
-        if (!soundfile->fBuffers) {
-            throw std::bad_alloc();
-        }
         
         for (int chan = 0; chan < cur_chan; chan++) {
             soundfile->fBuffers[chan] = new FAUSTFLOAT[length];
-            if (!soundfile->fBuffers[chan]) {
-                throw std::bad_alloc();
-            }
             memset(soundfile->fBuffers[chan], 0, sizeof(FAUSTFLOAT) * length);
         }
         
@@ -280,7 +270,7 @@ class SoundfileReader {
             return soundfile;
             
         } catch (...) {
-            return NULL;
+            return nullptr;
         }
     }
 

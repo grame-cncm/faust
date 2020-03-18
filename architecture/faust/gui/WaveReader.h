@@ -31,6 +31,7 @@
 
 #include "faust/gui/Soundfile.h"
 
+// WAVE file description
 typedef struct {
     
     // The canonical WAVE format starts with the RIFF header
@@ -137,141 +138,171 @@ typedef struct {
     
 } wave_t;
 
-inline int is_big_endian()
-{
-    int a = 1;
-    return !((char*)&a)[0];
-}
+// Base reader
+struct Reader {
+    
+    wave_t* fWave;
 
-inline int convert_to_int(char* buffer, int len)
-{
-    int a = 0;
-    if (!is_big_endian()) {
-        for(int i = 0; i < len; i++) {
-            ((char*)&a)[i] = buffer[i];
+    inline int is_big_endian()
+    {
+        int a = 1;
+        return !((char*)&a)[0];
+    }
+    
+    inline int convert_to_int(char* buffer, int len)
+    {
+        int a = 0;
+        if (!is_big_endian()) {
+            for(int i = 0; i < len; i++) {
+                ((char*)&a)[i] = buffer[i];
+            }
+        } else {
+            for(int i = 0; i < len; i++) {
+                ((char*)&a)[3-i] = buffer[i];
+            }
         }
-    } else {
-        for(int i = 0; i < len; i++) {
-            ((char*)&a)[3-i] = buffer[i];
+        return a;
+    }
+    
+    Reader()
+    {
+        fWave = (wave_t*)calloc(1, sizeof(wave_t));
+    }
+
+    virtual ~Reader()
+    {
+        free(fWave->data);
+        free(fWave);
+    }
+
+    bool load_wave_header()
+    {
+        char buffer[4];
+        
+        read(buffer, 4);
+        if (strncmp(buffer, "RIFF", 4) != 0) {
+            std::cerr << "This is not valid WAV file!\n";
+            return false;
+        }
+        fWave->chunk_id = convert_to_int(buffer, 4);
+        
+        read(buffer, 4);
+        fWave->chunk_size = convert_to_int(buffer, 4);
+        
+        read(buffer, 4);
+        fWave->format = convert_to_int(buffer, 4);
+        
+        read(buffer, 4);
+        fWave->subchunk_1_id = convert_to_int(buffer, 4);
+        
+        read(buffer, 4);
+        fWave->subchunk_1_size = convert_to_int(buffer, 4);
+        
+        read(buffer, 2);
+        fWave->audio_format = convert_to_int(buffer, 2);
+        
+        read(buffer, 2);
+        fWave->num_channels = convert_to_int(buffer, 2);
+        
+        read(buffer, 4);
+        fWave->sample_rate = convert_to_int(buffer, 4);
+        
+        read(buffer, 4);
+        fWave->byte_rate = convert_to_int(buffer, 4);
+        
+        read(buffer, 2);
+        fWave->block_align = convert_to_int(buffer, 2);
+        
+        read(buffer, 2);
+        fWave->bits_per_sample = convert_to_int(buffer, 2);
+        
+        read(buffer, 4);
+        if (strncmp(buffer, "data", 4) != 0) {
+            read(buffer, 4);
+            int _extra_size = convert_to_int(buffer, 4);
+            char _extra_data[_extra_size];
+            read(_extra_data, _extra_size);
+            read(buffer, 4);
+            fWave->subchunk_2_id = convert_to_int(buffer, 4);
+        } else {
+            fWave->subchunk_2_id = convert_to_int(buffer, 4);
+        }
+        
+        read(buffer, 4);
+        fWave->subchunk_2_size = convert_to_int(buffer, 4);
+        return true;
+    }
+    
+    void load_wave()
+    {
+        // Read sound data
+        fWave->data = (char*)malloc(fWave->subchunk_2_size);
+        read(fWave->data, fWave->subchunk_2_size);
+    }
+
+    virtual void read(char* buffer, unsigned int size) = 0;
+   
+};
+
+struct FileReader : public Reader {
+    
+    FILE* fFile;
+    
+    FileReader(const std::string& file_path)
+    {
+        fFile = fopen(file_path.c_str(), "rb");
+        if (!fFile) {
+            std::cerr << "FileReader : cannot open file!\n";
+            throw -1;
+        }
+        if (!load_wave_header()) {
+            std::cerr << "FileReader : not a WAV file!\n";
+            throw -1;
         }
     }
-    return a;
-}
-
-inline void read_file(char* buffer, unsigned int size, FILE* file)
-{
-    fread(buffer, 1, size, file);
-}
-
-void close_wave_file(wave_t* wave_file);
-
-inline bool read_wave_file_header(wave_t* wav_file, FILE* file)
-{
-    char buffer[4];
     
-    read_file(buffer, 4, file);
-    if (strncmp(buffer, "RIFF", 4) != 0) {
-        std::cerr << "This is not valid WAV file!\n";
-        return false;
-    }
-    wav_file->chunk_id = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 4, file);
-    wav_file->chunk_size = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 4, file);
-    wav_file->format = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 4, file);
-    wav_file->subchunk_1_id = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 4, file);
-    wav_file->subchunk_1_size = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 2, file);
-    wav_file->audio_format = convert_to_int(buffer, 2);
-    
-    read_file(buffer, 2, file);
-    wav_file->num_channels = convert_to_int(buffer, 2);
-    
-    read_file(buffer, 4, file);
-    wav_file->sample_rate = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 4, file);
-    wav_file->byte_rate = convert_to_int(buffer, 4);
-    
-    read_file(buffer, 2, file);
-    wav_file->block_align = convert_to_int(buffer, 2);
-    
-    read_file(buffer, 2, file);
-    wav_file->bits_per_sample = convert_to_int(buffer, 2);
-    
-    read_file(buffer, 4, file);
-    if (strncmp(buffer, "data", 4) != 0) {
-        read_file(buffer, 4, file);
-        int _extra_size = convert_to_int(buffer, 4);
-        char _extra_data[_extra_size];
-        read_file(_extra_data, _extra_size, file);
-        read_file(buffer, 4, file);
-        wav_file->subchunk_2_id = convert_to_int(buffer, 4);
-    } else {
-        wav_file->subchunk_2_id = convert_to_int(buffer, 4);
+    virtual ~FileReader()
+    {
+        fclose(fFile);
     }
     
-    read_file(buffer, 4, file);
-    wav_file->subchunk_2_size = convert_to_int(buffer, 4);
-    return true;
-}
-
-// Public API
-
-wave_t* load_wave_file_header(const char* file_path)
-{
-    FILE* file = fopen(file_path, "rb");
-    if (!file) {
-        std::cerr << "Cannot open file!\n";
-        return nullptr;
+    void read(char* buffer, unsigned int size)
+    {
+        fread(buffer, 1, size, fFile);
     }
     
-    wave_t* wav_file = (wave_t*)calloc(1, sizeof(wave_t));
-    bool res = read_wave_file_header(wav_file, file);
-    fclose(file);
-    
-    if (res) {
-        return wav_file;
-    } else {
-        close_wave_file(wav_file);
-        return nullptr;
-    }
-}
+};
 
-wave_t* load_wave_file(const char* file_path)
-{
-    FILE* file = fopen(file_path, "rb");
-    if (!file) {
-        std::cerr << "Cannot open file!\n";
-        return nullptr;
+extern const uint8_t file_start[] asm("_binary_FILE_start");
+extern const uint8_t file_end[]   asm("_binary_FILE_start");
+
+struct MemoryReader : public Reader {
+    
+    int fPos;
+    const uint8_t* fStart;
+    const uint8_t* fEnd;
+    
+    MemoryReader(const std::string& file_path):fPos(0)
+    {
+        fStart = file_start;
+        fEnd = file_end;
+        
+        if (!load_wave_header()) {
+            std::cerr << "FileReader : not a WAV file!\n";
+            throw -1;
+        }
     }
     
-    wave_t* wav_file = (wave_t*)calloc(1, sizeof(wave_t));
-    bool res = read_wave_file_header(wav_file, file);
-    assert(res);
+    virtual ~MemoryReader()
+    {}
     
-    // Read sound data
-    wav_file->data = (char*)malloc(wav_file->subchunk_2_size);
-    read_file(wav_file->data, wav_file->subchunk_2_size, file);
+    void read(char* buffer, unsigned int size)
+    {
+        memcpy(buffer, fStart + fPos, size);
+        fPos += size;
+    }
     
-    std::cout << "load_wave_file " << wav_file->subchunk_2_size << "\n";
-    
-    fclose(file);
-    return wav_file;
-}
-
-void close_wave_file(wave_t* wave_file)
-{
-    free(wave_file->data);
-    free(wave_file);
-}
+};
 
 struct WaveReader : public SoundfileReader {
     
@@ -279,50 +310,50 @@ struct WaveReader : public SoundfileReader {
     
     bool checkFile(const std::string& path_name)
     {
-        FILE* file = fopen(path_name.c_str(), "rb");
-        if (!file) {
-            std::cerr << "Cannot open file!\n";
+        try {
+            Reader* reader = new FileReader(path_name);
+            delete reader;
+            return true;
+        } catch(...)  {
             return false;
-        } else {
-            wave_t* wav_file = load_wave_file_header(path_name.c_str());
-            fclose(file);
-            return (wav_file != nullptr);
         }
     }
     
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
-        wave_t* wav_file = load_wave_file_header(path_name.c_str());
-        channels = wav_file->num_channels;
-        length = (wav_file->subchunk_2_size * 8) / (wav_file->num_channels * wav_file->bits_per_sample);
-        close_wave_file(wav_file);
+        Reader* reader = new FileReader(path_name);
+        assert(reader);
+        channels = reader->fWave->num_channels;
+        length = (reader->fWave->subchunk_2_size * 8) / (reader->fWave->num_channels * reader->fWave->bits_per_sample);
+        delete reader;
     }
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        wave_t* wav_file = load_wave_file(path_name.c_str());
-        assert(wav_file);
+        Reader* reader = new FileReader(path_name);
+        assert(reader);
+        reader->load_wave();
         
-        soundfile->fLength[part] = (wav_file->subchunk_2_size * 8) / (wav_file->num_channels * wav_file->bits_per_sample);
-        soundfile->fSR[part] = wav_file->sample_rate;
+        soundfile->fLength[part] = (reader->fWave->subchunk_2_size * 8) / (reader->fWave->num_channels * reader->fWave->bits_per_sample);
+        soundfile->fSR[part] = reader->fWave->sample_rate;
         soundfile->fOffset[part] = offset;
         
         // Audio frames have to be written for each chan
-        if (wav_file->bits_per_sample == 16) {
+        if (reader->fWave->bits_per_sample == 16) {
             float factor = 1.f/32767.f;
             for (int sample = 0; sample < soundfile->fLength[part]; sample++) {
-                short* frame = (short*)&wav_file->data[wav_file->block_align * sample];
-                for (int chan = 0; chan < wav_file->num_channels; chan++) {
+                short* frame = (short*)&reader->fWave->data[reader->fWave->block_align * sample];
+                for (int chan = 0; chan < reader->fWave->num_channels; chan++) {
                     soundfile->fBuffers[chan][offset + sample] = frame[chan] * factor;
                 }
             }
-        } else if (wav_file->bits_per_sample == 32) {
-            std::cerr << "readFile: not implemented \n";
+        } else if (reader->fWave->bits_per_sample == 32) {
+            std::cerr << "readFile : not implemented \n";
         }
         
         // Update offset
         offset += soundfile->fLength[part];
-        close_wave_file(wav_file);
+        delete reader;
     }
 };
 
