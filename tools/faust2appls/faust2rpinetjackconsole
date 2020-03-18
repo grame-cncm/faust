@@ -11,6 +11,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 ARCHFILE=$FAUSTARCH/netjack-console.cpp
 
@@ -48,6 +49,16 @@ INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
 #
 
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
+        platform RaspberryPi
+        require NetJack
+		echo  "Compiles Faust programs to RaspberryPi - netjack-console architecture"
+		option
+		options -osc -httpd
+        option "Faust options"
+    	exit
+    fi
     if [ $p = "-osc" ]; then
 	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then

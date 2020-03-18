@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -26,11 +27,13 @@ FAUSTFLOAT=float
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2plot <file.dsp>"
-        echo "With the compiled program 'file', you can add [-s start] [-n samples] [-r rate]:"
-        echo "Use -s to start at the given sample number (default is 0)"
-        echo "Use -n to render the wanted number of samples (default is 16)"
-        echo "Use -r to change the sample rate (default is 44100 Hz)"
+        usage faust2plot "[options] [Faust options] <file.dsp>"
+        echo "Compiles Faust programs to plotters"
+        option
+        option "-s <n>" "   start at the sample number <n> (default is 0)"
+        option "-n <n>" "   render <n> samples (default is 16)"
+        option "-r <rate>" "change the sample rate (default is 44100 Hz))"
+        option "Faust options"
         exit
     fi
 	

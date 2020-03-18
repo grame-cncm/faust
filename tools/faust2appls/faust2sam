@@ -12,6 +12,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
@@ -31,15 +32,14 @@ EFFECT=""
 
 echoHelp ()
 {
-    echo ""
-    echo "faust2sam can be used to generate faust-based dsp objects for the ADI SHARC Audio Module board"
-    echo ""
-    echo ""
-    echo "Global options:"
-    echo "   -midi"
-    echo "   -nvoices <num> : creates a polyphonic object with <num> voices."
-    echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
-    echo "" 
+	usage faust2sam "[options] [Faust options] <file.dsp>"
+	platform "ADI SHARC Audio Module board"
+	echo  "Generates inline Faust objects for the ADI SHARC Audio Module board"
+	option
+	option -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+	option "Faust options"
 }
 
 createAPI ()

@@ -8,6 +8,7 @@
 #####################################################################
 
 . faustpath
+. usage.sh
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
@@ -33,23 +34,20 @@ echoHelp ()
 	echo ""
 	echo "faust2smartkeyb takes a Faust code as its main argument and convert it into a ready-to-use app for Android or iOS. The only two required arguments of faust2smartkeyb are a Faust file and the target platform (-android or -ios):"
 	echo ""
-	echo "faust2smartkeyb -ios mySynth.dsp"
-	echo "or"
-	echo "faust2smartkeyb -android mySynth.dsp"
-	echo ""
-	echo "OPTIONS:"
-	echo ""
-	echo "-android: generate an Android app"
-	echo "-ios: generate an iOS app"
-	echo "-debug: activate debug mode"
-	echo "-effect: allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
-	echo "-help: dispay this help page"
-	echo "-install: install the app on the connected device (Android only)"
-	echo "-nvoices: specify the max number of voices"
-	echo "-reuse: reuse the same project source"
-	echo "-source: only generate the source (no compilation)"
-	echo "-osc: adds OSC support to the app"
-	echo ""
+
+	usage faust2smartkeyb "[options] [Faust options] <file.dsp>"
+	platform iOS, Android
+	option
+	option -android "generates an Android app"
+	option -ios "    generates an iOS app"
+	option -osc
+	option -debug "  activate debug mode"
+	option -effect " allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
+	option -install "install the app on the connected device (Android only)"
+	option -nvoices "specify the max number of voices"
+	option -reuse  " reuse the same project source"
+	option -source " only generate the source (no compilation)"
+	option "Faust options"
 	echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
 }
 

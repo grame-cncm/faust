@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -36,6 +37,15 @@ QTDEFS=""
 OSCLIB=""
 
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2jackserver "[options] [Faust options] <file.dsp>"
+        require Jack, Qt
+        echo "Compiles Faust programs to JACK-QT (server mode)"
+        option
+        options -httpd -osc -qrcode
+        option "Faust options"
+        exit
+    fi
    	if [ $p = "-osc" ]; then
 		 OSCDEFS="DEFINES += OSCCTRL"
 		 OSCLIBS="-lOSCFaust"

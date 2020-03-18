@@ -17,6 +17,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 NVOICES=-1
 
@@ -34,13 +35,18 @@ do
     p=$1
     
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2androidunity [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
+#        echo "faust2androidunity [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
+        usage faust2androidunity "[options] [Faust options] <file1.dsp> [<file2.dsp>]"
+ 		platform Android Unity
+		require Android SDK "Make sure the ANDROID_HOME environment variable is set to the sdk folder."
+
         echo "Creates android libraries (armeabi-v7a and x86) for faust unity plugin."
-        echo "Android sdk should be installed. Make sure the ANDROID_HOME environment variable is correctly set up. It should be pointing to the sdk folder."
-        echo "Use 'faust2unity -android' to also create the c# and JSON files"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "If you need other android architectures, open architecture/unity/Android/Application.mk and modify APP_ABI."
-        echo "See architecture/unity/README.md for more info or in the compile folder"
+        echo "See architecture/unity/README.md for more info (also available from the compile folder)"
+
+		option
+        option "-nvoices <num>"
+        option -android "creates also the c# and JSON files"
         exit
     fi
     

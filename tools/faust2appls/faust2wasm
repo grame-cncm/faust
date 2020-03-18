@@ -2,6 +2,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 #-------------------------------------------------------------------
 # Wrapping resources
@@ -42,16 +43,18 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2wasm [-poly] [-effect auto|<effect.dsp>] [-comb] [-opt] [-worklet] [-emcc] [-wap] [-npm] <file.dsp>"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-wap' to generate a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
-        echo "Use '-comb' to combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
-        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
-        echo "Use '-npm' to add a package.json file for npm package distribution"
+        usage faust2wasm "[options] <file.dsp>"
+        echo "Compiles Faust programs to WASM modules"
+        option
+        option -poly
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        option -worklet "generates AudioWorklet compatible code"
+        option -wap "    generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        option -comb "   combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
+        option -emcc "   compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
+        option -npm "    add a package.json file for npm package distribution"
         exit
     fi
     

@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -38,11 +39,13 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jackconsole [-httpd] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
+        usage faust2jackconsole "[options] [Faust options] <file.dsp>"
+        require Jack
+        echo "Compiles Faust programs to JACK-console."
+        option
+        options -httpd -osc -midi
+        option "-nvoices <num>"
+        option "Faust options"
     	exit
     fi
   

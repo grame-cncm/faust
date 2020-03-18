@@ -10,6 +10,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
@@ -53,16 +54,21 @@ for p in $@; do
 		LOG="/dev/stdout"
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
-	elif [ $p = "-h" ]; then
-        echo "Usage: faust2android [-install] [-source] [-swig] [-faust] [-reuse] [-soundfile] [-osc] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-install' once compilation is over, installs the generated app on the Android device connected to the computer."
-        echo "Use '-source' creates an eclipse project of the app in the current directory."
-        echo "Use '-swig' regenerate the C++ and the JAVA interface for the native portion of the app."
-        echo "Use '-faust' only carries out the Faust compilation and install the generated C++ file in the JNI folder."
-        echo "Use '-reuse' keep build directory and reuse it to speedup compilation."
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-        echo "Use '-osc' to active OSC interface"
-        echo "Use '-debug' verbose output."
+	elif [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2android "[options] [Faust options] <file.dsp>"
+ 		platform Android
+		require Android SDK
+		echo "Compile a Faust program to an Android app"
+		option
+        option -osc
+        option -source "creates an eclipse project of the app in the current directory."
+        option -swig   "regenerates the C++ and the JAVA interface for the native portion of the app."
+        option -faust  "only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+        option -reuse  "preserves build directory and reuse it to speedup compilation."
+        option -soundfile
+        option -install  "once compilation is over, installs the generated apk on the Android device connected to the computer"
+        option -debug  "activates verbose output"
+        option "Faust options"
 		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"

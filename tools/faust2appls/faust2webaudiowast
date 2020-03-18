@@ -2,6 +2,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 #-------------------------------------------------------------------
 # Wrapping resources
@@ -29,12 +30,13 @@ OPTIONS="-ftz 2"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2webaudiowast [-poly] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
-        echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        usage faust2webaudiowast "[options] <file.dsp>"
+        option
+        option -poly
+        option -opt "    optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        option -worklet "generates AudioWorklet compatible code"
+        option -links "  add links to source code and SVG diagrams in the generated HTML file"
+        option -emcc "   compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     fi
     

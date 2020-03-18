@@ -2,6 +2,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -31,13 +32,15 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2netjackconsole [-httpd] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
+        usage faust2netjackconsole "[options] [Faust options] <file.dsp>"
+        require Jack
+        echo "Compiles Faust programs to NetJack"
+        option
+        options -httpd -osc -midi
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option "Faust options"
         exit
     fi
     

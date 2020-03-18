@@ -10,6 +10,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGSGENERIC
 
@@ -72,13 +73,15 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2msp [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+         usage faust2msp "[options] [Faust options] <file.dsp>"
+        require Max-MSP SDK
+        echo "Compiles Faust programs to Max6 externals using simple precision samples"
+        option
+        options -osc -midi -soundfile
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option -native "   to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+        option "Faust options"
         exit
     fi
 	

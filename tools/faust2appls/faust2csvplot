@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -27,8 +28,14 @@ SOUNDFILELIBS=""
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2csvplot [-soundfile] <file.dsp>"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive"
+        usage faust2csvplot "[options]  [Faust options] <file.dsp>"
+        echo "Compiles Faust programs to plotters"
+        option
+ 		option -arch32 "generates a 32 bit architecture."
+		option -arch64 "generates a 64 bit architecture."
+		option -double "generates a 64 bit architecture."
+		option -soundfile
+        option "Faust options"
         exit
     fi
  

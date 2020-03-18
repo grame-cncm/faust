@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -37,17 +38,18 @@ do
     p=$1
 
     if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jucemodulesdir <dir>] [-jsynth] [-midi] [-osc] [-llvm] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-standalone' to produce a standalone project, otherwise a plugin project is generated"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-jucemodulesdir <folder>' to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
-        echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-llvm' to use the LLVM compilation chain (OSX and Linux for now)"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        usage faust2juce "[options] [Faust options] <file.dsp>"
+        require Juce 
+        echo "Compiles Faust programs to JUCE standalone or plugin."
+        option
+        options -osc -midi -soundfile
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -standalone "to produce a standalone project, otherwise a plugin project is generated"
+        option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
+        option -jsynth "    to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
+        option -llvm "      to use the LLVM compilation chain (OSX and Linux for now)"
         exit
     fi
 

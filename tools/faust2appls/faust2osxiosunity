@@ -27,6 +27,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -120,12 +121,17 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2osxiosunity [-ios] [-universal] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
-        echo "Use '-ios' to create an iOS static library"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "Use '-universal' to generate a 64/32 bits external"
-        echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
-        echo "See architecture/unity/README.md for more info"
+         usage faust2osxiosunity "[options] [Faust options] <file.dsp>"
+        platform MacOSX
+        require Unity
+        echo "Compiles Faust programs to OSX/iOS libraries suitable for the Unity environment"
+        option
+        option "-nvoices <num>"
+        option -ios "      create an iOS static library"
+        option -universal "generate a 64/32 bits external"
+        option "Faust options"
+#        echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
+        echo "See architecture/unity/README.md for more info."
         exit
     fi
 

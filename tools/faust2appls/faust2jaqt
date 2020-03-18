@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -47,16 +48,27 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jaqt [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-        echo "Use '-resample' to resample soundfiles to the audio driver sample rate"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
+        usage faust2jaqt "[options] [Faust options] <file.dsp>"
+        require Jack, Qt
+        echo "Compiles Faust programs to JACK-QT"
+        option
+        options -httpd -osc -midi -soundfile -qrcode
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -resample "to resample soundfiles to the audio driver sample rate."
+        option "Faust options"
+
+#         echo "faust2jaqt [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+#         echo "Use '-httpd' to activate HTTP control"
+#         echo "Use '-qrcode' to activate QR code generation"
+#         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+#         echo "Use '-resample' to resample soundfiles to the audio driver sample rate"
+#         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+#         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
+#         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
+#         echo "Use '-midi' to activate MIDI control"
+#         echo "Use '-osc' to activate OSC control"
         exit
     fi
     

@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -33,6 +34,16 @@ fi
 
 # dispatch command arguments
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2ladspa "[options] [Faust options] <file.dsp>"
+        platform Linux
+        echo "Compiles Faust programs to ladspa plugins"
+        option
+        option -arch32 "generates a 32 bit architecture."
+        option -arch64 "generates a 64 bit architecture."
+        option "Faust options"
+        exit
+    fi
  
  	if [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"

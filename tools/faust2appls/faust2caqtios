@@ -9,6 +9,7 @@
 
 . faustpath
 #. faustoptflags
+. usage.sh
 
 CXXFLAGS="-O3 -ffast-math -ftree-vectorize -DIOS"
 
@@ -40,13 +41,13 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqtios [-httpd] [-qrcode] [-poly] [-midi] [-osc] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-debug' to print all the build steps"
+        usage faust2caqtios "[options] [Faust options] <file.dsp>"
+		platform iOS
+		require Qt
+		echo " Compiles Faust programs to CoreAudio and QT for iOS"
+		option
+		options -httpd -osc -midi -qrcode -poly
+        option -debug "print all the build steps"
         exit
     fi
    

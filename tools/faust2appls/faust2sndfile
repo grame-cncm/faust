@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -25,7 +26,10 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2sndfile <foo.dsp>"
+        usage faust2sndfile "[Faust options] <file.dsp>"
+        require libsndfile
+        echo "Process files with Faust DSP"
+        exit
     fi
     
     if [ ${p:0:1} = "-" ]; then

@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 SRC="0"
 ARCHFILE=$FAUSTARCH/minimal-jack.rs
@@ -19,8 +20,12 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2jackrust "[options] [Faust options] <file.dsp>"
+        echo "Compiles Faust programs to JACK and Rust binary"
+        option
+        option -source "only generates the source project."
+        option "Faust options"
         echo "faust2jackrust [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-source' to only generate the source project"
     fi
 
     if [ $p = "-source" ]; then
