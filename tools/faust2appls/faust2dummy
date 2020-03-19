@@ -2,13 +2,14 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to dummy                    #
-#               (c) Grame, 2017                                     #
+#               Compiles Faust programs to dummy audio driver       #
+#               (c) Grame, 2017-2020                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 CXXFLAGS=$MYGCCFLAGS
 
@@ -23,7 +24,6 @@ MIDIDEFS=""
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
 
@@ -37,6 +37,18 @@ fi
 while [ $1 ]
 do
     p=$1
+    
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2dummy "[options] [Faust options] <file.dsp>"
+		platform MacOS
+		echo "Compiles Faust programs to dummy audio driver"
+		option
+        options -httpd -osc -midi
+        option "-nvoices <num>"
+        option "Faust options"
+        exit
+    fi
+    
     if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then

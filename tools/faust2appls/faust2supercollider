@@ -32,7 +32,6 @@ SC4="/usr/include/supercollider"
 SC5="/usr/local/include/SuperCollider/"
 
 # check if directory exists
-
 if [ -d $SC0/plugin_interface ]; then
 	SC=$SC0
 elif [ -d $SC1 ]; then
@@ -49,13 +48,14 @@ else
 	echo "Can't find SuperCollider headers"
 	exit 1
 fi 
+
 ###echo Using SC Headers in $SC
 
 INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTINC"
 
 if [ $# = 0 ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -91,14 +91,6 @@ NO_FAUST_PREFIX=0
 
 for p in $@; do
 
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-
     if [ "$p" = -debug ] || [ "$p" = -d ]; then
         F2SC_DEBUG=1
     elif [ "$p" = -dm ]; then
@@ -111,8 +103,6 @@ for p in $@; do
         SYNTHDEF="--synthdef"
     elif [ "$p" = -sn ] || [ "$p" = -supernova ]; then
         SUPERNOVA_FLAG=1
-    elif [ "$p" = -icc ]; then
-    	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -137,7 +127,7 @@ fi
 
 if [ "$FILES" = "" ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 

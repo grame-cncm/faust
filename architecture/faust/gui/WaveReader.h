@@ -274,7 +274,7 @@ struct FileReader : public Reader {
 };
 
 extern const uint8_t file_start[] asm("_binary_FILE_start");
-extern const uint8_t file_end[]   asm("_binary_FILE_start");
+extern const uint8_t file_end[]   asm("_binary_FILE_end");
 
 struct MemoryReader : public Reader {
     
@@ -282,11 +282,10 @@ struct MemoryReader : public Reader {
     const uint8_t* fStart;
     const uint8_t* fEnd;
     
-    MemoryReader(const std::string& file_path):fPos(0)
+    MemoryReader(const uint8_t* start, const uint8_t* end):fPos(0)
     {
-        fStart = file_start;
-        fEnd = file_end;
-        
+        fStart = start;
+        fEnd = end;
         if (!load_wave_header()) {
             std::cerr << "FileReader : not a WAV file!\n";
             throw -1;

@@ -172,7 +172,6 @@ int main(int argc, char* argv[])
         DSP = new mydsp();
     #endif
     }
-    
 #endif
     
     if (DSP == 0) {
@@ -227,7 +226,6 @@ int main(int argc, char* argv[])
     }
     
     // Rendering in now finished...
-    
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
         dsp_poly->keyOn(0, 60, 127);
@@ -248,7 +246,6 @@ int main(int argc, char* argv[])
     }
     
     // Rendering in now finished...
-    
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
         dsp_poly->keyOn(0, 60, 127);
