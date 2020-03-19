@@ -739,8 +739,8 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
         // cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << endl;
     }
 
-    // Logical operations work on kInt32, so cast both operands here
-    if (isLogicalOpcode(opcode)) {
+    // Logical and shift operations work on kInt32, so cast both operands here
+    if (isLogicalOpcode(opcode) || isShiftOpcode(opcode)) {
         res = InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2));
         res = cast2real(t3, res);
         // Boolean operations work on kInt32 or kReal, result is kInt32
