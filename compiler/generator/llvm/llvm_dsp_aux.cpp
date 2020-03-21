@@ -31,18 +31,18 @@
 #include <list>
 #include <sstream>
 
+#include <llvm-c/Core.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetSelect.h>
+
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
 #include "lock_api.hh"
-
-#include <llvm-c/Core.h>
-#include <llvm/ExecutionEngine/MCJIT.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
 
 using namespace llvm;
 using namespace std;

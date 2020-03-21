@@ -345,7 +345,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         fFactory->setMemoryManager(static_cast<dsp_memory_manager*>(manager->managerInterface));
     }
 
-    void write(std::ostream* out, bool binary, bool small = false) {}
+    void write(std::ostream* out, bool binary, bool compact = false) {}
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
 
