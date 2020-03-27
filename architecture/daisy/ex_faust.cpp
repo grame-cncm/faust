@@ -73,7 +73,7 @@ mydsp DSP;
 
 static daisy_handle seed;
 
-static void AudioCallback(float *in, float *out, size_t size)
+static void AudioCallback(float* in, float* out, size_t size)
 {
     // Deinterleave
     for (size_t frame; frame < size; frame++) {
@@ -120,7 +120,7 @@ int main(void)
     dsy_audio_start(DSY_AUDIO_INTERNAL);
  
 #ifdef MIDICTRL
-    midi_handler.startMidi();;
+    midi_handler.startMidi();
 #endif
 
     while(1) {
