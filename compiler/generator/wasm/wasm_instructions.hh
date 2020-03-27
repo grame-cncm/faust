@@ -455,10 +455,12 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct =
-            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)
+                        || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string      name        = inst->fAddress->getName();
+        
+        string name = inst->fAddress->getName();
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -815,13 +817,16 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct =
-            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)
+                        || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string      name        = inst->fAddress->getName();
-
-        // std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
-        faustassert(fFieldTable.find(name) == fFieldTable.end());
+    
+        // fSampleRate may appear several time (in subcontainers and in main DSP)
+        string name = inst->fAddress->getName();
+        if (name != "fSampleRate") {
+            faustassert(fFieldTable.find(name) == fFieldTable.end());
+        }
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {

@@ -246,33 +246,38 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
+        string name = inst->fAddress->getName();
+        
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
-        if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
+        if ((startWith(name, "input") || startWith(name, "output"))) {
             return;
         }
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
+        // fSampleRate may appear several time (in subcontainers and in main DSP)
+        if (name != "fSampleRate") {
+            faustassert(fFieldTable.find(name) == fFieldTable.end());
+        }
 
         if (array_typed && array_typed->fSize > 1) {
             if (array_typed->fType->getType() == Typed::kInt32) {
-                fFieldTable[inst->fAddress->getName()] =
+                fFieldTable[name] =
                     MemoryDesc(-1, fIntHeapOffset, array_typed->fSize, array_typed->fType->getType());
                 fIntHeapOffset += array_typed->fSize;
             } else {
-                fFieldTable[inst->fAddress->getName()] =
+                fFieldTable[name] =
                     MemoryDesc(-1, fRealHeapOffset, array_typed->fSize, array_typed->fType->getType());
                 fRealHeapOffset += array_typed->fSize;
             }
         } else {
             if (inst->fType->getType() == Typed::kInt32) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, fIntHeapOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fIntHeapOffset, 1, inst->fType->getType());
                 fIntHeapOffset++;
             } else if (inst->fType->getType() == Typed::kSound_ptr) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, fSoundHeapOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fSoundHeapOffset, 1, inst->fType->getType());
                 fSoundHeapOffset++;
             } else {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, fRealHeapOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fRealHeapOffset, 1, inst->fType->getType());
                 fRealHeapOffset++;
             }
         }

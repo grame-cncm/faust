@@ -103,8 +103,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         string              name        = inst->fAddress->getName();
 
-        // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
-        faustassert(fFieldTable.find(name) == fFieldTable.end());
+        // fSampleRate may appear several time (in subcontainers and in main DSP)
+        if (name != "fSampleRate") {
+            faustassert(fFieldTable.find(name) == fFieldTable.end());
+        }
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {

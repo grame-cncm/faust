@@ -1388,20 +1388,22 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     int table_type = getCertifiedSigType(tbl)->nature();
     int data_type  = getCertifiedSigType(data)->nature();
     
-    if (gGlobal->gCheckTable != "") {
-        // Check if index is inside the table range (to rework with a low, high, impose interval model)
-        Tree id, size, content;
-        interval idx_i = getCertifiedSigType(idx)->getInterval();
-        isSigTable(tbl, id, size, content);
-        if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
-            stringstream error;
-            error << "ERROR : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi
-                  << "] is outside of table range (" << tree2int(size) << ") in "
-                  << *sig << endl;
-            if (gGlobal->gCheckTable == "cta") {
-                cerr << error.str();
-            } else {
-                throw faustexception(error.str());
+    Tree id, size, content;
+    if (isSigTable(tbl, id, size, content)) {
+        // Check write access
+        if (gGlobal->gCheckTable != "") {
+            // Check if index is inside the table range (to rework with a low, high, impose interval model)
+            interval idx_i = getCertifiedSigType(idx)->getInterval();
+            if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+                stringstream error;
+                error << "ERROR : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi
+                      << "] is outside of table range (" << tree2int(size) << ") in "
+                      << *sig << endl;
+                if (gGlobal->gCheckTable == "cat") {
+                    cerr << error.str();
+                } else {
+                    throw faustexception(error.str());
+                }
             }
         }
     }
@@ -1426,6 +1428,22 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     Address::AccessType access;
     
     if (isSigTable(tbl, id, size, content)) {
+        // Check read access
+        if (gGlobal->gCheckTable != "") {
+            // Check if index is inside the table range (to rework with a low, high, impose interval model)
+            interval idx_i = getCertifiedSigType(idx)->getInterval();
+            if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
+                stringstream error;
+                error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
+                << "] is outside of table range (" << tree2int(size) << ") in "
+                << *sig << endl;
+                if (gGlobal->gCheckTable == "cat") {
+                    cerr << error.str();
+                } else {
+                    throw faustexception(error.str());
+                }
+            }
+        }
         access = Address::kStaticStruct;
         if (!getCompiledExpression(tbl, tblname)) {
             tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
@@ -1433,22 +1451,6 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     } else {
         access  = Address::kStruct;
         tblname = CS(tbl);
-    }
-    
-    if (gGlobal->gCheckTable != "") {
-        // Check if index is inside the table range (to rework with a low, high, impose interval model)
-        interval idx_i = getCertifiedSigType(idx)->getInterval();
-        if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
-            stringstream error;
-            error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
-                  << "] is outside of table range (" << tree2int(size) << ") in "
-                  << *sig << endl;
-            if (gGlobal->gCheckTable == "cta") {
-                cerr << error.str();
-            } else {
-                throw faustexception(error.str());
-            }
-        }
     }
  
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
