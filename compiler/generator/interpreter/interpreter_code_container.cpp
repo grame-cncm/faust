@@ -137,17 +137,9 @@ InterpreterScalarCodeContainer<T>::~InterpreterScalarCodeContainer()
 }
 
 template <class T>
-void InterpreterCodeContainer<T>::produceInternal()
-{
-    // Fields generation
-    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
-    generateDeclarations(gGlobal->gInterpreterVisitor);
-}
-
-template <class T>
 dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 {
-    // "count" variable added to be set up later by 'compute'
+    // "count" variable added to be setup later by 'compute'
     pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genInt32Typed()));
 
     // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines
@@ -161,19 +153,16 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
     generateDeclarations(gGlobal->gInterpreterVisitor);
 
-    // After field declaration...
-    generateSubContainers();
-
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
-
+   
     // Keep "init_static_block"
     FBCBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>());
 
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
-
+  
     // Keep "init_block"
     FBCBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>);

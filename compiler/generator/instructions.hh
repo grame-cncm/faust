@@ -1253,6 +1253,7 @@ struct WhileLoopInst : public StatementInst {
 
 class BasicCloneVisitor : public CloneVisitor {
    protected:
+    // Used when inlining functions
     static std::stack<BlockInst*> fBlockStack;
 
    public:

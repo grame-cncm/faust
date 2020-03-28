@@ -148,13 +148,6 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
     return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
-void WASTCodeContainer::produceInternal()
-{
-    // Fields generation
-    generateGlobalDeclarations(gGlobal->gWASTVisitor);
-    generateDeclarations(gGlobal->gWASTVisitor);
-}
-
 void WASTCodeContainer::produceClass()
 {
     int n = 0;
@@ -206,9 +199,6 @@ void WASTCodeContainer::produceClass()
     // Fields : compute the structure size to use in 'new'
     gGlobal->gWASTVisitor->Tab(n + 1);
     generateDeclarations(gGlobal->gWASTVisitor);
-
-    // After field declaration
-    generateSubContainers();
 
     // Keep location of memory generation
     streampos begin_memory = fOutAux.tellp();

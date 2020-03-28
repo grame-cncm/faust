@@ -361,13 +361,6 @@ void CCodeContainer::produceClass()
     *fOut << "#endif" << endl;
 }
 
-// Special version for -os generation mode
-void CScalarOneSampleCodeContainer::produceInternal()
-{
-    generateGlobalDeclarations(fCodeProducer);
-    generateDeclarations(fCodeProducer);
-}
-
 void CScalarOneSampleCodeContainer::produceClass()
 {
     int n = 0;
@@ -384,9 +377,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     
     // Sub containers
     mergeSubContainers();
-  
-    // Sub containers
-    generateSubContainers();
  
     // Functions
     tab(n, *fOut);

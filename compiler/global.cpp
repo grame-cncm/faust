@@ -155,7 +155,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     // Backend configuration : default values
     gAllowForeignFunction = true;
     gComputeIOTA          = false;
-    gFAUSTFLOATToInternal = false;
+    gFAUSTFLOAT2Internal  = false;
     gInPlace              = false;
     gHasExp10             = false;
     gLoopVarInBytes       = false;

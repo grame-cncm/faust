@@ -544,13 +544,17 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(BlockInst* inst)
     {
         *fOut << "BlockInst ";
-        fTab++;
-        tab(fTab, *fOut);
-        for (auto& it : inst->fCode) {
-            it->accept(this);
+        if (inst->fCode.size() > 0) {
+            fTab++;
+            tab(fTab, *fOut);
+            for (auto& it : inst->fCode) {
+                it->accept(this);
+            }
+            fTab--;
+            back(1, *fOut);
+        } else {
+           tab(fTab, *fOut);
         }
-        fTab--;
-        back(1, *fOut);
         *fOut << "EndBlock";
         tab(fTab, *fOut);
     }
@@ -561,22 +565,24 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         inst->fCond->accept(this);
         fTab++;
         tab(fTab, *fOut);
-        for (auto& it : inst->fCode) {
-            if (it.first == -1) {  // -1 used to code "default" case
-                *fOut << "Default ";
-            } else {
-                *fOut << "Case " << it.first;
+        if (inst->fCode.size() > 0) {
+            for (auto& it : inst->fCode) {
+                if (it.first == -1) {  // -1 used to code "default" case
+                    *fOut << "Default ";
+                } else {
+                    *fOut << "Case " << it.first;
+                }
+                fTab++;
+                tab(fTab, *fOut);
+                (it.second)->accept(this);
+                fTab--;
+                back(1, *fOut);
+                *fOut << "EndCase";
+                tab(fTab, *fOut);
             }
-            fTab++;
-            tab(fTab, *fOut);
-            (it.second)->accept(this);
             fTab--;
             back(1, *fOut);
-            *fOut << "EndCase";
-            tab(fTab, *fOut);
         }
-        fTab--;
-        back(1, *fOut);
         *fOut << "EndSWitch";
         tab(fTab, *fOut);
     }

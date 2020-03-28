@@ -1241,7 +1241,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOATToInternal = true;
+        gGlobal->gFAUSTFLOAT2Internal = true;
 #ifdef CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         
@@ -1264,7 +1264,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         // libc functions will be found by the LLVM linker, but not user defined ones...
         gGlobal->gAllowForeignFunction = true;
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOATToInternal = true;
+        gGlobal->gFAUSTFLOAT2Internal = true;
 
         gGlobal->gUseDefaultSound = false;
      
@@ -1301,7 +1301,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gAllowForeignFunction = false;  // No foreign functions
         gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOATToInternal = true;
+        gGlobal->gFAUSTFLOAT2Internal = true;
         gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
         gGlobal->gRemoveVarAddress     = true;   // To be used in -vec mode
 
@@ -1367,7 +1367,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "rust") {
 #ifdef RUST_BUILD
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
 #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
@@ -1385,7 +1385,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef SOUL_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
 
             // "one sample control" model by default;
             gGlobal->gOneSampleControl = true;
@@ -1399,7 +1399,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gLoopVarInBytes   = true;
             gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
@@ -1439,7 +1439,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gLoopVarInBytes   = true;
             gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data

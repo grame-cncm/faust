@@ -218,13 +218,6 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     return InstBuilder::genVoidFunction(name, args, init_block, isvirtual);
 }
 
-void WASMCodeContainer::produceInternal()
-{
-    // Fields generation
-    generateGlobalDeclarations(gGlobal->gWASMVisitor);
-    generateDeclarations(gGlobal->gWASMVisitor);
-}
-
 void WASMCodeContainer::produceClass()
 {
     // Module definition
@@ -232,9 +225,6 @@ void WASMCodeContainer::produceClass()
 
     // Sub containers : before functions generation
     mergeSubContainers();
-
-    // After field declaration...
-    generateSubContainers();
 
     // Mathematical functions and global variables are handled in a separated visitor that creates functions types and
     // global variable offset

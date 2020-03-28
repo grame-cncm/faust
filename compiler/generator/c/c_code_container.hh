@@ -119,7 +119,6 @@ class CScalarCodeContainer : public CCodeContainer {
 class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
-    virtual void produceInternal();
    public:
     CScalarOneSampleCodeContainer(const std::string& name,
                                   int numInputs,

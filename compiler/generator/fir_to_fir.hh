@@ -30,34 +30,42 @@
 // Tools to dump FIR
 inline void dump2FIR(StatementInst* inst, std::ostream* out = &cerr)
 {
-    *out << "========== dump2FIR " << inst << " statement begin ========== " << std::endl;
-    FIRInstVisitor fir_visitor(out);
+    std::stringstream str;
+    str << "========== dump2FIR " << inst << " statement begin ========== " << std::endl;
+    FIRInstVisitor fir_visitor(&str);
     inst->accept(&fir_visitor);
-    *out << "========== dump2FIR statement end ==========" << std::endl;
+    str << "========== dump2FIR statement end ==========" << std::endl;
+    *out << str.str();
 }
 
 inline void dump2FIR(ValueInst* value, std::ostream* out = &cerr)
 {
-    *out << "========== dump2FIR " << value << " value begin ========== " << std::endl;
-    FIRInstVisitor fir_visitor(out);
+    std::stringstream str;
+    str << "========== dump2FIR " << value << " value begin ========== " << std::endl;
+    FIRInstVisitor fir_visitor(&str);
     value->accept(&fir_visitor);
-    *out << "\n========== dump2FIR value end ==========" << std::endl;
+    str << "\n========== dump2FIR value end ==========" << std::endl;
+    *out << str.str();
 }
 
 inline void dump2FIR(Address* address, std::ostream* out = &cerr)
 {
-    *out << "========== dump2FIR " << address << " address begin ========== " << std::endl;
-    FIRInstVisitor fir_visitor(out);
+    std::stringstream str;
+    str << "========== dump2FIR " << address << " address begin ========== " << std::endl;
+    FIRInstVisitor fir_visitor(&str);
     address->accept(&fir_visitor);
-    *out << "\n========== dump2FIR address end ==========" << std::endl;
+    str << "\n========== dump2FIR address end ==========" << std::endl;
+    *out << str.str();
 }
 
 inline void dump2FIR(Typed* type, std::ostream* out = &cerr)
 {
-    *out << "========== dump2FIR " << type << " type begin ========== " << std::endl;
-    FIRInstVisitor fir_visitor(out);
-    *out << fir_visitor.generateType(type);
-    *out << "\n========== dump2FIR type end ==========" << std::endl;
+    std::stringstream str;
+    str << "========== dump2FIR " << type << " type begin ========== " << std::endl;
+    FIRInstVisitor fir_visitor(&str);
+    str << fir_visitor.generateType(type);
+    str << "\n========== dump2FIR type end ==========" << std::endl;
+    *out << str.str();
 }
 
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
@@ -522,9 +530,7 @@ struct FunctionInliner {
     {
         list<NamedTyped*>::iterator it1 = args_type.begin();
         list<ValueInst*>::iterator  it2 = args.begin();
-        if (ismethod) {
-            it2++;
-        }
+        if (ismethod) { it2++; }
 
         for (; it1 != args_type.end(); it1++, it2++) {
             faustassert(it2 != args.end());
@@ -536,7 +542,6 @@ struct FunctionInliner {
 };
 
 // Replace a function call with the actual inlined function code
-
 struct FunctionCallInliner : public BasicCloneVisitor {
     DeclareFunInst* fFunction;
 
@@ -562,6 +567,7 @@ struct FunctionCallInliner : public BasicCloneVisitor {
     BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
+// Compute the size in bytes of variables of a given type
 struct VariableSizeCounter : public DispatchVisitor {
     int                 fSizeBytes;
     Typed::VarType      fType;

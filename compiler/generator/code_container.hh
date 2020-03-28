@@ -583,9 +583,11 @@ class CodeContainer : public virtual Garbageable {
     void mergeSubContainers()
     {
         for (auto& it : fSubContainers) {
+            // Merge the subcontainer in the main one
             fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
             fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
             fDeclarationInstructions->merge(it->fDeclarationInstructions);
+            // Then clear it
             it->fGlobalDeclarationInstructions->fCode.clear();
             it->fExtGlobalDeclarationInstructions->fCode.clear();
             it->fDeclarationInstructions->fCode.clear();

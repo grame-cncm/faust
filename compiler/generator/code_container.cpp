@@ -433,18 +433,21 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
     block = DspRenamer().getCode(block);
+    //dump2FIR(block);
 
     // Inline subcontainers 'instanceInit' and 'fill' function call
     for (auto& it : fSubContainers) {
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* inst_init_fun = it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
-        // dump2FIR(inst_init_fun);
+        //dump2FIR(inst_init_fun);
         block = FunctionCallInliner(inst_init_fun).getCode(block);
-
+        //dump2FIR(block);
+    
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* fill_fun = it->generateFillFun("fill" + it->getClassName(), "dsp", true, false);
-        // dump2FIR(fill_fun);
+        //dump2FIR(fill_fun);
         block = FunctionCallInliner(fill_fun).getCode(block);
+        //dump2FIR(block);
     }
 
     // dump2FIR(block);

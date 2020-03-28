@@ -54,7 +54,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
     virtual ~InterpreterCodeContainer() {}
 
-    void                      produceInternal();
+    void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

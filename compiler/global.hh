@@ -154,7 +154,7 @@ struct global {
     string gOutputLang;            // Chosen backend
     bool   gAllowForeignFunction;  // Can use foreign functions
     bool   gComputeIOTA;           // Cache some computation done with IOTA variable
-    bool   gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool   gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
     bool   gInPlace;               // Add cache to input for correct in-place computations
     bool   gHasExp10;              // If the 'exp10' math function is available
     bool   gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
