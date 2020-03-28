@@ -1383,11 +1383,7 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     ValueInst*   tblname    = CS(tbl);
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value);
-
-    // Check types and possibly cast written value
-    int table_type = getCertifiedSigType(tbl)->nature();
-    int data_type  = getCertifiedSigType(data)->nature();
-    
+  
     Tree id, size, content;
     if (isSigTable(tbl, id, size, content)) {
         // Check write access
@@ -1407,13 +1403,32 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
             }
         }
     }
-  
-    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(
-        load_value->fAddress->getName(), CS(idx),
-        (table_type != data_type) ? InstBuilder::genCastInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
-
+   
+    // Check types and possibly cast written value
+    int table_type = getCertifiedSigType(tbl)->nature();
+    int data_type  = getCertifiedSigType(data)->nature();
+    ValueInst* cdata = (table_type != data_type) ? InstBuilder::genCastInst(CS(data), genBasicFIRTyped(table_type)) : CS(data);
+    string vname = load_value->fAddress->getName();
+    
+    Type t2 = getCertifiedSigType(idx);
+    Type t3 = getCertifiedSigType(data);
+    // TODO : for a bug in type caching, t->variability() is not correct.
+    // Therefore in the meantime we compute it manually. (YO 2020/03/30)
+    int var = t2->variability() | t3->variability();
+    switch (var) {
+        case kKonst:
+            pushInitMethod(InstBuilder::genStoreArrayStructVar(vname, CS(idx), cdata));
+            break;
+        case kBlock:
+            pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(vname, CS(idx), cdata));
+            break;
+        default:
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, CS(idx), cdata));
+            break;
+    }
+    
     // Return table access
-    return InstBuilder::genLoadStructVar(load_value->fAddress->getName());
+    return InstBuilder::genLoadStructVar(vname);
 }
 
 /*----------------------------------------------------------------------------
