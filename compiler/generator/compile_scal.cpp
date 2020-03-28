@@ -1041,7 +1041,14 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     string tblName(CS(tbl));
-    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+
+    Type t = getCertifiedSigType(sig);
+    if (t->variability() < kSamp) {
+        fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+    } else {
+        fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+    }
+
     return tblName;
 }
 
