@@ -25,6 +25,7 @@
 #ifndef __dsp_adapter__
 #define __dsp_adapter__
 
+#include <alloca.h>
 #include <string.h>
 #include <iostream>
 #include <cmath>
@@ -571,7 +572,7 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
             int real_count = count * this->getFactor();
             
             // Adapt inputs
-            FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
+            FAUSTFLOAT** fInputs = (FAUSTFLOAT**)alloca(this->fDSP->getNumInputs() * sizeof(FAUSTFLOAT*));
             
             for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
                 // Allocate fInputs with 'real_count' frames
@@ -587,7 +588,8 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
             }
             
             // Allocate fOutputs with 'real_count' frames
-            FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
+            FAUSTFLOAT** fOutputs = (FAUSTFLOAT**)alloca(this->fDSP->getNumOutputs() * sizeof(FAUSTFLOAT*));
+            
             for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
                 fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
             }
