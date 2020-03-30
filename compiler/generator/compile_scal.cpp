@@ -1042,11 +1042,22 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     string tblName(CS(tbl));
 
-    Type t = getCertifiedSigType(sig);
-    if (t->variability() < kSamp) {
-        fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
-    } else {
-        fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+    Type t  = getCertifiedSigType(sig);
+    Type t2 = getCertifiedSigType(idx);
+    Type t3 = getCertifiedSigType(data);
+    // TODO : for a bug in type caching, t->variability() is not correct.
+    // Therefor in the meantime we compute it manually. (YO 2020/03/30)
+    int varia = t2->variability() | t3->variability();
+    switch (varia) {
+        case kKonst:
+            fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+            break;
+        case kBlock:
+            fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+            break;
+        default:
+            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+            break;
     }
 
     return tblName;
