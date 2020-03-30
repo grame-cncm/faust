@@ -46,7 +46,12 @@ createAPI ()
 {
     cp -r $FAUSTARCH/sam/fast_pow2.h $APIFOLDER
     cp -r $FAUSTARCH/sam/samFaustDSP.h $APIFOLDER
-    faust -i -a sam/samFaustDSP.cpp $OPTIONS "$FILE" -o "$APIFOLDER/samFaustDSP.cpp" || exit 1
+    
+    #faust -i -a sam/samFaustDSP.cpp $OPTIONS "$FILE" -o "$APIFOLDER/samFaustDSP.cpp" || exit 1
+    
+    # Use a fixed version of architecture file compiled with Faust 2.6.1 
+    faust -i -a sam/samFaustDSP-exp.cpp $OPTIONS "$FILE" -o "$APIFOLDER/samFaustDSP.cpp" || exit 1
+    
     if [ "$POLY2" = "1" ]; then
         faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp" || exit 1
         echo "#define POLY2 1" | cat - "$APIFOLDER/samFaustDSP.cpp" > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
@@ -132,8 +137,8 @@ APIFOLDER="${FILE%.*}-sam"
 rm -r "$APIFOLDER" 2> /dev/null || true
 mkdir "$APIFOLDER"
 
-    echo "Your $APIFOLDER.zip package is being created"
-    createAPI
+echo "Your $APIFOLDER.zip package is being created"
+createAPI
 
 ###################################
 # POST PROCESSING
