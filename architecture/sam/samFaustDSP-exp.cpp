@@ -1,15 +1,6 @@
 #include "common/audio_system_config.h"
 #include "./samFaustDSPCore.h"
 #if USE_FAUST_ALGORITHM
-/* ------------------------------------------------------------
-author: "Grame"
-copyright: "(c)GRAME 2009"
-license: "BSD"
-name: "Noise"
-version: "1.1"
-Code generated with Faust 2.6.1 (https://faust.grame.fr)
-Compilation options: cpp, -scal -ftz 0
------------------------------------------------------------- */
 
 #ifndef  __mydsp_H__
 #define  __mydsp_H__
