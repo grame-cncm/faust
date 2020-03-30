@@ -14,6 +14,7 @@ FILES=""
 CPU=""
 OPT=""
 MULTI=false
+TEST=false
 ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
 MULTI_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multi.h
 dspName=""
@@ -23,7 +24,7 @@ do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'core2' to compile for Core2 CPU"
         echo "Use 'penryn' to compile for Penryn CPU"
         echo "Use 'nehalem' to compile for Nehalem CPU"
@@ -40,6 +41,7 @@ do
         echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
+        echo "Use '-test' to compile a test program"
         exit
     fi
 
@@ -55,6 +57,8 @@ do
         MULTI=true
         #generic is always added
         CPU="$CPU generic"
+    elif [ $p = "-test" ]; then
+        TEST=true
     elif [ $p = "-all" ]; then
 	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake"
     elif [[ -f "$p" ]]; then
@@ -104,6 +108,17 @@ for p in $FILES; do
         done
         # class naming
         sed -e "s/mydsp/$dspName/g" $MULTI_ADAPTER >> $dspName"multi.h"
+    fi
+    
+    # create a test program
+    if [ $TEST = true ]; then
+    	if [ $MULTI = false ]; then
+    		echo "ERROR : -test option can only be used with -multi option"
+    		exit
+    	fi
+    	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal.cpp -cn $dspName"multi" $p -o $dspName"multi.cpp"
+    	c++ -std=c++11 $dspName"multi.cpp" -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+    	echo "Run ./"$dspName"multi"" to test the program"
     fi
 
 done

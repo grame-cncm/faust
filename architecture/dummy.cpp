@@ -282,7 +282,6 @@ int main(int argc, char* argv[])
     finterface.saveState(rcfilename);
     
     delete DSP;
-    
     return 0;
 }
 
