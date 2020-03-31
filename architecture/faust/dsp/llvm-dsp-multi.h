@@ -29,6 +29,7 @@
 #include <fstream>
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#include <assert.h>
 
 // CPUs
 #ifdef core2
@@ -103,6 +104,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("core2")) {
                 std::cout << "Allocate for core2" << std::endl;
                 fDSP = new mydspcore2();
+                return;
             }
         #endif
             
@@ -110,6 +112,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("penryn")) {
                 std::cout << "Allocate for penryn" << std::endl;
                 fDSP = new mydsppenryn();
+                return;
             }
         #endif
             
@@ -117,6 +120,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("nehalem")) {
                 std::cout << "Allocate for nehalem" << std::endl;
                 fDSP = new mydspnehalem();
+                return;
             }
         #endif
             
@@ -124,6 +128,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("westmere")) {
                 std::cout << "Allocate for westmere" << std::endl;
                 fDSP = new mydspwestmere();
+                return;
             }
         #endif
             
@@ -131,6 +136,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("sandybridge")) {
                 std::cout << "Allocate for sandybridge" << std::endl;
                 fDSP = new mydspsandybridge();
+                return;
             }
         #endif
             
@@ -138,6 +144,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("ivybridge")) {
                 std::cout << "Allocate for ivybridge" << std::endl;
                 fDSP = new mydspivybridge();
+                return;
             }
         #endif
             
@@ -145,6 +152,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("haswell")) {
                 std::cout << "Allocate for haswell" << std::endl;
                 fDSP = new mydsphaswell();
+                return;
             }
         #endif
             
@@ -152,6 +160,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("broadwell")) {
                 std::cout << "Allocate for broadwell" << std::endl;
                 fDSP = new mydspbroadwell();
+                return;
             }
         #endif
             
@@ -159,6 +168,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("skylake")) {
                 std::cout << "Allocate for skylake" << std::endl;
                 fDSP = new mydspskylake();
+                return;
             }
         #endif
             
@@ -166,6 +176,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("skylake-avx512")) {
                 std::cout << "Allocate for skylake_avx512" << std::endl;
                 fDSP = new mydspskylake_avx512();
+                return;
             }
         #endif
             
@@ -173,6 +184,7 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("cannonlake")) {
                 std::cout << "Allocate for cannonlake" << std::endl;
                 fDSP = new mydspcannonlake();
+                return;
             }
         #endif
             
@@ -180,7 +192,11 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP) {
                 std::cout << "Allocate for generic" << std::endl;
                 fDSP = new mydspgeneric();
+                return;
             }
+            
+            // Finally check fDSP
+            assert(fDSP != nullptr);
         }
         
         virtual ~mydspmulti()

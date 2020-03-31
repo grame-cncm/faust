@@ -1,7 +1,7 @@
 /************************** BEGIN JSONUIDecoder.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -202,6 +202,12 @@ struct JSONUIDecoderReal {
     virtual ~JSONUIDecoderReal()
     {
         delete [] fSoundfiles;
+        for (auto& it : fPathInputTable) {
+            delete it;
+        }
+        for (auto& it : fPathOutputTable) {
+            delete it;
+        }
     }
     
     void metadata(Meta* m)
@@ -510,6 +516,8 @@ struct JSONUITemplatedDecoder
     virtual bool hasCompileOption(const std::string& option) = 0;
 };
 
+// Float templated decoder
+
 struct JSONUIFloatDecoder : public JSONUIDecoderReal<float>, public JSONUITemplatedDecoder
 {
     JSONUIFloatDecoder(const std::string& json):JSONUIDecoderReal<float>(json)
@@ -560,6 +568,8 @@ struct JSONUIFloatDecoder : public JSONUIDecoderReal<float>, public JSONUITempla
     }
     bool hasCompileOption(const std::string& option) { return JSONUIDecoderReal<float>::hasCompileOption(option); }
 };
+
+// Double templated decoder
 
 struct JSONUIDoubleDecoder : public JSONUIDecoderReal<double>, public JSONUITemplatedDecoder
 {
@@ -612,13 +622,15 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderReal<double>, public JSONUITemp
     bool hasCompileOption(const std::string& option) { return JSONUIDecoderReal<double>::hasCompileOption(option); }
 };
 
-// FAUSTFLOAT decoder
+// FAUSTFLOAT templated decoder
 
 struct JSONUIDecoder : public JSONUIDecoderReal<FAUSTFLOAT>
 {
     JSONUIDecoder(const std::string& json):JSONUIDecoderReal<FAUSTFLOAT>(json)
     {}
 };
+
+// Generic factory
 
 static JSONUITemplatedDecoder* createJSONUIDecoder(const std::string& json)
 {
