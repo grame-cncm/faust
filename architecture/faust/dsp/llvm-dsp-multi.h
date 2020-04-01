@@ -103,7 +103,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef core2
             if (!fDSP && is_cpu("core2")) {
                 std::cout << "Allocate for core2" << std::endl;
-                fDSP = new mydspcore2();
+                fDSP = createmydspcore2();
                 return;
             }
         #endif
@@ -111,7 +111,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef penryn
             if (!fDSP && is_cpu("penryn")) {
                 std::cout << "Allocate for penryn" << std::endl;
-                fDSP = new mydsppenryn();
+                fDSP = createmydsppenryn();
                 return;
             }
         #endif
@@ -119,7 +119,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef nehalem
             if (!fDSP && is_cpu("nehalem")) {
                 std::cout << "Allocate for nehalem" << std::endl;
-                fDSP = new mydspnehalem();
+                fDSP = createmydspnehalem();
                 return;
             }
         #endif
@@ -127,7 +127,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef westmere
             if (!fDSP && is_cpu("westmere")) {
                 std::cout << "Allocate for westmere" << std::endl;
-                fDSP = new mydspwestmere();
+                fDSP = createmydspwestmere();
                 return;
             }
         #endif
@@ -135,7 +135,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef sandybridge
             if (!fDSP && is_cpu("sandybridge")) {
                 std::cout << "Allocate for sandybridge" << std::endl;
-                fDSP = new mydspsandybridge();
+                fDSP = createmydspsandybridge();
                 return;
             }
         #endif
@@ -143,7 +143,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef ivybridge
             if (!fDSP && is_cpu("ivybridge")) {
                 std::cout << "Allocate for ivybridge" << std::endl;
-                fDSP = new mydspivybridge();
+                fDSP = createmydspivybridge();
                 return;
             }
         #endif
@@ -151,7 +151,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef haswell
             if (!fDSP && is_cpu("haswell")) {
                 std::cout << "Allocate for haswell" << std::endl;
-                fDSP = new mydsphaswell();
+                fDSP = createmydsphaswell();
                 return;
             }
         #endif
@@ -159,7 +159,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef broadwell
             if (!fDSP && is_cpu("broadwell")) {
                 std::cout << "Allocate for broadwell" << std::endl;
-                fDSP = new mydspbroadwell();
+                fDSP = createmydspbroadwell();
                 return;
             }
         #endif
@@ -167,7 +167,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef skylake
             if (!fDSP && is_cpu("skylake")) {
                 std::cout << "Allocate for skylake" << std::endl;
-                fDSP = new mydspskylake();
+                fDSP = createmydspskylake();
                 return;
             }
         #endif
@@ -175,7 +175,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef skylake_avx512
             if (!fDSP && is_cpu("skylake-avx512")) {
                 std::cout << "Allocate for skylake_avx512" << std::endl;
-                fDSP = new mydspskylake_avx512();
+                fDSP = createmydspskylake_avx512();
                 return;
             }
         #endif
@@ -183,7 +183,7 @@ class mydspmulti : public decorator_dsp {
         #ifdef cannonlake
             if (!fDSP && is_cpu("cannonlake")) {
                 std::cout << "Allocate for cannonlake" << std::endl;
-                fDSP = new mydspcannonlake();
+                fDSP = createmydspcannonlake();
                 return;
             }
         #endif
@@ -191,7 +191,7 @@ class mydspmulti : public decorator_dsp {
             // Default case: allocate generic
             if (!fDSP) {
                 std::cout << "Allocate for generic" << std::endl;
-                fDSP = new mydspgeneric();
+                fDSP = createmydspgeneric();
                 return;
             }
             

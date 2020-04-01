@@ -151,5 +151,8 @@ class mydsp : public dsp {
     
 };
 
+// Factory API
+dsp* createmydsp() { return new mydsp(); }
+
 #endif
 /**************************  END  llvm-dsp-adapter.h **************************/

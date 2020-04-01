@@ -14,9 +14,12 @@ FILES=""
 CPU=""
 OPT=""
 MULTI=false
+LLVM=false
 TEST=false
-ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
+LLVM_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
+CPP_ADAPTER=$FAUSTINC/faust/dsp/cpp-dsp-adapter.h
 MULTI_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multi.h
+ARCHFILE=$FAUSTARCH/minimal-effect.cpp
 dspName=""
 
 while [ $1 ]
@@ -24,7 +27,7 @@ do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'core2' to compile for Core2 CPU"
         echo "Use 'penryn' to compile for Penryn CPU"
         echo "Use 'nehalem' to compile for Nehalem CPU"
@@ -41,6 +44,7 @@ do
         echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
+        echo "Use '-llvm' to compile using the LLVM backend, otherwise the C++ backend is used"
         echo "Use '-test' to compile a test program"
         exit
     fi
@@ -53,6 +57,8 @@ do
     elif [ $p = "-cn" ]; then
         shift
         dspName=$1
+    elif [ $p = "-llvm" ]; then
+        LLVM=true
     elif [ $p = "-multi" ]; then
         MULTI=true
         #generic is always added
@@ -94,8 +100,24 @@ for p in $FILES; do
     # compile for each CPU
     for cpu in $CPU; do
         echo $cpu
-        sed -e "s/mydsp/$dspName$cpu/g" $ADAPTER > $dspName$cpu".h"
-        dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+        if [ $LLVM = true ]; then
+            echo "Compiled using LLVM"
+            sed -e "s/mydsp/$dspName$cpu/g" $LLVM_ADAPTER > $dspName$cpu".h"
+            dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+        else
+            echo "Compiled using C++"
+            sed -e "s/mydsp/$dspName$cpu/g" $CPP_ADAPTER > $dspName$cpu".h"
+            faust -a $ARCHFILE -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
+            # renaming
+            if [ $cpu = skylake_avx512 ]; then
+                arch_cpu=skylake-avx512
+            elif [ $cpu = generic ]; then
+                arch_cpu=""
+            else
+                arch_cpu=$cpu
+            fi
+            c++ -Ofast -march=$arch_cpu -c $dspName$cpu".cpp"
+        fi
     done
 
     # possibly aggregate in a unique multi file

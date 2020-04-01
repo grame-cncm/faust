@@ -19,9 +19,9 @@ Here are the available options:
 
 ## faust2object
 
-The **faust2object** tool uses the dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
+The **faust2object** tool  either uses the standard C++ compiler or the LLVM dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
 
-`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake_avx512] [cannonlake] [generic] [-all] [-multi] [-opt native|generic] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake_avx512] [cannonlake] [generic] [-all] [-multi] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
@@ -41,6 +41,7 @@ Here are the available options:
 - `-multi to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime`
 - `-opt native to activate the best compilation options for the native CPU`
 - `-opt generic to activate the best compilation options for a generic CPU`
+- `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
 - `-test to compile a test program`
 
 A set of  header and object code files will be created, and will have to be added in the final project.
