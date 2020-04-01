@@ -1,0 +1,111 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Cross-compiles Faust programs to VST plugins        #
+#                      from : Linux, Windows, or OSX                #
+#                        to : Windows 64                            #
+#                       (c) Grame, 2014                             #
+#                                                                   #
+#####################################################################
+
+#------------------------------------------------------------------------------
+# 1/ VST SDK Should be installed somewhere
+VST=/usr/local/include/vstsdk2.4
+. faustpath
+if [ ! -d "${VST}" ]; then
+  	echo "unable to locate VST SDK: VST=${VST}" 1>&2
+  	exit 1
+fi
+
+# these cpp files have to be compiled too
+VSTSRC="$VST/public.sdk/source/vst2.x/audioeffect.cpp $VST/public.sdk/source/vst2.x/audioeffectx.cpp $VST/public.sdk/source/vst2.x/vstplugmain.cpp "
+
+#------------------------------------------------------------------------------
+# mingw crosscompiler should be installed ('mingw64' package on Ubuntu)
+# It must be in the PATH and the exact prefix should be specified in
+# the environment variable MINGWPREFIX
+
+: ${MINGWPREFIX="/c/msys64/mingw64/bin/"} # This prefix works for my setup on Windows. I'm not sure how to best generalize in a way that will work for Mac/Linux
+CXX="${MINGWPREFIX}g++"
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
+DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32"
+STRIP="${MINGWPREFIX}strip"
+
+#-----------------------------------------------------------------------------
+# Compilation flags
+CXXFLAGS="-std=c++11 -O3 -mfpmath=sse -msse -ffast-math -DBUILDING_DLL -Wno-multichar -Wno-write-strings"
+CXXINCS=" -I$VST -I$VST/public.sdk/source/vst2.x"
+EXT=".dll"
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"
+	fi
+done
+
+BINARIES=""
+
+#PHASE 3 : Compile each dsp files in $FILES
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+	SRCDIR=$(dirname "$p")
+
+    # creates a temporary dir
+    TDR=$(mktemp -d faust.XXX)
+	TMP="$TDR/${f%.dsp}"
+    mkdir "$TMP"
+
+    # compile faust to c++
+	faust -i -a vst.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    
+    # compile c++ to binary
+    (
+		# we need to create the .def file needed to generate the .dll
+		echo "LIBRARY     ${f%.dsp}" 						 > $TMP/${f%.dsp}.def
+		echo "DESCRIPTION 'Faust generated VST plugin'" 	>> $TMP/${f%.dsp}.def
+		echo "EXPORTS     VSTPluginMain" 					>> $TMP/${f%.dsp}.def
+
+		$CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/audioeffect.cpp"  -o $TMP/audioeffect.o
+		$CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/audioeffectx.cpp" -o $TMP/audioeffectx.o
+		$CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/vstplugmain.cpp"  -o $TMP/vstplugmain.o
+		$CXX $CXXINCS $CXXFLAGS -c "$TMP/${f%.dsp}.cpp" -o "$TMP/${f%.dsp}.o"
+
+		$DLLWRAP --driver-name $CXX --def $TMP/${f%.dsp}.def --entry DllMain $TMP/*.o  $LIBS -static-libstdc++ -static-libgcc -o "$TMP/${f%.dsp}$EXT"
+		$STRIP "$TMP/${f%.dsp}$EXT"
+    ) > /dev/null || exit
+
+	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
+
+    # remove temporary directory
+    rm -rf "$TDR"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+done
+
+echo "$BINARIES"
