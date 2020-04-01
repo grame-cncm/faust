@@ -153,6 +153,7 @@ function testfaust {
 	testscript faust2pd
 	testscript faust2sc
 	testscript faust2w32vst
+    testscript faust2w64vst
 	testscript faust2caqt
 	testscript faust2ios
 	testscript faust2mathviewer
