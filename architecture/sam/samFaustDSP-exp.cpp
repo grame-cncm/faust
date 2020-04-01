@@ -1,9 +1,3 @@
-#include "common/audio_system_config.h"
-#include "./samFaustDSPCore.h"
-#if USE_FAUST_ALGORITHM
-
-#ifndef  __mydsp_H__
-#define  __mydsp_H__
 
 /************************************************************************
   SHARC Audio Module Faust Architecture File
@@ -6735,6 +6729,3 @@ void samFaustDSP::propagateMidi(int count, double time, int type, int channel, i
 {
     fPolyEngine->propagateMidi(count, time, type, channel, data1, data2);
 }
-
-#endif
-#endif
