@@ -35,6 +35,7 @@
 #include "daisysp.h"
 #include "daisy_seed.h"
 
+#include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp.h"
 
@@ -97,7 +98,7 @@ int main(void)
     daisy_seed_init(&seed);
     
     // set buffer-size
-    dsy_audio_set_blocksize(MY_BUFFER_SIZE);
+    dsy_audio_set_blocksize(DSY_AUDIO_INTERNAL, MY_BUFFER_SIZE);
     
     // allocate deinterleaved buffers
     finputs[0] = new FAUSTFLOAT[MY_BUFFER_SIZE];
