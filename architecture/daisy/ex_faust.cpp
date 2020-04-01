@@ -68,6 +68,7 @@ using namespace daisysp;
 FAUSTFLOAT* finputs[2];
 FAUSTFLOAT* foutputs[2];
 
+DaisySeed hw;
 mydsp DSP;
 
 #define MY_BUFFER_SIZE 8
@@ -95,10 +96,10 @@ static void AudioCallback(float* in, float* out, size_t size)
 int main(void)
 {
     // initialize seed hardware and daisysp modules
-    daisy_seed_init(&seed);
+    hw.Init();
     
     // set buffer-size
-    dsy_audio_set_blocksize(DSY_AUDIO_INTERNAL, MY_BUFFER_SIZE);
+    hw.SetAudioBlockSize(MY_BUFFER_SIZE);
     
     // allocate deinterleaved buffers
     finputs[0] = new FAUSTFLOAT[MY_BUFFER_SIZE];
@@ -108,17 +109,15 @@ int main(void)
     foutputs[1] = new FAUSTFLOAT[MY_BUFFER_SIZE];
     
     // inti Faust DSP
-    DSP.init(DSY_AUDIO_SAMPLE_RATE);
+    DSP.init(hw.AudioSampleRate());
     
 #ifdef MIDICTRL
     daisy_midi midi_handler;
 #endif
  
-    // define callback
-    dsy_audio_set_callback(DSY_AUDIO_INTERNAL, AudioCallback);
-
-    // start callback
-    dsy_audio_start(DSY_AUDIO_INTERNAL);
+    hw.StartAdc();
+    // define and start callback
+    hw.StartAudio(AudioCallback)
  
 #ifdef MIDICTRL
     midi_handler.startMidi();
