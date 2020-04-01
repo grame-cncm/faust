@@ -73,8 +73,6 @@ mydsp DSP;
 
 #define MY_BUFFER_SIZE 8
 
-static daisy_handle seed;
-
 static void AudioCallback(float* in, float* out, size_t size)
 {
     // Deinterleave
