@@ -5,7 +5,8 @@
 
 // Faust part
 const isWasm = (typeof(WebAssembly) !== "undefined");
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)(({ latencyHint: 0.00001 }));
+audioCtx.destination.channelInterpretation = "discrete";
 let factory = null;
 let node = null;
 

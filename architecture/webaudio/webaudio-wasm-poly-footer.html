@@ -3,7 +3,8 @@
     'use strict';
     // Faust part
     if (!window.dspName) window.dspName = "mydsp";
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)(({ latencyHint: 0.00001 }));
+    audioCtx.destination.channelInterpretation = "discrete";
     let audioInput;
     let dspNode, $faustUI;
     let dspOutputHandler = () => {};
