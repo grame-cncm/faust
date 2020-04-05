@@ -22,14 +22,14 @@ fi
 VSTSRC="$VST/public.sdk/source/vst2.x/audioeffect.cpp $VST/public.sdk/source/vst2.x/audioeffectx.cpp $VST/public.sdk/source/vst2.x/vstplugmain.cpp "
 
 #------------------------------------------------------------------------------
-# mingw crosscompiler should be installed ('mingw64' package on Ubuntu)
+# mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
 # It must be in the PATH and the exact prefix should be specified in
 # the environment variable MINGWPREFIX
 
-: ${MINGWPREFIX="/c/msys64/mingw64/bin/"} # This prefix works for my setup on Windows. I'm not sure how to best generalize in a way that will work for Mac/Linux
+: ${MINGWPREFIX="x86_64-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
-DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32"
+DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32"
 STRIP="${MINGWPREFIX}strip"
 
 #-----------------------------------------------------------------------------
