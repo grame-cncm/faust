@@ -74,7 +74,8 @@ struct DisplayUI : public GenericUI {
     void displayHeaders()
     {
         int c = 0;
-        printf(",\t");
+        if (fTable.size() > 0)
+            printf(",\t");
         for (auto& it : fTable) {
             if (c > 0)
                 printf(",\t");
@@ -86,7 +87,8 @@ struct DisplayUI : public GenericUI {
     void display()
     {
         int c = 0;
-        printf(",\t");
+        if (fTable.size() > 0)
+            printf(",\t");
         for (auto& it : fTable) {
             if (c > 0)
                 printf(",\t");

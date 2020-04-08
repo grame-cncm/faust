@@ -179,6 +179,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
 
+        // Warning: keeps a ref on HEAP in Chrome and prevent proper GC
         //console.log(this.HEAP);
         //console.log(this.HEAP32);
         //console.log(this.HEAPF32);
@@ -271,7 +272,6 @@ class mydspProcessor extends AudioWorkletProcessor {
 
         // Init resulting DSP
         this.initAux();
-        
         console.log(this);
     }
     
