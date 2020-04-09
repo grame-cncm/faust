@@ -147,6 +147,9 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinf"]       = "std::sin";
         gPolyMathLibTable["sqrtf"]      = "std::sqrt";
         gPolyMathLibTable["tanf"]       = "std::tan";
+        
+        gPolyMathLibTable["isnanf"] = "std::isnan";
+        gPolyMathLibTable["isinff"] = "std::isinf";
 
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "std::max<double>";
@@ -174,7 +177,10 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "std::sin";
         gPolyMathLibTable["sqrt"]      = "std::sqrt";
         gPolyMathLibTable["tan"]       = "std::tan";
-
+        
+        gPolyMathLibTable["isnan"] = "std::isnan";
+        gPolyMathLibTable["isinf"] = "std::isinf";
+      
         // Polymath mapping quad version
         gPolyMathLibTable["max_l"] = "std::max<quad>";
         gPolyMathLibTable["min_l"] = "std::min<quad>";
@@ -201,6 +207,9 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinl"]       = "std::sin";
         gPolyMathLibTable["sqrtl"]      = "std::sqrt";
         gPolyMathLibTable["tanl"]       = "std::tan";
+        
+        gPolyMathLibTable["isnanl"] = "std::isnan";
+        gPolyMathLibTable["isinfl"] = "std::isinf";
     }
 
     virtual ~CPPInstVisitor() {}
@@ -402,11 +411,8 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         string name = gGlobal->getMathFunction(inst->fName);
-        if (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) {
-            generateFunCall(inst, gPolyMathLibTable[name]);
-        } else {
-            generateFunCall(inst, name);
-        }
+        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
+        generateFunCall(inst, name);
     }
 
     virtual void visit(ForLoopInst* inst)

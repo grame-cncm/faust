@@ -37,6 +37,9 @@ class CInstVisitor : public TextInstVisitor {
      */
     static map<string, bool> gFunctionSymbolTable;
 
+    // Polymorphic math functions
+    map<string, string> gPolyMathLibTable;
+    
    public:
     using TextInstVisitor::visit;
 
@@ -46,9 +49,9 @@ class CInstVisitor : public TextInstVisitor {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
 
-        gFunctionSymbolTable["max"] = true;
         gFunctionSymbolTable["min"] = true;
-
+        gFunctionSymbolTable["max"] = true;
+    
         // Float version
         gFunctionSymbolTable["fabsf"]      = true;
         gFunctionSymbolTable["acosf"]      = true;
@@ -114,6 +117,28 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+        
+        // Polymath mapping int version
+        gPolyMathLibTable["min_i"] = "min";
+        gPolyMathLibTable["max_i"] = "max";
+        
+        // Polymath mapping float version
+        gPolyMathLibTable["min_f"]  = "min";
+        gPolyMathLibTable["max_f"]  = "max";
+        gPolyMathLibTable["isnanf"] = "isnan";
+        gPolyMathLibTable["isinff"] = "isinf";
+        
+        // Polymath mapping double version
+        gPolyMathLibTable["min_"]   = "min";
+        gPolyMathLibTable["max_"]   = "max";
+        gPolyMathLibTable["isnan"]  = "isnan";
+        gPolyMathLibTable["isinf"]  = "isinf";
+        
+        // Polymath mapping double version
+        gPolyMathLibTable["min_l"]  = "min";
+        gPolyMathLibTable["max_l"]  = "max";
+        gPolyMathLibTable["isnanl"] = "isnan";
+        gPolyMathLibTable["isinl"]  = "isinf";
     }
 
     virtual ~CInstVisitor() {}
@@ -309,16 +334,7 @@ class CInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        // Integer and real min/max are mapped on polymorphic ones
-        string name;
-        if (checkMin(inst->fName)) {
-            name = "min";
-        } else if (checkMax(inst->fName)) {
-            name = "max";
-        } else {
-            name = inst->fName;
-        }
-
+        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         *fOut << gGlobal->getMathFunction(name) << "(";
 
         // Compile parameters

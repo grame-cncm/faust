@@ -203,10 +203,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
 
                 for (int i = 0; i < desc.fArgs; i++) {
-                    *fOut << type2String(desc.fType);
+                    *fOut << type2String(desc.fTypeIn);
                     if (i < desc.fArgs - 1) *fOut << " ";
                 }
-                *fOut << ") (result " << type2String(desc.fType) << "))";
+                *fOut << ") (result " << type2String(desc.fTypeOut) << "))";
                 return;
             }
         }

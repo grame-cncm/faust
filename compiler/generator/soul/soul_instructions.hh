@@ -229,6 +229,9 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["coshf"]  = "cosh";
         gPolyMathLibTable["sinhf"]  = "sinh";
         gPolyMathLibTable["tanhf"]  = "tanh";
+        
+        gPolyMathLibTable["isnanf"]  = "isnan";
+        gPolyMathLibTable["isinff"]  = "isinf";
 
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
@@ -264,6 +267,9 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cosh"]  = "cosh";
         gPolyMathLibTable["sinh"]  = "sinh";
         gPolyMathLibTable["tanh"]  = "tanh";
+
+        gPolyMathLibTable["isnan"]  = "isnan";
+        gPolyMathLibTable["isinf"]  = "isinf";
 
         fIntAsBool = false;
     }

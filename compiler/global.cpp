@@ -565,6 +565,14 @@ void global::init()
     gMathForeignFunctions["tanhf"] = true;
     gMathForeignFunctions["tanh"]  = true;
     gMathForeignFunctions["tanhl"] = true;
+    
+    gMathForeignFunctions["isnanf"] = true;
+    gMathForeignFunctions["isnan"] = true;
+    gMathForeignFunctions["isnanl"] = true;
+    
+    gMathForeignFunctions["isinff"] = true;
+    gMathForeignFunctions["isinf"] = true;
+    gMathForeignFunctions["isinfl"] = true;
 }
 
 void global::printCompilationOptions(ostream& dst, bool backend)

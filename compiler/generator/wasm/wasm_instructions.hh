@@ -494,7 +494,6 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
         // will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-            faustassert(fMathLibTable.find(inst->fName) != fMathLibTable.end());
             MathFunDesc desc = fMathLibTable[inst->fName];
 
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
@@ -502,17 +501,16 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 // Build function type (args type same as return type)
                 list<NamedTyped*> args;
                 if (desc.fArgs == 1) {
-                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
                 } else if (desc.fArgs == 2) {
-                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
-                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fTypeIn));
                 } else {
                     faustassert(false);
                 }
 
-                // Args type same as return type
                 FunTyped* fun_type =
-                    InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(desc.fType), FunTyped::kDefault);
+                    InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(desc.fTypeOut), FunTyped::kDefault);
                 fFunTypes[inst->fName] = fun_type;
 
                 // Build function import
