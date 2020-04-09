@@ -6659,26 +6659,18 @@ ztimedmap GUI::gTimedZoneMap;
 // constructor
 samFaustDSP::samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numOutputs)
 {
-    // create a new instance of the dsp object
-    fDSP = new mydsp;
-    fDSP->init(sampleRate);
-    
     // create a new instance of the audio driver.
     fAudioDriver = new samAudio;
     fAudioDriver->setDSP_Parameters(sampleRate, bufferSize, numInputs, numOutputs);
     
-    // create a new instance of the FaustPolyEngine
-    fPolyEngine = new FaustPolyEngine(fDSP, fAudioDriver);
-    // the constructor calls init
+    // create a new instance of the FaustPolyEngine, the constructor calls DSP init
+    fPolyEngine = new FaustPolyEngine(new mydsp(), fAudioDriver);
 }
 
 // destructor
 samFaustDSP::~samFaustDSP()
 {
-#if MIDICTRL
-    // might need this
-    //delete fMidiUI;
-#endif
+    // DSP and fAudioDriver are kept and deleted by fPolyEngine
     delete fPolyEngine;
 }
 
