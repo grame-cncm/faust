@@ -45,13 +45,15 @@ class AudioFaust : public AudioStream
         AudioFaust();
         ~AudioFaust();
     
-        template <int INPUTS, int OUTPUTS>
-        void updateImp(void);
         virtual void update(void);
     
         void setParamValue(const std::string& path, float value);
+        float getParamValue(const std::string& path);
     
     private:
+    
+        template <int INPUTS, int OUTPUTS>
+        void updateImp(void);
     
         float** fInChannel;
         float** fOutChannel;
