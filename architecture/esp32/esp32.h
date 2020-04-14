@@ -60,6 +60,7 @@ class AudioFaust
         void stop();
     
         void setParamValue(const std::string&, float);
+        float getParamValue(const std::string& path);
 };
 
 #endif
