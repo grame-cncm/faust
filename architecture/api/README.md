@@ -43,6 +43,13 @@ Common options for all platforms:
 - `-nozip` : prevents generated files to be put in a zip file.
 
 
+Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE:
+
+- `midi`: add built-in RtMidi support to the API.
+- `osc`: add built-in OSC support to the API.
+- `soundfile`: add built-in Soundfile support to the API.
+
+
 ### Android Support
 
 To turn a Faust code into an Android API, just run the following command:
@@ -125,7 +132,7 @@ The `-osc` option can be used to add OSC support to the API.
 
 ### OpenFrameworks Support
 
-To turn a Faust code into an OpenFrameworks API, just run the following command:
+To turn a Faust code into an openFrameworks API, just run the following command:
 
 ```
 faust2api -of yourFaustCode.dsp

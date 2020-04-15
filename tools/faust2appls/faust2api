@@ -63,7 +63,7 @@ echoHelp ()
     option -jack "     generates a JACK API" 
     option -portaudio "generates a PortAudio API" 
     option -rtaudio "  generates an RTAudio API" 
-    option -of "       generates an OpenFrameworks API" 
+    option -of "       generates an openFrameworks API"
     option -juce "     generates a JUCE API" 
     option -dummy "    generates a dummy audio API" 
     echo 
@@ -80,7 +80,7 @@ echoHelp ()
     option -package "set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
     option -soundfile "add built-in Soundfile support to the API."
     echo 
-    echo "Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio and JUCE"
+    echo "Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE"
     option -midi "add built-in RtMidi support to the API."
     option -osc "add built-in OSC support to the API."
     option -soundfile "add built-in Soundfile support to the API."

@@ -32,7 +32,7 @@ if [[ $(uname) == Darwin  || $CROSSTARGET == Darwin ]]; then
     LIB="-I$CSOUND_MACSDK/Headers -I/usr/local/include -L/usr/local/lib -dynamiclib"
     EXT=".dylib"
 else
-    LIB="-I/usr/include/csound -shared -fPIC"
+    LIB="-I/usr/include/csound -I/usr/local/include/csound -shared -fPIC"
     EXT=".so"
 fi
 

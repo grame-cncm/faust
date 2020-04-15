@@ -52,7 +52,6 @@
 #include <new>
 #include <vector>
 
-//#include "csound/csdl.h"               /* CSOUND plugin API header */
 #include "csdl.h"                        /* CSOUND plugin API header */
 
 // used to transform a symbol in a string
@@ -183,7 +182,7 @@ struct dataspace {
 
 /**
  * Creates a "aaakkkk" CSound description string. Note that
- * these string will never be released. Potential memory leak
+ * these string will never be released. Potential memory leak.
  */
 static char* makeDescription(int numa, int numk = 0)
 {
