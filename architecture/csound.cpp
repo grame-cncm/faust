@@ -44,13 +44,16 @@
 //          History :
 //          - 28/04/09 : first version
 //          - 29/04/09 : dynamic allocation
-//          - 10/07/14 : updated to csound6 (Paul Batchelor)
+//          - 10/07/14 : updated to Csound6 (Paul Batchelor)
+//          - 29/03/20 : correct entry point
 //
 //==============================================================================
 
 #include <new>
 #include <vector>
-#include "csdl.h"                       /* CSOUND plugin API header */
+
+//#include "csound/csdl.h"               /* CSOUND plugin API header */
+#include "csdl.h"                        /* CSOUND plugin API header */
 
 // used to transform a symbol in a string
 #define sym(name) xsym(name)
@@ -74,49 +77,61 @@
 #include "faust/misc.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 
 /**
  * A UI that simply collects the active zones in a vector
- * and provides a method to copy the csound controls
+ * and provides a method to copy the Csound controls
  */
-class CSUI : public UI
+class CSUI : public GenericUI
 {
-    std::vector<FAUSTFLOAT*>  vZone;
+    private:
+    
+        std::vector<FAUSTFLOAT*>  vZone;
 
-public:
+    public:
 
-    // -- widget's layouts
+        // -- active widgets
 
-    virtual void openTabBox(const char* label)                                                          {}
-    virtual void openHorizontalBox(const char* label)                                                   {}
-    virtual void openVerticalBox(const char* label)                                                     {}
-    virtual void closeBox()                                                                             {}
+        virtual void addButton(const char* label, FAUSTFLOAT* zone) { vZone.push_back(zone); }
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { vZone.push_back(zone); }
+    
+        virtual void addVerticalSlider(const char* label,
+                                       FAUSTFLOAT* zone,
+                                       FAUSTFLOAT init,
+                                       FAUSTFLOAT min,
+                                       FAUSTFLOAT max,
+                                       FAUSTFLOAT step)
+        {
+            vZone.push_back(zone);
+        }
+        virtual void addHorizontalSlider(const char* label,
+                                         FAUSTFLOAT* zone,
+                                         FAUSTFLOAT init,
+                                         FAUSTFLOAT min,
+                                         FAUSTFLOAT max,
+                                         FAUSTFLOAT step)
+        {
+            vZone.push_back(zone);
+        }
+        virtual void addNumEntry(const char* label,
+                                 FAUSTFLOAT* zone,
+                                 FAUSTFLOAT init,
+                                 FAUSTFLOAT min,
+                                 FAUSTFLOAT max,
+                                 FAUSTFLOAT step)
+        {
+            vZone.push_back(zone);
+        }
 
-    // -- active widgets
-
-    virtual void addButton(const char* label, FAUSTFLOAT* zone)                                                          { vZone.push_back(zone); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)                                                     { vZone.push_back(zone); }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)    { vZone.push_back(zone); }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)  { vZone.push_back(zone); }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)          { vZone.push_back(zone); }
-
-    // -- passive widgets
-
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)   {}
-
-    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
-
-    void copyfrom(MYFLT* mem[]) {
-        for (unsigned int i = 0; i < vZone.size(); i++) {
-            if (*(mem[i]) != FL(-1.)) {
-                *vZone[i] = *(mem[i]);
+        void copyfrom(MYFLT* mem[])
+        {
+            for (unsigned int i = 0; i < vZone.size(); i++) {
+                if (*(mem[i]) != FL(-1.)) {
+                    *vZone[i] = *(mem[i]);
+                }
             }
         }
-    }
-
-    int size() { return vZone.size(); }
 };
 
 /******************************************************************************
@@ -222,8 +237,8 @@ static int process32bits(CSOUND* csound, dataspace* p)
 
 extern "C" {
     static OENTRY localops[] = {
-        {(char*)sym(OPCODE_NAME), sizeof(dataspace), 0, 7, makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS, FAUST_ACTIVES),
-            (SUBR)init, NULL, (SUBR)process32bits }
+        {(char*)sym(OPCODE_NAME), sizeof(dataspace), 0, 3, makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS, FAUST_ACTIVES),
+            (SUBR)init, (SUBR)process32bits }
     };
     LINKAGE
 }
