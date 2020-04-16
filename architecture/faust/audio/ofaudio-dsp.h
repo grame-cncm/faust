@@ -62,35 +62,34 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
             delete [] fNIOutputs;
         }
     
-        void audioIn(float* input, int bufferSize, int nChannels)
+        void audioIn(ofSoundBuffer& input)
         {
             // Keep the input buffer to be used in 'audioOut' for the same audio cycle
             fInBuffer = input;
         }
     
-        void audioOut(float* output, int bufferSize, int nChannels)
+        void audioOut(ofSoundBuffer& output)
         {
-            // Deinterleave input (= fInBuffer)
+            // Interleave input (= fInBuffer)
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-                for (int frame = 0; frame < bufferSize; frame++) {
+                for (int frame = 0; frame < output.getNumFrames(); frame++) {
                     fNIInputs[chan][frame] = fInBuffer[chan + frame * fDSP->getNumInputs()];
                 }
             }
             
-            fDSP->compute(bufferSize, fNIInputs, fNIOutputs);
+            fDSP->compute(output.getNumFrames(), fNIInputs, fNIOutputs);
             
             // Interleave output
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
-                for (int frame = 0; frame < bufferSize; frame++) {
+                for (int frame = 0; frame < output.getNumFrames(); frame++) {
                     output[chan + frame * fDSP->getNumOutputs()] = fNIOutputs[chan][frame];
                 }
             }
         }
-
+    
         bool init(const char* name, dsp* dsp)
         {
             fDSP = dsp;
-            
             //fStream.printDeviceList();
             
             fNIInputs = new float*[fDSP->getNumInputs()];
