@@ -25,18 +25,19 @@
 #ifndef __openframework__
 #define __openframework__
 
-#include "ofSoundStream.h"
-#include "ofBaseTypes.h"
-
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
+
+#include "ofSoundStream.h"
+#include "ofSoundBuffer.h"
+#include "ofBaseTypes.h"
 
 class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput {
     
     private:
     
         ofSoundStream fStream;
-        float* fInBuffer;
+        ofSoundBuffer fInBuffer;
         float** fNIInputs;
         float** fNIOutputs;
         int fSampleRate;
@@ -45,7 +46,7 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
     
     public:
     
-        ofaudio(int srate, int bsize):fInBuffer(nullptr), fSampleRate(srate), fBufferSize(bsize) {}
+        ofaudio(int srate, int bsize):fSampleRate(srate), fBufferSize(bsize) {}
         virtual ~ofaudio()
         {
             fStream.stop();
@@ -62,6 +63,7 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
             delete [] fNIOutputs;
         }
     
+        // updated version for OF
         void audioIn(ofSoundBuffer& input)
         {
             // Keep the input buffer to be used in 'audioOut' for the same audio cycle
@@ -114,8 +116,16 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
     
         bool start()
         {
-            // 'setup' also starts the stream...
-            return fStream.setup(fDSP->getNumOutputs(), fDSP->getNumInputs(), fSampleRate, fBufferSize, 1);
+            ofSoundStreamSettings settings;
+            
+            settings.setInListener(this);
+            settings.setOutListener(this);
+            settings.sampleRate = fSampleRate;
+            settings.numOutputChannels = fDSP->getNumOutputs();
+            settings.numInputChannels = fDSP->getNumInputs();
+            settings.bufferSize = fBufferSize;
+            
+            return fStream.setup(settings);
         }
     
         void stop()
@@ -132,12 +142,12 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
         {
             return fStream.getSampleRate();
         }
-
+    
         int getNumInputs() { return fStream.getNumInputChannels(); }
         int getNumOutputs() { return fStream.getNumOutputChannels(); }
-
+    
         float getCPULoad() { return 0.f; }
 };
-					
+
 #endif
 /**************************  END  ofaudio-dsp.h **************************/
