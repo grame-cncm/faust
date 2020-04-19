@@ -1,10 +1,10 @@
 # faust2max6/faust2msp
 
-faust2max6/faust2msp transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it. Polyphonic and MIDI controllable synthesisers can be created. 
+faust2max6/faust2msp transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it. Polyphonic and MIDI controllable synthesisers can be created.  Note that faust2msp is the old version compiling 32 bits external for Max5, and faust2max6 compiles 64 bits or 64/32 bits externals for Max6 and later versions, and should be preferably used. 
 
 ## How to use
 
-faust2max6/faust2msp are used with the following command: 
+faust2max6 is used with the following parameters: 
 
 `faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
 

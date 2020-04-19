@@ -112,7 +112,7 @@ static string inputs(int n)
  * \param i: the number of inputs of b
  * \param opcode = the composition operation sign
  * \param opname = the full name of the composition operation
- * \param msg  = indication for the user (ie " must be equals to ")
+ * \param msg  = indication for the user (ie " must be equal to ")
  * \return the error message as a string
  */
 
@@ -288,7 +288,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
 
         if (v != x) {
             throw faustexception(
-                computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equals to "));
+                computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equal to "));
         } else {
             *inum = u;
             *onum = y;
