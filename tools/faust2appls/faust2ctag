@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to ctag                     #
+#               (c) Grame, 2020                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+ARCHFILE=$FAUSTARCH/ctag/ctagSoundProcessorFaust.cpp
+
+# global option variables
+NVOICES=0
+MULTI="0"
+POLY=""
+
+###########################
+# Processing Arguments
+###########################
+
+while [ $1 ]
+do
+    p=$1
+    # help
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+		echoHelp
+		exit 0
+    # -nvoices:
+    elif [ $p = "-nvoices" ]; then
+		shift
+		NVOICES=$1
+    # -midi
+    elif [ $p = "-midi" ]; then
+		MIDIDEFS="MIDI"
+    elif [[ -f "$p" ]]; then
+		FILE="$p"
+    # other compile options
+    else
+		OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+done
+
+###########################
+# Post Argument Processing
+###########################
+
+BASENAME=$(basename "$FILE")
+MODULENAME="${BASENAME%.dsp}"
+	
+# compile faust to c++
+faust -i -a $ARCHFILE $OPTIONS -cn $MODULENAME $FILE -o $FILE.cpp || exit
+
+
