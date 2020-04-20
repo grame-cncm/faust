@@ -10,26 +10,26 @@ processor dsp_wrapper
 {
     input event
     {
-        soul::NoteEvents::NoteOn    noteOn;
-        soul::NoteEvents::NoteOff   noteOff;
-        soul::NoteEvents::PitchBend pitchBend;
+        soul::note_events::NoteOn    noteOn;
+        soul::note_events::NoteOff   noteOff;
+        soul::note_events::PitchBend pitchBend;
     }
 
     output event float32 freq, gain, gate;
 
-    event noteOn (soul::NoteEvents::NoteOn e)
+    event noteOn (soul::note_events::NoteOn e)
     {
     	freq << soul::noteNumberToFrequency (e.note);
         gain << e.velocity;
         gate << 1.0f;
     }
      
-    event noteOff (soul::NoteEvents::NoteOff e) 
+    event noteOff (soul::note_events::NoteOff e)
     { 
         gate << 0.0f;
     }
     
-    event pitchBend (soul::NoteEvents::PitchBend e) 
+    event pitchBend (soul::note_events::PitchBend e)
     {
     	// TODO
     }
@@ -50,9 +50,9 @@ graph dsp_voice
 {
     input event
     {
-        soul::NoteEvents::NoteOn   	 noteOn;
-        soul::NoteEvents::NoteOff  	 noteOff;
-        soul::NoteEvents::PitchBend  pitchBend;
+        soul::note_events::NoteOn   	 noteOn;
+        soul::note_events::NoteOff  	 noteOff;
+        soul::note_events::PitchBend  pitchBend;
     }
     
     output stream float audioOut0;
@@ -78,19 +78,19 @@ processor RoundRobinVoiceAllocator (int voiceCount)
 {
     input event
     {
-        soul::NoteEvents::NoteOn     noteOn;
-        soul::NoteEvents::NoteOff    noteOff;
-        soul::NoteEvents::PitchBend  pitchBend;
+        soul::note_events::NoteOn     noteOn;
+        soul::note_events::NoteOff    noteOff;
+        soul::note_events::PitchBend  pitchBend;
     }
 
     output event
     {
-        soul::NoteEvents::NoteOn     voiceNoteOn[voiceCount];
-        soul::NoteEvents::NoteOff    voiceNoteOff[voiceCount];
-        soul::NoteEvents::PitchBend  voicePitchBend[voiceCount];
+        soul::note_events::NoteOn     voiceNoteOn[voiceCount];
+        soul::note_events::NoteOff    voiceNoteOff[voiceCount];
+        soul::note_events::PitchBend  voicePitchBend[voiceCount];
     }
 
-    event noteOn (soul::NoteEvents::NoteOn e)
+    event noteOn (soul::note_events::NoteOn e)
     {
         wrap<voiceCount> allocatedVoice = 0;
         var allocatedVoiceAge = voiceInfo[allocatedVoice].voiceAge;
@@ -116,7 +116,7 @@ processor RoundRobinVoiceAllocator (int voiceCount)
         voiceNoteOn[allocatedVoice] << e;
     }
 
-    event noteOff (soul::NoteEvents::NoteOff e)
+    event noteOff (soul::note_events::NoteOff e)
     {
         // Release all voices associated with this note/channel
         wrap<voiceCount> voice = 0;
@@ -135,7 +135,7 @@ processor RoundRobinVoiceAllocator (int voiceCount)
         }
     }
 
-    event pitchBend (soul::NoteEvents::PitchBend e)
+    event pitchBend (soul::note_events::PitchBend e)
     {
         // Forward the pitch bend to all notes on this channel
         wrap<voiceCount> voice = 0;
@@ -170,13 +170,13 @@ processor RoundRobinVoiceAllocator (int voiceCount)
 // Allocates voices, does dynamic voice management, connect to MIDI parser
 graph mydsp_poly [[ main ]]
 {
-    input event midi::Message midiIn;
+    input event soul::midi::Message midiIn;
     output stream float audioOut0;
     output stream float audioOut1;
     
     let
     {
-        midiParser = midi::MPEParser;
+        midiParser = soul::midi::MPEParser;
         voices = dsp_voice[NVOICES];
         voiceAllocator = RoundRobinVoiceAllocator (NVOICES);
     }
