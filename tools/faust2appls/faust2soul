@@ -25,6 +25,7 @@ EFFECT=""
 NVOICES=-1
 OPTIONS=""
 PLAY="false"
+JUCE="false"
 MIDI="false"
 
 while [ $1 ] 
@@ -33,13 +34,14 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2soul "[options] [Faust options] <file.dsp>"
-		echo  "Compiles Faust programs to SOUL"
-		option
-		option -midi
+        echo  "Compiles Faust programs to SOUL"
+        option
+        option -midi
         option "-nvoices <num>"
         option "-effect <effect.dsp>"
         option "-effect auto"
-		option -play "to start the 'soul' runtime with the generated SOUL file"
+        option -juce "to create a JUCE project"
+        option -play "to start the 'soul' runtime with the generated SOUL file"
         option "Faust options"
         exit
     fi
@@ -58,6 +60,8 @@ do
         echo "MIDI will be used"
     elif [ $p = "-play" ]; then
     	PLAY="true"
+    elif [ $p = "-juce" ]; then
+    	JUCE="true"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -155,9 +159,15 @@ EndOfCode
     if [ $PLAY = "true" ] ; then
     	soul play "$SRCDIR/$dspName"
     fi
-
+  
     # collect binary file name for FaustGIDE
     BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
+      
+    if [ $JUCE = "true" ] ; then
+    	soul generate --juce "$SRCDIR/$dspName/${f%.dsp}.soulpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
+    	BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"
+    fi
+
 done
 
 echo $BINARIES

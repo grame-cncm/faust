@@ -10,6 +10,7 @@ Here are the available options:
 - `-effect <effect.dsp> to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI`
 - `-effect auto to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI`
 - `-midi to activate MIDI control`
+- `-juce to create a JUCE project`
 - `-play to start the 'soul' runtime with the generated SOUL patch`
 
 So for instance:
