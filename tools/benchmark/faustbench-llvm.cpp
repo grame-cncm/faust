@@ -1,26 +1,26 @@
 
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-    as published by the Free Software Foundation; either version 3 of 
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work 
-    that contains this FAUST architecture section and distribute  
-    that work under terms of your choice, so long as this FAUST 
-    architecture section is not modified. 
-
+ FAUST Architecture File
+ Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************/
 
 #include "faust/dsp/dsp-optimizer.h"
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
         if (is_trace) cout << argv[i] << " ";
     }
     if (is_trace) cout << endl;
-      
+    
     // Add library
     argv1[argc1++] = "-I";
     argv1[argc1++] = "/usr/local/share/faust";
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     //FAUSTBENCH_LOG<string>("faustbench LLVM");
     
     string in_filename = argv[argc-1];
-   
+    
     try {
         if (is_single) {
             string error_msg;
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
                     FAUSTBENCH_LOG<double>(mes.getStats());
                 }
             }
-    
+            
         } else {
             if (is_double) {
                 bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace), in_filename, is_trace);
@@ -150,5 +150,5 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-  	return 0;
+    return 0;
 }

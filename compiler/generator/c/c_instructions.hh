@@ -123,20 +123,20 @@ class CInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["max_i"] = "max";
         
         // Polymath mapping float version
-        gPolyMathLibTable["min_f"]  = "min";
-        gPolyMathLibTable["max_f"]  = "max";
+        gPolyMathLibTable["min_f"]  = "fminf";
+        gPolyMathLibTable["max_f"]  = "fmaxf";
         gPolyMathLibTable["isnanf"] = "isnan";
         gPolyMathLibTable["isinff"] = "isinf";
         
         // Polymath mapping double version
-        gPolyMathLibTable["min_"]   = "min";
-        gPolyMathLibTable["max_"]   = "max";
+        gPolyMathLibTable["min_"]   = "fmin";
+        gPolyMathLibTable["max_"]   = "fmax";
         gPolyMathLibTable["isnan"]  = "isnan";
         gPolyMathLibTable["isinf"]  = "isinf";
         
-        // Polymath mapping double version
-        gPolyMathLibTable["min_l"]  = "min";
-        gPolyMathLibTable["max_l"]  = "max";
+        // Polymath mapping quad version
+        gPolyMathLibTable["min_l"]  = "fminl";
+        gPolyMathLibTable["max_l"]  = "fmaxl";
         gPolyMathLibTable["isnanl"] = "isnan";
         gPolyMathLibTable["isinl"]  = "isinf";
     }

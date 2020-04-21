@@ -1,25 +1,25 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************/
 
 #include <libgen.h>
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
-  
+    
     // Before reading the -nvoices parameter
     MidiMeta::analyse(DSP, midi_sync, nvoices);
     nvoices = lopt(argv, "-nvoices", nvoices);
@@ -107,17 +107,17 @@ int main(int argc, char* argv[])
     if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
     }
-   
+    
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
     
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
-   
+    
     if (!audio.init(filename, DSP)) {
         exit(EXIT_FAILURE);
     }
-
+    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -140,11 +140,11 @@ int main(int argc, char* argv[])
     // State (after UI construction)
     finterface->recallState(rcfilename);
     audio.start();
-
+    
     if (is_httpd) {
         httpdinterface->run();
     }
-
+    
     if (is_osc) {
         oscinterface->run();
     }
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     }
     
     interface->run();
-
+    
     audio.stop();
     
     finterface->saveState(rcfilename);

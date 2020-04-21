@@ -1,25 +1,25 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************/
 
 #include <libgen.h>
@@ -58,7 +58,7 @@ struct CheckControlUI : public MapUI {
                  FAUSTFLOAT min,
                  FAUSTFLOAT max,
                  FAUSTFLOAT step)
-            :fInit(init), fMin(min), fMax(max), fStep(step)
+        :fInit(init), fMin(min), fMax(max), fStep(step)
         {}
     };
     
@@ -96,7 +96,7 @@ struct CheckControlUI : public MapUI {
         *zone = init;
         fControlZone.push_back(make_pair(zone, ZoneDesc(init, min, max, step)));
     }
-
+    
 };
 
 list<GUI*> GUI::fGuiList;
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
     RandomControlUI random;
     
     try {
-    
+        
         string error_msg;
         // argc : without the filename (last element)
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
@@ -283,13 +283,13 @@ int main(int argc, char* argv[])
                 random.update();
                 audio.render();
             }
-
+            
             goto end;
             
         } else {
             audio.start();
         }
-       
+        
         if (!is_noui) {
             interface->run();
         } else {
