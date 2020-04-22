@@ -219,6 +219,11 @@ interp1:
 	$(MAKE) -f Make.interp1 outdir=interp1/vec/g FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp1 outdir=interp1/inpl FAUSTOPTIONS=-inpl
 	$(MAKE) -f Make.interp1 outdir=interp1/ftz FAUSTOPTIONS="-I dsp -ftz 0"
+
+#########################################################################
+# SOUL backend 
+soul:
+	$(MAKE) -f Make.soul
 	
 #########################################################################
 # output directories
@@ -230,10 +235,10 @@ ir/mute:
 reference:
 	$(MAKE) -f Make.ref
 
-tools: filesCompare impulsellvm impulseinterp impulseinterp1
+tools: filesCompare impulsellvm impulsesoul impulseinterp impulseinterp1
 
 clean: 
-	rm -f filesCompare impulsellvm impulseinterp impulseinterp1
+	rm -f filesCompare impulsellvm impulsesoul impulseinterp impulseinterp1
 
 #########################################################################
 # tools
@@ -251,6 +256,9 @@ impulseinterp2: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
+
+impulsesoul: $(SRCDIR)/impulsesoul.cpp ./archs/controlTools.h $(LIB)
+	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsesoul.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesoul
 
 #########################################################################
 # rules for mute tests
