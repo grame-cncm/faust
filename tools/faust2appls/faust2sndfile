@@ -29,6 +29,7 @@ do
         usage faust2sndfile "[Faust options] <file.dsp>"
         require libsndfile
         echo "Process files with Faust DSP"
+        option "Faust options"
         exit
     fi
     

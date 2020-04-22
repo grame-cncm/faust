@@ -44,15 +44,15 @@ for p in $@; do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust"
-	 YPATH="-L/usr/local/lib"
+	    OSCDEFS="-DOSCCTRL -lOSCFaust"
+	    YPATH="-L/usr/local/lib"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
-	 YPATH="-L/usr/local/lib"
+	    HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+	    YPATH="-L/usr/local/lib"
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+	    PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+	    PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then

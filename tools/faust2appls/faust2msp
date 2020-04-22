@@ -73,14 +73,14 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-         usage faust2msp "[options] [Faust options] <file.dsp>"
+        usage faust2msp "[options] [Faust options] <file.dsp>"
         require Max-MSP SDK
         echo "Compiles Faust programs to Max6 externals using simple precision samples"
         option
         options -osc -midi -soundfile
         option "-nvoices <num>"
         option "-effect <effect.dsp>"
-        option -native "   to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+        option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         option "Faust options"
         exit
     fi

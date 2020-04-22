@@ -48,7 +48,7 @@ for p in $@; do
         usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
         platform RaspberryPi
         require Alsa
-		echo  "Compiles Faust programs to RaspberryPi - alsa console architecture"
+		echo "Compiles Faust programs to RaspberryPi - alsa console architecture"
 		option
 		options -osc -httpd
 		option -arch32 "generates a 32 bit architecture."

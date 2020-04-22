@@ -62,12 +62,12 @@ for p in $@; do
 		option
         option -osc
         option -source "creates an eclipse project of the app in the current directory."
-        option -swig   "regenerates the C++ and the JAVA interface for the native portion of the app."
-        option -faust  "only carries out the Faust compilation and install the generated C++ file in the JNI folder."
-        option -reuse  "preserves build directory and reuse it to speedup compilation."
+        option -swig "regenerates the C++ and the JAVA interface for the native portion of the app."
+        option -faust "only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+        option -reuse "preserves build directory and reuse it to speedup compilation."
         option -soundfile
-        option -install  "once compilation is over, installs the generated apk on the Android device connected to the computer"
-        option -debug  "activates verbose output"
+        option -install "once compilation is over, installs the generated apk on the Android device connected to the computer"
+        option -debug "activates verbose output"
         option "Faust options"
 		exit
     elif [ ${p:0:1} = "-" ]; then

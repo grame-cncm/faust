@@ -30,8 +30,8 @@ for p in $@; do
         usage faust2plot "[options] [Faust options] <file.dsp>"
         echo "Compiles Faust programs to plotters"
         option
-        option "-s <n>" "   start at the sample number <n> (default is 0)"
-        option "-n <n>" "   render <n> samples (default is 16)"
+        option "-s <n>" "start at the sample number <n> (default is 0)"
+        option "-n <n>" "render <n> samples (default is 16)"
         option "-r <rate>" "change the sample rate (default is 44100 Hz))"
         option "Faust options"
         exit

@@ -41,10 +41,10 @@ echoHelp ()
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
     option 
     option -gramophone "generates for GRAME Gramophone"
-    option -multi "     generate for GRAME Gramophone in multi DSP mode"
-    option -lib  "      generates a package containing an object compatible with any ESP32 project"
+    option -multi "generate for GRAME Gramophone in multi DSP mode"
+    option -lib "generates a package containing an object compatible with any ESP32 project"
     option -midi
-    option -main "      add a 'main' entry point"
+    option -main "add a 'main' entry point"
     option "-nvoices <num>"
     option "-wm8978 or -ac101" "to choose codec driver"
     option "Faust options"

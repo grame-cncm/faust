@@ -33,7 +33,7 @@ for p in $@; do
         echo "Compiles Faust programs to PureData"
         option -arch32 "compile a 32 bits architecture."
         option -arch64 "compile a 64 bits architecture."
-        option -poly "  generates a polyphonic self-contained DSP."
+        option -poly "generates a polyphonic self-contained DSP."
         option -tosource "skip the C++ compiling step and only generate the C++ source file."
         option "Faust options"
         exit

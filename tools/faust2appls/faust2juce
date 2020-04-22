@@ -48,8 +48,8 @@ do
         option "-effect auto"
         option -standalone "to produce a standalone project, otherwise a plugin project is generated"
         option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
-        option -jsynth "    to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
-        option -llvm "      to use the LLVM compilation chain (OSX and Linux for now)"
+        option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
+        option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
         exit
     fi
 

@@ -53,7 +53,7 @@ for p in $@; do
         usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
         platform RaspberryPi
         require NetJack
-		echo  "Compiles Faust programs to RaspberryPi - netjack-console architecture"
+		echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
 		option
 		options -osc -httpd
         option "Faust options"

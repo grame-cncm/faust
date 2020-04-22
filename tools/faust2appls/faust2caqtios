@@ -44,7 +44,7 @@ for p in $@; do
         usage faust2caqtios "[options] [Faust options] <file.dsp>"
 		platform iOS
 		require Qt
-		echo " Compiles Faust programs to CoreAudio and QT for iOS"
+		echo "Compiles Faust programs to CoreAudio and QT for iOS"
 		option
 		options -httpd -osc -midi -qrcode -poly
         option -debug "print all the build steps"

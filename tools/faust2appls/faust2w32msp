@@ -61,7 +61,6 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-
 #PHASE 2 : dispatch command arguments
 for p in $@; do
     if [ "$p" = -omp ]; then

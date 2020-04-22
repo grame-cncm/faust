@@ -37,7 +37,7 @@ for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2ladspa "[options] [Faust options] <file.dsp>"
         platform Linux
-        echo "Compiles Faust programs to ladspa plugins"
+        echo "Compiles Faust programs to LADSPA plugins"
         option
         option -arch32 "generates a 32 bit architecture."
         option -arch64 "generates a 64 bit architecture."

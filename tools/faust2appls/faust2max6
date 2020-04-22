@@ -87,12 +87,12 @@ do
         option
         options -osc -midi -soundfile
         option -soundfile-static "similar to -soundfile with resources in statuc mode."
-        option "-opt native|generic"  "activates the best compilation options for the native or generic CPU."
+        option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
         option "-nvoices <num>"
         option "-effect <effect.dsp>"
-        option -native "   to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+        option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         option -universal "to generate a 64/32 bits external"
-        option -nopatch "  to deactivate patch generation"
+        option -nopatch "to deactivate patch generation"
         option "Faust options"
         exit
     fi

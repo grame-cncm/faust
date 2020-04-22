@@ -42,7 +42,7 @@ for p in $@; do
         usage faust2csound "[options] [Faust options] <file.dsp>"
 		platform any
 		require CSound Dev Kit
-		echo  "Compiles a Faust program into a csound opcode"
+		echo "Compiles a Faust program into a csound opcode"
 		option
 		option -arch32 "generates a 32 bit architecture."
 		option -arch64 "generates a 64 bit architecture."

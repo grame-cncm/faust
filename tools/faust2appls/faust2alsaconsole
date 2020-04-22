@@ -39,8 +39,8 @@ do
 		option
         options -httpd -osc -midi 
         option "-nvoices <num>"
-        option -arch32   "compiles a 32 bits binary"
-        option -arch64   "compiles a 64 bits binary"
+        option -arch32 "compiles a 32 bits binary"
+        option -arch64 "compiles a 64 bits binary"
         exit
     fi
     

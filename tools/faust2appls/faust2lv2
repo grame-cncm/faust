@@ -55,15 +55,15 @@ for ((i=1;i<$#+1;i++)); do
 		option
 		options -osc -httpd
 		option -dyn-manifest "use dynamic manifests (requires LV2 host support)."
-		option -gui "         build the plugin GUI (requires LV2 UI host support)."
-		option -keep "        retain the build directory."
-		option -nometa "      ignore metadata (author information etc.) from the Faust source"
-		option -nomidicc "    plugin doesn't process MIDI control data."
-		option -notuning "    disable the tuning control (instruments only)."
+		option -gui "build the plugin GUI (requires LV2 UI host support)."
+		option -keep "retain the build directory."
+		option -nometa "ignore metadata (author information etc.) from the Faust source"
+		option -nomidicc "plugin doesn't process MIDI control data."
+		option -notuning "disable the tuning control (instruments only)."
 		option -novoicectrls "no extra polyphony/tuning controls on GUI (instruments only)"
-		option "-nvoices N" " number of synth voices (instruments only; arg must be an integer)"
-		option "-qt4, -qt5" " select the GUI toolkit (requires Qt4/5; implies -gui)."
-		option "-style S" "   select the stylesheet (arg must be Default, Blue, Grey or Salmon)."
+		option "-nvoices N" "number of synth voices (instruments only; arg must be an integer)"
+		option "-qt4, -qt5" "select the GUI toolkit (requires Qt4/5; implies -gui)."
+		option "-style S" "select the stylesheet (arg must be Default, Blue, Grey or Salmon)."
 		cat <<EOF
 Environment variables:
   FAUSTINC: specify the location of the Faust include directory

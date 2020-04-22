@@ -45,7 +45,6 @@ MANUFACTURER="Grame"
 for p in $@; do
 
 	 if [ $p = "-help" ] || [ $p = "-h" ]; then
- 
         usage faust2au "[options] <file.dsp>"
   		platform MacOS
   		echo "Compiles Faust programs to Audio Unit"

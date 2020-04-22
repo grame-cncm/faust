@@ -39,14 +39,14 @@ echoHelp ()
 	platform iOS, Android
 	option
 	option -android "generates an Android app"
-	option -ios "    generates an iOS app"
+	option -ios "generates an iOS app"
 	option -osc
-	option -debug "  activate debug mode"
-	option -effect " allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
+	option -debug "activate debug mode"
+	option -effect "allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
 	option -install "install the app on the connected device (Android only)"
 	option -nvoices "specify the max number of voices"
-	option -reuse  " reuse the same project source"
-	option -source " only generate the source (no compilation)"
+	option -reuse  "reuse the same project source"
+	option -source "only generate the source (no compilation)"
 	option "Faust options"
 	echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
 }

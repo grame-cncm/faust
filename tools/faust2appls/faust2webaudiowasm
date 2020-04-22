@@ -42,8 +42,8 @@ do
         option "-effect auto"
         option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         option -worklet "generates AudioWorklet compatible code"
-        option -links "  add links to source code and SVG diagrams in the generated HTML file"
-        option -emcc "   use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
+        option -links "add links to source code and SVG diagrams in the generated HTML file"
+        option -emcc "use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
     fi
      

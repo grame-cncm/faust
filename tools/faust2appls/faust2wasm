@@ -51,10 +51,10 @@ do
         option "-effect auto"
         option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         option -worklet "generates AudioWorklet compatible code"
-        option -wap "    generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
-        option -comb "   combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
-        option -emcc "   compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
-        option -npm "    add a package.json file for npm package distribution"
+        option -wap "generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        option -comb "combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
+        option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
+        option -npm "add a package.json file for npm package distribution"
         exit
     fi
     

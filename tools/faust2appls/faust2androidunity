@@ -35,7 +35,6 @@ do
     p=$1
     
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-#        echo "faust2androidunity [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
         usage faust2androidunity "[options] [Faust options] <file1.dsp> [<file2.dsp>]"
  		platform Android Unity
 		require Android SDK "Make sure the ANDROID_HOME environment variable is set to the sdk folder."

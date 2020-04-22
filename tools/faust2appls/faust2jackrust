@@ -25,7 +25,6 @@ do
         option
         option -source "only generates the source project."
         option "Faust options"
-        echo "faust2jackrust [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>"
     fi
 
     if [ $p = "-source" ]; then

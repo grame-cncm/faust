@@ -33,10 +33,10 @@ for p in $@; do
         usage faust2webaudiowast "[options] <file.dsp>"
         option
         option -poly
-        option -opt "    optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         option -worklet "generates AudioWorklet compatible code"
-        option -links "  add links to source code and SVG diagrams in the generated HTML file"
-        option -emcc "   compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        option -links "add links to source code and SVG diagrams in the generated HTML file"
+        option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     fi
     

@@ -46,13 +46,11 @@ CXX="${MINGWPREFIX}g++"
 DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32"
 STRIP="${MINGWPREFIX}strip"
 
-
 #-----------------------------------------------------------------------------
 # Compilation flags
 LIBS="$MAXSDK/max-includes/x64/MaxAPI.lib  $MAXSDK/msp-includes/x64/MaxAudio.lib"
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
 CXXFLAGS="-std=c++11 -DWIN_VERSION -DWIN_EXT_VERSION"
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -60,7 +58,6 @@ CXXFLAGS="-std=c++11 -DWIN_VERSION -DWIN_EXT_VERSION"
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
