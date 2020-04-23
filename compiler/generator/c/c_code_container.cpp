@@ -351,11 +351,11 @@ void CCodeContainer::produceClass()
 
     // Compute
     generateCompute(n);
-    tab(n, *fOut);
-
+  
     // Generate user interface macros if needed
     printMacros(*fOut, n);
 
+    tab(n, *fOut);
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;
     *fOut << "#endif" << endl;

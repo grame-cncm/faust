@@ -472,7 +472,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
         fout << "#define FAUST_PASSIVES " << fNumPassives;
         printlines(n + 1, fUIMacro, fout);
         tab(n, fout);
-        fout << "#endif";
+        fout << "#endif" << endl;
     }
 }
 
