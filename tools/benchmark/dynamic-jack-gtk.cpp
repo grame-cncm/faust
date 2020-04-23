@@ -49,6 +49,7 @@
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/SoundUI.h"
+#include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 
 #include "faust/dsp/llvm-dsp-adapter.h"
@@ -190,7 +191,6 @@ int main(int argc, char* argv[])
             factory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
         }
         
-        
         if (!factory) {
             cerr << error_msg;
             cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
@@ -243,10 +243,10 @@ int main(int argc, char* argv[])
     /*
      measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of measure
      for (int i = 0; i < 2; i++) {
-     mes->measure();
-     cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
+        mes->measure();
+        cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
      }
-     */
+    */
     
     // To test compiled block reuse
     //DSP = factory->createDSPInstance();
@@ -299,6 +299,9 @@ int main(int argc, char* argv[])
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
     }
+    
+    //PrintUI print_ui;
+    //DSP->buildUserInterface(&print_ui);
     
     if (is_osc) {
         oscinterface = new OSCUI(filename, argc, argv);

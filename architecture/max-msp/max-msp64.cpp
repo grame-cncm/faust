@@ -87,6 +87,18 @@
 #include "faust/gui/SoundUI.h"
 #endif
 
+// For FAUST_CLASS_NAME to be defined
+#define FAUST_UIMACROS
+
+// but we will ignore most of them
+#define FAUST_ADDBUTTON(l,f)
+#define FAUST_ADDCHECKBOX(l,f)
+#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
+#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
+#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+
 using namespace std;
 
 /******************************************************************************
@@ -120,7 +132,7 @@ using namespace std;
 #define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION    "0.71"
+#define EXTERNAL_VERSION    "0.72"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -131,6 +143,9 @@ using namespace std;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
+static t_class* faust_class;
+
+/*--------------------------------------------------------------------------*/
 static const char* getCodeSize()
 {
     int tmp;
@@ -166,8 +181,6 @@ typedef struct faust
     OSCUI* m_oscInterface;
 #endif
 } t_faust;
-
-void* faust_class;
 
 void faust_create_jsui(t_faust* x);
 void faust_make_json(t_faust* x);
@@ -403,7 +416,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
     
-    t_faust* x = (t_faust*)newobject(faust_class);
+    t_faust* x = (t_faust*)object_alloc(faust_class);
     
     x->m_savedUI = new SaveLabelUI();
     x->m_dspUI = NULL;
@@ -685,34 +698,34 @@ void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, l
 }
 
 /*--------------------------------------------------------------------------*/
-extern "C" int main(void)
+void ext_main(void* r)
 {
-    setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
-          (short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
-
-    dsp* tmp_dsp = new mydsp();
-    mspUI m_dspUI;
-    tmp_dsp->buildUserInterface(&m_dspUI);
-
-    // 03/11/14 : use 'anything' to handle all parameter changes
-    addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
-    addmess((method)faust_polyphony, (char*)"polyphony", A_GIMME, 0);
+    string class_name = string(FAUST_CLASS_NAME) + "~";
+    t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    
+    class_addmethod(c, (method)faust_anything, "anything", A_GIMME, 0);
+    class_addmethod(c, (method)faust_polyphony, "polyphony", A_GIMME, 0);
 #ifdef OSCCTRL
-    addmess((method)faust_osc, (char*)"osc", A_GIMME, 0);
+    class_addmethod(c, (method)faust_osc, "osc", A_GIMME, 0);
 #endif
-    addmess((method)faust_init, (char*)"init", A_GIMME, 0);
-    addmess((method)faust_dump, (char*)"dump", A_GIMME, 0);
+    class_addmethod(c, (method)faust_init, "init", A_GIMME, 0);
+    class_addmethod(c, (method)faust_dump, "dump", A_GIMME, 0);
 #ifdef MIDICTRL
-    addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);
+    class_addmethod(c, (method)faust_midievent, "midievent", A_GIMME, 0);
 #endif
-    addmess((method)faust_dsp64, (char*)"dsp64", A_CANT, 0);
-    addmess((method)faust_dblclick, (char*)"dblclick", A_CANT, 0);
-    addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
-    addmess((method)faust_mute, (char*)"mute", A_GIMME, 0);
-    dsp_initclass();
+    class_addmethod(c, (method)faust_dsp64, "dsp64", A_CANT, 0);
+    class_addmethod(c, (method)faust_dblclick, "dblclick", A_CANT, 0);
+    class_addmethod(c, (method)faust_assist, "assist", A_CANT, 0);
+    class_addmethod(c, (method)faust_mute, "mute", A_GIMME, 0);
+    
+    class_dspinit(c);
+    class_register(CLASS_BOX, c);
+    faust_class = c;
 
     post((char*)"Faust DSP object v%s (sample = %s bits code = %s)", EXTERNAL_VERSION, ((sizeof(FAUSTFLOAT) == 4) ? "32" : "64"), getCodeSize());
     post((char*)"Copyright (c) 2012-2020 Grame");
+    
+    dsp* tmp_dsp = new mydsp();
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {
@@ -723,7 +736,6 @@ extern "C" int main(void)
     }
     
     delete(tmp_dsp);
-    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

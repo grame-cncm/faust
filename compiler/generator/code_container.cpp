@@ -461,6 +461,8 @@ void CodeContainer::printMacros(ostream& fout, int n)
         tab(n, fout);
         fout << "#ifdef FAUST_UIMACROS";
         tab(n + 1, fout);
+        fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
+        tab(n + 1, fout);
         fout << "#define FAUST_INPUTS " << fNumInputs;
         tab(n + 1, fout);
         fout << "#define FAUST_OUTPUTS " << fNumOutputs;
