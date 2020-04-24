@@ -25,7 +25,9 @@
 #ifndef __dsp_adapter__
 #define __dsp_adapter__
 
+#ifndef _WIN32
 #include <alloca.h>
+#endif
 #include <string.h>
 #include <iostream>
 #include <cmath>

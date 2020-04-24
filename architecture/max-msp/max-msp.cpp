@@ -684,7 +684,11 @@ void faust_dsp(t_faust* x, t_signal** sp, short* count)
 }
 
 /*--------------------------------------------------------------------------*/
+#ifdef _WIN32
+extern "C" int main(void)
+#else
 void ext_main(void* r)
+#endif
 {
     string class_name = string(FAUST_CLASS_NAME) + "~";
     t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_DEFFLOAT, 0);
@@ -720,8 +724,10 @@ void ext_main(void* r)
         tmp_dsp->metadata(&meta2);
         post("------------------------------");
     }
-    
     delete(tmp_dsp);
+#ifdef _WIN32
+    return 0;
+#endif
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
