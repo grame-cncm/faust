@@ -254,7 +254,23 @@ class mspUI : public UI, public PathBuilder
                 return string(label);
             }
         }
-        
+    
+        void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
+            fInputLabelTable[string(label)] = obj;
+            fInputPathTable[buildPath(label)] = obj;
+            fDeclareTable.clear();
+        }
+    
+        void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
+            fOutputLabelTable[string(label)] = obj;
+            fOutputPathTable[buildPath(label)] = obj;
+            fDeclareTable.clear();
+        }
+    
     public:
         
         typedef map<string, mspUIObject*>::iterator iterator;
@@ -286,13 +302,6 @@ class mspUI : public UI, public PathBuilder
             fInputPathTable[buildPath(label)] = obj;
         }
         
-        void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
-        }
-        
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             addSlider(label, zone, init, min, max, step);
@@ -305,17 +314,7 @@ class mspUI : public UI, public PathBuilder
         
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
-        }
-    
-        void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
-            fOutputLabelTable[string(label)] = obj;
-            fOutputPathTable[buildPath(label)] = obj;
-            fDeclareTable.clear();
+            addSlider(label, zone, init, min, max, step);
         }
     
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)

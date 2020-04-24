@@ -99,8 +99,6 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
-#define DUMMY_VAL 123456789
-
 #define CLASS_ATTR_FLOAT1(c,attrname,flags,structname,structmember,offset) \
     class_addattr((c),attr_offset_new(attrname,USESYM(float32),(flags),(method)0L,(method)0L,(calcoffset(structname,structmember)+offset)))
 
@@ -140,7 +138,7 @@ using namespace std;
 #define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION    "0.72"
+#define EXTERNAL_VERSION    "0.73"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -507,15 +505,16 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_dspUI->displayControls();
     
     // Attribute handling
-    for (int i = 0; i < x->m_dspUI->inputItemsCount(); i++) {
-        x->m_zones[i] = DUMMY_VAL;
-    }
-    // Get attribute values
-    attr_args_process(x, ac, av);
-    // Set input controllers
     int i = 0;
     for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++, i++) {
-        if (x->m_zones[i] != DUMMY_VAL)(*it).second->setValue(x->m_zones[i]);
+        x->m_zones[i] = (*it).second->getInitValue();
+    }
+    // Get attributes values
+    attr_args_process(x, ac, av);
+    // Set input controllers
+    i = 0;
+    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++, i++) {
+        (*it).second->setValue(x->m_zones[i]);
     }
     
     return x;
@@ -728,7 +727,6 @@ void ext_main(void* r)
 #endif
 {
     string class_name = string(FAUST_CLASS_NAME) + "~";
-    //t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_DEFFLOAT, 0);
     t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_GIMME, 0);
     
     class_addmethod(c, (method)faust_anything, "anything", A_GIMME, 0);
@@ -750,7 +748,7 @@ void ext_main(void* r)
     mspUI tmp_UI;
     tmp_dsp->buildUserInterface(&tmp_UI);
     
-    // Setup attribute
+    // Setup attributes
     int i = 0;
     if (sizeof(FAUSTFLOAT) == 4) {
         for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
