@@ -99,6 +99,14 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
+#define DUMMY_VAL 123456789
+
+#define CLASS_ATTR_FLOAT1(c,attrname,flags,structname,structmember,offset) \
+    class_addattr((c),attr_offset_new(attrname,USESYM(float32),(flags),(method)0L,(method)0L,(calcoffset(structname,structmember)+offset)))
+
+#define CLASS_ATTR_DOUBLE1(c,attrname,flags,structname,structmember,offset) \
+    class_addattr((c),attr_offset_new(attrname,USESYM(float64),(flags),(method)0L,(method)0L,(calcoffset(structname,structmember)+offset)))
+
 using namespace std;
 
 /******************************************************************************
@@ -180,6 +188,7 @@ typedef struct faust
 #ifdef OSCCTRL
     OSCUI* m_oscInterface;
 #endif
+    FAUSTFLOAT m_zones[FAUST_ACTIVES];
 } t_faust;
 
 void faust_create_jsui(t_faust* x);
@@ -190,7 +199,7 @@ void faust_allocate(t_faust* x, int nvoices)
 {
     // Delete old
     delete x->m_dsp;
-    if (x->m_dspUI) x->m_dspUI->clear();
+    x->m_dspUI->clear();
     
     if (nvoices > 0) {
         post("polyphonic DSP voices = %d", nvoices);
@@ -211,7 +220,7 @@ void faust_allocate(t_faust* x, int nvoices)
 #ifdef MIDICTRL
     x->m_dsp->buildUserInterface(x->m_midiUI);
 #endif
-
+  
     // Possible sample adaptation
     if (sizeof(FAUSTFLOAT) == 4) {
         x->m_dsp = new dsp_sample_adapter<FAUSTFLOAT, double>(x->m_dsp);
@@ -430,12 +439,13 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
     
+    x->m_dspUI = new mspUI();
+    
     faust_allocate(x, nvoices);
     
     x->m_Inputs = x->m_dsp->getNumInputs();
     x->m_Outputs = x->m_dsp->getNumOutputs();
-   
-    x->m_dspUI = new mspUI();
+    
     x->m_control_outlet = outlet_new((t_pxobject*)x, (char*)"list");
 
     // Initialize at the system's sampling rate
@@ -495,6 +505,19 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     
     // Display controls
     x->m_dspUI->displayControls();
+    
+    // Attribute handling
+    for (int i = 0; i < x->m_dspUI->inputItemsCount(); i++) {
+        x->m_zones[i] = DUMMY_VAL;
+    }
+    // Get attribute values
+    attr_args_process(x, ac, av);
+    // Set input controllers
+    int i = 0;
+    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++, i++) {
+        if (x->m_zones[i] != DUMMY_VAL)(*it).second->setValue(x->m_zones[i]);
+    }
+    
     return x;
 }
 
@@ -705,7 +728,8 @@ void ext_main(void* r)
 #endif
 {
     string class_name = string(FAUST_CLASS_NAME) + "~";
-    t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    //t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_GIMME, 0);
     
     class_addmethod(c, (method)faust_anything, "anything", A_GIMME, 0);
     class_addmethod(c, (method)faust_polyphony, "polyphony", A_GIMME, 0);
@@ -722,6 +746,22 @@ void ext_main(void* r)
     class_addmethod(c, (method)faust_assist, "assist", A_CANT, 0);
     class_addmethod(c, (method)faust_mute, "mute", A_GIMME, 0);
     
+    dsp* tmp_dsp = new mydsp();
+    mspUI tmp_UI;
+    tmp_dsp->buildUserInterface(&tmp_UI);
+    
+    // Setup attribute
+    int i = 0;
+    if (sizeof(FAUSTFLOAT) == 4) {
+        for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
+            CLASS_ATTR_FLOAT1(c, (*it).first.c_str(), 0, t_faust, m_zones, sizeof(float)*i);
+        }
+    } else {
+        for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
+            CLASS_ATTR_DOUBLE1(c, (*it).first.c_str(), 0, t_faust, m_zones, sizeof(double)*i);
+        }
+    }
+    
     class_dspinit(c);
     class_register(CLASS_BOX, c);
     faust_class = c;
@@ -729,7 +769,6 @@ void ext_main(void* r)
     post((char*)"Faust DSP object v%s (sample = %s bits code = %s)", EXTERNAL_VERSION, ((sizeof(FAUSTFLOAT) == 4) ? "32" : "64"), getCodeSize());
     post((char*)"Copyright (c) 2012-2020 Grame");
     
-    dsp* tmp_dsp = new mydsp();
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {
@@ -738,7 +777,6 @@ void ext_main(void* r)
         tmp_dsp->metadata(&meta2);
         post("------------------------------");
     }
-    
     delete(tmp_dsp);
 #ifdef _WIN32
     return 0;

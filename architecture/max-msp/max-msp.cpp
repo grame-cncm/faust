@@ -98,6 +98,11 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
+#define DUMMY_VAL 123456789
+
+#define CLASS_ATTR_FLOAT1(c,attrname,flags,structname,structmember,offset) \
+    class_addattr((c),attr_offset_new(attrname,USESYM(float32),(flags),(method)0L,(method)0L,(calcoffset(structname,structmember)+offset)))
+
 using namespace std;
 
 /******************************************************************************
@@ -172,6 +177,7 @@ typedef struct faust
 #ifdef OSCCTRL
     OSCUI* m_oscInterface;
 #endif
+    FAUSTFLOAT m_zones[FAUST_ACTIVES];
 } t_faust;
 
 void faust_create_jsui(t_faust* x);
@@ -476,6 +482,19 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     
     // Display controls
     x->m_dspUI->displayControls();
+    
+    // Attribute handling
+    for (int i = 0; i < x->m_dspUI->inputItemsCount(); i++) {
+        x->m_zones[i] = DUMMY_VAL;
+    }
+    // Get attribute values
+    attr_args_process(x, ac, av);
+    // Set input controllers
+    int i = 0;
+    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++, i++) {
+        if (x->m_zones[i] != DUMMY_VAL)(*it).second->setValue(x->m_zones[i]);
+    }
+    
     return x;
 }
 
@@ -708,14 +727,23 @@ void ext_main(void* r)
     class_addmethod(c, (method)faust_assist, "assist", A_CANT, 0);
     class_addmethod(c, (method)faust_mute, "mute", A_GIMME, 0);
     
+    dsp* tmp_dsp = new mydsp();
+    mspUI tmp_UI;
+    tmp_dsp->buildUserInterface(&tmp_UI);
+    
+    // Setup attribute
+    int i = 0;
+    for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
+        CLASS_ATTR_FLOAT1(c, (*it).first.c_str(), 0, t_faust, m_zones, sizeof(float)*i);
+    }
+    
     class_dspinit(c);
     class_register(CLASS_BOX, c);
     faust_class = c;
     
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
     post((char*)"Copyright (c) 2012-2020 Grame");
-    
-    dsp* tmp_dsp = new mydsp();
+   
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {

@@ -114,7 +114,7 @@ class mspUIObject {
         mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
         virtual ~mspUIObject() {}
         
-        virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0,1.0,f); }
+        virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0, 1.0, f); }
         virtual FAUSTFLOAT getValue() { return *fZone; }
     
         virtual FAUSTFLOAT getInitValue() { return FAUSTFLOAT(0); }
@@ -174,7 +174,7 @@ class mspSlider : public mspUIObject {
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
-        void setValue(FAUSTFLOAT f) { *fZone = range(fMin,fMax,f); }
+        void setValue(FAUSTFLOAT f) { *fZone = range(fMin, fMax, f); }
     
         virtual FAUSTFLOAT getInitValue() { return fInit; }
         virtual FAUSTFLOAT getMinValue() { return fMin; }
@@ -193,7 +193,7 @@ class mspBargraph : public mspUIObject {
     public:
         
         mspBargraph(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        :mspUIObject(label,zone),fMin(min),fMax(max),fCurrent(*zone) {}
+        :mspUIObject(label,zone), fMin(min), fMax(max), fCurrent(*zone) {}
         virtual ~mspBargraph() {}
         
         void toString(char* buffer)
