@@ -46,7 +46,7 @@ Here are the available options:
 
 A set of  header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>`  class and a  `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric()` creation function).
 
- The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi`  class ) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi()` to load the appropriate object code version depending on the running machine CPU. 
+The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi`  class ) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi();`  or  `dsp* dsp = create<DSPName>multi();`) to load the appropriate object code version depending on the running machine CPU. 
  
 Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
 
