@@ -61,8 +61,6 @@ do
         LLVM=true
     elif [ $p = "-multi" ]; then
         MULTI=true
-        #generic is always added
-        CPU="$CPU generic"
     elif [ $p = "-test" ]; then
         TEST=true
     elif [ $p = "-all" ]; then
@@ -79,8 +77,9 @@ shift
 done
 
 # If no CPU is gven, compile by default for 'generic'
-if [ -z $CPU ]; then
-    CPU="generic"
+if [ -z "$CPU" ]; then
+    echo "ERROR : no CPU was given"
+    exit
 fi
 
 for p in $FILES; do
