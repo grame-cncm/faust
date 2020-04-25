@@ -204,6 +204,9 @@ class mydspmulti : public decorator_dsp {
   
 };
 
+// Factory API
+dsp* createmydspmulti() { return new mydspmulti(); }
+
 #endif
 /**************************  END  llvm-dsp-multi.h **************************/
 
