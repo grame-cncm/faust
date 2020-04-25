@@ -318,7 +318,7 @@ checkemcc:
 #===============================================================
 installLog := $(FAUSTDIR)/install_manifest.txt
 install:
-	git submodule update --init
+	if test -d ../.git; then git submodule update --init; fi
 	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(PREFIX)
 	cmake  --build $(FAUSTDIR) --target install
 uninstall: installedfiles = $(shell cat $(installLog))
