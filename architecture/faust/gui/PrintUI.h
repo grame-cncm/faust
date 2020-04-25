@@ -50,17 +50,17 @@ class PrintUI : public PathBuilder, public UI
         virtual void openTabBox(const char* label)
         {
             pushLabel(label);
-            std::cout << "openTabBox label : " << label << std::endl;
+            std::cout << "openTabBox label : [" << label << "]" << std::endl;
         }
         virtual void openHorizontalBox(const char* label)
         {
             pushLabel(label);
-            std::cout << "openHorizontalBox label : " << label << std::endl;
+            std::cout << "openHorizontalBox label : [" << label << "]" << std::endl;
         }
         virtual void openVerticalBox(const char* label)
         {
             pushLabel(label);
-            std::cout << "openVerticalBox label : " << label << std::endl;
+            std::cout << "openVerticalBox label : [" << label << "]" << std::endl;
         }
         virtual void closeBox()
         {
@@ -72,48 +72,48 @@ class PrintUI : public PathBuilder, public UI
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            std::cout << "addButton label : " << buildPath(label) << std::endl;
+            std::cout << "addButton label : [" << buildPath(label) << "]" << std::endl;
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            std::cout << "addCheckButton label : " << buildPath(label) << std::endl;
+            std::cout << "addCheckButton label : [" << buildPath(label) << "]" << std::endl;
         }
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            std::cout << "addVerticalSlider label : " << buildPath(label) << " init : " << init << " min : " << min << " max : " << max << " step : " << step << std::endl;
+            std::cout << "addVerticalSlider label : [" << buildPath(label) << " init : " << init << " min : " << min << " max : " << max << " step : " << step << "]" << std::endl;
         }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            std::cout << "addHorizontalSlider label : " << buildPath(label) << " init : " << init << " min : " << min << " max : " << max << " step : " << step << std::endl;
+            std::cout << "addHorizontalSlider label : [" << buildPath(label) << " init : " << init << " min : " << min << " max : " << max << " step : " << step << "]" << std::endl;
         }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            std::cout << "addNumEntry label : " << buildPath(label) << " init : " << init << " min : " << min << " max : " << max << " step : " << step << std::endl;
+            std::cout << "addNumEntry label : [" << buildPath(label) << " init : " << init << " min : " << min << " max : " << max << " step : " << step << "]" << std::endl;
         }
 
         // -- passive widgets
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            std::cout << "addHorizontalBargraph label : " << buildPath(label) << " min : " << min << " max : " << max << std::endl;
+            std::cout << "addHorizontalBargraph label : [" << buildPath(label) << " min : " << min << " max : " << max << "]" << std::endl;
         }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            std::cout << "addVerticalBargraph label : " << buildPath(label) << " min : " << min << " max : " << max << std::endl;
+            std::cout << "addVerticalBargraph label : [" << buildPath(label) << " min : " << min << " max : " << max << "]" << std::endl;
         }
     
         // -- soundfiles
     
         virtual void addSoundfile(const char* label, const char* filename,  Soundfile** sf_zone)
         {
-            std::cout << "addSoundfile label : " << buildPath(label) << " filename :" << filename << std::endl;
+            std::cout << "addSoundfile label : [" << buildPath(label) << " filename :" << filename << "]" << std::endl;
         }
 
         // -- metadata declarations
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            std::cout << "declare key : " << key << " val : " << val << std::endl;
+            std::cout << "declare key : [" << key << " val : " << val << "]" << std::endl;
         }
     
 };

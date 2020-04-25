@@ -36,7 +36,7 @@ Here are the available options:
 - `skylake to compile for Skylake CPU`
 - `skylake_avx512 to compile for Skylake-avx512 CPU`
 - `cannonlake to compile for Cannonlake CPU`
-- `generic to compile for Generic CPU`
+- `generic to compile for generic CPU`
 - `-all to compile for all CPUs`
 - `-multi to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime`
 - `-opt native to activate the best compilation options for the native CPU`
@@ -44,8 +44,8 @@ Here are the available options:
 - `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
 - `-test to compile a test program`
 
-A set of  header and object code files will be created, and will have to be added in the final project.
-The `-multi` mode creates an additional header file (like `foomulti.h`) that will dynamically load and instantiate the correct code for the machine CPU (or  a generic version if the given CPU is not supported). 
+A set of  header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>`  class and a  `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric` creation function).
+ The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi`  class ) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi()` to load the appropriate object code version depending on the running machine CPU. 
 Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
 
 

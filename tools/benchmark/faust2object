@@ -39,7 +39,7 @@ do
         echo "Use 'skylake' to compile for Skylake CPU"
         echo "Use 'skylake_avx512' to compile for Skylake-avx512 CPU"
         echo "Use 'cannonlake' to compile for Cannonlake CPU"
-        echo "Use 'generic' to compile for Generic CPU"
+        echo "Use 'generic' to compile for generic CPU"
         echo "Use '-all' to compile for all CPUs"
         echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
@@ -77,6 +77,11 @@ do
 
 shift
 done
+
+# If no CPU is gven, compile by default for 'generic'
+if [ -z $CPU ]; then
+    CPU="generic"
+fi
 
 for p in $FILES; do
 
