@@ -87,7 +87,7 @@ class dummyaudio : public audio {
         
         void process()
         {
-            while (fRunning && (--fRender > 0)) {
+            while (fRunning && (fRender-- > 0)) {
                 if (fSample > 0) { std::cout << "Render one buffer\n"; }
                 render();
             }
@@ -164,7 +164,7 @@ class dummyaudio : public audio {
                     fRunning = false;
                 }
             #else
-                fAudioThread = new std::thread (dummyaudio::run, this);
+                fAudioThread = new std::thread(dummyaudio::run, this);
             #endif
                 return fRunning;
             } else {

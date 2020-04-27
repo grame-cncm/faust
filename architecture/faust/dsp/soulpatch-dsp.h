@@ -492,6 +492,7 @@ soul_dsp_factory* createSOULDSPFactoryFromFile(const std::string& filename,
 {
     try {
         soul_dsp_factory* factory = new soul_dsp_factory(filename, error_msg);
+        // Check that SOUL patch compilation works
         soulpatch_dsp dummy(factory, error_msg);
         return factory;
     } catch (...) {

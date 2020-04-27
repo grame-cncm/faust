@@ -23,7 +23,7 @@
 #ifndef CPP_mydsp_adapter_H
 #define CPP_mydsp_adapter_H
 
-#include "faust/dsp/dsp.h"
+class dsp;
 
 // Factory API
 dsp* createmydsp();

@@ -64,7 +64,7 @@ do
     elif [ $p = "-test" ]; then
         TEST=true
     elif [ $p = "-all" ]; then
-	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake"
+	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake generic"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
