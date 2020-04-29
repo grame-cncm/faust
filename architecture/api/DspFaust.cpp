@@ -87,6 +87,8 @@
     #include "faust/audio/juce-dsp.h"
 #elif DUMMY_DRIVER
     #include "faust/audio/dummy-audio.h"
+#elif TEENSY_DRIVER
+    #include "faust/audio/teensy-dsp.h"
 #endif
 
 //**************************************************************
@@ -98,6 +100,8 @@
     // Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
     #include "faust/midi/juce-midi.h"
+#elif TEENSY_DRIVER
+    #include "faust/midi/teensy-midi.h"
 #else
     #include "faust/midi/rt-midi.h"
     #include "faust/midi/RtMidi.cpp"
@@ -208,6 +212,10 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
     audio* driver = new juceaudio();
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
+#elif TEENSY_DRIVER
+    // TEENSY has its own and buffer size
+    std::cerr << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+    audio* driver = new teensyaudio();
 #endif
     return driver;
 }
@@ -221,6 +229,9 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     fMidiInterface = new MidiUI(midi);
 #elif JUCE_DRIVER
     midi = new juce_midi();
+    fMidiInterface = new MidiUI(midi, true);
+#elif TEENSY_DRIVER
+    midi = new teensy_midi();
     fMidiInterface = new MidiUI(midi, true);
 #else
     midi = new rt_midi();

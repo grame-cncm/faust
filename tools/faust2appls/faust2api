@@ -45,6 +45,7 @@ RTAUDIO_DRIVER="0"
 OPEN_FRAMEWORK_DRIVER="0"
 JUCE_DRIVER="0"
 DUMMY_DRIVER="0"
+TEENSY_DRIVER="0"
 
 echoHelp ()
 {
@@ -66,6 +67,7 @@ echoHelp ()
     option -of "generates an openFrameworks API"
     option -juce "generates a JUCE API"
     option -dummy "generates a dummy audio API" 
+    option -teensy "generates a teensy audio API" 
     echo 
     echo "Global options:"
     option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
@@ -86,8 +88,8 @@ echoHelp ()
     option -soundfile "add built-in Soundfile support to the API."
     echo 
     echo "JACK specific options"
-    option  -build "build a ready to test binary."
-    option  -dynamic "add libfaust/LLVM dynamic DSP compilation mode."
+    option -build "build a ready to test binary."
+    option -dynamic "add libfaust/LLVM dynamic DSP compilation mode."
 }
 
 createAPI ()
@@ -153,6 +155,8 @@ do
         JUCE_DRIVER=1
     elif [ $p = "-dummy" ]; then
         DUMMY_DRIVER=1
+    elif [ $p = "-teensy" ]; then
+        TEENSY_DRIVER=1
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
 		shift
@@ -290,6 +294,10 @@ elif [ $DUMMY_DRIVER -eq 1 ]; then
     echo "Your dsp-faust.zip API package for dummy audio is being created"
     createAPI
     echo "#define DUMMY_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $TEENSY_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for teensy audio is being created"
+    createAPI
+    echo "#define TEENSY_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 else
     echoHelp
     exit 1
