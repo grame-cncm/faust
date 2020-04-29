@@ -67,7 +67,7 @@ echoHelp ()
     option -of "generates an openFrameworks API"
     option -juce "generates a JUCE API"
     option -dummy "generates a dummy audio API" 
-    option -teensy "generates a teensy audio API" 
+    option -teensy "generates a Teensy audio API" 
     echo 
     echo "Global options:"
     option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
@@ -227,9 +227,7 @@ if [ "$EFFECT" = "auto" ]; then
     adapt(2,2) = _,_;
     adapt(1,2) = _ <: _,_;
     adapt(2,1) = _,_ :> _;
-
     adaptor(F,G) = adapt(outputs(F),inputs(G));
-
     process = adaptor(library("$FILE").process, library("$FILE").effect) : library("$FILE").effect;
 EndOfCode
     # We check this is a faust valid code. No error if it is not.

@@ -41,6 +41,7 @@ unsigned __exidx_start;
 unsigned __exidx_end;
 
 // we require macro declarations
+#ifndef FAUST_UIMACROS
 #define FAUST_UIMACROS
 
 // but we will ignore most of them
@@ -51,6 +52,7 @@ unsigned __exidx_end;
 #define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+#endif
 
 class teensyaudio : public AudioStream, public audio {
     
@@ -59,6 +61,7 @@ class teensyaudio : public AudioStream, public audio {
         float** fInChannel;
         float** fOutChannel;
         bool fRunning;
+        dsp* fDSP;
     
         template <int INPUTS, int OUTPUTS>
         void updateImp()
@@ -96,7 +99,7 @@ class teensyaudio : public AudioStream, public audio {
     
     public:
     
-        teensyaudio():AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS]), fRunning(false)
+        teensyaudio():AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS]), fRunning(false), fDSP(NULL)
         {}
     
         virtual ~teensyaudio()
@@ -113,6 +116,7 @@ class teensyaudio : public AudioStream, public audio {
 
         virtual bool init(const char* name, dsp* dsp)
         {
+            fDSP = dsp;
             fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
             
             if (fDSP->getNumInputs() > 0) {
