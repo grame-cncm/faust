@@ -287,7 +287,7 @@ struct MemoryReader : public Reader {
         fStart = start;
         fEnd = end;
         if (!load_wave_header()) {
-            std::cerr << "FileReader : not a WAV file!\n";
+            std::cerr << "MemoryReader : not a WAV file!\n";
             throw -1;
         }
     }
@@ -302,6 +302,9 @@ struct MemoryReader : public Reader {
     }
     
 };
+
+
+// Using a FileReader to implement SoundfileReader
 
 struct WaveReader : public SoundfileReader {
     
