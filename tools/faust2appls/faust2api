@@ -33,6 +33,7 @@ EFFECT=""
 BUILD="0"
 DYNAMIC_DSP="0"
 OPT=""
+MISC_OPT=""
 
 COREAUDIO_DRIVER="0"
 ANDROID_DRIVER="0"
@@ -95,7 +96,7 @@ echoHelp ()
 createAPI ()
 {
     cp -r $FAUSTARCH/api/DspFaust.h $APIFOLDER
-    faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
+    faust $OPTIONS $MISC_OPT -i -a api/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
         faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
         echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
@@ -157,6 +158,7 @@ do
         DUMMY_DRIVER=1
     elif [ $p = "-teensy" ]; then
         TEENSY_DRIVER=1
+        MISC_OPT="-uim"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
 		shift
@@ -346,7 +348,7 @@ if [ $NODOC -eq 0 ]; then
 	PPBINARY=pp
 	READMEFILE="$APIFOLDER/README.md"
 
-	faust $OPTIONS -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
+	faust $OPTIONS $MISC_OPT -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
 	if [ "$POLY2" = "1" ]; then
 		faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit 1
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"

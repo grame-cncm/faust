@@ -136,6 +136,7 @@ class teensyaudio : public AudioStream, public audio {
             } else {
                 fOutChannel = NULL;
             }
+            return true;
         }
     
         virtual bool start()

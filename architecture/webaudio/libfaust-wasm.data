@@ -45,6 +45,8 @@ declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, 
 ma = library("maths.lib");
 si = library("signals.lib");
 
+//============================Encoding/decoding Functions=================================
+//========================================================================================
 
 //----------------------`(ho.)encoder`---------------------------------
 // Ambisonic encoder. Encodes a signal in the circular harmonics domain
@@ -111,16 +113,16 @@ decoderStereo(n) = decoder(n, p) <: (par(i, 2*n+2, gainLeft(360 * i / p)) :> _),
 with {
 	p = 2*n+2;
 
-   	gainLeft(a) =  _ * sin(ratio_minus + ratio_cortex)
+   	gainLeft(a) = _ * sin(ratio_minus + ratio_cortex)
 	with {
-		ratio_minus = ma.PI*.5 * abs( (30 + a) / 60 * ((a <= 30)) + (a - 330) / 60 * (a >= 330) );
-		ratio_cortex= ma.PI*.5 * abs( (120 + a) / 150 * (a > 30) * (a <= 180));
+		ratio_minus = ma.PI*.5 * abs((30 + a) / 60 * ((a <= 30)) + (a - 330) / 60 * (a >= 330));
+		ratio_cortex= ma.PI*.5 * abs((120 + a) / 150 * (a > 30) * (a <= 180));
 	};
 
-	gainRight(a) =  _ * sin(ratio_minus + ratio_cortex)
+	gainRight(a) = _ * sin(ratio_minus + ratio_cortex)
 	with {
-		ratio_minus = ma.PI*.5 * abs( (390 - a) / 60 * (a >= 330) + (30 - a) / 60 * (a <= 30) );
-		ratio_cortex= ma.PI*.5 * abs( (180 - a) / 150 * (a < 330) * (a >= 180));
+		ratio_minus = ma.PI*.5 * abs((390 - a) / 60 * (a >= 330) + (30 - a) / 60 * (a <= 30));
+		ratio_cortex= ma.PI*.5 * abs((180 - a) / 150 * (a < 330) * (a >= 180));
 	};
 };
 
@@ -151,7 +153,7 @@ optimBasic(n) = par(i, 2*n+1, _);
 
 
 //----------------`(ho.)optimMaxRe`-------------------------
-// The maxRe optimization optimize energy vector. It should be used for an
+// The maxRe optimization optimizes energy vector. It should be used for an
 // auditory confined in the center of the loudspeakers array.
 //
 // #### Usage
@@ -175,7 +177,7 @@ optimMaxRe(n) = par(i, 2*n+1, optim(i, n, _))
 
 
 //----------------`(ho.)optimInPhase`-------------------------
-//  The inPhase Optimization optimize energy vector and put all loudspeakers signals
+//  The inPhase Optimization optimizes energy vector and put all loudspeakers signals
 // in phase. It should be used for an auditory.
 //
 // #### Usage
@@ -232,7 +234,7 @@ with {
 
 
 //----------------`(ho.)map`-------------------------
-// It simulate the distance of the source by applying a gain
+// It simulates the distance of the source by applying a gain
 // on the signal and a wider processing on the soundfield.
 //
 // #### Usage
@@ -250,8 +252,8 @@ with {
 //-----------------------------------------------------
 map(n, x, r, a)	= encoder(n, x * volume(r), a) : wider(n, ouverture(r))
 with {
-	volume(r) = 1. / (r * r * (r > 1) + (r < 1));
-	ouverture(r) = r * (r < 1) + (r > 1);
+	volume(r) = 1. / (r * r * (r > 1) + (r =< 1));
+	ouverture(r) = r * (r < 1) + (r >= 1);
 };
 
 
@@ -281,9 +283,8 @@ with {
 };
 
 
-//----------------------------------------------------------------------------//
-//---------------------------- 3D functions ----------------------------------//
-//----------------------------------------------------------------------------//
+//============================3D Functions================================================
+//========================================================================================
 
 //----------------------`(ho.)encoder3D`---------------------------------
 // Ambisonic encoder. Encodes a signal in the circular harmonics domain
@@ -306,9 +307,9 @@ with {
 encoder3D(N, x, theta, phi) = par(i, (N+1) * (N+1), x * y(degree(i), order(i), theta, phi))
 with {
 	// The degree l of the harmonic[l, m]	
-	degree(index)  = int(sqrt(index));
+	degree(index) = int(sqrt(index));
 	// The order m of the harmonic[l, m]	
-	order(index)   = int(index - int(degree(index) * int(degree(index) + 1)));
+	order(index) = int(index - int(degree(index) * int(degree(index) + 1)));
 
 	// The spherical harmonics
 	y(l, m, theta, phi) =  e(m, theta) * k(l, m) * p(l, m, cos(phi + PI * 0.5))
@@ -396,7 +397,7 @@ with {
 
 
 //----------------`(ho.)optimInPhase3D`-------------------------
-//  The inPhase Optimization optimize energy vector and put all loudspeakers signals
+// The inPhase Optimization optimizes energy vector and put all loudspeakers signals
 // in phase. It should be used for an auditory.
 //
 // #### Usage
@@ -493,7 +494,7 @@ declare version "0.0";
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -515,7 +516,7 @@ declare version "0.0";
 // note: si.lag_ud has a bug where if you compile with standard precision,
 // down is 0 and prePost is 1, you go into infinite GR and stay there
 peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost) =
-  abs:ba.bypass(prePost,si.lag_ud(att,rel)) : ba.linear2db : gain_computer(strength,thresh,knee):ba.bypass((prePost*-1)+1,si.lag_ud(rel,att)) : ba.db2linear
+  abs:ba.bypass1(prePost,si.lag_ud(att,rel)) : ba.linear2db : gain_computer(strength,thresh,knee):ba.bypass1((prePost*-1)+1,si.lag_ud(rel,att)) : ba.db2linear
 with {
   gain_computer(strength,thresh,knee,level) =
     select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
@@ -553,7 +554,7 @@ with {
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -614,7 +615,7 @@ peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -668,7 +669,7 @@ FFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -723,7 +724,7 @@ FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -777,7 +778,7 @@ FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -796,12 +797,12 @@ FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) =
 // License: GPLv3
 
 RMS_compression_gain_mono(strength,thresh,att,rel,knee,prePost) =
-  RMS(rel): ba.bypass(prePost,si.lag_ud(att,0)) : ba.linear2db : gain_computer(strength,thresh,knee) : ba.bypass((prePost*-1)+1,si.lag_ud(0,att)) : ba.db2linear
+  RMS(rel): ba.bypass1(prePost,si.lag_ud(att,0)) : ba.linear2db : gain_computer(strength,thresh,knee) : ba.bypass1((prePost*-1)+1,si.lag_ud(0,att)) : ba.db2linear
 with {
   gain_computer(strength,thresh,knee,level) =
     select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
             0,
-            ((level-thresh+(knee/2)):pow(2)/(2*knee)) ,
+            ((level-thresh+(knee/2)):pow(2)/(2*knee)),
             (level-thresh)
            ) : max(0)*-strength;
   	RMS(time) = ba.slidingRMS(s) with { s = ba.sec2samp(time):int:max(1); };
@@ -834,7 +835,7 @@ with {
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -891,7 +892,7 @@ RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -962,7 +963,7 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
 // Sometimes even bigger ratios are usefull:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
@@ -992,9 +993,9 @@ RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link
 
 
 //=============================Backward compatibility section=============================
-//========================================================================================
 // These functions are superseded by the ones above.
 // They are included for backward compatibility.
+//========================================================================================
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -1828,8 +1829,8 @@ subseq(head, 0, n)         = head;
 // Where:
 //
 // * `cond`: condition
-// * `cond`: signal selected while c is true
-// * `else`: signal selected while c is false
+// * `cond`: signal selected while cond is true
+// * `else`: signal selected while cond is false
 //-----------------------------------------------------------------------------
 if(cond,then,else) = select2(cond,else,then);
 // TODO: perhaps it would make more sense to have an if(a,b) and an ifelse(a,b,c)?
@@ -1842,7 +1843,7 @@ if(cond,then,else) = select2(cond,else,then);
 //
 // ```
 // selector(I,N)
-// _,_,_,_ : selector(2,4) : _  // selects the 3rd input among 4
+// _,_,_,_ : selector(2,4) : _ // selects the 3rd input among 4
 // ```
 //
 // Where:
@@ -1880,7 +1881,7 @@ select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
 //
 // ```
 // selectn(N,i)
-// _,_,_,_ : selectn(4,2) : _  // selects the 3rd input among 4
+// _,_,_,_ : selectn(4,2) : _ // selects the 3rd input among 4
 // ```
 //
 // Where:
@@ -3770,7 +3771,7 @@ with{
 	opRateScale(n) = ba.take(n+1,opRateScaleUI);
 };
 //################################ analyzers.lib ##########################################
-// Faust Analyzers library. Its official prefix is `an`.
+// Analyzers library. Its official prefix is `an`.
 //########################################################################################
 
 ma = library("maths.lib");
@@ -3781,7 +3782,7 @@ fi = library("filters.lib");
 an = library("analyzers.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Analyzer Library";
-declare version "0.0";
+declare version "0.1";
 
 /************************************************************************
 FAUST library file, jos section
@@ -3800,10 +3801,47 @@ Michon and Julius O. Smith III, and is released under the
 //==============================Amplitude Tracking========================================
 //========================================================================================
 
+//------------------`(an.)abs_envelope`-----------------------------------------
+// Absolute value with one-pole lowpass averaging
+//
+// #### Usage
+//
+// ```
+// _ : abs_envelope(t60) : _;
+// ```
+//
+//  Where
+//
+// * `t60`: (time to decay by 60 dB) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+abs_envelope(t60, x) = abs(x) : si.smooth(ba.tau2pole(t60 / 6.91));
+
+
+//------------------`(an.)abs_envelope_rect`-----------------------------------
+// Absolute value with moving-average
+//
+// #### Usage
+//
+// ```
+// _ : abs_envelope_rect(length) : _;
+// ```
+//
+//  Where
+//
+// * `length`: sets the averaging frame in samples
+//-----------------------------------------------------------------------------
+abs_envelope_rect(length, x) = abs(x) : mean(int(length)) 
+with {
+	mean(length , x) = x - x@max(1, length) : fi.pole(1.0 - 1.0e-10) : /(float(length)); 
+	// small leakage to avoid possible growing roundoff error
+};
+
+
 //---------------------------`(an.)amp_follower`---------------------------
 // Classic analog audio envelope follower with infinitely fast rise and
 // exponential decay.  The amplitude envelope instantaneously follows
 // the absolute value going up, but then floats down exponentially.
+// 
 // `amp_follower` is a standard Faust function.
 //
 // #### Usage
@@ -3822,9 +3860,11 @@ Michon and Julius O. Smith III, and is released under the
 // Newsletter, Bernie Hutchins
 //------------------------------------------------------------
 amp_follower(rel) = abs : env with {
- p = ba.tau2pole(rel);
- env(x) = x * (1.0 - p) : (+ : max(x,_)) ~ *(p);
+ 	p = ba.tau2pole(rel);
+ 	env(x) = x * (1.0 - p) : (+ : max(x,_)) ~ *(p);
 };
+
+peak_envelope = amp_follower; // Synonym for more standard naming
 
 
 //---------------------------`(an.)amp_follower_ud`---------------------------
@@ -3871,6 +3911,74 @@ amp_follower_ud(att,rel) = amp_follower(rel) : si.smooth(ba.tau2pole(att));
 //---------------------------------------------------------
 amp_follower_ar(att,rel) = abs : si.lag_ud(att,rel);
 
+//------------------`(an.)ms_envelope`-----------------------------------------
+// Mean square with one-pole lowpass averaging
+//
+// #### Usage
+//
+// ```
+// _ : ms_envelope(t60) : _;
+// ```
+//
+//  Where
+//
+// * `t60`: (time to decay by 60 dB) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+ms_envelope(t60, x) = x * x : si.smooth(ba.tau2pole(t60 / 6.91));
+
+
+//------------------`(an.)ms_envelope_rect`------------------------------------
+// Mean square with moving-average
+//
+// #### Usage
+//
+// ```
+// _ : ms_envelope_rect(length) : _;
+// ```
+//
+//  Where
+//
+// * `length`: sets the averaging frame in samples
+//-----------------------------------------------------------------------------
+ms_envelope_rect(length, x) = x * x : mean(int(length))
+with {
+	mean(length, x) = x - x@max(1, length) : fi.pole(1.0 - 1.0e-10) : /(float(length)); 
+	// small leakage to avoid possible growing roundoff error
+};
+
+
+//------------------`(an.)rms_envelope`----------------------------------------
+// Root mean square with one-pole lowpass averaging
+//
+// #### Usage
+//
+// ```
+// _ : rms_envelope(t60) : _;
+// ```
+//
+//  Where
+//
+// * `t60`: (time to decay by 60 dB) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+rms_envelope(t60, x) = ms_envelope(t60, x) : sqrt;
+
+
+//------------------`(an.)rms_envelope_rect`-----------------------------------
+// Root mean square with moving-average
+//
+// #### Usage
+//
+// ```
+// _ : rms_envelope_rect(length) : _;
+// ```
+//
+//  Where
+//
+// * `length`: sets the averaging frame in samples
+//-----------------------------------------------------------------------------
+rms_envelope_rect(length, x) = ms_envelope_rect(length, x) : sqrt;
+
+
 //=============================Spectrum-Analyzers=========================================
 // Spectrum-analyzers split the input signal into a bank of parallel signals, one for
 // each spectral band. They are related to the Mth-Octave Filter-Banks in `filters.lib`.
@@ -3884,7 +3992,7 @@ amp_follower_ar(att,rel) = abs : si.lag_ud(att,rel);
 // In addition to the Mth-octave output signals, there is a highpass signal
 // containing frequencies from ftop to SR/2, and a "dc band" lowpass signal
 // containing frequencies from 0 (dc) up to the start of the Mth-octave bands.
-// Thus, the N output signals are
+// Thus, the N output signals are:
 // ```
 // highpass(ftop), MthOctaveBands(M,N-2,ftop), dcBand(ftop*2^(-M*(N-1)))
 // ```
@@ -4201,7 +4309,7 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 
 
 //---------------`(an.)fft` --------------------------
-// Fast Fourier Transform (FFT)
+// Fast Fourier Transform (FFT).
 //
 // #### Usage
 //
@@ -4897,7 +5005,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Oscillator Library";
-declare version "0.0";
+declare version "0.1";
 
 ma = library("maths.lib");
 ba = library("basics.lib");
@@ -4978,6 +5086,30 @@ with {
 	clk = c>0;
 	d   = ma.decimal;
 	inc = freq/float(ma.SR);
+};
+
+//-----------------------`(os.)hsp_phasor`------------------------
+// Hardsyncing phasor with selectable phase to be used with an `rdtable`.
+//
+// #### Usage
+//
+// ```
+// hsp_phasor(tablesize,freq,p,c)
+// ```
+//
+// Where:
+//
+// * `tablesize`: the table size
+// * `freq`: the frequency of the phasor (Hz)
+// * `p`: phase init (0 <= `p` <=1)
+// * `c`: a clock signal, `c>0` resets phase to 0
+//---------------------------------------------------------
+// Author: Christophe Lebreton
+hsp_phasor(tablesize,freq,p,c) = inc : (+ : d)~(-(_<:(_,*(_,clk))):+(clk*p)) : *(tablesize)
+with {
+        clk = c>0;
+        d   = ma.decimal;
+        inc = freq/float(ma.SR);
 };
 
 //-----------------------`(os.)oscsin`------------------------
@@ -5251,7 +5383,7 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 // #### Usage
 //
 // ```
-// lf_sawpos_phase(freq,phase)
+// lf_sawpos_phase(phase,freq)
 // ```
 //
 // Where:
@@ -5278,7 +5410,7 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac) ~ +(freq/ma.SR);
 // Author: Bart Brouns
 // License: STK-4.3
 // MarkDown: Romain Michon
-lf_sawpos(freq) = ma.frac ~ +(freq'/ma.SR);
+lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
 
 //-----------------`(os.)lf_saw`--------------------
 // Simple sawtooth waveform.
@@ -6034,7 +6166,7 @@ with {
 };
 
 //----------`(os.)polyblep_saw`----------
-// Sawtooth oscillator with suppressed aliasing (using polyBLEP)
+// Sawtooth oscillator with suppressed aliasing (using polyBLEP).
 //
 // #### Usage
 //
@@ -6055,7 +6187,7 @@ with {
 };
 
 //----------`(os.)polyblep_square`----------
-// Square wave oscillator with suppressed aliasing (using polyBLEP)
+// Square wave oscillator with suppressed aliasing (using polyBLEP).
 //
 // #### Usage
 //
@@ -6076,7 +6208,7 @@ with {
 };
 
 //----------`(os.)polyblep_triangle`----------
-// Triangle wave oscillator with suppressed aliasing (using polyBLEP)
+// Triangle wave oscillator with suppressed aliasing (using polyBLEP).
 //
 // #### Usage
 //
@@ -6095,7 +6227,7 @@ polyblep_triangle(f) = polyblep_square(f) : fi.pole(0.999) : *(4 * f / ma.SR);
 //===============================Filter-Based Oscillators=================================
 
 //-----------------`(os.)quadosc`--------------------
-// Sinusoidal oscillator based on QuadOsc by Martin Vicanek
+// Sinusoidal oscillator based on QuadOsc by Martin Vicanek.
 //
 // #### Usage
 //
@@ -6113,120 +6245,200 @@ polyblep_triangle(f) = polyblep_square(f) : fi.pole(0.999) : *(4 * f / ma.SR);
 // Authors:
 // Dario Sanfilippo <sanfilippo.dario@gmail.com>
 // and Oleg Nesterov (jos ed.)
-quadosc(f) = tick ~ (_,_) : mem+1,mem with {
-  k1 = tan(f * ma.PI/ma.SR);
-  k2 = 2*k1 / (1 + k1 * k1);
-
-  tick(u_0,v_0) = u_1,v_1 with {
-    tmp = u_0 - k1 * v_0;
-    v_1 = v_0 + k2 * (tmp + 1);
-    u_1 = tmp - k1 * v_1;
-  };
+quadosc(f) = tick ~ (_ , _) 
+with {
+      k1 = tan(f * ma.PI / ma.SR);
+      k2 = 2 * k1 / (1 + k1 * k1);
+      tick(u_0, v_0) = u_1 , v_1 
+      with {
+       tmp = u_0 - k1 * v_0;
+       v_1 = v_0 + k2 * tmp;
+       u_1 = tmp - k1 * v_1 : select2(1', 1);
+      };
 };
 
 // end further contributions section
 //########################################################################################
 //############################# mi.lib #########################################
-// This ongoing work is the fruit of a collaboration between GRAME-CNCM and 
-// Gipsa-Lab at Grenoble INP.
+// This ongoing work is the fruit of a collaboration between GRAME-CNCM and
+// the ANIS (Arts Numériques et Immersions Sensorielles) research group from
+// GIPSA-Lab (Université Grenoble Alpes).
+//
+// This library implements basic 1-DoF mass-interaction physics algorithms,
+// allowing to declare and connect physical elements (masses, springs, non
+// linear interactions, etc.) together to form topological networks.
+// Models can be assembled by hand, however in more complex scenarios it is
+// recommended to use a scripting tool (such as MIMS) to generate the FAUST
+// signal routing for a given physical network.
+//
+// <https://github.com/rmichon/mi_faust>
+// <http://mi-creative.eu/tool_miFaust.html>
+// <http://mi-creative.eu/paper_lac19.html>
+//
 //
 // ## Sources
 //
-// All the algorithms implemented in this library are in the public domain 
-// and are disclosed in the following scientific publications:
-// * Claude Cadoz, Annie Luciani, Jean-Loup Florens, Curtis Roads and Françoise 
-// Chabade. Responsive Input Devices and Sound Synthesis by Stimulation of 
-// Instrumental Mechanisms: The Cordis System. Computer Music Journal, Vol 8. 
+// The core mass-interaction algorithms implemented in this library are in the public
+// domain and are disclosed in the following scientific publications:
+//
+// * Claude Cadoz, Annie Luciani, Jean-Loup Florens, Curtis Roads and Françoise
+// Chabade. Responsive Input Devices and Sound Synthesis by Stimulation of
+// Instrumental Mechanisms: The Cordis System. Computer Music Journal, Vol 8.
 // No. 3, 1984.
-// * Claude Cadoz, Annie Luciani and Jean Loup Florens. CORDIS-ANIMA: A Modeling 
-// and Simulation System for Sound and Image Synthesis: The General Formalism. 
+// * Claude Cadoz, Annie Luciani and Jean Loup Florens. CORDIS-ANIMA: A Modeling
+// and Simulation System for Sound and Image Synthesis: The General Formalism.
 // Computer Music Journal. Vol. 17, No. 1, 1993.
-// * Alexandros Kontogeorgakopoulos and Claude Cadoz. Cordis Anima Physical 
-// Modeling and Simulation System Analysis. In Proceedings of the Sound and Music 
+// * Alexandros Kontogeorgakopoulos and Claude Cadoz. Cordis Anima Physical
+// Modeling and Simulation System Analysis. In Proceedings of the Sound and Music
 // Computing Conference (SMC-07), Lefkada, Greece, 2007.
-// * Nicolas Castagne, Claude Cadoz, Ali Allaoui and Olivier Tache. G3: Genesis 
-// Software Environment Update. In Proceedings of the International Computer 
+// * Nicolas Castagne, Claude Cadoz, Ali Allaoui and Olivier Tache. G3: Genesis
+// Software Environment Update. In Proceedings of the International Computer
 // Music Conference (ICMC-09), Montreal, Canada, 2009.
-// * Nicolas Castagné and Claude Cadoz. Genesis 3: Plate-forme pour la création 
-// musicale à l'aide des modèles physiques Cordis-Anima. In Proceedings of the 
-// Journée de l'Informatique Musicale, Grenoble, France, 2009. 
-// * Edgar Berdahl and Julius O. Smith. An Introduction to the Synth-A-Modeler 
-// Compiler: Modular and Open-Source Sound Synthesis using Physical Models. In 
+// * Nicolas Castagné and Claude Cadoz. Genesis 3: Plate-forme pour la création
+// musicale à l'aide des modèles physiques Cordis-Anima. In Proceedings of the
+// Journée de l'Informatique Musicale, Grenoble, France, 2009.
+// * Edgar Berdahl and Julius O. Smith. An Introduction to the Synth-A-Modeler
+// Compiler: Modular and Open-Source Sound Synthesis using Physical Models. In
 // Proceedings of the Linux Audio Conference (LAC-12), Stanford, USA, 2012.
-// * James Leonard and Claude Cadoz. Physical Modelling Concepts for a Collection 
-// of Multisensory Virtual Musical Instruments. In Proceedings of the New 
+// * James Leonard and Claude Cadoz. Physical Modelling Concepts for a Collection
+// of Multisensory Virtual Musical Instruments. In Proceedings of the New
 // Interfaces for Musical Expression (NIME-15) Conference, Baton Rouge, USA, 2015.
-//
-// ## License
-//
-// The MIT License (MIT)
-//
-// Copyright (c) <2019> <GRAME-CNCM (Lyon, France) and Gipsa-Lab (Grenoble, 
-// France)>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy 
-// of this software and associated documentation files (the "Software"), to deal 
-// in the Software without restriction, including without limitation the rights 
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-// copies of the Software, and to permit persons to whom the Software is 
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all 
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-// SOFTWARE.
 //##############################################################################
+
 
 ma = library("maths.lib");
 ba = library("basics.lib");
 
-// initialize the state of a variable in a letrec system (only first order)
-//initState(init) = +(init : ba.impulsify);
-initState((init)) = R(0,init)
+declare name "Faust mass-interaction physical modelling library";
+declare version "0.0";
+declare author "James Leonard";
+declare author "Romain Michon";
+declare copyright "2018-2020 GRAME / GIPSA-Lab";
+
+
+//===============================Utility Functions========================================
+// These utility functions are used to help certain operations (e.g. define initial
+// positions and velocities for physical elements).
+//========================================================================================
+
+
+
+//------------------------`(mi.)initState`----------------------
+// Used to set initial delayed position values that must be initialised
+// at step 0 of the physics simulation.
+//
+// If you develop any of your own modules, you will need to use this (see
+// mass and springDamper algorithm codes for examples).
+//
+// #### Usage
+//
+// ```
+// x: initState(x0) : _
+// ```
+//
+// Where:
+//
+// * `x`: position value signal
+// * `x0`: initial value for position
+//---------------------------------------------------------
+initState(init) = R(0,init)
 with{
   R(n,(initn,init)) = +(initn : ba.impulsify@n) : R(n+1,init);
   R(n,initn) = +(initn : ba.impulsify@n);
 };
 
-// integrated oscillator (mass-spring-ground system)
-// m, k, z: mass, stiffness, damping (algorithmic values)
-// x0, x1: initial position and delayed position
-osc(m,k,z,x0,x1) = equation
-with{
-  A = 2 - (k + z)/m;
-  B = z/m - 1;
-  C = 1/m;
-  equation = x 
-	letrec{
-    'x = A*(x : initState(x0)) + B*(x' : initState(x1)) + *(C);
-	};
-};
 
-// punctual mass module
-// m: mass (algorithmic value)
-// x0, x1: initial position and delayed position
-mass(m,x0,x1) = equation
+
+
+//=================================Mass Algorithms========================================
+// All mass-type physical element functions are declared here. They all expect to receive
+// a force input signal and produce a position signal.
+// All physical parameters are expressed in sample-rate dependant values.
+//========================================================================================
+
+
+
+//------------------------`(mi.)mass`----------------------
+// Implementation of a punctual mass element.
+// Takes an input force and produces output position.
+//
+// #### Usage
+//
+// ```
+// mass(m, grav, x0, xr0),_ : _
+// ```
+//
+// Where:
+//
+// * `m`: mass value
+// * `grav`: gravity force value
+// * `x0`: initial position
+// * `xr0`: initial delayed position (inferred from initial velocity)
+//---------------------------------------------------------
+mass(m, grav, x0, x1) = equation
 with{
   A = 2;
   B = -1;
   C = 1/m;
   equation = x 
 	letrec{
-    'x = A*(x : initState(x0)) + B*(x' : initState((x1,x0))) + *(C);
+    'x = A*(x : initState(x0)) + B*(x' : initState((x1,x0))) + (_-grav)*(C);
 	};
 };
 
-// punctual ground module
-// x0: initial position
+
+
+//------------------------`(mi.)osc`----------------------
+// Implementation of a simple linear harmonic oscillator.
+// Takes an input force and produces output position.
+//
+// #### Usage
+//
+// ```
+// osc(m, k, z, grav, x0, xr0),_ : _
+// ```
+//
+// Where:
+//
+// * `m`: mass value
+// * `k`: stiffness value
+// * `z`: damping value
+// * `grav`: gravity force value
+// * `x0`: initial position
+// * `xr0`: initial delayed position (inferred from initial velocity)
+//---------------------------------------------------------
+osc(m, k, z, grav, x0, x1) = equation
+with{
+  A = 2 - (k + z)/m;
+  B = z/m - 1;
+  C = 1/m;
+  equation = x
+	letrec{
+    'x = A*(x : initState(x0)) + B*(x' : initState(x1)) + (_-grav)*(C);
+	};
+};
+
+
+
+//------------------------`(mi.)ground`----------------------
+// Implementation of a fixed point element.
+// The position output produced by this module never changes, however
+// it still expects a force input signal (for compliance with connection
+// rules).
+//
+// #### Usage
+//
+// ```
+// ground(x0),_ : _
+// ```
+//
+// Where:
+//
+// * `x0`: initial position
+//---------------------------------------------------------
 ground(x0) = equation
 with{
-  // could this term be removed or simlified? Need "unused" input force signal for routing scheme
+  // could this term be removed or simlified? Need "unused" input force signal for the routing scheme to work
   C = 0;
   equation = x 
 	letrec{
@@ -6234,52 +6446,362 @@ with{
 	};
 };
 
-// spring
-// k,z: stiffness and daming (algorithmic values)
-spring(k,z,x1r0,x2r0,x1,x2) = 
-  k*(x1-x2) + 
-  z*((x1 - (x1' : initState(x1r0))) - (x2 - (x2' : initState(x2r0)))) <: *(-1),_;
 
-// nlPluck
-// 1D non-linear picking Interaction algorithm
-nlPluck(k,scale,x1,x2) = 
-  select2(
-    absdeltapos>scale,
-    select2(
-      absdeltapos>(scale*0.5),
-      k*deltapos,
-      k*(ma.signum(deltapos)*scale*0.5 - deltapos)),
-    0) <: *(-1),_
+
+//------------------------`(mi.)posInput`----------------------
+// Implementation of a position input module (driven by an outside
+// signal). Takes two signal inputs: incoming force (which doesn't
+// affect position) and the driving position signal.
+//
+// #### Usage
+//
+// ```
+// posInput(x0),_,_ : _
+// ```
+//
+// Where:
+//
+// * `x0`: initial position
+//---------------------------------------------------------
+posInput(init) = _,_ : !,_ : initState(init);
+
+
+
+//===============================Interaction Algorithms====================================
+// All interaction-type physical element functions are declared here. They each expect to
+// receive two position signals (coming from the two mass-elements that they connect) and
+// produce two equal and opposite force signals that must be routed back to the mass
+// elements' inputs.
+// All physical parameters are expressed in sample-rate dependant values.
+//=========================================================================================
+
+
+
+//------------------------`(mi.)spring`----------------------
+// Implementation of a linear elastic spring interaction.
+//
+// #### Usage
+//
+// ```
+// spring(k, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `k`: stiffness value
+// * `x1r`: initial delayed position of mass 1 (unused here)
+// * `x2r`: initial delayed position of mass 2 (unused here)
+//---------------------------------------------------------
+spring(k, x1r0, x2r0, x1, x2) = 
+  k*deltapos <: *(-1),_
+with{
+    deltapos = x1-x2;
+};
+
+
+
+//------------------------`(mi.)damper`----------------------
+// Implementation of a linear damper interaction.
+//
+// #### Usage
+//
+// ```
+// damper(z, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `z`: damping value
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+damper(z, x1r0, x2r0, x1, x2) = 
+  z*deltavel <: *(-1),_
+with{
+    deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+};
+
+
+
+//------------------------`(mi.)springDamper`----------------------
+// Implementation of a linear viscoelastic spring-damper interaction
+// (a combination of the spring and damper modules).
+//
+// #### Usage
+//
+// ```
+// springDamper(k, z, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `k`: stiffness value
+// * `z`: damping value
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+springDamper(k, z, x1r0, x2r0, x1, x2) = 
+  k*deltapos + 
+  z*deltavel <: *(-1),_
+with{
+    deltapos = x1-x2;
+    deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+};
+
+
+
+//------------------------`(mi.)nlSpringDamper2`----------------------
+// Implementation of a non-linear viscoelastic spring-damper interaction
+// containing a quadratic term (function of squared distance).
+// Beware: at high displacements, this interaction will break numerical
+// stability conditions ! The nlSpringDamperClipped is a safer option.
+//
+// #### Usage
+//
+// ```
+// nlSpringDamper2(k, q, z, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `k`: linear stiffness value
+// * `q`: quadratic stiffness value
+// * `z`: damping value
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+nlSpringDamper2(k, q, z, x1r0, x2r0, x1, x2) =
+  k*deltapos + q * ma.signum(deltapos) * pow(deltapos, 2) +
+  z*deltavel <: *(-1),_
+with{
+    deltapos = x1-x2;
+    deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+};
+
+
+
+//------------------------`(mi.)nlSpringDamper3`----------------------
+// Implementation of a non-linear viscoelastic spring-damper interaction
+// containing a cubic term (function of distance^3).
+// Beware: at high displacements, this interaction will break numerical
+// stability conditions ! The nlSpringDamperClipped is a safer option.
+//
+// #### Usage
+//
+// ```
+// nlSpringDamper3(k, q, z, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `k`: linear stiffness value
+// * `q`: cubic stiffness value
+// * `z`: damping value
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+nlSpringDamper3(k, q, z, x1r0, x2r0, x1, x2) =
+  k*deltapos + q * pow(deltapos, 3) +
+  z*deltavel <: *(-1),_
+with{
+    deltapos = x1-x2;
+    deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+};
+
+
+
+//------------------------`(mi.)nlSpringDamperClipped`----------------------
+// Implementation of a non-linear viscoelastic spring-damper interaction
+// containing a cubic term (function of distance^3), bound by an
+// upper linear stiffness (hard-clipping).
+//
+// This bounding means that when faced with strong displacements, the
+// interaction profile will "clip" at a given point and never produce
+// forces higher than the bounding equivalent linear spring, stopping models
+// from becoming unstable.
+//
+// So far the interaction clips "hard" (with no soft-knee spline
+// interpolation, etc.)
+//
+// #### Usage
+//
+// ```
+// nlSpringDamperClipped(s, c, k, z, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `s`: linear stiffness value
+// * `c`: cubic stiffness value
+// * `k`: upper-bound linear stiffness value
+// * `z`: (linear) damping value
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+nlSpringDamperClipped(s, c, k, z, x1r0, x2r0, x1, x2) =
+    select2(c == 0,
+        select2(s >= k,
+            select2(absdeltapos <= b,
+                // Overdamping induced here to prevent "locked" states...
+                k * deltapos + (z+0.3*k)*deltavel,
+                s * deltapos + c * pow(deltapos, 3) + z*deltavel
+            ),
+            k * deltapos + z*deltavel
+        ),
+        s * deltapos + z*deltavel
+    )<: *(-1),_
+with{
+    b = sqrt(k-s)/c;
+    deltapos = x1-x2;
+    deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+    absdeltapos = abs(deltapos);
+
+};
+
+
+
+//------------------------`(mi.)nlPluck`----------------------
+// Implementation of a piecewise linear plucking interaction.
+// The symmetric function provides a repulsive viscoelastic interaction
+// upon contact, until a tipping point is reached (when the plucking occurs).
+// The tipping point depends both on the stiffness and the distance scaling
+// of the interaction.
+//
+//
+// #### Usage
+//
+// ```
+// nlPluck(knl, scale, z, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `knl`: stiffness scaling parameter (vertical stretch of the NL function)
+// * `scale`: distance scaling parameter (horizontal stretch of the NL function)
+// * `z`: (linear) damping value
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+nlPluck(k, scale, z, x1r0, x2r0, x1, x2) = 
+  select2(absdeltapos < tipdist,
+    select2(absdeltapos < scale,
+	  		0,
+	  		ma.signum(deltapos)* -tipdist * k + Kend * deltapos + 
+              z* deltavel
+	  		),
+	(k - Kend) * -deltapos + z* deltavel
+	) <:  *(-1),_
 with{
   deltapos = x1 - x2;
+  deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+
   absdeltapos = abs(deltapos);
+  sharpness = 10;
+  tipdist = scale / sharpness;
+  Kend = k / sharpness;
 };
 
-// nlBow
-// 1D non-linear bowing Interaction algorithm 
-nlBow(z,scale,x1r0,x2r0,x1,x2) = 
-  select2(
-    absspeed>scale,
-    select2(
-      absspeed>(scale*0.333),
-      z*speed,
-      z*(ma.signum(speed)*scale*0.333) - z*0.25*speed),
-    0) <: *(-1),_
+
+
+//------------------------`(mi.)nlBow`----------------------
+// Implementation of a non-linear friction based interaction
+// that allows for stick-slip bowing behaviour.
+// Two versions are proposed : a piecewise linear function (very
+// similar to the nlPluck) or a mathematical approximation (see
+// Stefan Bilbao's book, Numerical Sound Synthesis).
+//
+//
+// #### Usage
+//
+// ```
+// nlBow(znl, scale, type, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `znl`: friction scaling parameter (vertical stretch of the NL function)
+// * `scale`: velocity scaling parameter (horizontal stretch of the NL function)
+// * `type`: interaction profile (0 = piecewise linear, 1 = smooth function)
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+nlBow(z, scale, type, x1r0, x2r0, x1, x2) =
+  select2(type > 0,
+    select2(absdeltavel < tipvel,
+        select2(absdeltavel < scale,
+	  		0,
+	  		ma.signum(deltavel)* tipvel * z - Zend * deltavel
+	  		),
+	    (z - Zend) * deltavel
+	),
+    0.63 * z * deltavel *exp(-4*pow(deltavel/scale, 2) + 1/2)
+  )
+   <:  *(-1),_
 with{
-  speed = ((x1 - x1') - (x2 - x2'));
-  absspeed = abs(speed);
+  deltavel = (x1 - x1' : initState(x1r0)) - (x2 - x2' : initState(x2r0));
+  absdeltavel = abs(deltavel);
+  sharpness = 3;
+  tipvel = scale / sharpness;
+  Zend = z / sharpness;
 };
 
-// collision
-// k,z: stiffness and daming (algorithmic values)
-// thres: position threshold for the collision to be active
+
+
+//------------------------`(mi.)collision`----------------------
+// Implementation of a collision interaction, producing linear visco-elastic
+// repulsion forces when two mass elements are interpenetrating.
+//
+//
+// #### Usage
+//
+// ```
+// collision(k, z, thres, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `k`: collision stiffness parameter
+// * `z`: collision damping parameter
+// * `thres`: threshold distance for the contact between elements
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
 collision(k,z,thres,x1r0,x2r0,x1,x2) = 
-  spring(k,z,x1r0,x2r0,x1,x2) : (select2(comp,0,_),select2(comp,0,_))
+  springDamper(k,z,x1r0,x2r0,x1+thres,x2) : (select2(comp,0,_),select2(comp,0,_))
 with{
   comp = (x2-x1) < thres;
 };
 
-posInput(init) = _,_ : !,_ : initState(init);
+
+
+//------------------------`(mi.)nlCollisionClipped`----------------------
+// Implementation of a collision interaction, producing non-linear
+// visco-elastic repulsion forces when two mass elements are interpenetrating.
+// Bound by an upper stiffness value to maintain stability.
+// This interaction is particularly useful for more realistic contact dynamics
+// (greater difference in velocity provides sharper contacts, and reciprocally).
+//
+// #### Usage
+//
+// ```
+// nlCollisionClipped(s, c, k, z, thres, x1r, x2r),_,_ : _,_
+// ```
+//
+// Where:
+//
+// * `s`: collision linear stiffness parameter
+// * `c`: collision cubic stiffness parameter
+// * `k`: collision upper-bounding stiffness parameter
+// * `z`: collision damping parameter
+// * `thres`: threshold distance for the contact between elements
+// * `x1r`: initial delayed position of mass 1
+// * `x2r`: initial delayed position of mass 2
+//---------------------------------------------------------
+nlCollisionClipped(s, c, k, z, thres, x1r0, x2r0, x1, x2) = 
+  nlSpringDamperClipped(s,c,k,z,x1r0,x2r0,x1+thres,x2) : (select2(comp,0,_),select2(comp,0,_))
+with{
+  comp = (x2-x1) < thres;
+};
 //################################## misceffects.lib ##########################################
 // This library contains a collection of audio effects. Its official prefix is `ef`.
 //########################################################################################
@@ -6879,13 +7401,14 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   1, // MAJOR version when we make incompatible API changes,
-            1, // MINOR version when we add functionality in a backwards compatible manner,
+            2, // MINOR version when we add functionality in a backwards compatible manner,
             0; // PATCH version when we make backwards compatible bug fixes.
 
             
-
 //#################################### webaudio.lib ########################################
-//An implementation of the web audio API filters.  Its official prefix is `wa`.
+//An implementation of the WebAudio API filters.  Its official prefix is `wa`.
+//
+// This library implement WebAudio filters, taking their C++ implementation as a starting point. 
 //########################################################################################
 
 /************************************************************************
@@ -7094,7 +7617,7 @@ BiquadFilter(f0, dBgain, Q, aDetune) = environment
 
 //--------------`(wa.)lowpass2`--------------
 // Standard second-order resonant lowpass filter with 12dB/octave rolloff.
-// Frequencies below the cutoff pass through; frequencies above it are attenuated.
+// Frequencies below the cutoff pass through, frequencies above it are attenuated.
 //
 // #### Usage
 //
@@ -7118,7 +7641,7 @@ lowpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).lowpass2, x : fi.tf2;
 
 //--------------`(wa.)highpass2`--------------
 // Standard second-order resonant highpass filter with 12dB/octave rolloff.
-// Frequencies below the cutoff are attenuated; frequencies above it pass through.
+// Frequencies below the cutoff are attenuated, frequencies above it pass through.
 //
 // #### Usage
 //
@@ -7142,7 +7665,7 @@ highpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).highpass2, x : fi.tf2
 
 //--------------`(wa.)bandpass2`--------------
 // Standard second-order bandpass filter.
-// Frequencies outside the given range of frequencies are attenuated; the frequencies inside it pass through.
+// Frequencies outside the given range of frequencies are attenuated, the frequencies inside it pass through.
 //
 // #### Usage
 //
@@ -7214,7 +7737,7 @@ allpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).allpass2, x : fi.tf2;
 
 
 //--------------`(wa.)peaking2`--------------
-// Frequencies inside the range get a boost or an attenuation; frequencies outside it are unchanged.
+// Frequencies inside the range get a boost or an attenuation, frequencies outside it are unchanged.
 //
 // #### Usage
 //
@@ -7898,6 +8421,7 @@ fi = library("filters.lib");
 ho = library("hoa.lib");
 it = library("interpolators.lib");
 ma = library("maths.lib");
+mi = library("mi.lib");
 ef = library("misceffects.lib");
 os = library("oscillators.lib");
 no = library("noises.lib");
@@ -9689,7 +10213,7 @@ declare version "0.1";
 //
 // Where:
 //
-// * `n`: the max delay length (in samples)
+// * `n`: the max delay length in samples
 // * `d`: the delay length as a number of samples (integer)
 //-----------------------------
 // TODO: add MBH np2
@@ -9710,7 +10234,7 @@ delay(n,d,x) = x @ min(n, max(0,d));
 //
 // Where:
 //
-// * `n`: the max delay length as a number of samples
+// * `n`: the max delay length in samples
 // * `d`: the delay length as a number of samples (float)
 //-----------------------------
 fdelay(n,d,x) = delay(n+1,int(d),x)*(1 - ma.frac(d)) + delay(n+1,int(d)+1,x)*ma.frac(d);
@@ -9723,18 +10247,18 @@ fdelay(n,d,x) = delay(n+1,int(d),x)*(1 - ma.frac(d)) + delay(n+1,int(d)+1,x)*ma.
 // #### Usage
 //
 // ```
-// _ : sdelay(N,it,dt) : _
+// _ : sdelay(n,it,dt) : _
 // ```
 //
 // Where :
 //
-// * `N`: maximal delay in samples
+// * `n`: the max delay length in samples
 // * `it`: interpolation time (in samples) for example 1024
 // * `dt`: delay time (in samples)
 //--------------------------------------------------------------------------
-sdelay(N, it, dt) = ctrl(it,dt),_ : ddi(N)
+sdelay(n, it, dt) = ctrl(it,dt),_ : ddi(n)
 with {
-	// ddi(N,i,d0,d1)
+	// ddi(n,i,d0,d1)
 	// DDI (Double Delay with Interpolation) : the input signal is sent to two
 	// delay lines. The outputs of these delay lines are crossfaded with
 	// an interpolation stage. By acting on this interpolation value one
@@ -9742,13 +10266,13 @@ with {
 	// freely change the delay time <d1> of line 1, when it is 1 we can freely change
 	// the delay time <d0> of line 0.
 	//
-	// <N>  = maximal delay in samples
+	// <n>  = maximal delay in samples
 	// <i>  = interpolation value between 0 and 1 used to crossfade the outputs of the
 	// 		two delay lines (0.0: first delay line, 1.0: second delay line)
 	// <d0> = delay time of delay line 0 in samples between 0 and <N>-1
 	// <d1> = delay time of delay line 1 in samples between 0 and <N>-1
 	// <  > = the input signal we want to delay
-	ddi(N, i, d0, d1) = _ <: delay(N,d0), delay(N,d1) : si.interpolate(i);
+	ddi(n, i, d0, d1) = _ <: delay(n,d0), delay(n,d1) : si.interpolate(i);
 
 	// ctrl(it,dt)
 	// Control logic for a Double Delay with Interpolation according to two
@@ -9779,7 +10303,7 @@ with {
 			ba.if ((ip>0.0) & (ip<1.0), v, 0),      // should we continue or not ?
 			ba.if ((ip==0.0) & (dt!=d0), 1.0/it,    // if true xfade from dl0 to dl1
 			ba.if ((ip==1.0) & (dt!=d1), -1.0/it,   // if true xfade from dl1 to dl0
-					 0)));                  // nothing to change
+					 0)));                  		// nothing to change
 		// interpolation value
 		nip = ip+nv : min(1.0) : max(0.0);
 
@@ -9803,7 +10327,7 @@ with {
 //
 // Where:
 //
-// * `N`: positive integer up to 16 (for higher powers of 2, extend 'primes' array below.)
+// * `N`: positive integer up to 16 (for higher powers of 2, extend 'primes' array below)
 // * `pathmin`: minimum acoustic ray length in the reverberator (in meters)
 // * `pathmax`: maximum acoustic ray length (meters) - think "room size"
 //
@@ -9854,8 +10378,8 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 // #### References
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html>
-//   - (fixed-delay case)(https://ccrma.stanford.edu/~jos/Interpolation/Efficient_Time_Invariant_Lagrange_Interpolation.html)
-//   - (variable-delay case)(https://ccrma.stanford.edu/~jos/Interpolation/Time_Varying_Lagrange_Interpolation.html)
+//   - [fixed-delay case](https://ccrma.stanford.edu/~jos/Interpolation/Efficient_Time_Invariant_Lagrange_Interpolation.html)
+//   - [variable-delay case](https://ccrma.stanford.edu/~jos/Interpolation/Time_Varying_Lagrange_Interpolation.html)
 // * Timo I. Laakso et al., "Splitting the Unit Delay - Tools for Fractional
 //         Delay Filter Design", IEEE Signal Processing Magazine,
 //         vol. 13, no. 1, pp. 30-60, Jan 1996.
@@ -10052,7 +10576,7 @@ si = library("signals.lib");
 sp = library("spats.lib");
 
 declare name "Faust Signal Routing Library";
-declare version "0.1";
+declare version "0.2";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -10081,7 +10605,7 @@ declare version "0.1";
 // ```
 //-----------------------------------------------------------------------------
 // cross n cables : (x1,x2,..,xn) -> (xn,..,x2,x1)
-cross(n) = route(n,n, par(i,n, (i+1, n-i)));
+cross(n) = route(n, n, par(i, n, (i+1, n-i)));
 cross2 = _,cross(2),_; // for compatibility with some old misceffects.lib functions
 
 
@@ -10091,14 +10615,14 @@ cross2 = _,cross(2),_; // for compatibility with some old misceffects.lib functi
 // #### Usage
 //
 // ```
-// _,_,... : crossmm(n) : _,_,...
+// (si.bus(2*n)) : crossnn(n) : (si.bus(2*n))
 // ```
 //
 // Where:
 //
 // * `n`: the number of signals in the `bus`
 //--------------------------------------
-crossnn(n) = route(2*n,2*n, par(i,n, ((i+1, n+i+1), (n+i+1, i+1))));
+crossnn(n) = crossNM(n,n);
 
 
 //--------------`(ro.)crossn1`--------------
@@ -10107,14 +10631,47 @@ crossnn(n) = route(2*n,2*n, par(i,n, ((i+1, n+i+1), (n+i+1, i+1))));
 // #### Usage
 //
 // ```
-// _,_,... : crossn1(n) : _,_,...
+// (si.bus(n),_) : crossn1(n) : (_,si.bus(n))
 // ```
 //
 // Where:
 //
 // * `n`: the number of signals in the first `bus`
 //--------------------------------------
-crossn1(n) = route(n+1,n+1, n+1, 1, par(i, n, i+1, i+2));
+crossn1(n) = crossNM(n,1);
+
+
+//--------------`(ro.)cross1n`--------------
+// Cross bus(1) and bus(n).
+//
+// #### Usage
+//
+// ```
+// (_,si.bus(n)) : crossn1(n) : (si.bus(n),_)
+// ```
+//
+// Where:
+//
+// * `n`: the number of signals in the second `bus`
+//--------------------------------------
+cross1n(n) = crossNM(1,n);
+
+
+//--------------`(ro.)crossNM`--------------
+// Cross bus(n) and bus(m).
+//
+// #### Usage
+//
+// ```
+// (si.bus(n),si.bus(m)) : crossNM(n,m) : (si.bus(m),si.bus(n))
+// ```
+//
+// Where:
+//
+// * `n`: the number of signals in the first `bus`
+// * `m`: the number of signals in the second `bus`
+//--------------------------------------
+crossNM(n,m) = route(n+m, n+m, par(i, n+m, i+1, ((i+m)%(n+m))+1));
 
 
 //--------------------------`(ro.)interleave`------------------------------
@@ -10866,6 +11423,7 @@ import("filters.lib");
 import("hoa.lib");
 import("interpolators.lib");
 import("maths.lib");
+import("mi.lib");
 import("misceffects.lib");
 import("oscillators.lib");
 import("noises.lib");
@@ -10879,6 +11437,8 @@ import("soundfiles.lib");
 import("spats.lib");
 import("synths.lib");
 import("vaeffects.lib");
+import("webaudio.lib");
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // WARNING: Deprecated Library!!
 // Read the README file in /libraries for more information
@@ -19290,7 +19850,6 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-
 declare name "Generic Platform Library";
 declare version "0.1";
 
@@ -19299,7 +19858,6 @@ declare version "0.1";
 // program execution.
 //-----------------------------------------------------------------------------
 SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
-
 
 //---------------------------------`(pl.)tablesize`----------------------------
 // Oscillator table size
@@ -19915,7 +20473,7 @@ elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 //##################################### filters.lib ########################################
-// Faust Filters library; Its official prefix is `fi`.
+// Faust Filters library. Its official prefix is `fi`.
 //
 // The Filters library is organized into 18 sections:
 //
@@ -19938,7 +20496,6 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // * Mth-Octave Filter-Banks
 // * Arbitrary-Crossover Filter-Banks and Spectrum Analyzers
 //
-// For more information, see ../documentation/library.pdf
 //########################################################################################
 
 // NOTE ABOUT LICENSES:
@@ -19959,7 +20516,7 @@ declare name "Faust Filters Library";
 //========================================================================================
 
 //----------------------`(fi.)zero`--------------------------
-// One zero filter. Difference equation: $y(n) = x(n) - zx(n-1)$.
+// One zero filter. Difference equation: \(y(n) = x(n) - zx(n-1)\).
 //
 // #### Usage
 //
@@ -19981,7 +20538,7 @@ zero(z) = _ <: _,mem : _,*(z) : -;
 
 //------------------------`(fi.)pole`---------------------------
 // One pole filter. Could also be called a "leaky integrator".
-// Difference equation: $y(n) = x(n) + py(n-1)$.
+// Difference equation: \(y(n) = x(n) + py(n-1)\).
 //
 // #### Usage
 //
@@ -20011,10 +20568,10 @@ integrator = + ~ _;
 
 //-------------------`(fi.)dcblockerat`-----------------------
 // DC blocker with configurable break frequency.
-// The amplitude response is substantially flat above $fb$,
-// and sloped at about +6 dB/octave below $fb$.
+// The amplitude response is substantially flat above \(fb\),
+// and sloped at about +6 dB/octave below \(fb\).
 // Derived from the analog transfer function
-// $H(s) = \frac{s}{(s + 2 \pi fb)}$
+// \(H(s) = \frac{s}{(s + 2 \pi fb)}\)
 // by the low-frequency-matching bilinear transform method
 // (i.e., the standard frequency-scaling constant 2*SR).
 //
@@ -20218,7 +20775,7 @@ ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 
 
 //-------------------`(fi.)allpass_comb`-----------------
-// Schroeder Allpass Comb Filter. Note that
+// Schroeder Allpass Comb Filter. Note that:
 //
 // ```
 // allpass_comb(maxlen,len,aN) = ff_comb(maxlen,len,aN,1) : fb_comb(maxlen,len-1,1,aN);
@@ -20252,7 +20809,7 @@ allpass_comb(maxdel,N,aN) = (+ <: de.delay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ :
 
 
 //-------------------`(fi.)allpass_fcomb`-----------------
-// Schroeder Allpass Comb Filter. Note that
+// Schroeder Allpass Comb Filter. Note that:
 //
 // ```
 // allpass_comb(maxlen,len,aN) = ff_comb(maxlen,len,aN,1) : fb_comb(maxlen,len-1,1,aN);
@@ -20349,7 +20906,7 @@ declare iir license "MIT-style STK-4.3 license";
 iir(bv,av) = ma.sub ~ fir(av) : fir(bv);
 
 //-----------------------------`(fi.)fir`---------------------------------
-// FIR filter (convolution of FIR filter coefficients with a signal)
+// FIR filter (convolution of FIR filter coefficients with a signal).
 //
 // #### Usage
 //
@@ -21904,7 +22461,7 @@ with { // octave script output:
 // Equivalently, down-modulate the input signal using a complex sinusoid at -SR/4 Hz,
 // lowpass it with a half-band filter, and modulate back up by SR/4 Hz.
 // In Faust/math notation:
-// pospass(N) = $\ast(e^{-j\frac{\pi}{2}n}) : \mbox{lowpass(N,SR/4)} : \ast(e^{j\frac{\pi}{2}n})$
+// pospass(N) = \(\ast(e^{-j\frac{\pi}{2}n}) : \mbox{lowpass(N,SR/4)} : \ast(e^{j\frac{\pi}{2}n})\)
 //
 // An approximation to the Hilbert transform is given by the
 // imaginary output signal:
@@ -22576,7 +23133,6 @@ declare version "0.0";
 bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
 bus(n) = par(i, n, _);
 
-
 //--------------`(si.)block`--------------
 // Block - terminate n signals.
 // `block` is a standard Faust function.
@@ -22591,8 +23147,7 @@ bus(n) = par(i, n, _);
 //
 // * `n`: the number of signals to be blocked
 //--------------------------------------
-block(n) = par(i,n,!);
-
+block(n) = par(i, n, !);
 
 //-----------------------------`(si.)interpolate`-------------------------------
 // Linear interpolation between two signals.
@@ -22621,7 +23176,6 @@ interpolate(i) = *(1.0-i),*(i) : +;
 // ```
 //---------------------------------------------------------------------
 smoo = si.smooth(0.999);
-
 
 //-----------------------`(si.)polySmooth`--------------------------------
 // A smoothing function based on `smooth` that doesn't smooth when a
@@ -23172,8 +23726,7 @@ with{
 };
 
 //---------------------`(no.)multirandom`--------------------------
-// Generates multiple decorrelated random numbers
-// in parallel.
+// Generates multiple decorrelated random numbers in parallel.
 //
 // #### Usage
 // ```
@@ -23191,8 +23744,7 @@ with {
 };
 
 //-----------------------`(no.)multinoise`------------------------
-// Generates multiple decorrelated noises
-// in parallel.
+// Generates multiple decorrelated noises in parallel.
 //
 // #### Usage
 //
@@ -23851,13 +24403,110 @@ lfnoise0(freq) = ml.noise : fl.latch(oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fl.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshooting lowpass
 //#################################### interpolators.lib ########################################
-// A library to handle interpolation in Faust. Its official prefix is `it`.
+// A library to handle interpolation. Its official prefix is `it`.
+//
+// This library provides several basic interpolation functions as well as interpolators 
+// taking a 'gen' circuit of N outputs producing values to be interpolated, triggered
+// by a 'idv' read index signal. Two points and four points interpolation is implemented.
+//
+// The 'idv' parameter is to be used as a read index. In float (= singleprecision) mode, 
+// we use a technique with a pure integer index and a fractional part in the [0,1] range 
+// to avoid accumulating errors. In -double (= doubleprecision)/-quad (= quadprecision) modes, 
+// we use a standard implementation with a fractional index.
+//
+// Use-case with 'waveform'. Here the signal given to 'interpolator_XXX' uses the 'idv' model.
+// 
+// ```
+// waveform and index step
+// waveform_interpolator(wf, step, interp) = interp(gen, idv)
+// with {
+//    gen(idx) = wf, (idx:max(0):min(size-1)) : rdtable with { size = wf:(_,!); };   /* waveform size */
+//    index = (+(step)~_)-step;  /* starting from 0 */
+//    idv = it.make_idv(index);  /* build the signal for interpolation in a generic way */
+// };
+// 
+// waveform_linear(wf, step) = waveform_interpolator(wf, step, it.interpolator_linear);
+// waveform_cosine(wf, step) = waveform_interpolator(wf, step, it.interpolator_cosine);
+// waveform_cubic(wf, step) = waveform_interpolator(wf, step, it.interpolator_cubic);
+// 
+// waveform_interp(wf, step, selector) = waveform_interpolator(wf, step, interp_select(selector))
+// with {
+//    /* adapts the argument order */
+//    interp_select(sel, gen, idv) = it.interpolator_select(gen, idv, sel);
+// };
+// 
+// waveform and index 
+// waveform_interpolator1(wf, idv, interp) = interp(gen, idv)
+// with {
+//    gen(idx) = wf, (idx:max(0):min(size-1)) : rdtable with { size = wf:(_,!); };   /* waveform size */
+// };
+// 
+// waveform_linear1(wf, idv) = waveform_interpolator1(wf, idv, it.interpolator_linear);
+// waveform_cosine1(wf, idv) = waveform_interpolator1(wf, idv, it.interpolator_cosine);
+// waveform_cubic1(wf, idv) = waveform_interpolator1(wf, idv, it.interpolator_cubic);
+// 
+// waveform_interp1(wf, idv, selector) = waveform_interpolator1(wf, idv, interp_select(selector))
+// with {
+//    /* adapts the argument order */
+//    interp_select(sel, gen, idv) = it.interpolator_select(gen, idv, sel);
+// };
+// ```
+// 
+// Tests
+// 
+// ```
+// wf = waveform {0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 50.0, 40.0, 30.0, 20.0, 10.0, 0.0};
+// 
+// process = waveform_linear(wf, step), waveform_cosine(wf, step), waveform_cubic(wf, step) with { step = 0.25; };
+// 
+// process = waveform_interp(wf, 0.25, nentry("algo", 0, 0, 3, 1));
+// 
+// process = waveform_interp1(wf, idv, nentry("algo", 0, 0, 3, 1))
+// with {
+//    step = 0.1;
+//    idv_aux = (+(step)~_)-step;  /* starting from 0 */
+//    idv = it.make_idv(idv_aux);  /* build the signal for interpolation in a generic way */
+// };
+// 
+// Test linear interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
+// linear_test = (idx,dv), it.interpolator_linear(gen, (idx,dv))
+// with {
+//    /* signal to interpolate (only 2 points here) */
+//    gen(id) = waveform {3.0, -1.0}, (id:max(0)) : rdtable;
+//    dv = waveform {0.0, 0.25, 0.50, 0.75, 1.0}, index : rdtable;
+//    idx = 0; 
+//    /* test index signal */
+//    index = (+(1)~_)-1;   /* starting from 0 */
+// };
+// 
+// Test cosine interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
+// cosine_test = (idx,dv), it.interpolator_cosine(gen, (idx,dv))
+// with {
+//    /* signal to interpolate (only 2 points here) */
+//    gen(id) = waveform {3.0, -1.0}, (id:max(0)) : rdtable;
+//    dv = waveform {0.0, 0.25, 0.50, 0.75, 1.0}, index : rdtable;
+//    idx = 0;
+//    /* test index signal */
+//    index = (+(1)~_)-1;   /* starting from 0 */
+// };
+// 
+// Test cubic interpolation between 4 samples with a '(idx,dv)' signal built using a waveform
+// cubic_test = (idx,dv), it.interpolator_cubic(gen, (idx,dv))
+// with {
+//    /* signal to interpolate (only 4 points here) */
+//    gen(id) = waveform {-1.0, 2.0, 1.0, 4.0}, (id:max(0)) : rdtable;
+//    dv = waveform {0.0, 0.25, 0.50, 0.75, 1.0}, index : rdtable;
+//    idx = 0;
+//    /* test index signal */
+//    index = (+(1)~_)-1;   /* starting from 0 */
+// };
+// ```
 //########################################################################################
 
 /************************************************************************
 ************************************************************************
 FAUST library file
-Copyright (C) 2019-2010 GRAME, Centre National de Creation Musicale
+Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
 ----------------------------------------------------------------------
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
@@ -23887,7 +24536,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Interpolator Library";
-declare version "0.2";
+declare version "0.3";
 
 ba = library("basics.lib");
 ro = library("routes.lib");
@@ -23895,11 +24544,7 @@ ma = library("maths.lib");
 
 reset(trig) = (trig-trig') <= 0;
  
-/*
-The 'idv' parameter is to be used as a read index. In float (= singleprecision) mode, we use a technique with a
-pure integer index and a fractional part in the [0,1] range, to avoid accumulating errors.
-The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
-*/
+// The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
 
 singleprecision int_part(idv) = idv : _,!;
 singleprecision frac_part(idv) = idv : !,_;
@@ -23925,11 +24570,7 @@ singleprecision decrease(trig, step, length) = raise(trig, -step, length) : (+(l
 // Modulo decreasing index starting at 'length'
 singleprecision decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) : (+(length), _);
 
-/*
-The 'idv' parameter is to be used as a read index. In -double (= doubleprecision)/-quad (= quadprecision) modes, 
-we use a standard implementation with a fractional index.
-The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
-*/
+// The following 3 functions allow to adapt a 'single signal' fractional idv in this [idx, dv] model.
 
 doubleprecision quadprecision int_part(idv) = int(idv);
 doubleprecision quadprecision frac_part(idv) = ma.frac(idv);
@@ -23953,11 +24594,11 @@ doubleprecision quadprecision decrease(trig, step, length) = raise(trig, -step, 
 // Modulo decreasing index starting at 'length'
 doubleprecision quadprecision decrease_modulo(trig, step, length) = raise_modulo(trig, -step, length) + length;
  
-
-// Two points interpolation functions
+//=========================Two points interpolation functions=============================
+//========================================================================================
 
 //-------`(it.)interpolate_linear`----------
-// Linear interpolation between 2 values
+// Linear interpolation between 2 values.
 //
 // #### Usage
 //
@@ -23982,7 +24623,7 @@ interpolate_linear(dv,v0,v1) = v0 + dv*(v1-v0);  // (faster than v0*(1-dv)+v1*dv
 
 
 //-------`(it.)interpolate_cosine`----------
-// Cosine interpolation between 2 values
+// Cosine interpolation between 2 values.
 //
 // #### Usage
 //
@@ -24006,10 +24647,11 @@ interpolate_linear(dv,v0,v1) = v0 + dv*(v1-v0);  // (faster than v0*(1-dv)+v1*dv
 interpolate_cosine(dv,v0,v1) = v0 + a2*(v1-v0) with { a2 = 0.5 * (1.0 - cos(dv*ma.PI)); };
 
 
-// For points interpolation functions
+//=========================Four points interpolation functions============================
+//========================================================================================
 
 //-------`(it.)interpolate_cubic`----------
-// Cubic interpolation between 4 values
+// Cubic interpolation between 4 values.
 //
 // #### Usage
 //
@@ -24036,7 +24678,25 @@ interpolate_cubic(dv,v0,v1,v2,v3)
 	= v1 + 0.5 *dv*(v2 - v0 + dv*(2.0*v0 - 5.0*v1 + 4.0*v2 - v3 + dv*(3.0*(v1 - v2) + v3 - v0)));
 
 
-// Interpolator on two points (current and next index), assuming an increasing index
+//=========================Two points interpolators=======================================
+//========================================================================================
+
+//-------`(it.)interpolator_two_points`----------
+// Generic interpolator on two points (current and next index), assuming an increasing index.
+//
+// #### Usage
+//
+// ```
+// interpolator_two_points(gen, idv, interpolate_two_points) : _,_... (equal to N = outputs(gen))
+// ```
+//
+// Where:
+//
+// * `gen`: a circuit with an 'idv' reader input that produces N outputs
+// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair
+// * `interpolate_two_points`: a two points interpolation function
+//
+//--------------------------------------------
 
 interpolator_two_points(gen, idv, interpolate_two_points) = (gen(id0), gen(id1))
                                                             : ro.interleave(outputs(gen), 2)
@@ -24049,7 +24709,7 @@ with {
 
 
 //-------`(it.)interpolator_linear`----------
-// Linear interpolator for a 'gen' circuit triggered by an 'idv' input to generate values
+// Linear interpolator for a 'gen' circuit triggered by an 'idv' input to generate values.
 //
 // #### Usage
 //
@@ -24060,7 +24720,7 @@ with {
 // Where:
 //
 // * `gen`: a circuit with an 'idv' reader input that produces N outputs
-// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
+// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair
 //
 //--------------------------------------------
 
@@ -24068,7 +24728,7 @@ interpolator_linear(gen, idv) = interpolator_two_points(gen, idv, interpolate_li
 
 
 //-------`(it.)interpolator_cosine`----------
-// Cosine interpolator for a 'gen' circuit triggered by an 'idv' input to generate values
+// Cosine interpolator for a 'gen' circuit triggered by an 'idv' input to generate values.
 //
 // #### Usage
 //
@@ -24079,7 +24739,7 @@ interpolator_linear(gen, idv) = interpolator_two_points(gen, idv, interpolate_li
 // Where:
 //
 // * `gen`: a circuit with an 'idv' reader input that produces N outputs
-// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
+// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair
 //
 //--------------------------------------------
 
@@ -24089,7 +24749,26 @@ interpolator_cosine(gen, idv) = interpolator_two_points(gen, idv, interpolate_co
 // To be used in 'interpolator_select'
 interpolator_null(gen, idv) = interpolator_two_points(gen, idv, \(dv,v0,v1).(v0));
 
-// Interpolator on four points (previous, current and two next indexes), assuming an increasing index
+
+//=========================Four points interpolators======================================
+//========================================================================================
+
+//-------`(it.)interpolator_two_points`----------
+// Generic interpolator on interpolator_four_points points (previous, current and two next indexes), assuming an increasing index.
+//
+// #### Usage
+//
+// ```
+// interpolator_four_points(gen, idv, interpolate_four_points) : _,_... (equal to N = outputs(gen))
+// ```
+//
+// Where:
+//
+// * `gen`: a circuit with an 'idv' reader input that produces N outputs
+// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair
+// * `interpolate_four_points`: a four points interpolation function
+//
+//--------------------------------------------
 
 interpolator_four_points(gen, idv, interpolate_four_points) = (gen(id0), gen(id1), gen(id2), gen(id3))
                                                             : ro.interleave(outputs(gen), 4)
@@ -24115,7 +24794,7 @@ with {
 // Where:
 //
 // * `gen`: a circuit with an 'idv' reader input that produces N outputs
-// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
+// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair
 //
 //--------------------------------------------
 
@@ -24142,7 +24821,7 @@ nointerp = MAX_INTER-1;
 // Where:
 //
 // * `gen`: a circuit with an 'idv' reader input that produces N outputs
-// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair (see float.lib and double.lib)
+// * `idv`: a fractional read index expressed as a float value, or a (int,frac) pair
 // * `sel`: an interpolation algorithm selector in [0..3] (0 = linear, 1 = cosine, 2 = cubic, 3 = nointerp)
 //
 //--------------------------------------------
@@ -24154,96 +24833,6 @@ with {
                     interpolator_cubic(gen, idv),
                     interpolator_null(gen, idv));
 };
-
-/*
-
-Use-case with 'waveform'. Here the signal given to 'interpolator_XXX' uses the 'idv' model.
-
-// waveform and index step
-waveform_interpolator(wf, step, interp) = interp(gen, idv)
-with {
-    gen(idx) = wf, (idx:max(0):min(size-1)) : rdtable with { size = wf:(_,!); };   // waveform size
-    index = (+(step)~_)-step;  // starting from 0
-    idv = it.make_idv(index);  // build the signal for interpolation in a generic way
-};
-
-waveform_linear(wf, step) = waveform_interpolator(wf, step, it.interpolator_linear);
-waveform_cosine(wf, step) = waveform_interpolator(wf, step, it.interpolator_cosine);
-waveform_cubic(wf, step) = waveform_interpolator(wf, step, it.interpolator_cubic);
-
-waveform_interp(wf, step, selector) = waveform_interpolator(wf, step, interp_select(selector))
-with {
-	// adapts the argument order
-	interp_select(sel, gen, idv) = it.interpolator_select(gen, idv, sel);
-};
-
-// waveform and index 
-waveform_interpolator1(wf, idv, interp) = interp(gen, idv)
-with {
-    gen(idx) = wf, (idx:max(0):min(size-1)) : rdtable with { size = wf:(_,!); };   // waveform size
-};
-
-waveform_linear1(wf, idv) = waveform_interpolator1(wf, idv, it.interpolator_linear);
-waveform_cosine1(wf, idv) = waveform_interpolator1(wf, idv, it.interpolator_cosine);
-waveform_cubic1(wf, idv) = waveform_interpolator1(wf, idv, it.interpolator_cubic);
-
-waveform_interp1(wf, idv, selector) = waveform_interpolator1(wf, idv, interp_select(selector))
-with {
-	// adapts the argument order
-	interp_select(sel, gen, idv) = it.interpolator_select(gen, idv, sel);
-};
-
-//=======
-// Tests
-//=======
-
-wf = waveform {0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 50.0, 40.0, 30.0, 20.0, 10.0, 0.0};
-
-process = waveform_linear(wf, step), waveform_cosine(wf, step), waveform_cubic(wf, step) with { step = 0.25; };
-
-process = waveform_interp(wf, 0.25, nentry("algo", 0, 0, 3, 1));
-
-process = waveform_interp1(wf, idv, nentry("algo", 0, 0, 3, 1))
-with {
-	step = 0.1;
-	idv_aux = (+(step)~_)-step;  // starting from 0
-	idv = it.make_idv(idv_aux);  // build the signal for interpolation in a generic way
-};
-
-// Test linear interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
-linear_test = (idx,dv), it.interpolator_linear(gen, (idx,dv))
-with {
-    // signal to interpolate (only 2 points here)
-    gen(id) = waveform {3.0, -1.0}, (id:max(0)) : rdtable;
-    dv = waveform {0.0, 0.25, 0.50, 0.75, 1.0}, index : rdtable;
-    idx = 0; 
-    // test index signal
-    index = (+(1)~_)-1;   // starting from 0
-};
-
-// Test cosine interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
-cosine_test = (idx,dv), it.interpolator_cosine(gen, (idx,dv))
-with {
-    // signal to interpolate (only 2 points here)
-    gen(id) = waveform {3.0, -1.0}, (id:max(0)) : rdtable;
-    dv = waveform {0.0, 0.25, 0.50, 0.75, 1.0}, index : rdtable;
-    idx = 0;
-    // test index signal
-    index = (+(1)~_)-1;   // starting from 0
-};
-
-// Test cubic interpolation between 4 samples with a '(idx,dv)' signal built using a waveform
-cubic_test = (idx,dv), it.interpolator_cubic(gen, (idx,dv))
-with {
-    // signal to interpolate (only 4 points here)
-    gen(id) = waveform {-1.0, 2.0, 1.0, 4.0}, (id:max(0)) : rdtable;
-    dv = waveform {0.0, 0.25, 0.50, 0.75, 1.0}, index : rdtable;
-    idx = 0;
-    // test index signal
-    index = (+(1)~_)-1;   // starting from 0
-};
-
-*/
 //#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
 // `/examples` folder. Its official prefix is `dm`.
@@ -25982,26 +26571,30 @@ closed source license or any other license if you decide so.
 // TODO: author RM
 mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp))
 	:> seq(i,4,fi.allpass_comb(1024, allpasstuningL(i)+spread, -fb2))
-with{
-    origSR = 44100;
-
+with {
+ 
     // Filters parameters
-    combtuningL(0) = 1116*ma.SR/origSR : int;
-    combtuningL(1) = 1188*ma.SR/origSR : int;
-    combtuningL(2) = 1277*ma.SR/origSR : int;
-    combtuningL(3) = 1356*ma.SR/origSR : int;
-    combtuningL(4) = 1422*ma.SR/origSR : int;
-    combtuningL(5) = 1491*ma.SR/origSR : int;
-    combtuningL(6) = 1557*ma.SR/origSR : int;
-    combtuningL(7) = 1617*ma.SR/origSR : int;
+    combtuningL(0) = adaptSR(1116);
+    combtuningL(1) = adaptSR(1188);
+    combtuningL(2) = adaptSR(1277);
+    combtuningL(3) = adaptSR(1356);
+    combtuningL(4) = adaptSR(1422);
+    combtuningL(5) = adaptSR(1491);
+    combtuningL(6) = adaptSR(1557);
+    combtuningL(7) = adaptSR(1617);
 
-    allpasstuningL(0) = 556*ma.SR/origSR : int;
-    allpasstuningL(1) = 441*ma.SR/origSR : int;
-    allpasstuningL(2) = 341*ma.SR/origSR : int;
-    allpasstuningL(3) = 225*ma.SR/origSR : int;
-    // Lowpass Feedback Combfiler:
+    allpasstuningL(0) = adaptSR(556);
+    allpasstuningL(1) = adaptSR(441);
+    allpasstuningL(2) = adaptSR(341);
+    allpasstuningL(3) = adaptSR(225);
+    
+    // Lowpass Feedback Combfilter:
     // https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
     lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+     
+    origSR = 44100;
+    adaptSR(val) = val*ma.SR/origSR : int;
+
 };
 
 
@@ -26025,7 +26618,7 @@ with{
 // * `spread`: spatial spread in number of samples (for stereo)
 //------------------------------------------------------------
 // TODO: author RM
-stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
+stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp, 0), mono_freeverb(fb1, fb2, damp, spread);
 
 //########################################################################################
 /************************************************************************
@@ -26041,7 +26634,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 
 // end further further contributions section
 //##################################### physmodels.lib ###################################
-// Faust physical modeling library; Its official prefix is `pm`.
+// Faust physical modeling library. Its official prefix is `pm`.
 //
 // This library provides an environment to facilitate physical modeling of musical
 // instruments. It contains dozens of functions implementing low and high level
@@ -26050,11 +26643,11 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //
 // It is organized as follows:
 //
-// * [Global Variables](#global-variables): Useful pre-defined variables for
+// * [Global Variables](#global-variables): useful pre-defined variables for
 // physical modeling (e.g., speed of sound, etc.).
-// * [Conversion Tools](#conversion-tools-1): Conversion functions specific
+// * [Conversion Tools](#conversion-tools-1): conversion functions specific
 // to physical modeling (e.g., length to frequency, etc.).
-// * [Bidirectional Utilities](#bidirectional-utilities): Functions to create
+// * [Bidirectional Utilities](#bidirectional-utilities): functions to create
 // bidirectional block diagrams for physical modeling.
 // * [Basic Elements](#basic-elements-1): waveguides, specific types of filters, etc.
 // * [String Instruments](#string-instruments): various types of strings
@@ -26290,7 +26883,7 @@ out(x,y,s) = x,y,x+y+s;
 // Creates terminations on both sides of a [`chain`](#chain) without closing
 // the inputs and outputs of the bidirectional signals chain. As for
 // [`chain`](#chain), this function adds a 1 sample delay to the bidirectional
-// signal, both ways. Of courses, this function can be nested within a
+// signal, both ways. Of course, this function can be nested within a
 // [`chain`](#chain).
 //
 // #### Usage
@@ -30054,7 +30647,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Math Library";
-declare version "2.2";
+declare version "2.3";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -30152,7 +30745,7 @@ quadprecision INFINITY = 1.7976931348623158e+308;
 // #### Usage
 //
 // ```
-// _ : ftz : _
+// _ : FTZ : _
 // ```
 //
 // See : <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html>
@@ -30580,7 +31173,7 @@ modulo(x,N) = (x % N + N) % N;
 //
 // * `x`: signal to analyse
 //------------------------------------------
-isnan = ffunction(int isnan (float),<math.h>,"");
+isnan = ffunction(int isnanf|isnan|isnanl (float),<math.h>,"");
 
 
 //---------------`(ma.)isinf`----------------
@@ -30597,9 +31190,10 @@ isnan = ffunction(int isnan (float),<math.h>,"");
 //
 // * `x`: signal to analyse
 //------------------------------------------
-isinf = ffunction(int isinf (float),<math.h>,"");
+isinf = ffunction(int isinff|isinf|isinfl (float),<math.h>,"");
 
 nextafter = ffunction(float nextafter(float, float),<math.h>,"");
+
 
 //---------------------------`(ma.)chebychev`-------------------------------
 // Chebychev transformation of order n.
@@ -30626,9 +31220,9 @@ nextafter = ffunction(float nextafter(float, float),<math.h>,"");
 //
 // <http://en.wikipedia.org/wiki/Chebyshev_polynomial>
 //-------------------------------------------------------------------------
-chebychev(0) = !:1;
-chebychev(1) = _;
-chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
+chebychev(0,x) = 1;
+chebychev(1,x) = x;
+chebychev(n,x) = 2*x*chebychev(n-1, x) - chebychev(n-2, x);
 
 
 //------------------------`(ma.)chebychevpoly`-------------------------------
@@ -30667,6 +31261,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 //--------------------------------------------------------
 diffn(x) = x' - x; // negated first-order difference
 
+
 //------------------`(ma.)signum`----------------------------
 // The signum function signum(x) is defined as
 // -1 for x<0, 0 for x==0, and 1 for x>0.
@@ -30678,6 +31273,7 @@ diffn(x) = x' - x; // negated first-order difference
 // ```
 //--------------------------------------------------------
 signum(x) = (x>0)-(x<0);
+
 
 //------------------`(ma.)nextpow2`----------------------------
 // The nextpow2(x) returns the lowest integer m such that
@@ -30694,3 +31290,16 @@ signum(x) = (x>0)-(x<0);
 // ```
 //--------------------------------------------------------
 nextpow2(x) = ceil(log(x)/log(2.0));
+
+
+//--------------------`(ma.)zc`------------------------------------------------
+// Indicator function for zero-crossing: it returns 1 if a zero-crossing
+// occurs, 0 otherwise.
+//
+// #### Usage
+//
+// ```
+// _ : zc : _
+// ```
+//-----------------------------------------------------------------------------
+zc(x) = x * x' < 0;
