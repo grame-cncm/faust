@@ -67,7 +67,7 @@ echoHelp ()
     option -of "generates an openFrameworks API"
     option -juce "generates a JUCE API"
     option -dummy "generates a dummy audio API" 
-    option -teensy "generates a Teensy audio API" 
+    option -teensy "generates a Teensy API" 
     echo 
     echo "Global options:"
     option "-opt native|generic" "activates the best compilation options for the native or generic CPU."

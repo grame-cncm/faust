@@ -143,7 +143,7 @@ for p in $FILES; do
     		exit
     	fi
     	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal.cpp -cn $dspName"multi" $OPTIONS $p -o $dspName"multi.cpp"
-    	c++ -std=c++11 $dspName"multi.cpp" -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+    	c++ -std=c++11 $dspName"multi.cpp" -dead_strip -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
     	echo "Run ./"$dspName"multi"" to test the program"
     fi
 
