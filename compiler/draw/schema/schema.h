@@ -43,7 +43,6 @@ struct point : public virtual Garbageable {
 
     point() : x(0.0), y(0.0) {}
     point(double u, double v) : x(u), y(v) {}
-    point(const point& p) : x(p.x), y(p.y) {}
 
     bool operator<(const point& p) const
     {

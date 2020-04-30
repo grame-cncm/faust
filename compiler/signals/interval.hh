@@ -79,13 +79,6 @@ struct interval : public virtual Garbageable {
             faustassert(false);
         }
     }
-    interval(const interval& r) : valid(r.valid), lo(r.lo), hi(r.hi)
-    {
-        if (std::isnan(r.lo) || std::isnan(r.hi)) {
-            cerr << "ERROR4 : r.lo or r.hi is NAN in an Interval" << endl;
-            faustassert(false);
-        }
-    }
 
     // bool isvalid() { return valid; }
     bool isempty() { return hi < lo; }
