@@ -282,7 +282,12 @@ m_currentDeltas()
                         "and Faust has no MIDI outputs!\n");
             }
         }
-        setUniqueID(m_dspUI->makeID());
+        const char* ID = getMetadata("id", "FAUST");
+        if (ID[0] == 0) {
+            setUniqueID(m_dspUI->makeID());
+        } else {
+            setUniqueID((ID[0]<<24)+(ID[1]<<16)+(ID[2]<<8)+ID[3]);
+        }
     }
     
     // Initialize all members related to polyphonic performance
