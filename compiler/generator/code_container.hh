@@ -111,6 +111,8 @@ class CodeContainer : public virtual Garbageable {
 
     list<string> fUICode;
     list<string> fUIMacro;
+    list<string> fUIMacroActives;
+    list<string> fUIMacroPassives;
 
     void merge(set<string>& dst, set<string>& src)
     {
@@ -602,6 +604,8 @@ class CodeContainer : public virtual Garbageable {
 
     // UI construction
     void addUIMacro(const string& str) { fUIMacro.push_back(str); }
+    void addUIMacroActives(const string& str) { fUIMacroActives.push_back(str); }
+    void addUIMacroPassives(const string& str) { fUIMacroPassives.push_back(str); }
     void addUICode(const string& str) { fUICode.push_back(str); }
 
     virtual CodeContainer* createScalarContainer(const string& name, int sub_container_type) = 0;
