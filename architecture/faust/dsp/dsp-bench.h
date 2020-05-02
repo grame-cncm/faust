@@ -39,7 +39,7 @@
 #include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
-#include "faust/GUI/MapUI.h"
+#include "faust/gui/MapUI.h"
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
