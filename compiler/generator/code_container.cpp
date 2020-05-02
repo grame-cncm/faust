@@ -475,13 +475,13 @@ void CodeContainer::printMacros(ostream& fout, int n)
         printlines(n + 1, fUIMacro, fout);
         tab(n, fout);
         tab(n, fout);
-        if (fUIMacroActives.size() > 0) {
+        {
             fout << "\t" << "#define FAUST_LIST_ACTIVES(p) \\";
             printlines(n + 2, fUIMacroActives, fout);
             tab(n, fout);
             tab(n, fout);
         }
-        if (fUIMacroPassives.size() > 0) {
+        {
             fout << "\t" << "#define FAUST_LIST_PASSIVES(p) \\";
             printlines(n + 2, fUIMacroPassives, fout);
             tab(n, fout);
