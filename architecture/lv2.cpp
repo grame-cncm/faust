@@ -1846,7 +1846,7 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
        doap:name \"%s\" ;\n\
        lv2:binary <mydsp%s> ;\n\
        lv2:optionalFeature epp:supportsStrictBounds ;\n\
-       lv2:optionalFeature lv2:hardRtCapable ;\n", PLUGIN_URI,
+       lv2:optionalFeature lv2:hardRTCapable ;\n", PLUGIN_URI,
 	  is_instr?", lv2:InstrumentPlugin":"",
 	  plugin_name, DLLEXT);
   if (plugin_author && *plugin_author)
