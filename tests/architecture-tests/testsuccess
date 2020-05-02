@@ -13,9 +13,9 @@ XLIST1="faust2md"
 
 OSXSOUND="faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2juce faust2bela"
 OSXSOUNDSR="faust2caqt faust2jaqt faust2jack"
-OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2"
 OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2"
 OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt"
 OSXHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
@@ -142,13 +142,17 @@ if [ "$system" = "Darwin" ]; then
     (faust2api -jack -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: faust2api -jack -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api -jack -soundfile -lang ocpp failed")
 
     (faust2nodejs -coreaudio good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
-
+	rm -rf good-faustnode
+	
     (faust2nodejs -coreaudio -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi failed")
-
+	rm -rf good-faustnode
+	
     (faust2nodejs -coreaudio -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi -nvoices 8 failed")
-
-    #(faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
-
+	rm -rf good-faustnode
+	
+    (faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
+	rm -rf good-faustnode
+	
     (faust2smartkeyb -android good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
 
     (faust2smartkeyb -android -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -midi -nvoices 8 failed")

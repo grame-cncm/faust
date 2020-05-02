@@ -97,6 +97,7 @@
 #define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+#define FAUST_ADDSOUNDFILE(s,f)
 
 #define CLASS_ATTR_FLOAT1(c,attrname,flags,structname,structmember,offset) \
     class_addattr((c),attr_offset_new(attrname,USESYM(float32),(flags),(method)0L,(method)0L,(calcoffset(structname,structmember)+offset)))
