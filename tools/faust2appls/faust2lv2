@@ -38,7 +38,7 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS="-O3 -std=c++11 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+CXXFLAGS="-O3 -std=c++11 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -fvisibility=hidden"
 
 # Darwin specifics
 if [[ $(uname) == Darwin ]]; then
@@ -119,7 +119,7 @@ EOF
     elif [ $p = "-arch64" ]; then
 	PROCARCH="-m64 -fPIC"
     elif [ $p = "-osx" ]; then
-	CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+	CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -fvisibility=hidden -I/opt/local/include"
 	dllext=".dylib"
     elif [ $p = "-keep" ]; then
 	KEEP="yes"
