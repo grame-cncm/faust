@@ -9,7 +9,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2020 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2020 Jean Pierre Cimalando, GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
