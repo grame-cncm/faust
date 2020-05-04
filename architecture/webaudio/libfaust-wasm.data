@@ -2057,9 +2057,10 @@ peakholder(n) = peakhold2 ~ reset : (!,_) with {
 
 
 //--------------------------`(ba.)impulsify`---------------------------
-// Turns the signal from a button into an impulse (1,0,0,... when
-// button turns on).
-// `impulsify` is a standard Faust function.
+// Turns a signal into an impulse with the value of the current sample 
+// (0.3,0.2,0.1 becomes 0.3,0.0,0.0). This function is typically used with a 
+// `button` to turn its output into an impulse. `impulsify` is a standard Faust 
+// function.
 //
 // #### Usage
 //
@@ -2067,7 +2068,7 @@ peakholder(n) = peakhold2 ~ reset : (!,_) with {
 // button("gate") : impulsify;
 // ```
 //----------------------------------------------------------------
-impulsify(x) = x > x';
+impulsify = _ <: _,mem : - <: >(0)*_;
 
 
 //-----------------------`(ba.)automat`------------------------------
@@ -3801,40 +3802,92 @@ Michon and Julius O. Smith III, and is released under the
 //==============================Amplitude Tracking========================================
 //========================================================================================
 
-//------------------`(an.)abs_envelope`-----------------------------------------
-// Absolute value with one-pole lowpass averaging
-//
-// #### Usage
-//
-// ```
-// _ : abs_envelope(t60) : _;
-// ```
-//
-//  Where
-//
-// * `t60`: (time to decay by 60 dB) sets the averaging frame in secs
-//-----------------------------------------------------------------------------
-abs_envelope(t60, x) = abs(x) : si.smooth(ba.tau2pole(t60 / 6.91));
-
-
 //------------------`(an.)abs_envelope_rect`-----------------------------------
-// Absolute value with moving-average
+// Absolute value average with moving-average algorithm.
 //
 // #### Usage
 //
 // ```
-// _ : abs_envelope_rect(length) : _;
+// _ : abs_envelope_rect(period) : _;
 // ```
 //
-//  Where
+//  Where:
 //
-// * `length`: sets the averaging frame in samples
+// * `period`: sets the averaging frame in seconds
 //-----------------------------------------------------------------------------
-abs_envelope_rect(length, x) = abs(x) : mean(int(length)) 
-with {
-	mean(length , x) = x - x@max(1, length) : fi.pole(1.0 - 1.0e-10) : /(float(length)); 
-	// small leakage to avoid possible growing roundoff error
-};
+declare abs_envelope_rect author "Dario Sanfilippo and Julius O. Smith III";
+declare abs_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare abs_envelope_rect license "MIT-style STK-4.3 license";
+abs_envelope_rect(period, x) = abs(x) : ma.avg_rect(period);
+
+
+
+//------------------`(an.)abs_envelope_tau`------------------------------------
+// Absolute value average with one-pole lowpass and tau response. 
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : abs_envelope_tau(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 1/e) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare abs_envelope_tau author "Dario Sanfilippo and Julius O. Smith III";
+declare abs_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare abs_envelope_tau license "MIT-style STK-4.3 license";
+abs_envelope_tau(period, x) = abs(x) : ma.avg_tau(period);
+
+
+//------------------`(an.)abs_envelope_t60`------------------------------------
+// Absolute value average with one-pole lowpass and t60 response.
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : abs_envelope_t60(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 60 dB) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare abs_envelope_t60 author "Dario Sanfilippo and Julius O. Smith III";
+declare abs_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare abs_envelope_t60 license "MIT-style STK-4.3 license";
+abs_envelope_t60(period, x) = abs(x) : ma.avg_t60(period);
+
+
+//------------------`(an.)abs_envelope_t19`------------------------------------
+// Absolute value average with one-pole lowpass and t19 response. 
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : abs_envelope_t19(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 1/e^2.2) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare abs_envelope_t19 author "Dario Sanfilippo and Julius O. Smith III";
+declare abs_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare abs_envelope_t19 license "MIT-style STK-4.3 license";
+abs_envelope_t19(period, x) = abs(x) : ma.avg_t19(period);
 
 
 //---------------------------`(an.)amp_follower`---------------------------
@@ -3911,72 +3964,179 @@ amp_follower_ud(att,rel) = amp_follower(rel) : si.smooth(ba.tau2pole(att));
 //---------------------------------------------------------
 amp_follower_ar(att,rel) = abs : si.lag_ud(att,rel);
 
-//------------------`(an.)ms_envelope`-----------------------------------------
-// Mean square with one-pole lowpass averaging
-//
-// #### Usage
-//
-// ```
-// _ : ms_envelope(t60) : _;
-// ```
-//
-//  Where
-//
-// * `t60`: (time to decay by 60 dB) sets the averaging frame in secs
-//-----------------------------------------------------------------------------
-ms_envelope(t60, x) = x * x : si.smooth(ba.tau2pole(t60 / 6.91));
-
 
 //------------------`(an.)ms_envelope_rect`------------------------------------
-// Mean square with moving-average
+// Mean square with moving-average algorithm.
 //
 // #### Usage
 //
 // ```
-// _ : ms_envelope_rect(length) : _;
+// _ : ms_envelope_rect(period) : _;
 // ```
 //
-//  Where
+//  Where:
 //
-// * `length`: sets the averaging frame in samples
+// * `period`: sets the averaging frame in secs
 //-----------------------------------------------------------------------------
-ms_envelope_rect(length, x) = x * x : mean(int(length))
-with {
-	mean(length, x) = x - x@max(1, length) : fi.pole(1.0 - 1.0e-10) : /(float(length)); 
-	// small leakage to avoid possible growing roundoff error
-};
+declare ms_envelope_rect author "Dario Sanfilippo and Julius O. Smith III";
+declare ms_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare ms_envelope_rect license "MIT-style STK-4.3 license";
+ms_envelope_rect(period, x) = x * x : ma.avg_rect(period);
 
 
-//------------------`(an.)rms_envelope`----------------------------------------
-// Root mean square with one-pole lowpass averaging
+//------------------`(an.)ms_envelope_tau`-------------------------------------
+// Mean square average with one-pole lowpass and tau response. 
+// (See maths.lib.)
 //
 // #### Usage
 //
 // ```
-// _ : rms_envelope(t60) : _;
+// _ : ms_envelope_tau(period) : _;
 // ```
 //
-//  Where
+//  Where:
 //
-// * `t60`: (time to decay by 60 dB) sets the averaging frame in secs
+// * `period`: (time to decay by 1/e) sets the averaging frame in secs
 //-----------------------------------------------------------------------------
-rms_envelope(t60, x) = ms_envelope(t60, x) : sqrt;
+declare ms_envelope_tau author "Dario Sanfilippo and Julius O. Smith III";
+declare ms_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare ms_envelope_tau license "MIT-style STK-4.3 license";
+ms_envelope_tau(period, x) = x * x : ma.avg_tau(period);
+
+
+//------------------`(an.)ms_envelope_t60`-------------------------------------
+// Mean square with one-pole lowpass and t60 response. 
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : ms_envelope_t60(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 60 dB) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare ms_envelope_t60 author "Dario Sanfilippo and Julius O. Smith III";
+declare ms_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare ms_envelope_t60 license "MIT-style STK-4.3 license";
+ms_envelope_t60(period, x) = x * x : ma.avg_t60(period);
+
+
+//------------------`(an.)ms_envelope_t19`-------------------------------------
+// Mean square with one-pole lowpass and t19 response. 
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : ms_envelope_t19(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 1/e^2.2) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare ms_envelope_t19 author "Dario Sanfilippo and Julius O. Smith III";
+declare ms_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare ms_envelope_t19 license "MIT-style STK-4.3 license";
+ms_envelope_t19(period, x) = x * x : ma.avg_t19(period);
 
 
 //------------------`(an.)rms_envelope_rect`-----------------------------------
-// Root mean square with moving-average
+// Root mean square with moving-average algorithm.
 //
 // #### Usage
 //
 // ```
-// _ : rms_envelope_rect(length) : _;
+// _ : rms_envelope_rect(period) : _;
 // ```
 //
-//  Where
+//  Where:
 //
-// * `length`: sets the averaging frame in samples
+// * `period`: sets the averaging frame in secs
 //-----------------------------------------------------------------------------
-rms_envelope_rect(length, x) = ms_envelope_rect(length, x) : sqrt;
+declare rms_envelope_rect author "Dario Sanfilippo and Julius O. Smith III";
+declare rms_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare rms_envelope_rect license "MIT-style STK-4.3 license";
+rms_envelope_rect(period, x) = ms_envelope_rect(period, x) : sqrt;
+
+
+//------------------`(an.)rms_envelope_tau`------------------------------------
+// Root mean square with one-pole lowpass and tau response.
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : rms_envelope_tau(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 1/e) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare rms_envelope_tau author "Dario Sanfilippo and Julius O. Smith III";
+declare rms_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare rms_envelope_tau license "MIT-style STK-4.3 license";
+rms_envelope_tau(period, x) = ms_envelope_tau(period, x) : sqrt;
+
+
+//------------------`(an.)rms_envelope_t60`------------------------------------
+// Root mean square with one-pole lowpass and t60 response.
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : rms_envelope_t60(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 60 dB) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare rms_envelope_t60 author "Dario Sanfilippo and Julius O. Smith III";
+declare rms_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare rms_envelope_t60 license "MIT-style STK-4.3 license";
+rms_envelope_t60(period, x) = ms_envelope_t60(period, x) : sqrt;
+
+
+//------------------`(an.)rms_envelope_t19`------------------------------------
+// Root mean square with one-pole lowpass and t19 response.
+// (See maths.lib.)
+//
+// #### Usage
+//
+// ```
+// _ : rms_envelope_t19(period) : _;
+// ```
+//
+//  Where:
+//
+// * `period`: (time to decay by 1/e^2.2) sets the averaging frame in secs
+//-----------------------------------------------------------------------------
+declare rms_envelope_t19 author "Dario Sanfilippo and Julius O. Smith III";
+declare rms_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare rms_envelope_t19 license "MIT-style STK-4.3 license";
+rms_envelope_t19(period, x) = ms_envelope_t19(period, x) : sqrt;
 
 
 //=============================Spectrum-Analyzers=========================================
@@ -6414,7 +6574,7 @@ with{
   C = 1/m;
   equation = x
 	letrec{
-    'x = A*(x : initState(x0)) + B*(x' : initState(x1)) + (_-grav)*(C);
+    'x = A*(x : initState(x0)) + B*(x' : initState((x1, x0))) + (_-grav)*(C);
 	};
 };
 
@@ -6502,6 +6662,8 @@ with{
 
 //------------------------`(mi.)damper`----------------------
 // Implementation of a linear damper interaction.
+// Beware: in 32bit precision mode, damping forces can become
+// truncated if position values are not centered around zero!
 //
 // #### Usage
 //
@@ -6846,7 +7008,7 @@ an = library("analyzers.lib");
 fi = library("filters.lib");
 ef = library("misceffects.lib"); // for compatible copy/paste out of this file
 
-declare name "Faust Math Library";
+declare name "Misc Effects Library";
 declare version "2.0"; // TODO to check
 
 //########################################################################################
@@ -7406,7 +7568,7 @@ version =   1, // MAJOR version when we make incompatible API changes,
 
             
 //#################################### webaudio.lib ########################################
-//An implementation of the WebAudio API filters.  Its official prefix is `wa`.
+//An implementation of the WebAudio API filters (https://www.w3.org/TR/webaudio/).  Its official prefix is `wa`.
 //
 // This library implement WebAudio filters, taking their C++ implementation as a starting point. 
 //########################################################################################
@@ -7443,7 +7605,7 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "WebAudio Library";
+declare name "WebAudio Filters Library";
 declare author "GRAME";
 declare copyright "GRAME";
 declare version "0.1";
@@ -10373,7 +10535,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 // `fdelaylti` is most efficient, but designed for constant/slowly-varying delay.
 // `fdelayltv` is more expensive and more robust when the delay varies rapidly.
 //
-// NOTE: The requested delay should not be less than `(N-1)/2`.
+// NOTE: The requested delay should not be less than `(order-1)/2`.
 //
 // #### References
 //
@@ -10841,7 +11003,7 @@ super = environment {
 //========================================================================================
 
 //--------------------------------`(so.)loop`-----------------------------------
-// Play a soundfile in a loop taking into account its sampling rate
+// Play a soundfile in a loop taking into account its sampling rate.
 // `loop` is a standard Faust function.
 //
 // #### Usage
@@ -10860,7 +11022,7 @@ super = environment {
 loop(sf, part) = super.loop(sf, part);
 
 //--------------------------------`(so.)loop_speed`-----------------------------------
-// Play a soundfile in a loop taking into account its sampling rate, with speed control
+// Play a soundfile in a loop taking into account its sampling rate, with speed control.
 // `loop_speed` is a standard Faust function.
 //
 // #### Usage
@@ -10880,7 +11042,7 @@ loop(sf, part) = super.loop(sf, part);
 loop_speed(sf, part, speed) = super.loop_speed(sf, part, speed);
 
 //--------------------------------`(so.)loop_speed_level`-----------------------------------
-// Play a soundfile in a loop taking into account its sampling rate, with speed and level controls
+// Play a soundfile in a loop taking into account its sampling rate, with speed and level controls.
 // `loop_speed_level` is a standard Faust function.
 //
 // #### Usage
@@ -10950,7 +11112,7 @@ sound(sf, part) = environment {
 }; // End of environment
 							  
 /*
-// Using the 'sound' environment allocated with a given 'sf' and 'part'
+// Using the `sound` environment allocated with a given `sf` and `part`
 
 import("soundfiles.lib");
 
@@ -20508,6 +20670,7 @@ ba = library("basics.lib");
 de = library("delays.lib");
 an = library("analyzers.lib");
 ef = library("misceffects.lib");
+si = library("signals.lib");
 fi = library("filters.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Filters Library";
@@ -20613,6 +20776,34 @@ declare dcblocker author "Julius O. Smith III";
 declare dcblocker copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare dcblocker license "MIT-style STK-4.3 license";
 dcblocker = zero(1) : pole(0.995);
+
+//----------------------------`(fi.)lptN`--------------------------------------
+// One-pole lowpass filter with arbitrary dis/charging factors set in dB and
+// times set in seconds.
+//
+// #### Usage
+//
+// ```
+// _ : lptN(N, tN) : _
+// ```
+//
+// Where:
+//
+// * `N`: is the attenuation factor in dB
+// * `tN`: is the filter period in seconds, that is, the time for the
+// impulse response to decay by `N` dB
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
+declare lptN author "Julius O. Smith III";
+declare lptN copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare lptN license "MIT-style STK-4.3 license";
+lptN(N, tN, x) = x : si.smooth(ba.tau2pole(tN / log(10.0^(float(N)/20.0))));
+// Special cases of lptN
+lptau(tN, x) = lptN(8.6858896381, tN, x); // Tau time constant, i.e., 1/e atten. after tN secs
+lpt60(tN, x) = lptN(60, tN, x); // T60 constant, i.e., 1/1000 atten. after tN secs
+lpt19(tN, x) = lptN(19, tN, x); // T19 constant, i.e., 1/e^2.2 atten. after tN secs
 
 //=======================================Comb Filters=====================================
 //========================================================================================
@@ -23934,7 +24125,7 @@ with {
   uwn = no.multinoise(N); // uniform white noise in [-1,1] on N channels
   gwn = uwn :> _;         // sum of uniform approaches Gaussian by centeral limit thm
   sigma = sqrt(N/3.0);    // rms of each uwn channel
-  uvgwn = gwn / sigma; // approaches zero-mean, unit-variance Gaussian white noise, for large N
+  uvgwn = gwn / sigma;	  // approaches zero-mean, unit-variance Gaussian white noise, for large N
 };
 
 gnoisem(N) = gnoise(N) * 0.625; // Equalizes loudness to that of no.noise (thanks Mykle Hansen)
@@ -24406,18 +24597,17 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 // A library to handle interpolation. Its official prefix is `it`.
 //
 // This library provides several basic interpolation functions as well as interpolators 
-// taking a 'gen' circuit of N outputs producing values to be interpolated, triggered
-// by a 'idv' read index signal. Two points and four points interpolation is implemented.
+// taking a `gen` circuit of N outputs producing values to be interpolated, triggered
+// by a `idv` read index signal. Two points and four points interpolations are implemented.
 //
-// The 'idv' parameter is to be used as a read index. In float (= singleprecision) mode, 
+// The `idv` parameter is to be used as a read index. In float (= singleprecision) mode, 
 // we use a technique with a pure integer index and a fractional part in the [0,1] range 
 // to avoid accumulating errors. In -double (= doubleprecision)/-quad (= quadprecision) modes, 
 // we use a standard implementation with a fractional index.
 //
-// Use-case with 'waveform'. Here the signal given to 'interpolator_XXX' uses the 'idv' model.
+// Use-case with `waveform`. Here the signal given to `interpolator_XXX` uses the `idv` model.
 // 
 // ```
-// waveform and index step
 // waveform_interpolator(wf, step, interp) = interp(gen, idv)
 // with {
 //    gen(idx) = wf, (idx:max(0):min(size-1)) : rdtable with { size = wf:(_,!); };   /* waveform size */
@@ -24452,7 +24642,7 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 // };
 // ```
 // 
-// Tests
+// Some tests here:
 // 
 // ```
 // wf = waveform {0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 50.0, 40.0, 30.0, 20.0, 10.0, 0.0};
@@ -24468,7 +24658,7 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 //    idv = it.make_idv(idv_aux);  /* build the signal for interpolation in a generic way */
 // };
 // 
-// Test linear interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
+// /* Test linear interpolation between 2 samples with a `(idx,dv)` signal built using a waveform */
 // linear_test = (idx,dv), it.interpolator_linear(gen, (idx,dv))
 // with {
 //    /* signal to interpolate (only 2 points here) */
@@ -24479,7 +24669,7 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 //    index = (+(1)~_)-1;   /* starting from 0 */
 // };
 // 
-// Test cosine interpolation between 2 samples with a '(idx,dv)' signal built using a waveform
+// /* Test cosine interpolation between 2 samples with a `(idx,dv)` signal built using a waveform */
 // cosine_test = (idx,dv), it.interpolator_cosine(gen, (idx,dv))
 // with {
 //    /* signal to interpolate (only 2 points here) */
@@ -24490,7 +24680,7 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 //    index = (+(1)~_)-1;   /* starting from 0 */
 // };
 // 
-// Test cubic interpolation between 4 samples with a '(idx,dv)' signal built using a waveform
+// /* Test cubic interpolation between 4 samples with a `(idx,dv)` signal built using a waveform */
 // cubic_test = (idx,dv), it.interpolator_cubic(gen, (idx,dv))
 // with {
 //    /* signal to interpolate (only 4 points here) */
@@ -30654,6 +30844,10 @@ declare license "LGPL with exception";
 
 // This library contains platform specific constants 
 pl = library("platform.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+fi = library("filters.lib");
+ma = library("maths.lib"); // for compatible copy/paste out of this file
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -31303,3 +31497,114 @@ nextpow2(x) = ceil(log(x)/log(2.0));
 // ```
 //-----------------------------------------------------------------------------
 zc(x) = x * x' < 0;
+
+
+//============================Averaging Functions==============================
+//=============================================================================
+//
+// These are a set of samplerate independent averaging functions based on
+// moving-average and one-pole filters with specific response characteristics.
+
+//----------------------------`(ma.)avg_rect`----------------------------------
+// Moving average.
+//
+// #### Usage
+//
+// ```
+// _ : avg_rect(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the averaging frame in seconds
+//-----------------------------------------------------------------------------
+declare avg_rect author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_rect license "MIT-style STK-4.3 license";
+avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
+
+
+//----------------------------(ma.)avg_tau-------------------------------------
+// Averaging function based on a one-pole filter and the tau response time.
+// Tau represents the effective length of the one-pole impulse response,
+// that is, tau is the integral of the filter's impulse response. This
+// response is slower to reach the final value but has less ripples in
+// non-steady signals.
+// 
+// #### Usage
+//
+// ```
+// _ avg_tau(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/e, 
+// or to reach 1-1/e of its final value.
+//
+// #### Reference
+// <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
+//-----------------------------------------------------------------------------
+declare avg_tau author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_tau license "MIT-style STK-4.3 license";
+avg_tau(period, x) = fi.lptau(period, x);
+
+
+//----------------------------(ma.)avg_t60-------------------------------------
+// Averaging function based on a one-pole filter and the t60 response time.
+// This response is particularly useful when the system is required to 
+// reach the final value after about `period` seconds.
+// 
+// #### Usage
+//
+// ```
+// _ avg_t60(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/1000, 
+// or to reach 1-1/1000 of its final value.
+//
+// #### Reference
+// <https://ccrma.stanford.edu/~jos/mdft/Audio_Decay_Time_T60.html>
+//-----------------------------------------------------------------------------
+declare avg_t60 author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_t60 license "MIT-style STK-4.3 license";
+avg_t60(period, x) = fi.lpt60(period, x);
+
+
+//----------------------------(ma.)avg_t19-------------------------------------
+// Averaging function based on a one-pole filter and the t19 response time.
+// This response is close to the moving-average algorithm as it roughly reaches
+// the final value after `period` seconds and shows about the same
+// oscillations for non-steady signals.
+//
+// #### Usage
+//
+// ```
+// _ avg_t19(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/e^2.2, 
+// or to reach 1-1/e^2.2 of its final value.
+//
+// #### Reference
+// Zölzer, U. (2008). Digital audio signal processing (Vol. 9). New York: Wiley.
+//-----------------------------------------------------------------------------
+declare avg_t19 author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com> and
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_t19 license "MIT-style STK-4.3 license";
+avg_t19(period, x) = fi.lpt19(period, x); 
