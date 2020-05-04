@@ -53,7 +53,7 @@ Faust libraries are now in a [separated project](https://github.com/grame-cncm/f
 
     git submodule update --remote --merge
     git add libraries architecture/android/app/oboe architecture/smartkeyboard/android/app/oboe
-    git commit -m "Faust updated to the latest version of the libraries and oboe"
+    git commit -m "Faust updated to the latest version of the libraries and oboe."
     git push
 
 ## Compilation and Installation
