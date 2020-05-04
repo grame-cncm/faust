@@ -6503,8 +6503,8 @@ declare copyright "2018-2020 GRAME / GIPSA-Lab";
 //---------------------------------------------------------
 initState(init) = R(0,init)
 with{
-  R(n,(initn,init)) = +(initn : ba.impulsify@n) : R(n+1,init);
-  R(n,initn) = +(initn : ba.impulsify@n);
+  R(n,(initn,init)) = +(1: ba.impulsify@n * initn) : R(n+1,init);
+  R(n,initn) = +(1 : ba.impulsify@n * initn);
 };
 
 
