@@ -179,13 +179,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
-        if (inst->fName != "min_i" &&
-            inst->fName != "max_i") {  // adhoc code for now otherwise min_i/max_i are not always correctly generated...
-            if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
-                return;
-            } else {
-                fFunctionSymbolTable[inst->fName] = 1;
-            }
+        if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
+            return;
+        } else {
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder' will be manually
@@ -194,13 +191,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             MathFunDesc desc = fMathLibTable[inst->fName];
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                 tab(fTab, *fOut);
-                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
-                    *fOut << "(import $" << inst->fName << " \"env\" \""
-                          << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
-                } else {
-                    faustassert(false);
-                }
+                // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
+                *fOut << "(import $" << inst->fName << " \"env\" \""
+                      << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
 
                 for (int i = 0; i < desc.fArgs; i++) {
                     *fOut << type2String(desc.fTypeIn);

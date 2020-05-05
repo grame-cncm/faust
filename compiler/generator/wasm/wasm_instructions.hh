@@ -488,7 +488,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
             return;
         } else {
-            fFunctionSymbolTable[inst->fName] = 1;
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
@@ -514,11 +514,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 fFunTypes[inst->fName] = fun_type;
 
                 // Build function import
-                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    fFunImports[inst->fName] = std::make_pair("env", desc.fName);
-                } else {
-                    faustassert(false);
-                }
+                fFunImports[inst->fName] = std::make_pair("env", desc.fName);
             }
 
         } else {
@@ -861,7 +857,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
             return;
         } else {
-            fFunctionSymbolTable[inst->fName] = 1;
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // Generate function body

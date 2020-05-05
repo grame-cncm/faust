@@ -98,9 +98,9 @@ struct WASInst {
     };
 
     TypingVisitor            fTypingVisitor;
-    map<string, int>         fFunctionSymbolTable;
-    map<string, MathFunDesc> fMathLibTable;  // Table : field_name, math description
-    map<string, MemoryDesc>  fFieldTable;    // Table : field_name, { offset, size, type }
+    map<string, bool>         fFunctionSymbolTable; // Already generated functions
+    map<string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
+    map<string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }
 
     // To generate tee_local the first time the variable access is compiled, then local.get will be used
     map<string, bool> fTeeMap;
