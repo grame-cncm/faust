@@ -174,6 +174,7 @@ for p in $FILES; do
     elif [ $TESTS == "fast" ] ; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
+        faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
         faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
         faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
@@ -186,10 +187,18 @@ for p in $FILES; do
 
     if [ $IOS == "1" ] ; then
         echo "Files generated for iOS project in $TMP"
+        cp "$FAUSTLIB/faustbench.cpp" "$TMP/faustbench.cpp"
         if [ $DOUBLE == "1" ] ; then
-            echo " #define FAUSTFLOAT double" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+            echo " #define FAUSTFLOAT double" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         else
-            echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+            echo " #define FAUSTFLOAT float" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+        fi
+        if [ $TESTS == "all" ] ; then
+            echo " #define ALL_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+        elif [ $TESTS == "fast" ] ; then
+            echo " #define FAST_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+        elif [ $TESTS == "single" ] ; then
+            echo " #define SINGLE_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         fi
         cp -r $FAUSTLIB/iOS-bench/* $TMP
         exit

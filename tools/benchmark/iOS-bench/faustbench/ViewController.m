@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-int bench_all(const char* name);
+int bench_all(const char* name, int run, bool trace);
 
 @interface ViewController ()
 
@@ -19,7 +19,7 @@ int bench_all(const char* name);
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    bench_all("Test iOS");
+    bench_all("Test iOS", 1, true);
 }
 
 

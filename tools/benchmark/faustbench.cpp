@@ -85,6 +85,7 @@
 #elif defined(FAST_TESTS)
 
 #include "dsp_scal.h"
+#include "dsp_scal_exp10.h"
 #include "dsp_vec0_32.h"
 #include "dsp_vec1_32.h"
 #include "dsp_vec0g_32.h"
