@@ -60,7 +60,7 @@ class proxy_osc_dsp : public proxy_dsp {
         
     public:
         
-        proxy_osc_dsp(const std::string& ip, const std::string& host, int int_port, int out_port, int time_out = 5)
+        proxy_osc_dsp(const std::string& ip, const std::string& root, int int_port, int out_port, int time_out = 5)
         {
             lo_message message = nullptr;
             lo_address target = nullptr;
@@ -77,14 +77,14 @@ class proxy_osc_dsp : public proxy_dsp {
             target = lo_address_new(ip.c_str(), std::to_string(out_port).c_str());
             message = lo_message_new();
             lo_message_add_string(message, "json");
-            if (lo_send_message(target, host.c_str(), message) == -1) {
+            if (lo_send_message(target, root.c_str(), message) == -1) {
                 std::cerr << "An error occured in lo_send_message: " << lo_address_errstr(target) << std::endl;
                 goto fail;
             }
             
             // Wait for 'json' reply from the OSC application
             if (lo_server_recv_noblock(server, time_out * 1000) == 0) {
-                std::cerr << "No '" << host << "' OSC application on input " << int_port << " and output " << out_port << std::endl;
+                std::cerr << "No '" << root << "' OSC application on input " << int_port << " and output " << out_port << std::endl;
                 goto fail;
             }
             

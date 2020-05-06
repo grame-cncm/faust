@@ -190,6 +190,7 @@ The **faust-osc-controller** tool allows to control an OSC aware Faust running p
 
 Set root to the OSC program name (like '/freeverb'). Then use the available options:
 
+- `-ip <host_ip> to set the remote application IP address (default 'localhost')`
 - `-port <port> to set the OSC input port`
 - `-outport <port>' to set the OSC output port`
 
