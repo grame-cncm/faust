@@ -194,7 +194,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
                 *fOut << "(import $" << inst->fName << " \"env\" \""
                       << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
-
                 for (int i = 0; i < desc.fArgs; i++) {
                     *fOut << type2String(desc.fTypeIn);
                     if (i < desc.fArgs - 1) *fOut << " ";

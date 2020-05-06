@@ -20,7 +20,7 @@ Import `DspFaust.h` and `DspFaust.cpp` in your project (this can be done simply 
 
 The current Faust API is designed to seamlessly integrate to the life cycle of an iOS app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the block size:
 
-	DspFaust *dspFaust = new DspFaust(SR,blockSize);
+	DspFaust* dspFaust = new DspFaust(SR, blockSize);
 
 The `start()` method is used to start the audio computing and would typically be placed in the `viewDidLoad` method of the app's main `ViewController`.
 
@@ -32,16 +32,16 @@ If your Faust object is polyphonic (e.g. if you used the `-nvoices` option when 
 
 It is possible to change the parameters of polyphonic voices independently using the `setVoiceParamValue` method. This method takes as one of its arguments the address to the voice returned by `keyOn` or `newVoice` when it is called. E.g:
 
-	long voiceAddress = dspFaust->keyOn(70,100);
-	dspFaust->setVoiceParamValue(1,voiceAddress,214);
+	uintptr_t voiceAddress = dspFaust->keyOn(70,100);
+	dspFaust->setVoiceParamValue(1, voiceAddress, 214);
 	dspFaust->keyOff(70);
 	
 In the example above, a new note is created and its parameter ID 1 is modified. This note is then terminated. Note that parameters addresses (path) are different for independent voices than when using `setParamValue`. The list of these addresses is provided in a separate sub-section of the [Parameters List](#parameters-list) section.
 
 Finally, note that new voices don't necessarily have to be created using `keyOn`. Indeed, you might choose to just use the `newVoice` method for that:
 
-	long voiceAddress = dspFaust->newVoice;
-	dspFaust->setVoiceParamValue(1,voiceAddress,214);
+	uintptr_t voiceAddress = dspFaust->newVoice;
+	dspFaust->setVoiceParamValue(1, voiceAddress, 214);
 	dspFaust->deleteVoice(voiceAddress);
 
 This is particularly useful when making apps where each finger of the user is an independent sound that doesn't necessarily has a pitch.

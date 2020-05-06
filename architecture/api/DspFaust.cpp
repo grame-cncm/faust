@@ -365,7 +365,7 @@ bool DspFaust::isOSCOn()
 #if OSCCTRL
 	return true;
 #else
-  return false;
+    return false;
 #endif
 }
 
@@ -412,6 +412,11 @@ const char* DspFaust::getJSONUI()
 const char* DspFaust::getJSONMeta()
 {
 	return fPolyEngine->getJSONMeta();
+}
+
+void DspFaust::buildUserInterface(UI* ui_interface)
+{
+    fPolyEngine->buildUserInterface(ui_interface);
 }
 
 int DspFaust::getParamsCount()
