@@ -11,7 +11,7 @@ system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
-OSXSOUND="faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2juce faust2bela"
+OSXSOUND="faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2juce faust2bela faust2jackconsole"
 OSXSOUNDSR="faust2caqt faust2jaqt faust2jack"
 OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2"
 OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"

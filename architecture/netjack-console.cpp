@@ -178,9 +178,7 @@ int main(int argc, char* argv[])
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
         cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
     }
-    interface.process_command();
-    
-
+  
 #ifdef HTTPCTRL
     httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(httpdinterface);
@@ -196,7 +194,13 @@ int main(int argc, char* argv[])
         cerr << "Unable to init audio" << endl;
         exit(1);
     }
+    
+    // First restore the state
     finterface.recallState(rcfilename);
+    
+    // The process commands and possibly update it
+    interface.process_command();
+    
     if (!audio.start()) {
         cerr << "Unable to start audio" << endl;
         exit(1);

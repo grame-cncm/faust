@@ -17,6 +17,9 @@ ARCHFILE=$FAUSTARCH/jack-console.cpp
 
 OSCDEFS=""
 NVOICES=-1
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 
 # Check Darwin specifics
 #
@@ -43,7 +46,7 @@ do
         require Jack
         echo "Compiles Faust programs to JACK-console."
         option
-        options -httpd -osc -midi
+        options -httpd -osc -midi -soundfile
         option "-nvoices <num>"
         option "Faust options"
     	exit
@@ -61,6 +64,10 @@ do
         fi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -88,7 +95,7 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS $MIDIDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
