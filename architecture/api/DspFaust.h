@@ -32,6 +32,7 @@ class JuceOSCUI;
 class SoundUI;
 class audio;
 class dsp;
+class UI;
 class dsp_factory;
 
 class DspFaust
