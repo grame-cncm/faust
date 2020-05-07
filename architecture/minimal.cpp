@@ -31,10 +31,14 @@
  
  ************************************************************************
  ************************************************************************/
- 
+
+#include <iostream>
+
 #include "faust/gui/PrintUI.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dummy-audio.h"
+
+// faust -a minimal.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
 
 /******************************************************************************
  *******************************************************************************
@@ -61,8 +65,9 @@ int main(int argc, char* argv[])
     mydsp DSP;
     PrintUI ui;
     
-    // Activate the UI
-    // (here that only print the control paths)
+    std::cout << "DSP size: " << sizeof(DSP) << " bytes\n";
+    
+    // Activate the UI, here that only print the control paths
     DSP.buildUserInterface(&ui);
 
     // Allocate the audio driver to render 5 buffers of 512 frames
