@@ -313,7 +313,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            // Keep matadata
+            // Keep metadata
             fCurrentMetadata[key] = val;
             
             if (strcmp(key, "scale") == 0) {
