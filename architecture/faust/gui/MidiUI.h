@@ -327,12 +327,11 @@ class uiMidiChanPress : public uiMidiTimedItem {
         
 };
 
-class uiMidiCtrlChange : public uiMidiTimedItem {
+class uiMidiCtrlChange : public uiMidiTimedItem, public uiConverter {
     
     private:
     
         int fCtrl;
-        ValueConverter* fConverter;
  
     public:
 
@@ -342,17 +341,10 @@ class uiMidiCtrlChange : public uiMidiTimedItem {
                      bool input = true,
                      MetaDataUI::Scale scale = MetaDataUI::kLin,
                      int chan = -1)
-            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fCtrl(ctrl)
-        {
-            // select appropriate converter according to scale mode
-            if (scale == MetaDataUI::kLog)          { fConverter = new LogValueConverter(0., 127., double(min), double(max)); }
-            else if (scale == MetaDataUI::kExp)     { fConverter = new ExpValueConverter(0., 127., double(min), double(max)); }
-            else                                    { fConverter = new LinearValueConverter(0., 127., double(min), double(max)); }
-        }
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fCtrl(ctrl)
+        {}
         virtual ~uiMidiCtrlChange()
-        {
-            delete fConverter;
-        }
+        {}
         
         virtual void reflectZone()
         {
@@ -427,12 +419,11 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
  
 };
 
-class uiMidiKeyOn : public uiMidiTimedItem {
+class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
 
     private:
         
         int fKeyOn;
-        ValueConverter* fConverter;
   
     public:
     
@@ -442,17 +433,10 @@ class uiMidiKeyOn : public uiMidiTimedItem {
                     bool input = true,
                     MetaDataUI::Scale scale = MetaDataUI::kLin,
                     int chan = -1)
-            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fKeyOn(key)
-        {
-            // select appropriate converter according to scale mode
-            if (scale == MetaDataUI::kLog)          { fConverter = new LogValueConverter(0., 127., double(min), double(max)); }
-            else if (scale == MetaDataUI::kExp)     { fConverter = new ExpValueConverter(0., 127., double(min), double(max)); }
-            else                                    { fConverter = new LinearValueConverter(0., 127., double(min), double(max)); }
-        }
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKeyOn(key)
+        {}
         virtual ~uiMidiKeyOn()
-        {
-            delete fConverter;
-        }
+        {}
         
         virtual void reflectZone()
         {
@@ -477,12 +461,11 @@ class uiMidiKeyOn : public uiMidiTimedItem {
     
 };
 
-class uiMidiKeyOff : public uiMidiTimedItem {
+class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
 
     private:
         
         int fKeyOff;
-        ValueConverter* fConverter;
   
     public:
     
@@ -492,17 +475,10 @@ class uiMidiKeyOff : public uiMidiTimedItem {
                      bool input = true,
                      MetaDataUI::Scale scale = MetaDataUI::kLin,
                      int chan = -1)
-            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fKeyOff(key)
-        {
-            // select appropriate converter according to scale mode
-            if (scale == MetaDataUI::kLog)          { fConverter = new LogValueConverter(0., 127., double(min), double(max)); }
-            else if (scale == MetaDataUI::kExp)     { fConverter = new ExpValueConverter(0., 127., double(min), double(max)); }
-            else                                    { fConverter = new LinearValueConverter(0., 127., double(min), double(max)); }
-        }
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKeyOff(key)
+        {}
         virtual ~uiMidiKeyOff()
-        {
-            delete fConverter;
-        }
+        {}
         
         virtual void reflectZone()
         {
@@ -527,12 +503,11 @@ class uiMidiKeyOff : public uiMidiTimedItem {
     
 };
 
-class uiMidiKeyPress : public uiMidiTimedItem {
+class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
 
     private:
     
         int fKey;
-        ValueConverter* fConverter;
   
     public:
     
@@ -542,17 +517,10 @@ class uiMidiKeyPress : public uiMidiTimedItem {
                        bool input = true,
                        MetaDataUI::Scale scale = MetaDataUI::kLin,
                        int chan = -1)
-            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fKey(key)
-        {
-            // select appropriate converter according to scale mode
-            if (scale == MetaDataUI::kLog)          { fConverter = new LogValueConverter(0., 127., double(min), double(max)); }
-            else if (scale == MetaDataUI::kExp)     { fConverter = new ExpValueConverter(0., 127., double(min), double(max)); }
-            else                                    { fConverter = new LinearValueConverter(0., 127., double(min), double(max)); }
-        }
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKey(key)
+        {}
         virtual ~uiMidiKeyPress()
-        {
-            delete fConverter;
-        }
+        {}
         
         virtual void reflectZone()
         {

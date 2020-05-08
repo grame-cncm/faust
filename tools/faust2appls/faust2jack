@@ -100,7 +100,7 @@ shift
 done
 
 #-------------------------------------------------------------------
-# compile the *.dsp files using JACK-GTK on linux
+# compile the *.dsp files using JACK-GTK
 #
 for f in $FILES; do
 
@@ -128,7 +128,7 @@ EndOfCode
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
 	) > /dev/null || exit
 
     # remove tempory files

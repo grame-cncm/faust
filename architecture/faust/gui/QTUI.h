@@ -801,7 +801,7 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-        fButton->setDown( v > 0.0 );
+        fButton->setDown(v > 0.0);
     }
     
     public slots :
@@ -832,14 +832,14 @@ public:
     }
     
     public slots :
-    void setState(int v)		{ modifyZone(FAUSTFLOAT(v>0)); }
+    void setState(int v)		{ modifyZone(FAUSTFLOAT(v > 0)); }
 };
 
 /**
  * A slider that controls/reflects the value (min..max)
  * of a zone.
  */
-class uiSlider : public QObject, public uiItem
+class uiSlider : public QObject, public uiItem, public uiConverter
 {
     Q_OBJECT
     
@@ -850,18 +850,12 @@ protected:
     FAUSTFLOAT			fMin;
     FAUSTFLOAT			fMax;
     FAUSTFLOAT			fStep;
-    ValueConverter*		fConverter;
     
 public:
     
     uiSlider(GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, MetaDataUI::Scale scale)
-    : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
+    : uiItem(ui, zone), uiConverter(scale, 0, 10000, lo, hi), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
     {
-        // select appropriate converter according to scale mode
-        if (scale == MetaDataUI::kLog) 			{ fConverter = new LogValueConverter(0, 10000, fMin, fMax); }
-        else if (scale == MetaDataUI::kExp) 	{ fConverter = new ExpValueConverter(0, 10000, fMin, fMax); }
-        else                                    { fConverter = new LinearValueConverter(0, 10000, fMin, fMax); }
-        
         fSlider->setMinimum(0);
         fSlider->setMaximum(10000);
         fSlider->setValue(int(0.5+fConverter->faust2ui(fCur)));
@@ -869,9 +863,7 @@ public:
     }
     
     virtual ~uiSlider()
-    {
-        delete fConverter;
-    }
+    {}
     
     virtual void reflectZone()
     {

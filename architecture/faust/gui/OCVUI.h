@@ -55,7 +55,6 @@
 #include <pthread.h>
 
 // OpenCV Main Loop Function Prototype
-
 static void* ocvLoop(void*);
 
 //********	OpenCV User Interface CLASS DEFINITION ********//
@@ -152,7 +151,7 @@ class OCVUI : public UI
 	 * in a metadata structure.
 	 */
 		
-	bool parser(std::string string2parse, metadata *pmeta)
+	bool parser(const std::string& string2parse, metadata* pmeta)
 	{
 	    int SPACE = 32; // Parameters separator
 	    std::vector<std::string> parameters(0);
@@ -214,8 +213,8 @@ class OCVUI : public UI
 	    }
 	    else
 	    {
-	    	std::cout<<"Wrong count of parameters. Please check if the OpenCV"
-	    			 <<"metadata is correctly defined"<<std::endl;
+	    	std::cout << "Wrong count of parameters. Please check if the OpenCV"
+	    			  << "metadata is correctly defined" << std::endl;
 	    	return false;
 	    }
 	}
@@ -266,7 +265,7 @@ class OCVUI : public UI
 	{
 		int tempArea = 0;
 		cv::Rect myRect;
-		for (int j = 0 ; j<contours.size() ; j++)
+		for (int j = 0; j<contours.size(); j++)
 		{
 			std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
 			std::vector<cv::Rect> boundRect( contours.size() );
@@ -317,14 +316,14 @@ class OCVUI : public UI
 		
 		// Erase small alone pixels
 			// http://docs.opencv.org/modules/imgproc/doc/filtering.html#dilate
-		for (int i = 0; i<2 ; i++)
+		for (int i = 0; i < 2 ; i++)
 		{
 			cv::erode(image, image, element);
 		}
 		
 		// Enlarge blocks of pixels
 			// http://docs.opencv.org/modules/imgproc/doc/filtering.html#erode
-		for (int i = 0; i<10 ; i++)
+		for (int i = 0; i < 10 ; i++)
 		{
 			cv::dilate(image, image, element);
 		}
@@ -623,28 +622,28 @@ class OCVUI : public UI
 // in openCV
 	
 // #1 = RED
-cv::Scalar OCVUI::red_min = cv::Scalar (0,200,55);
-cv::Scalar OCVUI::red_max = cv::Scalar (1,255,255);
+cv::Scalar OCVUI::red_min = cv::Scalar(0,200,55);
+cv::Scalar OCVUI::red_max = cv::Scalar(1,255,255);
 
 // #2 = YELLOW
-cv::Scalar OCVUI::yellow_min = cv::Scalar (25, 200, 55);
-cv::Scalar OCVUI::yellow_max = cv::Scalar (35, 255, 255);
+cv::Scalar OCVUI::yellow_min = cv::Scalar(25, 200, 55);
+cv::Scalar OCVUI::yellow_max = cv::Scalar(35, 255, 255);
 
 // #3 = GREEN
-cv::Scalar OCVUI::green_min = cv::Scalar (20,155,55);
-cv::Scalar OCVUI::green_max = cv::Scalar (50,255,255);
+cv::Scalar OCVUI::green_min = cv::Scalar(20,155,55);
+cv::Scalar OCVUI::green_max = cv::Scalar(50,255,255);
 
 // #4 = CYAN
-cv::Scalar OCVUI::cyan_min = cv::Scalar (85,200,55);
-cv::Scalar OCVUI::cyan_max = cv::Scalar (95,200,55);
+cv::Scalar OCVUI::cyan_min = cv::Scalar(85,200,55);
+cv::Scalar OCVUI::cyan_max = cv::Scalar(95,200,55);
 
 // #5 = BLUE
-cv::Scalar OCVUI::blue_min = cv::Scalar (115,155,55);
-cv::Scalar OCVUI::blue_max = cv::Scalar (125,255,255);
+cv::Scalar OCVUI::blue_min = cv::Scalar(115,155,55);
+cv::Scalar OCVUI::blue_max = cv::Scalar(125,255,255);
 
 // #6 = MAGENTA
-cv::Scalar OCVUI::magenta_min = cv::Scalar (145,200,55);
-cv::Scalar OCVUI::magenta_max = cv::Scalar (155,255,255);
+cv::Scalar OCVUI::magenta_min = cv::Scalar(145,200,55);
+cv::Scalar OCVUI::magenta_max = cv::Scalar(155,255,255);
 
 // OpenCV Main Loop Function Implementation
 // This function is a loop that gets every frame from a camera

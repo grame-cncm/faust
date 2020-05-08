@@ -276,6 +276,11 @@ int main(int argc, char* argv[])
     audio.stop();
     finterface.saveState(rcfilename);
     
+    delete DSP;
+#ifdef MIDICTRL
+    delete midiinterface;
+#endif
+    
     return 0;
 }
 

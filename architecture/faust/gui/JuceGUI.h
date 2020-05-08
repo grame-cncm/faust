@@ -470,14 +470,13 @@ class uiComponent : public uiBase, public Component, public uiItem
  * \brief   Intern class for all kind of sliders.
  * \see     SliderType
  */
-class uiSlider : public uiComponent, private juce::Slider::Listener
+class uiSlider : public uiComponent, public uiConverter,  private juce::Slider::Listener
 {
     
     private:
         
         Slider::SliderStyle fStyle;
         Label fLabel;
-        std::unique_ptr<ValueConverter> fConverter;
         SliderType fType;
         Slider fSlider;
 
@@ -496,18 +495,9 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
          * \param   scale                           Scale of the slider, exponential, logarithmic, or linear.
          * \param   type                            Type of slider (see SliderType).
          */
-        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
+        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type)
+            : uiComponent(gui, zone, w, h, name), uiConverter(scale, min, max, min, max), fType(type)
         {
-            if (scale == MetaDataUI::kLog) {
-                fConverter = std::make_unique<LogValueConverter>(min, max, min, max);
-                fSlider.setSkewFactor(0.5); // Logarithmic slider
-            } else if (scale == MetaDataUI::kExp) {
-                fConverter = std::make_unique<ExpValueConverter>(min, max, min, max);
-                fSlider.setSkewFactor(2.0); // Exponential slider
-            } else {
-                fConverter = std::make_unique<LinearValueConverter>(min, max, min, max);
-            }
-
             // Set the JUCE widget initalization variables.
             switch(fType) {
                 case HSlider:

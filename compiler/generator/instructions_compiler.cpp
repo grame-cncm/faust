@@ -731,14 +731,15 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     ValueInst* v1 = CS(a1);
     ValueInst* v2 = CS(a2);
 
+    /*
     interval i = getCertifiedSigType(a1)->getInterval();
     interval j = getCertifiedSigType(a2)->getInterval();
-
     if (j.haszero()) {
         // potential division by zero
-        // cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << endl;
+        cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << endl;
     }
-
+    */
+     
     // Logical and shift operations work on kInt32, so cast both operands here
     if (isLogicalOpcode(opcode) || isShiftOpcode(opcode)) {
         res = InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2));

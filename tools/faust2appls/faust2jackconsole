@@ -85,7 +85,7 @@ shift
 done
 	
 #-------------------------------------------------------------------
-# compile the *.dsp files using ALSA and GTK on linux
+# compile the *.dsp files using JACK and console
 #
 for f in $FILES; do
 	
@@ -94,10 +94,11 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
 	) > /dev/null || exit
-	rm "$f.cpp"
+	
+	# remove tempory files
+	rm -f "$f.cpp"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
