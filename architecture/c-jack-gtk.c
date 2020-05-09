@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 	snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
 	Cdsp* DSP = new Cdsp();
-	if (DSP == 0) {
+	if (!DSP) {
 		cerr << "Unable to allocate Faust DSP object" << endl;
 		exit(1);
 	}

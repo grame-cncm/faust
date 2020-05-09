@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 	snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
 	llvmdsp* DSP = new llvmdsp();
-	if (DSP == 0) {
+	if (!DSP) {
 		cerr << "Unable to allocate Faust DSP object" << endl;
 		exit(1);
 	}

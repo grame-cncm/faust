@@ -318,7 +318,7 @@ int main(int argc, char* argv[])
     
 #endif
     
-    if (DSP == 0) {
+    if (!DSP) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
     QTGUI interface;
     
 #ifdef PRESETUI
-    PresetUI pinterface(interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
+    PresetUI pinterface(&interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
     DSP->buildUserInterface(&interface);

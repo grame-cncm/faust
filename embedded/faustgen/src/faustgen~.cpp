@@ -1156,81 +1156,88 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    bool res = false;
-    string name = string((s)->s_name);
-
-    // If no argument is there, consider it as a toggle message for a button
-    if (ac == 0 && fDSPUI->isValue(name)) {
+    if (fDSPfactory->lock()) {
+        bool res = false;
+        string name = string((s)->s_name);
         
-        FAUSTFLOAT off = FAUSTFLOAT(0.0);
-        FAUSTFLOAT on = FAUSTFLOAT(1.0);
-        fDSPUI->setValue(name, off);
-        fDSPUI->setValue(name, on);
-        
-        av[0].a_type = A_FLOAT;
-        av[0].a_w.w_float = off;
-        anything(inlet, s, 1, av);
-        
-    } else if (mspUI::checkDigit(name)) { // List of values
-        
-        int pos, ndigit = 0;
-        for (pos = name.size() - 1; pos >= 0; pos--) {
-            if (isdigit(name[pos]) || name[pos] == ' ') {
-                ndigit++;
-            } else {
-                break;
-            }
-        }
-        pos++;
-        
-        string prefix = name.substr(0, pos);
-        string num_base = name.substr(pos);
-        int num = atoi(num_base.c_str());
-        
-        int i;
-        t_atom* ap;
-        
-        // Increment ap each time to get to the next atom
-        for (i = 0, ap = av; i < ac; i++, ap++) {
-            FAUSTFLOAT value;
-            switch (atom_gettype(ap)) {
-                case A_LONG:
-                    value = FAUSTFLOAT(ap[0].a_w.w_long);
+        // If no argument is there, consider it as a toggle message for a button
+        if (ac == 0 && fDSPUI->isValue(name)) {
+            
+            FAUSTFLOAT off = FAUSTFLOAT(0.0);
+            FAUSTFLOAT on = FAUSTFLOAT(1.0);
+            fDSPUI->setValue(name, off);
+            fDSPUI->setValue(name, on);
+            
+            av[0].a_type = A_FLOAT;
+            av[0].a_w.w_float = off;
+            anything(inlet, s, 1, av);
+            
+            goto unlock;
+            
+        } else if (mspUI::checkDigit(name)) { // List of values
+            
+            int pos, ndigit = 0;
+            for (pos = name.size() - 1; pos >= 0; pos--) {
+                if (isdigit(name[pos]) || name[pos] == ' ') {
+                    ndigit++;
+                } else {
                     break;
-                case A_FLOAT:
-                    value = FAUSTFLOAT(ap[0].a_w.w_float);
-                    break;
-                default:
-                    post("Invalid argument in parameter setting");
-                    return;
+                }
+            }
+            pos++;
+            
+            string prefix = name.substr(0, pos);
+            string num_base = name.substr(pos);
+            int num = atoi(num_base.c_str());
+            
+            int i;
+            t_atom* ap;
+            
+            // Increment ap each time to get to the next atom
+            for (i = 0, ap = av; i < ac; i++, ap++) {
+                FAUSTFLOAT value;
+                switch (atom_gettype(ap)) {
+                    case A_LONG:
+                        value = FAUSTFLOAT(ap[0].a_w.w_long);
+                        break;
+                    case A_FLOAT:
+                        value = FAUSTFLOAT(ap[0].a_w.w_float);
+                        break;
+                    default:
+                        post("Invalid argument in parameter setting");
+                        goto unlock;
+                }
+                
+                string num_val = to_string(num + i);
+                stringstream param_name; param_name << prefix;
+                for (int i = 0; i < ndigit - mspUI::countDigit(num_val); i++) {
+                    param_name << ' ';
+                }
+                param_name << num_val;
+                
+                // Try special naming scheme for list of parameters
+                res = fDSPUI->setValue(param_name.str(), value);
+                
+                // Otherwise try standard name
+                if (!res) {
+                    res = fDSPUI->setValue(name, value);
+                }
+                if (!res) {
+                    post("Unknown parameter : %s", (s)->s_name);
+                }
             }
             
-            string num_val = to_string(num + i);
-            stringstream param_name; param_name << prefix;
-            for (int i = 0; i < ndigit - mspUI::countDigit(num_val); i++) {
-                param_name << ' ';
-            }
-            param_name << num_val;
-            
-            // Try special naming scheme for list of parameters
-            res = fDSPUI->setValue(param_name.str(), value);
-            
-            // Otherwise try standard name
-            if (!res) {
-                res = fDSPUI->setValue(name, value);
-            }
+        } else {
+            // Standard parameter name
+            FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
+            res = fDSPUI->setValue(name, value);
             if (!res) {
                 post("Unknown parameter : %s", (s)->s_name);
             }
         }
         
-    } else {
-        // Standard parameter name
-        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
-        res = fDSPUI->setValue(name, value);
-        if (!res) {
-            post("Unknown parameter : %s", (s)->s_name);
-        }
+    unlock:
+        fDSPfactory->unlock();
     }
 }
 
@@ -1280,19 +1287,19 @@ void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
     fSavedUI->reset();
     
     // Input controllers
-    for (mspUI::iterator it = fDSPUI->begin1(); it != fDSPUI->end1(); it++) {
+    for (mspUI::iterator it = fDSPUI->begin2(); it != fDSPUI->end2(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[1], (*it).second->getInitValue());    // init value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = fDSPUI->begin3(); it != fDSPUI->end3(); it++) {
+    for (mspUI::iterator it = fDSPUI->begin4(); it != fDSPUI->end4(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[1], (*it).second->getInitValue());    // init value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);
@@ -1303,19 +1310,19 @@ void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
 void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Input controllers
-    for (mspUI::iterator it = fDSPUI->begin1(); it != fDSPUI->end1(); it++) {
+    for (mspUI::iterator it = fDSPUI->begin2(); it != fDSPUI->end2(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[1], (*it).second->getValue());    // cur value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = fDSPUI->begin3(); it != fDSPUI->end3(); it++) {
+    for (mspUI::iterator it = fDSPUI->begin4(); it != fDSPUI->end4(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[1], (*it).second->getValue());    // cur value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);

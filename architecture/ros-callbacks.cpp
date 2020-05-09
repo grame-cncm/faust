@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
     
 	// Create DSP Object
 	DSP = new mydsp();
-	if (DSP == 0) {
+	if (!DSP) {
         std::cout<<"Unable to allocate Faust DSP object" <<std::endl;
 		exit(1);
 	}

@@ -157,7 +157,8 @@ int main(int argc, char* argv[])
 #endif
     
 #endif
-    if (DSP == 0) {
+    
+    if (!DSP) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }

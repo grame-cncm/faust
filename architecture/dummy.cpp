@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     }
 #endif
     
-    if (DSP == 0) {
+    if (!DSP) {
         cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }

@@ -136,10 +136,10 @@ using namespace std;
 #include "jpatcher_api.h"
 #include <string.h>
 
-#define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
-#define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
+#define ASSIST_INLET 	1
+#define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.73"
+#define EXTERNAL_VERSION    "0.74"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -575,50 +575,50 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 #endif
 
 /*--------------------------------------------------------------------------*/
-// Reset controllers to init value and send [label, init, min, max]
+// Reset controllers to init value and send [path, init, min, max]
 void faust_init(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     // Reset internal state
     x->m_savedUI->reset();
     
     // Input controllers
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[1], (*it).second->getInitValue());    // init value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[1], (*it).second->getInitValue());    // init value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
-}
+ }
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [label, cur, init, min, max]
+// Dump controllers as list of: [path, cur, init, min, max]
 void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     // Input controllers
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[1], (*it).second->getValue());    // cur value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[1], (*it).second->getValue());    // cur value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
