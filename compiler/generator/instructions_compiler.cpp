@@ -659,6 +659,7 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
             ctype, vname, o->getMaxDelay());
     }
 
+    // Special case for 'fSampleRate' parameter of the class
     int sig_type = getCertifiedSigType(sig)->nature();
     if (name == "fSampleRate") {
         pushDeclare(InstBuilder::genDecStructVar(name, genBasicFIRTyped(sig_type)));
@@ -677,9 +678,14 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
 {
     fContainer->addIncludeFile(file);
 
+    // Special case for 'count' parameter of the 'compute' method
     int sig_type = getCertifiedSigType(sig)->nature();
-    pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name, genBasicFIRTyped(sig_type)));
-    return generateCacheCode(sig, InstBuilder::genLoadGlobalVar(name));
+    if (name == fFullCount) {
+        return generateCacheCode(sig, InstBuilder::genLoadFunArgsVar(name));
+    } else {
+        pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name, genBasicFIRTyped(sig_type)));
+        return generateCacheCode(sig, InstBuilder::genLoadGlobalVar(name));
+    }
 }
 
 /*****************************************************************************
@@ -1451,8 +1457,8 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
             if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
                 stringstream error;
                 error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
-                << "] is outside of table range (" << tree2int(size) << ") in "
-                << *sig << endl;
+                      << "] is outside of table range (" << tree2int(size) << ") in "
+                      << *sig << endl;
                 if (gGlobal->gCheckTable == "cat") {
                     cerr << error.str();
                 } else {

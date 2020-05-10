@@ -1732,8 +1732,11 @@ struct InstBuilder {
     static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min,
                                                      double max, double step)
     {
-        if (init < min || init > max) {
-            stringstream error;
+        stringstream error;
+        if (min > max) {
+            error << "ERROR : horizontal slider \'"<< label << "\' min = " << min << " should be less than max = " << max << "\n";
+            throw faustexception(error.str());
+        } else if (init < min || init > max) {
             error << "ERROR : horizontal slider \'"<< label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
             throw faustexception(error.str());
         }
@@ -1743,8 +1746,11 @@ struct InstBuilder {
     static AddSliderInst* genAddVerticalSliderInst(const string& label, const string& zone, double init, double min,
                                                    double max, double step)
     {
-        if (init < min || init > max) {
-            stringstream error;
+        stringstream error;
+        if (min > max) {
+            error << "ERROR : vertical slider \'"<< label << "\' min = " << min << " should be less than max = " << max << "\n";
+            throw faustexception(error.str());
+        } else if (init < min || init > max) {
             error << "ERROR : vertical slider \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
             throw faustexception(error.str());
         }
@@ -1754,8 +1760,11 @@ struct InstBuilder {
     static AddSliderInst* genAddNumEntryInst(const string& label, const string& zone, double init, double min,
                                              double max, double step)
     {
-        if (init < min || init > max) {
-            stringstream error;
+        stringstream error;
+        if (min > max) {
+            error << "ERROR : num entry \'"<< label << "\' min = " << min << " should be less than max = " << max << "\n";
+            throw faustexception(error.str());
+        } else if (init < min || init > max) {
             error << "ERROR : num entry \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
             throw faustexception(error.str());
         }
