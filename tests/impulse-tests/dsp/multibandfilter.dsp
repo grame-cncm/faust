@@ -8,6 +8,4 @@ declare copyright 	"(c)GRAME 2006";
 //
 //-------------------------------------------------------------------------
 
-process 		= hgroup("Multi Band Filter",
-							seq( i, 10, vgroup("peak %i", component("bandfilter.dsp").bandfilter(1000*(1+i))) )
-						);
+process = hgroup("Multi Band Filter", seq(i, 10, vgroup("peak %i", component("bandfilter.dsp").bandfilter(1000*(1+i)))));

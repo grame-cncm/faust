@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __jsonnode__
 #define __jsonnode__
 

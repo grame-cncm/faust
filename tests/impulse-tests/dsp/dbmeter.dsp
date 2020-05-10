@@ -11,7 +11,6 @@ declare copyright 	"(c)GRAME 2006";
 import("math.lib");
 import("music.lib");
 
-
 vmeter(x)		= attach(x, envelop(x) : vbargraph("[unit:dB]", -70, 10));
 hmeter(x)		= attach(x, envelop(x) : hbargraph("[unit:dB]", -70, 10));
 

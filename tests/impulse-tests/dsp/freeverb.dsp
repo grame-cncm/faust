@@ -31,7 +31,6 @@ freezemode  = 0.5;
 stereospread= 23;
 allpassfeed = 0.5; //feedback of the delays used in allpass filters
 
-
 // Filter Parameters
 //------------------
 
@@ -49,7 +48,6 @@ allpasstuningL2 = 441;
 allpasstuningL3 = 341;
 allpasstuningL4 = 225;
 
-
 // Control Sliders
 //--------------------
 // Damp : filters the high frequencies of the echoes (especially active for great values of RoomSize)
@@ -62,14 +60,12 @@ roomsizeSlider  = hslider("RoomSize", 1, 0, 1, 0.025)*scaleroom + offsetroom;
 wetSlider       = hslider("Wet", 0.93, 0, 1, 0.025);
 combfeed        = roomsizeSlider;
 
-
 // Comb and Allpass filters
 //-------------------------
 
 allpass(dt,fb) = (_,_ <: (*(fb),_:+:@(dt)), -) ~ _ : (!,_);
 
 comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
-
 
 // Reverb components
 //------------------
@@ -98,7 +94,6 @@ stereoReverb(fb1, fb2, damp, spread)
 //----------------------------------------------------------------
 
 fxctrl(g,w,Fx) = _,_ <: (*(g),*(g) : Fx : *(w),*(w)), *(1-w), *(1-w) +> _,_;
-
 
 // Freeverb
 //---------

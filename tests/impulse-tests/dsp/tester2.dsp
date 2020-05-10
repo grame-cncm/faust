@@ -29,8 +29,8 @@ dest = hslider("[4] channel [style:radio{'none':0;'left':1;'right':2;'both':3}]"
 
 testsignal	= noise, pink(noise), osci(freq): select3(wave);
 
-process 	= vgroup("Stereo Audio Tester",
-				testsignal*vol
-				<: par(i, 2, *((dest & (i+1)) != 0 : transition(4410)))
-            );
+process = vgroup("Stereo Audio Tester",
+			testsignal*vol
+			<: par(i, 2, *((dest & (i+1)) != 0 : transition(4410)))
+        );
 

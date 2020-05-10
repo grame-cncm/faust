@@ -11,8 +11,8 @@ declare copyright 	"(c)GRAME 2009";
 
 import("music.lib");
 
-smooth(c)       = *(1-c) : +~*(c);
-vol             = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : db2linear : smooth(0.999) ;
-freq            = hslider("freq [unit:Hz]", 564, 20, 24000, 1);
+smooth(c) = *(1-c) : +~*(c);
+vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : db2linear : smooth(0.999) ;
+freq = hslider("freq [unit:Hz]", 564, 20, 24000, 1);
 
-process 		= vgroup("Oscillator", osci(freq) * vol);
+process = vgroup("Oscillator", osci(freq) * vol);

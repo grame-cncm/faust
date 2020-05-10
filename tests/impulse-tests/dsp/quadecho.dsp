@@ -10,7 +10,6 @@ declare copyright 	"(c)GRAME 2007";
 
 import("music.lib");
 
-
 process = vgroup("stereo echo", multi(echo1s, 4))
 	with{
 		multi(f,1) = f;

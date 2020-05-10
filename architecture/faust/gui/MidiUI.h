@@ -327,6 +327,10 @@ class uiMidiChanPress : public uiMidiTimedItem {
         
 };
 
+//------------------------------------------------------
+// uiMidiCtrlChange does scale (kLin/kLog/kExp) mapping
+//------------------------------------------------------
+
 class uiMidiCtrlChange : public uiMidiTimedItem, public uiConverter {
     
     private:
@@ -419,6 +423,10 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
  
 };
 
+//--------------------------------------------------------------
+// uiMidiKeyOn does scale (kLin/kLog/kExp) mapping for velocity
+//--------------------------------------------------------------
+
 class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
 
     private:
@@ -461,6 +469,10 @@ class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
     
 };
 
+//--------------------------------------------------------------
+// uiMidiKeyOff does scale (kLin/kLog/kExp) mapping for velocity
+//--------------------------------------------------------------
+
 class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
 
     private:
@@ -502,6 +514,10 @@ class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
         }
     
 };
+
+//----------------------------------------------------------------
+// uiMidiKeyPress does scale (kLin/kLog/kExp) mapping for velocity
+//----------------------------------------------------------------
 
 class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
 

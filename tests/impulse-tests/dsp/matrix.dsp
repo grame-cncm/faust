@@ -10,8 +10,8 @@ declare copyright 	"(c)GRAME 2006";
 
 import("music.lib");
 
-Fader(in)		= db2linear(vslider("Input %in", -10, -96, 4, 0.1));
-Mixer(N,out) 	= hgroup("Output %out", par(in, N, *(Fader(in)) ) :> _ );
-Matrix(N,M) 	= tgroup ("Matrix %N x %M", par(in, N, _) <: par(out, M, Mixer(N, out)));
+Fader(in) = db2linear(vslider("Input %in", -10, -96, 4, 0.1));
+Mixer(N,out) = hgroup("Output %out", par(in, N, *(Fader(in)) ) :> _ );
+Matrix(N,M) = tgroup ("Matrix %N x %M", par(in, N, _) <: par(out, M, Mixer(N, out)));
 
 process = Matrix(8, 8);

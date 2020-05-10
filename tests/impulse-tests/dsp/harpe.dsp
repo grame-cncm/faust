@@ -9,7 +9,6 @@ declare author  "Grame";
 
 process = harpe(11); 	// an 11 strings harpe
 
-
 //-----------------------------------------------
 // 		whoite noise generator
 //-----------------------------------------------
@@ -18,7 +17,6 @@ noise 	= random / RANDMAX
 		random = +(12345) ~ *(1103515245);
 		RANDMAX	= 2147483647.0;
 	};
-
 
 //-----------------------------------------------
 // 		String simulation
@@ -34,7 +32,6 @@ string(freq, att, level, trig) = noise*level
 		decay(n,x) = x - (x>0.0)/n;
 		freq2samples(f) = 44100.0/f;
 	};
-
 
 //-----------------------------------------------
 // 		Build a N strings harpe
