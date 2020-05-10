@@ -101,12 +101,14 @@ using namespace std;
 
 #define ADD_DOUBLE string((sizeof(FAUSTFLOAT) == 8) ? "-double " : "")
 
+#define BUFFER_SIZE 512
+
 ofstream* gFaustbenchLog = nullptr;
 
 template <typename REAL>
 static double bench(dsp* dsp, int dsp_size, const string& name, int run, bool trace)
 {
-    measure_dsp_aux<REAL> mes(dsp, 512, 5., trace);  // Buffer_size and duration in sec of measure
+    measure_dsp_aux<REAL> mes(dsp, BUFFER_SIZE, 5., trace);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
         if (trace) cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP size : " << dsp_size << endl;
@@ -120,7 +122,10 @@ extern "C" int bench_all(const char* name, int run, bool trace)
     vector<double> measures;
     vector<string> options;
     
-    if (trace) cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
+    if (trace) {
+        cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
+        cout << "Running with 'compute' called with " << BUFFER_SIZE << " samples" << endl;
+    }
     
 #if defined(ALL_TESTS)
     
