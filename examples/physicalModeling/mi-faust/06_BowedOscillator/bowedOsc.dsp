@@ -14,7 +14,6 @@ Note: the "type" parameter changes the way the friction interaction is calculate
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = hslider("Bow Position", 0, 0, 100, 0.001):si.smoo:si.smoo:si.smoo; 	//Need very smooth position data here !
 
@@ -23,10 +22,10 @@ OutGain = 20;
 type = 0;
 
 model = (
-	osc(1., 0.1, 0.0003, 0, 0., 0.),
-	posInput(1.):
+	mi.oscil(1., 0.1, 0.0003, 0, 0., 0.),
+	mi.posInput(1.):
 	RoutingMassToLink :
-	nlBow(1.2, 0.001, type, 0., 1.),
+	mi.nlBow(1.2, 0.001, type, 0., 1.),
 	par(i, nbOut, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

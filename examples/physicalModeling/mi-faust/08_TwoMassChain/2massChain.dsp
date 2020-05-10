@@ -12,7 +12,6 @@ fixed at one end to a fixed point !
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Frc Input 1"): ba.impulsify;
 
@@ -24,14 +23,14 @@ K2 = 0.1;
 Z2 = 0.0003;
 
 model = (
-	ground(0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
+	mi.ground(0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	springDamper(K1, Z1, 0., 0.),
-	springDamper(K2, Z2, 0., 0.),
+	mi.springDamper(K1, Z1, 0., 0.),
+	mi.springDamper(K2, Z2, 0., 0.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

@@ -13,14 +13,13 @@ Note: The routing pattern could be simplified here (cf.diagram), as the model co
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Frc Input 1"): ba.impulsify * 0.25;  	//write a specific force input signal operation here
 
 OutGain = 1;
 
 model = (
-	osc(1., 0.1, 0.0003, 0, 0., 0.),
+	mi.oscil(1., 0.1, 0.0003, 0, 0., 0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):

@@ -20,13 +20,13 @@ in1 = button("Frc Input 1"): ba.impulsify * 0.25;  	//write a specific force inp
 OutGain = 1;
 
 model = (
-	mass(1., 0, 0., 0.),
-	ground(0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.ground(0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	spring(0.1, 0., 0.),
-	damper(0.0003, 0., 0.),
+	mi.spring(0.1, 0., 0.),
+	mi.damper(0.0003, 0., 0.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

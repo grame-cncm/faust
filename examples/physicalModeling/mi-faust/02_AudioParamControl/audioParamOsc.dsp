@@ -11,7 +11,6 @@ A basic oscillator with labelled stiffness and damping parameters, controlled by
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Force Impulse"): ba.impulsify;
 in2 = hslider("Stiffness", 0.01, 0, 0.1, 0.0001):si.smoo; 
@@ -23,7 +22,7 @@ K = in2;
 Z = in3;
 
 model = (
-	osc(1., K, Z, 0, 0., 0.),
+	mi.oscil(1., K, Z, 0, 0., 0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):

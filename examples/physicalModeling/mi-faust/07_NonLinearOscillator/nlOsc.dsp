@@ -14,7 +14,6 @@ This can save from numerical divergence when large displacements cause very larg
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Hammer Input Force"): ba.impulsify* -0.1;
 
@@ -23,16 +22,16 @@ OutGain = 1;
 nlK = hslider("non-linear stiffness", 0.005, 0., 0.1, 0.0001);
 
 model = (
-	mass(1., 0, 0., 0.),
-	ground(0.),
-	mass(0.3, 0, 1., 1.),
-	ground(1.),
+	mi.mass(1., 0, 0., 0.),
+	mi.ground(0.),
+	mi.mass(0.3, 0, 1., 1.),
+	mi.ground(1.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	nlSpringDamperClipped(0.03, nlK, 0.8, 0.0002, 0., 0.),
-	springDamper(0.0001, 0.05, 1., 1.),
-	collision(0.1, 0.001, 0, 0., 1.),
+	mi.nlSpringDamperClipped(0.03, nlK, 0.8, 0.0002, 0., 0.),
+	mi.springDamper(0.0001, 0.05, 1., 1.),
+	mi.collision(0.1, 0.001, 0, 0., 1.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

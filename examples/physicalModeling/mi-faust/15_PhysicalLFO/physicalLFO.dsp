@@ -15,7 +15,6 @@ modulation patterns that die down as damping tends to return to the fundamental 
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 gateT = button("Excite String"):ba.impulsify;
 in1 = gateT * 0.1; 
@@ -28,32 +27,32 @@ str_Z = hslider("string damping", 0.0001, 0, 0.002, 0.00001);
 
 
 model = (
-	ground(0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	mass(str_M, 0, 0., 0.),
-	ground(0.),
+	mi.ground(0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.mass(str_M, 0, 0., 0.),
+	mi.ground(0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
-	springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
+	mi.springDamper(str_K, str_Z, 0., 0.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

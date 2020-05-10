@@ -13,19 +13,18 @@ The resulting model is identical to an mi.osc element (which integrates them tog
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Frc Input 1"): ba.impulsify * 0.25;  	//write a specific force input signal operation here
 
 OutGain = 1;
 
 model = (
-	mass(1., 0, 0., 0.),
-	ground(0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.ground(0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	springDamper(0.1, 0.0003, 0., 0.),
+	mi.springDamper(0.1, 0.0003, 0., 0.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

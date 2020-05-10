@@ -15,21 +15,20 @@ were just interested in the oscillator's sound you should only listen to that.
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Frc Input 1"): ba.impulsify * -0.1;
 
 OutGain = 1;
 
 model = (
-	osc(1., 0.1, 0.0003, 0, 0., 0.),
-	mass(0.3, 0, 1., 1.),
-	ground(1.),
+	mi.oscil(1., 0.1, 0.0003, 0, 0., 0.),
+	mi.mass(0.3, 0, 1., 1.),
+	mi.ground(1.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	springDamper(0.0001, 0.05, 1., 1.),
-	collision(0.1, 0.001, 0, 0., 1.),
+	mi.springDamper(0.0001, 0.05, 1., 1.),
+	mi.collision(0.1, 0.001, 0, 0., 1.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

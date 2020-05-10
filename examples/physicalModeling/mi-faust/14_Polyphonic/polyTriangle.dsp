@@ -15,7 +15,6 @@ Note: use this model with Poly mode to control voices dynamically according to M
 
 declare options "[midi:on][nvoices:12]";
 import("stdfaust.lib");
-import("mi.lib");
 
 gate = button("gate"):ba.impulsify;
 in1 = gate * 0.1; 
@@ -27,17 +26,17 @@ m_Z = hslider("Model Damping", 0.0001, 0.00001, 0.001, 0.000001) ;
 OutGain = 0.3;
 
 model = (
-	ground(0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
+	mi.ground(0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	springDamper(0.05, 0.01, 0., 0.),
-	springDamper(m_K, m_Z, 0., 0.),
-	springDamper(m_K, m_Z, 0., 0.),
-	springDamper(m_K, m_Z, 0., 0.),
+	mi.springDamper(0.05, 0.01, 0., 0.),
+	mi.springDamper(m_K, m_Z, 0., 0.),
+	mi.springDamper(m_K, m_Z, 0., 0.),
+	mi.springDamper(m_K, m_Z, 0., 0.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

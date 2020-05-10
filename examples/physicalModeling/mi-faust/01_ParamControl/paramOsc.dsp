@@ -21,7 +21,7 @@ K = 0.1;
 Z = 0.0003;
 
 model = (
-	osc(1., K, Z, 0, 0., 0.),
+	mi.oscil(1., K, Z, 0, 0., 0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):

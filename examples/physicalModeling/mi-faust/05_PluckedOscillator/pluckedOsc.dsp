@@ -11,17 +11,16 @@ Plucking a simple oscillator
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = hslider("Pluck Position", 0, -1, 1, 0.001):si.smoo;
 
 OutGain = 8;
 
 model = (
-	osc(1., 0.1, 0.0003, 0, 0., 0.),
-	posInput(1.):
+	mi.oscil(1., 0.1, 0.0003, 0, 0., 0.),
+	mi.posInput(1.):
 	RoutingMassToLink :
-	nlPluck(0.5, 0.1, 0.001, 0., 1.),
+	mi.nlPluck(0.5, 0.1, 0.001, 0., 1.),
 	par(i, nbOut, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):

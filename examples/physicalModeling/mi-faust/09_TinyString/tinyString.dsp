@@ -13,7 +13,6 @@ Note: the model block diagram is starting to get more complex, but it's still re
 */
 
 import("stdfaust.lib");
-import("mi.lib");
 
 in1 = button("Force Impulse"): ba.impulsify;
 
@@ -23,28 +22,28 @@ stiffness = 0.5;
 damping = 0.0003;
 
 model = (
-	ground(0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	mass(1., 0, 0., 0.),
-	ground(0.),
+	mi.ground(0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.mass(1., 0, 0., 0.),
+	mi.ground(0.),
 	par(i, nbFrcIn,_):
 	RoutingMassToLink ,
 	par(i, nbFrcIn,_):
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
-	springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
+	mi.springDamper(stiffness, damping, 0., 0.),
 	par(i, nbOut+nbFrcIn, _):
 	RoutingLinkToMass
 )~par(i, nbMass, _):
