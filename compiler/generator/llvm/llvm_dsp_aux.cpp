@@ -37,6 +37,7 @@
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/Host.h>
 
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
@@ -115,7 +116,11 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
         // Install an LLVM error handler
+    #if defined(__APPLE__) && defined(LLVM_110)
+        #warning Crash on OSX with LLVM_11, so deactivated in this case
+    #else
         LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
+    #endif
     }
 }
 
@@ -138,7 +143,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
 
     init("MachineDSP", "");
     fSHAKey = sha_key;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
+    fTarget = (target == "") ? fTarget = (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
 
     // Restoring the cache
     fObjectCache = new FaustObjectCache(machine_code);
@@ -157,7 +162,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
 
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
+    fTarget = (target == "") ? fTarget = (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     setOptlevel(opt_level);
 
     fModule  = module;
@@ -517,7 +522,7 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
 
 EXPORT string getDSPMachineTarget()
 {
-    return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
+    return (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
 }
 
 EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
@@ -545,7 +550,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
                                                        string& error_msg)
 {
     LOCK_API
-    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : " + ec.message() + "\n";

@@ -35,6 +35,7 @@
 #define MovePTR(ptr) std::move(ptr)
 
 using namespace std;
+using namespace llvm;
 
 /*
  LLVM module description:
@@ -46,8 +47,8 @@ using namespace std;
 
 // Helper functions
 bool      linkModules(Module* dst, ModulePTR src, string& error);
-ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context);
-Module*   linkAllModules(llvm::LLVMContext* context, Module* dst, string& error);
+ModulePTR loadModule(const string& module_name, LLVMContext* context);
+Module*   linkAllModules(LLVMContext* context, Module* dst, string& error);
 
 list<string> LLVMInstVisitor::gMathLibTable;
 
@@ -71,13 +72,13 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
+#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
 #endif
     fBuilder->setFastMathFlags(FMF);
-    fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+    fModule->setTargetTriple(sys::getDefaultTargetTriple());
 }
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
@@ -91,7 +92,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
+#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -135,7 +136,7 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
-llvm::PointerType* LLVMCodeContainer::generateDspStruct()
+PointerType* LLVMCodeContainer::generateDspStruct()
 {
     // Generate DSP structure
     LLVMTypeHelper type_helper(fModule);

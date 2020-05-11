@@ -54,6 +54,7 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/Host.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
@@ -64,7 +65,7 @@
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 
-#if defined(LLVM_100)
+#if defined(LLVM_100) || defined(LLVM_110)
 #include <llvm/InitializePasses.h>
 #include <llvm/Support/CodeGen.h>
 #endif
@@ -99,7 +100,6 @@ static string getParam(int argc, const char* argv[], const string& param, const 
 
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, string* ErrMsg)
 {
-    using namespace llvm;
     Expected<unique_ptr<Module>> ModuleOrErr = parseBitcodeFile(Buffer, Context);
     if (!ModuleOrErr) {
         if (ErrMsg) *ErrMsg = "Failed to read bitcode";
@@ -111,10 +111,10 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, stri
 
 void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
 {
-    string             res;
+    string res;
     raw_string_ostream out_str(res);
     if (binary) {
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
         WriteBitcodeToFile(*fModule, out_str);
 #else
         WriteBitcodeToFile(fModule, out_str);
@@ -129,9 +129,8 @@ void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
 string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
     string res;
-    
     raw_string_ostream out(res);
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -148,7 +147,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bi
         cerr << "ERROR : writeDSPFactoryToBitcodeFile could not open file : " << err.message();
         return false;
     }
-#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100)
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -275,7 +274,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     splitTarget(fTarget, triple, cpu);
     fModule->setTargetTriple(triple);
 
-    builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : StringRef(cpu));
+    builder.setMCPU((cpu == "") ? sys::getHostCPUName() : StringRef(cpu));
     TargetOptions targetOptions;
 
     // -fastmath is activated at IR level, and has to be setup at JIT level also
@@ -285,11 +284,17 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
     targetOptions.NoTrappingFPMath      = true;
-#if defined(LLVM_90) || defined(LLVM_100)
+    
+#if defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
     targetOptions.NoSignedZerosFPMath   = true;
 #endif
-    targetOptions.FPDenormalMode        = FPDenormal::IEEE;
-
+    
+#if defined(LLVM_110)
+    targetOptions.setFPDenormalMode(DenormalMode::getIEEE());
+#else
+    targetOptions.FPDenormalMode = FPDenormal::IEEE;
+#endif
+    
     targetOptions.GuaranteedTailCallOpt = true;
     
     string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
@@ -357,7 +362,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     return initJITAux(error_msg);
 }
 
-
 // Bitcode <==> string
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
                                                       int opt_level)
@@ -408,7 +412,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
         return false;
     }
 
-    string CPU = llvm::sys::getHostCPUName();
+    StringRef CPU = sys::getHostCPUName();
     string Features;
 
     TargetOptions opt;
@@ -428,7 +432,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
 
     legacy::PassManager pass;
  
-#if defined(LLVM_100)
+#if defined(LLVM_100) || defined(LLVM_110)
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CGFT_ObjectFile)) {
 #elif defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, TargetMachine::CGFT_ObjectFile)) {
@@ -463,7 +467,6 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
         return writeDSPFactoryToObjectcodeFileAux(object_code_path);
     }
 }
-        
         
 // IR <==> string
 
@@ -523,7 +526,7 @@ ModulePTR loadSingleModule(const string filename, LLVMContext* context)
     return module;
 }
 
-ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
+ModulePTR loadModule(const string& module_name, LLVMContext* context)
 {
     // Try as a complete path
     if (ModulePTR module = loadSingleModule(module_name, context)) {
@@ -551,7 +554,7 @@ bool linkModules(Module* dst, ModulePTR src, string& error)
     return res;
 }
 
-Module* linkAllModules(llvm::LLVMContext* context, Module* dst, string& error)
+Module* linkAllModules(LLVMContext* context, Module* dst, string& error)
 {
     for (size_t i = 0; i < gGlobal->gLibraryList.size(); i++) {
         string    module_name = gGlobal->gLibraryList[i];

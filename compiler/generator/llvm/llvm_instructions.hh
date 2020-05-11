@@ -45,6 +45,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Host.h>
 
 using namespace llvm;
 
@@ -267,10 +268,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMValue loadArrayAsPointer(LLVMValue variable, bool is_volatile = false)
     {
-        LoadInst* tmp_load = new LoadInst(variable);
-        bool      is_array = isa<ArrayType>(tmp_load->getType());
-        delete tmp_load;
-        if (is_array) {
+        if (isa<ArrayType>(variable->getType()->getPointerElementType())) {
             LLVMValue idx[] = {genInt32(0), genInt32(0)};
             return fBuilder->CreateInBoundsGEP(variable, MakeIdx(idx, idx + 2));
         } else {
