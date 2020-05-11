@@ -50,8 +50,6 @@ bool      linkModules(Module* dst, ModulePTR src, string& error);
 ModulePTR loadModule(const string& module_name, LLVMContext* context);
 Module*   linkAllModules(LLVMContext* context, Module* dst, string& error);
 
-list<string> LLVMInstVisitor::gMathLibTable;
-
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new LLVMScalarCodeContainer(name, 0, 1, fModule, fContext, sub_container_type);
