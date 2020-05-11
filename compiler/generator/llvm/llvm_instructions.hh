@@ -201,7 +201,6 @@ struct LLVMTypeHelper {
             }
             return getStructType("struct.dsp" + struct_typed->fName, llvm_types);
         } else {
-            
             faustassert(false);
             return nullptr;
         }
@@ -1238,13 +1237,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         faustassert(arg1->getType() == arg2->getType());
 
         if (arg1->getType() == getFloatTy() || arg1->getType() == getDoubleTy()) {
-        #if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
             return (comp == kLT) ? fBuilder->CreateMinNum(arg1, arg2) : fBuilder->CreateMaxNum(arg1, arg2);
-        #else
-            LLVMValue comp_value =
-                fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMFloatInst, arg1, arg2);
-            return fBuilder->CreateSelect(comp_value, arg1, arg2);
-        #endif
         } else if (arg1->getType() == getInt32Ty()) {
             LLVMValue comp_value =
                 fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMIntInst, arg1, arg2);
