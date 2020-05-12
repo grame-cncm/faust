@@ -693,7 +693,8 @@ t_max_err faust_attr_set(t_faust* x, t_object* attr, long ac, t_atom* av)
 {
     if (ac && av) {
         t_symbol* attrname = (t_symbol*)object_method(attr, gensym("getname"));
-        x->m_dspUI->setValue(attrname->s_name, atom_getfloat(av));
+        // Redirect on the generic message handling method
+        faust_anything(x, attrname, ac, av);
     }
     return MAX_ERR_NONE;
 }
