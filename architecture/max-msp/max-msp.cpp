@@ -99,9 +99,6 @@
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 #define FAUST_ADDSOUNDFILE(s,f)
 
-#define CLASS_ATTR_FLOAT1(c,attrname,flags,structname,structmember,offset) \
-    class_addattr((c),attr_offset_new(attrname,USESYM(float32),(flags),(method)0L,(method)0L,(calcoffset(structname,structmember)+offset)))
-
 using namespace std;
 
 /******************************************************************************
@@ -135,7 +132,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.74"
+#define EXTERNAL_VERSION    "0.75"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -176,7 +173,6 @@ typedef struct faust
 #ifdef OSCCTRL
     OSCUI* m_oscInterface;
 #endif
-    FAUSTFLOAT m_zones[FAUST_ACTIVES];
 } t_faust;
 
 void faust_create_jsui(t_faust* x);
@@ -482,18 +478,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     // Display controls
     x->m_dspUI->displayControls();
     
-    // Attribute handling
-    int i = 0;
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++, i++) {
-        x->m_zones[i] = (*it).second->getInitValue();
-    }
     // Get attributes values
     attr_args_process(x, ac, av);
-    // Set input controllers
-    i = 0;
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++, i++) {
-        (*it).second->setValue(x->m_zones[i]);
-    }
     
     return x;
 }
@@ -703,6 +689,16 @@ void faust_dsp(t_faust* x, t_signal** sp, short* count)
 }
 
 /*--------------------------------------------------------------------------*/
+t_max_err faust_attr_set(t_faust* x, t_object* attr, long ac, t_atom* av)
+{
+    if (ac && av) {
+        t_symbol* attrname = (t_symbol*)object_method(attr, gensym("getname"));
+        x->m_dspUI->setValue(attrname->s_name, atom_getfloat(av));
+    }
+    return MAX_ERR_NONE;
+}
+
+/*--------------------------------------------------------------------------*/
 #ifdef _WIN32
 extern "C" int main(void)
 #else
@@ -734,7 +730,8 @@ void ext_main(void* r)
     // Setup attribute
     int i = 0;
     for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
-        CLASS_ATTR_FLOAT1(c, (*it).first.c_str(), 0, t_faust, m_zones, sizeof(float)*i);
+        CLASS_ATTR_FLOAT(c, (*it).first.c_str(), 0, t_faust, m_ob);
+        CLASS_ATTR_ACCESSORS(c, (*it).first.c_str(), NULL, (method)faust_attr_set);
     }
     
     class_dspinit(c);

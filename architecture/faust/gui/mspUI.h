@@ -377,10 +377,8 @@ class mspUI : public UI, public PathBuilder
             return fInputPathTable.count(name);
         }
     
-        bool setValue(const string& name_aux, FAUSTFLOAT val)
+        bool setValue(const string& name, FAUSTFLOAT val)
         {
-            // name_aux has a '@param_name' syntax or is a path
-            string name = (name_aux.size() > 0) ? ((name_aux[0] == '@') ? name_aux.substr(1) : name_aux) : name_aux;
             if (fInputLabelTable.count(name)) {
                 fInputLabelTable[name]->setValue(val);
                 return true;
