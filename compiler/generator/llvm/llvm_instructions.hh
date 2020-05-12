@@ -225,10 +225,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     map<string, GlobalVariable*> fStringTable;  // Global strings
 
     list<string> fMathLibTable;                 // All standard math functions
-    
+
+#if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_10) || defined(LLVM_110)
     map<string, Intrinsic::ID> fUnaryIntrinsicTable;    // LLVM unary intrinsic
     map<string, Intrinsic::ID> fBinaryIntrinsicTable;   // LLVM binary intrinsic
-    
+#endif
     void printVarTable()
     {
         for (auto& it : fStackVars) {
@@ -299,6 +300,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fTypeMap[Typed::kObj_ptr] = dsp_ptr;
         fAllocaBuilder            = new IRBuilder<>(fModule->getContext());
  
+    #if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_10) || defined(LLVM_110)
         // Float version
         fUnaryIntrinsicTable["ceilf"] = Intrinsic::ceil;
         fUnaryIntrinsicTable["cosf"] = Intrinsic::cos;
@@ -324,6 +326,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fUnaryIntrinsicTable["sqrt"] = Intrinsic::sqrt;
         fBinaryIntrinsicTable["pow"] = Intrinsic::pow;
         fUnaryIntrinsicTable["sin"] = Intrinsic::sin;
+    #endif
         
         // Integer version
         fMathLibTable.push_back("abs");
@@ -817,12 +820,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kLT);
         } else if (checkMax(inst->fName) && fun_args.size() == 2) {
             fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kGT);
+    #if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_10) || defined(LLVM_110)
         // LLVM unary intrinsic
         } else if (fUnaryIntrinsicTable.find(inst->fName) != fUnaryIntrinsicTable.end()) {
             fCurValue = fBuilder->CreateUnaryIntrinsic(fUnaryIntrinsicTable[inst->fName], fun_args[0]);
         // LLVM binary intrinsic
         } else if (fBinaryIntrinsicTable.find(inst->fName) != fBinaryIntrinsicTable.end()) {
             fCurValue = fBuilder->CreateBinaryIntrinsic(fBinaryIntrinsicTable[inst->fName], fun_args[0], fun_args[1]);
+    #endif
         } else {
             // Get function in the module
             Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
