@@ -79,7 +79,7 @@
 // Always included
 #include "mydspgeneric.h"
 
-// For 'llvm::sys::getHostCPUName'
+// For 'llvm::sys::getHostCPUName' function
 #include <llvm/Support/Host.h>
 
 /*
@@ -87,7 +87,7 @@
     This file ise used by the 'faust2object' tool to produce several CPU specific .h and .o files,
     to be compiled and linked with the mydspmulti class.
  
-    // To test: c++ -std=c++11 FOOmulti.cpp  -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` FOO*.o -dead_strip -o FOOmulti
+    // To test: c++ -std=c++11 FOOmulti.cpp -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` FOO*.o -dead_strip -o FOOmulti
  */
 class mydspmulti : public decorator_dsp {
     

@@ -419,7 +419,7 @@ llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_
 bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
 
 /**
- * Write a Faust DSP factory into a object code file.
+ * Write a Faust DSP factory into an object code file.
  *
  * @param factory - the DSP factory
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',

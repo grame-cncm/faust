@@ -252,7 +252,7 @@ with {
 //-----------------------------------------------------
 map(n, x, r, a)	= encoder(n, x * volume(r), a) : wider(n, ouverture(r))
 with {
-	volume(r) = 1. / (r * r * (r > 1) + (r =< 1));
+	volume(r) = 1. / (r * r * (r > 1) + (r <= 1));
 	ouverture(r) = r * (r < 1) + (r >= 1);
 };
 
@@ -1319,12 +1319,6 @@ tau2pole(tau) = ba.if(clipCond, 0.0, exp(-1.0/(tauCenterClipped*float(ma.SR)))) 
  tauCenterClipped = ba.if(clipCond, 1.0, tau); // 1.0 can be any nonzero value (not used)
 };
 
-/*
-tau2poleDouble(tau) = ba.if(clipCond, 0.0, exp(-1.0/(tauCenterClipped*float(ma.SR)))) with {
- clipCond = abs(tau)<2.3e-16;
- tauCenterClipped = ba.if(clipCond, 1.0, tau); // 1.0 can be any nonzero value (not used)
-};
-*/
 
 //-------`(ba.)pole2tau`----------
 // Returns the time-constant, in seconds, corresponding to the given real,
@@ -1818,7 +1812,7 @@ subseq(head, 0, n)         = head;
 //========================================================================================
 
 //-----------------------------`(ba.)if`-----------------------------------
-// if-then-else implemented with a select2. WARNING : since select2 is strict (always evaluating both branches),
+// if-then-else implemented with a select2. WARNING: since select2 is strict (always evaluating both branches),
 // the resulting if does not have the usual "lazy" semantic of the C if form, and thus cannot be used to 
 // protect against forbidden computations like division-by-zero for instance.
 //
@@ -6548,14 +6542,14 @@ with{
 
 
 
-//------------------------`(mi.)osc`----------------------
+//------------------------`(mi.)oscil`----------------------
 // Implementation of a simple linear harmonic oscillator.
 // Takes an input force and produces output position.
 //
 // #### Usage
 //
 // ```
-// osc(m, k, z, grav, x0, xr0),_ : _
+// oscil(m, k, z, grav, x0, xr0),_ : _
 // ```
 //
 // Where:
@@ -6567,7 +6561,7 @@ with{
 // * `x0`: initial position
 // * `xr0`: initial delayed position (inferred from initial velocity)
 //---------------------------------------------------------
-osc(m, k, z, grav, x0, x1) = equation
+oscil(m, k, z, grav, x0, x1) = equation
 with{
   A = 2 - (k + z)/m;
   B = z/m - 1;

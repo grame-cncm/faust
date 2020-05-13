@@ -44,7 +44,8 @@ Here are the available options:
 - `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
 - `-test to compile a test program`
 
-A set of  header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>`  class and a  `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric()` creation function).
+
+A set of header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>`  class and a  `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric()` creation function). The `-opt native|generic` option runs the **faustbench-llvm** to discover the best possible compilation options.
 
 The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi`  class ) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi();`  or  `dsp* dsp = create<DSPName>multi();`) to load the appropriate object code version depending on the running machine CPU. 
  
