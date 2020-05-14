@@ -105,9 +105,9 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     void pushValue(MIR_reg_t val) { fMIRStack[fMIRStackIndex++] = val; }
     MIR_reg_t popValue() { return fMIRStack[--fMIRStackIndex]; }
 
-    void pushBinop(MIR_insn_code_t op, MIR_type_t type, const std::string& res_name = "binop")
+    void pushBinop(MIR_insn_code_t op, MIR_type_t res_type, const std::string& res_name = "binop")
     {
-        MIR_reg_t binop_res = createVar(type, res_name);
+        MIR_reg_t binop_res = createVar(res_type, res_name);
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, op,
                                                          MIR_new_reg_op(fContext, binop_res),
                                                          MIR_new_reg_op(fContext, popValue()),
