@@ -59,8 +59,8 @@ do
     p=$1
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-	echoHelp
-	exit 0
+        echoHelp
+        exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
     	shift
@@ -188,7 +188,7 @@ if [ $LIB -eq 1 ]; then
     fi
 
     #if [[ "$OSCDEFS" == *OSC* ]]; then
-	#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+        #echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
     #fi
 
     #if [[ "$GUIDEFS" == *GUI* ]]; then

@@ -64,7 +64,14 @@ ztimedmap GUI::gTimedZoneMap;
 
 AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS])
 {
+#ifdef NVOICES
+    int nvoices = NVOICES;
+    mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+    fDSP = dsp_poly;
+#else
     fDSP = new mydsp();
+#endif
+    
     fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
     
     fUI = new MapUI();
@@ -92,6 +99,9 @@ AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_IN
     
 #if MIDICTRL
     fMIDIHandler = new teensy_midi();
+#ifdef NVOICES
+    fMIDIHandler->addMidiIn(dsp_poly);
+#endif
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
     fMIDIInterface->run();

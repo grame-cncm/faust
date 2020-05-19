@@ -82,9 +82,6 @@ ztimedmap GUI::gTimedZoneMap;
 
 AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 {
-    fUI = new MapUI();
-    fAudio = new esp32audio(sample_rate, buffer_size);
-    
 #ifdef NVOICES
     int nvoices = NVOICES;
     mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
@@ -93,7 +90,10 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fDSP = new mydsp();
 #endif
     
+    fUI = new MapUI();
     fDSP->buildUserInterface(fUI);
+    
+    fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
     
 #ifdef MIDICTRL
