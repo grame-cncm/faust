@@ -1,6 +1,16 @@
 /************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
  FAUST Architecture File
- Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale &
+ Aalborg University (Copenhagen, Denmark)
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -20,6 +30,7 @@
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  
+ ************************************************************************
  ************************************************************************/
 
 #include "teensy.h"
@@ -35,6 +46,11 @@
 #include "faust/midi/teensy-midi.h"
 #endif
 
+// for polyphonic synths
+#ifdef NVOICES
+#include "faust/dsp/poly-dsp.h"
+#endif
+
 // we require macro declarations
 #define FAUST_UIMACROS
 
@@ -47,9 +63,25 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
 <<includeIntrinsic>>
 
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
 <<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 #define MULT_16 2147483647
 #define DIV_16 4.6566129e-10
@@ -175,3 +207,5 @@ float AudioFaust::getParamValue(const std::string& path)
 {
     return fUI->getParamValue(path);
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
