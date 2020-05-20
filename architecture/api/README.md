@@ -41,6 +41,7 @@ Common options for all platforms:
 - `-effect auto`: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified).
 - `-nodoc` : prevents documentation from being generated.
 - `-nozip` : prevents generated files to be put in a zip file.
+- `-target <target>`: sets a name of the target folder or the zip file. Defaults to "dsp-faust"
 
 
 Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE:
