@@ -27,6 +27,7 @@ if (typeof (WebAssembly) === "undefined" || !workletAvailable()) {
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext({ latencyHint: 0.00001 }) : new AudioContext({ latencyHint: 0.00001 });
 audio_context.destination.channelInterpretation = "discrete";
+
 var organ = null;
 var midi_input = [];
 
