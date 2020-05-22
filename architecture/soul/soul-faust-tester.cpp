@@ -66,7 +66,7 @@ static void testSOULPatch(const string& filename, int argc1, const char* argv1[]
     string error_msg;
     dsp_factory* factory = createSOULDSPFactoryFromFile(filename, argc1, argv1, error_msg);
     if (!factory) {
-        cerr << "ERROR : file '" << filename << "' cannot be opened or compiled with " << error_msg << "\n";;
+        cerr << "ERROR : file '" << filename << "' : " << error_msg << "\n";
         exit(-1);
     }
     

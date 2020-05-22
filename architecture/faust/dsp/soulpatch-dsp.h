@@ -30,6 +30,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <string.h>
 #include <map>
 #include <algorithm>
 
@@ -421,6 +422,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
     fFactory = factory;
     fDecoder = nullptr;
     fMIDIHander = nullptr;
+    memset(&fRenderContext, 0, sizeof(fRenderContext));
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
