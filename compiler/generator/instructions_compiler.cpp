@@ -637,21 +637,29 @@ ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
 
 ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const string& file, const string& name_aux)
 {
-    Typed::VarType ctype;
-    string         vname;
-    Occurences*    o = fOccMarkup.retrieve(sig);
-
     fContainer->addIncludeFile(file);
 
     // Special case for 02/25/19 renaming
     string name = (name_aux == "fSamplingFreq") ? "fSampleRate" : name_aux;
-
+    
+    // Check access (handling "fSampleRate" as a special case)
+    if (name != "fSampleRate" && !gGlobal->gAllowForeignConstant) {
+        stringstream error;
+        error << "ERROR : accessing foreign constant '" << name << "'"
+        << " is not allowed in this compilation mode!" << endl;
+        throw faustexception(error.str());
+    }
+  
     // Keep SR generation state
     if (name == "fSampleRate") {
         fContainer->setGeneratedSR();
     }
 
     // Check for number occuring in delays
+    Typed::VarType ctype;
+    string         vname;
+    Occurences*    o = fOccMarkup.retrieve(sig);
+    
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         generateDelayVec(
@@ -676,13 +684,21 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 
 ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string& file, const string& name)
 {
+    // Check access (handling 'fFullCount' as a special case)
+    if (name != fFullCount && !gGlobal->gAllowForeignVar) {
+        stringstream error;
+        error << "ERROR : accessing foreign variable '" << name << "'"
+        << " is not allowed in this compilation mode!" << endl;
+        throw faustexception(error.str());
+    }
+    
     fContainer->addIncludeFile(file);
 
     // Special case for 'count' parameter of the 'compute' method
-    int sig_type = getCertifiedSigType(sig)->nature();
     if (name == fFullCount) {
         return generateCacheCode(sig, InstBuilder::genLoadFunArgsVar(name));
     } else {
+        int sig_type = getCertifiedSigType(sig)->nature();
         pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name, genBasicFIRTyped(sig_type)));
         return generateCacheCode(sig, InstBuilder::genLoadGlobalVar(name));
     }

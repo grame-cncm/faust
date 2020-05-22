@@ -459,7 +459,6 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                         || (inst->fAddress->getAccess() & Address::kStaticStruct);
         
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        
         string name = inst->fAddress->getName();
 
         if (array_typed && array_typed->fSize > 1) {

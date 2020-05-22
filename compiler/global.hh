@@ -153,6 +153,8 @@ struct global {
     // Backend configuration
     string gOutputLang;            // Chosen backend
     bool   gAllowForeignFunction;  // Can use foreign functions
+    bool   gAllowForeignConstant;  // Can use foreign constant
+    bool   gAllowForeignVar;       // Can use foreign variable
     bool   gComputeIOTA;           // Cache some computation done with IOTA variable
     bool   gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
     bool   gInPlace;               // Add cache to input for correct in-place computations

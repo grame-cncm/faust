@@ -1297,8 +1297,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else {
             throw faustexception("ERROR : quad format not supported in Interp\n");
         }
-
         gGlobal->gAllowForeignFunction = false;  // No foreign functions
+        gGlobal->gAllowForeignConstant = false;  // No foreign constant
+        gGlobal->gAllowForeignVar      = false;  // No foreign variable
         gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOAT2Internal = true;
@@ -1384,6 +1385,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "soul")) {
 #ifdef SOUL_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignConstant = false;  // No foreign constant
+            gGlobal->gAllowForeignVar      = false;  // No foreign variable
+            
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOAT2Internal = true;
 
@@ -1398,6 +1402,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignConstant = false;  // No foreign constant
+            gGlobal->gAllowForeignVar      = false;  // No foreign variable
+            
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOAT2Internal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
@@ -1438,6 +1445,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignConstant = false;  // No foreign constant
+            gGlobal->gAllowForeignVar      = false;  // No foreign variable
+            
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOAT2Internal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
