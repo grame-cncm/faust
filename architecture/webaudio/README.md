@@ -91,7 +91,7 @@ Note that pages loading an additional .wasm file cannot directly be loaded in Ch
 
 ### Generating Polyphonic WebAudio nodes
 
-Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node can be created with the *-poly* parameter, and will generate the following class for the node, to be used like: 
+Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node can be created by adding the *-poly* option, and will generate the following class for the node, to be used like: 
 
 
 ```
@@ -263,7 +263,7 @@ The *-ftz 1* mode adds a test in each recursive loop which uses the *fabs* funct
 
 Use for example the following line to active software denormal handing when using **faust2wasm** tool:
 
-    faust2wasm -ftz 2 foo.dsp 
+    faust2wasm -worklet -ftz 2 foo.dsp 
 
 The same for the **faust2webaudiowasm** tool:
 
