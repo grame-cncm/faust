@@ -290,6 +290,10 @@ class soulpatch_dsp : public dsp {
                 fRenderContext.outgoingMIDI = std::addressof(fMIDIOutputMessages[0]);
                 fRenderContext.maximumMIDIMessagesOut = (uint32_t)fMIDIOutputMessages.size();
                 fRenderContext.numMIDIMessagesOut = 0;
+            } else {
+                fRenderContext.incomingMIDI = nullptr;
+                fRenderContext.incomingMIDI = nullptr;
+                fRenderContext.numMIDIMessagesIn = 0;
             }
         
             // Setup audio buffers

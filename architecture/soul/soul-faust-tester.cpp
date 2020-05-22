@@ -51,26 +51,27 @@ static void testFaust(const string& filename, int argc1, const char* argv1[])
 {
     // Faust compilation and test
     string error_msg;
-    dsp_factory* factory = createDSPFactoryFromFile(filename, argc1, argv1, "", error_msg, -1);
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc1, argv1, "", error_msg, -1);
     if (!factory) {
         cerr << "ERROR : file '" << filename << "' cannot be opened or TOTO compiled with " << error_msg << "\n";
         exit(-1);
     }
-    
     measureDSP(filename, factory->createDSPInstance());
+    deleteDSPFactory(factory);
 }
 
 static void testSOULPatch(const string& filename, int argc1, const char* argv1[])
 {
     // SOUL compilation and test
     string error_msg;
-    dsp_factory* factory = createSOULDSPFactoryFromFile(filename, argc1, argv1, error_msg);
+    soul_dsp_factory* factory = createSOULDSPFactoryFromFile(filename, argc1, argv1, error_msg);
     if (!factory) {
         cerr << "ERROR : file '" << filename << "' : " << error_msg << "\n";
         exit(-1);
     }
     
     measureDSP(filename, factory->createDSPInstance());
+    delete factory;
 }
 
 static void testSOUL(const string& filename, int argc1, const char* argv1[])
