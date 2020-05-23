@@ -1,6 +1,6 @@
 # Faust - Programming Language for Audio Applications and Plugins
 
-## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
+## Grame, Centre National de Creation Musicale: <https://www.grame.fr>
 
 master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust)
 master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)
@@ -11,7 +11,7 @@ Faust (Functional Audio Stream) is a functional programming language specificall
 
 The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, LLVM IR, WebAssembly etc.) working at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as Csound, LADSPA, Max/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
 
-While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<http://www.grame.fr>), its birthplace.
+While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<https://www.grame.fr>), its birthplace.
 
 ## Versions and Branches
 
@@ -64,13 +64,17 @@ Since release 2.5.18, Faust compilation and installation is based on [CMake](htt
 
 The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
 
-### Faust Editor
+### Online Faust Editor
 
-The [Faust Editor](https://faust.grame.fr/editor) can be used to edit, compile and run Faust code from any recent Web Browser with WebAssembly support.
+The [Online Faust Editor](https://fausteditor.grame.fr) is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures.
 
-### FaustPlayground
+### Online Faust IDE
 
-[FaustPlayground](https://faust.grame.fr/faustplayground/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
+The [Online Faust IDE](https://faustide.grame.fr)  is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures, but also various utilities for signal processing development.
+
+### Faust Playground
+
+[Faust Playground](https://faustplayground.grame.fr/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
 
 ### FaustLive
 
