@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 // After audio init to get SR
 #ifdef SOUNDFILE
     // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"), audio.getSampleRate());
+    SoundUI soundinterface(SoundUI::getBinaryPath() + "/Contents/Resources/", audio.getSampleRate());
     // SoundUI has to be dispatched on all internal voices
     if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(&soundinterface);

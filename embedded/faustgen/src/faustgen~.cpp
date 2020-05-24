@@ -193,7 +193,7 @@ faustgen_factory::faustgen_factory(const string& name)
 #ifdef WIN32
     HMODULE handle = LoadLibrary("faustgen~.mxe64");
     if (handle) {
-        // Get faustgen~.mxe path
+        // Get faustgen~.mxe64 path
         char name[512];
         GetModuleFileName(handle, name, 512);
         string str_name = string(name);
