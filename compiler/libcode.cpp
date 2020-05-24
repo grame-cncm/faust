@@ -851,7 +851,7 @@ static void printHelp()
             "samples)."
          << endl;
     cout << tab
-         << "-dlm <n>    --delay-line-model <n>      model of delay line (0 = mask, 1 = modulo) " << endl;
+         << "-dlm <n>    --delay-line-model <n>      model of delay line [0:mask (default), 1:modulo]." << endl;
     cout << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
          << endl;
