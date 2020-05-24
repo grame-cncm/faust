@@ -35,6 +35,7 @@ BUILD="0"
 DYNAMIC_DSP="0"
 OPT=""
 MISC_OPT=""
+TARGETDEFINED="0"
 
 COREAUDIO_DRIVER="0"
 ANDROID_DRIVER="0"
@@ -176,6 +177,7 @@ do
     elif [ "$p" = "-nozip" ]; then
         NOZIP="1"
     elif [ "$p" = "-target" ]; then
+        TARGETDEFINED="1"
         shift
         APIFOLDER=$1
     elif [ "$p" = "-build" ]; then
@@ -243,10 +245,18 @@ else
     POLY2="0" EFFECT=""
 fi
 
+APILOCATION=""
+
+if [ "$NOZIP" = "0" ]; then
+    APILOCATION="$APIFOLDER.zip"
+elif [ "$TARGETDEFINED" = "1" ]; then
+    APILOCATION="$APIFOLDER/"
+fi
+
 # END CHECKING FOR AUTO EFFECT
 
 if [ $ANDROID_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for Android is being created"
+    echo "Your $APILOCATION API package for Android is being created"
     CPPFOLDER="$APIFOLDER/cpp"
     JAVAFOLDER="$APIFOLDER/java"
     mkdir $CPPFOLDER
@@ -262,43 +272,43 @@ if [ $ANDROID_DRIVER -eq 1 ]; then
     mv $APIFOLDER/DspFaust.cpp $CPPFOLDER
     echo "#define ANDROID_DRIVER 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
 elif [ $IOS_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for iOS is being created"
+    echo "Your $APILOCATION API package for iOS is being created"
     createAPI
     echo "#define IOS_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $COREAUDIO_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for CoreAudio is being created"
+    echo "Your $APILOCATION API package for CoreAudio is being created"
     createAPI
     echo "#define COREAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $ALSA_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for ALSA is being created"
+    echo "Your $APILOCATION API package for ALSA is being created"
     createAPI
     echo "#define ALSA_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $JACK_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for JACK is being created"
+    echo "Your $APILOCATION API package for JACK is being created"
     createAPI
     echo "#define JACK_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $PORTAUDIO_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for PortAudio is being created"
+    echo "Your $APILOCATION API package for PortAudio is being created"
     createAPI
     echo "#define PORTAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $RTAUDIO_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for RTAudio is being created"
+    echo "Your $APILOCATION API package for RTAudio is being created"
     createAPI
     echo "#define RTAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $OPEN_FRAMEWORK_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for OpenFramework is being created"
+    echo "Your $APILOCATION API package for OpenFramework is being created"
     createAPI
     echo "#define OPEN_FRAMEWORK_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $JUCE_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for JUCE is being created"
+    echo "Your $APILOCATION API package for JUCE is being created"
     createAPI
     echo "#define JUCE_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $DUMMY_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for dummy audio is being created"
+    echo "Your $APILOCATION API package for dummy audio is being created"
     createAPI
     echo "#define DUMMY_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 elif [ $TEENSY_DRIVER -eq 1 ]; then
-    echo "Your $APIFOLDER.zip API package for teensy audio is being created"
+    echo "Your $APILOCATION API package for teensy audio is being created"
     createAPI
     echo "#define TEENSY_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 else
@@ -384,8 +394,8 @@ if [ "$NOZIP" = "0" ]; then
     ZIPOUT="$APIFOLDER.zip"
     rm $ZIPOUT 2> /dev/null || true
     zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
-else
+    rm -r $APIFOLDER || exit 1
+elif [ "$TARGETDEFINED" = "0" ]; then
     mv $APIFOLDER/* . || exit 1
+    rm -r $APIFOLDER || exit 1
 fi
-
-rm -r $APIFOLDER || exit 1
