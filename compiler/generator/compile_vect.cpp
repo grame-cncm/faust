@@ -347,7 +347,7 @@ string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
 
 /**
  * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp and the gLessTempSwitch.
+ * the maximum delay attached to exp.
  */
 
 string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)

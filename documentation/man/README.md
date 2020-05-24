@@ -92,6 +92,7 @@ Code generation options:
 
   **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 
+  **-dlm** \<n>    **--delay-line-model** \<n>      model of delay line (0 = mask, 1 = modulo, 2 = if) 
   **-mem**        **--memory**                    allocate static in global state using a custom memory manager.
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].

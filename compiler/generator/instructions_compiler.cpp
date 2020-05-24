@@ -56,7 +56,7 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
       fSharingKey(nullptr),
       fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)),
       fDescription(0),
-      fLoadedIota(false)
+      fMaxIota(-1)
 {
 }
 
@@ -425,6 +425,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->generateUserInterface(&path_checker);
     }
 
+    ensureIotaCode();
     endTiming("compileMultiSignal");
 }
 
@@ -444,6 +445,8 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
     }
+    
+    ensureIotaCode();
 }
 
 /*****************************************************************************
@@ -1673,11 +1676,9 @@ ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg)
  */
 void InstructionsCompiler::ensureIotaCode()
 {
-    if (!fLoadedIota) {
-        fLoadedIota = true;
-
+     if (fMaxIota >= 0) {
         pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genInt32Typed()));
-        pushClearMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genInt32NumInst(0)));
+        pushClearMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genInt32NumInst(fMaxIota)));
 
         FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) + 1;
         pushComputePostDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
@@ -1742,17 +1743,15 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 
  case 1-sample max delay :
  Y(t-0)	Y(t-1)
- Temp	Var                     gLessTempSwitch = false
- V[0]	V[1]                    gLessTempSwitch = true
+ 
+ V[0]	V[1]
 
  case max delay < gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...     gLessTempSwitch = false
- V[0]	V[1]	V[2]	...     gLessTempSwitch = true
+ V[0]	V[1]	V[2]	...
 
  case max delay >= gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...
  V[0]	V[1]	V[2]	...
 
 
@@ -1760,7 +1759,7 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 
 /**
  * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp and the gLessTempSwitch.
+ * the maximum delay attached to exp.
  */
 ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
@@ -1790,12 +1789,28 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
             return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, CS(delay)));
         }
     } else {
-        // Long delay : we use a ring buffer of size 2^x
-        int N = pow2limit(mxd + 1);
-
-        FIRIndex value2 =
-            (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) & InstBuilder::genInt32NumInst(N - 1);
-        return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
+        switch (gGlobal->gDelayCodeModel) {
+            // mask based delay with a power_of_two size
+            case 0:  {
+                // long delay : we use a ring buffer of size 2^x
+                int N = pow2limit(mxd + 1);
+                
+                FIRIndex value2 =
+                    (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) & InstBuilder::genInt32NumInst(N - 1);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
+            }
+                
+            // modulo based delay
+            case 1: {
+                FIRIndex value2 =
+                    (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) % InstBuilder::genInt32NumInst(mxd + 1);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
+            }
+                
+            default:
+                faustassert(false);
+                return InstBuilder::genNullValueInst();
+        }
     }
 }
 
@@ -1898,31 +1913,66 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         }
 
     } else {
-        // Generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
+        switch (gGlobal->gDelayCodeModel) {
+            case 0:  {
+                // Generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+                int N = pow2limit(mxd + 1);
 
-        // We need an iota index
-        ensureIotaCode();
+                // we need an iota index
+                fMaxIota = 0;
 
-        // Generates table init
-        pushClearMethod(generateInitArray(vname, ctype, N));
+                // Generates table init
+                pushClearMethod(generateInitArray(vname, ctype, N));
 
-        // Generate table use
-        if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
-            if (fIOTATable.find(N) == fIOTATable.end()) {
-                string   iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
-                FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genInt32NumInst(N - 1);
-                pushComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), value2));
-                fIOTATable[N] = iota_name;
+                // Generate table use
+                if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
+                    if (fIOTATable.find(N) == fIOTATable.end()) {
+                        string   iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
+                        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genInt32NumInst(N - 1);
+                        pushComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), value2));
+                        fIOTATable[N] = iota_name;
+                    }
+                    pushComputeDSPMethod(
+                        InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp));
+                } else {
+                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genInt32NumInst(N - 1);
+                    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
+                }
+                break;
             }
-            pushComputeDSPMethod(
-                InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp));
-        } else {
-            FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genInt32NumInst(N - 1);
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
+                
+            // modulo based delay
+            case 1: {
+                
+                // we need an iota index
+                fMaxIota = std::max(fMaxIota, mxd);
+                
+                // Generates table init
+                pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
+                
+                // Generate table use
+                if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
+                    if (fIOTATable.find(mxd) == fIOTATable.end()) {
+                        string   iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
+                        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) % InstBuilder::genInt32NumInst(mxd + 1);
+                        pushComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), value2));
+                        fIOTATable[mxd] = iota_name;
+                    }
+                    pushComputeDSPMethod(
+                        InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[mxd]), exp));
+                } else {
+                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) % InstBuilder::genInt32NumInst(mxd + 1);
+                    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
+                }
+                break;
+            }
+                
+            default:
+                faustassert(false);
+                break;
         }
     }
-
+    
     return exp;
 }
 

@@ -361,6 +361,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
     }
+    
+    ensureIotaCode();
 }
 
 /*****************************************************************************
@@ -377,6 +379,8 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
     }
+    
+    ensureIotaCode();
 }
 
 /*****************************************************************************
@@ -1330,17 +1334,14 @@ int ScalarCompiler::pow2limit(int x)
 
  case 1-sample max delay :
  Y(t-0)	Y(t-1)
- Temp	Var                     gLessTempSwitch = false
- V[0]	V[1]                    gLessTempSwitch = true
+ V[0]	V[1]
 
  case max delay < gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...     gLessTempSwitch = false
- V[0]	V[1]	V[2]	...     gLessTempSwitch = true
+ V[0]	V[1]	V[2]	...
 
  case max delay >= gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...
  V[0]	V[1]	V[2]	...
 
 
@@ -1348,7 +1349,7 @@ int ScalarCompiler::pow2limit(int x)
 
 /**
  * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp and the gLessTempSwitch.
+ * the maximum delay attached to exp.
  */
 
 string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
@@ -1384,9 +1385,23 @@ string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
         }
 
     } else {
-        // long delay : we use a ring buffer of size 2^x
-        int N = pow2limit(mxd + 1);
-        return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
+        switch (gGlobal->gDelayCodeModel) {
+            // mask based delay with a power_of_two size
+            case 0:  {
+                // long delay : we use a ring buffer of size 2^x
+                int N = pow2limit(mxd + 1);
+                return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
+            }
+                
+            // modulo based delay
+            case 1: {
+                return generateCacheCode(sig, subst("$0[(IOTA-$1)%$2]", vecname, CS(delay), T(mxd + 1)));
+            }
+                
+            default:
+                faustassert(false);
+                return "";
+        }
     }
 }
 
@@ -1413,7 +1428,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
                                               int mxd)
 {
     faustassert(mxd > 0);
-
+  
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
     string ccs = getConditionCode(sig);
 
@@ -1436,20 +1451,44 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         return subst("$0[0]", vname);
 
     } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
-
-        // we need a iota index
-        ensureIotaCode();
-
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-        // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-        setVectorNameProperty(sig, vname);
-        return subst("$0[IOTA&$1]", vname, T(N - 1));
+        switch (gGlobal->gDelayCodeModel) {
+            // mask based delay with a power_of_two size
+            case 0:  {
+                // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+                int N = pow2limit(mxd + 1);
+                
+                // we need an iota index
+                fMaxIota = 0;
+                
+                // declare and init
+                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+                
+                // execute
+                fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+                setVectorNameProperty(sig, vname);
+                return subst("$0[IOTA&$1]", vname, T(N - 1));
+            }
+                
+            // modulo based delay
+            case 1:  {
+                // declare and init
+                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
+                
+                // we need an iota index
+                fMaxIota = std::max(fMaxIota, mxd);
+                
+                // execute
+                fClass->addExecCode(Statement(ccs, subst("$0[IOTA%$1] = $2;", vname, T(mxd + 1), exp)));
+                setVectorNameProperty(sig, vname);
+                return subst("$0[IOTA%$1]", vname, T(mxd + 1));
+            }
+                
+            default:
+                faustassert(false);
+                return "";
+        }
     }
 }
 
@@ -1460,7 +1499,6 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
                                        const string& ccs)
 {
-    // faustassert(mxd > 0);
     if (mxd == 0) {
         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
         // no need for a real vector
@@ -1484,31 +1522,54 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         }
 
     } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
-
-        // we need a iota index
-        ensureIotaCode();
-
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-        // execute
-        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+        switch (gGlobal->gDelayCodeModel) {
+            // mask based delay with a power_of_two size
+            case 0:  {
+                // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+                int N = pow2limit(mxd + 1);
+                
+                // we need an iota index
+                fMaxIota = 0;
+                
+                // declare and init
+                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+                
+                // execute
+                fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+                break;
+            }
+                
+            // modulo based delay
+            case 1: {
+                // declare and init
+                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
+                
+                // we need an iota index
+                fMaxIota = std::max(fMaxIota, mxd);
+                
+                // execute
+                fClass->addExecCode(Statement(ccs, subst("$0[IOTA%$1] = $2;", vname, T(mxd + 1), exp)));
+                break;
+            }
+                  
+            default:
+                faustassert(false);
+                break;
+        }
     }
 }
 
 /**
  * Generate code for a unique IOTA variable increased at each sample
- * and used to index ring buffers.
+ * and used to index delay buffers.
  */
 void ScalarCompiler::ensureIotaCode()
 {
-    if (!fHasIota) {
-        fHasIota = true;
+    if (fMaxIota >= 0) {
         fClass->addDeclCode("int \tIOTA;");
-        fClass->addClearCode("IOTA = 0;");
+        fClass->addClearCode(subst("IOTA = $0;", T(fMaxIota)));
         fClass->addPostCode(Statement("", "IOTA = IOTA+1;"));
     }
 }

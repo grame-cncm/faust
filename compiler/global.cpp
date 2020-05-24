@@ -114,7 +114,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
-    gLessTempSwitch   = false;
     gMaxCopyDelay     = 16;
 
     gVectorSwitch      = false;
@@ -459,6 +458,7 @@ void global::init()
     // Essential predefined types
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
+    gDelayCodeModel  = 0;
 
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;

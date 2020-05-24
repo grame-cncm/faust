@@ -370,12 +370,12 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gBalancedSwitch = 2;
             i += 1;
 
-        } else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
-            gGlobal->gLessTempSwitch = true;
-            i += 1;
-
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-dlm", "-delay-line-model") && (i + 1 < argc)) {
+            gGlobal->gDelayCodeModel = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
@@ -641,6 +641,7 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }
+    
 #if 0
     if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
@@ -691,6 +692,16 @@ static bool processCmdline(int argc, const char* argv[])
     
     if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp") {
         throw faustexception("ERROR : -ns can only be used with cpp backend\n");
+    }
+    
+    if (gGlobal->gDelayCodeModel < 0 || gGlobal->gDelayCodeModel > 1) {
+        stringstream error;
+        error << "ERROR : delay-line-model [ -dlm = " << gGlobal->gDelayCodeModel << "] should be 0 or 1" << endl;
+        throw faustexception(error.str());
+    }
+    
+    if (gGlobal->gDelayCodeModel == 1 && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : '-dlm 1' option can only be used in scalar mode\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -839,6 +850,8 @@ static void printHelp()
          << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
             "samples)."
          << endl;
+    cout << tab
+         << "-dlm <n>    --delay-line-model <n>      model of delay line (0 = mask, 1 = modulo) " << endl;
     cout << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
          << endl;

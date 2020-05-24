@@ -52,15 +52,15 @@ class ScalarCompiler : public Compiler {
     static map<string, int> fIDCounters;
     Tree                    fSharingKey;
     old_OccMarkup*          fOccMarkup;
-    bool                    fHasIota;
+    int                     fMaxIota;
 
    public:
     ScalarCompiler(const string& name, const string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(0), fHasIota(false)
+        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(0), fMaxIota(-1)
     {
     }
 
-    ScalarCompiler(Klass* k) : Compiler(k), fOccMarkup(0), fHasIota(false) {}
+    ScalarCompiler(Klass* k) : Compiler(k), fOccMarkup(0), fMaxIota(-1) {}
 
     virtual void compileMultiSignal(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);

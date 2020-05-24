@@ -110,8 +110,9 @@ in compiling delays.
 \f[B]-mcd\f[R] <n> \f[B]\[en]max-copy-delay\f[R] <n> threshold between
 copy and ring buffer implementation (default 16 samples).
 .PP
-\f[B]-mem\f[R] \f[B]\[en]memory\f[R] allocate static in global state
-using a custom memory manager.
+\f[B]-dlm\f[R] <n> \f[B]\[en]delay-line-model\f[R] <n> model of delay
+line (0 = mask, 1 = modulo, 2 = if) \f[B]-mem\f[R] \f[B]\[en]memory\f[R]
+allocate static in global state using a custom memory manager.
 .PP
 \f[B]-ftz\f[R] <n> \f[B]\[en]flush-to-zero\f[R] <n> code added to
 recursive signals [0:no (default), 1:fabs based, 2:mask based

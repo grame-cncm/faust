@@ -114,7 +114,6 @@ struct global {
     int    gMaxNameSize;
     bool   gSimpleNames;
     bool   gSimplifyDiagrams;
-    bool   gLessTempSwitch;
     int    gMaxCopyDelay;
     string gOutputFile;
 
@@ -481,6 +480,8 @@ struct global {
     char* gCurrentLocal;
 
     int gAllocationCount;  // Internal signal types counter
+    
+    int gDelayCodeModel;   // Delay line code generation model (0 = mask, 1 = modulo, 2 = if)
 
     bool gEnableFlag;
 

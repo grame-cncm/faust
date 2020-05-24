@@ -56,7 +56,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     Tree         fUIRoot;
     Description* fDescription;
-    bool         fLoadedIota;
+    int          fMaxIota;
 
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
