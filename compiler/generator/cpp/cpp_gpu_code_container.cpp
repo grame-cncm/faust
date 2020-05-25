@@ -123,7 +123,7 @@ void CPPOpenCLCodeContainer::produceClass()
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1247,7 +1247,7 @@ void CPPCUDACodeContainer::produceClass()
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");

@@ -481,7 +481,7 @@ struct global {
 
     int gAllocationCount;  // Internal signal types counter
     
-    int gDelayCodeModel;   // Delay line code generation model (0 = mask, 1 = modulo, 2 = if)
+    int gDelayLineModel;   // Delay line code generation model (0 = mask, 1 = modulo, 2 = if)
 
     bool gEnableFlag;
 

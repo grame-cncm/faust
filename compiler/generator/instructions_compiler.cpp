@@ -1681,7 +1681,7 @@ void InstructionsCompiler::ensureIotaCode()
         pushClearMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genInt32NumInst(fMaxIota)));
 
         FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) + 1;
-        pushComputePostDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
+        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
     }
 }
 
@@ -1789,7 +1789,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
             return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, CS(delay)));
         }
     } else {
-        switch (gGlobal->gDelayCodeModel) {
+        switch (gGlobal->gDelayLineModel) {
             // mask based delay with a power_of_two size
             case 0:  {
                 // long delay : we use a ring buffer of size 2^x
@@ -1800,10 +1800,24 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
                 return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
             }
                 
-            // modulo based delay
+            // 'select' based delay
             case 1: {
+                string ridx_name = gGlobal->getFreshID(vname + "_ridx_tmp");
+                
+                // int ridx = widx - delay;
+                FIRIndex widx1 = FIRIndex(InstBuilder::genLoadStructVar(vname + "_widx"));
+                pushComputeDSPMethod(InstBuilder::genDecStackVar(ridx_name, InstBuilder::genBasicTyped(Typed::kInt32), widx1 - CS(delay)));
+                
+                // dline[((ridx < 0) ? ridx + delay : ridx)];
+                FIRIndex ridx1 = FIRIndex(InstBuilder::genLoadStackVar(ridx_name));
+                FIRIndex ridx2 = FIRIndex(InstBuilder::genSelect2Inst(ridx1 < 0, ridx1 + FIRIndex(mxd + 1), ridx1));
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, ridx2));
+            }
+                
+            // modulo based delay
+            case 2: {
                 FIRIndex value2 =
-                    (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) % InstBuilder::genInt32NumInst(mxd + 1);
+                    (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) % FIRIndex(mxd + 1);
                 return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
             }
                 
@@ -1904,16 +1918,16 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
 
         // Generates post processing copy code to update delay values
         if (mxd == 1) {
-            pushComputePostDSPMethod(generateCopyArray(vname, 0, 1));
+            pushPostComputeDSPMethod(generateCopyArray(vname, 0, 1));
         } else if (mxd == 2) {
-            pushComputePostDSPMethod(generateCopyArray(vname, 1, 2));
-            pushComputePostDSPMethod(generateCopyArray(vname, 0, 1));
+            pushPostComputeDSPMethod(generateCopyArray(vname, 1, 2));
+            pushPostComputeDSPMethod(generateCopyArray(vname, 0, 1));
         } else {
-            pushComputePostDSPMethod(generateShiftArray(vname, mxd));
+            pushPostComputeDSPMethod(generateShiftArray(vname, mxd));
         }
 
     } else {
-        switch (gGlobal->gDelayCodeModel) {
+        switch (gGlobal->gDelayLineModel) {
             case 0:  {
                 // Generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
                 int N = pow2limit(mxd + 1);
@@ -1940,9 +1954,43 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
                 }
                 break;
             }
+               
+            // 'select' based delay
+            case 1: {
+                
+                string widx_tmp_name = vname + "_widx_tmp";
+                string widx_name = vname + "_widx";
+                
+                // Generates table write index
+                pushDeclare(InstBuilder::genDecStructVar(widx_name, InstBuilder::genInt32Typed()));
+                pushInitMethod(InstBuilder::genStoreStructVar(widx_name, InstBuilder::genInt32NumInst(0)));
+                
+                // Generates table init
+                pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
+                
+                // int w = widx;
+                pushComputeDSPMethod(InstBuilder::genDecStackVar(widx_tmp_name, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genLoadStructVar(widx_name)));
+                
+                // dline[w] = v;
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(widx_tmp_name), exp));
+                
+                // w = w+1;
+                FIRIndex widx_tmp1 = FIRIndex(InstBuilder::genLoadStackVar(widx_tmp_name));
+                pushPostComputeDSPMethod(InstBuilder::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1));
+                
+                // w = ((w == delay) ? 0 : w);
+                FIRIndex widx_tmp2 = FIRIndex(InstBuilder::genLoadStackVar(widx_tmp_name));
+                pushPostComputeDSPMethod(InstBuilder::genStoreStackVar(widx_tmp_name,
+                                                                       InstBuilder::genSelect2Inst(FIRIndex(widx_tmp2 == FIRIndex(mxd + 1)),
+                                                                                                   FIRIndex(0),
+                                                                                                   widx_tmp2)));
+                // *widx = w
+                pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(widx_name, InstBuilder::genLoadStackVar(widx_tmp_name)));
+                break;
+            }
                 
             // modulo based delay
-            case 1: {
+            case 2: {
                 
                 // we need an iota index
                 fMaxIota = std::max(fMaxIota, mxd);
@@ -1954,14 +2002,14 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
                 if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
                     if (fIOTATable.find(mxd) == fIOTATable.end()) {
                         string   iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
-                        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) % InstBuilder::genInt32NumInst(mxd + 1);
+                        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) % FIRIndex(mxd + 1);
                         pushComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), value2));
                         fIOTATable[mxd] = iota_name;
                     }
                     pushComputeDSPMethod(
                         InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[mxd]), exp));
                 } else {
-                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) % InstBuilder::genInt32NumInst(mxd + 1);
+                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) % FIRIndex(mxd + 1);
                     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
                 }
                 break;
@@ -2054,7 +2102,7 @@ ValueInst* InstructionsCompiler::generateWaveform(Tree sig)
 
     string   idx   = subst("$0_idx", vname);
     FIRIndex index = (FIRIndex(1) + InstBuilder::genLoadStructVar(idx)) % InstBuilder::genInt32NumInst(size);
-    pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index));
+    pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx, index));
     return generateCacheCode(sig, InstBuilder::genLoadArrayStaticStructVar(vname, InstBuilder::genLoadStructVar(idx)));
 }
 

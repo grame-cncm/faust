@@ -2423,6 +2423,7 @@ struct FIRIndex {
     /* implicitly convert to ValueInst* in order to simplify the usage */
     operator ValueInst*(void)const { return fValue; }
 
+    // Add
     friend FIRIndex operator+(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genAdd(lhs.fValue, rhs));
@@ -2435,6 +2436,7 @@ struct FIRIndex {
         return operator+(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
+    // Sub
     friend FIRIndex operator-(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genSub(lhs.fValue, rhs));
@@ -2447,6 +2449,7 @@ struct FIRIndex {
         return operator-(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
+    // Mult
     friend FIRIndex operator*(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genMul(lhs.fValue, rhs));
@@ -2459,6 +2462,7 @@ struct FIRIndex {
         return operator*(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
+    // Div
     friend FIRIndex operator/(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genDiv(lhs.fValue, rhs));
@@ -2471,6 +2475,7 @@ struct FIRIndex {
         return operator/(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
+    // And
     friend FIRIndex operator&(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genAnd(lhs.fValue, rhs));
@@ -2483,6 +2488,7 @@ struct FIRIndex {
         return operator&(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
+    // Modulo
     friend FIRIndex operator%(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genRem(lhs.fValue, rhs));
@@ -2493,6 +2499,32 @@ struct FIRIndex {
     friend FIRIndex operator%(FIRIndex const& lhs, int rhs)
     {
         return operator%(lhs, InstBuilder::genInt32NumInst(rhs));
+    }
+
+    // Equal
+    friend FIRIndex operator==(FIRIndex const& lhs, ValueInst* rhs)
+    {
+        return FIRIndex(InstBuilder::genEqual(lhs.fValue, rhs));
+    }
+    
+    friend FIRIndex operator==(FIRIndex const& lhs, FIRIndex const& rhs) { return operator==(lhs, rhs.fValue); }
+    
+    friend FIRIndex operator==(FIRIndex const& lhs, int rhs)
+    {
+        return operator==(lhs, InstBuilder::genInt32NumInst(rhs));
+    }
+    
+    // Inf
+    friend FIRIndex operator<(FIRIndex const& lhs, ValueInst* rhs)
+    {
+        return FIRIndex(InstBuilder::genLessThan(lhs.fValue, rhs));
+    }
+    
+    friend FIRIndex operator<(FIRIndex const& lhs, FIRIndex const& rhs) { return operator<(lhs, rhs.fValue); }
+    
+    friend FIRIndex operator<(FIRIndex const& lhs, int rhs)
+    {
+        return operator<(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
    private:

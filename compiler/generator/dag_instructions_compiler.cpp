@@ -575,13 +575,13 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputeBlockMethod(table_inst2);
 
         // -- copy the stored samples to the delay line
-        pushComputePreDSPMethod(generateCopyArray(buf, pmem, delay));
+        pushPreComputeDSPMethod(generateCopyArray(buf, pmem, delay));
 
         // -- compute the new samples
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, getCurrentLoopIndex(), exp));
 
         // -- copy back to stored samples
-        pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay));
+        pushPostComputeDSPMethod(generateCopyBackArray(pmem, buf, delay));
 
         // Set desired variable access
         var_access = Address::kStack;
@@ -607,7 +607,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         FIRIndex index1 = FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadStructVar(idx_save);
         FIRIndex index2 = index1 & InstBuilder::genInt32NumInst(delay - 1);
 
-        pushComputePreDSPMethod(InstBuilder::genStoreStructVar(idx, index2));
+        pushPreComputeDSPMethod(InstBuilder::genStoreStructVar(idx, index2));
 
         // -- compute the new samples
         FIRIndex index3 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(idx);
@@ -616,7 +616,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
 
         // -- save index
-        pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadLoopVar("vsize")));
+        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadLoopVar("vsize")));
 
         // Set desired variable access
         var_access = Address::kStruct;
@@ -653,7 +653,7 @@ ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
     string   idx    = subst("$0_idx", vname);
     FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadLoopVar("vsize")) %
                       InstBuilder::genInt32NumInst(size);
-    pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index1));
+    pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(idx, index1));
     FIRIndex index2 =
         (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % InstBuilder::genInt32NumInst(size);
     return generateCacheCode(sig, InstBuilder::genLoadArrayStaticStructVar(vname, index2));

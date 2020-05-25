@@ -52,11 +52,28 @@ class InstructionsCompiler : public virtual Garbageable {
     Tree                            fSharingKey;
     OccMarkup                       fOccMarkup;
 
-    std::map<int, std::string> fIOTATable;  // Ensure IOTA base fixed delays are computed once
+    // Ensure IOTA base fixed delays are computed once
+    std::map<int, std::string> fIOTATable;
 
     Tree         fUIRoot;
     Description* fDescription;
-    int          fMaxIota;
+    
+    /*
+     -dlm 0 : in 'mask based' delay line model, global IOTA will be initialized with 0 and incremented at each sample.
+     Delay lines are intialized with the next power-of-two value, and read/write indexes are wrapped using a mask.
+     
+     -dlm 1 : in 'select based' delay line model, a write index is kept in the class for each delay line,
+     and will be wrapped using a 'select'. The read index is computed in a temporary variable,
+     and wrapped using the delay line size.
+     
+     -dlm 2 : in 'modulo based' delay line model, global IOTA will be initialized with
+     the max of all delay lines sizes, so that (IOTA - delay) always stay >= 0
+     and 'mod = (x % N)' can be used safely up to IOTA = INT_MAX.
+     
+     WARNING: at IOTA = INT_MAX, IOTA will wrap and produce an incorrect index !
+    */
+    
+    int fMaxIota;
 
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
@@ -73,6 +90,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
     virtual StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
     virtual StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
+    
     // Redefined in InterpreterInstructionsCompiler
     virtual StatementInst* generateShiftArray(const string& vname, int delay);
 
@@ -80,12 +98,12 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
     ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
 
-    /* wrapper functions to access code container */
+    // wrapper functions to access code container
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }
     StatementInst* pushResetUIInstructions(StatementInst* inst) { return fContainer->pushResetUIInstructions(inst); }
     StatementInst* pushClearMethod(StatementInst* inst) { return fContainer->pushClearMethod(inst); }
     StatementInst* pushPostInitMethod(StatementInst* inst) { return fContainer->pushPostInitMethod(inst); }
-    StatementInst* pushFrontInitMethod(StatementInst* inst) { return fContainer->pushFrontInitMethod(inst); }
+    StatementInst* pushPreInitMethod(StatementInst* inst) { return fContainer->pushPreInitMethod(inst); }
     StatementInst* pushDestroyMethod(StatementInst* inst) { return fContainer->pushDestroyMethod(inst); }
     StatementInst* pushStaticInitMethod(StatementInst* inst) { return fContainer->pushStaticInitMethod(inst); }
     StatementInst* pushPostStaticInitMethod(StatementInst* inst) { return fContainer->pushPostStaticInitMethod(inst); }
@@ -101,9 +119,9 @@ class InstructionsCompiler : public virtual Garbageable {
     StatementInst* pushGlobalDeclare(StatementInst* inst) { return fContainer->pushGlobalDeclare(inst); }
     StatementInst* pushExtGlobalDeclare(StatementInst* inst) { return fContainer->pushExtGlobalDeclare(inst); }
 
-    StatementInst* pushComputePreDSPMethod(StatementInst* inst) { return fContainer->pushComputePreDSPMethod(inst); }
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { return fContainer->pushPreComputeDSPMethod(inst); }
     StatementInst* pushComputeDSPMethod(StatementInst* inst) { return fContainer->pushComputeDSPMethod(inst); }
-    StatementInst* pushComputePostDSPMethod(StatementInst* inst) { return fContainer->pushComputePostDSPMethod(inst); }
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fContainer->pushPostComputeDSPMethod(inst); }
 
     void ensureIotaCode();
 

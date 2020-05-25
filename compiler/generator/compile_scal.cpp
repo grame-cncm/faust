@@ -1385,7 +1385,7 @@ string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
         }
 
     } else {
-        switch (gGlobal->gDelayCodeModel) {
+        switch (gGlobal->gDelayLineModel) {
             // mask based delay with a power_of_two size
             case 0:  {
                 // long delay : we use a ring buffer of size 2^x
@@ -1451,7 +1451,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         return subst("$0[0]", vname);
 
     } else {
-        switch (gGlobal->gDelayCodeModel) {
+        switch (gGlobal->gDelayLineModel) {
             // mask based delay with a power_of_two size
             case 0:  {
                 // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
@@ -1522,7 +1522,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         }
 
     } else {
-        switch (gGlobal->gDelayCodeModel) {
+        switch (gGlobal->gDelayLineModel) {
             // mask based delay with a power_of_two size
             case 0:  {
                 // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd

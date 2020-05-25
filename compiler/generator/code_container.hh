@@ -169,7 +169,7 @@ class CodeContainer : public virtual Garbageable {
         if (!fGeneratedSR) {
             pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
         }
-        pushFrontInitMethod(
+        pushPreInitMethod(
             InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
     }
 
@@ -514,7 +514,7 @@ class CodeContainer : public virtual Garbageable {
         fPostInitInstructions->pushBackInst(inst);
         return inst;
     }
-    StatementInst* pushFrontInitMethod(StatementInst* inst)
+    StatementInst* pushPreInitMethod(StatementInst* inst)
     {
         fInitInstructions->pushFrontInst(inst);
         return inst;
@@ -570,9 +570,9 @@ class CodeContainer : public virtual Garbageable {
         return inst;
     }
 
-    StatementInst* pushComputePreDSPMethod(StatementInst* inst) { return fCurLoop->pushComputePreDSPMethod(inst); }
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushPreComputeDSPMethod(inst); }
     StatementInst* pushComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushComputeDSPMethod(inst); }
-    StatementInst* pushComputePostDSPMethod(StatementInst* inst) { return fCurLoop->pushComputePostDSPMethod(inst); }
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushPostComputeDSPMethod(inst); }
 
     void generateSubContainers()
     {

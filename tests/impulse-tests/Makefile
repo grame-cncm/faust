@@ -91,6 +91,7 @@ travis:
 cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.gcc outdir=cpp/double/dlm1      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlm 1"
+	$(MAKE) -f Make.gcc outdir=cpp/double/dlm2      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlm 2"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/vs16   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
@@ -124,6 +125,7 @@ me:
 c:
 	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.gcc outdir=c/double/dlm1        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlm 1"
+	$(MAKE) -f Make.gcc outdir=c/double/dlm2        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlm 2"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/vs16     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
@@ -141,6 +143,8 @@ c:
 
 c1:
 	$(MAKE) -f Make.gcc outdir=c1/double           lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os"
+	$(MAKE) -f Make.gcc outdir=c1/double/dlm1      lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlm 1"
+	$(MAKE) -f Make.gcc outdir=c1/double/dlm2      lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlm 2"
 
 quad:
 	$(MAKE) -f Make.gcc outdir=cpp/quad         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -quad"
@@ -163,11 +167,13 @@ web:
 wasm:
 	$(MAKE) -f Make.web wasm
 	$(MAKE) -f Make.web wasm wasmdir=wasm/dlm1 FAUSTOPTIONS="-I dsp -dlm 1"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/dlm2 FAUSTOPTIONS="-I dsp -dlm 2"
 	$(MAKE) -f Make.web wasm wasmdir=wasm/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
 
 wast:
 	$(MAKE) -f Make.web wast
 	$(MAKE) -f Make.web wast wastdir=wast/dlm1 FAUSTOPTIONS="-I dsp -dlm 1"
+	$(MAKE) -f Make.web wast wastdir=wast/dlm2 FAUSTOPTIONS="-I dsp -dlm 2"
 	$(MAKE) -f Make.web wast wastdir=wast/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
 
 #########################################################################
@@ -176,6 +182,7 @@ llvm:
 	$(MAKE) -f Make.llvm
 	$(MAKE) -f Make.llvm outdir=llvm/inpl FAUSTOPTIONS="-I dsp -inpl"
 	$(MAKE) -f Make.llvm outdir=llvm/dlm1 FAUSTOPTIONS="-I dsp -dlm 1"
+	$(MAKE) -f Make.llvm outdir=llvm/dlm2 FAUSTOPTIONS="-I dsp -dlm 2"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/lv0 FAUSTOPTIONS="-I dsp -vec -lv 0"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/lv0/fun FAUSTOPTIONS="-I dsp -vec -lv 0 -fun"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/lv0/vs16 FAUSTOPTIONS="-I dsp -vec -lv 0 -vs 16"
@@ -193,6 +200,7 @@ llvm1:
 	$(MAKE) -f Make.llvm1 FAUSTOPTIONS=-double
 	$(MAKE) -f Make.llvm1 outdir=llvm1/inpl FAUSTOPTIONS="-I dsp -double -inpl"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/dlm1 FAUSTOPTIONS="-I dsp -double -dlm 1"
+	$(MAKE) -f Make.llvm1 outdir=llvm1/dlm2 FAUSTOPTIONS="-I dsp -double -dlm 2"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv0 FAUSTOPTIONS="-I dsp -double -vec -lv 0"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv0/fun FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/vec/lv0/vs16 FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
@@ -209,6 +217,7 @@ llvm1:
 interp:
 	$(MAKE) -f Make.interp
 	$(MAKE) -f Make.interp outdir=interp/dlm1 FAUSTOPTIONS="-I dsp -dlm 1"
+	$(MAKE) -f Make.interp outdir=interp/dlm2 FAUSTOPTIONS="-I dsp -dlm 2"
 	#$(MAKE) -f Make.interp outdir=interp/lv0 FAUSTOPTIONS="-I dsp -vec -lv 0"
 	#$(MAKE) -f Make.interp outdir=interp/lv0/vs16 FAUSTOPTIONS="-I dsp -vec -lv 0 -vs 16"
 	$(MAKE) -f Make.interp outdir=interp/vec/lv1 FAUSTOPTIONS="-I dsp -vec -lv 1"
@@ -223,6 +232,7 @@ interp:
 interp1:
 	$(MAKE) -f Make.interp1
 	$(MAKE) -f Make.interp1 outdir=interp1/dlm1 FAUSTOPTIONS="-I dsp -dlm 1"
+	$(MAKE) -f Make.interp1 outdir=interp1/dlm2 FAUSTOPTIONS="-I dsp -dlm 2"
 	#$(MAKE) -f Make.interp1 outdir=interp1/lv0 FAUSTOPTIONS="-I dsp -vec -lv 0"
 	#$(MAKE) -f Make.interp1 outdir=interp1/lv0/vs16 FAUSTOPTIONS="-I dsp -vec -lv 0 -vs 16"
 	$(MAKE) -f Make.interp1 outdir=interp1/vec/lv1 FAUSTOPTIONS="-I dsp -vec -lv 1"

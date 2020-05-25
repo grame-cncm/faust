@@ -375,7 +375,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 2;
             
         } else if (isCmd(argv[i], "-dlm", "-delay-line-model") && (i + 1 < argc)) {
-            gGlobal->gDelayCodeModel = std::atoi(argv[i + 1]);
+            gGlobal->gDelayLineModel = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
@@ -694,14 +694,14 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -ns can only be used with cpp backend\n");
     }
     
-    if (gGlobal->gDelayCodeModel < 0 || gGlobal->gDelayCodeModel > 1) {
+    if (gGlobal->gDelayLineModel < 0 || gGlobal->gDelayLineModel > 2) {
         stringstream error;
-        error << "ERROR : delay-line-model [ -dlm = " << gGlobal->gDelayCodeModel << "] should be 0 or 1" << endl;
+        error << "ERROR : delay-line-model [ -dlm = " << gGlobal->gDelayLineModel << "] should be 0, 1 or 2" << endl;
         throw faustexception(error.str());
     }
     
-    if (gGlobal->gDelayCodeModel == 1 && gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : '-dlm 1' option can only be used in scalar mode\n");
+    if (gGlobal->gDelayLineModel > 0 && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : '-dlm 1/2' option can only be used in scalar mode\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -851,7 +851,7 @@ static void printHelp()
             "samples)."
          << endl;
     cout << tab
-         << "-dlm <n>    --delay-line-model <n>      model of delay line [0:mask (default), 1:modulo]." << endl;
+         << "-dlm <n>    --delay-line-model <n>      model of ring buffer delay line [0:mask (default), 1:select, 2:modulo]." << endl;
     cout << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
          << endl;

@@ -142,7 +142,7 @@ class CodeLoop : public virtual Garbageable {
     {
     }
 
-    StatementInst* pushComputePreDSPMethod(StatementInst* inst)
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst)
     {
         fPreInst->pushBackInst(inst);
         return inst;
@@ -152,7 +152,7 @@ class CodeLoop : public virtual Garbageable {
         fComputeInst->pushBackInst(inst);
         return inst;
     }
-    StatementInst* pushComputePostDSPMethod(StatementInst* inst)
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst)
     {
         fPostInst->pushBackInst(inst);
         return inst;
