@@ -458,7 +458,7 @@ void global::init()
     // Essential predefined types
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
-    gDelayLineModel  = 0;
+    gMaskDelayLineThreshold  = INT_MAX;
 
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;

@@ -374,8 +374,8 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
             
-        } else if (isCmd(argv[i], "-dlm", "-delay-line-model") && (i + 1 < argc)) {
-            gGlobal->gDelayLineModel = std::atoi(argv[i + 1]);
+        } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {
+            gGlobal->gMaskDelayLineThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
@@ -694,14 +694,8 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -ns can only be used with cpp backend\n");
     }
     
-    if (gGlobal->gDelayLineModel < 0 || gGlobal->gDelayLineModel > 2) {
-        stringstream error;
-        error << "ERROR : delay-line-model [ -dlm = " << gGlobal->gDelayLineModel << "] should be 0, 1 or 2" << endl;
-        throw faustexception(error.str());
-    }
-    
-    if (gGlobal->gDelayLineModel > 0 && gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : '-dlm 1/2' option can only be used in scalar mode\n");
+    if (gGlobal->gMaskDelayLineThreshold > 0 && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
+        throw faustexception("ERROR : '-dlt > 0' option can only be used in scalar mode and not with -ocpp backend\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -850,7 +844,9 @@ static void printHelp()
             "samples)."
          << endl;
     cout << tab
-         << "-dlm <n>    --delay-line-model <n>      model of ring buffer delay line [0:mask (default), 1:select, 2:modulo]." << endl;
+        << "-dlt <n>    --delay-line-threshold <n>   threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX"
+           "samples)."
+        << endl;
     cout << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
          << endl;

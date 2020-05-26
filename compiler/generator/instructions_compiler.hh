@@ -59,21 +59,12 @@ class InstructionsCompiler : public virtual Garbageable {
     Description* fDescription;
     
     /*
-     -dlm 0 : in 'mask based' delay line model, global IOTA will be initialized with 0 and incremented at each sample.
-     Delay lines are intialized with the next power-of-two value, and read/write indexes are wrapped using a mask.
-     
-     -dlm 1 : in 'select based' delay line model, a write index is kept in the class for each delay line,
-     and will be wrapped using a 'select'. The read index is computed in a temporary variable,
-     and wrapped using the delay line size.
-     
-     -dlm 2 : in 'modulo based' delay line model, global IOTA will be initialized with
-     the max of all delay lines sizes, so that (IOTA - delay) always stay >= 0
-     and 'mod = (x % N)' can be used safely up to IOTA = INT_MAX.
-     
-     WARNING: at IOTA = INT_MAX, IOTA will wrap and produce an incorrect index !
+     -dlt <N> : threshold between 'mask' and 'select' based ring-buffer delay line model.
+     'mask' delay-lines use the next power-of-two value size and a mask (faster but use more memory)
+     'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but slower)
     */
     
-    int fMaxIota;
+    bool fHasIota;
 
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
@@ -132,6 +123,12 @@ class InstructionsCompiler : public virtual Garbageable {
             n = 2 * n;
         }
         return n;
+    }
+    
+    bool ispowerof2(int x)
+    {
+        /* First x in the below expression is for the case when x is 0 */
+        return x && (!(x&(x-1)));
     }
 
     CodeContainer* signal2Container(const string& name, Tree sig);
