@@ -42,7 +42,7 @@ function option() {
 				"-nodeploy") doc="skip self-contained application generation (using 'macdeployqt')";;
        			"-effect <effect.dsp>") doc="generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC";;
         		"-effect auto") doc="generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC";;
-				"Faust options") doc="any Faust option (e.g. -vec -vs 8...). See the Faust compiler documentation.";;
+				"Faust options") doc="any option (e.g. -vec -vs 8...). See the Faust compiler documentation.";;
 			esac
 		fi
 		echo "   $option : $doc"

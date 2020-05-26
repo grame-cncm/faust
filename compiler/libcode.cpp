@@ -845,7 +845,6 @@ static void printHelp()
     cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
     cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
     cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
-    cout << tab << "-lt         --less-temporaries          generate less temporaries in compiling delays." << endl;
     cout << tab
          << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
             "samples)."

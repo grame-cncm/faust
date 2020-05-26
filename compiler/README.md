@@ -1,4 +1,4 @@
-% man(1) Version 2.24.1 (25-May-2020) | Faust man page
+% man(1) Version 2.24.1 (26-May-2020) | Faust man page
 
 NAME
 ====
@@ -87,8 +87,6 @@ Code generation options:
   **-mb**         **--mid-balanced**              generate mid balanced expressions (default).
 
   **-rb**         **--right-balanced**            generate right balanced expressions.
-
-  **-lt**         **--less-temporaries**          generate less temporaries in compiling delays.
 
   **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 

@@ -53,7 +53,7 @@ static void testFaust(const string& filename, int argc1, const char* argv1[])
     string error_msg;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc1, argv1, "", error_msg, -1);
     if (!factory) {
-        cerr << "ERROR : file '" << filename << "' cannot be opened or TOTO compiled with " << error_msg << "\n";
+        cerr << "ERROR : file '" << filename << "' cannot be opened with " << error_msg << "\n";
         exit(-1);
     }
     measureDSP(filename, factory->createDSPInstance());
@@ -92,7 +92,7 @@ static void testSOUL(const string& filename, int argc1, const char* argv1[])
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-tester foo.dsp|foo.soulpatch" << endl;
+        cout << "soul-faust-tester [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch" << endl;
         exit(-1);
     }
     
