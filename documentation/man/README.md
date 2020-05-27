@@ -1,4 +1,4 @@
-% man(1) Version 2.24.1 (26-May-2020) | Faust man page
+% man(1) Version 2.24.2 (27-May-2020) | Faust man page
 
 NAME
 ====
@@ -90,7 +90,7 @@ Code generation options:
 
   **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 
-  **-dlm** \<n>    **--delay-line-model** \<n>      model of ring buffer delay line [0:mask (default), 1:select, 2:modulo].
+  **-dlt** \<n>    **--delay-line-threshold** \<n>   threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX samples).
 
   **-mem**        **--memory**                    allocate static in global state using a custom memory manager.
 

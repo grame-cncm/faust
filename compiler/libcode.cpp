@@ -844,7 +844,7 @@ static void printHelp()
             "samples)."
          << endl;
     cout << tab
-        << "-dlt <n>    --delay-line-threshold <n>   threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX"
+        << "-dlt <n>    --delay-line-threshold <n>   threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
            "samples)."
         << endl;
     cout << tab
