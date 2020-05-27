@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "faust/gui/UI.h"
+#include "faust/gui/GUI.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -195,9 +195,10 @@ public:
     virtual bool run()
     {
         char c;
-        std::cout << "Type 'q' to quit\n";
-        while ((c = getchar()) != 'q') {
-            sleep(1);
+        std::cout << "Type Ctrl-C to quit\n";
+        while (true) {
+            usleep(40 * 1000); // 25Hz
+            GUI::updateAllGuis();
         }
         return true;
     }
