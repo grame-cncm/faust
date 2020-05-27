@@ -694,8 +694,8 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -ns can only be used with cpp backend\n");
     }
     
-    if (gGlobal->gMaskDelayLineThreshold > 0 && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
-        throw faustexception("ERROR : '-dlt > 0' option can only be used in scalar mode and not with -ocpp backend\n");
+    if (gGlobal->gMaskDelayLineThreshold < INT_MAX && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
+        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with -ocpp backend\n");
     }
     
     if (gGlobal->gArchFile != ""
