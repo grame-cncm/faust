@@ -22,13 +22,11 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
 
+#include <string>
+
 // implements a code statement with an optional condition
 
-namespace std {
-}
 using namespace std;
-
-#include <string>
 
 class Statement {
    private:

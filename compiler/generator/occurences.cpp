@@ -51,7 +51,6 @@ Occurences::Occurences(int v, int r) : fXVariability(xVariability(v, r))
 {
     for (int i = 0; i < 4; i++) fOccurences[i] = 0;
     fMultiOcc    = false;
-    fMaxDelay    = 0;
     fOutDelayOcc = false;
     fMinDelay    = 0;
     fMaxDelay    = 0;

@@ -31,8 +31,7 @@
                 21-01-2008 : implementation initiale (yo)
 
 ***********************************************************************/
-namespace std {
-}
+
 using namespace std;
 
 #include <list>

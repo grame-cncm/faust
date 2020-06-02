@@ -50,8 +50,9 @@ old_Occurences::old_Occurences(int v, int r, Tree xc) : fXVariability(xVariabili
 {
     for (int i = 0; i < 4; i++) fOccurences[i] = 0;
     fMultiOcc      = false;
-    fMaxDelay      = 0;
     fOutDelayOcc   = false;
+    fMinDelay      = 0;
+    fMaxDelay      = 0;
     fExecCondition = xc;
 }
 
