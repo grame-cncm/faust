@@ -197,6 +197,6 @@ static int position (Tree env, Tree t, int p)
 {
     if (isNil(env)) return 0;	// was not in the environment
     if (hd(env) == t) return p;
-    else return position (tl(env), t, p+1);
+    else return position(tl(env), t, p+1);
 }
 #endif

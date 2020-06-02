@@ -74,6 +74,7 @@ typedef map<Tree, set<Tree>, comp_str> MetaDataSet;
 
 typedef map<Tree, set<Tree>> FunMDSet;  // foo -> {(file/foo/key,value)...}
 
+// Global singleton like compiler state
 struct global {
     Tree gResult;
     Tree gResult2;
@@ -140,9 +141,9 @@ struct global {
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
-                      // for JavaScript)
-    bool gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool gLightMode;    // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
+                        // for JavaScript)
+    bool gClang;        // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     string gCheckTable; // whether to check RDTable and RWTable index range
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
@@ -177,9 +178,9 @@ struct global {
 
     const char* gInputString;
 
-    bool gLstDependenciesSwitch;  ///< mdoc listing management.
-    bool gLstMdocTagsSwitch;      ///< mdoc listing management.
-    bool gLstDistributedSwitch;   ///< mdoc listing management.
+    bool gLstDependenciesSwitch;  ///< mdoc listing management
+    bool gLstMdocTagsSwitch;      ///< mdoc listing management
+    bool gLstDistributedSwitch;   ///< mdoc listing management
 
     map<string, string> gDocMetadatasStringMap;
     set<string>         gDocMetadatasKeySet;
@@ -191,14 +192,14 @@ struct global {
 
     map<string, string> gDocMathStringMap;
 
-    vector<Tree> gDocVector;  ///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
+    vector<Tree> gDocVector;  ///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
 
     map<string, string> gDocNoticeStringMap;
     set<string>         gDocNoticeKeySet;
 
     set<string> gDocMathKeySet;
 
-    bool gLatexDocSwitch;  // Only LaTeX outformat is handled for the moment.
+    bool gLatexDocSwitch;  // Only LaTeX outformat is handled for the moment
 
     int gErrorCount;
 
@@ -446,8 +447,8 @@ struct global {
 
     int gMachineMaxStackSize;
 
-    const char* gDocDevSuffix;  ///< ".tex" (or .??? - used to choose output device).
-    string      gCurrentDir;    ///< Room to save current directory name.
+    const char* gDocDevSuffix;  ///< ".tex" (or .??? - used to choose output device)
+    string      gCurrentDir;    ///< Room to save current directory name
     string      gLatexheaderfilename;
 
     struct tm gCompilationDate;

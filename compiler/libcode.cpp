@@ -1031,8 +1031,6 @@ static string fxName(const string& filename)
     return filename.substr(p1, p2 - p1);
 }
 
-
-
 static void initFaustDirectories(int argc, const char* argv[])
 {
 #if !defined(FAUST_SELF_CONTAINED_LIB)

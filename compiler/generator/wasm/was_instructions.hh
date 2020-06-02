@@ -43,7 +43,7 @@
 
 */
 
-inline int pow2limit(int x)
+inline int wasm_pow2limit(int x)
 {
     int n = wasmBlockSize;  // Minimum = 64 kB
     while (n < x) {
@@ -55,7 +55,7 @@ inline int pow2limit(int x)
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max<int>((pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
+    return std::max<int>((wasm_pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize), 1);
 }
 
 // Base class for textual 'wast' and binary 'wasm' visitors
@@ -98,7 +98,7 @@ struct WASInst {
     };
 
     TypingVisitor            fTypingVisitor;
-    map<string, bool>         fFunctionSymbolTable; // Already generated functions
+    map<string, bool>        fFunctionSymbolTable;  // Already generated functions
     map<string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }
 

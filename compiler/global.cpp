@@ -743,14 +743,6 @@ string global::getFreshID(const string& prefix)
     return subst("$0$1", prefix, T(n));
 }
 
-Garbageable::Garbageable()
-{
-}
-
-Garbageable::~Garbageable()
-{
-}
-
 void Garbageable::cleanup()
 {
     std::list<Garbageable*>::iterator it;
