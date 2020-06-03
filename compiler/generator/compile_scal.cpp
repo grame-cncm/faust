@@ -1483,42 +1483,18 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         }
 
     } else {
-        switch (gGlobal->gMaskDelayLineThreshold) {
-            // mask based delay with a power_of_two size
-            case 0: {
-                // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-                int N = pow2limit(mxd + 1);
-
-                // we need an iota index
-                fMaxIota = 0;
-
-                // declare and init
-                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
-                // execute
-                fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-                break;
-            }
-
-            // modulo based delay
-            case 1: {
-                // declare and init
-                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-                fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-
-                // we need an iota index
-                fMaxIota = std::max(fMaxIota, mxd);
-
-                // execute
-                fClass->addExecCode(Statement(ccs, subst("$0[IOTA%$1] = $2;", vname, T(mxd + 1), exp)));
-                break;
-            }
-
-            default:
-                faustassert(false);
-                break;
-        }
+        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+        int N = pow2limit(mxd + 1);
+        
+        // we need an iota index
+        fMaxIota = 0;
+        
+        // declare and init
+        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+        
+        // execute
+        fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
     }
 }
 
