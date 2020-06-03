@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.4.0)
+
+set(HAVE_FLAG_SEARCH_PATHS_FIRST 0)
+
 project (faustemcc)
 
 option (WORKLET "Compile wasm glue library for worklet" off)
@@ -6,6 +9,7 @@ option (WORKLET "Compile wasm glue library for worklet" off)
 set (CMAKE_OSX_DEPLOYMENT_TARGET "")
 set (CMAKE_OSX_SYSROOT 	"")
 set (CMAKE_CXX_COMPILER "emcc")
+set ( CMAKE_CXX_LINK_FLAGS "")
 
 if (UNIVERSAL)
 message (WARNING "WASM do not support universal mode. Switch back to native mode before compiling")
