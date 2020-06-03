@@ -23,6 +23,7 @@
 #define _INSTRUCTIONS_TYPE_H
 
 #include <string>
+
 #include "garbageable.hh"
 
 // ============================

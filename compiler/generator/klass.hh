@@ -33,7 +33,6 @@
         02-11-2001 : Ajout de sous classes (yo)
 
 ***********************************************************************/
-using namespace std;
 
 #include <list>
 #include <map>
@@ -46,6 +45,8 @@ using namespace std;
 #include "uitree.hh"
 #include "graphSorting.hh"
 #include "loop.hh"
+
+using namespace std;
 
 #define kMaxCategory 32
 

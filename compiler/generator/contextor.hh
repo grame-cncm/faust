@@ -47,9 +47,10 @@ class contextor {
     {
         top       = 0;
         pile[top] = n;
-    }  // contructor to be called only once at the
-       // top level to initialize the stack
+    }
 
+    // contructor to be called only once at the
+    // top level to initialize the stack
     contextor()
     {
         faustassert(top >= 0 && top < 1023);

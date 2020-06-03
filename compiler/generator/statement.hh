@@ -26,21 +26,20 @@
 
 // implements a code statement with an optional condition
 
-using namespace std;
-
 class Statement {
    private:
-    const bool   fHasCondition;
-    const string fCondition;
-    const string fCode;
+    const bool fHasCondition;
+    const std::string fCondition;
+    const std::string fCode;
 
    public:
-    Statement(const string& condition, const string& code) : fHasCondition(true), fCondition(condition), fCode(code) {}
+    Statement(const std::string& condition, const std::string& code)
+    : fHasCondition(true), fCondition(condition), fCode(code) {}
 
-    bool          hasCondition() { return fHasCondition; }
-    bool          hasCondition(const string& cond) { return (fCondition == cond); }
-    const string& condition() { return fCondition; }
-    const string& code() { return fCode; }
+    bool  hasCondition() { return fHasCondition; }
+    bool  hasCondition(const std::string& cond) { return (fCondition == cond); }
+    const std::string& condition() { return fCondition; }
+    const std::string& code() { return fCode; }
 };
 
 #endif  // STATEMENT_H

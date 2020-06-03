@@ -25,8 +25,6 @@
 #include <map>
 #include "tlib.hh"
 
-using namespace std;
-
 class old_Occurences {
     const int fXVariability;   ///< Extended Variability of the expression
     int       fOccurences[4];  ///< Occurences count according to Contexts

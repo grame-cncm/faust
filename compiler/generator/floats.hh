@@ -25,7 +25,6 @@
 #include <iostream>
 #include <float.h>
 
-#include "global.hh"
 #include "instructions.hh"
 
 const char* isuffix();
