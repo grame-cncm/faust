@@ -19,7 +19,7 @@ COMB_SEP=
 WASM=
 WORKLET="false"
 EFFECT=""
-WAP="false"
+WAP="0"
 NPM="false"
 
 OPT="false"
@@ -52,6 +52,7 @@ do
         option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         option -worklet "generates AudioWorklet compatible code"
         option -wap "generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        option -wap2 "generates a WAP V2 (Web Audio Plugin). This forces -worklet mode, and create additional files"
         option -comb "combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
         option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
         option -npm "add a package.json file for npm package distribution"
@@ -72,7 +73,11 @@ do
     elif [ $p = "-emcc" ]; then
         EMCC="true"
     elif [ $p = "-wap" ]; then
-        WAP="true"
+        WAP="1"
+        echo "Forcing -worklet mode"
+        WORKLET="true"
+    elif [ $p = "-wap2" ]; then
+        WAP="2"
         echo "Forcing -worklet mode"
         WORKLET="true"
     elif [ $p = "-npm" ]; then
@@ -198,38 +203,46 @@ EndOfCode
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
+            if [ $WAP = "2" ]; then
+            	sed -e "s/class\ mydsp/"export\ default\ class\ $name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
+            else
+            	sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
+            fi
         else
-            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+            if [ $WAP = "2" ]; then
+            	sed -e "s/class\ mydsp/"export\ default\ class\ $name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+            else
+            	sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+            fi
         fi
     fi
 
     # create additional files for WAP
-	if [ $WAP = true ]; then
+    if [ $WAP = "1" ] || [ $WAP = "2" ]; then
 
-   		# create the main.json file
-    	echo "{" > main.json
-    	echo "\"name\": \"$name\"," >> main.json
-    	echo "\"vendor\": \"Faust\"," >> main.json
-    	echo "\"version\": \"1.01\"," >> main.json
-    	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
-    	echo "\"thumbnail\": \"default.png\"" >> main.json
-    	echo "}" >> main.json
+        # create the main.json file
+        echo "{" > main.json
+        echo "\"name\": \"$name\"," >> main.json
+        echo "\"vendor\": \"Faust\"," >> main.json
+        echo "\"version\": \"1.01\"," >> main.json
+        echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
+        echo "\"thumbnail\": \"default.png\"" >> main.json
+        echo "}" >> main.json
     	
         # compose the HTML test page
         if [ $POLY = true ]; then
-        	cp  $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
+        	cp $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
         else
-        	cp  $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        	cp $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
         fi
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi
-
+ 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
     	rm -f $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
-    	if [ $WAP = "true" ]; then
+    	if [ $WAP = "1" ] || [ $WAP = "2" ]; then
     		mv $name.js main.js
     		mv test$name.html index.html
         	BINARIES="$BINARIES main.js, $name.wasm, main.json, index.html"
