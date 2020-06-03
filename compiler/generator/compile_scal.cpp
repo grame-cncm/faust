@@ -498,7 +498,7 @@ string ScalarCompiler::generateCode(Tree sig)
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
-    } else if (isSigEnable(sig, x, y)) {
+    } else if (isSigControl(sig, x, y)) {
         return generateControl(sig, x, y);
     }
     /* we should not have any control at this stage*/
@@ -1154,7 +1154,6 @@ string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
 {
     CS(y);
     return generateCacheCode(x, CS(x));
-    // return CS(x);
 }
 
 string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)

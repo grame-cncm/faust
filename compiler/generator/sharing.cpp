@@ -214,7 +214,7 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
     // which is either the nc passed as argument or nc <- (cc v nc)
 
     Tree x, y;
-    if (isSigEnable(t, x, y)) {
+    if (isSigControl(t, x, y)) {
         // specific annotation case for sigEnable
         conditionAnnotation(y, nc);
         conditionAnnotation(x, _AND_(nc, _CND_(y)));

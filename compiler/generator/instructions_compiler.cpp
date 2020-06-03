@@ -582,7 +582,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         exit(0);
         }
         */
-    } else if (isSigEnable(sig, x, y)) {
+    } else if (isSigControl(sig, x, y)) {
         stringstream error;
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig);
         error << " (enable/control can currently only be used with -lang ocpp backend in scalar mode)\n";
