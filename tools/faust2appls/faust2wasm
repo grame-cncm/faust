@@ -204,13 +204,15 @@ EndOfCode
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name-processor.js
             if [ $WAP = "2" ]; then
-            	sed -e "s/class\ mydsp/"export\ default\ class\ $name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
+            	sed -e "s/class\ mydsp\ /"export\ default\ class\ $name\ "/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 > $name_tmp1.js
+            	sed -e "s/mydsp/"$name"/g" $name_tmp1.js >> $name.js
             else
             	sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
             fi
         else
             if [ $WAP = "2" ]; then
-            	sed -e "s/class\ mydsp/"export\ default\ class\ $name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+            	sed -e "s/class\ mydsp\ /"export\ default\ class\ $name\ "/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 > $name_tmp1.js
+            	sed -e "s/mydsp/"$name"/g" $name_tmp1.js >> $name.js
             else
             	sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
             fi
@@ -231,9 +233,17 @@ EndOfCode
     	
         # compose the HTML test page
         if [ $POLY = true ]; then
-        	cp $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
+        	if [ $WAP = "2" ]; then
+                cp $FAUSTARCH/webaudio/testWAP2Poly.html test$name-tmp1.html
+        	else
+                cp $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
+        	fi
         else
-        	cp $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        	if [ $WAP = "2" ]; then
+                cp $FAUSTARCH/webaudio/testWAP2.html test$name-tmp1.html
+        	else
+                cp $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        	fi
         fi
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
