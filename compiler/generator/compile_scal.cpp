@@ -361,7 +361,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
     }
-    
+
     ensureIotaCode();
 }
 
@@ -379,7 +379,7 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
     }
-    
+
     ensureIotaCode();
 }
 
@@ -499,7 +499,7 @@ string ScalarCompiler::generateCode(Tree sig)
         CS(y);
         return generateCacheCode(sig, CS(x));
     } else if (isSigEnable(sig, x, y)) {
-        return generateEnable(sig, x, y);
+        return generateControl(sig, x, y);
     }
     /* we should not have any control at this stage*/
     else {
@@ -1150,7 +1150,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
 
-string ScalarCompiler::generateEnable(Tree sig, Tree x, Tree y)
+string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
 {
     CS(y);
     return generateCacheCode(x, CS(x));
@@ -1377,7 +1377,6 @@ string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
         return vecname;
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
-        
         int d;
         if (isSigInt(delay, &d)) {
             return subst("$0[$1]", vecname, CS(delay));
@@ -1414,12 +1413,11 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
                                               int mxd)
 {
     faustassert(mxd > 0);
-  
+
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
     string ccs = getConditionCode(sig);
 
     if (mxd < gGlobal->gMaxCopyDelay) {
-        
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
@@ -1438,22 +1436,20 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         return subst("$0[0]", vname);
 
     } else {
-        
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
-        
+
         // we need an iota index
         fMaxIota = 0;
-        
+
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-        
+
         // execute
         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
         setVectorNameProperty(sig, vname);
         return subst("$0[IOTA&$1]", vname, T(N - 1));
-        
     }
 }
 
@@ -1489,36 +1485,36 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
         switch (gGlobal->gMaskDelayLineThreshold) {
             // mask based delay with a power_of_two size
-            case 0:  {
+            case 0: {
                 // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
                 int N = pow2limit(mxd + 1);
-                
+
                 // we need an iota index
                 fMaxIota = 0;
-                
+
                 // declare and init
                 fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
                 fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-                
+
                 // execute
                 fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
                 break;
             }
-                
+
             // modulo based delay
             case 1: {
                 // declare and init
                 fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
                 fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-                
+
                 // we need an iota index
                 fMaxIota = std::max(fMaxIota, mxd);
-                
+
                 // execute
                 fClass->addExecCode(Statement(ccs, subst("$0[IOTA%$1] = $2;", vname, T(mxd + 1), exp)));
                 break;
             }
-                  
+
             default:
                 faustassert(false);
                 break;

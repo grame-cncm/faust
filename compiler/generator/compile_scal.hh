@@ -156,7 +156,7 @@ class ScalarCompiler : public Compiler {
 
     void declareWaveform(Tree sig, string& vname, int& size);
 
-    virtual string generateEnable(Tree sig, Tree x, Tree y);
+    virtual string generateControl(Tree sig, Tree x, Tree y);
 
     string cnf2code(Tree cc);
     string or2code(Tree oc);

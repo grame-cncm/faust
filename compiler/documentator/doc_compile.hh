@@ -128,7 +128,7 @@ class DocCompiler : public virtual Garbageable {
     string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const string& exp);
     string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const string& exp);
     string generateAttach(Tree sig, Tree x, Tree y, int priority);
-    string generateEnable(Tree sig, Tree arg1, Tree arg2, int priority);
+    string generateControl(Tree sig, Tree arg1, Tree arg2, int priority);
     string generateNumber(Tree sig, const string& exp);
     string generateFConst(Tree sig, const string& file, const string& name);
     string generateFVar(Tree sig, const string& file, const string& name);

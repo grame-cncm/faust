@@ -281,8 +281,8 @@ string DocCompiler::generateCode(Tree sig, int priority)
         printGCCall(sig, "generateAttach");
         return generateAttach(sig, x, y, priority);
     } else if (isSigEnable(sig, x, y)) {
-        printGCCall(sig, "generateEnable");
-        return generateEnable(sig, x, y, priority);
+        printGCCall(sig, "generateControl");
+        return generateControl(sig, x, y, priority);
     }
 
     else {
@@ -444,7 +444,7 @@ static bool associative(int opcode)
     return (opcode == kAdd) || (opcode == kMul) || (opcode == kAND) || (opcode == kOR) || (opcode == kXOR);
 }
 
-string DocCompiler::generateEnable(Tree sig, Tree arg1, Tree arg2, int priority)
+string DocCompiler::generateControl(Tree sig, Tree arg1, Tree arg2, int priority)
 {
     return generateBinOp(sig, kMul, arg1, arg2, priority);
 }
