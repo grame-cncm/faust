@@ -121,6 +121,9 @@ struct DisplayUI : public GenericUI {
 
 mydsp DSP;
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 #define kFrames 512
 
 int main(int argc, char* argv[])
