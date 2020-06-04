@@ -3,15 +3,17 @@
 faust2svg $@
 
 for d in $@; do
-	name=${d%.dsp}
-	cd $name-svg
-	echo $name-svg
-    for f in *.svg; do
-        inkscape -E ${f%.svg}.eps $f
-        epstopdf ${f%.svg}.eps
-        rm $f
-    done
-    cd ..
-    mv $name-svg $name-pdf
+    ext=${d##*.}
+    if [ $ext = "dsp" ]; then
+        name=${d%.dsp}
+        cd $name-svg
+        for f in *.svg; do
+            inkscape -E ${f%.svg}.eps $f
+            epstopdf ${f%.svg}.eps
+            rm $f
+        done
+        cd ..
+        mv $name-svg $name-pdf
+    fi
 done
 

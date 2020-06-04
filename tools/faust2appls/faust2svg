@@ -2,11 +2,23 @@
 
 . usage.sh
 
-if [ $@ = "-help" ] || [ $@ = "-h" ]; then
-    usage faust2svg "<file.dsp>"
-    echo "Compiles Faust programs to SVG"
-    exit
-fi
+for p in $@; do
 
-faust -t 0 -svg $@ -o /dev/null
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+    	usage faust2svg "<file.dsp>"
+    	echo "Compiles Faust programs to SVG"
+    	exit
+    fi
+    
+    if [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
+    
+done
+
+for f in $FILES; do
+    faust $OPTIONS -t 0 -svg $@ -o /dev/null
+done
 
