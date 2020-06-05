@@ -191,15 +191,24 @@ void ScalarCompiler::conditionAnnotation(Tree l)
 
 #endif
 
+/**
+ * @brief Annotates a signal t with a new condition nc. This new condition
+ * is added to the existing ones either with an OR (in general) or with an
+ * AND (for sigControl)
+ *
+ * @param t the signal we want to annotate with a condition
+ * @param nc the new condition
+ */
 void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
 {
+    std::cerr << "IF " << ppsig(nc) << " THEN " << ppsig(t) << endl;
     // Check if we need to annotate the tree with new conditions
     auto p = fConditionProperty.find(t);
     if (p != fConditionProperty.end()) {
         Tree cc = p->second;
         Tree xc = _OR_(cc, nc);
         if (cc == xc) {
-            // Tree t already correctly annotated, nothing to change
+            // nc is already a condition associated to t ==> nothing to change
             return;
         } else {
             // we need to re-annotate the tree with a new condition
