@@ -21,6 +21,9 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+US="0"
+DS="0"
+FILTER="0"
 
 # path to max SDK
 # MAXSDK is declared in faustpath
@@ -79,6 +82,9 @@ do
         option
         options -osc -midi -soundfile
         option "-nvoices <num>"
+        option "-us <factor>"
+        option "-ds <factor>"
+        option "-filter <filter>"
         option "-effect <effect.dsp>"
         option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         option "Faust options"
@@ -106,6 +112,15 @@ do
         OSCLIBS="-lOSCFaust"
     elif [ $p = "-native" ]; then
         CXXFLAGS=$MYGCCFLAGS
+    elif [ $p = "-us" ]; then
+        shift
+        US=$1
+    elif [ $p = "-ds" ]; then
+        shift
+        DS=$1
+    elif [ $p = "-filter" ]; then
+        shift
+        FILTER=$1
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -159,7 +174,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $OSCLIBS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $OSCLIBS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
 	) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

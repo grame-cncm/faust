@@ -94,15 +94,15 @@ int main(int argc, char* argv[])
     interface->addOption("-r", &sample_rate, 44100.0, 1.0, 192000.0);
     
     // For up/down sampling
-    interface->addOption("-down-sample", &down_sample, 1.0, 1.0, 16.0);
-    interface->addOption("-up-sample", &up_sample, 1.0, 1.0, 16.0);
+    interface->addOption("-ds", &down_sample, 1.0, 1.0, 16.0);
+    interface->addOption("-us", &up_sample, 1.0, 1.0, 16.0);
     interface->addOption("-filter", &filter_type, 1.0, 1.0, 4.0);
     
     // modify the UI values according to the command-line options:
     interface->process_command();
     
     if ((down_sample != 1.0) && (up_sample != 1.0)) {
-        cerr << "ERROR : -down-sample '" << down_sample << "' and -up-sample '" << up_sample << "' cannot be used at the same time !\n";
+        cerr << "ERROR : -ds '" << down_sample << "' and -us '" << up_sample << "' cannot be used at the same time !\n";
         exit(1);
     }
    

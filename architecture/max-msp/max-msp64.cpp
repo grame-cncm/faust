@@ -133,7 +133,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.75"
+#define EXTERNAL_VERSION    "0.76"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -206,7 +206,37 @@ void faust_allocate(t_faust* x, int nvoices)
     #endif
     } else {
         post("monophonic DSP");
+    #if (DOWN_SAMPLING > 0)
+        #if (FILTER_TYPE == 0)
+            x->m_dsp = new dsp_down_sampler<Identity<Double<1,1>, DOWN_SAMPLING>>(new mydsp());
+        #elif (FILTER_TYPE == 1)
+            x->m_dsp = new dsp_down_sampler<LowPass3<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+        #elif (FILTER_TYPE == 2)
+            x->m_dsp = new dsp_down_sampler<LowPass4<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+        #elif (FILTER_TYPE == 3)
+            x->m_dsp = new dsp_down_sampler<LowPass3e<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+        #elif (FILTER_TYPE == 4)
+            x->m_dsp = new dsp_down_sampler<LowPass6eé<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+        #else
+            #error "ERROR : Filter type must be in [0..4] range"
+        #endif
+    #elif (UP_SAMPLING > 0)
+        #if (FILTER_TYPE == 0)
+            x->m_dsp = new dsp_up_sampler<Identity<Double<1,1>, UP_SAMPLING>>(new mydsp());
+        #elif (FILTER_TYPE == 1)
+            x->m_dsp = new dsp_up_sampler<LowPass3<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+        #elif (FILTER_TYPE == 2)
+            x->m_dsp = new dsp_up_sampler<LowPass4<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+        #elif (FILTER_TYPE == 3)
+            x->m_dsp = new dsp_up_sampler<LowPass3e<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+        #elif (FILTER_TYPE == 4)
+            x->m_dsp = new dsp_up_sampler<LowPass6e<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+        #else
+            #error "ERROR : Filter type must be in [0..4] range"
+        #endif
+    #else
         x->m_dsp = new mydsp();
+    #endif
     }
     
 #ifdef MIDICTRL

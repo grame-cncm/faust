@@ -26,6 +26,9 @@ SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 OPT=""
+US="0"
+DS="0"
+FILTER="0"
 FAUSTFLOAT="double" # By default since Max6
 
 # path to max SDK
@@ -89,6 +92,9 @@ do
         option -soundfile-static "similar to -soundfile with resources in statuc mode."
         option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
         option "-nvoices <num>"
+        option "-us <factor>"
+        option "-ds <factor>"
+        option "-filter <filter>"
         option "-effect <effect.dsp>"
         option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         option -universal "to generate a 64/32 bits external"
@@ -134,6 +140,15 @@ do
         CXXFLAGS=$MYGCCFLAGS
     elif [ $p = "-single" ]; then
         FAUSTFLOAT="float"
+    elif [ $p = "-us" ]; then
+        shift
+        US=$1
+    elif [ $p = "-ds" ]; then
+        shift
+        DS=$1
+    elif [ $p = "-filter" ]; then
+        shift
+        FILTER=$1
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -206,7 +221,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CXX $CXXFLAGS -std=c++11 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CXX $CXXFLAGS -std=c++11 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
    	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
