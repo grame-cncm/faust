@@ -176,6 +176,7 @@ void ScalarCompiler::conditionAnnotation(Tree l)
         l = tl(l);
     }
 }
+
 #if _DNF_
 
 #define _OR_ dnfOr
@@ -215,7 +216,7 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
 
     Tree x, y;
     if (isSigControl(t, x, y)) {
-        // specific annotation case for sigEnable
+        // specific annotation case for SigControl
         conditionAnnotation(y, nc);
         conditionAnnotation(x, _AND_(nc, _CND_(y)));
     } else {
