@@ -23,7 +23,7 @@ The following options are available:
   - `-osc` : to activate OSC control
   - `-us <factor>` : upsample the DSP by a factor
   - `-ds <factor>` : downsample the DSP by a factor
-  - `-filter <filter>` :  use a filter for upsampling or downsampling [0..4]
+  - `-filter <filter>` : use a filter for upsampling or downsampling [0..4]
   - `-universal` : to generate a 64/32 bits external
   - `-nopatch` : to deactivate patch generation
   - `-soundfile` : when compiling DSP using 'soundfile' primitive, to add needed resources

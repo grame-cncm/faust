@@ -39,6 +39,7 @@
 #include "timing.hh"
 
 #include <llvm/ExecutionEngine/ObjectCache.h>
+#include <llvm/Support/MemoryBuffer.h>
 
 #define LLVM_MAX_OPT_LEVEL 5
 

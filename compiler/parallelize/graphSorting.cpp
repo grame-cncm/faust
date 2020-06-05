@@ -19,8 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
-#include "graphSorting.hh"
 #include <set>
+
+#include "graphSorting.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4800)

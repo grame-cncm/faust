@@ -25,22 +25,22 @@
 /**********************************************************************
               - loop.hh : loop C++ à remplir (projet FAUST) -
 
-
                 Historique :
                 -----------
                 21-01-2008 : implementation initiale (yo)
 
 ***********************************************************************/
 
-using namespace std;
-
 #include <list>
 #include <map>
 #include <set>
 #include <stack>
 #include <string>
+
 #include "statement.hh"
 #include "tlib.hh"
+
+using namespace std;
 
 #define kMaxCategory 32
 

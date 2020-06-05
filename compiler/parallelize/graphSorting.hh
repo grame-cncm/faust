@@ -23,6 +23,7 @@
 #define __GRAPHSORTING__
 
 #include <set>
+
 #include "loop.hh"
 
 typedef set<Loop*>    lset;
