@@ -10,7 +10,7 @@ This test suite allows to check that the compiler generates correct code by comp
 ### How to run the Tests
 Two test systems co-exist for historical reasons:
 - a system based on makefiles
-- a system based on shell scripts (deprecated)
+- a system based on shell scripts (**deprecated**)
 
 The principle of both test systems is to generate impulse responses for each of the Faust programs that are in the `dsp` folder. Each of these responses is compared with its reference response (with a low tolerance). The `reference` folder contains the reference impulse responses.
 
@@ -31,7 +31,7 @@ When using the make option `-j`, I suggest to also add a `-i` option (`--ignore-
 If `make` fails with the first check and since intermediate files are removed, the steps _1)_ and _2)_ will restart from the beginning (which is quite time consuming) on next run. With the `-i` option, `make` will run to the end and on next run, only the faulty DSP will be rebuilt.
 
 
-#### Using the shell scripts (deprecated)
+#### Using the shell scripts (**deprecated**)
 The main script is `test.sh`. Type `test.sh -help` for details about the available tests.
 
 The generated impulse responses are not preserved by the shell scripts. Intermediate files may be generated in the dsp folder without being deleted.
@@ -44,6 +44,6 @@ You should run `make tools` before first run of `tests.sh`.
 - check that all test.sh subscripts are based on the current development branch and don't require any installation
 - simplify and rename the `faust2impulse_xxx_` scripts
 
-### Obsolete Files
+### Deprecated Files
 - install.sh
 - testwithmute.sh
