@@ -85,7 +85,7 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
         // handle inputs
         for c in 0..num_inputs {
             for j in 0..buffer_size {
-                let first_frame = num_samples_written == 0;
+                let first_frame = num_samples_written == 0 && j == 0;
                 in_buffer[c][j] = if first_frame { 1.0 } else { 0.0 };
             }
         }
