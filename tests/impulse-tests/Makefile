@@ -11,7 +11,7 @@ ifeq ($(system), MINGW)
 else
  FAUST ?= ../../build/bin/faust
  COMPARE := ./filesCompare
- WINSOCK = 
+ WINSOCK =
 endif
 
 MAKE ?= make
@@ -43,6 +43,7 @@ all:
 	$(MAKE) llvm1
 	$(MAKE) interp
 	$(MAKE) interp1
+	$(MAKE) rust
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
@@ -187,10 +188,10 @@ llvm:
 	$(MAKE) -f Make.llvm outdir=llvm/vec/lv1 FAUSTOPTIONS="-I dsp -vec -lv 1"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/lv1/fun FAUSTOPTIONS="-I dsp -vec -lv 1 -fun"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/lv1/vs16 FAUSTOPTIONS="-I dsp -vec -lv 1 -vs 16"
-	$(MAKE) -f Make.llvm outdir=llvm/vec/vs200 FAUSTOPTIONS="-I dsp -vec -vs 200" 
+	$(MAKE) -f Make.llvm outdir=llvm/vec/vs200 FAUSTOPTIONS="-I dsp -vec -vs 200"
 	$(MAKE) -f Make.llvm outdir=llvm/vec/g FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
-	$(MAKE) -f Make.llvm outdir=llvm/vec/gfun FAUSTOPTIONS="-I dsp -vec -lv 1 -g -fun" 
-	#$(MAKE) -f Make.llvm outdir=llvm/sch FAUSTOPTIONS="-I dsp -sch" 
+	$(MAKE) -f Make.llvm outdir=llvm/vec/gfun FAUSTOPTIONS="-I dsp -vec -lv 1 -g -fun"
+	#$(MAKE) -f Make.llvm outdir=llvm/sch FAUSTOPTIONS="-I dsp -sch"
 
 #########################################################################
 # llvm backend in object code mode
@@ -220,11 +221,11 @@ interp:
 	#$(MAKE) -f Make.interp outdir=interp/lv0/vs16 FAUSTOPTIONS="-I dsp -vec -lv 0 -vs 16"
 	$(MAKE) -f Make.interp outdir=interp/vec/lv1 FAUSTOPTIONS="-I dsp -vec -lv 1"
 	$(MAKE) -f Make.interp outdir=interp/vec/lv1/vs16 FAUSTOPTIONS="-I dsp -vec -lv 1 -vs 16"
-	#$(MAKE) -f Make.interp outdir=interp/vec/vs200 FAUSTOPTIONS="-I dsp -vec -vs 200" 
+	#$(MAKE) -f Make.interp outdir=interp/vec/vs200 FAUSTOPTIONS="-I dsp -vec -vs 200"
 	$(MAKE) -f Make.interp outdir=interp/vec/g FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp outdir=interp/inpl FAUSTOPTIONS=-inpl
 	$(MAKE) -f Make.interp outdir=interp/ftz FAUSTOPTIONS="-I dsp -ftz 0"
-	
+
 #########################################################################
 # interp backend in LLVM mode
 interp1:
@@ -235,16 +236,21 @@ interp1:
 	#$(MAKE) -f Make.interp1 outdir=interp1/lv0/vs16 FAUSTOPTIONS="-I dsp -vec -lv 0 -vs 16"
 	$(MAKE) -f Make.interp1 outdir=interp1/vec/lv1 FAUSTOPTIONS="-I dsp -vec -lv 1"
 	$(MAKE) -f Make.interp1 outdir=interp1/vec/lv1/vs16 FAUSTOPTIONS="-I dsp -vec -lv 1 -vs 16"
-	#$(MAKE) -f Make.interp1 outdir=interp1/vec/vs200 FAUSTOPTIONS="-I dsp -vec -vs 200" 
+	#$(MAKE) -f Make.interp1 outdir=interp1/vec/vs200 FAUSTOPTIONS="-I dsp -vec -vs 200"
 	$(MAKE) -f Make.interp1 outdir=interp1/vec/g FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp1 outdir=interp1/inpl FAUSTOPTIONS=-inpl
 	$(MAKE) -f Make.interp1 outdir=interp1/ftz FAUSTOPTIONS="-I dsp -ftz 0"
 
 #########################################################################
-# SOUL backend 
+# Rust backend
+rust:
+	$(MAKE) -f Make.rust outdir=rust lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp"
+
+#########################################################################
+# SOUL backend
 soul:
 	$(MAKE) -f Make.soul
-	
+
 #########################################################################
 # output directories
 ir/mute:
@@ -257,7 +263,7 @@ reference:
 
 tools: filesCompare impulsellvm impulsesoul impulseinterp impulseinterp1
 
-clean: 
+clean:
 	rm -f filesCompare impulsellvm impulsesoul impulseinterp impulseinterp1
 
 #########################################################################
