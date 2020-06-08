@@ -24,7 +24,6 @@ alldspfiles := $(wildcard dsp/*.dsp)
 allirfiles = $(alldspfiles:dsp/%.dsp=ir/rust/%.ir)
 
 all: filesCompare
-all: ir/$(outdir)
 
 # Currently this lists all dependencies manually to allow for easily enabling/disabling
 # individual test cases. Later this can be replaced by the wildcard dependency:
@@ -103,18 +102,13 @@ all: ir/rust/waveform5.ir
 all: ir/rust/waveform6.ir
 all: ir/rust/zita_rev1.ir
 
-#########################################################################
-# output directories
-ir/$(outdir):
-	mkdir -p ir/$(outdir)
-
 filesCompare:
 	$(MAKE) filesCompare
 
 #########################################################################
 # rules
-#ir/$(outdir)/%.ir: archs/rust/src/bin/%.rs reference/%.ir
 ir/$(outdir)/%.ir: reference/%.ir
+	mkdir -p ir/$(outdir)
 	$(FAUST) -lang rust $(FAUSTOPTIONS) -i -A ../../architecture -a archs/rust/architecture.rs dsp/$*.dsp -o archs/rust/src/bin/$*.rs
 	cd archs/rust/ && cargo run --bin $* ../../$@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision)
