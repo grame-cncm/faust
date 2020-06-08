@@ -244,7 +244,7 @@ interp1:
 #########################################################################
 # Rust backend
 rust:
-	$(MAKE) -f Make.rust outdir=rust lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.rust FAUSTOPTIONS="-double"
 
 #########################################################################
 # SOUL backend

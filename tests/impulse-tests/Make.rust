@@ -14,37 +14,94 @@ endif
 MAKE ?= make
 
 outdir ?= rust
+FAUSTOPTIONS ?= -double
 precision ?=		# filesCompare precision (empty by default)
-FAUSTOPTIONS := -double
 
 .PHONY: test
 .DELETE_ON_ERROR:
 
-dspfiles := $(wildcard dsp/*.dsp)
+alldspfiles := $(wildcard dsp/*.dsp)
+allirfiles = $(alldspfiles:dsp/%.dsp=ir/rust/%.ir)
 
-listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
-listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp)
-
-#all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
 all: filesCompare
 all: ir/$(outdir)
-all: ir/rust/LPF.ir
-all:
-	echo "$(outdir)"
-	#echo_args $(dspfiles)
-	#echo_args $(call listfiles,$(outdir))
 
-help:
-	@echo "-------- FAUST impulse response tests --------"
-	@echo "Available targets are:"
-	@echo " 'all' (default): generate ir for all the dsp files using the given options"
-	@echo
-	@echo "Options:"
-	@echo " 'outdir' 	   : define the output directory (default to '$(outdir)')"
-	@echo " 'lang'         : used for faust -lang option (default to '$(lang)')"
-	@echo " 'arch'         : used for faust -a option (default to '$(arch)')"
-	@echo " 'FAUSTOPTIONS' : define additional faust options (default to $(FAUSTOPTIONS))"
-	@echo " 'precision'    : define filesCompare expected precision (empty by default)"
+# Currently this lists all dependencies manually to allow for easily enabling/disabling
+# individual test cases. Later this can be replaced by the wildcard dependency:
+# all: $(allirfiles)
+
+all: ir/rust/APF.ir
+all: ir/rust/bandfilter.ir
+all: ir/rust/BPF.ir
+all: ir/rust/bs.ir
+all: ir/rust/capture.ir
+all: ir/rust/carre_volterra.ir
+all: ir/rust/comb_bug_exp.ir
+all: ir/rust/comb_delay1.ir
+all: ir/rust/comb_delay2.ir
+all: ir/rust/cubic_distortion.ir
+all: ir/rust/dbmeter.ir
+all: ir/rust/delays.ir
+all: ir/rust/echo_bug.ir
+all: ir/rust/echo.ir
+all: ir/rust/freeverb.ir
+all: ir/rust/gate_compressor.ir
+all: ir/rust/harpe.ir
+all: ir/rust/highShelf.ir
+all: ir/rust/HPF.ir
+all: ir/rust/karplus.ir
+all: ir/rust/karplus32.ir
+all: ir/rust/lfboost.ir
+all: ir/rust/logical.ir
+all: ir/rust/lowboost.ir
+all: ir/rust/lowcut.ir
+all: ir/rust/lowShelf.ir
+all: ir/rust/LPF.ir
+all: ir/rust/math.ir
+all: ir/rust/matrix.ir
+all: ir/rust/midi_tester.ir
+all: ir/rust/mixer.ir
+all: ir/rust/modulations.ir
+all: ir/rust/multibandfilter.ir
+all: ir/rust/noise.ir
+all: ir/rust/noisemetadata.ir
+all: ir/rust/notch.ir
+all: ir/rust/osc.ir
+all: ir/rust/osci.ir
+all: ir/rust/panpot.ir
+all: ir/rust/parametric_eq.ir
+all: ir/rust/peakingEQ.ir
+all: ir/rust/peakNotch.ir
+all: ir/rust/phaser_flanger.ir
+all: ir/rust/pitch_shifter.ir
+all: ir/rust/precision.ir
+all: ir/rust/quadecho.ir
+all: ir/rust/reverb_designer.ir
+all: ir/rust/reverb_tester.ir
+all: ir/rust/smoothdelay.ir
+all: ir/rust/sound.ir
+all: ir/rust/spat.ir
+all: ir/rust/spectral_level.ir
+all: ir/rust/spectral_tilt.ir
+all: ir/rust/stereoecho.ir
+all: ir/rust/switcher.ir
+all: ir/rust/tapiir.ir
+all: ir/rust/tester.ir
+all: ir/rust/tester2.ir
+all: ir/rust/tf_exp.ir
+all: ir/rust/thru_zero_flanger.ir
+all: ir/rust/UITester.ir
+all: ir/rust/vcf_wah_pedals.ir
+all: ir/rust/virtual_analog_oscillators.ir
+all: ir/rust/volume.ir
+all: ir/rust/vumeter.ir
+all: ir/rust/waveform1.ir
+all: ir/rust/waveform2.ir
+all: ir/rust/waveform3.ir
+all: ir/rust/waveform4.ir
+all: ir/rust/waveform5.ir
+all: ir/rust/waveform6.ir
+all: ir/rust/zita_rev1.ir
 
 #########################################################################
 # output directories
@@ -59,9 +116,5 @@ filesCompare:
 #ir/$(outdir)/%.ir: archs/rust/src/bin/%.rs reference/%.ir
 ir/$(outdir)/%.ir: reference/%.ir
 	$(FAUST) -lang rust $(FAUSTOPTIONS) -i -A ../../architecture -a archs/rust/architecture.rs dsp/$*.dsp -o archs/rust/src/bin/$*.rs
-	cd archs/rust/ && cargo run --bin $* ../../$@ && cd ../..
+	cd archs/rust/ && cargo run --bin $* ../../$@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision)
-
-#.PHONY: archs/rust/src/bin/%.rs
-#archs/rust/src/bin/%.rs: dsp/%.dsp
-#$(FAUST) -lang rust $(FAUSTOPTIONS) -i -A ../../architecture -a archs/rust/architecture.rs $< -o $@
