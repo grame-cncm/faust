@@ -5,6 +5,7 @@
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
+#![allow(bare_trait_objects)]
 
 extern crate libm;
 
