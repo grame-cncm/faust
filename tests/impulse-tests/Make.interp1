@@ -66,6 +66,11 @@ impulseinterp1: $(SRCDIR)/impulseinterp1.cpp $(LIB)
 ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	@echo "Cannot be tested with the Interp backend"
 
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/$(outdir)/osc_enable.fbc: dsp/osc_enable.dsp 
+	@echo "Can only be tested in scalar mode"
+	cd $(dir $<); faust -lang interp $(notdir $<) -I dsp -double > ../$@ || (rm -f ../$@; false)
+
 ir/$(outdir)/%.fbc: dsp/%.dsp 
 	cd $(dir $<); faust -lang interp $(notdir $<) -I dsp -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 

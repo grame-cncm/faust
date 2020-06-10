@@ -82,5 +82,10 @@ ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 ir/$(outdir)/control.cpp : dsp/control.dsp
 	$(FAUST) -lang ocpp -double -i -A ../../architecture -a archs/$(arch) $<  -o $@
 
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(DYNFAUST) -double -I dsp  $< -o $@
+
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
 	$(DYNFAUST) $(FAUSTOPTIONS) -I dsp  $< -o $@
