@@ -102,11 +102,21 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["max_f"]      = "f32::max";
         fMathLibTable["min_f"]      = "f32::min";
         fMathLibTable["powf"]       = "f32::powf";
-        fMathLibTable["remainderf"] = "manual";  // Manually generated : TODO
+        fMathLibTable["remainderf"] = "f32::rem_euclid";
+        //fMathLibTable["rintf"]      = "linux_api_math::rintf"; // TODO
+        fMathLibTable["rintf"]      = "f32::round";
         fMathLibTable["roundf"]     = "f32::round";
         fMathLibTable["sinf"]       = "f32::sin";
         fMathLibTable["sqrtf"]      = "f32::sqrt";
         fMathLibTable["tanf"]       = "f32::tan";
+        
+        // Additional hyperbolic math functions
+        fMathLibTable["acoshf"]     = "f32::acosh";
+        fMathLibTable["asinhf"]     = "f32::asinh";
+        fMathLibTable["atanhf"]     = "f32::atanh";
+        fMathLibTable["coshf"]      = "f32::cosh";
+        fMathLibTable["sinhf"]      = "f32::sinh";
+        fMathLibTable["tanhf"]      = "f32::tanh";
 
         // Double version
         fMathLibTable["fabs"]      = "f64::abs";
@@ -120,15 +130,25 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["floor"]     = "f64::floor";
         fMathLibTable["fmod"]      = "libm::fmod";
         fMathLibTable["log"]       = "f64::log";
-        fMathLibTable["log10"]     = "f32::log10";
+        fMathLibTable["log10"]     = "f64::log10";
         fMathLibTable["max_"]      = "f64::max";
         fMathLibTable["min_"]      = "f64::min";
         fMathLibTable["pow"]       = "f64::powf";
-        fMathLibTable["remainder"] = "manual";  // Manually generated : TODO
+        fMathLibTable["remainder"] = "f64::rem_euclid";
+        //fMathLibTable["rint"]      = "linux_api_math::rint";  // TODO
+        fMathLibTable["rint"]      = "f64::round";
         fMathLibTable["round"]     = "f64::round";
         fMathLibTable["sin"]       = "f64::sin";
         fMathLibTable["sqrt"]      = "f64::sqrt";
         fMathLibTable["tan"]       = "f64::tan";
+        
+        // Additional hyperbolic math functions
+        fMathLibTable["acosh"]     = "f64::acosh";
+        fMathLibTable["asinh"]     = "f64::asinh";
+        fMathLibTable["atanh"]     = "f64::atanh";
+        fMathLibTable["cosh"]      = "f64::cosh";
+        fMathLibTable["sinh"]      = "f64::sinh";
+        fMathLibTable["tanh"]      = "f64::tanh";
     }
 
     virtual ~RustInstVisitor() {}
@@ -381,6 +401,29 @@ class RustInstVisitor : public TextInstVisitor {
         } else {
             generateFunCall(inst, inst->fName);
         }
+    }
+    
+    virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
+    {
+        if (inst->fMethod) {
+            list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+            // Compile object arg
+            (*it)->accept(this);
+            // Compile parameters
+            *fOut << fObjectAccess << fun_name << "(";
+            generateFunCallArgs(++it, inst->fArgs.end(), int(inst->fArgs.size()) - 1);
+        } else {
+            *fOut << fun_name << "(";
+            // Compile parameters
+            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), int(inst->fArgs.size()));
+            // Hack for 'log' function that needs a base
+            if (fun_name == "f32::log") {
+                *fOut << ", std::f32::consts::E";
+            } else if (fun_name == "f64::log") {
+                *fOut << ", std::f64::consts::E";
+            }
+        }
+        *fOut << ")";
     }
 
     virtual void visit(Select2Inst* inst)

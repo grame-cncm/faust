@@ -78,7 +78,7 @@ all: ir/rust/quadecho.ir
 all: ir/rust/reverb_designer.ir
 all: ir/rust/reverb_tester.ir
 all: ir/rust/smoothdelay.ir
-all: ir/rust/sound.ir
+#all: ir/rust/sound.ir
 all: ir/rust/spat.ir
 all: ir/rust/spectral_level.ir
 all: ir/rust/spectral_tilt.ir
@@ -110,5 +110,6 @@ filesCompare:
 ir/$(outdir)/%.ir: reference/%.ir
 	mkdir -p ir/$(outdir)
 	$(FAUST) -lang rust $(FAUSTOPTIONS) -i -A ../../architecture -a archs/rust/architecture.rs dsp/$*.dsp -o archs/rust/src/bin/$*.rs
-	cd archs/rust/ && cargo run --bin $* ../../$@
+	#cd archs/rust/ && cargo run --bin $* ../../$@
+	cd archs/rust/ && cargo run --release --bin $* ../../$@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision)

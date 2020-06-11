@@ -8,6 +8,7 @@
 #![allow(bare_trait_objects)]
 
 extern crate libm;
+//extern crate linux_api_math;
 
 use std::fs::File;
 use std::io::Write;
@@ -119,8 +120,10 @@ fn main() {
 
     print_header(&mut output_file, num_total_samples);
 
+    // Only test mono DSP for now
     run_dsp(&mut output_file, block_size, 0);
-    run_dsp(&mut output_file, block_size, 1 * block_size);
-    run_dsp(&mut output_file, block_size, 2 * block_size);
-    run_dsp(&mut output_file, block_size, 3 * block_size);
+
+    //run_dsp(&mut output_file, block_size, 1 * block_size);
+    //run_dsp(&mut output_file, block_size, 2 * block_size);
+    //run_dsp(&mut output_file, block_size, 3 * block_size);
 }

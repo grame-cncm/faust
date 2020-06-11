@@ -173,10 +173,10 @@ int main(int argc, char* argv[])
         tolerance = (param > 0) ? param : tolerance;
     }
     
-    // Possibly only compare a subpart of the reference file, starting form the begining
+    // Possibly only compare a subpart of the reference file, starting from the beginning
     bool is_part = isopt(argv, "-part");
     
-    // Test file may have several consecutive impulse responses, test all of them in sequence with the same reference
+    // Test files may have several consecutive impulse responses, test all of them in sequence with the same reference
     ifstream test(argv[1]);
     bool compare = false;
     do {
