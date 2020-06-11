@@ -218,8 +218,8 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
     // Select that computes both branches
     void createSelectBlock0(InstructionIT it, LLVMBasicBlockRef code_block)
     {
-        // Prepare condition
-        LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "select_cond");
+        // Prepare condition: compare condition to 0
+        LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
         
         // Compile then branch (= branch1)
         CompileBlock((*it)->fBranch1, code_block);
@@ -237,8 +237,8 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
     // Select that only computes one branch
     void createSelectBlock1(InstructionIT it, LLVMValueRef typed_res)
     {
-        // Prepare condition
-        LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "select_cond");
+        // Prepare condition: compare condition to 0
+        LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
         
         // Get enclosing function
         LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
@@ -701,8 +701,8 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
 
                 case FBCInstruction::kIf: {
                     
-                    // Prepare condition
-                    LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "if_cond");
+                    // Prepare condition: compare condition to 0
+                    LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "if_cond");
                     
                     // Get enclosing function
                     LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
@@ -754,9 +754,9 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
                 }
 
                 case FBCInstruction::kCondBranch: {
-                    // Prepare condition
-                    LLVMValueRef cond_value = LLVMBuildTrunc(fBuilder, popValue(), getInt1Ty(), "");
-
+                    // Prepare condition: compare condition to 0
+                    LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "");
+               
                     LLVMValueRef      function   = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
                     LLVMBasicBlockRef next_block = LLVMAppendBasicBlock(function, "next_block");
 

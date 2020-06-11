@@ -860,9 +860,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
-  
-        // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "select_cond");
+     
+        // Compare condition to 0
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
 
         // Compile then branch, result in fCurValue
         inst->fThen->accept(this);
@@ -893,9 +893,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
         
-        // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "select_cond");
-        
+        // Compare condition to 0
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+      
         // Get enclosing function
         Function* function = fBuilder->GetInsertBlock()->getParent();
         
@@ -946,10 +946,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
-
-        // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "if_cond");
-
+  
+        // Compare condition to 0
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+ 
         // Get enclosing function
         Function* function = fBuilder->GetInsertBlock()->getParent();
 
@@ -1038,10 +1038,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Compute end condition, result in fCurValue
             inst->fEnd->accept(this);
-
-            // Convert condition to a bool
-            LLVMValue end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
-
+   
+            // Compare condition to 0
+            LLVMValue end_cond = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+      
             // Insert the conditional branch into the last block of loop
             fBuilder->CreateCondBr(end_cond, loop_body_block, exit_block);
         }
@@ -1105,10 +1105,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         // Create the exit_block and insert it
         BasicBlock* exit_block = genBlock("exit_block", function);
-
-        // Convert condition to a bool
-        LLVMValue end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
-
+ 
+        // Compare condition to 0
+        LLVMValue end_cond = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+    
         // Insert the conditional branch into the end of cond_block
         fBuilder->CreateCondBr(end_cond, test_block, exit_block);
 
