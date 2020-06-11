@@ -47,8 +47,9 @@ StatementInst* RustInstructionsCompiler::generateShiftArray(const string& vname,
 {
     string index = gGlobal->getFreshID("j");
 
-    ValueInst*         upperBound  = InstBuilder::genInt32NumInst(delay + 1);
-    ValueInst*         lowerBound  = InstBuilder::genInt32NumInst(0);
+    ValueInst*         upperBound  = InstBuilder::genInt32NumInst(delay);
+    ValueInst*         lowerBound  = InstBuilder::genInt32NumInst(1);
+    
     SimpleForLoopInst* loop        = InstBuilder::genSimpleForLoopInst(index, upperBound, lowerBound, true);
     LoadVarInst*       loadVarInst = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
     ValueInst*         load_value2 = InstBuilder::genSub(loadVarInst, InstBuilder::genInt32NumInst(1));

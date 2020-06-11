@@ -447,9 +447,11 @@ class RustInstVisitor : public TextInstVisitor {
 
         *fOut << "for " << inst->getName() << " in ";
         if (inst->fReverse) {
-            inst->fUpperBound->accept(this);
-            *fOut << "..";
+            *fOut << "(";
             inst->fLowerBound->accept(this);
+            *fOut << "..=";
+            inst->fUpperBound->accept(this);
+            *fOut << ").rev()";
         } else {
             inst->fLowerBound->accept(this);
             *fOut << "..";

@@ -1994,6 +1994,7 @@ struct InstBuilder {
         return genForLoopInst(dec, end, inc);
     }
 
+    // Used for Rust backend
     static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound,
                                                    ValueInst* lowerBound = new Int32NumInst(0), bool reverse = false,
                                                    BlockInst* code = new BlockInst())
