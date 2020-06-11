@@ -8,11 +8,13 @@
 #![allow(bare_trait_objects)]
 
 extern crate libm;
-//extern crate linux_api_math;
+extern crate num_traits;
 
 use std::fs::File;
 use std::io::Write;
 use std::env;
+
+use num_traits::{cast::FromPrimitive, float::Float};
 
 pub trait Meta {
     // -- metadata declarations
@@ -41,12 +43,54 @@ pub trait UI<T> {
     fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
 }
 
+pub struct ButtonUI<T>
+{
+    fState: T
+}
+
+impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
+{
+    // -- widget's layouts
+    fn openTabBox(&mut self, label: &str) -> ()
+    {}
+    fn openHorizontalBox(&mut self, label: &str) -> ()
+    {}
+    fn openVerticalBox(&mut self, label: &str) -> ()
+    {}
+    fn closeBox(&mut self) -> ()
+    {}
+
+    // -- active widgets
+    fn addButton(&mut self, label: &str, zone: &mut T) -> ()
+    {
+        //println!("addButton: {}", label);
+        *zone = self.fState;
+    }
+    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ()
+    {}
+    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    {}
+    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ()
+    {}
+    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    {}
+
+    // -- passive widgets
+    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    {}
+    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    {}
+
+    // -- metadata declarations
+    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ()
+    {}
+}
+
 // Generated intrinsics:
 <<includeIntrinsic>>
 
 // Generated class:
 <<includeclass>>
-
 
 const SAMPLE_RATE: i32 = 44100;
 
@@ -78,6 +122,7 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
     let mut out_buffer = vec![vec![0 as FloatType; buffer_size]; num_outputs];
 
     // Compute
+    let mut cycle = 0;
     let mut num_samples_written = 0;
     while num_samples_written < num_samples {
 
@@ -89,6 +134,15 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
                 let first_frame = num_samples_written == 0 && j == 0;
                 in_buffer[c][j] = if first_frame { 1.0 } else { 0.0 };
             }
+        }
+
+        // Set button state
+        if cycle == 0 {
+            let mut buttonOn = ButtonUI::<f64>{ fState: 1.0 };
+            dsp.buildUserInterface(&mut buttonOn);
+        } else {
+            let mut buttonOff = ButtonUI::<f64>{ fState: 0.0 };
+            dsp.buildUserInterface(&mut buttonOff);
         }
 
         dsp.compute(
@@ -106,6 +160,8 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
             writeln!(output_file).unwrap();
             num_samples_written += 1;
         }
+
+        cycle = cycle + 1;
     }
 }
 

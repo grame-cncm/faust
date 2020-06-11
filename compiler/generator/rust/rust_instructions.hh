@@ -431,7 +431,7 @@ class RustInstVisitor : public TextInstVisitor {
         *fOut << "if (";
         inst->fCond->accept(this);
         // Force 'cond' to bool type
-        *fOut << " as i32 == 1) { ";
+        *fOut << " as i32 != 0) { ";
         inst->fThen->accept(this);
         *fOut << " } else { ";
         inst->fElse->accept(this);
