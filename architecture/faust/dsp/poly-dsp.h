@@ -202,6 +202,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // Normalized MIDI velocity [0..1]
     void keyOn(int pitch, float velocity, bool trigger)
     {
+        // So that DSP state is always re-initialized
+        fDSP->instanceClear();
+        
         for (size_t i = 0; i < fFreqPath.size(); i++) {
             setParamValue(fFreqPath[i], midiToFreq(pitch));
         }

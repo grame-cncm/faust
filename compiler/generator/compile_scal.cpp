@@ -749,8 +749,9 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
                 fClass->addInitCode(subst("$0 = 0;", vname_perm));
                 // copy the object variable to the local one
                 fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, vname_perm));
+                // execute the code
                 fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
-                // copy the loal variable to the object one
+                // copy the local variable to the object one
                 fClass->addZone4(subst("$0 = $1;", vname_perm, vname));
             }
             break;
