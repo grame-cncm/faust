@@ -499,6 +499,9 @@ string ScalarCompiler::generateCode(Tree sig)
         CS(y);
         return generateCacheCode(sig, CS(x));
     } else if (isSigControl(sig, x, y)) {
+        if (gGlobal->gVectorSwitch) {
+            throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
+        }
         return generateControl(sig, x, y);
     }
     /* we should not have any control at this stage*/
