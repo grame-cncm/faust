@@ -11,7 +11,7 @@ if [[ -z "${VIEWER_LAUNCH}" ]]; then
     fi
 fi
 
-if [ $@ = "-help" ] || [ $@ = "-h" ]; then
+if [[ $@ = "-help" ]] || [[ $@ = "-h" ]]; then
     usage faust2firefox "<file.dsp>"
     echo "Compiles Faust programs to SVG and opens it with a browser"
     exit

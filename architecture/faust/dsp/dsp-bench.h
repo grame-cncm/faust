@@ -360,6 +360,7 @@ class measure_dsp_aux : public decorator_dsp {
         int fInputIndex;
         int fOutputIndex;
         int fCount;
+        bool fControl;
         RandomControlUI fRandomUI;
     
         void init()
@@ -426,10 +427,12 @@ class measure_dsp_aux : public decorator_dsp {
          * @param dsp - the dsp to be measured.
          * @param buffer_size - the buffer size used when calling 'computeAll'
          * @param count - the number of cycles using in 'computeAll'
+         * @param trace - whether to log the trace
+         * @param control - whether to activate random changes of all control values at each cycle
          *
          */
-        measure_dsp_aux(dsp* dsp, int buffer_size, int count, bool trace = true)
-            :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count)
+        measure_dsp_aux(dsp* dsp, int buffer_size, int count, bool trace = true, bool control = false)
+            :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count), fControl(control)
         {
             init();
             fBench = new time_bench(fCount, 10);
@@ -440,11 +443,13 @@ class measure_dsp_aux : public decorator_dsp {
          *
          * @param dsp - the dsp to be measured.
          * @param buffer_size - the buffer size used when calling 'computeAll'
-         * @param duration_in_sec - the wanted durection used in 'computeAll'
+         * @param duration_in_sec - the wanted duration used in 'computeAll'
+         * @param trace - whether to log the trace
+         * @param random - whether to activate random changes of all control values at each cycle
          *
          */
-        measure_dsp_aux(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true)
-            :decorator_dsp(dsp), fBufferSize(buffer_size)
+        measure_dsp_aux(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true, bool control = false)
+            :decorator_dsp(dsp), fBufferSize(buffer_size), fControl(control)
         {
             init();
             
@@ -484,8 +489,8 @@ class measure_dsp_aux : public decorator_dsp {
         virtual void compute(int count, REAL** inputs, REAL** outputs)
         {
             AVOIDDENORMALS;
-            // Update all controllers
-            fRandomUI.update();
+            // Possibly update all controllers
+            if (fControl) fRandomUI.update();
             fBench->startMeasure();
             // Only measure the 'compute' method
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
@@ -535,7 +540,6 @@ class measure_dsp_aux : public decorator_dsp {
         void measure()
         {
             setRealtimePriority();
-            
             openMeasure();
             computeAll();
             closeMeasure();
@@ -573,8 +577,9 @@ struct measure_dsp : measure_dsp_aux<FAUSTFLOAT> {
     measure_dsp(dsp* dsp,
                 int buffer_size,
                 double duration_in_sec,
-                bool trace = true)
-        :measure_dsp_aux(dsp, buffer_size, duration_in_sec, trace)
+                bool trace = true,
+                bool control = false)
+        :measure_dsp_aux(dsp, buffer_size, duration_in_sec, trace, control)
     {}
     virtual~ measure_dsp()
     {}

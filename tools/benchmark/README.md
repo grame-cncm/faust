@@ -142,11 +142,12 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust compiler options can be given beside the ones that will be automatically explored by the tool.
 
-`faustbench-llvm [-notrace] [-generic] [-single] [-run <num] [-opt <level(0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-opt <level(0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
 - `-notrace to only generate the best compilation parameters`
+- `-control to update all controller with random values at each cycle`
 - `-generic to compile for a generic processor, otherwise the native CPU will be used`
 - `-single to only execute the scalar test`
 - `-run <num> to execute each test <num> times`

@@ -57,6 +57,7 @@ class dsp_optimizer {
         int fRun;
         int fCount;
         bool fTrace;
+        bool fControl;
         bool fNeedExp10;
     
         std::string fFilename;
@@ -70,13 +71,13 @@ class dsp_optimizer {
         {
             // First call with fCount = -1 will be used to estimate fCount by giving the wanted measure duration
             if (fCount == -1) {
-                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, 5., fTrace);
+                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, 5., fTrace, fControl);
                 mes.measure();
                 // fCount is kept from the first duration measure
                 fCount = mes.getCount();
                 return mes.getStats();
             } else {
-                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, fCount, fTrace);
+                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, fCount, fTrace, fControl);
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (fTrace) std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
@@ -272,7 +273,8 @@ class dsp_optimizer {
                   const std::string& target,
                   int buffer_size, int run,
                   int opt_level_max,
-                  bool trace)
+                  bool trace,
+                  bool control)
         {
             fFilename = filename;
             fInput = input;
@@ -284,6 +286,7 @@ class dsp_optimizer {
             fArgv = argv;
             fCount = -1;
             fTrace = trace;
+            fControl = control;
             fNeedExp10 = false;
             
             init();
@@ -316,6 +319,8 @@ class dsp_optimizer {
          * @param buffer_size - the buffer size in samples
          * @param run - the number of time each test must be run
          * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
+         * @param trace - whether to log the trace
+         * @param control - whether to activate random changes of all control values at each cycle
          * since the maximum value may change with new LLVM versions)
          */
         dsp_optimizer(const char* filename,
@@ -325,9 +330,10 @@ class dsp_optimizer {
                       int buffer_size,
                       int run = 1,
                       int opt_level = -1,
-                      bool trace = true)
+                      bool trace = true,
+                      bool control = false)
         {
-            if (!init(filename, "", argc, argv, target, buffer_size, run, opt_level, trace)) {
+            if (!init(filename, "", argc, argv, target, buffer_size, run, opt_level, trace, control)) {
                 throw std::bad_alloc();
             }
         }
