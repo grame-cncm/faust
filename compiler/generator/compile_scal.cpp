@@ -719,7 +719,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    string vname, ctype;
+    string vname, vname_perm, ctype;
     Type   t = getCertifiedSigType(sig);
 
     switch (t->variability()) {
@@ -736,11 +736,20 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             break;
 
         case kSamp:
-            getTypedNames(t, "TempPerm", ctype, vname);
-            // need to be preserved because of new enable and control primitives
-            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            fClass->addInitCode(subst("$0 = 0;", vname));
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
+            getTypedNames(t, "Temp", ctype, vname);
+            if (getConditionCode(sig) == "") {
+                fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", ctype, vname, exp)));
+            } else {
+                getTypedNames(t, "TempPerm", ctype, vname_perm);
+                // need to be preserved because of new enable and control primitives
+                fClass->addDeclCode(subst("$0 \t$1;", ctype, vname_perm));
+                fClass->addInitCode(subst("$0 = 0;", vname_perm));
+                // copy the object variable to the local one
+                fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, vname_perm));
+                fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
+                // copy the loal variable to the object one
+                fClass->addZone4(subst("$0 = $1;", vname_perm, vname));
+            }
             break;
     }
     return vname;
@@ -1462,7 +1471,12 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     if (mxd == 0) {
         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
         // no need for a real vector
-        fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
+        if (ccs == "") {
+            fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
+        } else {
+            fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
+            fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
+        }
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
