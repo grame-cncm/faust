@@ -182,7 +182,7 @@ string ScalarCompiler::dnf2code(Tree cc)
     if (cc == gGlobal->nil) {
         return and2code(c1);
     } else {
-        return subst("$0 || $1", and2code(c1), dnf2code(cc));
+        return subst("($0 || $1)", and2code(c1), dnf2code(cc));
     }
 }
 
@@ -194,7 +194,7 @@ string ScalarCompiler::and2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return subst("$0 && $1", CS(c1), and2code(cs));
+        return subst("($0 && $1)", CS(c1), and2code(cs));
     }
 }
 
@@ -206,7 +206,7 @@ string ScalarCompiler::cnf2code(Tree cs)
     if (cs == gGlobal->nil) {
         return or2code(c1);
     } else {
-        return subst("($0) && $1", or2code(c1), cnf2code(cs));
+        return subst("(($0) && $1)", or2code(c1), cnf2code(cs));
     }
 }
 
@@ -218,7 +218,7 @@ string ScalarCompiler::or2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return subst("$0 || $1", CS(c1), or2code(cs));
+        return subst("($0 || $1)", CS(c1), or2code(cs));
     }
 }
 
