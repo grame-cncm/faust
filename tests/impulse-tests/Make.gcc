@@ -154,7 +154,9 @@ ir/$(outdir)/control.cpp : dsp/control.dsp
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode, used for 'cpp', 'c' and 'travis'
 ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp
 	@echo "Can only be tested in scalar mode"
-	$(FAUST) -lang $(lang) -double -i -A ../../architecture -a archs/$(arch) $< -o $@
+	#$(FAUST) -lang $(lang) -double -i -A ../../architecture -a archs/$(arch) $< -o $@
+	# only works in -ocpp for now
+	$(FAUST) -lang ocpp -double -i -A ../../architecture -a archs/$(arch) $< -o $@
 
 # Three rules for -c1 (= -os) mode
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode
