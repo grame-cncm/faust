@@ -314,7 +314,7 @@ class mydspPolyNode extends AudioWorkletNode {
      * PitchWeel
      *
      * @param channel - the MIDI channel (0..15, not used for now)
-     * @param value - the MIDI controller value (-1..1)
+     * @param value - the MIDI controller value (0..16383)
      */
     pitchWheel(channel, wheel)
     {

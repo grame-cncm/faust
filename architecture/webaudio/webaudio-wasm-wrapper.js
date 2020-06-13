@@ -1100,7 +1100,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
         * PitchWeel
         *
         * @param channel - the MIDI channel (0..15, not used for now)
-        * @param value - the MIDI controller value (-1..1)
+        * @param value - the MIDI controller value (0..16383)
         */
       	sp.pitchWheel = function (channel, wheel)
         {
@@ -2475,7 +2475,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
      * PitchWeel
      *
      * @param channel - the MIDI channel (0..15, not used for now)
-     * @param value - the MIDI controller value (-1..1)
+     * @param value - the MIDI controller value (0..16383)
      */
     sp.pitchWheel = function (channel, wheel)
     {
