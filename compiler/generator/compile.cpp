@@ -87,8 +87,6 @@ Compiler::Compiler(Klass* k)
 Compiler::~Compiler()
 {
     if (fNeedToDeleteClass) delete fClass;
-    // SL : 28/09/17 : use garbageable class ?
-    // delete fDescription;
 }
 
 /*****************************************************************************
@@ -213,7 +211,6 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
                 model = "ui_interface->openTabBox(\"$0\");";
                 fJSON.openTabBox(group.c_str());
                 break;
-
             default:
                 throw faustexception("ERROR in user interface generation 1\n");
         }

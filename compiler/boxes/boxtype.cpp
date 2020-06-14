@@ -126,10 +126,9 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
     error << "ERROR in " << opname << " " << aStr << opcode << bStr << endl
           << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
-          << bStr << endl
-          << endl
-          << "Here  " << aStr << " = " << boxpp(a) << "; has " << outputs(o) << endl
-          << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(i) << endl;
+          << bStr << endl << endl
+          << "Here  " << aStr << " = " << boxpp(a) << ";" << endl << "has " << outputs(o) << endl << endl
+          << "while " << bStr << " = " << boxpp(b) << ";" << endl << "has " << inputs(i) << endl;
     return error.str();
 }
 

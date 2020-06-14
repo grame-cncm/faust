@@ -316,7 +316,7 @@ string ScalarCompiler::CS(Tree sig)
         // not compiled yet
         /*
          if (getRecursivness(sig) != contextRecursivness.get()) {
-         contextRecursivness.set(getRecursivness(sig));
+            contextRecursivness.set(getRecursivness(sig));
          }
          */
         code = generateCode(sig);
