@@ -91,6 +91,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         fBuilder->ClearInsertionPoint();
     }
  
+    void init(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context);
 
    public:
     LLVMCodeContainer(const string& name, int numInputs, int numOutputs);

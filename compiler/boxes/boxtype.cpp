@@ -151,7 +151,6 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
 
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-
     
     msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)

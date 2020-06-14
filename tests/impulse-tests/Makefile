@@ -250,7 +250,7 @@ rust:
 #########################################################################
 # SOUL backend
 soul:
-	$(MAKE) -f Make.soul
+	$(MAKE) -f Make.soul FAUSTOPTIONS="-double"
 
 #########################################################################
 # output directories

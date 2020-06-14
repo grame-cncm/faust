@@ -31,12 +31,6 @@
 #include "llvm_dynamic_dsp_aux.hh"
 #include "llvm_instructions.hh"
 
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-
-using namespace std;
-using namespace llvm;
-
 /*
  LLVM module description:
 
@@ -57,45 +51,39 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
-    initialize(numInputs, numOutputs);
-    fKlassName = name;
-    fContext   = new LLVMContext();
+    LLVMContext* context = new LLVMContext();
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
-    fModule = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *fContext);
-    fBuilder = new IRBuilder<>(*fContext);
-
-    // Check pointer size
-    faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout().getPointerSize())));
-
-    // Set "-fast-math"
-    FastMathFlags FMF;
-#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
-    FMF.setFast();  // has replaced the below function
-#else
-    FMF.setUnsafeAlgebra();
-#endif
-    fBuilder->setFastMathFlags(FMF);
-    fModule->setTargetTriple(sys::getDefaultTargetTriple());
+    Module* module = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *context);
+    
+    init(name, numInputs, numOutputs, module, context);
 }
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
                                      LLVMContext* context)
 {
+    init(name, numInputs, numOutputs, module, context);
+ }
+
+void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, Module* module,
+                             LLVMContext* context)
+{
     initialize(numInputs, numOutputs);
+    
     fKlassName = name;
     fModule    = module;
     fContext   = context;
     fBuilder   = new IRBuilder<>(*fContext);
-
+    
     // Set "-fast-math"
     FastMathFlags FMF;
 #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
-    FMF.setFast();  // has replaced the below function
+    FMF.setFast();  // has replaced the following function
 #else
     FMF.setUnsafeAlgebra();
 #endif
     fBuilder->setFastMathFlags(FMF);
+    fModule->setTargetTriple(sys::getDefaultTargetTriple());
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
