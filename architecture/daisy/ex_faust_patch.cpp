@@ -65,30 +65,15 @@ using namespace daisysp;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-FAUSTFLOAT* finputs[2];
-FAUSTFLOAT* foutputs[2];
-
 DaisySeed hw;
 mydsp DSP;
 
 #define MY_BUFFER_SIZE 8
 
-static void AudioCallback(float* in, float* out, size_t size)
+static void AudioCallback(float** in, float** out, size_t size)
 {
-    // Deinterleave
-    for (size_t frame; frame < size; frame++) {
-        finputs[0][frame] = in[frame*2];
-        finputs[1][frame] = in[frame*2+1];
-    }
-    
     // Faust processing
-    DSP.compute(size, finputs, foutputs);
-    
-    // Interleave
-    for (size_t frame; frame < size; frame++) {
-        out[frame*2] = foutputs[0][frame];
-        out[frame*2+1] = foutputs[1][frame];
-    }
+    DSP.compute(size, in, out);
 }
 
 int main(void)
@@ -98,33 +83,26 @@ int main(void)
     
     // set buffer-size
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
-    
-    // allocate deinterleaved buffers
-    finputs[0] = new FAUSTFLOAT[MY_BUFFER_SIZE];
-    finputs[1] = new FAUSTFLOAT[MY_BUFFER_SIZE];
-    
-    foutputs[0] = new FAUSTFLOAT[MY_BUFFER_SIZE];
-    foutputs[1] = new FAUSTFLOAT[MY_BUFFER_SIZE];
-    
+      
     // inti Faust DSP
     DSP.init(hw.AudioSampleRate());
     
 #ifdef MIDICTRL
     daisy_midi midi_handler;
 #endif
-    
+ 
     hw.StartAdc();
     // define and start callback
     hw.StartAudio(AudioCallback)
-    
+ 
 #ifdef MIDICTRL
     midi_handler.startMidi();
 #endif
-    
+
     while(1) {
-#ifdef MIDICTRL
+    #ifdef MIDICTRL
         midi_handler.processMidi();
-#endif
+    #endif
     }
 }
 

@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 ARCHFILE=$FAUSTARCH/daisy/faust.cpp
 
@@ -19,12 +20,15 @@ set -e
 NVOICES=0
 MULTI="0"
 POLY=""
+PATCH="0"
 
 echoHelp ()
 {
-    echo "faust2daisy [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp> 
-    echo "Use '-midi' to activate MIDI control"
-    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp> 
+    option
+    echo "Use '-patch' to compile for 4 ins/outs Patch"
+    options -midi
+    option "-nvoices <num>"
     echo ""
 }
 
@@ -46,6 +50,8 @@ do
     # -midi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="MIDI"
+    elif [ $p = "-patch" ]; then
+        PATCH="1"
     elif [[ -f "$p" ]]; then
     	FILE="$p"
     # other compile options
