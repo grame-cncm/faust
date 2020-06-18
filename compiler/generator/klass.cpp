@@ -1434,7 +1434,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
     fout << "}";
 
     tab(n + 1, fout);
-    fout << "void fill (int count, int output[]) {";
+    fout << "void fill(int count, int output[]) {";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1484,7 +1484,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     fout << "}";
 
     tab(n + 1, fout);
-    fout << subst("void fill (int count, $0 output[]) {", ifloat());
+    fout << subst("void fill(int count, $0 output[]) {", ifloat());
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);

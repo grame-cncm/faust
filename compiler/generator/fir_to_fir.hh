@@ -605,13 +605,13 @@ struct CastRemover : public BasicTypingCloneVisitor {
             } else {
                 /*
                 // TODO = protection out-of [-2147483647, 2147483647] range
-                ValueInst* max = InstBuilder::genRealNumInst(Typed::kFloat, double(2147483647));
-                ValueInst* min = InstBuilder::genRealNumInst(Typed::kFloat, double(-2147483647));
+                ValueInst* max = InstBuilder::genRealNumInst(Typed::kFloat, double(std::numeric_limits<int>::max()));
+                ValueInst* min = InstBuilder::genRealNumInst(Typed::kFloat, double(std::numeric_limits<int>::min()));
                 
-                return InstBuilder::genSelect2Inst(InstBuilder::genGreaterEqual(inst->fInst->clone(this), max),
-                                                   InstBuilder::genInt32NumInst(2147483647),
-                                                   InstBuilder::genSelect2Inst(InstBuilder::genLessEqual(inst->fInst->clone(this), min),
-                                                                               InstBuilder::genInt32NumInst(-2147483647),
+                return InstBuilder::genSelect2Inst(InstBuilder::genGreater(inst->fInst->clone(this), max),
+                                                   InstBuilder::genInt32NumInst(std::numeric_limits<int>::max()),
+                                                   InstBuilder::genSelect2Inst(InstBuilder::genLess(inst->fInst->clone(this), min),
+                                                                               InstBuilder::genInt32NumInst(std::numeric_limits<int>::min()),
                                                                                BasicTypingCloneVisitor::visit(inst)));
                 */
                 return BasicTypingCloneVisitor::visit(inst);

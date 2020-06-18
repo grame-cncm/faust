@@ -58,7 +58,7 @@ do
         option "-effect auto"
         option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
         option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        option -me "to catch math computation exception (floating point exceptions and integer div-by-zero or overflow)"
+        option -me "to catch math computation exceptions (floating point exceptions and integer div-by-zero or overflow)"
         option -debug "to print all the build steps"
         option -nodeploy
         option "Faust options"
