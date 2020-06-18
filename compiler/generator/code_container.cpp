@@ -462,6 +462,13 @@ void CodeContainer::printMacros(ostream& fout, int n)
         fout << "#ifdef FAUST_UIMACROS";
         tab(n + 1, fout);
         tab(n + 1, fout);
+        for (auto& it : gGlobal->gMetaDataSet) {
+            if (it.first == tree("filename")) {
+                fout << "#define FAUST_FILE_NAME " << **(it.second.begin());
+                break;
+            }
+        }
+        tab(n + 1, fout);
         fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
         tab(n + 1, fout);
         fout << "#define FAUST_INPUTS " << fNumInputs;

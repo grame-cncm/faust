@@ -689,8 +689,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 std::cout << "compute " << count << std::endl;
             }
             
-            fCycle++;
-
             T** inputs  = reinterpret_cast<T**>(inputs_aux);
             T** outputs = reinterpret_cast<T**>(outputs_aux);
 
@@ -730,12 +728,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             }
 
             if (fTraceOutput) {
+                std::cout << std::setprecision(std::numeric_limits<T>::max_digits10);
                 for (int chan = 0; chan < fFactory->fNumOutputs; chan++) {
                     for (int frame = 0; frame < count; frame++) {
-                        std::cout << "Chan: " << chan << " sample: " << outputs_aux[chan][frame] << std::endl;
+                        std::cout << "Index : " << ((fCycle * count) + frame) << " chan: " << chan << " sample: " << outputs[chan][frame] << std::endl;
                     }
                 }
             }
+            fCycle++;
         }
     }
 };

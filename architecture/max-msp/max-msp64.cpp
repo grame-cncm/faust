@@ -133,7 +133,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.76"
+#define EXTERNAL_VERSION    "0.77"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -751,7 +751,9 @@ extern "C" int main(void)
 void ext_main(void* r)
 #endif
 {
-    string class_name = string(FAUST_CLASS_NAME) + "~";
+    string file_name = string(FAUST_FILE_NAME);
+    // Remove ".dsp" ending
+    string class_name = file_name.erase(file_name.size()-4) + "~";
     t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_GIMME, 0);
     
     class_addmethod(c, (method)faust_anything, "anything", A_GIMME, 0);

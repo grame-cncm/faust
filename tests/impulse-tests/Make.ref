@@ -24,7 +24,6 @@ FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
 dspfiles := $(wildcard dsp/*.dsp)
 reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
 
-
 listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
 
 .INTERMEDIATE: $(call listintermediate, $(refdir))
@@ -68,8 +67,8 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
-	$(COMPARE)  $@ $(refdir)/vec/$(notdir $@) 
-	#$(COMPARE)  $@ $(refdir)/sched/$(notdir $@) 1e-02
+	$(COMPARE) $@ $(refdir)/vec/$(notdir $@) 
+	#$(COMPARE) $@ $(refdir)/sched/$(notdir $@) 1e-02
 
 $(refdir)/vec/%.ir: dsp/vec/% dsp/%.dsp dsp/vec/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)

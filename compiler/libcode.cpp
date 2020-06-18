@@ -495,7 +495,8 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
-            gGlobal->gClassName = argv[i + 1];
+            vector<char> rep = {'@', ' ', '(', ')', '/', '\\', '.'};
+            gGlobal->gClassName = replaceCharList(argv[i + 1], rep, '_');
             i += 2;
 
         } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {

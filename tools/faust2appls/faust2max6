@@ -203,6 +203,11 @@ for p in $FILES; do
         OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
         echo $OPTIONS
     fi
+    
+    # -double is used by default
+    if [ "$FAUSTFLOAT" = "double" ]; then
+        OPTIONS="$OPTIONS -double"
+    fi
 
     # compile Faust to c++
     if [ "$EFFECT" = "" ]; then
@@ -211,12 +216,7 @@ for p in $FILES; do
         faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
-
-    # -double is used by default
-    if [ "$FAUSTFLOAT" = "double" ]; then
-        OPTIONS="$OPTIONS -double"
-    fi
-
+   
     # compile c++ to binary
     (
         cd "$TMP"
