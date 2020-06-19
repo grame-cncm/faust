@@ -206,6 +206,11 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "impl FaustDsp for " << fKlassName << " {";
 
+    // Associated type
+    tab(n + 2, *fOut);
+    *fOut << "type Float = " << ifloat() << ";";
+    tab(n + 2, *fOut);
+
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
@@ -335,7 +340,7 @@ void RustCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<" << ifloat() << ">) {";
+    *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Float>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -423,7 +428,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -458,7 +463,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -488,7 +493,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -541,7 +546,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     // Compute "compute" declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 

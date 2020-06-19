@@ -16,6 +16,8 @@ use std::env;
 use num_traits::{cast::FromPrimitive, float::Float};
 
 pub trait FaustDsp {
+    type Float;
+
     fn new() -> Self where Self: Sized;
     fn metadata(&mut self, m: &mut dyn Meta);
     fn get_sample_rate(&mut self) -> i32;
@@ -29,8 +31,8 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<f64>);
-    fn compute(&mut self, count: i32, inputs: &[&[f64]], outputs: &mut[&mut[f64]]);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Float>);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]);
 }
 
 pub trait Meta {
