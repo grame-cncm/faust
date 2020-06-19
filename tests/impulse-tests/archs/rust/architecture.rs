@@ -5,7 +5,6 @@
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
-#![allow(bare_trait_objects)]
 
 extern crate libm;
 extern crate num_traits;
@@ -16,31 +15,49 @@ use std::env;
 
 use num_traits::{cast::FromPrimitive, float::Float};
 
+pub trait FaustDsp {
+    fn new() -> Self where Self: Sized;
+    fn metadata(&mut self, m: &mut dyn Meta);
+    fn get_sample_rate(&mut self) -> i32;
+    fn get_num_inputs(&mut self) -> i32;
+    fn get_num_outputs(&mut self) -> i32;
+    fn get_input_rate(&mut self, channel: i32) -> i32;
+    fn get_output_rate(&mut self, channel: i32) -> i32;
+    fn class_init(sample_rate: i32);
+    fn instance_reset_user_interface(&mut self);
+    fn instance_clear(&mut self);
+    fn instance_constants(&mut self, sample_rate: i32);
+    fn instance_init(&mut self, sample_rate: i32);
+    fn init(&mut self, sample_rate: i32);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<f64>);
+    fn compute(&mut self, count: i32, inputs: &[&[f64]], outputs: &mut[&mut[f64]]);
+}
+
 pub trait Meta {
     // -- metadata declarations
-    fn declare(&mut self, key: &str, value: &str) -> ();
+    fn declare(&mut self, key: &str, value: &str);
 }
 
 pub trait UI<T> {
     // -- widget's layouts
-    fn openTabBox(&mut self, label: &str) -> ();
-    fn openHorizontalBox(&mut self, label: &str) -> ();
-    fn openVerticalBox(&mut self, label: &str) -> ();
-    fn closeBox(&mut self) -> ();
+    fn open_tab_box(&mut self, label: &str);
+    fn open_horizontal_box(&mut self, label: &str);
+    fn open_vertical_box(&mut self, label: &str);
+    fn close_box(&mut self);
 
     // -- active widgets
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ();
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
+    fn add_button(&mut self, label: &str, zone: &mut T);
+    fn add_check_button(&mut self, label: &str, zone: &mut T);
+    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
+    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
+    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
 }
 
 pub struct ButtonUI<T>
@@ -51,39 +68,28 @@ pub struct ButtonUI<T>
 impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
 {
     // -- widget's layouts
-    fn openTabBox(&mut self, label: &str) -> ()
-    {}
-    fn openHorizontalBox(&mut self, label: &str) -> ()
-    {}
-    fn openVerticalBox(&mut self, label: &str) -> ()
-    {}
-    fn closeBox(&mut self) -> ()
-    {}
+    fn open_tab_box(&mut self, label: &str) {}
+    fn open_horizontal_box(&mut self, label: &str) {}
+    fn open_vertical_box(&mut self, label: &str) {}
+    fn close_box(&mut self) {}
 
     // -- active widgets
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn add_button(&mut self, label: &str, zone: &mut T)
     {
         //println!("addButton: {}", label);
         *zone = self.fState;
     }
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ()
-    {}
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
-    {}
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ()
-    {}
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
-    {}
+    fn add_check_button(&mut self, label: &str, zone: &mut T) {}
+    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) {}
+    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) {}
+    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) {}
 
     // -- passive widgets
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
-    {}
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
-    {}
+    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) {}
+    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) {}
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ()
-    {}
+    fn declare(&mut self, zone: &mut T, key: &str, value: &str) {}
 }
 
 // Generated intrinsics:
@@ -99,8 +105,8 @@ type FloatType = f64;
 fn print_header(output_file: &mut File, num_total_samples: usize) {
     let mut dsp = Box::new(mydsp::new());
     dsp.init(SAMPLE_RATE);
-    writeln!(output_file, "number_of_inputs  : {}", dsp.getNumInputs()).unwrap();
-    writeln!(output_file, "number_of_outputs : {}", dsp.getNumOutputs()).unwrap();
+    writeln!(output_file, "number_of_inputs  : {}", dsp.get_num_inputs()).unwrap();
+    writeln!(output_file, "number_of_outputs : {}", dsp.get_num_outputs()).unwrap();
     writeln!(output_file, "number_of_frames  : {}", num_total_samples).unwrap();
 }
 
@@ -108,14 +114,13 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
 
     // Generation constants
     let buffer_size = 64usize;
-    let num_buffers_to_generate = 100;
 
     // Init dsp
     let mut dsp = Box::new(mydsp::new());
     dsp.init(SAMPLE_RATE);
 
-    let num_inputs = dsp.getNumInputs() as usize;
-    let num_outputs = dsp.getNumOutputs() as usize;
+    let num_inputs = dsp.get_num_inputs() as usize;
+    let num_outputs = dsp.get_num_outputs() as usize;
 
     // Prepare buffers
     let mut in_buffer = vec![vec![0 as FloatType; buffer_size]; num_inputs];
@@ -138,11 +143,11 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
 
         // Set button state
         if cycle == 0 {
-            let mut buttonOn = ButtonUI::<f64>{ fState: 1.0 };
-            dsp.buildUserInterface(&mut buttonOn);
+            let mut button_on = ButtonUI::<f64>{ fState: 1.0 };
+            dsp.build_user_interface(&mut button_on);
         } else {
-            let mut buttonOff = ButtonUI::<f64>{ fState: 0.0 };
-            dsp.buildUserInterface(&mut buttonOff);
+            let mut button_off = ButtonUI::<f64>{ fState: 0.0 };
+            dsp.build_user_interface(&mut button_off);
         }
 
         dsp.compute(

@@ -109,7 +109,7 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["sinf"]       = "f32::sin";
         fMathLibTable["sqrtf"]      = "f32::sqrt";
         fMathLibTable["tanf"]       = "f32::tan";
-        
+
         // Additional hyperbolic math functions
         fMathLibTable["acoshf"]     = "f32::acosh";
         fMathLibTable["asinhf"]     = "f32::asinh";
@@ -141,7 +141,7 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["sin"]       = "f64::sin";
         fMathLibTable["sqrt"]      = "f64::sqrt";
         fMathLibTable["tan"]       = "f64::tan";
-        
+
         // Additional hyperbolic math functions
         fMathLibTable["acosh"]     = "f64::acosh";
         fMathLibTable["asinh"]     = "f64::asinh";
@@ -171,13 +171,13 @@ class RustInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
-                name = "ui_interface.openVerticalBox(";
+                name = "ui_interface.open_vertical_box(";
                 break;
             case OpenboxInst::kHorizontalBox:
-                name = "ui_interface.openHorizontalBox(";
+                name = "ui_interface.open_horizontal_box(";
                 break;
             case OpenboxInst::kTabBox:
-                name = "ui_interface.openTabBox(";
+                name = "ui_interface.open_tab_box(";
                 break;
         }
         *fOut << name << quote(inst->fName) << ")";
@@ -186,16 +186,16 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(CloseboxInst* inst)
     {
-        *fOut << "ui_interface.closeBox();";
+        *fOut << "ui_interface.close_box();";
         tab(fTab, *fOut);
     }
 
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
+            *fOut << "ui_interface.add_button(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
         } else {
-            *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
+            *fOut << "ui_interface.add_check_button(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
         }
         EndLine();
     }
@@ -205,13 +205,13 @@ class RustInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                name = "ui_interface.addHorizontalSlider";
+                name = "ui_interface.add_horizontal_slider";
                 break;
             case AddSliderInst::kVertical:
-                name = "ui_interface.addVerticalSlider";
+                name = "ui_interface.add_vertical_slider";
                 break;
             case AddSliderInst::kNumEntry:
-                name = "ui_interface.addNumEntry";
+                name = "ui_interface.add_num_entry";
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
@@ -225,10 +225,10 @@ class RustInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                name = "ui_interface.addHorizontalBargraph";
+                name = "ui_interface.add_horizontal_bargraph";
                 break;
             case AddBargraphInst::kVertical:
-                name = "ui_interface.addVerticalBargraph";
+                name = "ui_interface.add_vertical_bargraph";
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ", " << checkReal(inst->fMin)
@@ -271,7 +271,12 @@ class RustInstVisitor : public TextInstVisitor {
         // Only generates additional functions
         if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {
             // Prototype
-            *fOut << "pub fn " << inst->fName;
+            // Since functions are attached to a trait they must not be prefixed with "pub".
+            // In case we need a mechanism to attach functions to both traits and normal
+            // impls, we need a mechanism to forward the information whether to use "pub"
+            // or not. In the worst case, we have to prefix the name string like "pub fname",
+            // and handle the prefix here.
+            *fOut << "fn " << inst->fName;
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
@@ -402,7 +407,7 @@ class RustInstVisitor : public TextInstVisitor {
             generateFunCall(inst, inst->fName);
         }
     }
-    
+
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
