@@ -33,7 +33,7 @@ for p in $@; do
         option
  		option -arch32 "generates a 32 bit architecture."
 		option -arch64 "generates a 64 bit architecture."
-		option -double "generates a 64 bit architecture."
+		option -double "generates code with samples of type 'double'."
 		option -soundfile
         option "Faust options"
         exit
@@ -44,6 +44,7 @@ for p in $@; do
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
     elif [ $p = "-double" ]; then
+    	OPTIONS="$OPTIONS $p"
         FAUSTFLOAT="double"
     elif [ $p = "-soundfile" ]; then
         CXXFLAGS="$CXXFLAGS -DSOUNDFILE"
