@@ -26,6 +26,8 @@ use portaudio as pa;
 use std::io;
 extern crate libm;
 
+// TODO: adapt
+
 pub trait Meta {
 
     // -- metadata declarations
