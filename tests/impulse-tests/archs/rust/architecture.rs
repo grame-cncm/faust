@@ -25,7 +25,7 @@ pub trait FaustDsp {
     fn get_num_outputs(&mut self) -> i32;
     fn get_input_rate(&mut self, channel: i32) -> i32;
     fn get_output_rate(&mut self, channel: i32) -> i32;
-    fn class_init(sample_rate: i32);
+    fn class_init(sample_rate: i32) where Self: Sized;
     fn instance_reset_user_interface(&mut self);
     fn instance_clear(&mut self);
     fn instance_constants(&mut self, sample_rate: i32);
@@ -102,23 +102,22 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
 
 const SAMPLE_RATE: i32 = 44100;
 
-type FloatType = f64;
+type Dsp64 = dyn FaustDsp<Float=f64>;
 
-fn print_header(output_file: &mut File, num_total_samples: usize) {
-    let mut dsp = Box::new(mydsp::new());
+fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut File) {
     dsp.init(SAMPLE_RATE);
     writeln!(output_file, "number_of_inputs  : {}", dsp.get_num_inputs()).unwrap();
     writeln!(output_file, "number_of_outputs : {}", dsp.get_num_outputs()).unwrap();
     writeln!(output_file, "number_of_frames  : {}", num_total_samples).unwrap();
 }
 
-fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
+fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, output_file: &mut File) {
+    type FloatType = <Dsp64 as FaustDsp>::Float;
 
     // Generation constants
     let buffer_size = 64usize;
 
     // Init dsp
-    let mut dsp = Box::new(mydsp::new());
     dsp.init(SAMPLE_RATE);
 
     let num_inputs = dsp.get_num_inputs() as usize;
@@ -172,6 +171,10 @@ fn run_dsp(output_file: &mut File, num_samples: usize, line_num_offset: usize) {
     }
 }
 
+fn new_dsp() -> Box<Dsp64> {
+    Box::new(mydsp::new())
+}
+
 fn main() {
     let num_total_samples = 60000;
 
@@ -181,12 +184,12 @@ fn main() {
     let output_file_name = env::args().nth(1).expect("ERROR: Output file name expected.");
     let mut output_file = File::create(output_file_name).expect("Cannot create output file");
 
-    print_header(&mut output_file, num_total_samples);
+    print_header(new_dsp(), num_total_samples, &mut output_file);
 
     // Only test mono DSP for now
-    run_dsp(&mut output_file, block_size, 0);
+    run_dsp(new_dsp(), block_size, 0, &mut output_file);
 
-    //run_dsp(&mut output_file, block_size, 1 * block_size);
-    //run_dsp(&mut output_file, block_size, 2 * block_size);
-    //run_dsp(&mut output_file, block_size, 3 * block_size);
+    //run_dsp(new_dsp(), block_size, 1 * block_size, &mut output_file);
+    //run_dsp(new_dsp(), block_size, 2 * block_size, &mut output_file);
+    //run_dsp(new_dsp(), block_size, 3 * block_size, &mut output_file);
 }
