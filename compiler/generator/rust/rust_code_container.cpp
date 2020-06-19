@@ -124,7 +124,7 @@ void RustCodeContainer::produceInternal()
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
 
     tab(n + 1, *fOut);
-    *fOut << "pub fn instance_init" << fKlassName << "(&mut self, sample_rate: i32) {";
+    *fOut << "pub fn instance_init_" << fKlassName << "(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
