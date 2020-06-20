@@ -38,7 +38,7 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
     for (s = lines.begin(); s != lines.end(); s++) {
         if (s->hasCondition(ccond)) {
             tab(n, fout);
-            fout << s->code();
+            fout << s->thenCode();
         } else if (ccond == "") {
             // debut d'une condition
             ccond = s->condition();
@@ -46,7 +46,7 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
             fout << "if (" << ccond << ") {";
             n++;
             tab(n, fout);
-            fout << s->code();
+            fout << s->thenCode();
         } else {
             // fin précédente condition
             n--;
@@ -60,13 +60,27 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
                 n++;
             }
             tab(n, fout);
-            fout << s->code();
+            fout << s->thenCode();
         }
     }
     if (ccond != "") {
         n--;
         tab(n, fout);
         fout << "}";
+    }
+}
+static void printThenLines(int n, list<Statement>& lines, ostream& fout)
+{
+    for (auto s : lines) {
+        tab(n, fout);
+        fout << s.thenCode();
+    }
+}
+static void printElseLines(int n, list<Statement>& lines, ostream& fout)
+{
+    for (auto s : lines) {
+        tab(n, fout);
+        fout << s.elseCode();
     }
 }
 
@@ -76,11 +90,12 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
+Loop::Loop(Tree recsymbol, Loop* encl, const string& size, const string& cond)
     : fIsRecursive(true),
       fRecSymbolSet(singleton(recsymbol)),
       fEnclosingLoop(encl),
       fSize(size),
+      fCond(cond),
       fOrder(-1),
       fIndex(-1),
       fUseCount(0),
@@ -93,11 +108,12 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop(Loop* encl, const string& size)
+Loop::Loop(Loop* encl, const string& size, const string& cond)
     : fIsRecursive(false),
       fRecSymbolSet(gGlobal->nil),
       fEnclosingLoop(encl),
       fSize(size),
+      fCond(cond),
       fOrder(-1),
       fIndex(-1),
       fUseCount(0),
@@ -133,7 +149,7 @@ bool Loop::isEmpty()
  */
 void Loop::addPreCode(const Statement& stmt)
 {
-    // cerr << this << "->addExecCode " << str << endl;
+    cerr << this << "->addExecCode " << stmt << endl;
     fPreCode.push_back(stmt);
 }
 
@@ -142,7 +158,7 @@ void Loop::addPreCode(const Statement& stmt)
  */
 void Loop::addExecCode(const Statement& stmt)
 {
-    // cerr << this << "->addExecCode " << str << endl;
+    cerr << "LOOP : " << this << "->addExecCode " << stmt << endl;
     fExecCode.push_back(stmt);
 }
 
@@ -151,7 +167,7 @@ void Loop::addExecCode(const Statement& stmt)
  */
 void Loop::addPostCode(const Statement& stmt)
 {
-    // cerr << this << "->addPostCode " << str << endl;
+    cerr << this << "->addPostCode " << stmt << endl;
     fPostCode.push_front(stmt);
 }
 
@@ -163,7 +179,7 @@ void Loop::addPostCode(const Statement& stmt)
 void Loop::absorb(Loop* l)
 {
     // the loops must have the same number of iterations
-    //cerr << "Loop absorbtion : " << this << " absorb " << l << endl;
+    // cerr << "Loop absorbtion : " << this << " absorb " << l << endl;
     faustassert(fSize == l->fSize);
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
@@ -217,10 +233,28 @@ void Loop::println(int n, ostream& fout)
         tab(n, fout);
         fout << "// exec code";
         tab(n, fout);
-        fout << "for (int i=0; i<" << fSize << "; i++) {";
-        printlines(n + 1, fExecCode, fout);
-        tab(n, fout);
-        fout << "}";
+        if (fCond.size() > 0) {
+            fout << "if (" << fCond << ") {";
+            tab(n + 1, fout);
+            fout << "for (int i=0; i<" << fSize << "; i++) {";
+            printThenLines(n + 2, fExecCode, fout);
+            tab(n + 1, fout);
+            fout << "}";
+            tab(n, fout);
+            fout << "} else {";
+            tab(n + 1, fout);
+            fout << "for (int i=0; i<" << fSize << "; i++) {";
+            printElseLines(n + 2, fExecCode, fout);
+            tab(n + 1, fout);
+            fout << "}";
+            tab(n, fout);
+            fout << "}";
+        } else {
+            fout << "for (int i=0; i<" << fSize << "; i++) {";
+            printlines(n + 1, fExecCode, fout);
+            tab(n, fout);
+            fout << "}";
+        }
 
         if (fPostCode.size() > 0) {
             tab(n, fout);

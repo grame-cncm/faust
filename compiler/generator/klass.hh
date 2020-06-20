@@ -111,7 +111,7 @@ class Klass  //: public Target
           fNumOutputs(numOutputs),
           fNumActives(0),
           fNumPassives(0),
-          fTopLoop(new Loop(0, "count")),
+          fTopLoop(new Loop(0, "count", "")),
           fVec(__vec)
     {
     }
@@ -130,8 +130,8 @@ class Klass  //: public Target
         return (fParentKlass != 0) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
     }  ///< Returns the name of the class
 
-    void openLoop(const string& size);
-    void openLoop(Tree recsymbol, const string& size);
+    void openLoop(const string& size, const string& cond);
+    void openLoop(Tree recsymbol, const string& size, const string& cond);
     void closeLoop(Tree sig);
 
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal

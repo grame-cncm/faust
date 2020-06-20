@@ -41,8 +41,8 @@ void SchedulerCompiler::compileMultiSignal(Tree L)
 
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
-        fClass->openLoop("count");
-        fClass->addExecCode(Statement("", subst("output$0[i] = $2$1;", T(i), CS(sig), xcast())));
+        fClass->openLoop("count", "");
+        fClass->addExecCode(Statement(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast())));
         fClass->closeLoop(sig);
     }
 
@@ -74,7 +74,7 @@ void SchedulerCompiler::vectorLoop(const string& tname, const string& vecname, c
     fClass->addDeclCode(subst("$0 \t$1[$2];", tname, vecname, T(gGlobal->gVecSize)));
 
     // -- compute the new samples
-    fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", vecname, cexp)));
+    fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", vecname, cexp), subst("$0[i] = 0;", vecname)));
 }
 
 /**
@@ -118,13 +118,13 @@ void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
+        fClass->addPreCode(Statement(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp)));
+        fClass->addExecCode(Statement(subst("$0[i] = $1;", dlname, cexp)));
 
         // -- copy back to stored samples
-        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
+        fClass->addPostCode(Statement(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
 
     } else {
         // Implementation of a ring-buffer delayline
@@ -149,12 +149,12 @@ void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int
         fClass->addClearCode(subst("$0 = 0;", idx_save));
 
         // -- update index
-        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask)));
+        fClass->addPreCode(Statement(subst("$0 = ($0+$1)&$2;", idx, idx_save, mask)));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask)));
+        fClass->addExecCode(Statement(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask)));
 
         // -- save index
-        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save)));
+        fClass->addPostCode(Statement(subst("$0 = count;", idx_save)));
     }
 }

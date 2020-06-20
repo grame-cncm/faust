@@ -166,7 +166,7 @@ class FtzPrim : public xtended {
             string ctype = ifloat();
             string vname = subst("fTempFTZ$0", T(++freshnum));
             klass->addIncludeFile("<float.h>");
-            klass->addExecCode(Statement("", subst("$0 $1 = $2;", ctype, vname, args[0])));
+            klass->addExecCode(Statement(subst("$0 $1 = $2;", ctype, vname, args[0])));
             return subst(FTZPattern[gGlobal->gFloatSize][gGlobal->gFTZMode], vname);
         } else {
             // No ftz code for integer signals

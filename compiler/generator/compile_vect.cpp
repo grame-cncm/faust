@@ -45,8 +45,8 @@ void VectorCompiler::compileMultiSignal(Tree L)
 
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
-        fClass->openLoop("count");
-        fClass->addExecCode(Statement("", subst("output$0[i] = $2$1;", T(i), CS(sig), xcast())));
+        fClass->openLoop("count", "");
+        fClass->addExecCode(Statement(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast())));
         fClass->closeLoop(sig);
     }
 
@@ -71,7 +71,7 @@ void VectorCompiler::compileMultiSignal(Tree L)
 string VectorCompiler::CS(Tree sig)
 {
     string code;
-    // cerr << "ENTER VectorCompiler::CS : "<< ppsig(sig) << endl;
+    cerr << "ENTER VectorCompiler::CS : " << ppsig(sig) << endl;
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
         // cerr << "CS : " << code << " for " << ppsig(sig) << endl;
@@ -87,32 +87,32 @@ string VectorCompiler::CS(Tree sig)
 
         if (fClass->getLoopProperty(sig, ls)) {
             // sig has a loop property
-            //cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
+            // cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isSigFixDelay(sig, x, d) && fClass->getLoopProperty(x, ls)) {
-            //cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isSigFixDelay(sig, x, d) && isProj(x, &i, r) && fClass->getLoopProperty(r, ls)) {
-            //cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else if (isProj(sig, &i, r) && fClass->getLoopProperty(r, ls)) {
-            //cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            // cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
         } else {
             if (isProj(sig, &i, r)) {
-                //cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
+                // cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
             } else if (getCertifiedSigType(sig)->variability() < kSamp) {
-                //cerr << "SLOW EXPRESSION " << endl;
+                // cerr << "SLOW EXPRESSION " << endl;
             } else {
-                //cerr << "Expression absorbée" << *sig << endl;
+                // cerr << "Expression absorbée" << *sig << endl;
             }
         }
     }
-    // cerr << "EXIT VectorCompiler::CS : "<< ppsig(sig) << "---code---> " << code << endl;
+    cerr << "EXIT VectorCompiler::CS : " << ppsig(sig) << "---code---> " << code << endl;
     return code;
 }
 
@@ -133,7 +133,7 @@ void VectorCompiler::generateCodeRecursions(Tree sig)
     } else if (isRec(sig, id, body)) {
         // cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
         setCompiledExpression(sig, "[RecursionVisited]");
-        fClass->openLoop(sig, "count");
+        fClass->openLoop(sig, "count", "");
         generateRec(sig, id, body);
         fClass->closeLoop(sig);
     } else {
@@ -153,7 +153,7 @@ string VectorCompiler::generateCodeNonRec(Tree sig)
         // already visited
         return code;
     } else {
-        // cerr << "VectorCompiler::generateCodeNonRec( " << ppsig(sig) << " )" << endl;
+        cerr << "VectorCompiler::generateCodeNonRec( " << ppsig(sig) << " )" << endl;
         code = generateLoopCode(sig);
         setCompiledExpression(sig, code);
         return code;
@@ -168,13 +168,13 @@ string VectorCompiler::generateCodeNonRec(Tree sig)
 string VectorCompiler::generateLoopCode(Tree sig)
 {
     int   i;
-    Tree  x;
+    Tree  x, y;
     Loop* l;
     Loop* l2;
 
     l = fClass->topLoop();
     faustassert(l);
-    // cerr << "VectorCompiler::OLDgenerateCode " << ppsig(sig) << endl;
+    cerr << "VectorCompiler::generateLoopCode " << ppsig(sig) << endl;
     if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
@@ -188,17 +188,32 @@ string VectorCompiler::generateLoopCode(Tree sig)
                 return c;
             } else {
                 // x must be defined
-                fClass->openLoop(x, "count");
+                fClass->openLoop(x, "count", "");
                 string c = ScalarCompiler::generateCode(sig);
                 fClass->closeLoop(sig);
                 return c;
             }
         } else {
-            fClass->openLoop("count");
-            string c = ScalarCompiler::generateCode(sig);
-            fClass->closeLoop(sig);
-            return c;
+            old_Occurences* o = fOccMarkup->retrieve(sig);
+            faustassert(o);
+            if (o->isControlled()) {
+                string cond = getConditionCode(sig);
+                std::cerr << "Need Loop with condition " << cond << std::endl;
+                fClass->openLoop("count", cond);
+                string c = ScalarCompiler::generateCode(sig);
+                fClass->closeLoop(sig);
+                return c;
+            } else {
+                fClass->openLoop("count", "");
+                string c = ScalarCompiler::generateCode(sig);
+                fClass->closeLoop(sig);
+                return c;
+            }
         }
+    } else if (isSigControl(sig, x, y)) {
+        CS(y);
+        string code = CS(x);
+        return code;
     } else {
         return ScalarCompiler::generateCode(sig);
     }
@@ -216,6 +231,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
     int             sharing = getSharingCount(sig);
     Type            t       = getCertifiedSigType(sig);
     old_Occurences* o       = fOccMarkup->retrieve(sig);
+    bool            ctrl    = o->isControlled();
     int             d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -246,26 +262,26 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
         // sample-rate signal
         if (d > 0) {
             // used delayed : we need a delay line
-            //cerr << "CHASING BUG 1 " << *sig << endl;
-            //cerr << "CHASING BUG T " << getCertifiedSigType(sig) << endl;
+            // cerr << "CHASING BUG 1 " << *sig << endl;
+            // cerr << "CHASING BUG T " << getCertifiedSigType(sig) << endl;
             getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
-            //cerr << "CHASING BUG N " << ctype << " " << vname << endl;
+            // cerr << "CHASING BUG N " << ctype << " " << vname << endl;
             generateDelayLine(ctype, vname, d, exp, getConditionCode(sig));
             setVectorNameProperty(sig, vname);
 
             if (verySimple(sig)) {
-                //cerr << "CHASING BUG 2 " << exp << endl;
+                // cerr << "CHASING BUG 2 " << exp << endl;
                 return exp;
             } else {
                 if (d < gGlobal->gMaxCopyDelay) {
                     string sss = subst("$0[i]", vname);
-                    //cerr << "CHASING BUG 3 " << sss << endl;
+                    // cerr << "CHASING BUG 3 " << sss << endl;
                     return sss;
                 } else {
                     // we use a ring buffer
                     string mask = T(pow2limit(d + gGlobal->gVecSize) - 1);
                     string sss  = subst("$0[($0_idx+i) & $1]", vname, mask);
-                    //cerr << "CHASING BUG 4 " << sss << endl;
+                    // cerr << "CHASING BUG 4 " << sss << endl;
                     return sss;
                 }
             }
@@ -275,7 +291,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             if (sharing > 1 && isSigFixDelay(sig, x, y) && verySimple(y)) {
                 // cerr << "SPECIAL CASE NO CACHE NEEDED : " << ppsig(sig) << endl;
                 return exp;
-            } else if (sharing > 1 && !verySimple(sig)) {
+            } else if ((ctrl || sharing > 1) && !verySimple(sig)) {
                 // shared and not simple : we need a vector
                 // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
@@ -315,21 +331,25 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     } else if (isProj(sig, &i, x)) {
         // cerr << "REC "; // recursive expressions require a separate loop
         b = true;
-    } else if (c > 1) {
-        // cerr << "SHA(" << c << ") "; // expressions used several times required a separate loop
+    } else if ((c > 1) || (o->hasMultiOccurences())) {
+        cerr << ppsig(sig) << " has multiple occurences " << std::endl;
         b = true;
+    } else if (o->isControlled()) {
+        cerr << ppsig(sig) << " is controlled " << std::endl;
+        b = true;
+
     } else {
         // sample expressions that are not recursive, not delayed
         // and not shared, doesn't require a separate loop.
         b = false;
     }
-    /*
+
     if (b) {
         cerr << "Separate Loop for " << ppsig(sig) << endl;
     } else {
         cerr << "Same Loop for " << ppsig(sig) << endl;
     }
-    */
+
     return b;
 }
 
@@ -448,7 +468,7 @@ void VectorCompiler::generateVectorLoop(const string& tname, const string& vecna
     fClass->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gGlobal->gVecSize)));
 
     // -- compute the new samples
-    fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", vecname, cexp)));
+    fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", vecname, cexp), subst("$0[i] = 0;", vecname)));
 }
 
 /**
@@ -492,13 +512,15 @@ void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
+        fClass->addPreCode(
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize), "pas clair 1"));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp)));
+        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp), "pas clair 2"));
 
         // -- copy back to stored samples
-        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
+        fClass->addPostCode(
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize), "pas clair 3"));
 
     } else {
         // Implementation of a ring-buffer delayline
@@ -523,13 +545,13 @@ void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname
         fClass->addClearCode(subst("$0 = 0;", idx_save));
 
         // -- update index
-        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask)));
+        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask), "pas clair 4"));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask)));
+        fClass->addExecCode(Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask), "pas clair 5"));
 
         // -- save index
-        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save)));
+        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save), "pas clair 6"));
     }
 }
 
@@ -539,6 +561,7 @@ string VectorCompiler::generateWaveform(Tree sig)
     int    size;
 
     declareWaveform(sig, vname, size);
-    fClass->addPostCode(Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + count) % $1;", vname, T(size))));
+    fClass->addPostCode(
+        Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + count) % $1;", vname, T(size)), "pas clair 7"));
     return generateCacheCode(sig, subst("$0[(idx$0+i)%$1]", vname, T(size)));
 }

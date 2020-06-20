@@ -51,6 +51,8 @@ old_Occurences::old_Occurences(int v, int r, Tree xc) : fXVariability(xVariabili
     for (int i = 0; i < 4; i++) fOccurences[i] = 0;
     fMultiOcc      = false;
     fOutDelayOcc   = false;
+    fIsControlled  = false;
+    fIsCondition   = false;
     fMinDelay      = 0;
     fMaxDelay      = 0;
     fExecCondition = xc;
@@ -73,7 +75,7 @@ old_Occurences* old_Occurences::incOccurences(int v, int r, int d, Tree xc)
 
     // check if used in different execution conditions
     if (fExecCondition != xc) {
-        fMultiOcc = true;
+        fIsControlled = true;
     }
     return this;
 }
@@ -86,6 +88,11 @@ bool old_Occurences::hasMultiOccurences() const
 bool old_Occurences::hasOutDelayOccurences() const
 {
     return fOutDelayOcc;
+}
+
+bool old_Occurences::isControlled() const
+{
+    return fIsControlled;
 }
 
 int old_Occurences::getMaxDelay() const
@@ -169,6 +176,11 @@ void old_OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             incOcc(env, v0, r0, 0, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
             incOcc(env, v0, r0, 0, c0, z);
+        } else if (isSigControl(t, x, y)) {
+            // x and y have implicit mutiple occurences
+            incOcc(env, v0, r0, 0, c0, x);
+            incOcc(env, v0, r0, 0, c0, y);
+
         } else {
             vector<Tree> br;
             int          n = getSubSignals(t, br);

@@ -22,24 +22,45 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
 
+#include <iostream>
+#include <sstream>
 #include <string>
 
 // implements a code statement with an optional condition
 
+/**
+ * @brief A code statement, regular or if-then-else
+ *
+ */
 class Statement {
    private:
-    const bool fHasCondition;
+    const bool        fHasCondition;
     const std::string fCondition;
-    const std::string fCode;
+    const std::string fThenCode;
+    const std::string fElseCode;
 
    public:
-    Statement(const std::string& condition, const std::string& code)
-    : fHasCondition(true), fCondition(condition), fCode(code) {}
+    Statement(const std::string& condition, const std::string& thencode, const std::string& elsecode)
+        : fHasCondition(true), fCondition(condition), fThenCode(thencode), fElseCode(elsecode)
+    {
+    }
+    Statement(const std::string& thencode) : fHasCondition(false), fCondition(""), fThenCode(thencode), fElseCode("") {}
 
-    bool  hasCondition() { return fHasCondition; }
-    bool  hasCondition(const std::string& cond) { return (fCondition == cond); }
-    const std::string& condition() { return fCondition; }
-    const std::string& code() { return fCode; }
+    bool               hasCondition() const { return fHasCondition; }
+    bool               hasCondition(const std::string& cond) const { return (fCondition == cond); }
+    const std::string& condition() const { return fCondition; }
+    const std::string& thenCode() const { return fThenCode; }
+    const std::string& elseCode() const { return fElseCode; }
+
+    friend std::ostream& operator<<(std::ostream& out, const Statement& stmt)
+    {
+        if (stmt.hasCondition()) {
+            return out << "if (" << stmt.condition() << ") {" << stmt.thenCode() << "} else {" << stmt.elseCode()
+                       << "}";
+        } else {
+            return out << stmt.thenCode();
+        }
+    }
 };
 
 #endif  // STATEMENT_H
