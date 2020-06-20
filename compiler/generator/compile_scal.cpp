@@ -1417,41 +1417,81 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 
     // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
     string ccs = getConditionCode(sig);
-    faustassert(ccs.size() == 0);
+    // faustassert(ccs.size() == 0);
 
-    if (mxd < gGlobal->gMaxCopyDelay) {
-        // short delay : we copy
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
-        fClass->addExecCode(Statement(subst("$0[0] = $1;", vname, exp)));
+    if (ccs.size() == 0) {
+        if (mxd < gGlobal->gMaxCopyDelay) {
+            // short delay : we copy
+            fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+            fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
+            fClass->addExecCode(Statement(subst("$0[0] = $1;", vname, exp)));
 
-        // generate post processing copy code to update delay values
-        if (mxd == 1) {
-            fClass->addPostCode(Statement(subst("$0[1] = $0[0];", vname)));
-        } else if (mxd == 2) {
-            // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-            fClass->addPostCode(Statement(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
+            // generate post processing copy code to update delay values
+            if (mxd == 1) {
+                fClass->addPostCode(Statement(subst("$0[1] = $0[0];", vname)));
+            } else if (mxd == 2) {
+                // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
+                fClass->addPostCode(Statement(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname)));
+            } else {
+                fClass->addPostCode(Statement(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
+            }
+            setVectorNameProperty(sig, vname);
+            return subst("$0[0]", vname);
+
         } else {
-            fClass->addPostCode(Statement(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname)));
+            // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+            int N = pow2limit(mxd + 1);
+
+            // we need an iota index
+            fMaxIota = 0;
+
+            // declare and init
+            fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+            fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+
+            // execute
+            fClass->addExecCode(Statement(subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
+            setVectorNameProperty(sig, vname);
+            return subst("$0[IOTA&$1]", vname, T(N - 1));
         }
-        setVectorNameProperty(sig, vname);
-        return subst("$0[0]", vname);
-
     } else {
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int N = pow2limit(mxd + 1);
+        std::cout << " we have a condition on this delay line " << ccs << endl;
+        if (mxd < gGlobal->gMaxCopyDelay) {
+            // short delay : we copy
+            fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
+            fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd + 1)));
+            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp), "//M DL 1"));
 
-        // we need an iota index
-        fMaxIota = 0;
+            // generate post processing copy code to update delay values
+            if (mxd == 1) {
+                fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname), "//M DL 2"));
+            } else if (mxd == 2) {
+                // fClass->addPostCode(subst("$0[2] = $0[1];", vname));
+                fClass->addPostCode(Statement(ccs, subst("$0[2] = $0[1]; $0[1] = $0[0];", vname), "//M DL 3"));
+            } else {
+                fClass->addPostCode(
+                    Statement(ccs, subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname), "//M DL 4"));
+            }
+            setVectorNameProperty(sig, vname);
+            return subst("$0[0]", vname);
 
-        // declare and init
-        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+        } else {
+            // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+            int N = pow2limit(mxd + 1);
 
-        // execute
-        fClass->addExecCode(Statement(subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
-        setVectorNameProperty(sig, vname);
-        return subst("$0[IOTA&$1]", vname, T(N - 1));
+            // we need an iota index
+            fMaxIota = 0;
+
+            // declare and init
+            fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+            fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+
+            // execute
+            fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2; //M DL 5", vname, T(N - 1), exp),
+                                          subst("$0[IOTA&$1] = 0; //M DL 6", vname, T(N - 1))));
+            setVectorNameProperty(sig, vname);
+            return subst("$0[IOTA&$1]", vname, T(N - 1));
+        }
     }
 }
 

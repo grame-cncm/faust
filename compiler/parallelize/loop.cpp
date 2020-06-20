@@ -31,7 +31,7 @@ using namespace std;
  * @param lines list of lines to be printed
  * @param fout output stream
  */
-static void printlines(int n, list<Statement>& lines, ostream& fout)
+static void XXXprintlines(int n, list<Statement>& lines, ostream& fout)
 {
     list<Statement>::iterator s;
     string                    ccond = "";
@@ -69,6 +69,14 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
         fout << "}";
     }
 }
+
+/**
+ * @brief
+ *
+ * @param n
+ * @param lines
+ * @param fout
+ */
 static void printThenLines(int n, list<Statement>& lines, ostream& fout)
 {
     for (auto s : lines) {
@@ -76,12 +84,78 @@ static void printThenLines(int n, list<Statement>& lines, ostream& fout)
         fout << s.thenCode();
     }
 }
+
+/**
+ * @brief
+ *
+ * @param n
+ * @param lines
+ * @param fout
+ */
 static void printElseLines(int n, list<Statement>& lines, ostream& fout)
 {
     for (auto s : lines) {
         tab(n, fout);
         fout << s.elseCode();
     }
+}
+
+/**
+ * @brief Print a group of statements with a common condition
+ *
+ * @param n indentation
+ * @param ccond possibly empty common condition
+ * @param group list of statements
+ * @param fout output stream
+ */
+static void printSameCondGroup(int n, const string& ccond, list<Statement>& group, ostream& fout)
+{
+    if (ccond.size() == 0) {
+        printThenLines(n, group, fout);
+    } else {
+        tab(n, fout);
+        fout << "if (" << ccond << ") {";
+        printThenLines(n + 1, group, fout);
+        tab(n, fout);
+        fout << "} else {";
+        printElseLines(n + 1, group, fout);
+        tab(n, fout);
+        fout << "}";
+    }
+}
+
+/**
+ * @brief print a group of lines with arbitrary conditions
+ *
+ * @param n
+ * @param lines
+ * @param fout
+ */
+static void printlines(int n, list<Statement>& lines, ostream& fout)
+{
+    bool            newgroup = true;  // we are starting a new group of same condition
+    list<Statement> group;            // group of lines of same condition
+    string          ccond;            // current condition
+
+    for (auto s : lines) {
+        if (newgroup) {
+            // we start a new group
+            group.clear();
+            ccond = s.condition();
+            group.push_back(s);
+        } else if (ccond == s.condition()) {
+            // same group
+            group.push_back(s);
+        } else {
+            // we end and print the current group
+            printSameCondGroup(n, ccond, group, fout);
+            // we start a new group
+            group.clear();
+            ccond = s.condition();
+            group.push_back(s);
+        }
+    }
+    printSameCondGroup(n, ccond, group, fout);
 }
 
 /**
@@ -250,7 +324,7 @@ void Loop::println(int n, ostream& fout)
             tab(n, fout);
             fout << "}";
         } else {
-            fout << "for (int i=0; i<" << fSize << "; i++) {";
+            fout << "for (int i=0; i<" << fSize << "; i++) { // no cond";
             printlines(n + 1, fExecCode, fout);
             tab(n, fout);
             fout << "}";

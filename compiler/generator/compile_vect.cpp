@@ -513,14 +513,14 @@ void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname
 
         // -- copy the stored samples to the delay line
         fClass->addPreCode(
-            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize), "pas clair 1"));
+            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize), "// rien à faire  1"));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp), "pas clair 2"));
+        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp), "// rien à faire  2"));
 
         // -- copy back to stored samples
-        fClass->addPostCode(
-            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize), "pas clair 3"));
+        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize),
+                                      "// rien à faire  3"));
 
     } else {
         // Implementation of a ring-buffer delayline
@@ -545,13 +545,14 @@ void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname
         fClass->addClearCode(subst("$0 = 0;", idx_save));
 
         // -- update index
-        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask), "pas clair 4"));
+        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask), "// rien à faire  4"));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask), "pas clair 5"));
+        fClass->addExecCode(
+            Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask), "// rien à faire  5"));
 
         // -- save index
-        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save), "pas clair 6"));
+        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save), "// rien à faire  6"));
     }
 }
 
