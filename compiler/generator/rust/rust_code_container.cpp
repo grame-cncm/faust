@@ -172,14 +172,6 @@ void RustCodeContainer::produceClass()
 {
     int n = 0;
 
-    // Ignore the following warning
-    /*
-    tab(n, *fOut); *fOut << "#![allow(unused_parens)]";
-    tab(n, *fOut); *fOut << "#![allow(non_snake_case)]";
-    tab(n, *fOut); *fOut << "#![allow(non_camel_case_types)]";
-    */
-    // tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation";
-
     // Sub containers
     generateSubContainers();
 
@@ -388,8 +380,6 @@ void RustCodeContainer::produceMetadata(int n)
 void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
                                              TextInstVisitor* producer)
 {
-    // TODO: This sometimes omits the info functions for some reason.
-    // Do we need a manual implementation (sketched below)?
     producer->Tab(tabs);
     generateGetInputs(subst("get_num_inputs$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
     generateGetOutputs(subst("get_num_outputs$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
@@ -487,7 +477,6 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     back(1, *fOut);
     *fOut << "}" << endl;
 }
-
 
 // Works stealing scheduler
 RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs,
