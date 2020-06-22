@@ -16,7 +16,7 @@ use std::env;
 use num_traits::{cast::FromPrimitive, float::Float};
 
 pub trait FaustDsp {
-    type Float;
+    type REAL;
 
     fn new() -> Self where Self: Sized;
     fn metadata(&mut self, m: &mut dyn Meta);
@@ -31,8 +31,8 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Float>);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::REAL>);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]);
 }
 
 pub trait Meta {
@@ -102,7 +102,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
 
 const SAMPLE_RATE: i32 = 44100;
 
-type Dsp64 = dyn FaustDsp<Float=f64>;
+type Dsp64 = dyn FaustDsp<REAL=f64>;
 
 fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut File) {
     dsp.init(SAMPLE_RATE);
@@ -112,7 +112,7 @@ fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut
 }
 
 fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, output_file: &mut File) {
-    type FloatType = <Dsp64 as FaustDsp>::Float;
+    type RealType = <Dsp64 as FaustDsp>::REAL;
 
     // Generation constants
     let buffer_size = 64usize;
@@ -124,8 +124,8 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
     let num_outputs = dsp.get_num_outputs() as usize;
 
     // Prepare buffers
-    let mut in_buffer = vec![vec![0 as FloatType; buffer_size]; num_inputs];
-    let mut out_buffer = vec![vec![0 as FloatType; buffer_size]; num_outputs];
+    let mut in_buffer = vec![vec![0 as RealType; buffer_size]; num_inputs];
+    let mut out_buffer = vec![vec![0 as RealType; buffer_size]; num_outputs];
 
     // Compute
     let mut cycle = 0;
@@ -153,8 +153,8 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
 
         dsp.compute(
             buffer_size as i32,
-            in_buffer.iter().map(|buffer| buffer.as_slice()).collect::<Vec<&[FloatType]>>().as_slice(),
-            out_buffer.iter_mut().map(|buffer| buffer.as_mut_slice()).collect::<Vec<&mut [FloatType]>>().as_mut_slice(),
+            in_buffer.iter().map(|buffer| buffer.as_slice()).collect::<Vec<&[RealType]>>().as_slice(),
+            out_buffer.iter_mut().map(|buffer| buffer.as_mut_slice()).collect::<Vec<&mut [RealType]>>().as_mut_slice(),
         );
 
         // handle outputs

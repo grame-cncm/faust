@@ -117,14 +117,14 @@ void RustCodeContainer::produceInternal()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    produceInfoFunctions(n + 1);
+    produceInfoFunctions(n + 1, fKlassName, "&mut self", false, false, &fCodeProducer);
 
     // Init
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
 
     tab(n + 1, *fOut);
-    *fOut << "pub fn instance_init_" << fKlassName << "(&mut self, sample_rate: i32) {";
+    *fOut << "fn instance_init" << fKlassName << "(&mut self, sample_rate: i32) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -138,10 +138,10 @@ void RustCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
+        *fOut << "fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
+        *fOut << "fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -207,10 +207,9 @@ void RustCodeContainer::produceClass()
     *fOut << "impl FaustDsp for " << fKlassName << " {";
 
     // Associated type
-    tab(n + 2, *fOut);
-    *fOut << "type Float = " << ifloat() << ";";
-    tab(n + 2, *fOut);
-
+    tab(n + 1, *fOut);
+    *fOut << "type REAL = " << ifloat() << ";";
+   
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
@@ -258,7 +257,7 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     generateGetSampleRate("get_sample_rate", "&mut self", false, false)->accept(&fCodeProducer);
 
-    produceInfoFunctions(n + 1);
+    produceInfoFunctions(n + 1, "", "&mut self", false, false, &fCodeProducer);
 
     // Inits
 
@@ -340,7 +339,7 @@ void RustCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Float>) {";
+    *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::REAL>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -386,29 +385,19 @@ void RustCodeContainer::produceMetadata(int n)
     *fOut << "}" << endl;
 }
 
-void RustCodeContainer::produceInfoFunctions(int tabs)
+void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
+                                             TextInstVisitor* producer)
 {
     // TODO: This sometimes omits the info functions for some reason.
     // Do we need a manual implementation (sketched below)?
-    generateGetInputs("get_num_inputs", "&mut self", false, false)->accept(&fCodeProducer);
-    generateGetOutputs("get_num_outputs", "&mut self", false, false)->accept(&fCodeProducer);
-    generateGetInputRate("get_input_rate", "&mut self", false, false)->accept(&fCodeProducer);
-    generateGetOutputRate("get_output_rate", "&mut self", false, false)->accept(&fCodeProducer);
-    /*
-    tab(tabs, *fOut);
-    *fOut << "fn get_num_inputs() {";
-    {
-        tab(tabs + 1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
-        RustInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n + 2);
-        // ...
-    }
-    back(1, *fOut);
-    *fOut << "}";
-    */
+    producer->Tab(tabs);
+    generateGetInputs(subst("get_num_inputs$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
+    generateGetOutputs(subst("get_num_outputs$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
+    producer->Tab(tabs);
+    generateGetInputRate(subst("get_input_rate$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
+    producer->Tab(tabs);
+    generateGetOutputRate(subst("get_output_rate$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
 }
-
 
 // Scalar
 RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
@@ -418,17 +407,13 @@ RustScalarCodeContainer::RustScalarCodeContainer(const string& name, int numInpu
     fSubContainerType = sub_container_type;
 }
 
-RustScalarCodeContainer::~RustScalarCodeContainer()
-{
-}
-
 void RustScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -449,10 +434,6 @@ RustVectorCodeContainer::RustVectorCodeContainer(const string& name, int numInpu
 {
 }
 
-RustVectorCodeContainer::~RustVectorCodeContainer()
-{
-}
-
 void RustVectorCodeContainer::generateCompute(int n)
 {
     // Possibly generate separated functions
@@ -463,7 +444,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -493,7 +474,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -507,18 +488,11 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     *fOut << "}" << endl;
 }
 
-RustOpenMPCodeContainer::~RustOpenMPCodeContainer()
-{
-}
 
 // Works stealing scheduler
 RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs,
                                                              std::ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "dsp"), RustCodeContainer(name, numInputs, numOutputs, out)
-{
-}
-
-RustWorkStealingCodeContainer::~RustWorkStealingCodeContainer()
 {
 }
 
@@ -546,7 +520,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     // Compute "compute" declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Float]], outputs: &mut[&mut[Self::Float]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 

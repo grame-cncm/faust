@@ -23,6 +23,7 @@
 #define _RUST_INSTRUCTIONS_H
 
 #include "text_instructions.hh"
+#include "Text.hh"
 
 using namespace std;
 
@@ -415,7 +416,13 @@ class RustInstVisitor : public TextInstVisitor {
             // Compile object arg
             (*it)->accept(this);
             // Compile parameters
-            *fOut << fObjectAccess << fun_name << "(";
+            *fOut << fObjectAccess;
+            // Hack for 1 FIR generated names
+            if (startWith(fun_name, "instanceInit")) {
+                *fOut << "instance_init" << fun_name.substr(12) << "(";
+            } else {
+                *fOut << fun_name << "(";
+            }
             generateFunCallArgs(++it, inst->fArgs.end(), int(inst->fArgs.size()) - 1);
         } else {
             *fOut << fun_name << "(";

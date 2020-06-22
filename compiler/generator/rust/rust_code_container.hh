@@ -55,7 +55,7 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual void              generateCompute(int tab) = 0;
     void                      produceInternal();
     virtual dsp_factory_base* produceFactory();
-    virtual void              produceInfoFunctions(int tabs);
+    virtual void              produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,TextInstVisitor* producer);
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
@@ -68,7 +68,8 @@ class RustScalarCodeContainer : public RustCodeContainer {
    public:
     RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type);
-    virtual ~RustScalarCodeContainer();
+    virtual ~RustScalarCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
@@ -77,7 +78,8 @@ class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeConta
    protected:
    public:
     RustVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~RustVectorCodeContainer();
+    virtual ~RustVectorCodeContainer()
+    {}
 
     void generateCompute(int n);
 };
@@ -86,7 +88,8 @@ class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeConta
    protected:
    public:
     RustOpenMPCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~RustOpenMPCodeContainer();
+    virtual ~RustOpenMPCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
@@ -95,7 +98,8 @@ class RustWorkStealingCodeContainer : public WSSCodeContainer, public RustCodeCo
    protected:
    public:
     RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~RustWorkStealingCodeContainer();
+    virtual ~RustWorkStealingCodeContainer()
+    {}
 
     void generateCompute(int tab);
 };
