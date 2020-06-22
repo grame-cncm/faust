@@ -16,7 +16,7 @@ use std::env;
 use num_traits::{cast::FromPrimitive, float::Float};
 
 pub trait FaustDsp {
-    type REAL;
+    type Sample;
 
     fn new() -> Self where Self: Sized;
     fn metadata(&mut self, m: &mut dyn Meta);
@@ -31,8 +31,8 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::REAL>);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
 }
 
 pub trait Meta {
@@ -102,7 +102,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
 
 const SAMPLE_RATE: i32 = 44100;
 
-type Dsp64 = dyn FaustDsp<REAL=f64>;
+type Dsp64 = dyn FaustDsp<Sample=f64>;
 
 fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut File) {
     dsp.init(SAMPLE_RATE);
@@ -112,7 +112,7 @@ fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut
 }
 
 fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, output_file: &mut File) {
-    type RealType = <Dsp64 as FaustDsp>::REAL;
+    type RealType = <Dsp64 as FaustDsp>::Sample;
 
     // Generation constants
     let buffer_size = 64usize;

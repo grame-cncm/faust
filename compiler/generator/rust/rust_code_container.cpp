@@ -208,7 +208,7 @@ void RustCodeContainer::produceClass()
 
     // Associated type
     tab(n + 1, *fOut);
-    *fOut << "type REAL = " << ifloat() << ";";
+    *fOut << "type Sample = " << ifloat() << ";";
    
     // Memory methods
     tab(n + 2, *fOut);
@@ -339,7 +339,7 @@ void RustCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::REAL>) {";
+    *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -413,7 +413,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -444,7 +444,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -474,7 +474,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -520,7 +520,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     // Compute "compute" declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 

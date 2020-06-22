@@ -31,7 +31,7 @@ use std::io;
 extern crate libm;
 
 pub trait FaustDsp {
-    type REAL;
+    type Sample;
 
     fn new() -> Self where Self: Sized;
     fn metadata(&mut self, m: &mut dyn Meta);
@@ -46,8 +46,8 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::REAL>);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::REAL]], outputs: &mut[&mut[Self::REAL]]);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
 }
 
 pub trait Meta {
