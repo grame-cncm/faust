@@ -266,6 +266,25 @@ void Loop::absorb(Loop* l)
     fPostCode.insert(fPostCode.begin(), l->fPostCode.begin(), l->fPostCode.end());
 }
 
+const string Loop::getCommonCondition()
+{
+    if (fCond.size() > 0) {
+        return fCond;
+    } else {
+        bool   init = true;
+        string CC;
+        for (auto s : fExecCode) {
+            if (init) {
+                CC   = s.condition();
+                init = false;
+            } else {
+                if (CC != s.condition()) return "";
+            }
+        }
+        return CC;
+    }
+}
+
 /**
  * Print a loop (unless it is empty)
  * @param n number of tabs of indentation
@@ -307,8 +326,9 @@ void Loop::println(int n, ostream& fout)
         tab(n, fout);
         fout << "// exec code";
         tab(n, fout);
-        if (fCond.size() > 0) {
-            fout << "if (" << fCond << ") {";
+        string CC = getCommonCondition();
+        if (CC.size() > 0) {
+            fout << "if (" << CC << ") {";
             tab(n + 1, fout);
             fout << "for (int i=0; i<" << fSize << "; i++) {";
             printThenLines(n + 2, fExecCode, fout);

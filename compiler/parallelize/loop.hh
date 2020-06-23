@@ -73,8 +73,9 @@ struct Loop {
     Loop(Tree recsymbol, Loop* encl, const string& size, const string& cond);  ///< create a recursive loop
     Loop(Loop* encl, const string& size, const string& cond);                  ///< create a non recursive loop
 
-    bool isEmpty();                   ///< true when the loop doesn't contain any line of code
-    bool hasRecDependencyIn(Tree S);  ///< returns true is this loop or its ancestors define a symbol in S
+    const string getCommonCondition();
+    bool         isEmpty();                   ///< true when the loop doesn't contain any line of code
+    bool         hasRecDependencyIn(Tree S);  ///< returns true is this loop or its ancestors define a symbol in S
 
     void addPreCode(const Statement& str);      ///< add a line of C++ code pre code
     void addExecCode(const Statement& str);     ///< add a line of C++ code
