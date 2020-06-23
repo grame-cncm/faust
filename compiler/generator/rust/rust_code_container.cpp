@@ -117,7 +117,7 @@ void RustCodeContainer::produceInternal()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    produceInfoFunctions(n + 1, fKlassName, "&mut self", false, false, &fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "&self", false, false, &fCodeProducer);
 
     // Init
     // TODO
@@ -201,7 +201,7 @@ void RustCodeContainer::produceClass()
     // Associated type
     tab(n + 1, *fOut);
     *fOut << "type Sample = " << ifloat() << ";";
-   
+
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
@@ -247,9 +247,9 @@ void RustCodeContainer::produceClass()
     // Get sample rate method
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
-    generateGetSampleRate("get_sample_rate", "&mut self", false, false)->accept(&fCodeProducer);
+    generateGetSampleRate("get_sample_rate", "&self", false, false)->accept(&fCodeProducer);
 
-    produceInfoFunctions(n + 1, "", "&mut self", false, false, &fCodeProducer);
+    produceInfoFunctions(n + 1, "", "&self", false, false, &fCodeProducer);
 
     // Inits
 
@@ -349,7 +349,7 @@ void RustCodeContainer::produceClass()
 void RustCodeContainer::produceMetadata(int n)
 {
     tab(n, *fOut);
-    *fOut << "fn metadata(&mut self, m: &mut dyn Meta) { ";
+    *fOut << "fn metadata(&self, m: &mut dyn Meta) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (auto& i : gGlobal->gMetaDataSet) {
@@ -381,12 +381,12 @@ void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
                                              TextInstVisitor* producer)
 {
     producer->Tab(tabs);
-    generateGetInputs(subst("get_num_inputs$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
-    generateGetOutputs(subst("get_num_outputs$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
+    generateGetInputs(subst("get_num_inputs$0", classname), obj, false, false)->accept(&fCodeProducer);
+    generateGetOutputs(subst("get_num_outputs$0", classname), obj, false, false)->accept(&fCodeProducer);
     producer->Tab(tabs);
-    generateGetInputRate(subst("get_input_rate$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
+    generateGetInputRate(subst("get_input_rate$0", classname), obj, false, false)->accept(&fCodeProducer);
     producer->Tab(tabs);
-    generateGetOutputRate(subst("get_output_rate$0", classname), "&mut self", false, false)->accept(&fCodeProducer);
+    generateGetOutputRate(subst("get_output_rate$0", classname), obj, false, false)->accept(&fCodeProducer);
 }
 
 // Scalar
