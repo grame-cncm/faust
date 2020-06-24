@@ -97,7 +97,7 @@ class soulpatch_dsp : public dsp {
         std::vector<ZoneParam*> fInputsControl;
         std::vector<ZoneParam*> fOutputsControl;
     
-        soul::patch::PatchPlayer::Ptr fPlayer;
+        soul::patch::PatchPlayer* fPlayer;
         soul::patch::PatchPlayerConfiguration fConfig;
         soul::patch::PatchPlayer::RenderContext fRenderContext;
     
@@ -183,7 +183,7 @@ class soulpatch_dsp : public dsp {
                         for (int j = 0; j < names.size(); j++) {
                             std::string key = names[j];
                             if (key == "unit") {
-                                ui_interface->declare(zone, key.c_str(), params[i]->getProperty(names[j]));
+                                ui_interface->declare(zone, key.c_str(), params[i]->getProperty(names[j])->getCharPointer());
                             }
                         }
                         
@@ -341,13 +341,13 @@ class soul_dsp_factory : public dsp_factory {
     
         struct FaustSOULFile : public soul::patch::VirtualFile {
             
-            virtual soul::patch::String::Ptr getName() { return {}; }
+            virtual soul::patch::String* getName() { return {}; }
             
-            virtual soul::patch::String::Ptr getAbsolutePath() { return {}; }
+            virtual soul::patch::String* getAbsolutePath() { return {}; }
             
-            virtual soul::patch::VirtualFile::Ptr getParent() { return {}; }
+            virtual soul::patch::VirtualFile* getParent() { return {}; }
             
-            virtual soul::patch::VirtualFile::Ptr getChildFile (const char* subPath) { return {}; }
+            virtual soul::patch::VirtualFile* getChildFile (const char* subPath) { return {}; }
             
             virtual int64_t getSize() { return 0; }
             
@@ -359,7 +359,7 @@ class soul_dsp_factory : public dsp_factory {
     
         struct FaustSourceFilePreprocessor : public soul::patch::SourceFilePreprocessor {
             
-            virtual soul::patch::VirtualFile::Ptr preprocessSourceFile (soul::patch::VirtualFile& inputFile) override
+            virtual soul::patch::VirtualFile* preprocessSourceFile (soul::patch::VirtualFile& inputFile) override
             {
                 return {};
             }
