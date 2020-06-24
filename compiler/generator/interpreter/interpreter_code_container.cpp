@@ -281,10 +281,13 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 template <class T>
 FBCBlockInstruction<T>* InterpreterScalarCodeContainer<T>::generateCompute()
 {
-    // Generate one single scalar loop
-    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(fFullCount);
-
-    loop->accept(gGlobal->gInterpreterVisitor);
+    BlockInst* compute_block = InstBuilder::genBlockInst();
+    compute_block->pushBackInst(this->fCurLoop->generateScalarLoop(fFullCount));
+                                
+    // Generates post DSP loop code
+    compute_block->pushBackInst(this->fPostComputeBlockInstructions);
+    
+    compute_block->accept(gGlobal->gInterpreterVisitor);
     return getCurrentBlock<T>();
 }
 

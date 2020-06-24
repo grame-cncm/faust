@@ -845,7 +845,7 @@ static void printHelp()
             "samples)."
          << endl;
     cout << tab
-        << "-dlt <n>    --delay-line-threshold <n>   threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
+        << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
            "samples)."
         << endl;
     cout << tab
@@ -1307,11 +1307,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gAllowForeignFunction = false;  // No foreign functions
         gGlobal->gAllowForeignConstant = false;  // No foreign constant
         gGlobal->gAllowForeignVar      = false;  // No foreign variable
-        gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
+        //gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
+        
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOAT2Internal = true;
-        gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-        gGlobal->gRemoveVarAddress     = true;   // To be used in -vec mode
+        gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+        gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);

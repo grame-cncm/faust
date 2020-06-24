@@ -78,6 +78,7 @@ struct DropInst;
 
 struct FunCallInst;
 struct Select2Inst;
+struct ControlInst;
 struct IfInst;
 struct ForLoopInst;
 struct SimpleForLoopInst;
@@ -223,8 +224,9 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(RetInst* inst) {}
     virtual void visit(DropInst* inst) {}
 
-    // Conditionnal
+    // Conditional
     virtual void visit(Select2Inst* inst) {}
+    virtual void visit(ControlInst* inst) {}
     virtual void visit(IfInst* inst) {}
     virtual void visit(SwitchInst* inst) {}
 
@@ -292,8 +294,9 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(RetInst* inst)     = 0;
     virtual StatementInst* visit(DropInst* inst)    = 0;
 
-    // Conditionnal
+    // Conditional
     virtual ValueInst*     visit(Select2Inst* inst) = 0;
+    virtual StatementInst* visit(ControlInst* inst) = 0;
     virtual StatementInst* visit(IfInst* inst)      = 0;
     virtual StatementInst* visit(SwitchInst* inst)  = 0;
 
@@ -1086,6 +1089,27 @@ struct Select2Inst : public ValueInst {
     virtual int size() const { return std::max(fThen->size(), fElse->size()); }
 };
 
+// Contains a condition (derived from 'enable/contol') and a statement to be computed if the cond is true
+struct ControlInst : public StatementInst {
+    ValueInst* fCond;
+    StatementInst* fStatement;
+    
+    ControlInst(ValueInst* cond_inst, StatementInst* exp_inst)
+    : fCond(cond_inst), fStatement(exp_inst)
+    {
+    }
+    
+    virtual ~ControlInst() {}
+    
+    // Test if (cond == fCond)
+    bool hasCondition(ValueInst* cond);
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+};
+
 struct IfInst : public StatementInst {
     ValueInst* fCond;
     BlockInst* fThen;
@@ -1347,7 +1371,7 @@ class BasicCloneVisitor : public CloneVisitor {
         return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
 
-    // Conditionnal
+    // Conditional
     virtual ValueInst* visit(Select2Inst* inst)
     {
         ValueInst* then_exp = inst->fThen->clone(this);
@@ -1356,6 +1380,12 @@ class BasicCloneVisitor : public CloneVisitor {
         // cond_exp has to be evaluated last for FunctionInliner to correctly work in gHasTeeLocal mode
         return new Select2Inst(cond_exp, then_exp, else_exp);
     }
+    
+    virtual StatementInst* visit(ControlInst* inst)
+    {
+        return new ControlInst(inst->fCond->clone(this), inst->fStatement->clone(this));
+    }
+    
     virtual StatementInst* visit(IfInst* inst)
     {
         return new IfInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fThen->clone(this)),
@@ -1538,7 +1568,13 @@ struct DispatchVisitor : public InstVisitor {
         inst->fThen->accept(this);
         inst->fElse->accept(this);
     }
-
+    
+    virtual void visit(ControlInst* inst)
+    {
+        inst->fCond->accept(this);
+        inst->fStatement->accept(this);
+    }
+  
     virtual void visit(IfInst* inst)
     {
         inst->fCond->accept(this);
@@ -1682,6 +1718,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
     virtual void visit(FunCallInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(Select2Inst* inst) { Dispatch2Visitor(inst); }
+    
 };
 
 // ===================
@@ -1952,6 +1989,13 @@ struct InstBuilder {
     {
         return new Select2Inst(cond_inst, then_inst, else_inst);
     }
+    
+    static StatementInst* genControlInst(ValueInst* cond_inst, StatementInst* exp_inst)
+    {
+        // If called with a NullValueInst, then the exp_inst is going to be always computed
+        return (dynamic_cast<NullValueInst*>(cond_inst)) ? exp_inst : new ControlInst(cond_inst, exp_inst);
+    }
+    
     static IfInst* genIfInst(ValueInst* cond_inst, BlockInst* then_inst, BlockInst* else_inst)
     {
         return new IfInst(cond_inst, then_inst, else_inst);

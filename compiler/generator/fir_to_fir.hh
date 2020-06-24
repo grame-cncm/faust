@@ -22,49 +22,51 @@
 #ifndef _FIR_TO_FIR_H
 #define _FIR_TO_FIR_H
 
+#include <stack>
+
 #include "code_container.hh"
 #include "fir_instructions.hh"
 #include "instructions.hh"
 #include "typing_instructions.hh"
 
 // Tools to dump FIR
-inline void dump2FIR(StatementInst* inst, std::ostream* out = &cerr)
+inline void dump2FIR(StatementInst* inst, std::ostream* out = &cerr, bool complete = true)
 {
     std::stringstream str;
-    str << "========== dump2FIR " << inst << " statement begin ========== " << std::endl;
+    if (complete) str << "========== dump2FIR " << inst << " statement begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     inst->accept(&fir_visitor);
-    str << "========== dump2FIR statement end ==========" << std::endl;
+    if (complete) str << "========== dump2FIR statement end ==========" << std::endl;
     *out << str.str();
 }
 
-inline void dump2FIR(ValueInst* value, std::ostream* out = &cerr)
+inline void dump2FIR(ValueInst* value, std::ostream* out = &cerr, bool complete = true)
 {
     std::stringstream str;
-    str << "========== dump2FIR " << value << " value begin ========== " << std::endl;
+    if (complete) str << "========== dump2FIR " << value << " value begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     value->accept(&fir_visitor);
-    str << "\n========== dump2FIR value end ==========" << std::endl;
+    if (complete) str << "\n========== dump2FIR value end ==========" << std::endl;
     *out << str.str();
 }
 
-inline void dump2FIR(Address* address, std::ostream* out = &cerr)
+inline void dump2FIR(Address* address, std::ostream* out = &cerr, bool complete = true)
 {
     std::stringstream str;
-    str << "========== dump2FIR " << address << " address begin ========== " << std::endl;
+    if (complete) str << "========== dump2FIR " << address << " address begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     address->accept(&fir_visitor);
-    str << "\n========== dump2FIR address end ==========" << std::endl;
+    if (complete) str << "\n========== dump2FIR address end ==========" << std::endl;
     *out << str.str();
 }
 
-inline void dump2FIR(Typed* type, std::ostream* out = &cerr)
+inline void dump2FIR(Typed* type, std::ostream* out = &cerr, bool complete = true)
 {
     std::stringstream str;
-    str << "========== dump2FIR " << type << " type begin ========== " << std::endl;
+    if (complete) str << "========== dump2FIR " << type << " type begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     str << fir_visitor.generateType(type);
-    str << "\n========== dump2FIR type end ==========" << std::endl;
+    if (complete) str << "\n========== dump2FIR type end ==========" << std::endl;
     *out << str.str();
 }
 
@@ -411,6 +413,8 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
 
 // Inlining tools
 
+// TODO : stack variables should be renamed since inlining the same function several times will create variables name clash
+
 struct FunctionInliner {
     map<string, string> fVarTable;
 
@@ -705,6 +709,40 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     }
 
     BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
+};
+
+// Expand and rewrite ControlInst as 'IF (cond) {....}' instructions
+struct ControlExpander : public BasicCloneVisitor {
+    
+    // To keep the current condition with the IfInst block which is progressively filled
+    struct IfBlock {
+        
+        ValueInst* fCond;
+        IfInst* fIfInst;
+        
+        IfBlock() { init(); }
+        void init()
+        {
+            fCond = nullptr;
+            fIfInst = nullptr;
+        }
+    };
+    
+    std::stack<BlockInst*> fBlockStack;
+    std::stack<IfBlock> fIfBlockStack;
+    
+    void beginCond(ControlInst* inst);
+    void continueCond(ControlInst* inst);
+    void endCond();
+    
+    StatementInst* visit(ControlInst* inst);
+    StatementInst* visit(BlockInst* inst);
+   
+    BlockInst* getCode(BlockInst* src)
+    {
+        return static_cast<BlockInst*>(src->clone(this));
+    }
+    
 };
 
 #endif

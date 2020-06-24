@@ -19,10 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
+#include <fstream>
+
 #include "instructions.hh"
 #include "floats.hh"
 #include "global.hh"
 #include "sigtype.hh"
+#include "fir_to_fir.hh"
 
 // Used when inlining functions
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
@@ -235,6 +238,16 @@ struct StoreVarInst* DeclareVarInst::store(ValueInst* exp)
 struct LoadVarInst* DeclareVarInst::load()
 {
     return InstBuilder::genLoadVarInst(fAddress);
+}
+
+bool ControlInst::hasCondition(ValueInst* cond)
+{
+    // Compare string representation of both conditions
+    stringstream res1;
+    stringstream res2;
+    dump2FIR(fCond, &res1, false);
+    dump2FIR(cond, &res2, false);
+    return (res1.str() == res2.str());
 }
 
 // Function calls

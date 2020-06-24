@@ -23,11 +23,11 @@
 #define _LOOP_H
 
 /**********************************************************************
-              - loop.hh : loop C++ à remplir (projet FAUST) -
+        - loop.hh : loop C++ à remplir (projet FAUST) -
 
-                Historique :
-                -----------
-                21-01-2008 : implementation initiale (yo)
+        Historique :
+        -----------
+        21-01-2008 : implementation initiale (yo)
 
 ***********************************************************************/
 
@@ -41,8 +41,6 @@
 #include "tlib.hh"
 
 using namespace std;
-
-#define kMaxCategory 32
 
 /*
  * Loops are lines of code that correspond to a recursive expression or a vector expression.

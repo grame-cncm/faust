@@ -667,14 +667,19 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
         fTab++;
         tab(fTab, *fOut);
+        *fOut << "(block ";
         inst->fThen->accept(this);
+        *fOut << ")";
         if (inst->fElse->fCode.size() > 0) {
             tab(fTab, *fOut);
+            *fOut << "(block ";
             inst->fElse->accept(this);
+            *fOut << ")";
         }
         fTab--;
         tab(fTab, *fOut);
         *fOut << ")";
+        tab(fTab, *fOut);
 
         fTypingVisitor.visit(inst);
     }

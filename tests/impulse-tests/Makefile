@@ -297,4 +297,4 @@ ir/mute/%.cpp : dsp/%-mute.dsp
 ir/mute/% : ir/mute/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@
 dsp/%-mute.dsp : dsp/%.dsp
-	echo "process = P : par(i, outputs(P), (_,(1-checkbox(\"fakedisable %2i\")) : *) ) with { P = component(\"$<\"); };" > $@
+	echo "process = P : par(i, outputs(P), (_,(1-checkbox(\"fakedisable %2i\")) : *)) with { P = component(\"$<\"); };" > $@

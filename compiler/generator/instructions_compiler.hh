@@ -33,8 +33,11 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions.hh"
-#include "occurences.hh"
+#include "dcond.hh"
+#include "old_occurences.hh"
 #include "property.hh"
+
+#define _DNF_ 1
 
 using namespace std;
 
@@ -49,8 +52,11 @@ class InstructionsCompiler : public virtual Garbageable {
     property<pair<string, string>>  fStaticInitProperty;
     property<pair<string, string>>  fInstanceInitProperty;
     property<string>                fTableProperty;
+    
+    map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
+    
     Tree                            fSharingKey;
-    OccMarkup                       fOccMarkup;
+    old_OccMarkup*                  fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;
@@ -139,6 +145,21 @@ class InstructionsCompiler : public virtual Garbageable {
     void sharingAnnotation(int vctxt, Tree sig);
 
     FIRIndex getCurrentLoopIndex() { return FIRIndex(fContainer->getCurLoop()->getLoopIndex()); }
+    
+    void declareWaveform(Tree sig, string& vname, int& size);
+    
+    // Enable/control
+    void conditionAnnotation(Tree l);
+    void conditionAnnotation(Tree t, Tree nc);
+    void conditionStatistics(Tree l);
+    
+    ValueInst* cnf2code(Tree cc);
+    ValueInst* or2code(Tree oc);
+    
+    ValueInst* dnf2code(Tree cc);
+    ValueInst* and2code(Tree oc);
+    
+    ValueInst* getConditionCode(Tree sig);
 
    public:
     InstructionsCompiler(CodeContainer* container);
@@ -205,7 +226,9 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                         Address::AccessType& var_access);
+                                         Address::AccessType& var_access, ValueInst* ccs);
+    
+    virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
 
     // UI hierachy description
     void addUIWidget(Tree path, Tree widget);
@@ -220,11 +243,10 @@ class InstructionsCompiler : public virtual Garbageable {
 
     void         setDescription(Description* descr) { fDescription = descr; }
     Description* getDescription() { return fDescription; }
-
+    
     Tree prepare(Tree LS);
     Tree prepare2(Tree L0);
-
-    void declareWaveform(Tree sig, string& vname, int& size);
+  
 };
 
 #endif

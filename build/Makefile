@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.25.3
+VERSION := 2.26.0
 
 #===============================================================
 # current generator and backends
@@ -50,7 +50,7 @@ endif
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
 BUILDOPT ?= --config Release
 
-#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
+#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
 #BUILDOPT ?= --config Debug
 
 #===============================================================

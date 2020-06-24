@@ -682,11 +682,11 @@ void CScalarCodeContainer::generateCompute(int n)
     loop->accept(fCodeProducer);
   
     /*
-    // TODO : atomic switch
-    // Currently for soundfile management
+     // TODO : atomic switch
+     // Currently for soundfile management
+     */
     generatePostComputeBlock(fCodeProducer);
-    */
-
+    
     back(1, *fOut);
     *fOut << "}" << endl;
 }
@@ -709,8 +709,8 @@ void CScalarOneSampleCodeContainer::generateCompute(int n)
     /*
      // TODO : atomic switch
      // Currently for soundfile management
-     generatePostComputeBlock(fCodeProducer);
      */
+    generatePostComputeBlock(fCodeProducer);
     
     back(1, *fOut);
     *fOut << "}" << endl;

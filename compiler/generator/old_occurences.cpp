@@ -146,8 +146,7 @@ void old_OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         int  v0 = ty->variability();
         int  r0 = getRecursivness(t);
         // fConditions may have been initialized empty
-        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];
-        
+        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];        
         occ     = new old_Occurences(v0, r0, c0);
         setOcc(t, occ);
 

@@ -42,15 +42,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     int               fTab;
     std::ostream*     fOut;
     bool              fFinishLine;
-    map<string, bool> gFunctionSymbolTable;
-
-   public:
-    FIRInstVisitor(std::ostream* out, int tab = 0)
-        : CStringTypeManager(xfloat(), "*"), fTab(tab), fOut(out), fFinishLine(true)
-    {
-    }
-
-    virtual ~FIRInstVisitor() {}
+    map<string, bool> fFunctionSymbolTable;
 
     void Tab(int n) { fTab = n; }
 
@@ -60,6 +52,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             tab(fTab, *fOut);
         }
     }
+    
+   public:
+    FIRInstVisitor(std::ostream* out, int tab = 0)
+        : CStringTypeManager(xfloat(), "*"), fTab(tab), fOut(out), fFinishLine(true)
+    {
+    }
+
+    virtual ~FIRInstVisitor() {}
 
     virtual string generateType(Typed* type)
     {
@@ -172,7 +172,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "AddMetaDeclareInst(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
               << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(OpenboxInst* inst)
@@ -191,7 +191,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         *fOut << name << "\"" << inst->fName << "\"";
         *fOut << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(CloseboxInst* inst)
@@ -207,7 +207,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             *fOut << "AddCheckButtonInst(" << quote(inst->fLabel) << inst->fZone;
         }
         *fOut << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -226,7 +226,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         *fOut << name << quote(inst->fLabel) << ", " << inst->fZone << ", " << checkReal(inst->fInit) << ", "
               << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -242,13 +242,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         *fOut << name << quote(inst->fLabel) << ", " << inst->fZone << ", " << checkReal(inst->fMin) << ", "
               << checkReal(inst->fMax) << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
         *fOut << "AddSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &" << inst->fSFZone << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(LabelInst* inst)
@@ -273,7 +273,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(DeclareStructTypeInst* inst)
     {
         *fOut << "DeclareStructTypeInst(" << generateType(inst->fType) << ")";
-        EndLine();
+        tab(fTab, *fOut);
     }
 
     virtual void visit(RetInst* inst)
@@ -299,10 +299,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
-        if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+        if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
             return;
         } else {
-            gFunctionSymbolTable[inst->fName] = true;
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print
@@ -358,6 +358,16 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             indexed->fIndex->accept(this);
             *fOut << "]";
         }
+    }
+    
+    virtual void visit(NullValueInst* inst)
+    {
+        *fOut << "NullValueInst()";
+    }
+    
+    virtual void visit(NullStatementInst* inst)
+    {
+        *fOut << "NullStatementInst()";
     }
 
     virtual void visit(LoadVarInst* inst)
@@ -505,6 +515,20 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         back(1, *fOut);
         *fOut << "EndIf";
+        tab(fTab, *fOut);
+    }
+    
+    virtual void visit(ControlInst* inst)
+    {
+        *fOut << "ControlInst ";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fCond->accept(this);
+        tab(fTab, *fOut);
+        inst->fStatement->accept(this);
+        fTab--;
+        back(1, *fOut);
+        *fOut << "EndControlInst";
         tab(fTab, *fOut);
     }
 

@@ -20,14 +20,14 @@
  ************************************************************************/
 
 /**********************************************************************
-           - klass.cpp : class C++ a remplir (projet FAUST) -
+        - klass.cpp : class C++ a remplir (projet FAUST) -
 
-       Historique :
-       -----------
-       17-10-2001 : implementation initiale (yo)
-       18-10-2001 : Ajout de getFreshID (yo)
-       02-11-2001 : Ajout de sous classes (yo)
-       06-11-2001 : modif impression des classes (yo)
+        Historique :
+        -----------
+        17-10-2001 : implementation initiale (yo)
+        18-10-2001 : Ajout de getFreshID (yo)
+        02-11-2001 : Ajout de sous classes (yo)
+        06-11-2001 : modif impression des classes (yo)
 
 ***********************************************************************/
 

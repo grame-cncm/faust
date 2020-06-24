@@ -299,6 +299,8 @@ BlockInst* LLVMScalarCodeContainer::generateComputeAux()
     block->pushBackInst(fComputeBlockInstructions);
     // Generates the DSP loop
     block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
+    // Generates post DSP loop code
+    block->pushBackInst(fPostComputeBlockInstructions);
     return block;
 }
 

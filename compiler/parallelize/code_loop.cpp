@@ -19,15 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-/**********************************************************************
-            - code_gen.h : generic code generator (projet FAUST) -
-
-
-        Historique :
-        -----------
-
-***********************************************************************/
-
 #include <list>
 #include <map>
 #include <set>
@@ -37,6 +28,7 @@
 #include "code_loop.hh"
 #include "floats.hh"
 #include "global.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -56,12 +48,8 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
         loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
         loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
     }
-
-    BlockInst* block = InstBuilder::genBlockInst();
-    pushBlock(fPreInst, block);
-    pushBlock(fComputeInst, block);
-    pushBlock(fPostInst, block);
-
+   
+    BlockInst* block = generateOneSample();
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
 
     BasicCloneVisitor cloner;
@@ -74,11 +62,7 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
     ValueInst* upper_bound = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst* lower_bound = InstBuilder::genInt32NumInst(0);
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    pushBlock(fPreInst, block);
-    pushBlock(fComputeInst, block);
-    pushBlock(fPostInst, block);
-
+    BlockInst* block = generateOneSample();
     SimpleForLoopInst* loop = InstBuilder::genSimpleForLoopInst(fLoopIndex, upper_bound, lower_bound, false, block);
 
     BasicCloneVisitor cloner;
@@ -88,10 +72,15 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 BlockInst* CodeLoop::generateOneSample()
 {
     BlockInst* block = InstBuilder::genBlockInst();
+    
     pushBlock(fPreInst, block);
     pushBlock(fComputeInst, block);
     pushBlock(fPostInst, block);
-
+    
+    // Expand and rewrite ControlInst as 'if (cond) {....}' instructions
+    ControlExpander exp;
+    block = exp.getCode(block);
+    
     BasicCloneVisitor cloner;
     return static_cast<BlockInst*>(block->clone(&cloner));
 }

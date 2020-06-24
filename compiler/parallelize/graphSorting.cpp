@@ -67,7 +67,7 @@ static void resetOrder(Loop* l, set<Loop*>& visited)
 
 /**
  * Topological sort of an acyclic graph of loops. The loops
- * are collect in an lgraph : a vector of sets of loops
+ * are collect in an lgraph : a vector of sets of loops.
  */
 void sortGraph(Loop* root, lgraph& V)
 {

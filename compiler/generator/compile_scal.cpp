@@ -119,7 +119,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
 
     conditionAnnotation(L3);
-    // conditionStatistics(L3);        // count condition occurences
+    // conditionStatistics(L3);        // count condition occurrences
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
@@ -139,7 +139,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L3);  // annotate L3 with occurences analysis
+    fOccMarkup->mark(L3);  // annotate L3 with occurrences analysis
 
     endTiming("ScalarCompiler::prepare");
 
@@ -164,7 +164,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup();
-    fOccMarkup->mark(L0);  // annotate L0 with occurences analysis
+    fOccMarkup->mark(L0);  // annotate L0 with occurrences analysis
 
     endTiming("ScalarCompiler::prepare2");
     return L0;

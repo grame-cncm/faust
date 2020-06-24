@@ -22,14 +22,6 @@
 #ifndef _CODE_LOOP_H
 #define _CODE_LOOP_H
 
-/**********************************************************************
-    - code_gen.h : generic code generator (projet FAUST) -
-
-    Historique :
-    -----------
-
-***********************************************************************/
-
 #include <list>
 #include <map>
 #include <set>

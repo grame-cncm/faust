@@ -23,8 +23,7 @@
 #define _KLASS_H
 
 /**********************************************************************
-            - klass.h : class C++ a remplir (projet FAUST) -
-
+        - klass.h : class C++ a remplir (projet FAUST) -
 
         Historique :
         -----------
@@ -48,9 +47,7 @@
 
 using namespace std;
 
-#define kMaxCategory 32
-
-class Klass  //: public Target
+class Klass
 {
    protected:
     // we make it global because several classes may need

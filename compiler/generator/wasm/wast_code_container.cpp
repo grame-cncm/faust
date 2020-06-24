@@ -447,6 +447,9 @@ void WASTScalarCodeContainer::generateCompute(int n)
     // Loop 'i' variable is moved by bytes
     BlockInst* compute_block = InstBuilder::genBlockInst();
     compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
+    
+    // Generates post DSP loop code
+    compute_block->pushBackInst(fPostComputeBlockInstructions);
 
     generateComputeAux2(compute_block, n);
 }

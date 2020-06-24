@@ -47,7 +47,7 @@ struct StringTypeManager {
     virtual std::string generateType(Typed* type, const std::string& name) = 0;
 };
 
-// StringTypeManager for C/C++ and Java backends
+// StringTypeManager for C/C++, Java  and FIR backends
 
 class CStringTypeManager : public StringTypeManager {
    public:

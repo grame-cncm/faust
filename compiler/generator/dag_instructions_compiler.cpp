@@ -286,7 +286,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     Typed::VarType ctype;
     int            sharing = getSharingCount(sig);
     ::Type         t       = getCertifiedSigType(sig);
-    Occurences*    o       = fOccMarkup.retrieve(sig);
+    old_Occurences*    o   = fOccMarkup->retrieve(sig);
     int            d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -304,13 +304,13 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // first cache this expression because it
                 // it is shared and complex
                 ValueInst* cachedexp = generateVariableStore(sig, exp);
-                generateDelayLine(cachedexp, ctype, vname, d, var_access);
+                generateDelayLine(cachedexp, ctype, vname, d, var_access, nullptr);
                 setVectorNameProperty(sig, vname);
                 return cachedexp;
             } else {
                 // no need to cache this expression because
                 // it is either not shared or very simple
-                generateDelayLine(exp, ctype, vname, d, var_access);
+                generateDelayLine(exp, ctype, vname, d, var_access, nullptr);
                 setVectorNameProperty(sig, vname);
                 return exp;
             }
@@ -321,7 +321,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             // used delayed : we need a delay line
             getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
             Address::AccessType var_access;
-            generateDelayLine(exp, ctype, vname, d, var_access);
+            generateDelayLine(exp, ctype, vname, d, var_access, nullptr);
             setVectorNameProperty(sig, vname);
 
             if (verySimple(sig)) {
@@ -350,7 +350,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // cerr << "Zec : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
                 Address::AccessType var_access;
-                generateDelayLine(exp, ctype, vname, d, var_access);
+                generateDelayLine(exp, ctype, vname, d, var_access, nullptr);
                 setVectorNameProperty(sig, vname);
                 // return subst("$0[i]", vname);
                 return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
@@ -371,7 +371,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
  */
 bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 {
-    Occurences* o = fOccMarkup.retrieve(sig);
+    old_Occurences* o = fOccMarkup->retrieve(sig);
     ::Type      t = getCertifiedSigType(sig);
     int         c = getSharingCount(sig);
     bool        b;
@@ -438,7 +438,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
 {
     string     vname;
     ValueInst* code = CS(exp);  // ensure exp is compiled to have a vector name
-    int        d, mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+    int        d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
 
     if (!getVectorNameProperty(exp, vname)) {
         if (mxd == 0) {
@@ -506,7 +506,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
 
     setVectorNameProperty(sig, vname);
     Address::AccessType var_access;
-    generateDelayLine(exp, ctype, vname, mxd, var_access);
+    generateDelayLine(exp, ctype, vname, mxd, var_access, nullptr);
 
     if (verySimple(sig)) {
         return exp;
@@ -516,7 +516,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
 }
 
 ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
-                                                      int mxd, Address::AccessType& var_access)
+                                                      int mxd, Address::AccessType& var_access, ValueInst* unused)
 {
     if (mxd == 0) {
         generateVectorLoop(ctype, vname, exp, var_access);
