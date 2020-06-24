@@ -18,10 +18,11 @@
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+#include <sstream>
 
-#include "loop.hh"
 #include "Text.hh"
 #include "global.hh"
+#include "loop.hh"
 
 using namespace std;
 
@@ -95,8 +96,10 @@ static void printThenLines(int n, list<Statement>& lines, ostream& fout)
 static void printElseLines(int n, list<Statement>& lines, ostream& fout)
 {
     for (auto s : lines) {
-        tab(n, fout);
-        fout << s.elseCode();
+        if (s.elseCode().size() > 0) {
+            tab(n, fout);
+            fout << s.elseCode();
+        }
     }
 }
 
@@ -113,14 +116,29 @@ static void printSameCondGroup(int n, const string& ccond, list<Statement>& grou
     if (ccond.size() == 0) {
         printThenLines(n, group, fout);
     } else {
-        tab(n, fout);
-        fout << "if (" << ccond << ") {";
-        printThenLines(n + 1, group, fout);
-        tab(n, fout);
-        fout << "} else {";
-        printElseLines(n + 1, group, fout);
-        tab(n, fout);
-        fout << "}";
+        std::stringstream thencode, elsecode;
+        printThenLines(n + 1, group, thencode);
+        printElseLines(n + 1, group, elsecode);
+        std::string thenstring = thencode.str();
+        std::string elsestring = elsecode.str();
+
+        std::cerr << "ELSE STRING IS:\n" << elsestring << "\nEND" << std::endl;
+        if (elsestring.size() == 0) {
+            tab(n, fout);
+            fout << "if (" << ccond << ") { /" << __FILE__ << ":" << __LINE__;
+            fout << thenstring << std::endl;
+            tab(n, fout);
+            fout << "}";
+        } else {
+            tab(n, fout);
+            fout << "if (" << ccond << ") { /" << __FILE__ << ":" << __LINE__;
+            fout << thenstring << std::endl;
+            tab(n, fout);
+            fout << "} else { // TRACE2 ";
+            fout << elsestring << std::endl;
+            tab(n, fout);
+            fout << "}";
+        }
     }
 }
 
@@ -328,20 +346,34 @@ void Loop::println(int n, ostream& fout)
         tab(n, fout);
         string CC = getCommonCondition();
         if (CC.size() > 0) {
+            // Analyse the then and else code to
+            // choose betwen
+            //      if (c) {thencode}
+            // and
+            //      if (c) {thencode} else {elsecode}
+            //
+            std::stringstream thencode, elsecode;
+            printThenLines(n + 2, fExecCode, thencode);
+            printElseLines(n + 2, fExecCode, elsecode);
+            std::string thenstring = thencode.str();
+            std::string elsestring = elsecode.str();
+
             fout << "if (" << CC << ") {";
             tab(n + 1, fout);
-            fout << "for (int i=0; i<" << fSize << "; i++) {";
-            printThenLines(n + 2, fExecCode, fout);
+            fout << "for (int i=0; i<" << fSize << "; i++) { // bidule 1";
+            fout << thenstring;
             tab(n + 1, fout);
             fout << "}";
             tab(n, fout);
-            fout << "} else {";
-            tab(n + 1, fout);
-            fout << "for (int i=0; i<" << fSize << "; i++) {";
-            printElseLines(n + 2, fExecCode, fout);
-            tab(n + 1, fout);
-            fout << "}";
-            tab(n, fout);
+            if (elsestring.size() > 0) {
+                fout << "} else {";
+                tab(n + 1, fout);
+                fout << "for (int i=0; i<" << fSize << "; i++) { // bidule 2";
+                fout << elsestring;
+                tab(n + 1, fout);
+                fout << "}";
+                tab(n, fout);
+            }
             fout << "}";
         } else {
             fout << "for (int i=0; i<" << fSize << "; i++) { // no cond";

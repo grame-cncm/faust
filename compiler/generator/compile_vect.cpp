@@ -422,7 +422,7 @@ string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 }
 
 /**
- * Generate code for the delay mecchanism. The generated code depend of the
+ * Generate code for the delay mechanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
 
@@ -512,15 +512,13 @@ void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(
-            Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize), "// rien à faire  1"));
+        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize), ""));
 
         // -- compute the new samples
-        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp), "// rien à faire  2"));
+        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1; //machin1", dlname, cexp), ""));
 
         // -- copy back to stored samples
-        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize),
-                                      "// rien à faire  3"));
+        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize), ""));
 
     } else {
         // Implementation of a ring-buffer delayline

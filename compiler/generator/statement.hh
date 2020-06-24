@@ -55,8 +55,12 @@ class Statement {
     friend std::ostream& operator<<(std::ostream& out, const Statement& stmt)
     {
         if (stmt.hasCondition()) {
-            return out << "if (" << stmt.condition() << ") {" << stmt.thenCode() << "} else {" << stmt.elseCode()
-                       << "}";
+            if (stmt.elseCode().size() > 0) {
+                return out << "if (" << stmt.condition() << ") {" << stmt.thenCode() << "} else {" << stmt.elseCode()
+                           << "}";
+            } else {
+                return out << "if (" << stmt.condition() << ") {" << stmt.thenCode() << "}";
+            }
         } else {
             return out << stmt.thenCode();
         }
