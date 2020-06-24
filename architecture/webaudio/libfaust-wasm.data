@@ -278,7 +278,7 @@ with {
 		indexabs = (int)((i - 1) / 2 + 1);
 		gain1(i, j, a) = _ * cos(a * indexabs) * (j == i);
 		gain2(i, j, a) = _ * sin(a * indexabs) * (j-1 == i) * (j != 0) * (i%2 == 1);
-		gain3(i, j, a) = (_ * sin(a * indexabs)) * (j+1 == i) * (j != 0) * (i%2 == 0);
+		gain3(i, j, a) = (_ * sin(a * indexabs)) * (j+1 == i) * (j != 0) * (i%2 == 0) * (-1);
 	};
 };
 
@@ -463,6 +463,7 @@ ba = library("basics.lib");
 si = library("signals.lib");
 an = library("analyzers.lib");
 ro = library("routes.lib");
+ma = library("maths.lib");
 
 declare name "Faust Compressor Effect Library";
 declare version "0.0";
@@ -496,7 +497,7 @@ declare version "0.0";
 // function as a hard limiter.
 // For that you'd need a ratio of infinity:1, and you cannot express that in Faust
 
-// Sometimes even bigger ratios are usefull:
+// Sometimes even bigger ratios are useful:
 // For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
@@ -554,10 +555,10 @@ with {
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -615,10 +616,10 @@ peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -665,14 +666,15 @@ FFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 // * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
 // * `meter`: a gain reduction meter. It can be implemented like so:
 // meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// or it can be omitted by defining 'meter = _'.
 // * `N`: the number of channels of the compressor
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -724,10 +726,10 @@ FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -778,10 +780,10 @@ FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -835,10 +837,10 @@ with {
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -892,10 +894,10 @@ RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // to save CPU we cheat a bit, in a similar way as in the original libs:
@@ -963,10 +965,10 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
 
 // It uses a strength parameter instead of the traditional ratio, in order to be able to
 // function as a hard limiter.
-// For that you'd need a ratio of infinity:1, and you cannot express that in Faust
+// For that you'd need a ratio of infinity:1, and you cannot express that in Faust.
 
-// Sometimes even bigger ratios are usefull:
-// For example a group recording where one instrument is recorded with both a close microphone and a room microphone,
+// Sometimes even bigger ratios are useful:
+// for example a group recording where one instrument is recorded with both a close microphone and a room microphone,
 // and the instrument is loud enough in the room mic when playing loud, but you want to boost it when it is playing soft.
 
 // #### References
@@ -992,13 +994,49 @@ RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link
   )~si.bus(N);
 
 
-//=============================Backward compatibility section=============================
-// These functions are superseded by the ones above.
-// They are included for backward compatibility.
+//=============================Original versions section=============================
+// The functions in this section are largely superseded by the limiters above, but we
+// retain them for backward compatibility and for situations in which a more permissive,
+// MIT-style license is required.
 //========================================================================================
 
 //=============================Functions Reference========================================
 //========================================================================================
+
+//--------------------`(co.)compressor_lad_mono`-------------------
+// Mono dynamic range compressor with lookahead delay.
+// `compressor_lad_mono` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : compressor_lad_mono(lad,ratio,thresh,att,rel) : _
+// ```
+//
+// Where:
+//
+// * `lad`: lookahead delay in seconds (nonnegative) - gets rounded to nearest sample.
+//          The effective attack time is a good setting.
+// * `ratio`: compression ratio (1 = no compression, >1 means compression)
+//            Ratios: 4 is moderate compression, 8 is strong compression,
+//            12 is mild limiting, and 20 is pretty hard limiting at the threshold.
+// * `thresh`: dB level threshold above which compression kicks in (0 dB = max level)
+// * `att`: attack time = time constant (sec) when level & compression are going up
+// * `rel`: release time = time constant (sec) coming out of compression
+//
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * <https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html>
+// * Albert Graef's "faust2pd"/examples/synth/compressor_.dsp
+// * More features: <https://github.com/magnetophon/faustCompressors>
+//------------------------------------------------------------
+declare compressor_lad_mono author "Julius O. Smith III";
+declare compressor_lad_mono copyright
+        "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare compressor_lad_mono license "MIT-style STK-4.3 license";
+compressor_lad_mono(lad,ratio,thresh,att,rel,x)
+	= x@max(0,floor(0.5+ma.SR*lad)) * compression_gain_mono(ratio,thresh,att,rel,x);
 
 //--------------------`(co.)compressor_mono`-------------------
 // Mono dynamic range compressors.
@@ -1013,8 +1051,10 @@ RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link
 // Where:
 //
 // * `ratio`: compression ratio (1 = no compression, >1 means compression)
+//            Ratios: 4 is moderate compression, 8 is strong compression,
+//            12 is mild limiting, and 20 is pretty hard limiting at the threshold.
 // * `thresh`: dB level threshold above which compression kicks in (0 dB = max level)
-// * `att`: attack time = time constant (sec) when level & compression going up
+// * `att`: attack time = time constant (sec) when level & compression are going up
 // * `rel`: release time = time constant (sec) coming out of compression
 //
 // #### References
@@ -1024,9 +1064,11 @@ RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link
 // * Albert Graef's "faust2pd"/examples/synth/compressor_.dsp
 // * More features: <https://github.com/magnetophon/faustCompressors>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
-compressor_mono(ratio,thresh,att,rel,x) = x * compression_gain_mono(ratio,thresh,att,rel,x);
-
+declare compressor_mono author "Julius O. Smith III";
+declare compressor_mono copyright
+        "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare compressor_mono license "MIT-style STK-4.3 license";
+compressor_mono = compressor_lad_mono(0);
 
 //--------------------`(co.)compressor_stereo`-------------------
 // Stereo dynamic range compressors.
@@ -1051,11 +1093,41 @@ compressor_mono(ratio,thresh,att,rel,x) = x * compression_gain_mono(ratio,thresh
 // * Albert Graef's "faust2pd"/examples/synth/compressor_.dsp
 // * More features: <https://github.com/magnetophon/faustCompressors>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
+declare compressor_stereo author "Julius O. Smith III";
+declare compressor_stereo copyright
+        "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare compressor_stereo license "MIT-style STK-4.3 license";
 compressor_stereo(ratio,thresh,att,rel,x,y) = cgm*x, cgm*y with {
   cgm = compression_gain_mono(ratio,thresh,att,rel,abs(x)+abs(y));
 };
 
+//--------------------`(co.)compression_gain_mono`-------------------
+// Compression-gain calculation for dynamic range compressors.
+//
+// #### Usage
+//
+// ```
+// _ : compression_gain_mono(ratio,thresh,att,rel) : _
+// ```
+//
+// Where:
+//
+// * `ratio`: compression ratio (1 = no compression, >1 means compression)
+// * `thresh`: dB level threshold above which compression kicks in (0 dB = max level)
+// * `att`: attack time = time constant (sec) when level & compression going up
+// * `rel`: release time = time constant (sec) coming out of compression
+//
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Dynamic_range_compression>
+// * <https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html>
+// * Albert Graef's "faust2pd"/examples/synth/compressor_.dsp
+// * More features: <https://github.com/magnetophon/faustCompressors>
+//------------------------------------------------------------
+declare compression_gain_mono author "Julius O. Smith III";
+declare compression_gain_mono copyright
+        "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare compression_gain_mono license "MIT-style STK-4.3 license";
 compression_gain_mono(ratio,thresh,att,rel) =
   an.amp_follower_ar(att,rel) : ba.linear2db : outminusindb(ratio,thresh) :
   kneesmooth(att) : ba.db2linear
@@ -1065,26 +1137,30 @@ with {
   // A general 'knee' parameter could be used instead of tying it to att/2:
   kneesmooth(att) = si.smooth(ba.tau2pole(att/2.0));
   // compression gain in dB:
-   outminusindb(ratio,thresh,level) = max(level-thresh,0.0) * (1.0/float(ratio)-1.0);
+   outminusindb(ratio,thresh,level) = max(level-thresh,0.0) * (1.0/max(1.0e-7,float(ratio))-1.0);
   // Note: "float(ratio)" REQUIRED when ratio is an integer > 1!
 };
-
 
 //----------------`(co.)limiter_1176_R4_mono`----------------------
 // A limiter guards against hard-clipping.  It can be
 // implemented as a compressor having a high threshold (near the
-// clipping level), fast attack and release, and high ratio.  Since
-// the ratio is so high, some knee smoothing is
-// desirable ("soft limiting").  This example is intended
-// to get you started using compressor_* as a limiter, so all
-// parameters are hardwired to nominal values here.
-// Ratios: 4 (moderate compression), 8 (severe compression),
-//          12 (mild limiting), or 20 to 1 (hard limiting)
-//   Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176)
-//   Rel: 50-1100 ms (Note: scaled by ratio in the 1176)
-//   Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.)
-//     Faster attack gives "more bite" (e.g. on vocals)
-//     He hears a bright, clear eq effect as well (not implemented here).
+// clipping level), fast attack, and high ratio.  Since
+// the compression ratio is so high, some knee smoothing is
+// desirable (for softer limiting).  This example is intended
+// to get you started using compressors as limiters, so all
+// parameters are hardwired here to nominal values.
+//  Ratio: 4 (moderate compression)
+//        See compressor_mono() comments for a guide to other choices.
+//        Mike Shipley likes this (lowest) setting on the 1176.
+//        (Grammy award-winning mixer for Queen, Tom Petty, etc.)
+// Thresh: -6 dB, meaning 4:1 compression begins at amplitude 1/2.
+//    Att: 800 MICROseconds (Note: scaled by ratio in the 1176)
+//         The 1176 range is said to be 20-800 microseconds.
+//         Faster attack gives "more bite" (e.g. on vocals),
+//         and makes hard-clipping less likely on fast overloads.
+//    Rel: 0.5 s (Note: scaled by ratio in the 1176)
+//         The 1176 range is said to be 50-1100 ms.
+// The 1176 also has a "bright, clear eq effect" (use filters.lib if desired).
 // `limiter_1176_R4_mono` is a standard Faust function.
 //
 // #### Usage
@@ -1097,9 +1173,11 @@ with {
 //
 // <http://en.wikipedia.org/wiki/1176_Peak_Limiter>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
+declare limiter_1176_R4_mono author "Julius O. Smith III";
+declare limiter_1176_R4_mono copyright
+        "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare limiter_1176_R4_mono license "MIT-style STK-4.3 license";
 limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
-
 
 //-------------------`(co.)limiter_1176_R4_stereo`---------------------
 // A limiter guards against hard-clipping.  It can be
@@ -1127,8 +1205,195 @@ limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
 //
 // <http://en.wikipedia.org/wiki/1176_Peak_Limiter>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
+declare limiter_1176_R4_stereo author "Julius O. Smith III";
+declare limiter_1176_R4_stereo copyright
+        "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare limiter_1176_R4_stereo license "MIT-style STK-4.3 license";
 limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
+
+//-----------------------`(co.)limiter_lad_N`---------------------------------
+// N-channel lookahead limiter inspired by IOhannes Zmölnig's post, which is 
+// in turn based on the thesis by Peter Falkner "Entwicklung eines digitalen
+// Stereo-Limiters mit Hilfe des Signalprozessors DSP56001".
+// This version of the limiter uses a peak-holder with smoothed
+// attack and release based on tau time constant filters.
+//
+// It is also possible to use a time constant that is 2*PI*tau by dividing 
+// the attack and release times by 2*PI. This time constant allows for 
+// the amplitude profile to reach 1 - e^(-2pi) of the final 
+// peak after the attack time. The input path can be delayed by the same 
+// amount as the attack time to synchronise input and amplitude profile, 
+// realising a system that is particularly effective as a colourless
+// (ideally) brickwall limiter.
+//
+// Note that the effectiveness of the ceiling settings are dependent on
+// the other parameters, especially the time constant used for the
+// smoothing filters and the lookahead delay. 
+//
+// Similarly, the colourless characteristics are also dependent on attack,
+// hold, and release times. Since fluctuations above ~15 Hz are
+// perceived as timbral effects, [Vassilakis and Kendall 2010] it is
+// reasonable to set the attack time to 1/15 seconds for a smooth amplitude
+// modulation. On the other hand, the hold time can be set to the
+// peak-to-peak period of the expected lowest frequency in the signal,
+// which allows for minimal distortion of the low frequencies. The
+// release time can then provide a perceptually linear and gradual gain 
+// increase determined by the user for any specific application.
+//
+// The scaling factor for all the channels is determined by the loudest peak 
+// between them all, so that amplitude ratios between the signals are kept.
+//
+// #### Usage
+//
+// ```
+// si.bus(N) : limiter_lad_N(N, LD, ceiling, attack, hold, release) : 
+//    si.bus(N);
+// ```
+//
+// Where:
+//
+// * `N` is the number of channels, known at compile-time.
+// * `LD` is the lookahead delay in seconds, known at compile-time.
+// * `ceiling` is the linear amplitude output limit.
+// * `attack` is the attack time in seconds.
+// * `hold` is the hold time in seconds.
+// * `release` is the release time in seconds.
+//
+// Example for a stereo limiter: limiter_lad_N(2, .01, 1, .01, .1, 1);
+//
+// #### Reference:
+//
+// http://iem.at/~zmoelnig/publications/limiter/.
+//------------------------------------------------------------------------------
+declare limiter_lad_N author "Dario Sanfilippo";
+declare limiter_lad_N copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com>";
+declare limiter_lad_N license "GPLv3 license";
+limiter_lad_N(N, LD, ceiling, attack, hold, release) = 
+      si.bus(N) <: par(i, N, @ (LD * ma.SR)) , 
+                   (scaling <: si.bus(N)) : ro.interleave(N, 2) : par(i, N, *)
+      with {
+           scaling = ceiling / max(amp_profile, ma.EPSILON) : min(1);
+           amp_profile = par(i, N, abs) : maxN(N) : ba.peakholder(hold * ma.SR) :
+               att_smooth(attack) : rel_smooth(release);
+           att_smooth(time, in) = si.smooth(ba.tau2pole(time), in);
+           rel_smooth(time, in) = an.peak_envelope(time, in);
+           maxN(1) = _;
+           maxN(2) = max;
+           maxN(N) = max(maxN(N - 1));
+      };
+
+//-------------`(co.)limiter_lad_mono`----------------------------------------
+//
+// Specialised case of limiter_lad_N: mono limiter.
+//
+// #### Usage
+//
+// ```
+// _ : limiter_lad_mono(LD, ceiling, attack, hold, release) : _;
+// ```
+//
+// Where:
+//
+// * `LD` is the lookahead delay in seconds, known at compile-time.
+// * `ceiling` is the linear amplitude output limit.
+// * `attack` is the attack time in seconds.
+// * `hold` is the hold time in seconds.
+// * `release` is the release time in seconds.
+//
+// #### Reference:
+//
+// http://iem.at/~zmoelnig/publications/limiter/.
+declare limiter_lad_mono author "Dario Sanfilippo";
+declare limiter_lad_mono copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com>";
+declare limiter_lad_mono license "GPLv3 license";
+limiter_lad_mono(LD) = limiter_lad_N(1, LD);
+
+//-------------`(co.)limiter_lad_stereo`--------------------------------------
+//
+// Specialised case of limiter_lad_N: stereo limiter.
+//
+// #### Usage
+//
+// ```
+// _ , _ : limiter_lad_stereo(LD, ceiling, attack, hold, release) : _ , _;
+// ```
+//
+// Where:
+//
+// * `LD` is the lookahead delay in seconds, known at compile-time.
+// * `ceiling` is the linear amplitude output limit.
+// * `attack` is the attack time in seconds.
+// * `hold` is the hold time in seconds.
+// * `release` is the release time in seconds.
+//
+// #### Reference:
+//
+// http://iem.at/~zmoelnig/publications/limiter/.
+declare limiter_lad_stereo author "Dario Sanfilippo";
+declare limiter_lad_stereo copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com>";
+declare limiter_lad_stereo license "GPLv3 license";
+limiter_lad_stereo(LD) = limiter_lad_N(2, LD);
+
+//-------------`(co.)limiter_lad_quad`----------------------------------------
+//
+// Specialised case of limiter_lad_N: quadraphonic limiter.
+//
+// #### Usage
+//
+// ```
+// si.bus(4) : limiter_lad_quad(LD, ceiling, attack, hold, release) : 
+//    si.bus(4);
+// ```
+//
+// Where:
+//
+// * `LD` is the lookahead delay in seconds, known at compile-time.
+// * `ceiling` is the linear amplitude output limit.
+// * `attack` is the attack time in seconds.
+// * `hold` is the hold time in seconds.
+// * `release` is the release time in seconds.
+//
+// #### Reference:
+//
+// http://iem.at/~zmoelnig/publications/limiter/.
+declare limiter_lad_quad author "Dario Sanfilippo";
+declare limiter_lad_quad copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com>";
+declare limiter_lad_quad license "GPLv3 license";
+limiter_lad_quad(LD) = limiter_lad_N(4, LD);
+
+//-------------`(co.)limiter_lad_bw`-----------------------------------------
+//
+// Specialised case of limiter_lad_N and ready-to-use unit-amplitude mono 
+// limiting function. This implementation, in particular, uses 2pi*tau
+// time constant filters for attack and release smoothing with
+// synchronised input and gain signals. 
+//
+// This function's best application is to be used as a brickwall limiter with 
+// the least colouring artefacts while keeping a not-so-slow release curve. 
+// Tests have shown that, given a pop song with 60 dB of amplification
+// and a 0-dB-ceiling, the loudest peak recorded was ~0.38 dB.
+//
+// #### Usage
+//
+// ```
+// _ : limiter_lad_bw : _;
+// ```
+//
+// #### Reference:
+//
+// http://iem.at/~zmoelnig/publications/limiter/.
+declare limiter_lad_bw author "Dario Sanfilippo";
+declare limiter_lad_bw copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com>";
+declare limiter_lad_bw license "GPLv3 license";
+limiter_lad_bw = limiter_lad_mono(.01, 1, .01 / twopi, .1, 1 / twopi)
+      with {
+           twopi = 2 * ma.PI;
+      };
 //#################################### basics.lib ########################################
 // A library of basic elements. Its official prefix is `ba`.
 //########################################################################################
@@ -1945,8 +2210,8 @@ with {
         xfade(i, j, x, y) = x*(1-xb) + y*xb with { xb = ramp(n, (i >= j)); };
     };
 
-    outs = outputs(take(1, lgen));  // Number of outputs of the first item (all should have the same value)
-    ins = inputs(take(1, lgen));    // Number of inputs of the first item (all should have the same value)
+    outs = outputs(take(1, lgen));  // Number of outputs of the first circuit (all should have the same value)
+    ins = inputs(take(1, lgen));    // Number of inputs of the first circuit (all should have the same value)
     N = outputs(lgen)/outs;         // Number of items in the list
 };
 
@@ -2156,7 +2421,8 @@ listInterp(v) =
 
 
 //-------------------`(ba.)bypass1`-------------------------
-// Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`.
+// Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`. When bypassed, `e` is feed with zeros 
+// so that its state is cleanup up.
 // `bypass1` is a standard Faust function.
 //
 // #### Usage
@@ -2179,7 +2445,8 @@ with {
 
 
 //-------------------`(ba.)bypass2`-------------------------
-// Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`.
+// Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`. When bypassed, `e` is feed with zeros 
+// so that its state is cleanup up.
 // `bypass2` is a standard Faust function.
 //
 // #### Usage
@@ -2202,14 +2469,15 @@ with {
 
 
 //-------------------`(ba.)bypass1to2`-------------------------
-// Bypass switch for effect `e` having mono input signal and stereo output.
-// Effect `e` is bypassed if `bpc = 1`.
+// Bypass switch for effect `e` having mono input signal and stereo output. 
+// Effect `e` is bypassed if `bpc = 1`.When bypassed, `e` is feed with zeros 
+// so that its state is cleanup up.
 // `bypass1to2` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
-// _ : bypass1(bpc,e) : _,_
+// _ : bypass1to2(bpc,e) : _,_
 // ```
 //
 // Where:
@@ -2226,8 +2494,9 @@ with {
 
 
 //-------------------`(ba.)bypass_fade`-------------------------
-// Bypass an arbitrary (N x N) circuit with 'n' samples crossfade. Once bypassed the  
-// effect is replaced by par(i,N,_). Bypassed circuits can be chained.
+// Bypass an arbitrary (N x N) circuit with 'n' samples crossfade. Inputs and outputs signals are faded 
+// out when 'e' is bypassed, so that 'e' state is cleanup up.
+// Once bypassed the effect is replaced by par(i,N,_). Bypassed circuits can be chained.
 //
 // #### Usage
 //
@@ -2393,7 +2662,7 @@ selectoutn(n, s) = _ <: par(i, n, *(s==i));
 // recursiveMax =
 //  case {
 //    (1,x) => x;
-//    (N,x) =>  max(recursiveMax(N/2,x) , recursiveMax(N/2,x)@(N/2));
+//    (N,x) => max(recursiveMax(N/2,x), recursiveMax(N/2,x)@(N/2));
 //  };
 // ```
 //
@@ -2426,7 +2695,7 @@ selectoutn(n, s) = _ <: par(i, n, *(s==i));
 //      ):max
 //    )
 //  )
-//  with {
+// with {
 //  useVal(i) = select2((N>=i) , (0-(ma.INFINITY)),_);
 // };
 // ```
@@ -2487,7 +2756,7 @@ selectoutn(n, s) = _ <: par(i, n, *(s==i));
 //
 // ```
 // variableBinaryMaxN(N,maxN,x) =
-//  par(i,maxNrBits,recursiveMax(pow2(i),x)@sumOfPrevBlockSizes(N,maxN,i)  : useVal(i)) : combine(maxNrBits) with {
+//  par(i,maxNrBits,recursiveMax(pow2(i),x)@sumOfPrevBlockSizes(N,maxN,i) : useVal(i)) : combine(maxNrBits) with {
 //    // The sum of all the sizes of the previous blocks
 //    sumOfPrevBlockSizes(N,maxN,0) = 0;
 //    sumOfPrevBlockSizes(N,maxN,i) = (subseq((allBlockSizes(N,maxN)),0,i):>_);
@@ -2497,8 +2766,8 @@ selectoutn(n, s) = _ <: par(i, n, *(s==i));
 //    combine(2) = max;
 //    combine(N) = max(combine(N-1),_);
 //    // Decide wether or not to use a certain value, based on N
-//    useVal(i) = select2( isUsed(i), (0-(ma.INFINITY)),_);
-//    isUsed(i) = take(i+1,(int2bin(N,maxN)));
+//    useVal(i) = select2(isUsed(i), (0-(ma.INFINITY)),_);
+//    isUsed(i) = take(i+1, (int2bin(N,maxN)));
 //  };
 // ```
 //========================================================================================
@@ -2559,20 +2828,20 @@ with {
     useVal(i) =
       _ <: select2(
         (i==0) & (N==0),
-        select2(isUsed(i), disabledVal,_),
+        select2(isUsed(i), disabledVal, _),
         _
       );
 
     // useVal(i) =
     //     select2(isUsed(i), disabledVal,_);
-    isUsed(i) = take(i+1,(int2bin(N,maxN)));
+    isUsed(i) = take(i+1, (int2bin(N,maxN)));
     pow2(i) = 1<<i;
     // same as:
     // pow2(i) = int(pow(2,i));
     // but in the block diagram, it will be displayed as a number, instead of a formula
 
     // convert N into a list of ones and zeros
-    int2bin(N,maxN) = par(j,int2nrOfBits(maxN),int(floor(N/(pow2(j))))%2);
+    int2bin(N,maxN) = par(j, int2nrOfBits(maxN), int(floor(N/(pow2(j))))%2);
     // calculate how many ones and zeros are needed to represent maxN
     int2nrOfBits(0) = 0;
     int2nrOfBits(maxN) = int(floor(log(maxN)/log(2))+1);
@@ -4132,6 +4401,30 @@ declare rms_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
 declare rms_envelope_t19 license "MIT-style STK-4.3 license";
 rms_envelope_t19(period, x) = ms_envelope_t19(period, x) : sqrt;
 
+//-----------------------`(an.)zcr`--------------------------------------------
+// Zero-crossing rate (ZCR) with one-pole lowpass averaging based on the tau 
+// constant. It outputs an index between 0 and 1 at a desired analysis frame. 
+// The ZCR of a signal correlates with the noisiness [Gouyon et al. 2000] and 
+// the spectral centroid [Herrera-Boyer et al. 2006] of a signal. 
+// For sinusoidal signals, the ZCR can be multiplied by ma.SR/2 and used
+// as a frequency detector. For example, it can be deployed as a
+// computationally efficient adaptive mechanism for automatic Larsen
+// suppression.
+//
+// #### Usage
+//
+// ```
+// _ : zcr(tau) : _;
+// ```
+//
+// Where:
+//
+// * `tau`: (time to decay by e^-1) sets the averaging frame in seconds.
+declare zcr author "Dario Sanfilippo";
+declare zcr copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com>";
+declare zcr license "MIT-style STK-4.3 license";
+zcr(period, x) = ma.zc(x) : fi.lptau(period);
 
 //=============================Spectrum-Analyzers=========================================
 // Spectrum-analyzers split the input signal into a bank of parallel signals, one for
@@ -10468,7 +10761,7 @@ with {
 
 		// update delay time of line 0 if needed
 		nd1 = ba.if ((ip <= 0.0) & (d0!=dt), dt, d1);
-	} ) ~ (_,_,_,_) : (!,_,_,_);
+	}) ~ (_,_,_,_) : (!,_,_,_);
 };
 
 
@@ -10614,7 +10907,7 @@ fdelay5 = fdelayltv(5);
 // Delay arguments too small will produce an UNSTABLE allpass!
 //
 // Because allpass interpolation is recursive, it is not as robust
-// as Lagrange interpolation under time-varying conditions.
+// as Lagrange interpolation under time-varying conditions
 // (You may hear clicks when changing the delay rapidly.)
 //
 // First-order allpass interpolation, delay d in [0.5,1.5]
@@ -11170,7 +11463,6 @@ declare license   "LGPL";
 
 ma = library("maths.lib");
 fi = library("filters.lib");
-
 
 /****************************************************************
  **           Equalisation 3 bands
@@ -20729,6 +21021,7 @@ integrator = + ~ _;
 // and sloped at about +6 dB/octave below \(fb\).
 // Derived from the analog transfer function
 // \(H(s) = \frac{s}{(s + 2 \pi fb)}\)
+// (which can be seen as a 1st-order Butterworth highpass filter)
 // by the low-frequency-matching bilinear transform method
 // (i.e., the standard frequency-scaling constant 2*SR).
 //
@@ -23418,19 +23711,19 @@ with {
 };
 
 //-------------------------------`(si.)dot`--------------------------------------
-// Dot product for two vectors of size n.
+// Dot product for two vectors of size N.
 //
 // #### Usage
 //
 // ```
-// _,_,_,_,_,_ : dot(n) : _
+// _,_,_,_,_,_ : dot(N) : _
 // ```
 //
 // Where:
 //
-// * `n`: size of the vectors (int, must be known at compile time)
+// * `N`: size of the vectors (int, must be known at compile time)
 //-----------------------------------------------------------------------------
-dot(n) = ro.interleave(n,2) : par(i,n,*) :> _;
+dot(N) = ro.interleave(N,2) : par(i,N,*) :> _;
 
 // end GRAME section
 //########################################################################################
@@ -27878,7 +28171,7 @@ with{
 
 
 //-------`(pm.)nylonGuitar`----------
-// A simple acoustic guitar model with steel strings (based on
+// A simple acoustic guitar model with nylon strings (based on
 // [`nylonGuitarModel`](#nylonguitarmodel)) implementing an excitation model.
 // This model implements a single string. Additional strings should be created
 // by making a polyphonic applications out of this function.
