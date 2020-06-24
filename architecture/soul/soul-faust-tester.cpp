@@ -41,7 +41,7 @@ static bool endWith(const string& str, const string& suffix)
 
 static void measureDSP(const string& filename, dsp* DSP)
 {
-    measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
+    measure_dsp mes(DSP, 512, 5., false, true);  // Buffer_size and duration in sec of measure
     mes.measure();
     cout << filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
     FAUSTBENCH_LOG<double>(mes.getStats());

@@ -301,6 +301,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fAllocaBuilder            = new IRBuilder<>(fModule->getContext());
  
     #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+        
+        /* This does not work in visit(FunCallInst* inst) for intrinsic, which are deactivated for now
+        call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+        */
+        
+        /*
         // Float version
         fUnaryIntrinsicTable["ceilf"] = Intrinsic::ceil;
         fUnaryIntrinsicTable["cosf"] = Intrinsic::cos;
@@ -313,7 +319,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fUnaryIntrinsicTable["sqrtf"] = Intrinsic::sqrt;
         fBinaryIntrinsicTable["powf"] = Intrinsic::pow;
         fUnaryIntrinsicTable["sinf"] = Intrinsic::sin;
-        
+       
         // Double version
         fUnaryIntrinsicTable["ceil"] = Intrinsic::ceil;
         fUnaryIntrinsicTable["cos"] = Intrinsic::cos;
@@ -326,6 +332,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fUnaryIntrinsicTable["sqrt"] = Intrinsic::sqrt;
         fBinaryIntrinsicTable["pow"] = Intrinsic::pow;
         fUnaryIntrinsicTable["sin"] = Intrinsic::sin;
+        */
     #endif
         
         // Integer version
@@ -453,7 +460,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     virtual void visit(DeclareFunInst* inst)
     {
         Function* function = fModule->getFunction(inst->fName);
-
+  
         // Define it
         if (!function) {
             
@@ -823,18 +830,28 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
         // LLVM unary intrinsic
         } else if (fUnaryIntrinsicTable.find(inst->fName) != fUnaryIntrinsicTable.end()) {
-            fCurValue = fBuilder->CreateUnaryIntrinsic(fUnaryIntrinsicTable[inst->fName], fun_args[0]);
+            
+            CallInst* call_inst = fBuilder->CreateUnaryIntrinsic(fUnaryIntrinsicTable[inst->fName], fun_args[0]);
+            call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+            fCurValue = call_inst;
+            
         // LLVM binary intrinsic
         } else if (fBinaryIntrinsicTable.find(inst->fName) != fBinaryIntrinsicTable.end()) {
-            fCurValue = fBuilder->CreateBinaryIntrinsic(fBinaryIntrinsicTable[inst->fName], fun_args[0], fun_args[1]);
+            
+            CallInst* call_inst = fBuilder->CreateBinaryIntrinsic(fBinaryIntrinsicTable[inst->fName], fun_args[0], fun_args[1]);
+            call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+            fCurValue = call_inst;
+            
     #endif
         } else {
             // Get function in the module
             Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
             faustassert(function);
-
+        
             // Result is function call
-            fCurValue = CreateFuncall(function, fun_args);
+            CallInst* call_inst = CreateFuncall(function, fun_args);
+            call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+            fCurValue = call_inst;
         }
     }
     
