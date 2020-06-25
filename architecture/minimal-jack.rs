@@ -33,6 +33,9 @@ extern crate libm;
 type F32 = f32;
 type F64 = f64;
 
+#[derive(Copy, Clone)]
+pub struct ParamIndex(i32);
+
 pub trait FaustDsp {
     type Sample;
 
@@ -44,23 +47,24 @@ pub trait FaustDsp {
     fn get_input_rate(&self, channel: i32) -> i32;
     fn get_output_rate(&self, channel: i32) -> i32;
     fn class_init(sample_rate: i32) where Self: Sized;
-    fn instance_reset_user_interface(&mut self);
+    fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::Sample>) where Self: Sized;
+    fn get_param(&self, param: ParamIndex) -> Option<Self::Sample>;
+    fn set_param(&mut self, param: ParamIndex, value: Self::Sample);
     fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
 }
 
 pub trait Meta {
-
     // -- metadata declarations
-    fn declare(&mut self, key: &str, value: &str) -> ();
+    fn declare(&mut self, key: &str, value: &str);
 }
 
 pub trait UI<T> {
-
     // -- widget's layouts
     fn open_tab_box(&mut self, label: &str);
     fn open_horizontal_box(&mut self, label: &str);
@@ -68,18 +72,18 @@ pub trait UI<T> {
     fn close_box(&mut self);
 
     // -- active widgets
-    fn add_button(&mut self, label: &str, zone: &mut T);
-    fn add_check_button(&mut self, label: &str, zone: &mut T);
-    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
-    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
-    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_button(&mut self, label: &str, param: ParamIndex);
+    fn add_check_button(&mut self, label: &str, param: ParamIndex);
+    fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
-    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
+    fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);
 }
 
 <<includeIntrinsic>>
