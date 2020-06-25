@@ -102,7 +102,7 @@ pub struct ButtonUI
 
 impl ButtonUI
 {
-    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<T=f64>, value: f64) {
+    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<Sample=f64>, value: f64) {
         for button_param in &self.all_button_params {
             dsp.set_param(*button_param, value);
         }
@@ -120,7 +120,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI
     // -- active widgets
     fn add_button(&mut self, label: &str, param: ParamIndex)
     {
-        //println!("addButton: {}", label);
+        self.all_button_params.push(param);
     }
     fn add_check_button(&mut self, label: &str, param: ParamIndex) {}
     fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T) {}
@@ -167,6 +167,10 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
     // Prepare buffers
     let mut in_buffer = vec![vec![0 as T; buffer_size]; num_inputs];
     let mut out_buffer = vec![vec![0 as T; buffer_size]; num_outputs];
+
+    // Prepare UI
+    let mut ui = ButtonUI{ all_button_params: Vec::new() };
+    dsp.build_user_interface(&mut ui);
 
     // Prepare UI
     let mut ui = ButtonUI{ all_button_params: Vec::new() };

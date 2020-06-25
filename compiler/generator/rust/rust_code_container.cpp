@@ -325,7 +325,6 @@ void RustCodeContainer::produceClass()
 
     // Pre-pass of user interface instructions to determine parameter lookup table (field name => index)
     UserInterfaceParameterMapping parameterMappingVisitor;
-    std::cout << "Size of UI instructions: " << fUserInterfaceInstructions->fCode.size() << "\n";
     fUserInterfaceInstructions->accept(&parameterMappingVisitor);
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
 

@@ -621,8 +621,6 @@ class UserInterfaceParameterMapping : public InstVisitor {
                 fParameterLookup[inst->fZone] = fParameterIndex++;
             }
         }
-        std::cout << "visited AddMetaDeclareInst\n";
-        std::cout << fParameterLookup.size() << "\n";
     }
 
     virtual void visit(AddButtonInst* inst)
@@ -630,8 +628,6 @@ class UserInterfaceParameterMapping : public InstVisitor {
         if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
             fParameterLookup[inst->fZone] = fParameterIndex++;
         }
-        std::cout << "visited AddButtonInst\n";
-        std::cout << fParameterLookup.size() << "\n";
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -639,8 +635,6 @@ class UserInterfaceParameterMapping : public InstVisitor {
         if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
             fParameterLookup[inst->fZone] = fParameterIndex++;
         }
-        std::cout << "visited AddSliderInst\n";
-        std::cout << fParameterLookup.size() << "\n";
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -648,8 +642,6 @@ class UserInterfaceParameterMapping : public InstVisitor {
         if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
             fParameterLookup[inst->fZone] = fParameterIndex++;
         }
-        std::cout << "visited AddBargraphInst\n";
-        std::cout << fParameterLookup.size() << "\n";
     }
 
 };
