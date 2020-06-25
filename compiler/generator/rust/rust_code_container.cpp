@@ -266,7 +266,7 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << "fn instance_reset_user_interface(&mut self) {";
+    *fOut << "fn instance_reset_params(&mut self) {";
     {
         tab(n + 2, *fOut);
         // Local visitor here to avoid DSP object type wrong generation
@@ -306,7 +306,7 @@ void RustCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "self.instance_constants(sample_rate);";
     tab(n + 2, *fOut);
-    *fOut << "self.instance_reset_user_interface();";
+    *fOut << "self.instance_reset_params();";
     tab(n + 2, *fOut);
     *fOut << "self.instance_clear();";
     tab(n + 1, *fOut);
@@ -323,7 +323,6 @@ void RustCodeContainer::produceClass()
 
     // Pre-pass of user interface instructions to determine parameter lookup table (field name => index)
     UserInterfaceParameterMapping parameterMappingVisitor;
-    std::cout << "Size of UI instructions: " << fUserInterfaceInstructions->fCode.size() << "\n";
     fUserInterfaceInstructions->accept(&parameterMappingVisitor);
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
 
