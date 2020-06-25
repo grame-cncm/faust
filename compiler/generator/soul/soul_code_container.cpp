@@ -348,6 +348,9 @@ void SOULCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "{";
         tab(n + 2, *fOut);
+        // Debug code
+        //*fOut << "console << \"control\\n\";";
+        tab(n + 2, *fOut);
         fCodeProducer.Tab(n + 2);
         // Generates local variables declaration and setup
         generateComputeBlock(&fCodeProducer);

@@ -34,7 +34,8 @@
 #include <map>
 #include <algorithm>
 
-#include <soul/API/soul_patch.h>
+#include <soul/API/soul_patch/API/soul_patch.h>
+#include <soul/API/soul_patch/helper_classes/soul_patch_Utilities.h>
 
 #include "faust/dsp/dsp.h"
 #include "faust/midi/midi.h"
@@ -52,6 +53,22 @@ class soulpatch_dsp : public dsp {
     
     private:
     
+        struct ConsolePrinter : public soul::patch::RefCountHelper<soul::patch::ConsoleMessageHandler, ConsolePrinter>
+        {
+            /** Called when a message is sent to the console by the program. */
+            void handleConsoleMessage(uint64_t sampleCount, const char* endpointName, const char* message)
+            {
+                /*
+                 if (soul::isConsoleEndpoint(endpointName)) {
+                    std::cout << message;
+                 } else {
+                    std::cout << sampleCount << " " << endpointName << ": " << message << std::endl;
+                 }
+                */
+                std::cout << sampleCount << " " << endpointName << ": " << message << std::endl;
+            }
+        };
+
         bool startWith(const std::string& str, const std::string& prefix)
         {
             return (str.substr(0, prefix.size()) == prefix);
@@ -195,6 +212,7 @@ class soulpatch_dsp : public dsp {
                                                               params[i]->maxValue, params[i]->step);
                         }
                     }
+                    
                     ui_interface->closeBox();
                 }
                 {
@@ -213,10 +231,10 @@ class soulpatch_dsp : public dsp {
                         for (int j = 0; j < names.size(); j++) {
                             std::string key = names[j];
                             if (key == "unit") {
-                                ui_interface->declare(zone, key.c_str(), params[i]->getProperty(names[j]));
+                                ui_interface->declare(zone, key.c_str(), params[i]->getProperty(names[j])->getCharPointer());
                             }
                         }
-                        if !(checkParam(params[i]->getPropertyNames(), "hidden")) {
+                        if (!(checkParam(params[i]->getPropertyNames(), "hidden"))) {
                             ui_interface->addVerticalBargraph(params[i]->name->getCharPointer(), zone, params[i]->minValue, params[i]->maxValue);
                         }
                     }
@@ -430,7 +448,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, new ConsolePrinter());
     if (!fPlayer->isPlayable()) {
         soul::patch::Span<soul::patch::CompilationMessage> errors = fPlayer->getCompileMessages();
         error_msg = "getCompileError";
@@ -450,7 +468,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
 void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, new ConsolePrinter());
     fMIDIInputMessages.resize(1024);
     fMIDIOutputMessages.resize(1024);
     
