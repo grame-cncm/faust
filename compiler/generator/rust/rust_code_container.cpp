@@ -269,7 +269,6 @@ void RustCodeContainer::produceClass()
         // Local visitor here to avoid DSP object type wrong generation
         RustInstVisitor codeproducer(fOut, "");
         codeproducer.Tab(n + 2);
-        // TODO: This creates function calls with "wrong" function names. How to forward the proper names?
         generateStaticInit(&codeproducer);
     }
     back(1, *fOut);
@@ -331,12 +330,24 @@ void RustCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "}";
 
+    // Build parameter mapping for user interface
+    UserInterfaceParameterMapping parameterMappingVisitor;
+    std::cout << "Size of UI instructions: " << fUserInterfaceInstructions->fCode.size() << "\n";
+    fUserInterfaceInstructions->accept(&parameterMappingVisitor);
+    auto parameterLookup = parameterMappingVisitor.getParameterLookup();
+
     // User interface
+    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup);
+
     tab(n + 1, *fOut);
     *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    generateUserInterface(&fCodeProducer);
+    //generateUserInterface(&fCodeProducer);
+    if (fUserInterfaceInstructions->fCode.size() > 0) {
+        fUserInterfaceInstructions->accept(&uiCodeproducer);
+    }
+
     back(1, *fOut);
     *fOut << "}";
 

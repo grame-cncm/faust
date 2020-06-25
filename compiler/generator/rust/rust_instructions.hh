@@ -666,4 +666,180 @@ class RustInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
+class UserInterfaceParameterMapping : public InstVisitor {
+   private:
+    map<string, int>      fParameterLookup;
+    int                   fParameterIndex;
+
+   public:
+    using InstVisitor::visit;
+
+    UserInterfaceParameterMapping()
+        : InstVisitor(), fParameterLookup{}, fParameterIndex{0}
+    {}
+
+    virtual ~UserInterfaceParameterMapping() {}
+
+    map<string, int> getParameterLookup() {
+        return fParameterLookup;
+    }
+
+    virtual void visit(BlockInst* inst)
+    {
+        // BlockInst visitor is unimplemented in base class, so we need a trivial implementation
+        // to actually visit the user interface statements in the BlockInst.
+        for (auto& it : inst->fCode) {
+            it->accept(this);
+        }
+    }
+
+    virtual void visit(AddMetaDeclareInst* inst)
+    {
+        // Only store fZone's value if it is not the 0 / nullptr special case
+        if (inst->fZone != "0") {
+            if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
+                fParameterLookup[inst->fZone] = fParameterIndex++;
+            }
+        }
+        std::cout << "visited AddMetaDeclareInst\n";
+        std::cout << fParameterLookup.size() << "\n";
+    }
+
+    virtual void visit(AddButtonInst* inst)
+    {
+        if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
+            fParameterLookup[inst->fZone] = fParameterIndex++;
+        }
+        std::cout << "visited AddButtonInst\n";
+        std::cout << fParameterLookup.size() << "\n";
+    }
+
+    virtual void visit(AddSliderInst* inst)
+    {
+        if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
+            fParameterLookup[inst->fZone] = fParameterIndex++;
+        }
+        std::cout << "visited AddSliderInst\n";
+        std::cout << fParameterLookup.size() << "\n";
+    }
+
+    virtual void visit(AddBargraphInst* inst)
+    {
+        if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
+            fParameterLookup[inst->fZone] = fParameterIndex++;
+        }
+        std::cout << "visited AddBargraphInst\n";
+        std::cout << fParameterLookup.size() << "\n";
+    }
+
+};
+
+class RustUIInstVisitor : public TextInstVisitor {
+   private:
+    map<string, int>      fParameterLookup;
+
+    int getParameterIndex(string name) {
+        auto parameterIndex = fParameterLookup.find(name);
+        if (parameterIndex == fParameterLookup.end()) {
+            throw runtime_error("Parameter '" + name + "' is unknown");
+        } else {
+            return parameterIndex->second;
+        }
+    }
+
+   public:
+    using TextInstVisitor::visit;
+
+    RustUIInstVisitor(std::ostream* out, const string& structname, map<string, int> parameterLookup, int tab = 0)
+        : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab),
+          fParameterLookup{parameterLookup}
+    {}
+
+    virtual ~RustUIInstVisitor()
+    {}
+
+    virtual void visit(AddMetaDeclareInst* inst)
+    {
+        // Special case
+        if (inst->fZone == "0") {
+            *fOut << "ui_interface.declare(None, " << quote(inst->fKey) << ", " << quote(inst->fValue)
+                  << ")";
+        } else {
+            *fOut << "ui_interface.declare(Some(ParameterIndex(" << getParameterIndex(inst->fZone) << ")), " << quote(inst->fKey) << ", "
+                  << quote(inst->fValue) << ")";
+        }
+        EndLine();
+    }
+
+    virtual void visit(OpenboxInst* inst)
+    {
+        string name;
+        switch (inst->fOrient) {
+            case OpenboxInst::kVerticalBox:
+                name = "ui_interface.open_vertical_box(";
+                break;
+            case OpenboxInst::kHorizontalBox:
+                name = "ui_interface.open_horizontal_box(";
+                break;
+            case OpenboxInst::kTabBox:
+                name = "ui_interface.open_tab_box(";
+                break;
+        }
+        *fOut << name << quote(inst->fName) << ")";
+        EndLine();
+    }
+
+    virtual void visit(CloseboxInst* inst)
+    {
+        *fOut << "ui_interface.close_box();";
+        tab(fTab, *fOut);
+    }
+
+    virtual void visit(AddButtonInst* inst)
+    {
+        if (inst->fType == AddButtonInst::kDefaultButton) {
+            *fOut << "ui_interface.add_button(" << quote(inst->fLabel) << ", ParameterIndex(" << getParameterIndex(inst->fZone) << "))";
+        } else {
+            *fOut << "ui_interface.add_check_button(" << quote(inst->fLabel) << ", ParameterIndex(" << getParameterIndex(inst->fZone) << "))";
+        }
+        EndLine();
+    }
+
+    virtual void visit(AddSliderInst* inst)
+    {
+        string name;
+        switch (inst->fType) {
+            case AddSliderInst::kHorizontal:
+                name = "ui_interface.add_horizontal_slider";
+                break;
+            case AddSliderInst::kVertical:
+                name = "ui_interface.add_vertical_slider";
+                break;
+            case AddSliderInst::kNumEntry:
+                name = "ui_interface.add_num_entry";
+                break;
+        }
+        *fOut << name << "(" << quote(inst->fLabel) << ", "
+              << "ParameterIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+        EndLine();
+    }
+
+    virtual void visit(AddBargraphInst* inst)
+    {
+        string name;
+        switch (inst->fType) {
+            case AddBargraphInst::kHorizontal:
+                name = "ui_interface.add_horizontal_bargraph";
+                break;
+            case AddBargraphInst::kVertical:
+                name = "ui_interface.add_vertical_bargraph";
+                break;
+        }
+        *fOut << name << "(" << quote(inst->fLabel) << ", ParameterIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fMin)
+              << ", " << checkReal(inst->fMax) << ")";
+        EndLine();
+    }
+};
+
 #endif
