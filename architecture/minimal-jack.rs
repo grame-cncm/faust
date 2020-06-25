@@ -52,11 +52,11 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>);
-    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
-    fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
-    fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::Sample>) where Self: Sized;
+    fn get_param(&self, param: ParamIndex) -> Option<Self::Sample>;
+    fn set_param(&mut self, param: ParamIndex, value: Self::Sample);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
 }
 
 pub trait Meta {
