@@ -15,6 +15,8 @@ use std::env;
 
 use num_traits::{cast::FromPrimitive, float::Float};
 
+pub struct ParameterIndex(i32);
+
 pub trait FaustDsp {
     type Sample;
 
@@ -48,18 +50,18 @@ pub trait UI<T> {
     fn close_box(&mut self);
 
     // -- active widgets
-    fn add_button(&mut self, label: &str, zone: &mut T);
-    fn add_check_button(&mut self, label: &str, zone: &mut T);
-    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
-    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
-    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_button(&mut self, label: &str, param_idx: ParameterIndex);
+    fn add_check_button(&mut self, label: &str, param_idx: ParameterIndex);
+    fn add_vertical_slider(&mut self, label: &str, param_idx: ParameterIndex, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, param_idx: ParameterIndex, init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, param_idx: ParameterIndex, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
-    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_horizontal_bargraph(&mut self, label: &str, param_idx: ParameterIndex, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, param_idx: ParameterIndex, min: T, max: T);
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
+    fn declare(&mut self, param_idx: Option<ParameterIndex>, key: &str, value: &str);
 }
 
 pub struct ButtonUI<T>
@@ -76,22 +78,21 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
     fn close_box(&mut self) {}
 
     // -- active widgets
-    fn add_button(&mut self, label: &str, zone: &mut T)
+    fn add_button(&mut self, label: &str, param_idx: ParameterIndex)
     {
         //println!("addButton: {}", label);
-        *zone = self.fState;
     }
-    fn add_check_button(&mut self, label: &str, zone: &mut T) {}
-    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) {}
-    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) {}
-    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) {}
+    fn add_check_button(&mut self, label: &str, param_idx: ParameterIndex) {}
+    fn add_vertical_slider(&mut self, label: &str, param_idx: ParameterIndex, init: T, min: T, max: T, step: T) {}
+    fn add_horizontal_slider(&mut self, label: &str, param_idx: ParameterIndex, init: T, min: T, max: T, step: T) {}
+    fn add_num_entry(&mut self, label: &str, param_idx: ParameterIndex, init: T, min: T, max: T, step: T) {}
 
     // -- passive widgets
-    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) {}
-    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) {}
+    fn add_horizontal_bargraph(&mut self, label: &str, param_idx: ParameterIndex, min: T, max: T) {}
+    fn add_vertical_bargraph(&mut self, label: &str, param_idx: ParameterIndex, min: T, max: T) {}
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) {}
+    fn declare(&mut self, param_idx: Option<ParameterIndex>, key: &str, value: &str) {}
 }
 
 // Generated intrinsics:
