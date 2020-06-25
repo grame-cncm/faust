@@ -37,7 +37,6 @@ using namespace std;
  with inputs[N]/outputs[N] (done in instructions_compiler.cpp)
  - BoolOpcode BinOps always casted to integer
  - 'delete' for SubcContainers is not generated
- - add  'fDummy' zone in 'mydsp' struct to publish it (if needed) in 'declare' when nullptr is used
  - add 'kMutable' and 'kReference' address access type
 
 */
@@ -183,10 +182,6 @@ void RustCodeContainer::produceClass()
     *fOut << "pub struct " << fKlassName << " {";
     tab(n + 1, *fOut);
 
-    // Dummy field used for 'declare'
-    *fOut << "fDummy: " << ifloat() << ",";
-    tab(n + 1, *fOut);
-
     // Fields
     fCodeProducer.Tab(n + 1);
     generateDeclarations(&fCodeProducer);
@@ -232,8 +227,6 @@ void RustCodeContainer::produceClass()
     }
     tab(n + 2, *fOut);
     *fOut << fKlassName << " {";
-    tab(n + 3, *fOut);
-    *fOut << "fDummy: 0 as " << ifloat() << ",";
     RustInitFieldsVisitor initializer(fOut, n + 3);
     generateDeclarations(&initializer);
     tab(n + 2, *fOut);
