@@ -323,12 +323,15 @@ void RustCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "}";
 
-    // Pre-pass of user interface instructions to determine parameter lookup table (field name => index)
+    // Build parameter mapping for user interface
     UserInterfaceParameterMapping parameterMappingVisitor;
+    std::cout << "Size of UI instructions: " << fUserInterfaceInstructions->fCode.size() << "\n";
     fUserInterfaceInstructions->accept(&parameterMappingVisitor);
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
 
-    // User interface (non-static method)
+    // User interface
+    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup);
+
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {";
@@ -343,8 +346,11 @@ void RustCodeContainer::produceClass()
     *fOut << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup, n + 2);
-    generateUserInterface(&uiCodeproducer);
+    //generateUserInterface(&fCodeProducer);
+    if (fUserInterfaceInstructions->fCode.size() > 0) {
+        fUserInterfaceInstructions->accept(&uiCodeproducer);
+    }
+
     back(1, *fOut);
     *fOut << "}";
 
