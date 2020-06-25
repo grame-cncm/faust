@@ -330,7 +330,6 @@ void RustCodeContainer::produceClass()
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
 
     // User interface
-    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup);
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
@@ -346,11 +345,13 @@ void RustCodeContainer::produceClass()
     *fOut << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    //generateUserInterface(&fCodeProducer);
+    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup, 2);
+    generateUserInterface(&uiCodeproducer);
+    /*
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         fUserInterfaceInstructions->accept(&uiCodeproducer);
     }
-
+    */
     back(1, *fOut);
     *fOut << "}";
 
@@ -411,9 +412,9 @@ void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
 void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> parameterLookup)
 {
     // Add `get_param`
+    *fOut << "";
     tab(tabs, *fOut);
-    tab(tabs, *fOut);
-    *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::T> {";
+    *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::Sample> {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto &paramPair : parameterLookup) {
@@ -431,9 +432,9 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
 
 
     // Add `set_param`
+    *fOut << "";
     tab(tabs, *fOut);
-    tab(tabs, *fOut);
-    *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {";
+    *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::Sample) {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto &paramPair : parameterLookup) {

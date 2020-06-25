@@ -688,7 +688,7 @@ class RustUIInstVisitor : public TextInstVisitor {
             *fOut << "ui_interface.declare(None, " << quote(inst->fKey) << ", " << quote(inst->fValue)
                   << ")";
         } else {
-            *fOut << "ui_interface.declare(Some(ParameterIndex(" << getParameterIndex(inst->fZone) << ")), " << quote(inst->fKey) << ", "
+            *fOut << "ui_interface.declare(Some(ParamIndex(" << getParameterIndex(inst->fZone) << ")), " << quote(inst->fKey) << ", "
                   << quote(inst->fValue) << ")";
         }
         EndLine();
@@ -721,9 +721,9 @@ class RustUIInstVisitor : public TextInstVisitor {
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "ui_interface.add_button(" << quote(inst->fLabel) << ", ParameterIndex(" << getParameterIndex(inst->fZone) << "))";
+            *fOut << "ui_interface.add_button(" << quote(inst->fLabel) << ", ParamIndex(" << getParameterIndex(inst->fZone) << "))";
         } else {
-            *fOut << "ui_interface.add_check_button(" << quote(inst->fLabel) << ", ParameterIndex(" << getParameterIndex(inst->fZone) << "))";
+            *fOut << "ui_interface.add_check_button(" << quote(inst->fLabel) << ", ParamIndex(" << getParameterIndex(inst->fZone) << "))";
         }
         EndLine();
     }
@@ -743,7 +743,7 @@ class RustUIInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
-              << "ParameterIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
+              << "ParamIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
               << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
@@ -759,7 +759,7 @@ class RustUIInstVisitor : public TextInstVisitor {
                 name = "ui_interface.add_vertical_bargraph";
                 break;
         }
-        *fOut << name << "(" << quote(inst->fLabel) << ", ParameterIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fMin)
+        *fOut << name << "(" << quote(inst->fLabel) << ", ParamIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fMin)
               << ", " << checkReal(inst->fMax) << ")";
         EndLine();
     }
