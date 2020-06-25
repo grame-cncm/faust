@@ -193,6 +193,8 @@ class dummyaudio_real : public audio {
         
         void render()
         {
+            AVOIDDENORMALS;
+            
             fDSP->compute(fBufferSize, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
             if (fNumInputs > 0) {
                 for (int frame = 0; frame < fSample; frame++) {

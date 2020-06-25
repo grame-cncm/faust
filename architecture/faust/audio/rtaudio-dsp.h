@@ -60,6 +60,8 @@ class rtaudio : public audio {
         
         virtual int processAudio(double streamTime, void* inbuf, void* outbuf, unsigned long frames) 
         {
+            AVOIDDENORMALS;
+            
             float* inputs[fDsp->getNumInputs()];
             float* outputs[fDsp->getNumOutputs()];
             

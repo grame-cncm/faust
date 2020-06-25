@@ -72,6 +72,8 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
     
         void audioOut(ofSoundBuffer& output)
         {
+            AVOIDDENORMALS;
+            
             // Interleave input (= fInBuffer)
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 for (int frame = 0; frame < output.getNumFrames(); frame++) {

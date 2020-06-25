@@ -1081,7 +1081,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     
     // Needed to script objects
     char name[64];
-    sprintf(name, "faustgen-%x", this);
+    sprintf(name, "faustgen-%lld", (long long)this);
     jbox_set_varname(box, gensym(name));
     
     // Fetch the data inside the max patcher using the dictionary

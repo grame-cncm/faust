@@ -248,13 +248,21 @@ public:
    
 	void setupIO(maxmethodperform meth, maxmethodinit init, unsigned int siginlets, unsigned int sigoutlets, bool initialize);
 	
-    // 32 bits
-	static void internal_dsp_32(MspCpp5<T>* x, t_signal** sp, short *count);
-    static t_int* internal_perform_32(t_int*);
-    
+#ifdef MSP64
     // 64 bits
-    static void internal_dsp_64(MspCpp5<T>* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
-    static void internal_perform_64(MspCpp5<T>* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
+    static void internal_dsp_64(MspCpp5<T>* x, t_object* dsp64, short* count,
+                                double samplerate,
+                                long maxvectorsize,
+                                long flags);
+    static void internal_perform_64(MspCpp5<T>* x, t_object* dsp64, double** ins,
+                                    long numins, double** outs,
+                                    long numouts, long sampleframes,
+                                    long flags, void* userparam);
+#else
+    // 32 bits
+	static void internal_dsp_32(MspCpp5<T>* x, t_signal** sp, short* count);
+    static t_int* internal_perform_32(t_int*);
+#endif
 	
 	// stub function in case the user doesn't supply one
 	void dsp() {}
@@ -412,6 +420,7 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
 	m_ob.z_misc = Z_NO_INPLACE;
 }
 
+#ifndef MSP64
 template<typename T> void MspCpp5<T>::internal_dsp_32(MspCpp5<T>* x, t_signal** sp, short* count) {
 	int i = 0;
 	int s = 0;
@@ -429,6 +438,20 @@ template<typename T> void MspCpp5<T>::internal_dsp_32(MspCpp5<T>* x, t_signal** 
 	pdata.x->dsp();
 }
 
+template<typename T> t_int * MspCpp5<T>::internal_perform_32(t_int* w) {
+    PerformData* pdata = (PerformData *)(w+1);
+    MspCpp5<T>* x = pdata->x;
+    T* self = pdata->x;
+    if (!x->m_ob.z_disabled) {
+        // forward this to the user dsp routine:
+        AVOIDDENORMALS;
+        ((self)->*(self->m_perform))(pdata->vs, pdata->inputs, pdata->outputs);
+    }
+    return w + sizeof(PerformData)/sizeof(t_int) + 1;
+}
+
+#endif
+
 template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x, t_object* dsp64, short *count, double samplerate, long maxvectorsize, long flags) {
     T* self = (T*)x;	
     if (samplerate != self->m_samplerate) {
@@ -436,18 +459,6 @@ template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x, t_object* d
         self->m_samplerate = samplerate;
     }
     object_method(dsp64, gensym("dsp_add64"), x, MspCpp5<T>::internal_perform_64, 0, NULL);
-}
-
-template<typename T> t_int * MspCpp5<T>::internal_perform_32(t_int* w) {
-	PerformData* pdata = (PerformData *)(w+1);
-	MspCpp5<T>* x = pdata->x;
-	T* self = pdata->x;
-	if (!x->m_ob.z_disabled) {
-		// forward this to the user dsp routine:
-        AVOIDDENORMALS;
-		((self)->*(self->m_perform))(pdata->vs, pdata->inputs, pdata->outputs);
-	}
-	return w + sizeof(PerformData)/sizeof(t_int) + 1;
 }
 
 template<typename T> void MspCpp5<T>::internal_perform_64(MspCpp5<T>* x, t_object* dsp64, double** ins, long numins,
