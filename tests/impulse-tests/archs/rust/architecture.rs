@@ -42,6 +42,7 @@ type F32 = Fast<f32>;
 type F64 = Fast<f64>;
 */
 
+#[derive(Copy, Clone)]
 pub struct ParamIndex(i32);
 
 pub trait FaustDsp {
@@ -55,7 +56,7 @@ pub trait FaustDsp {
     fn get_input_rate(&self, channel: i32) -> i32;
     fn get_output_rate(&self, channel: i32) -> i32;
     fn class_init(sample_rate: i32) where Self: Sized;
-    fn instance_reset_user_interface(&mut self);
+    fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
@@ -94,12 +95,21 @@ pub trait UI<T> {
     fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);
 }
 
-pub struct ButtonUI<T>
+pub struct ButtonUI
 {
-    fState: T
+    all_button_params: Vec<ParamIndex>
 }
 
-impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
+impl ButtonUI
+{
+    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<Sample=f64>, value: f64) {
+        for button_param in &self.all_button_params {
+            dsp.set_param(*button_param, value);
+        }
+    }
+}
+
+impl<T: Float + FromPrimitive> UI<T> for ButtonUI
 {
     // -- widget's layouts
     fn open_tab_box(&mut self, label: &str) {}
@@ -110,7 +120,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI<T>
     // -- active widgets
     fn add_button(&mut self, label: &str, param: ParamIndex)
     {
-        //println!("addButton: {}", label);
+        self.all_button_params.push(param);
     }
     fn add_check_button(&mut self, label: &str, param: ParamIndex) {}
     fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T) {}
@@ -158,6 +168,10 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
     let mut in_buffer = vec![vec![0 as RealType; buffer_size]; num_inputs];
     let mut out_buffer = vec![vec![0 as RealType; buffer_size]; num_outputs];
 
+    // Prepare UI
+    let mut ui = ButtonUI{ all_button_params: Vec::new() };
+    dsp.build_user_interface(&mut ui);
+
     // Compute
     let mut cycle = 0;
     let mut num_samples_written = 0;
@@ -175,11 +189,9 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
 
         // Set button state
         if cycle == 0 {
-            let mut button_on = ButtonUI::<f64>{ fState: 1.0 };
-            dsp.build_user_interface(&mut button_on);
+            ui.set_button_parameters_to(&mut *dsp, 1.0);
         } else {
-            let mut button_off = ButtonUI::<f64>{ fState: 0.0 };
-            dsp.build_user_interface(&mut button_off);
+            ui.set_button_parameters_to(&mut *dsp, 0.0);
         }
 
         dsp.compute(
