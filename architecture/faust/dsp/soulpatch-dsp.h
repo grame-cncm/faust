@@ -58,13 +58,6 @@ class soulpatch_dsp : public dsp {
             /** Called when a message is sent to the console by the program. */
             void handleConsoleMessage(uint64_t sampleCount, const char* endpointName, const char* message)
             {
-                /*
-                 if (soul::isConsoleEndpoint(endpointName)) {
-                    std::cout << message;
-                 } else {
-                    std::cout << sampleCount << " " << endpointName << ": " << message << std::endl;
-                 }
-                */
                 std::cout << sampleCount << " " << endpointName << ": " << message << std::endl;
             }
         };
@@ -386,7 +379,7 @@ class soul_dsp_factory : public dsp_factory {
     
         std::string fPath;
         soul::patch::PatchInstance::Ptr fPatch;
-        soul::patch::Description fDescription;
+        soul::patch::Description* fDescription;
         FaustSourceFilePreprocessor::Ptr fProcessor;
     
     public:
@@ -421,7 +414,7 @@ class soul_dsp_factory : public dsp_factory {
     
         virtual ~soul_dsp_factory() {}
         
-        virtual std::string getName() { return fDescription.name; }
+        virtual std::string getName() { return fDescription->name; }
         virtual std::string getSHAKey() { return ""; }
         virtual std::string getDSPCode() { return ""; }
         virtual std::string getCompileOptions() { return ""; }
@@ -448,7 +441,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, new ConsolePrinter());
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
     if (!fPlayer->isPlayable()) {
         soul::patch::Span<soul::patch::CompilationMessage> errors = fPlayer->getCompileMessages();
         error_msg = "getCompileError";
@@ -468,7 +461,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
 void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, new ConsolePrinter());
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
     fMIDIInputMessages.resize(1024);
     fMIDIOutputMessages.resize(1024);
     

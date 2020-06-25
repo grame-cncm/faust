@@ -138,7 +138,7 @@ class uiMidi {
     
         // To be used when sending messages, returns the effective chan, or 0 when fChan is initialized with -1 (means 'all chans')
         int rangeChan() { return (((fChan < 0) || (fChan > 15)) ? 0 : fChan); }
-        bool inRange(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT v) { return (min >= v && v <= max); }
+        bool inRange(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT v) { return (min <= v && v <= max); }
     
     public:
         
