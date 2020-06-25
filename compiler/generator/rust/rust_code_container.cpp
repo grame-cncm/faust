@@ -335,19 +335,22 @@ void RustCodeContainer::produceClass()
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
 
     // User interface
-    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup);
 
     tab(n + 1, *fOut);
     *fOut << "fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    //generateUserInterface(&fCodeProducer);
+    RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup, 2);
+    generateUserInterface(&uiCodeproducer);
+    /*
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         fUserInterfaceInstructions->accept(&uiCodeproducer);
     }
-
+    */
     back(1, *fOut);
     *fOut << "}";
+
+    produceParameterGetterSetter(n + 1, parameterLookup);
 
     // Compute
     generateCompute(n + 1);
@@ -398,6 +401,48 @@ void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
     generateGetInputRate(subst("get_input_rate$0", classname), obj, false, false)->accept(&fCodeProducer);
     producer->Tab(tabs);
     generateGetOutputRate(subst("get_output_rate$0", classname), obj, false, false)->accept(&fCodeProducer);
+}
+
+void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> parameterLookup)
+{
+    // Add `get_param`
+    *fOut << "";
+    tab(tabs, *fOut);
+    *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::Sample> {";
+    tab(tabs + 1, *fOut);
+    *fOut << "match param.0 {";
+    for (const auto &paramPair : parameterLookup) {
+        const auto fieldName = paramPair.first;
+        const auto index = paramPair.second;
+        tab(tabs + 2, *fOut);
+        *fOut << index << " => Some(self." << fieldName << "),";
+    }
+    tab(tabs + 2, *fOut);
+    *fOut << "_ => None,";
+    tab(tabs + 1, *fOut);
+    *fOut << "}";
+    tab(tabs, *fOut);
+    *fOut << "}";
+
+
+    // Add `set_param`
+    *fOut << "";
+    tab(tabs, *fOut);
+    *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::Sample) {";
+    tab(tabs + 1, *fOut);
+    *fOut << "match param.0 {";
+    for (const auto &paramPair : parameterLookup) {
+        const auto fieldName = paramPair.first;
+        const auto index = paramPair.second;
+        tab(tabs + 2, *fOut);
+        *fOut << index << " => { self." << fieldName << " = value }";
+    }
+    tab(tabs + 2, *fOut);
+    *fOut << "_ => {}";
+    tab(tabs + 1, *fOut);
+    *fOut << "}";
+    tab(tabs, *fOut);
+    *fOut << "}";
 }
 
 // Scalar
