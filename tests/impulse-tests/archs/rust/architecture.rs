@@ -19,7 +19,7 @@ use num_traits::{cast::FromPrimitive, float::Float};
 pub struct ParamIndex(i32);
 
 pub trait FaustDsp {
-    type Sample;
+    type T;
 
     fn new() -> Self where Self: Sized;
     fn metadata(&self, m: &mut dyn Meta);
@@ -34,11 +34,11 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::Sample>);
-    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::Sample>) where Self: Sized;
-    fn get_param(&self, param: ParamIndex) -> Option<Self::Sample>;
-    fn set_param(&mut self, param: ParamIndex, value: Self::Sample);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>);
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
+    fn set_param(&mut self, param: ParamIndex, value: Self::T);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
 }
 
 pub trait Meta {
@@ -75,7 +75,7 @@ pub struct ButtonUI
 
 impl ButtonUI
 {
-    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<Sample=f64>, value: f64) {
+    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<T=f64>, value: f64) {
         for button_param in &self.all_button_params {
             dsp.set_param(*button_param, value);
         }
@@ -116,7 +116,7 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI
 
 const SAMPLE_RATE: i32 = 44100;
 
-type Dsp64 = dyn FaustDsp<Sample=f64>;
+type Dsp64 = dyn FaustDsp<T=f64>;
 
 fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut File) {
     dsp.init(SAMPLE_RATE);
@@ -126,7 +126,7 @@ fn print_header(mut dsp: Box<Dsp64>, num_total_samples: usize, output_file: &mut
 }
 
 fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, output_file: &mut File) {
-    type RealType = <Dsp64 as FaustDsp>::Sample;
+    type T = <Dsp64 as FaustDsp>::T;
 
     // Generation constants
     let buffer_size = 64usize;
@@ -138,8 +138,8 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
     let num_outputs = dsp.get_num_outputs() as usize;
 
     // Prepare buffers
-    let mut in_buffer = vec![vec![0 as RealType; buffer_size]; num_inputs];
-    let mut out_buffer = vec![vec![0 as RealType; buffer_size]; num_outputs];
+    let mut in_buffer = vec![vec![0 as T; buffer_size]; num_inputs];
+    let mut out_buffer = vec![vec![0 as T; buffer_size]; num_outputs];
 
     // Prepare UI
     let mut ui = ButtonUI{ all_button_params: Vec::new() };
@@ -169,8 +169,8 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
 
         dsp.compute(
             buffer_size as i32,
-            in_buffer.iter().map(|buffer| buffer.as_slice()).collect::<Vec<&[RealType]>>().as_slice(),
-            out_buffer.iter_mut().map(|buffer| buffer.as_mut_slice()).collect::<Vec<&mut [RealType]>>().as_mut_slice(),
+            in_buffer.iter().map(|buffer| buffer.as_slice()).collect::<Vec<&[T]>>().as_slice(),
+            out_buffer.iter_mut().map(|buffer| buffer.as_mut_slice()).collect::<Vec<&mut [T]>>().as_mut_slice(),
         );
 
         // handle outputs
