@@ -177,14 +177,14 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
 
         // 'Binary' string, so directly copy its raw content
-        string code    = factory->getBinaryCode();
-        res->fCodeSize = (int)code.size();
-        res->fCode     = (char*)malloc(res->fCodeSize);
-        memcpy(res->fCode, code.c_str(), res->fCodeSize);
+        string code = factory->getBinaryCode();
+        res->fWASMCodeSize = (int)code.size();
+        res->fWASMCode     = (char*)malloc(res->fWASMCodeSize);
+        memcpy(res->fWASMCode, code.c_str(), res->fWASMCodeSize);
 
         stringstream dst2;
         factory->writeHelper(&dst2, false, false);
-        res->fHelpers = strdup(flatten(dst2.str()).c_str());
+        res->fJSHelpers = strdup(flatten(dst2.str()).c_str());
 
         return res;
         // And keep factory...
@@ -212,23 +212,23 @@ EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const c
 
 EXPORT const char* getWasmCModule(WasmModule* module)
 {
-    return module->fCode;
+    return module->fWASMCode;
 }
 
 EXPORT int getWasmCModuleSize(WasmModule* module)
 {
-    return module->fCodeSize;
+    return module->fWASMCodeSize;
 }
 
 EXPORT const char* getWasmCHelpers(WasmModule* module)
 {
-    return module->fHelpers;
+    return module->fJSHelpers;
 }
 
 EXPORT void freeWasmCModule(WasmModule* module)
 {
-    free((void*)module->fCode);
-    free((void*)module->fHelpers);
+    free((void*)module->fWASMCode);
+    free((void*)module->fJSHelpers);
     free(module);
 }
 
