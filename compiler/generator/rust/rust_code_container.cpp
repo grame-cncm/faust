@@ -423,7 +423,6 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     tab(tabs, *fOut);
     *fOut << "}";
 
-
     // Add `set_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);

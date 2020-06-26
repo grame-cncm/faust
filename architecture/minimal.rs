@@ -40,19 +40,22 @@ pub trait FaustDsp {
     type T;
 
     fn new() -> Self where Self: Sized;
-    fn metadata(&mut self, m: &mut dyn Meta);
-    fn get_sample_rate(&mut self) -> i32;
-    fn get_num_inputs(&mut self) -> i32;
-    fn get_num_outputs(&mut self) -> i32;
-    fn get_input_rate(&mut self, channel: i32) -> i32;
-    fn get_output_rate(&mut self, channel: i32) -> i32;
+    fn metadata(&self, m: &mut dyn Meta);
+    fn get_sample_rate(&self) -> i32;
+    fn get_num_inputs(&self) -> i32;
+    fn get_num_outputs(&self) -> i32;
+    fn get_input_rate(&self, channel: i32) -> i32;
+    fn get_output_rate(&self, channel: i32) -> i32;
     fn class_init(sample_rate: i32) where Self: Sized;
-    fn instance_reset_user_interface(&mut self);
+    fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::T>);
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>);
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
+    fn set_param(&mut self, param: ParamIndex, value: Self::T);
     fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
 }
 
