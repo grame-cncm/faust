@@ -30,9 +30,9 @@ int main(int argc, const char* argv[])
     printHeader(DSP, nbsamples);
     
     runDSP1(factory, argv[1], linenum, nbsamples/4);
-    runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
-    runPolyDSP1(factory, linenum, nbsamples/4, 4);
-    runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    //runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+    //runPolyDSP1(factory, linenum, nbsamples/4, 4);
+    //runPolyDSP1(factory, linenum, nbsamples/4, 1);
  
     return 0;
 }

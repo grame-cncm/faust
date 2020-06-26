@@ -285,7 +285,7 @@ impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
 
 impulsesoul: $(SRCDIR)/impulsesoul.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsesoul.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesoul
+	$(CXX) $(TOOLSOPTIONS) -std=c++14 -Iarchs $(SRCDIR)/impulsesoul.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesoul
 
 #########################################################################
 # rules for mute tests

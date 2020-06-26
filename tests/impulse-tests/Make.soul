@@ -66,5 +66,5 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	faust2soul $(FAUSTOPTIONS) $<
-	cd $(dir $<); ../impulsesoul $(notdir $<) > ../$@ || (rm -f ../$@; false)
+	cd $(dir $<); ../impulsesoul $*/$*.soulpatch > ../$@ || (rm -f ../$@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

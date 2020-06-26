@@ -219,11 +219,9 @@ void SOULCodeContainer::produceClass()
     generateDeclarations(&fCodeProducer);
   
     // Control
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "bool fUpdated;";
-        tab(n + 1, *fOut);
-    }
-
+    *fOut << "bool fUpdated;";
+    tab(n + 1, *fOut);
+ 
     // For control computation
     if (fInt32ControlNum > 0) {
         *fOut << "int32[" << fInt32ControlNum << "] iControl;";
@@ -316,11 +314,9 @@ void SOULCodeContainer::produceClass()
     tab(n + 2, *fOut);
 
     // Control
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "fUpdated = true;";
-        tab(n + 2, *fOut);
-    }
-
+    *fOut << "fUpdated = true;";
+    tab(n + 2, *fOut);
+ 
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
     back(1, *fOut);
@@ -342,22 +338,19 @@ void SOULCodeContainer::produceClass()
     produceInit(n + 1);
 
     // Control
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void control()";
-        tab(n + 1, *fOut);
-        *fOut << "{";
-        tab(n + 2, *fOut);
-        // Debug code
-        //*fOut << "console << \"control\\n\";";
-        tab(n + 2, *fOut);
-        fCodeProducer.Tab(n + 2);
-        // Generates local variables declaration and setup
-        generateComputeBlock(&fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}" << endl;
-    }
-
+    tab(n + 1, *fOut);
+    *fOut << "void control()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
+    tab(n + 2, *fOut);
+    // Debug code
+    //*fOut << "console << \"control\\n\";";
+    fCodeProducer.Tab(n + 2);
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}" << endl;
+ 
     // Compute
     generateCompute(n + 1);
     *fOut << "}" << endl;
@@ -377,14 +370,11 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "{";
     tab(n + 2, *fOut);
 
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "// Updates control only if needed";
-        tab(n + 2, *fOut);
-        *fOut << "if (fUpdated) { fUpdated = false; control(); }";
-        tab(n + 2, *fOut);
-        tab(n + 2, *fOut);
-    }
-
+    tab(n + 2, *fOut);
+    *fOut << "if (fUpdated) { fUpdated = false; control(); }";
+    tab(n + 2, *fOut);
+    tab(n + 2, *fOut);
+   
     // Generates one sample computation
     fCodeProducer.Tab(n + 2);
     *fOut << "// Computes one sample";
@@ -425,14 +415,11 @@ void SOULVectorCodeContainer::generateCompute(int n)
     *fOut << "{";
     tab(n + 2, *fOut);
 
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "// Updates control only if needed";
-        tab(n + 2, *fOut);
-        *fOut << "if (fUpdated) { fUpdated = false; control(); }";
-        tab(n + 2, *fOut);
-        tab(n + 2, *fOut);
-    }
-
+    tab(n + 2, *fOut);
+    *fOut << "if (fUpdated) { fUpdated = false; control(); }";
+    tab(n + 2, *fOut);
+    tab(n + 2, *fOut);
+ 
     // TODO
     fCodeProducer.Tab(n + 2);
 
