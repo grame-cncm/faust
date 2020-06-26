@@ -6,3 +6,5 @@ all:
 	[ -e tests/libfaust-wasm.data ] || (cd tests && ln -s ../npm/dist/libfaust-wasm.data .)
 
 
+cmake:
+	make -C .. cmake
