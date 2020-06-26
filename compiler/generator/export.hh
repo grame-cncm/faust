@@ -30,4 +30,6 @@
 #define EXPORT __attribute__((visibility("default")))
 #endif
 
+extern "C" EXPORT const char* getCLibFaustVersion();
+
 #endif

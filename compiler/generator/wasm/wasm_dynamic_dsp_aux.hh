@@ -68,6 +68,8 @@ EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, in
 EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
                                                           const char* argv[], char* error_msg, bool internal_memory);
 
+EXPORT void deleteAllWasmCDSPFactories();
+
 EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
 
 EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* wasm_code, char* error_msg);
