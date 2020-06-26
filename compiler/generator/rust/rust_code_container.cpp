@@ -197,8 +197,8 @@ void RustCodeContainer::produceClass()
 
     // Associated type
     tab(n + 1, *fOut);
-    *fOut << "type Sample = " << ifloat() << ";";
-    
+    *fOut << "type T = " << ifloat() << ";";
+
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {
@@ -331,7 +331,7 @@ void RustCodeContainer::produceClass()
     // User interface (non-static method)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::Sample>) {";
+    *fOut << "fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {";
     tab(n + 2, *fOut);
     *fOut << "Self::build_user_interface_static(ui_interface);";
     tab(n + 1, *fOut);
@@ -340,7 +340,7 @@ void RustCodeContainer::produceClass()
     // User interface (static method)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::Sample>) {";
+    *fOut << "fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     RustUIInstVisitor uiCodeproducer(fOut, "", parameterLookup, n + 2);
@@ -407,7 +407,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     // Add `get_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);
-    *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::Sample> {";
+    *fOut << "fn get_param(&self, param: ParamIndex) -> Option<Self::T> {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto &paramPair : parameterLookup) {
@@ -427,7 +427,7 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     // Add `set_param`
     tab(tabs, *fOut);
     tab(tabs, *fOut);
-    *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::Sample) {";
+    *fOut << "fn set_param(&mut self, param: ParamIndex, value: Self::T) {";
     tab(tabs + 1, *fOut);
     *fOut << "match param.0 {";
     for (const auto &paramPair : parameterLookup) {
@@ -458,7 +458,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -500,7 +500,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -530,7 +530,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     // Compute declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -575,7 +575,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     // Compute "compute" declaration
     tab(n, *fOut);
     *fOut << "fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]) {", fFullCount);
+          << subst("&mut self, $0: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {", fFullCount);
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
