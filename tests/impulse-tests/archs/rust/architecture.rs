@@ -61,11 +61,11 @@ pub trait FaustDsp {
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::Sample>);
-    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::Sample>) where Self: Sized;
-    fn get_param(&self, param: ParamIndex) -> Option<Self::Sample>;
-    fn set_param(&mut self, param: ParamIndex, value: Self::Sample);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>);
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
+    fn set_param(&mut self, param: ParamIndex, value: Self::T);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
 }
 
 pub trait Meta {
@@ -102,7 +102,7 @@ pub struct ButtonUI
 
 impl ButtonUI
 {
-    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<Sample=f64>, value: f64) {
+    fn set_button_parameters_to(&self, dsp: &mut dyn FaustDsp<T=f64>, value: f64) {
         for button_param in &self.all_button_params {
             dsp.set_param(*button_param, value);
         }
@@ -167,10 +167,6 @@ fn run_dsp(mut dsp: Box<Dsp64>, num_samples: usize, line_num_offset: usize, outp
     // Prepare buffers
     let mut in_buffer = vec![vec![0 as T; buffer_size]; num_inputs];
     let mut out_buffer = vec![vec![0 as T; buffer_size]; num_outputs];
-
-    // Prepare UI
-    let mut ui = ButtonUI{ all_button_params: Vec::new() };
-    dsp.build_user_interface(&mut ui);
 
     // Prepare UI
     let mut ui = ButtonUI{ all_button_params: Vec::new() };
