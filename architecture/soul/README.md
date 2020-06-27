@@ -6,11 +6,12 @@ The **faust2soul** tool compiles a Faust DSP program in a folder containing the 
 
 Here are the available options:
 
+- `-midi to activate MIDI control`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
 - `-effect <effect.dsp> to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI`
 - `-effect auto to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI`
-- `-midi to activate MIDI control`
 - `-juce to create a JUCE project`
+- `-dsp to create a 'dsp' compatible subclass`
 - `-play to start the 'soul' runtime with the generated SOUL patch`
 
 So for instance:
@@ -19,7 +20,6 @@ So for instance:
 - `faust2soul -play osc.dsp` to produce two osc.soul  and osc.soulpatch files and play the osc.soulpatch
 - `faust2soul -midi -nvoices 16 -play clarinetMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument as two clarinetMIDI.soul and clarinetMIDI.soulpatch files and play the clarinetMIDI.soulpatch
 - `faust2soul -midi -nvoices 16 -effect freeverb.dsp -play violinMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument with a global effect as two violinMIDI.soul and violinMIDI.soulpatch files and play the violinMIDI.soulpatch
-
 
 # soul-faust-player 
 

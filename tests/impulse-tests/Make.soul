@@ -65,6 +65,6 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	@echo "Cannot be tested with the SOUL backend"
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
-	faust2soul $(FAUSTOPTIONS) $<
+	faust2soul -dsp $(FAUSTOPTIONS) $<
 	cd $(dir $<); ../impulsesoul $*/$*.soulpatch > ../$@ || (rm -f ../$@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

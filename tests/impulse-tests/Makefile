@@ -15,7 +15,7 @@ else
 endif
 
 MAKE ?= make
-GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
+GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++14
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
@@ -25,7 +25,7 @@ FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
 
-TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
+TOOLSOPTIONS := -std=c++14 -O3 -I../../architecture
 LIB ?= ../../build/lib/libfaust.a
 MACHINE_LIB ?= ../../build/lib/libfaustmachine.a
 LLVM_LIB ?= `llvm-config --ldflags --libs all --system-libs`
@@ -285,7 +285,7 @@ impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
 
 impulsesoul: $(SRCDIR)/impulsesoul.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -std=c++14 -Iarchs $(SRCDIR)/impulsesoul.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesoul
+	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsesoul.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesoul
 
 #########################################################################
 # rules for mute tests

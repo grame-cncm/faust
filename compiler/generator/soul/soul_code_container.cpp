@@ -245,6 +245,25 @@ void SOULCodeContainer::produceClass()
         generateUserInterface(&fCodeProducer);
     }
     
+    /*
+    // Debug version
+    if (gGlobal->gOutputLang == "soul-dsp") {
+        *fOut << "// Event handler used to call additional methods";
+        tab(n + 1, *fOut);
+        *fOut << "event eventbuildUserInterface (int dummy) { console << \"eventbuildUserInterface\n\"; }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventclassInit (int sample_rate) { console << \"eventclassInit\n\"; classInit(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceConstants (int sample_rate) { console << \"eventinstanceConstants\n\"; instanceConstants(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceResetUserInterface (int dummy) { console << \"eventinstanceResetUserInterface\n\"; instanceResetUserInterface(); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceClear (int dummy) { console << \"eventinstanceClear\n\"; instanceClear(); }";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+    }
+    */
+    
     if (gGlobal->gOutputLang == "soul-dsp") {
         *fOut << "// Event handler used to call additional methods";
         tab(n + 1, *fOut);

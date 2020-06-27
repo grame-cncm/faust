@@ -248,6 +248,11 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     filename = filename.substr(0, filename.find ('.'));
     snprintf(rcfilename, 255, "%src", filename.c_str());
     
+    /*
+    // Init signal processor and the user interface values, before using buildUserInterface (mandatory for SOUL backend)
+    DSP->init(44100);
+    */
+    
     FUI finterface;
     DSP->buildUserInterface(&finterface);
     
@@ -363,7 +368,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
             nbsamples -= nFrames;
         }
     } catch (...) {
-        cerr << "ERROR in " << file << " line : " << i << std::endl;
+        cerr << "ERROR in '" << file << "' at line : " << i << std::endl;
     }
     
     delete ichan;

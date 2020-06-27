@@ -1,9 +1,7 @@
 
-/*
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT double
 #endif
-*/
 
 #include "controlTools.h"
 #include "faust/dsp/soulpatch-dsp.h"
