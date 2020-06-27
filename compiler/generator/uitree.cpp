@@ -69,7 +69,7 @@ static Tree removeKey(Tree pl, Tree key)
 
 #else
 
-// verion experimentale qui range en ordre alphabetique
+// version experimentale qui range en ordre alphabetique
 
 static bool isBefore(Tree k1, Tree k2)
 {
@@ -160,7 +160,7 @@ bool isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)
     return isTree(t, gGlobal->UIWIDGET, label, varname, sig);
 }
 
-// place un item dans un folder. Remplace eventuellement l'élément de même nom.
+// place un item dans un folder. Remplace eventuellement l'element de meme nom.
 Tree putFolder(Tree folder, Tree item)
 {
     Tree label, content;
@@ -196,7 +196,7 @@ Tree getFolder(Tree folder, Tree ilabel)
     }
 }
 
-// crée une chaine de dossiers correspondant à path et contenant in fine elem
+// cree une chaine de dossiers correspondant a path et contenant in fine elem
 Tree makeSubFolderChain(Tree path, Tree elem)
 {
     if (isNil(path)) {

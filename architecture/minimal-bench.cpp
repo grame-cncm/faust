@@ -9,7 +9,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -33,12 +33,14 @@
  ************************************************************************/
 
 #include <iostream>
+#include <string>
 
 #include "faust/gui/PrintUI.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dummy-audio.h"
+#include "faust/dsp/dsp-bench.h"
 
-// faust -a minimal.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
+// faust -a minimal-bench.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
 
 /******************************************************************************
  *******************************************************************************
@@ -60,17 +62,29 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+static void bench(dsp* dsp, int dsp_size, const std::string& name, int run)
+{
+    // Buffer_size and duration in sec of measure
+    measure_dsp mes(dsp, 512, 5., true);
+    for (int i = 0; i < run; i++) {
+        mes.measure();
+        std::cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP size : " << dsp_size << std::endl;
+    }
+}
+
 int main(int argc, char* argv[])
 {
     mydsp DSP;
-    std::cout << "DSP size: " << sizeof(DSP) << " bytes\n";
     
+    // Bench the dsp
+    bench(DSP.clone(), sizeof(DSP), "mydsp", 3);
+
     // Activate the UI, here that only print the control paths
     PrintUI ui;
     DSP.buildUserInterface(&ui);
-
+    
     // Allocate the audio driver to render 5 buffers of 512 frames
-    dummyaudio audio(5);
+    dummyaudio audio(1);
     audio.init("Test", &DSP);
     
     // Render buffers...

@@ -153,7 +153,7 @@ void InstructionsCompiler::conditionStatistics(Tree l)
 
 void InstructionsCompiler::conditionStatistics(Tree l)
 {
-    map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y != 0) primitive
     for (const auto& p : fConditionProperty) {
         for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
             fConditionStatistics[hd(lc)]++;
@@ -856,7 +856,8 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string& file, const string& name)
 {
     // Check access (handling 'fFullCount' as a special case)
-    if (name != fFullCount && !gGlobal->gAllowForeignVar) {
+    if ((name != fFullCount && !gGlobal->gAllowForeignVar)
+        || (name == fFullCount && (gGlobal->gOneSample || gGlobal->gOneSampleControl))) {
         stringstream error;
         error << "ERROR : accessing foreign variable '" << name << "'"
         << " is not allowed in this compilation mode!" << endl;
