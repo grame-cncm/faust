@@ -135,7 +135,7 @@ Here are the available options:
  - `-single to only execute the scalar test`
  - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
- - `-source' to keep the intermediate source folder and exit`
+ - `-source to keep the intermediate source folder and exit`
  - `-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
 

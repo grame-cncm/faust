@@ -61,7 +61,7 @@ do
         shift
         RUN=$1
     elif [ "$p" = "-source" ]; then
-    	SOURCE=true
+        SOURCE=true
     elif [ "$p" = "-opt" ]; then
         shift
         OPT=$1
@@ -239,6 +239,7 @@ for p in $FILES; do
         cd ../
         cp -R $dspName ../
         cd ../
+        # cleanup
         rm -rf $TDR
         exit
     else
