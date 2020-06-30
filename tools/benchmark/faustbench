@@ -20,6 +20,7 @@ RUN=1
 OPT=-1
 NOTRACE=false
 GENERIC=false
+SOURCE=false
 
 # Set default value for CXX
 if [ "$CXX" = "" ]; then
@@ -31,17 +32,18 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-notrace' to only generate the best compilation parameters"
         echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-single' to only execute the scalar test"
         echo "Use '-fast' to only execute some tests"
         echo "Use '-run <num>' to execute each test <num> times"
+        echo "Use '-source' to keep the intermediate source folder and exit"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
-        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to c++\n";
+        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means 'maximal level =-Ofast for now' but may change in the future)\n";
         exit
     fi
 
@@ -58,7 +60,9 @@ do
     elif [ "$p" = "-run" ]; then
         shift
         RUN=$1
-     elif [ "$p" = "-opt" ]; then
+    elif [ "$p" = "-source" ]; then
+    	SOURCE=true
+    elif [ "$p" = "-opt" ]; then
         shift
         OPT=$1
     elif [ "$p" = "-double" ]; then
@@ -211,25 +215,53 @@ for p in $FILES; do
     else
         echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
     fi
+    
+    # keep sources
+	if $SOURCE ; then 
+        # create Makefile
+        echo "$dspName:" > Makefile
+        if [ $TESTS == "all" ] ; then
+            echo -n -e '\t' >> Makefile
+            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        elif [ $TESTS == "fast" ] ; then
+            echo -n -e '\t' >> Makefile
+            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        elif [ $TESTS == "single" ] ; then
+            echo -n -e '\t' >> Makefile
+            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        fi
+        echo -e '\n' >> Makefile
+        echo "clean:" >> Makefile
+        echo -n -e '\t' >> Makefile
+        echo "rm $dspName" >> Makefile
 
-    if [ $TESTS == "all" ] ; then
-        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
-    elif [ $TESTS == "fast" ] ; then
-        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
-    elif [ $TESTS == "single" ] ; then
-        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
-    fi
-
-    # run bench
-    cd ../../
-    if $NOTRACE; then
-    	./$TDR/$dspName/$dspName -run $RUN -notrace
+        # copy and rename final folder
+        cd ../
+        cp -R $dspName ../
+        cd ../
+        rm -rf $TDR
+        exit
     else
-    	./$TDR/$dspName/$dspName -run $RUN
-    fi
+        # compile
+        if [ $TESTS == "all" ] ; then
+            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
+        elif [ $TESTS == "fast" ] ; then
+            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
+        elif [ $TESTS == "single" ] ; then
+            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
+        fi
 
-    # cleanup
-    rm -rf "$TDR"
+        # run bench
+        cd ../../
+        if $NOTRACE; then
+            ./$TDR/$dspName/$dspName -run $RUN -notrace
+        else
+            ./$TDR/$dspName/$dspName -run $RUN
+        fi
+
+        # cleanup
+        rm -rf $TDR
+    fi
 
 done
 
