@@ -65,7 +65,6 @@ class InstComplexityVisitor : public DispatchVisitor {
           fLoop(0),
           fFunCall(0)
     {
-        // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = 0;
 
         gFunctionSymbolTable["max_i"] = 0;
@@ -229,6 +228,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         fLoad += visitor.fLoad;
         fStore += visitor.fStore;
         fBinop += visitor.fBinop;
+        fMathop += visitor.fMathop;
         fNumbers += visitor.fNumbers;
         fDeclare += visitor.fDeclare;
         fCast += visitor.fCast;

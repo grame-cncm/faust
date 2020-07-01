@@ -28,8 +28,6 @@
 
 using namespace std;
 
-#define BUFFER_SIZE 512
-
 template <typename REAL>
 static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool trace)
 {
@@ -53,12 +51,13 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-notrace' to only generate the best compilation parameters\n";
         cout << "Use '-control' to update all controller with random values at each cycle\n";
         cout << "Use '-generic' to compile for a generic processor, otherwise the native CPU will be used\n";
         cout << "Use '-single' to execute only scalar test\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";
+        cout << "Use '-bs <frames>' to set the maximum buffer-size in frames\n";
         cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM\n";
         return 0;
     }
@@ -69,6 +68,7 @@ int main(int argc, char* argv[])
     bool is_single = isopt(argv, "-single");
     bool is_generic = isopt(argv, "-generic");
     int run = lopt(argv, "-run", 1);
+    int buffer_size = lopt(argv, "-bs", 512);
     int opt = lopt(argv, "-opt", -1);
     
     if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion () << endl;
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     int argc1 = 0;
     const char* argv1[64];
     
-    if (is_trace) cout << "Running with 'compute' called with " << BUFFER_SIZE << " samples" << endl;
+    if (is_trace) cout << "Running with 'compute' called with " << buffer_size << " samples" << endl;
     
     if (is_trace) cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
@@ -95,7 +95,9 @@ int main(int argc, char* argv[])
             || string(argv[i]) == "-generic"
             || string(argv[i]) == "-control") {
             continue;
-        } else if (string(argv[i]) == "-run" || string(argv[i]) == "-opt" ) {
+        } else if (string(argv[i]) == "-run"
+                   || string(argv[i]) == "-opt"
+                   || string(argv[i]) == "-bs") {
             i++;
             continue;
         }
@@ -130,14 +132,14 @@ int main(int argc, char* argv[])
             }
             
             if (is_double) {
-                measure_dsp_aux<double> mes(DSP, BUFFER_SIZE, 5., true, is_control);  // Buffer_size and duration in sec of measure
+                measure_dsp_aux<double> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
                     FAUSTBENCH_LOG<double>(mes.getStats());
                 }
             } else {
-                measure_dsp_aux<float> mes(DSP, BUFFER_SIZE, 5., true, is_control);  // Buffer_size and duration in sec of measure
+                measure_dsp_aux<float> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
@@ -147,9 +149,9 @@ int main(int argc, char* argv[])
             
         } else {
             if (is_double) {
-                bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, target, BUFFER_SIZE, run, -1, is_trace, is_control), in_filename, is_trace);
+                bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace, is_control), in_filename, is_trace);
             } else {
-                bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, target, BUFFER_SIZE, run, -1, is_trace, is_control), in_filename, is_trace);
+                bench(dsp_optimizer<float>(in_filename.c_str(), argc1, argv1, target, buffer_size, run, -1, is_trace, is_control), in_filename, is_trace);
             }
         }
     } catch (...) {

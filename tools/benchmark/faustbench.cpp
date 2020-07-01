@@ -150,14 +150,14 @@ extern "C" int bench_all(const char* name, int run, bool trace)
     options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 256");
     options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 512");
     
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 16 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 64 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 128 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 256 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 512 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 4");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 8");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 16");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 64");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 128");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 256");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 512");
     
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 4");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 8");
@@ -168,14 +168,14 @@ extern "C" int bench_all(const char* name, int run, bool trace)
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512");
     
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 4 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 8 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 16 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 64 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 128 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 4");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 8");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 16");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 64");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 128");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 256");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 512");
     
 #elif defined(FAST_TESTS)
     
