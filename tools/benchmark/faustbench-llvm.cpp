@@ -1,7 +1,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
         cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-notrace' to only generate the best compilation parameters\n";
-        cout << "Use '-control' to update all controller with random values at each cycle\n";
+        cout << "Use '-control' to update all controllers with random values at each cycle\n";
         cout << "Use '-generic' to compile for a generic processor, otherwise the native CPU will be used\n";
         cout << "Use '-single' to execute only scalar test\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";

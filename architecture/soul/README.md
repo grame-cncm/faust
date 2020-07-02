@@ -43,6 +43,13 @@ Or:
 
 The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or SOUL runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
 
+`soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch`
+
+Here are the available options:
+
+- `-bs <frames> to set the maximum buffer-size in frames`
+- `control to update all controllers with random values at each cycle`
+
 So for instance:
 
 - `soul-faust-tester foo.dsp` to test 1) the Faust DSP code compiled to LLVM-IR and JITted to native code, then running in the Faust runtime, 2) the Faust DSP code compiled to SOUL, then compiled to LLVM-IR and JITted to native code, and running in the SOUL runtime.

@@ -34,6 +34,7 @@
 using namespace std;
 
 static int buffer_size = 512;
+static bool is_control = false;
 
 static bool endWith(const string& str, const string& suffix)
 {
@@ -44,7 +45,7 @@ static bool endWith(const string& str, const string& suffix)
 static void measureDSP(const string& filename, dsp* DSP)
 {
     // Buffer_size and duration in sec of measure, no trace and activated control 
-    measure_dsp mes(DSP, buffer_size, 5., false, true);
+    measure_dsp mes(DSP, buffer_size, 5., false, is_control);
     mes.measure();
     cout << filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
     FAUSTBENCH_LOG<double>(mes.getStats());
@@ -95,18 +96,23 @@ static void testSOUL(const string& filename, int argc1, const char* argv1[])
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-tester [-bs <frames>] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch" << endl;
+        cout << "soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch" << endl;
+        cout << "Use '-bs <frames>' to set the maximum buffer-size in frames\n";
+        cout << "Use '-control' to update all controllers with random values at each cycle\n";
         exit(-1);
     }
     
     buffer_size = lopt(argv, "-bs", 512);
+    is_control = isopt(argv, "-control");
     cout << "buffer_size = " << buffer_size << endl;
     
     char* filename = argv[argc-1];
     int argc1 = 0;
     const char* argv1[64];
     for (int i = 1; i < argc-1; i++) {
-        if (string(argv[i]) == "-bs") {
+        if (string(argv[i]) == "-control") {
+            continue;
+        } else if (string(argv[i]) == "-bs") {
             i++;
             continue;
         }
