@@ -116,7 +116,7 @@ routeur(a,b,c,d) = ((a*CrossFeedb):fi.lowpass(2,crossLF))+c,
 					((b*CrossFeedb):fi.lowpass(2,crossLF))+d;
 
 xdelay = _,_ <: _,_,((de.sdelay(65536, 512,preDelL),_):
-		(routeur : de.sdelay(65536, 512,delL) ,de.sdelay(65536, 512,delR) ) ~ (_,_)) : dry_wetST(dwDel);
+		(routeur : de.sdelay(65536, 512,delL) ,de.sdelay(65536, 512,delR)) ~ (_,_)) : dry_wetST(dwDel);
 
 // REVERB (from freeverb_demo) /////////////////////////////////////////////////////////////////////////////////////////////////////////
 reverb = _,_ <: (*(g)*fixedgain, *(g)*fixedgain :

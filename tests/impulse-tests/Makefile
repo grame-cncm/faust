@@ -262,10 +262,10 @@ ir/mute:
 reference:
 	$(MAKE) -f Make.ref
 
-tools: filesCompare impulsellvm impulsesoul impulseinterp impulseinterp1
+tools: filesCompare impulsellvm impulseinterp impulseinterp1
 
 clean:
-	rm -f filesCompare impulsellvm impulsesoul impulseinterp impulseinterp1
+	rm -f filesCompare impulsellvm impulseinterp impulseinterp1
 
 #########################################################################
 # tools
@@ -283,9 +283,6 @@ impulseinterp2: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
-
-impulsesoul: $(SRCDIR)/impulsesoul.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsesoul.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsesoul
 
 #########################################################################
 # rules for mute tests

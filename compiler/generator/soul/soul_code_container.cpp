@@ -151,7 +151,7 @@ void SOULCodeContainer::produceInit(int tabs)
     tab(tabs + 1, *fOut);
     *fOut << "let sample_rate = int(processor.frequency);";
     tab(tabs + 1, *fOut);
-    *fOut << "classInit (sample_rate);";
+    *fOut << "// classInit is not called here since the tables are actually not shared between instances";
     tab(tabs + 1, *fOut);
     *fOut << "instanceInit (sample_rate);";
     tab(tabs, *fOut);
@@ -162,6 +162,10 @@ void SOULCodeContainer::produceInit(int tabs)
     *fOut << "void instanceInit (int sample_rate)";
     tab(tabs, *fOut);
     *fOut << "{";
+    tab(tabs + 1, *fOut);
+    *fOut << "// classInit has to be called for each instance since the tables are actually not shared between instances";
+    tab(tabs + 1, *fOut);
+    *fOut << "classInit (sample_rate);";
     tab(tabs + 1, *fOut);
     *fOut << "instanceConstants (sample_rate);";
     tab(tabs + 1, *fOut);

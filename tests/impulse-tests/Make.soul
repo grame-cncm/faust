@@ -13,8 +13,11 @@ else
 endif
 MAKE ?= make
 
-outdir ?= soul
-lang ?= soul
+GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++17
+outdir ?= soul/double
+lang ?= cpp
+ext  ?= o
+arch ?= impulsesoul.cpp
 precision ?=		# filesCompare precision (empty by default)
 FAUSTOPTIONS ?= 
 
@@ -51,9 +54,6 @@ ir/$(outdir):
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
 
-impulsesoul: $(SRCDIR)/impulsesoul.cpp $(LIB)
-	$(MAKE) impulsesoul
-
 #########################################################################
 # precision issues
 
@@ -63,8 +63,10 @@ impulsesoul: $(SRCDIR)/impulsesoul.cpp $(LIB)
 # Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
 ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	@echo "Cannot be tested with the SOUL backend"
-
+	
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
-	faust2soul -dsp $(FAUSTOPTIONS) $<
-	cd $(dir $<); ../impulsesoul $*/$*.soulpatch > ../$@ || (rm -f ../$@; false)
+	faust -lang soul-dsp -cn souldsp $(FAUSTOPTIONS) $< -o souldsp.soul
+	soul generate --cpp souldsp.soul --output=souldsp.h
+	$(CXX) $(GCCOPTIONS) archs/$(arch) -o impulsesoul
+	./impulsesoul > $@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

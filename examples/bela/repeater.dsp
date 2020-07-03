@@ -12,7 +12,7 @@
 
 import("all.lib");
 
-process = _,_,(pathClock : compteurUpReset2(nbRepet): rampePlayer, _) : routageIO : rec_play_table , rec_play_table;
+process = _,_,(pathClock : compteurUpReset2(nbRepet) : rampePlayer, _) : routageIO : rec_play_table, rec_play_table;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -29,8 +29,9 @@ nbRepet = int (hslider("nbRepet[BELA: ANALOG_2]",4,1,16,1) );
 
 trig = _<:_,mem: >;
 
-routageIO (a, b, c, d) = a, c, d, b, c, d;
-rec_play_table(input, inReadIndex, reset) = (rwtable(wf , rindex):fi.dcblockerat(20))
+routageIO(a, b, c, d) = a, c, d, b, c, d;
+
+rec_play_table(input, inReadIndex, reset) = (rwtable(wf, rindex):fi.dcblockerat(20))
     with {
         SR = 44100;
         buffer_sec = 2;

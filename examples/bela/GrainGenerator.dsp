@@ -59,7 +59,7 @@ rampe2(speed, t) = delta : (+ : select2(t,_,delta<0) : max(0)) ~ _
 	};
 
 // RWTable //////////////////////////////////////
-unGrain(input, clk) = (linrwtable(wf , rindex) : *(0.2 * EnvGrain))
+unGrain(input, clk) = (linrwtable(wf, rindex) : *(0.2 * EnvGrain))
 	with {
         SR = 44100;
         buffer_sec = 1;
@@ -77,7 +77,7 @@ unGrain(input, clk) = (linrwtable(wf , rindex) : *(0.2 * EnvGrain))
 
 // LINEAR_INTERPOLATION_RWTABLE //////////////////////////////////
 // read rwtable with linear interpolation
-// wf : waveform to read (wf is defined by (size_buffer,init, windex, input))
+// wf : waveform to read (wf is defined by (size_buffer, init, windex, input))
 // x  : position to read (0 <= x < size(wf)) and float
 // nota: rwtable(size, init, windex, input, rindex)
 
