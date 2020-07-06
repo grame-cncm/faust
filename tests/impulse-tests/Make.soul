@@ -13,7 +13,7 @@ else
 endif
 MAKE ?= make
 
-GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++17
+GCCOPTIONS := -Ofast -I../../architecture -Iarchs -pthread -std=c++17
 outdir ?= soul/double
 lang ?= cpp
 ext  ?= o

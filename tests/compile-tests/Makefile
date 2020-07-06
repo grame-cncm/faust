@@ -39,10 +39,9 @@ all:
 	$(MAKE) gcc
 
 c:
-	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp 	FAUSTOPTIONS=" -a ./min.cpp"
+	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
-	$(MAKE) -f Make.lang outdir=c 	lang=c   ext=c 		FAUSTOPTIONS=" -a ./min.c"
-
+	$(MAKE) -f Make.lang outdir=c lang=c ext=c FAUSTOPTIONS=" -a ./min.c"
 
 soul:
 	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
@@ -64,7 +63,9 @@ help:
 	@echo " 'gcc'        : compiles the C and C++ output of the 'cpp', 'ocpp' and 'c' backends"
 	@echo " 'soul'       : compiles using the SOUL backend"
 	@echo " 'interp'     : compiles using the interpreter backend"
-	
+	@echo "Using a specific version of Faust libraries:"
+	@echo " 'make FAUSTLIBS=/path/to/libraries'"
+ 	
 gcc: $(gccobj)
 
 #########################################################################

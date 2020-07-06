@@ -114,19 +114,19 @@ class soul_cpp_dsp : public dsp {
                         ui_interface->addButton(prop[i].name, &fZoneMap[i]);
                     }
                     fZoneMap[i] = 0;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
                 } else if (startWith(prop[i].UID, "eventfHslider")) {
                     ui_interface->addHorizontalSlider(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
                     fZoneMap[i] = prop[i].initialValue;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
                 } else if (startWith(prop[i].UID, "eventfVslider")) {
                     ui_interface->addVerticalSlider(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
                     fZoneMap[i] = prop[i].initialValue;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
                 } else if (startWith(prop[i].UID, "eventfEntry")) {
                     ui_interface->addNumEntry(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
                     fZoneMap[i] = prop[i].initialValue;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
                 } else if (startWith(prop[i].UID, "eventfVbargraph")) {
                     ui_interface->addHorizontalBargraph(prop[i].name, &fZoneMap[i], prop[i].minValue, prop[i].maxValue);
                     fZoneMap[i] = 0;
@@ -183,12 +183,11 @@ class soul_cpp_dsp : public dsp {
             //fDecoder->metadata(m);
         }
     
-        template <typename REAL>
-        void computeAux(int count, REAL** inputs, REAL** outputs)
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             // Prepare buffers
-            souldsp::RenderContext<REAL> context;
-            if constexpr (souldsp::numAudioInputChannels > 0) {
+            souldsp::RenderContext<FAUSTFLOAT> context;
+            if (souldsp::numAudioInputChannels > 0) {
                 for (int chan = 0; chan < souldsp::numAudioInputChannels; chan++) {
                     context.inputChannels[chan] = inputs[chan];
                 }
@@ -208,14 +207,9 @@ class soul_cpp_dsp : public dsp {
             fDSP.render(context);
         }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            computeAux<FAUSTFLOAT>(count, inputs, outputs);
-        }
-    
         virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            computeAux<FAUSTFLOAT>(count, inputs, outputs);
+            compute(count, inputs, outputs);
         }
    
 };

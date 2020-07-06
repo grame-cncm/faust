@@ -164,6 +164,7 @@ struct global {
     bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
+    bool   gMathApprox;            // Simpler/faster versions of 'floor/fmod/remainder' functions
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation

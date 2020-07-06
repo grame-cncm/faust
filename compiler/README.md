@@ -1,4 +1,4 @@
-% man(1) Version 2.26.2 (03-July-2020) | Faust man page
+% man(1) Version 2.27.0 (04-July-2020) | Faust man page
 
 NAME
 ====
@@ -127,7 +127,10 @@ Code generation options:
   **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>,
                                           use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
-  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name> 
+  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
+
+  **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
+
 
 Block diagram options:
 ---------------------------------------

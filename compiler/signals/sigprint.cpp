@@ -27,7 +27,7 @@
 
 // imprime le type d'un signal en clair
 #if 0
-void printSigType (Tree tp)
+void printSigType(Tree tp)
 {
 	Tree t0;
 	int n, v, c;
@@ -45,7 +45,7 @@ void printSigType (Tree tp)
 	}
 }
 
-void printSigTypeList (Tree l)
+void printSigTypeList(Tree l)
 {
 	char sep = '(';
 
@@ -66,9 +66,9 @@ void printSigType(int n, int v, int c)
     putchar("CI X"[c]);
 }
 
-const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
+static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
 
-int binopprec[] = {2, 2, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+static int binopprec[] = {2, 2, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
 void printSignal(Tree sig, FILE* out, int prec)
 {

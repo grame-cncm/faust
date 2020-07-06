@@ -164,6 +164,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;
     gFastMath             = false;
+    gMathApprox           = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;

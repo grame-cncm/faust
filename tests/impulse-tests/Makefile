@@ -92,6 +92,7 @@ travis:
 # c++ and c backends
 cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.gcc outdir=cpp/double/mapp           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
 	$(MAKE) -f Make.gcc outdir=cpp/double/dlt0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
 	$(MAKE) -f Make.gcc outdir=cpp/double/dlt256    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
@@ -166,20 +167,22 @@ web:
 
 wasm:
 	$(MAKE) -f Make.web wasm
-	$(MAKE) -f Make.web wasm wasmdir=wasm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
-	$(MAKE) -f Make.web wasm wasmdir=wasm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
-	$(MAKE) -f Make.web wasm wasmdir=wasm/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.web wasm outdir=wasm/mapp FAUSTOPTIONS="-I dsp -mapp"
+	$(MAKE) -f Make.web wasm outdir=wasm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
+	$(MAKE) -f Make.web wasm outdir=wasm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
+	$(MAKE) -f Make.web wasm outdir=wasm/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
 
 wast:
 	$(MAKE) -f Make.web wast
-	$(MAKE) -f Make.web wast wastdir=wast/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
-	$(MAKE) -f Make.web wast wastdir=wast/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
-	$(MAKE) -f Make.web wast wastdir=wast/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.web wast outdir=wast/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
+	$(MAKE) -f Make.web wast outdir=wast/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
+	$(MAKE) -f Make.web wast outdir=wast/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
 
 #########################################################################
 # llvm backend
 llvm:
 	$(MAKE) -f Make.llvm
+	$(MAKE) -f Make.llvm outdir=llvm/mapp FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.llvm outdir=llvm/inpl FAUSTOPTIONS="-I dsp -inpl"
 	$(MAKE) -f Make.llvm outdir=llvm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.llvm outdir=llvm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
@@ -216,6 +219,7 @@ llvm1:
 # interp backend
 interp:
 	$(MAKE) -f Make.interp
+	$(MAKE) -f Make.interp outdir=interp/mapp FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.interp outdir=interp/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.interp outdir=interp/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
 	#$(MAKE) -f Make.interp outdir=interp/lv0 FAUSTOPTIONS="-I dsp -vec -lv 0"
@@ -251,6 +255,7 @@ rust:
 # SOUL backend
 soul:
 	$(MAKE) -f Make.soul FAUSTOPTIONS="-double"
+	$(MAKE) -f Make.soul soul outdir=soul/mapp FAUSTOPTIONS="-I dsp -mapp"
 
 #########################################################################
 # output directories

@@ -537,6 +537,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gFastMathLib = argv[i + 1];
             i += 2;
             
+        } else if (isCmd(argv[i], "-mapp", "--math-approximation")) {
+            gGlobal->gMathApprox = true;
+            i += 1;
+            
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
             gGlobal->gNameSpace = argv[i + 1];
             i += 2;
@@ -891,8 +895,9 @@ static void printHelp()
          << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
     cout << tab
-         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name> "
-         << endl;
+         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
+    cout << tab
+         << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;

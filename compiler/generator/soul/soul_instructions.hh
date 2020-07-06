@@ -363,6 +363,7 @@ class SOULInstVisitor : public TextInstVisitor {
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             } else {
+                // wrap code is automatically added by the SOUL compiler (and the same if [idex] syntax is used)
                 *fOut << ".at (";
                 indexed->fIndex->accept(this);
                 *fOut << ")";
