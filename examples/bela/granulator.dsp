@@ -65,5 +65,5 @@ process = vgroup("Granulator", environment {
     fade = (0.5); // min > 0 to avoid division by 0
 
     proba = hslider("[3]Probability[BELA: ANALOG_2]", 70,50,100,1) * (0.01):fi.lowpass(1,1);
-    duree_env = 1/(speed: / (ratio_env*(0.25)*fade));
+    duree_env = 1/(speed: /(ratio_env*(0.25)*fade));
 }.process);

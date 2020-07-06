@@ -36,6 +36,7 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/JSONUIDecoder.h"
 
+// Generated with 'soul generate --cpp foo.soul --output=souldsp.h'
 #include "souldsp.h"
 
 /**
@@ -48,7 +49,6 @@ class soul_cpp_dsp : public dsp {
 
         JSONUITemplatedDecoder* fDecoder;
         souldsp fDSP;
-        int fSampleRate;
     
         FAUSTFLOAT* fZoneMap;
         std::map <FAUSTFLOAT*, std::function<void(float)> > fZoneFunMap;
@@ -75,7 +75,6 @@ class soul_cpp_dsp : public dsp {
         soul_cpp_dsp()
         {
             fDecoder = nullptr;
-            fSampleRate = 0;
             
             /*
             std::vector<souldsp::EndpointDetails> endpoints = fDSP.getInputEndpoints();
@@ -111,33 +110,46 @@ class soul_cpp_dsp : public dsp {
                 if (prop[i].isBoolean) {
                     if (startWith(prop[i].UID, "eventfCheckbox")) {
                         ui_interface->addCheckButton(prop[i].name, &fZoneMap[i]);
-                    } else {
+                    } else if (startWith(prop[i].UID, "eventfButton")) {
                         ui_interface->addButton(prop[i].name, &fZoneMap[i]);
                     }
                     fZoneMap[i] = 0;
                     fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
-                } else {
+                } else if (startWith(prop[i].UID, "eventfHslider")) {
+                    ui_interface->addHorizontalSlider(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
+                    fZoneMap[i] = prop[i].initialValue;
+                    fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                } else if (startWith(prop[i].UID, "eventfVslider")) {
+                    ui_interface->addVerticalSlider(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
+                    fZoneMap[i] = prop[i].initialValue;
+                    fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                } else if (startWith(prop[i].UID, "eventfEntry")) {
                     ui_interface->addNumEntry(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
                     fZoneMap[i] = prop[i].initialValue;
                     fZoneFunMap[&fZoneMap[i]] = prop[i].setValue;
+                } else if (startWith(prop[i].UID, "eventfVbargraph")) {
+                    ui_interface->addHorizontalBargraph(prop[i].name, &fZoneMap[i], prop[i].minValue, prop[i].maxValue);
+                    fZoneMap[i] = 0;
+                } else if (startWith(prop[i].UID, "eventfHbargraph")) {
+                    ui_interface->addVerticalBargraph(prop[i].name, &fZoneMap[i], prop[i].minValue, prop[i].maxValue);
+                    fZoneMap[i] = 0;
                 }
             }
         }
     
         virtual int getSampleRate()
         {
-            return fSampleRate;
+            return fDSP.sampleRate;
         }
     
         virtual void init(int sample_rate)
         {
-            fSampleRate = sample_rate;
             fDSP.init(double(sample_rate), 0);
         }
     
         virtual void instanceInit(int sample_rate)
         {
-            fSampleRate = sample_rate;
+            fDSP.sampleRate = double(sample_rate);
             // classInit has to be called for each instance since the tables are actually not shared between instances
             fDSP.addInputEvent_eventclassInit(sample_rate);
             instanceConstants(sample_rate);
@@ -147,7 +159,7 @@ class soul_cpp_dsp : public dsp {
     
         virtual void instanceConstants(int sample_rate)
         {
-            fSampleRate = sample_rate;
+            fDSP.sampleRate = double(sample_rate);
             fDSP.addInputEvent_eventinstanceConstants(sample_rate);
         }
     
