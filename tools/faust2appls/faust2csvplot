@@ -15,6 +15,7 @@ CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE=$FAUSTARCH/csvplot.cpp
 FAUSTFLOAT=float
+FAUST_INCLUDES="0"
 SOUNDFILELIBS=""
 
 #-------------------------------------------------------------------
@@ -39,7 +40,11 @@ for p in $@; do
         exit
     fi
  
-    if [ $p = "-arch32" ]; then
+    if [ $FAUST_INCLUDES = "1" ]; then
+        OPTIONS="$OPTIONS -I $p"
+        CXXFLAGS="$CXXFLAGS -I $p"
+        FAUST_INCLUDES="0"
+    elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
@@ -49,6 +54,8 @@ for p in $@; do
     elif [ $p = "-soundfile" ]; then
         CXXFLAGS="$CXXFLAGS -DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-I" ]; then
+        FAUST_INCLUDES="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
