@@ -360,9 +360,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             std::map<const char*, const char*> res;
             std::map<std::string, std::string> metadata = fMetaData[p];
-            std::map<std::string, std::string>::iterator it;
-            for (it = metadata.begin(); it != metadata.end(); ++it) {
-                res[(*it).first.c_str()] = (*it).second.c_str();
+            for (auto it : metadata) {
+                res[it.first.c_str()] = it.second.c_str();
             }
             return res;
         }

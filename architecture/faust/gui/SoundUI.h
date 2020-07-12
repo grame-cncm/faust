@@ -104,9 +104,8 @@ class SoundUI : public GenericUI
         virtual ~SoundUI()
         {   
             // Delete all soundfiles
-            std::map<std::string, Soundfile*>::iterator it;
-            for (it = fSoundfileMap.begin(); it != fSoundfileMap.end(); it++) {
-                delete (*it).second;
+            for (auto& it : fSoundfileMap) {
+                delete it.second;
             }
         }
 

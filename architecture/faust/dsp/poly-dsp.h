@@ -159,7 +159,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     int fNote;                          // Playing note actual pitch
     int fDate;                          // KeyOn date
     int fRelease;                       // Current number of samples used in release mode to detect end of note
-    int fMinRelease;                    // Max of samples used in release mode to detect end of note
+    int fMaxRelease;                    // Max of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain' control
@@ -171,7 +171,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
-        fMinRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
+        fMaxRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
@@ -180,9 +180,8 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
         // Keep gain, freq and gate labels
-        std::map<std::string, FAUSTFLOAT*>::iterator it;
-        for (it = getMap().begin(); it != getMap().end(); it++) {
-            std::string path = (*it).first;
+        for (auto& it : getMap()) {
+            std::string path = it.first;
             if (endsWith(path, "/gate")) {
                 gate.push_back(path);
             } else if (endsWith(path, "/freq")) {
@@ -194,13 +193,13 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     }
 
     // MIDI velocity [0..127]
-    void keyOn(int pitch, int velocity, bool trigger)
+    void keyOn(int pitch, int velocity)
     {
-        keyOn(pitch, float(velocity)/127.f, trigger);
+        keyOn(pitch, float(velocity)/127.f);
     }
 
     // Normalized MIDI velocity [0..1]
-    void keyOn(int pitch, float velocity, bool trigger)
+    void keyOn(int pitch, float velocity)
     {
         // So that DSP state is always re-initialized
         fDSP->instanceClear();
@@ -230,7 +229,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             fNote = kFreeVoice;
         } else {
             // Release voice
-            fRelease = fMinRelease;
+            fRelease = fMaxRelease;
             fNote = kReleaseVoice;
         }
     }
@@ -544,11 +543,13 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             
                 // Then decide which one to steal
                 if (oldest_date_release != INT_MAX) {
-                    std::cout << "Steal release voice : voice_date " << fVoiceTable[voice_release]->fDate << " cur_date = " << fDate << " voice = " << voice_release << std::endl;
+                    std::cout << "Steal release voice : voice_date " << fVoiceTable[voice_release]->fDate;
+                    std::cout << " cur_date = " << fDate << " voice = " << voice_release << std::endl;
                     voice = voice_release;
                     goto result;
                 } else if (oldest_date_playing != INT_MAX) {
-                    std::cout << "Steal playing voice : voice_date " << fVoiceTable[voice_playing]->fDate << " cur_date = " << fDate << " voice = " << voice_playing << std::endl;
+                    std::cout << "Steal playing voice : voice_date " << fVoiceTable[voice_playing]->fDate;
+                    std::cout << " cur_date = " << fDate << " voice = " << voice_playing << std::endl;
                     voice = voice_playing;
                     goto result;
                 } else {
@@ -763,7 +764,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             if (checkPolyphony()) {
                 int voice = getFreeVoice();
-                fVoiceTable[voice]->keyOn(pitch, velocity, true);
+                fVoiceTable[voice]->keyOn(pitch, velocity);
                 return fVoiceTable[voice];
             } else {
                 return 0;

@@ -210,14 +210,13 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         static void* UpdateUI(void* arg)
         {
             httpdClientUI* ui = static_cast<httpdClientUI*>(arg);
-            std::map<std::string, FAUSTFLOAT*>::iterator it;
             while (ui->fRunning) {
-                for (it = ui->fZoneMap.begin(); it != ui->fZoneMap.end(); it++) {
+                for (auto& it : ui->fZoneMap) {
                     char* answer;
-                    std::string path = (*it).first;
+                    std::string path = it.first;
                     http_fetch(path.c_str(), &answer);
                     std::string answer_str = answer;
-                    (*(*it).second) = (FAUSTFLOAT)std::strtod(answer_str.substr(answer_str.find(' ')).c_str(), NULL);
+                    (*it.second) = (FAUSTFLOAT)std::strtod(answer_str.substr(answer_str.find(' ')).c_str(), NULL);
                     // 'http_fetch' result must be deallocated
                     free(answer);
                 }

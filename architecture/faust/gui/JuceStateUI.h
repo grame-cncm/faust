@@ -43,16 +43,15 @@ struct JuceStateUI : public MapUI {
         MemoryOutputStream stream (destData, true);
         
         // Write path and values
-        std::map<std::string, FAUSTFLOAT*>::iterator it;
         if (sizeof(FAUSTFLOAT) == sizeof(float)) {
-            for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
-                stream.writeString((*it).first);
-                stream.writeFloat(*(*it).second);
+            for (auto& it : fPathZoneMap) {
+                stream.writeString(it.first);
+                stream.writeFloat(*it.second);
             }
         } else {
-            for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
-                stream.writeString((*it).first);
-                stream.writeDouble(*(*it).second);
+            for (auto& it : fPathZoneMap) {
+                stream.writeString(it.first);
+                stream.writeDouble(*it.second);
             }
         }
     }

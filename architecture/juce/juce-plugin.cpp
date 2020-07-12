@@ -114,7 +114,7 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
                         int currentPitchWheelPosition) override
         {
             // Note is triggered
-            keyOn(midiNoteNumber, velocity, true);
+            keyOn(midiNoteNumber, velocity);
         }
         
         void stopNote (float velocity, bool allowTailOff) override
