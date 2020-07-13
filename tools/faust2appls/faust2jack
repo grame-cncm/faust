@@ -11,7 +11,7 @@
 . faustoptflags
 . usage.sh
 
-CXXFLAGS="$MYGCCFLAGS -I/opt/local/include"
+CXXFLAGS+=" $MYGCCFLAGS -I/opt/local/include" # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/jack-gtk.cpp
 

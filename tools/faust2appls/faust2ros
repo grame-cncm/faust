@@ -10,6 +10,8 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
 ARCHFILE=$FAUSTARCH/jack-ros.cpp
 
 path=$(pwd)
@@ -203,7 +205,7 @@ target_link_libraries(\${PROJECT_NAME} jack \${catkin_LIBRARIES})" > CMakeLists.
 		# double compilation
 		cd src
 			faust -i -a ros-callbacks.cpp -o "$PACKAGE_PATH/src/$name.cpp" $path/$p || exit
-			g++ $name.cpp -o $name || exit
+			$CXX $name.cpp -o $name || exit
 	    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	 || exit
 	    	./$name		# adds the callbacks declaration to the generated c++ file
 	    	rm $name

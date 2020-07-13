@@ -12,8 +12,6 @@ set -e
 . faustoptflags
 . usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
-
 ARCHFILE=$FAUSTARCH/soul/minimal.soul
 
 #-------------------------------------------------------------------

@@ -13,7 +13,7 @@
 . faustoptflags
 . usage.sh
 
-CXXFLAGS=$MYGCCFLAGSGENERIC
+CXXFLAGS+=" $MYGCCFLAGSGENERIC"  # So that additional CXXFLAGS can be used
 
 UNIVERSAL=""
 OSCDEFS=""
