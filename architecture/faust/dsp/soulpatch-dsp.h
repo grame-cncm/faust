@@ -34,8 +34,8 @@
 #include <map>
 #include <algorithm>
 
-#include <soul/API/soul_patch/API/soul_patch.h>
-#include <soul/API/soul_patch/helper_classes/soul_patch_Utilities.h>
+#include <soul/soul_patch.h>
+#include <soul/patch/helper_classes/soul_patch_Utilities.h>
 
 #include "faust/dsp/dsp.h"
 #include "faust/midi/midi.h"

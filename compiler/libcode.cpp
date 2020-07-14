@@ -831,7 +831,7 @@ static void printHelp()
             "auto-vectorization."
          << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
-    cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
+    cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
@@ -891,7 +891,7 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
-            "<file>,"
+            "<file>."
          << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
     cout << tab
