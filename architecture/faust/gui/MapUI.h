@@ -152,15 +152,24 @@ class MapUI : public UI, public PathBuilder
     
         std::string getParamAddress(FAUSTFLOAT* zone)
         {
-            std::map<std::string, FAUSTFLOAT*>::iterator it = fPathZoneMap.begin();
-            do {
-                if ((*it).second == zone) return (*it).first;
+            for (auto& it : fPathZoneMap) {
+                 if (it.second == zone) return it.first;
             }
-            while (it++ != fPathZoneMap.end());
             return "";
         }
     
-        static bool endsWith(std::string const& str, std::string const& end)
+        FAUSTFLOAT* getParamZone(const std::string& str)
+        {
+            if (fPathZoneMap.find(str) != fPathZoneMap.end()) {
+                return fPathZoneMap[str];
+            }
+            if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
+                return fLabelZoneMap[str];
+            }
+            return nullptr;
+        }
+    
+        static bool endsWith(const std::string& str, const std::string& end)
         {
             size_t l1 = str.length();
             size_t l2 = end.length();

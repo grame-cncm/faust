@@ -1,4 +1,4 @@
-% man(1) Version 2.27.0 (04-July-2020) | Faust man page
+% man(1) Version 2.27.1 (15-July-2020) | Faust man page
 
 NAME
 ====
@@ -72,7 +72,7 @@ Code generation options:
 
   **-flist**      **--file-list**                 use file list used to eval process.
 
-  **-exp10**      **--generate-exp10**            function call instead of pow(10) function.
+  **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation.
 
@@ -124,7 +124,8 @@ Code generation options:
 
   **-fun**       **--fun-tasks**                  separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>,
+  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>.
+
                                           use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
   **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
