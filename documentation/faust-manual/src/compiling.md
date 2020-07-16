@@ -77,8 +77,8 @@ available backends:
 
 ```
 FAUST : DSP to C, C++, Java, old C++, WebAssembly 
-(wast/wasm) compiler, Version 2.15.0
-Copyright (C) 2002-2019, GRAME - Centre National de Creation Musicale. All 
+(wast/wasm) compiler, Version 2.27.1
+Copyright (C) 2002-2020, GRAME - Centre National de Creation Musicale. All 
 rights reserved. 
 ```
 
