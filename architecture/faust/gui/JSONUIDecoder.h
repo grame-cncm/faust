@@ -270,8 +270,8 @@ struct JSONUIDecoderReal {
             
             std::string type = it.type;
             REAL init = REAL(it.init);
-            REAL min = REAL(it.min);
-            REAL max = REAL(it.max);
+            REAL min = REAL(it.fmin);
+            REAL max = REAL(it.fmax);
             REAL step = REAL(it.step);
             
             // Meta data declaration for input items
@@ -348,8 +348,8 @@ struct JSONUIDecoderReal {
             std::string type = it.type;
             int offset = it.index;
             REAL init = REAL(it.init);
-            REAL min = REAL(it.min);
-            REAL max = REAL(it.max);
+            REAL min = REAL(it.fmin);
+            REAL max = REAL(it.fmax);
             REAL step = REAL(it.step);
             
             // Meta data declaration for input items
@@ -418,8 +418,8 @@ struct JSONUIDecoderReal {
             std::string type = it.type;
             int offset = it.index;
             REAL init = REAL(it.init);
-            REAL min = REAL(it.min);
-            REAL max = REAL(it.max);
+            REAL min = REAL(it.fmin);
+            REAL max = REAL(it.fmax);
             REAL step = REAL(it.step);
             
             // Meta data declaration for input items
