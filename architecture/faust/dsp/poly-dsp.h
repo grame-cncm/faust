@@ -29,6 +29,7 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
+#include <functional>
 #include <ostream>
 #include <sstream>
 #include <vector>
@@ -51,13 +52,6 @@
 #define VOICE_STOP_LEVEL  0.0005    // -70 db
 #define MIX_BUFFER_SIZE   4096
 
-// endsWith(<str>,<end>) : returns true if <str> ends with <end>
-
-static double midiToFreq(double note)
-{
-    return 440.0 * std::pow(2.0, (note-69.0)/12.0);
-}
-
 /**
  * Allows to control zones in a grouped manner.
  */
@@ -73,9 +67,12 @@ class GroupUI : public GUI, public PathBuilder
         {
             if (!MapUI::endsWith(label, "/gate")
                 && !MapUI::endsWith(label, "/freq")
-                && !MapUI::endsWith(label, "/gain")) {
+                && !MapUI::endsWith(label, "/key")
+                && !MapUI::endsWith(label, "/gain")
+                && !MapUI::endsWith(label, "/vel")
+                && !MapUI::endsWith(label, "/velocity")) {
 
-                // Groups all controller except 'freq', 'gate', and 'gain'
+                // Groups all controllers except 'freq/key', 'gate', and 'gain/vel|velocity'
                 if (fLabelZoneMap.find(label) != fLabelZoneMap.end()) {
                     fLabelZoneMap[label]->addZone(zone);
                 } else {
@@ -155,6 +152,13 @@ class GroupUI : public GUI, public PathBuilder
  */
 
 struct dsp_voice : public MapUI, public decorator_dsp {
+    
+    typedef std::function<double(int)> TransformFunction;
+  
+    static double midiToFreq(double note)
+    {
+        return 440.0 * std::pow(2.0, (note-69.0)/12.0);
+    }
 
     int fNote;                          // Playing note actual pitch
     int fDate;                          // KeyOn date
@@ -162,8 +166,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     int fMaxRelease;                    // Max of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
-    std::vector<std::string> fGainPath; // Paths of 'gain' control
-    std::vector<std::string> fFreqPath; // Paths of 'freq' control
+    std::vector<std::string> fGainPath; // Paths of 'gain/vel|velocity' control
+    std::vector<std::string> fFreqPath; // Paths of 'freq/key' control
+    TransformFunction        fKeyFun;   // MIDI key to freq conversion function
+    TransformFunction        fVelFun;   // MIDI velocity to gain conversion function
  
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
@@ -179,33 +185,41 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
-        // Keep gain, freq and gate labels
+        // Keep gain/vel|velocity, freq/key and gate labels
         for (auto& it : getMap()) {
             std::string path = it.first;
             if (endsWith(path, "/gate")) {
                 gate.push_back(path);
             } else if (endsWith(path, "/freq")) {
+                fKeyFun = [](int pitch) { return midiToFreq(pitch); };
+                freq.push_back(path);
+            } else if (endsWith(path, "/key")) {
+                fKeyFun = [](int pitch) { return pitch; };
                 freq.push_back(path);
             } else if (endsWith(path, "/gain")) {
+                fVelFun = [](int velocity) { return double(velocity)/127.0; };
+                gain.push_back(path);
+            } else if (endsWith(path, "/vel") || endsWith(path, "/velocity")) {
+                fVelFun = [](int velocity) { return double(velocity); };
                 gain.push_back(path);
             }
         }
     }
-
+   
     // MIDI velocity [0..127]
     void keyOn(int pitch, int velocity)
     {
-        keyOn(pitch, float(velocity)/127.f);
+        keyOn(pitch, fVelFun(velocity));
     }
 
     // Normalized MIDI velocity [0..1]
-    void keyOn(int pitch, float velocity)
+    void keyOn(int pitch, double velocity)
     {
         // So that DSP state is always re-initialized
         fDSP->instanceClear();
         
         for (size_t i = 0; i < fFreqPath.size(); i++) {
-            setParamValue(fFreqPath[i], midiToFreq(pitch));
+            setParamValue(fFreqPath[i], fKeyFun(pitch));
         }
         for (size_t i = 0; i < fGatePath.size(); i++) {
             setParamValue(fGatePath[i], FAUSTFLOAT(1));

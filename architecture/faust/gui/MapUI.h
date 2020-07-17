@@ -114,7 +114,7 @@ class MapUI : public UI, public PathBuilder
         virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
         
         // -- metadata declarations
-        void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {}
         
         // set/get
@@ -144,16 +144,20 @@ class MapUI : public UI, public PathBuilder
         int getParamsCount() { return int(fPathZoneMap.size()); }
         
         std::string getParamAddress(int index)
-        { 
-            std::map<std::string, FAUSTFLOAT*>::iterator it = fPathZoneMap.begin();
-            while (index-- > 0 && it++ != fPathZoneMap.end()) {}
-            return (*it).first;
+        {
+            if (index < 0 || index > int(fPathZoneMap.size())) {
+                return "";
+            } else {
+                auto it = fPathZoneMap.begin();
+                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
+                return it->first;
+            }
         }
     
         std::string getParamAddress(FAUSTFLOAT* zone)
         {
             for (auto& it : fPathZoneMap) {
-                 if (it.second == zone) return it.first;
+                if (it.second == zone) return it.first;
             }
             return "";
         }
@@ -167,6 +171,17 @@ class MapUI : public UI, public PathBuilder
                 return fLabelZoneMap[str];
             }
             return nullptr;
+        }
+    
+        FAUSTFLOAT* getParamZone(int index)
+        {
+            if (index < 0 || index > int(fPathZoneMap.size())) {
+                return nullptr;
+            } else {
+                auto it = fPathZoneMap.begin();
+                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
+                return it->second;
+            }
         }
     
         static bool endsWith(const std::string& str, const std::string& end)
