@@ -1931,6 +1931,8 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.fFreqLabel = [];
     sp.fGateLabel = [];
     sp.fGainLabel = [];
+    sp.fKeyFun = null;
+    sp.fVelFun = null;
     sp.fDate = 0;
 
     sp.fPitchwheelLabel = [];
@@ -2249,15 +2251,23 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         }
 
         // keep 'keyOn/keyOff' labels
-        for (i = 0; i < sp.inputs_items.length; i++) {
-            if (sp.inputs_items[i].endsWith("/gate")) {
-                sp.fGateLabel.push(sp.pathTable[sp.inputs_items[i]]);
-            } else if (sp.inputs_items[i].endsWith("/freq")) {
-                sp.fFreqLabel.push(sp.pathTable[sp.inputs_items[i]]);
-            } else if (sp.inputs_items[i].endsWith("/gain")) {
-                sp.fGainLabel.push(sp.pathTable[sp.inputs_items[i]]);
+        sp.inputs_items.forEach(item => {
+            if (item.endsWith("/gate")) {
+                sp.fGateLabel.push(sp.pathTable[item]);
+            } else if (item.endsWith("/freq")) {
+                sp.fKeyFun = (pitch) => { return sp.midiToFreq(pitch); };
+                sp.fFreqLabel.push(sp.pathTable[item]);
+            } else if (item.endsWith("/key")) {
+                sp.fKeyFun = (pitch) => { return pitch;} ;
+                sp.fFreqLabel.push(sp.pathTable[item]);
+            } else if (item.endsWith("/gain")) {
+                sp.fVelFun = (vel) => { return vel/127.0; };
+                sp.fGainLabel.push(sp.pathTable[item])
+            } else if (item.endsWith("/vel") || item.endsWith("/velocity")) {
+                sp.fVelFun = (vel) => { return vel; };
+                sp.fGainLabel.push(sp.pathTable[item]);
             }
-        }
+        })
 
         // Init DSP voices
         for (i = 0; i < polyphony; i++) {
@@ -2397,13 +2407,13 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             console.log("keyOn voice %d", voice);
         }
         for (var i = 0; i < sp.fFreqLabel.length; i++) {
-            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.midiToFreq(pitch));
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.fKeyFun(pitch));
         }
         for (var i = 0; i < sp.fGateLabel.length; i++) {
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 1.0);
         }
         for (var i = 0; i < sp.fGainLabel.length; i++) {
-            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity/127.);
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], sp.fVelFun(velocity));
         }
         sp.dsp_voices_state[voice] = pitch;
     }
@@ -2934,6 +2944,8 @@ var mydspPolyProcessorString = `
             this.fFreqLabel = [];
             this.fGateLabel = [];
             this.fGainLabel = [];
+            this.fKeyFun = null;
+            this.fVelFun = null;
             this.fDate = 0;
 
             this.fPitchwheelLabel = [];
@@ -3252,8 +3264,16 @@ var mydspPolyProcessorString = `
                     if (this.inputs_items[i].endsWith("/gate")) {
                         this.fGateLabel.push(this.pathTable[this.inputs_items[i]]);
                     } else if (this.inputs_items[i].endsWith("/freq")) {
+                        this.fKeyFun = (pitch) => { return this.midiToFreq(pitch); };
+                        this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
+                    } else if (this.inputs_items[i].endsWith("/key")) {
+                        this.fKeyFun = (pitch) => { return pitch; };
                         this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
                     } else if (this.inputs_items[i].endsWith("/gain")) {
+                        this.fVelFun = (vel) => { return vel/127.0; };
+                        this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
+                    } else if (this.inputs_items[i].endsWith("/vel") || this.inputs_items[i].endsWith("/velocity")) {
+                        this.fVelFun = (vel) => { return vel; };
                         this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
                     }
                 }
@@ -3279,13 +3299,13 @@ var mydspPolyProcessorString = `
                     console.log("keyOn voice %d", voice);
                 }
                 for (var i = 0; i < this.fFreqLabel.length; i++) {
-                    this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.fKeyFun(pitch));
                 }
                 for (var i = 0; i < this.fGateLabel.length; i++) {
-                	this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
-           		}
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
+                }
                 for (var i = 0; i < this.fGainLabel.length; i++) {
-                    this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], this.fVelFun(velocity));
                 }
                 this.dsp_voices_state[voice] = pitch;
             }

@@ -213,6 +213,8 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.fFreqLabel = [];
         this.fGateLabel = [];
         this.fGainLabel = [];
+        this.fKeyFun = null;
+        this.fVelFun = null;
         this.fDate = 0;
         
         this.fPitchwheelLabel = [];
@@ -531,8 +533,16 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 if (this.inputs_items[i].endsWith("/gate")) {
                     this.fGateLabel.push(this.pathTable[this.inputs_items[i]]);
                 } else if (this.inputs_items[i].endsWith("/freq")) {
+                    this.fKeyFun = (pitch) => { return this.midiToFreq(pitch); };
+                    this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
+                } else if (this.inputs_items[i].endsWith("/key")) {
+                    this.fKeyFun = (pitch) => { return pitch; };
                     this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
                 } else if (this.inputs_items[i].endsWith("/gain")) {
+                    this.fVelFun = (vel) => { return vel/127.0; };
+                    this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
+                } else if (this.inputs_items[i].endsWith("/vel") || this.inputs_items[i].endsWith("/velocity")) {
+                    this.fVelFun = (vel) => { return vel; };
                     this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
                 }
             }
@@ -558,13 +568,13 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 console.log("keyOn voice %d", voice);
             }
             for (var i = 0; i < this.fFreqLabel.length; i++) {
-                this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
+                this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.fKeyFun(pitch));
             }
             for (var i = 0; i < this.fGateLabel.length; i++) {
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
             }
             for (var i = 0; i < this.fGainLabel.length; i++) {
-                this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
+                this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], this.fVelFun(velocity));
             }
             this.dsp_voices_state[voice] = pitch;
         }
