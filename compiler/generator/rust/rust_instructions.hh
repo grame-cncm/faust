@@ -247,7 +247,12 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "let mut ";
         }
 
-        *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        // If kNoType only generate the name, otherwise a typed expression
+        if (inst->fType->getType() == Typed::VarType::kNoType) {
+            *fOut << inst->fAddress->getName();
+        } else {
+            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        }
 
         if (inst->fValue) {
             *fOut << " = ";
