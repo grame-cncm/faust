@@ -194,7 +194,9 @@ void faust_allocate(t_faust* x, int nvoices)
     x->m_dspUI->clear();
     
     if (nvoices > 0) {
+    #ifdef POST
         post("polyphonic DSP voices = %d", nvoices);
+    #endif
         x->m_dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
     #ifdef POLY2
         x->m_dsp = new dsp_sequencer(x->m_dsp_poly, new effect());
@@ -205,7 +207,9 @@ void faust_allocate(t_faust* x, int nvoices)
         x->m_midiHandler->addMidiIn(x->m_dsp_poly);
     #endif
     } else {
+    #ifdef POST
         post("monophonic DSP");
+    #endif
     #if (DOWN_SAMPLING > 0)
         #if (FILTER_TYPE == 0)
             x->m_dsp = new dsp_down_sampler<Identity<Double<1,1>, DOWN_SAMPLING>>(new mydsp());
@@ -526,8 +530,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_dsp->buildUserInterface(x->m_savedUI);
     
     // Display controls
+#ifdef POST
     x->m_dspUI->displayControls();
-    
+#endif   
     // Get attributes values
     attr_args_process(x, ac, av);
     
@@ -575,8 +580,9 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
             x->m_oscInterface = new OSCUI("Faust", argc1, (char**)argv1);
             x->m_dsp->buildUserInterface(x->m_oscInterface);
             x->m_oscInterface->run();
-            
+
             post(x->m_oscInterface->getInfos().c_str());
+
             systhread_mutex_unlock(x->m_mutex);
         } else {
             post("Mutex lock cannot be taken...");
@@ -792,17 +798,19 @@ void ext_main(void* r)
     class_dspinit(c);
     class_register(CLASS_BOX, c);
     faust_class = c;
-
+#ifdef POST
     post((char*)"Faust DSP object v%s (sample = %s bits code = %s)", EXTERNAL_VERSION, ((sizeof(FAUSTFLOAT) == 4) ? "32" : "64"), getCodeSize());
     post((char*)"Copyright (c) 2012-2020 Grame");
-    
+#endif
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {
+    #ifdef POST
         Max_Meta2 meta2;
         post("------------------------------");
         tmp_dsp->metadata(&meta2);
         post("------------------------------");
+    #endif
     }
     delete(tmp_dsp);
 #ifdef _WIN32

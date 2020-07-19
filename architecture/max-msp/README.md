@@ -6,7 +6,7 @@ faust2max6/faust2msp transform a Faust DSP program into a compiled Max/MSP exter
 
 faust2max6 is used with the following parameters: 
 
-`faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-us <factor>] [-ds <factor>] [-filter <filter>] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+`faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-us <factor>] [-ds <factor>] [-filter <filter>] [-universal] [-nopatch] [-nopost] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
 
 By default it will create *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **label**, **range** and **complete path**. Note that  *-double* compilation mode is used by default in faust2max6.
 
@@ -26,6 +26,7 @@ The following options are available:
   - `-filter <filter>` : use a filter for upsampling or downsampling [0..4]
   - `-universal` : to generate a 64/32 bits external
   - `-nopatch` : to deactivate patch generation
+  - `-nopost` : to disable Faust messages to Max console
   - `-soundfile` : when compiling DSP using 'soundfile' primitive, to add needed resources
   - `-soundfile-static` when compiling DSP using 'soundfile' primitive, to add needed resources in static mode
   - `-help or -h` : shows the different options 
