@@ -83,6 +83,7 @@ struct ControlInst;
 struct IfInst;
 struct ForLoopInst;
 struct SimpleForLoopInst;
+struct IteratorForLoopInst;
 struct WhileLoopInst;
 struct BlockInst;
 struct SwitchInst;
@@ -235,6 +236,7 @@ struct InstVisitor : public virtual Garbageable {
     // Loops
     virtual void visit(ForLoopInst* inst) {}
     virtual void visit(SimpleForLoopInst* inst) {}
+    virtual void visit(IteratorForLoopInst* inst) {}
     virtual void visit(WhileLoopInst* inst) {}
 
     // Block
@@ -306,6 +308,7 @@ struct CloneVisitor : public virtual Garbageable {
     // Loops
     virtual StatementInst* visit(ForLoopInst* inst)       = 0;
     virtual StatementInst* visit(SimpleForLoopInst* inst) = 0;
+    virtual StatementInst* visit(IteratorForLoopInst* inst) = 0;
     virtual StatementInst* visit(WhileLoopInst* inst)     = 0;
 
     // Block
@@ -1277,6 +1280,27 @@ struct SimpleForLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct IteratorForLoopInst : public StatementInst {
+    std::vector<NamedAddress*> fIterators;
+    const bool                 fReverse;
+    BlockInst*                 fCode;
+
+    IteratorForLoopInst(const std::vector<NamedAddress*> iterators, bool reverse, BlockInst* code)
+        : fIterators(iterators), fReverse(reverse), fCode(code)
+    {
+    }
+
+    virtual ~IteratorForLoopInst() {}
+
+    void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
+
+    void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct WhileLoopInst : public StatementInst {
     ValueInst* fCond;
     BlockInst* fCode;
@@ -1434,6 +1458,11 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this),
                                      inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
+    }
+
+    virtual StatementInst* visit(IteratorForLoopInst* inst)
+    {
+        return new IteratorForLoopInst(inst->fIterators, inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     virtual StatementInst* visit(WhileLoopInst* inst)
@@ -1616,6 +1645,11 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(SimpleForLoopInst* inst)
     {
         inst->fUpperBound->accept(this);
+        inst->fCode->accept(this);
+    }
+
+    virtual void visit(IteratorForLoopInst* inst)
+    {
         inst->fCode->accept(this);
     }
 
@@ -2074,6 +2108,11 @@ struct InstBuilder {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
         faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
         return new SimpleForLoopInst(index, upperBound, lowerBound, reverse, code);
+    }
+    static IteratorForLoopInst* genIteratorForLoopInst(const std::vector<NamedAddress*> iterators, bool reverse = false,
+                                                       BlockInst* code = new BlockInst())
+    {
+        return new IteratorForLoopInst(iterators, reverse, code);
     }
 
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code) { return new WhileLoopInst(cond, code); }
