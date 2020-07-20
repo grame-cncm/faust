@@ -48,7 +48,7 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
         loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
         loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
     }
-   
+
     BlockInst* block = generateOneSample();
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
 
@@ -57,6 +57,8 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
 }
 
 // To be used for the 'rust' backend
+/*
+// Do we still need this version for the "internal class for loop"?
 SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 {
     ValueInst* upper_bound = InstBuilder::genLoadFunArgsVar(counter);
@@ -68,19 +70,33 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
     BasicCloneVisitor cloner;
     return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
 }
+*/
+IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string> iterators)
+{
+    std::vector<NamedAddress*> iterators_value_inst;
+    for (const auto& iterator : iterators) {
+        iterators_value_inst.push_back(InstBuilder::genNamedAddress(iterator, Address::kStack));
+    }
+
+    BlockInst* block = generateOneSample();
+    IteratorForLoopInst* loop = InstBuilder::genIteratorForLoopInst(iterators_value_inst, false, block);
+
+    BasicCloneVisitor cloner;
+    return static_cast<IteratorForLoopInst*>(loop->clone(&cloner));
+}
 
 BlockInst* CodeLoop::generateOneSample()
 {
     BlockInst* block = InstBuilder::genBlockInst();
-    
+
     pushBlock(fPreInst, block);
     pushBlock(fComputeInst, block);
     pushBlock(fPostInst, block);
-    
+
     // Expand and rewrite ControlInst as 'if (cond) {....}' instructions
     ControlExpander exp;
     block = exp.getCode(block);
-    
+
     BasicCloneVisitor cloner;
     return static_cast<BlockInst*>(block->clone(&cloner));
 }

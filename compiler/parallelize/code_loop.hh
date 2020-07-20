@@ -161,7 +161,7 @@ class CodeLoop : public virtual Garbageable {
 
     ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
 
-    SimpleForLoopInst* generateSimpleScalarLoop(const string& counter);
+    IteratorForLoopInst* generateSimpleScalarLoop(const std::vector<string> iterators);
 
     BlockInst* generateOneSample();
 

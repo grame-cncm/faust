@@ -22,6 +22,8 @@
 #ifndef _RUST_INSTRUCTIONS_H
 #define _RUST_INSTRUCTIONS_H
 
+#include <regex>
+
 #include "text_instructions.hh"
 #include "Text.hh"
 
@@ -247,7 +249,7 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "let mut ";
         }
 
-        // If kNoType only generate the name, otherwise a typed expression
+        // If type is kNoType, only generate the name, otherwise a typed expression
         if (inst->fType->getType() == Typed::VarType::kNoType) {
             *fOut << inst->fAddress->getName();
         } else {
@@ -288,13 +290,7 @@ class RustInstVisitor : public TextInstVisitor {
         for (int i = 0; i < inst->fNumChannels; ++i) {
             *fOut << name << i << ", ";
         }
-        *fOut << "..] = ";
-        if (inst->fMutable) {
-            *fOut << "&mut ";
-        } else {
-            *fOut << "&";
-        }
-        *fOut << name << " {";
+        *fOut << "..] = " << name << " {";
 
         fTab++;
         for (int i = 0; i < inst->fNumChannels; ++i) {
@@ -582,6 +578,49 @@ class RustInstVisitor : public TextInstVisitor {
             inst->fUpperBound->accept(this);
         }
         *fOut << " {";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fCode->accept(this);
+        fTab--;
+        back(1, *fOut);
+        *fOut << "}";
+        tab(fTab, *fOut);
+    }
+
+    virtual void visit(IteratorForLoopInst* inst)
+    {
+        // Don't generate empty loops...
+        if (inst->fCode->size() == 0) return;
+
+        *fOut << "let zipped_iterators = ";
+        for (std::size_t i = 0; i < inst->fIterators.size(); ++i) {
+            if (i == 0) {
+                inst->fIterators[i]->accept(this);
+            } else {
+                *fOut << ".zip(";
+                inst->fIterators[i]->accept(this);
+                *fOut << ")";
+            }
+        }
+        *fOut << ";";
+        tab(fTab, *fOut);
+
+        *fOut << "for ";
+        for (std::size_t i = 0; i < inst->fIterators.size() - 1; ++i) {
+            *fOut << "(";
+        }
+        // Maybe find a nicer way to go from plural names to singular names here?
+        string name = inst->fIterators[0]->getName();
+        name = std::regex_replace(name, std::regex("inputs"), "input");
+        name = std::regex_replace(name, std::regex("outputs"), "output");
+        *fOut << name;
+        for (std::size_t i = 1; i < inst->fIterators.size(); ++i) {
+            string name = inst->fIterators[i]->getName();
+            name = std::regex_replace(name, std::regex("inputs"), "input");
+            name = std::regex_replace(name, std::regex("outputs"), "output");
+            *fOut << ", " << name << ")";
+        }
+        *fOut << " in zipped_iterators {";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
