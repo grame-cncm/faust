@@ -209,15 +209,11 @@ class Esp32ControlUI : public GenericUI
                 if (fCheckButton.size() > 0) {
                     int button = gpio_get_level(GPIO_NUM_14);
                     for (int i = 0; i < fCheckButton.size(); i++) {
-                        if (button == 1) {
-                            if (fLastButton == 0) {
-                                // Upfront detected
-                                *fCheckButton[i] = !(*fCheckButton[i]);
-                                fLastButton = button;
-                            }
-                        } else {
-                            fLastButton = 0;
+                        if ((button == 1) && (button != fLastButton)) {
+                            // Upfront detected
+                            *fCheckButton[i] = !(*fCheckButton[i]);
                         }
+                        fLastButton = button;
                     }
                 }
                 
