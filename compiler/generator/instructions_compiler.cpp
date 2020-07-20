@@ -525,17 +525,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                     }
                 }
             }
-        } else {
-            for (int index = 0; index < fContainer->inputs(); index++) {
-                string name = subst("input$0", T(index));
-                Typed* type_dummy = new BasicTyped(Typed::VarType::kNoType);
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                    name, type_dummy,
-                    InstBuilder::genLoadStackVar("inputs")));
-                if (gGlobal->gInPlace) {
-                    CS(sigInput(index));
-                }
-            }
         }
 
         // HACK for Rust backend
@@ -557,13 +546,13 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                         InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
                 }
             }
-        } else {
-            for (int index = 0; index < fContainer->outputs(); index++) {
-                string name = subst("output$0", T(index));
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                    name, InstBuilder::genArrayTyped(type, 0),
-                    InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
-            }
+        }
+
+        if (gGlobal->gOutputLang == "rust") {
+            int num_inputs = fContainer->inputs();
+            int num_outputs = fContainer->outputs();
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("inputs", num_inputs, false));
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("outputs", num_outputs, true));
         }
     }
 

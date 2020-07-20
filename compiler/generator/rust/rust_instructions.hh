@@ -265,6 +265,71 @@ class RustInstVisitor : public TextInstVisitor {
         EndLine((inst->fAddress->getAccess() & Address::kStruct) ? ',' : ';');
     }
 
+    virtual void visit(DeclareBufferIteratorsRust* inst)
+    {
+        /* Generates an expression like:
+        let (outputs0, outputs1) = if let [outputs0, outputs1, ..] = &mut outputs {
+            let outputs0 = outputs0[..count as usize].iter_mut();
+            let outputs1 = outputs1[..count as usize].iter_mut();
+            (outputs0, outputs1)
+        } else {
+            panic!("wrong number of outputs");
+        };
+        */
+        std::string name = inst->fBufferName;
+        *fOut << "let (";
+        for (int i = 0; i < inst->fNumChannels; ++i) {
+            if (i > 0) {
+                *fOut << ", ";
+            }
+            *fOut << name << i;
+        }
+        *fOut << ") = if let [";
+        for (int i = 0; i < inst->fNumChannels; ++i) {
+            *fOut << name << i << ", ";
+        }
+        *fOut << "..] = ";
+        if (inst->fMutable) {
+            *fOut << "&mut ";
+        } else {
+            *fOut << "&";
+        }
+        *fOut << name << " {";
+
+        fTab++;
+        for (int i = 0; i < inst->fNumChannels; ++i) {
+            tab(fTab, *fOut);
+            *fOut << "let " << name << i << " = " << name << i << "[..count as usize]";
+            if (inst->fMutable) {
+                *fOut << ".iter_mut();";
+            } else {
+                *fOut << ".iter();";
+            }
+        }
+        tab(fTab, *fOut);
+        *fOut << "(";
+        for (int i = 0; i < inst->fNumChannels; ++i) {
+            if (i > 0) {
+                *fOut << ", ";
+            }
+            *fOut << name << i;
+        }
+        *fOut << ")";
+
+        fTab--;
+        tab(fTab, *fOut);
+        *fOut << "} else {";
+
+        fTab++;
+        tab(fTab, *fOut);
+        *fOut << "panic!(\"wrong number of " << name << "\");";
+
+        fTab--;
+        tab(fTab, *fOut);
+        *fOut << "};";
+        tab(fTab, *fOut);
+    }
+
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
