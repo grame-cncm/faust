@@ -258,7 +258,7 @@ class mspUI : public UI, public PathBuilder
         void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
-            fInputLabelTable[string(label)] = obj;
+            fInputLabelTable[buildLabel(label)] = obj;
             fInputPathTable[buildPath(label)] = obj;
             fDeclareTable.clear();
         }
@@ -266,7 +266,7 @@ class mspUI : public UI, public PathBuilder
         void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
             mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
-            fOutputLabelTable[string(label)] = obj;
+            fOutputLabelTable[buildLabel(label)] = obj;
             fOutputPathTable[buildPath(label)] = obj;
             fDeclareTable.clear();
         }
@@ -291,14 +291,14 @@ class mspUI : public UI, public PathBuilder
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
             mspUIObject* obj = new mspButton(createLabel(label), zone);
-            fInputLabelTable[string(label)] = obj;
+            fInputLabelTable[buildLabel(label)] = obj;
             fInputPathTable[buildPath(label)] = obj;
         }
         
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             mspUIObject* obj = new mspCheckButton(createLabel(label), zone);
-            fInputLabelTable[string(label)] = obj;
+            fInputLabelTable[buildLabel(label)] = obj;
             fInputPathTable[buildPath(label)] = obj;
         }
         

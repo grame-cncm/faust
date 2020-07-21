@@ -10,6 +10,16 @@ faust2max6 is used with the following parameters:
 
 By default it will create *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **label**, **range** and **complete path**. Note that  *-double* compilation mode is used by default in faust2max6.
 
+Attributes can be used at object creation time, for instance the following DSP code:
+
+```
+import("stdfaust.lib");
+freq = hslider("freq", 200, 50, 1000, 0.01);
+gain = hslider("gain", 0.5, 0, 1, 0.01);
+process = os.sawtooth(freq) * gain;
+```
+can be started with the following `@freq 700` and  `@gain 0.6`  attributes to configure parameters at creation time. Note that labels containing whitespace  (like "freq Hz") will be automatically rewriten using underscores, like "freq_Hz", so that to be usable as attributes.
+
 ## Options
 
 The following options are available: 
@@ -28,7 +38,7 @@ The following options are available:
   - `-nopatch` : to deactivate patch generation
   - `-nopost` : to disable Faust messages to Max console
   - `-soundfile` : when compiling DSP using 'soundfile' primitive, to add needed resources
-  - `-soundfile-static` when compiling DSP using 'soundfile' primitive, to add needed resources in static mode
+  - `-soundfile-static`: when compiling DSP using 'soundfile' primitive, to add needed resources in static mode
   - `-help or -h` : shows the different options 
  
 The *faust2msp* tools has to be used to create old Max5 compatible externals, the *faust2max6* tools has to be used starting with Max6. 

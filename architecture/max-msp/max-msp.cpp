@@ -132,7 +132,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.77"
+#define EXTERNAL_VERSION    "0.78"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -761,8 +761,7 @@ void ext_main(void* r)
     tmp_dsp->buildUserInterface(&tmp_UI);
     
     // Setup attribute
-    int i = 0;
-    for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
+    for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++) {
         CLASS_ATTR_FLOAT(c, (*it).first.c_str(), 0, t_faust, m_ob);
         CLASS_ATTR_ACCESSORS(c, (*it).first.c_str(), NULL, (method)faust_attr_set);
     }
