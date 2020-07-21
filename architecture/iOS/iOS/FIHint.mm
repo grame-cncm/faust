@@ -92,8 +92,8 @@
                                           rect.size.width,
                                           rect.size.height / 2.f)
                       withFont:labelFont
-                 lineBreakMode:UILineBreakModeTailTruncation
-                     alignment:UITextAlignmentCenter];
+                 lineBreakMode:NSLineBreakByTruncatingTail
+                     alignment:NSTextAlignmentCenter];
     }
     
     // Bottom
@@ -133,8 +133,8 @@
                                           rect.size.width,
                                           rect.size.height / 2.f)
                       withFont:labelFont
-                 lineBreakMode:UILineBreakModeTailTruncation
-                     alignment:UITextAlignmentCenter];
+                 lineBreakMode:NSLineBreakByTruncatingTail
+                     alignment:NSTextAlignmentCenter];
     }
     
     // Left
@@ -174,8 +174,8 @@
                                           3.f * rect.size.width / 4.f,
                                           rect.size.height / 2.f)
                       withFont:labelFont
-                 lineBreakMode:UILineBreakModeTailTruncation
-                     alignment:UITextAlignmentLeft];
+                 lineBreakMode:NSLineBreakByTruncatingTail
+                     alignment:NSTextAlignmentLeft];
     }
     // Right
     else if (self.position == 3)
@@ -214,8 +214,8 @@
                                           3.f * rect.size.width / 4.f,
                                           rect.size.height / 2.f)
                       withFont:labelFont
-                 lineBreakMode:UILineBreakModeTailTruncation
-                     alignment:UITextAlignmentRight];
+                 lineBreakMode:NSLineBreakByTruncatingTail
+                     alignment:NSTextAlignmentRight];
     }
 }
 

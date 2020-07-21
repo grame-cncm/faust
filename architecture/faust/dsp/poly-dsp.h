@@ -173,6 +173,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
  
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
+        // Default versions
+        fVelFun = [](int velocity) { return double(velocity)/127.0; };
+        fKeyFun = [](int pitch) { return midiToFreq(pitch); };
         dsp->buildUserInterface(this);
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
@@ -465,37 +468,45 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
     private:
 
         FAUSTFLOAT** fMixBuffer;
+        FAUSTFLOAT** fOutBuffer;
         int fDate;
-
-        FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+  
+        FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
             FAUSTFLOAT level = 0;
-            for (int i = 0; i < getNumOutputs(); i++) {
-                FAUSTFLOAT* mixChannel = mixBuffer[i];
-                FAUSTFLOAT* outChannel = outputBuffer[i];
-                for (int j = 0; j < count; j++) {
-                    level = std::max<FAUSTFLOAT>(level, (FAUSTFLOAT)fabs(outChannel[j]));
-                    mixChannel[j] += outChannel[j];
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                FAUSTFLOAT* mixChannel = mixBuffer[chan];
+                FAUSTFLOAT* outChannel = outBuffer[chan];
+                for (int frame = 0; frame < count; frame++) {
+                    level = std::max<FAUSTFLOAT>(level, (FAUSTFLOAT)fabs(mixChannel[frame]));
+                    outChannel[frame] += mixChannel[frame];
                 }
             }
             return level;
         }
     
-        void mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+        void mixVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
-            for (int i = 0; i < getNumOutputs(); i++) {
-                FAUSTFLOAT* mixChannel = mixBuffer[i];
-                FAUSTFLOAT* outChannel = outputBuffer[i];
-                for (int j = 0; j < count; j++) {
-                    mixChannel[j] += outChannel[j];
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                FAUSTFLOAT* mixChannel = mixBuffer[chan];
+                FAUSTFLOAT* outChannel = outBuffer[chan];
+                for (int frame = 0; frame < count; frame++) {
+                    outChannel[frame] += mixChannel[frame];
                 }
             }
         }
-
-        void clearOutput(int count, FAUSTFLOAT** mixBuffer)
+    
+        void copy(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
-            for (int i = 0; i < getNumOutputs(); i++) {
-                memset(mixBuffer[i], 0, count * sizeof(FAUSTFLOAT));
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                memcpy(outBuffer[chan], mixBuffer[chan], count * sizeof(FAUSTFLOAT));
+            }
+        }
+
+        void clear(int count, FAUSTFLOAT** outBuffer)
+        {
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                memset(outBuffer[chan], 0, count * sizeof(FAUSTFLOAT));
             }
         }
     
@@ -626,8 +637,10 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
             // Init audio output buffers
             fMixBuffer = new FAUSTFLOAT*[getNumOutputs()];
-            for (int i = 0; i < getNumOutputs(); i++) {
-                fMixBuffer[i] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
+            fOutBuffer = new FAUSTFLOAT*[getNumOutputs()];
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                fMixBuffer[chan] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
+                fOutBuffer[chan] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
             }
 
             dsp_voice_group::init();
@@ -635,10 +648,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         virtual ~mydsp_poly()
         {
-            for (int i = 0; i < getNumOutputs(); i++) {
-                delete[] fMixBuffer[i];
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                delete[] fMixBuffer[chan];
+                delete[] fOutBuffer[chan];
             }
             delete[] fMixBuffer;
+            delete[] fOutBuffer;
         }
 
         // DSP API
@@ -708,8 +723,8 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             assert(count <= MIX_BUFFER_SIZE);
 
-            // First clear the outputs
-            clearOutput(count, outputs);
+            // First clear the intermediate fOutBuffer
+            clear(count, fOutBuffer);
 
             if (fVoiceControl) {
                 // Mix all playing voices
@@ -718,7 +733,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     if (voice->fNote != kFreeVoice) {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
-                        voice->fLevel = mixCheckVoice(count, fMixBuffer, outputs);
+                        voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
                         // Check the level to possibly set the voice in kFreeVoice again
                         voice->fRelease -= count;
                         if ((voice->fNote == kReleaseVoice)
@@ -732,9 +747,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 // Mix all voices
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     fVoiceTable[i]->compute(count, inputs, fMixBuffer);
-                    mixVoice(count, fMixBuffer, outputs);
+                    mixVoice(count, fMixBuffer, fOutBuffer);
                 }
             }
+            
+            // Finally copy intermediate buffer to outputs
+            copy(count, fOutBuffer, outputs);
         }
 
         void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)

@@ -50,7 +50,7 @@
         _messageTextView.backgroundColor = [UIColor darkGrayColor];
         _messageTextView.delegate = self;
         _messageTextView.font = [UIFont boldSystemFontOfSize:14];
-        _messageTextView.textAlignment = UITextAlignmentCenter;
+        _messageTextView.textAlignment = NSTextAlignmentCenter;
         [self addSubview:_messageTextView];
         
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
@@ -200,7 +200,7 @@
     _rangeLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 200.0, kAccViewHeight)];
     _rangeLabel.backgroundColor = [UIColor blackColor];
     _rangeLabel.textColor = [UIColor whiteColor];
-    _rangeLabel.textAlignment = UITextAlignmentLeft;
+    _rangeLabel.textAlignment = NSTextAlignmentLeft;
     [_inputAccView addSubview:_rangeLabel];
     
     _minusButton =[UIButton buttonWithType:UIButtonTypeCustom];
