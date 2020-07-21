@@ -29,6 +29,13 @@
 
 using namespace std;
 
+inline string makeNameSingular(const string& name) {
+    string result = name;
+    result = std::regex_replace(result, std::regex("inputs"), "input");
+    result = std::regex_replace(result, std::regex("outputs"), "output");
+    return result;
+}
+
 // Visitor used to initialize fields into the DSP constructor
 struct RustInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -270,7 +277,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIteratorsRust* inst)
     {
         /* Generates an expression like:
-        let (outputs0, outputs1) = if let [outputs0, outputs1, ..] = &mut outputs {
+        let (outputs0, outputs1) = if let [outputs0, outputs1, ..] = outputs {
             let outputs0 = outputs0[..count as usize].iter_mut();
             let outputs1 = outputs1[..count as usize].iter_mut();
             (outputs0, outputs1)
@@ -279,6 +286,8 @@ class RustInstVisitor : public TextInstVisitor {
         };
         */
         std::string name = inst->fBufferName;
+
+        // Build pattern matching + if let line
         *fOut << "let (";
         for (int i = 0; i < inst->fNumChannels; ++i) {
             if (i > 0) {
@@ -292,6 +301,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << "..] = " << name << " {";
 
+        // Build fixed size iterator variables
         fTab++;
         for (int i = 0; i < inst->fNumChannels; ++i) {
             tab(fTab, *fOut);
@@ -302,6 +312,8 @@ class RustInstVisitor : public TextInstVisitor {
                 *fOut << ".iter();";
             }
         }
+
+        // Build return tuple
         tab(fTab, *fOut);
         *fOut << "(";
         for (int i = 0; i < inst->fNumChannels; ++i) {
@@ -312,6 +324,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << ")";
 
+        // Build else branch
         fTab--;
         tab(fTab, *fOut);
         *fOut << "} else {";
@@ -609,16 +622,9 @@ class RustInstVisitor : public TextInstVisitor {
         for (std::size_t i = 0; i < inst->fIterators.size() - 1; ++i) {
             *fOut << "(";
         }
-        // Maybe find a nicer way to go from plural names to singular names here?
-        string name = inst->fIterators[0]->getName();
-        name = std::regex_replace(name, std::regex("inputs"), "input");
-        name = std::regex_replace(name, std::regex("outputs"), "output");
-        *fOut << name;
+        *fOut << makeNameSingular(inst->fIterators[0]->getName());
         for (std::size_t i = 1; i < inst->fIterators.size(); ++i) {
-            string name = inst->fIterators[i]->getName();
-            name = std::regex_replace(name, std::regex("inputs"), "input");
-            name = std::regex_replace(name, std::regex("outputs"), "output");
-            *fOut << ", " << name << ")";
+            *fOut << ", " << makeNameSingular(inst->fIterators[i]->getName()) << ")";
         }
         *fOut << " in zipped_iterators {";
         fTab++;
