@@ -15,6 +15,12 @@ interface Aux {
 	error  : string;
 }
 
+interface FaustWasm {
+	module : 	number;		// pointer 
+	size : 		number;
+	helper :	string;
+}
+
 
 interface LibFaust {
 	version() : string;
@@ -27,11 +33,12 @@ interface LibFaust {
 
 	deleteAllDSPFactories(): void;
 
-	getWasmModule(module: WasmModule) : string;
-	getWasmModuleSize( module: WasmModule) : number;
-	getWasmHelpers(module: WasmModule) : string;
+	getWasmModule(module: WasmModule) : FaustWasm;
+	// getWasmModule(module: WasmModule) : string;
+	// getWasmModuleSize( module: WasmModule) : number;
+	// getWasmHelpers(module: WasmModule) : string;
 	freeWasmModule(module: WasmModule) : void;
-	freeMemory (mem: any) : void;
+	freeMemory (mem: any) : void;		// check if still necessary
 
 	cleanupAfterException(): void;
 	getErrorAfterException() : string;
