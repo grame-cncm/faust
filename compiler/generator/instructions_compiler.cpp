@@ -146,7 +146,6 @@ void InstructionsCompiler::conditionStatistics(Tree l)
     std::cout << "\nConditions statistics" << std::endl;
     for (const auto& p : fConditionStatistics) {
         std::cout << ppsig(p.first) << ":" << p.second << std::endl;
-
     }
 }
 #endif
@@ -496,13 +495,13 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     Typed* type = InstBuilder::genFloatMacroTyped();
 
-    std::cout << "gGlobal->gOneSampleControl: " << gGlobal->gOneSampleControl << "\n";
-    std::cout << "gGlobal->gOneSample: " << gGlobal->gOneSample << "\n";
-
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
-        // HACK for Rust backend
-        if (gGlobal->gOutputLang != "rust") {
+        // Input declarations
+        if (gGlobal->gOutputLang == "rust") {
+            // special handling for Rust backend
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("inputs", fContainer->inputs(), false));
+        } else {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
@@ -527,10 +526,13 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             }
         }
 
-        // HACK for Rust backend
-        if (gGlobal->gOutputLang != "rust") {
+        // Output declarations
+        if (gGlobal->gOutputLang == "rust") {
+            // special handling for Rust backend
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("outputs", fContainer->outputs(), true));
+        } else {
+            // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
-                // "output" and "outputs" used as a name convention
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
                     pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
@@ -538,7 +540,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             } else if (gGlobal->gOneSample) {
                 // Nothing...
             } else {
-                // "output" and "outputs" used as a name convention
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
                     pushComputeBlockMethod(InstBuilder::genDecStackVar(
@@ -546,13 +547,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                         InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
                 }
             }
-        }
-
-        if (gGlobal->gOutputLang == "rust") {
-            int num_inputs = fContainer->inputs();
-            int num_outputs = fContainer->outputs();
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("inputs", num_inputs, false));
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("outputs", num_outputs, true));
         }
     }
 
@@ -1609,7 +1603,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 }
 
 /*----------------------------------------------------------------------------
- sigWRTable : table assignement
+ sigWRTable : table assignment
  ----------------------------------------------------------------------------*/
 
 ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
