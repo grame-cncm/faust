@@ -7,7 +7,7 @@ build_script:
   - cd build
   - mkdir win64
   - cd win64
-  - dir "C:/Program Files/LLVM/lib/"
+  - dir "C:/Program Files/LLVM/"
 #  - cmake -DUSE_LLVM_CONFIG=off -DLLVM_DIR="C:/Program Files/LLVM/lib/cmake/llvm" -C ../backends/most.cmake -C ../targets/regular.cmake .. -G "Visual Studio 15 2017 Win64"
 #  - cmake --build . --config Release
 #  - ls -l ../bin/Release
