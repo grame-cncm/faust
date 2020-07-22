@@ -37,12 +37,12 @@ class juce_midi_handler : public midi_handler {
     
     protected:
     
-        MidiBuffer fOutputBuffer;
-        CriticalSection fMutex;
+        juce::MidiBuffer fOutputBuffer;
+        juce::CriticalSection fMutex;
     
-        void decodeMessage(const MidiMessage& message)
+        void decodeMessage(const juce::MidiMessage& message)
         {
-            const uint8* data = message.getRawData();
+            const juce::uint8* data = message.getRawData();
             int channel = message.getChannel() - 1; // which MIDI channel, 0-15
             double time = message.getTimeStamp();
             
@@ -83,9 +83,9 @@ class juce_midi_handler : public midi_handler {
         virtual ~juce_midi_handler() {}
     
         // Used with MidiBuffer (containing several messages)
-        void encodeBuffer(MidiBuffer& buffer)
+        void encodeBuffer(juce::MidiBuffer& buffer)
         {
-            const ScopedTryLock lock(fMutex);
+            const juce::ScopedTryLock lock(fMutex);
             if (lock.isLocked()) {
                 buffer.swapWith(fOutputBuffer);
                 fOutputBuffer.clear();
@@ -94,11 +94,11 @@ class juce_midi_handler : public midi_handler {
             }
         }
         
-        void decodeBuffer(MidiBuffer& buffer)
+        void decodeBuffer(juce::MidiBuffer& buffer)
         {
-            MidiMessage msg;
+            juce::MidiMessage msg;
             int ignore;
-            for (MidiBuffer::Iterator it(buffer); it.getNextEvent(msg, ignore);) {
+            for (juce::MidiBuffer::Iterator it(buffer); it.getNextEvent(msg, ignore);) {
                 decodeMessage(msg);
             }
             buffer.clear();
@@ -107,38 +107,38 @@ class juce_midi_handler : public midi_handler {
         // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
-            fOutputBuffer.addEvent(MidiMessage::noteOn(channel + 1, pitch, uint8(velocity)), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::noteOn(channel + 1, pitch, juce::uint8(velocity)), 0);
             return nullptr;
         }
         
         void keyOff(int channel, int pitch, int velocity)
         {
-            fOutputBuffer.addEvent(MidiMessage::noteOff(channel + 1, pitch, uint8(velocity)), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::noteOff(channel + 1, pitch, juce::uint8(velocity)), 0);
         }
         
         void ctrlChange(int channel, int ctrl, int val)
         {
-            fOutputBuffer.addEvent(MidiMessage::controllerEvent(channel + 1, ctrl, uint8(val)), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::controllerEvent(channel + 1, ctrl, juce::uint8(val)), 0);
         }
         
         void chanPress(int channel, int press)
         {
-            fOutputBuffer.addEvent(MidiMessage::channelPressureChange(channel + 1, press), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::channelPressureChange(channel + 1, press), 0);
         }
         
         void progChange(int channel, int pgm)
         {
-            fOutputBuffer.addEvent(MidiMessage::programChange(channel + 1, pgm), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::programChange(channel + 1, pgm), 0);
         }
         
         void keyPress(int channel, int pitch, int press)
         {
-            fOutputBuffer.addEvent(MidiMessage::aftertouchChange(channel + 1, pitch, press), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::aftertouchChange(channel + 1, pitch, press), 0);
         }
         
         void pitchWheel(int channel, int wheel)
         {
-            fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)), 0);
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
@@ -148,34 +148,34 @@ class juce_midi_handler : public midi_handler {
         
         void startSync(double date)
         {
-            fOutputBuffer.addEvent(MidiMessage::midiStart(), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::midiStart(), 0);
         }
         
         void stopSync(double date)
         {
-            fOutputBuffer.addEvent(MidiMessage::midiStop(), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::midiStop(), 0);
         }
         
         void clock(double date)
         {
-            fOutputBuffer.addEvent(MidiMessage::midiClock(), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage::midiClock(), 0);
         }
     
         void sysEx(double date, std::vector<unsigned char>& message)
         {
-            fOutputBuffer.addEvent(MidiMessage(message.data(), (int)message.size()), 0);
+            fOutputBuffer.addEvent(juce::MidiMessage(message.data(), (int)message.size()), 0);
         }
 
 };
 
-class juce_midi : public juce_midi_handler, public MidiInputCallback {
+class juce_midi : public juce_midi_handler, public juce::MidiInputCallback {
 
     private:
     
-        std::unique_ptr<MidiInput> fMidiIn;
-        std::unique_ptr<MidiOutput> fMidiOut;
+        std::unique_ptr<juce::MidiInput> fMidiIn;
+        std::unique_ptr<juce::MidiOutput> fMidiOut;
     
-        void handleIncomingMidiMessage(MidiInput*, const MidiMessage& message)
+        void handleIncomingMidiMessage(juce::MidiInput*, const juce::MidiMessage& message)
         {
             decodeMessage(message);
         }
@@ -192,10 +192,10 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
         
         bool startMidi()
         {
-            if ((fMidiIn = MidiInput::openDevice(MidiInput::getDefaultDeviceIndex(), this)) == nullptr) {
+            if ((fMidiIn = juce::MidiInput::openDevice(juce::MidiInput::getDefaultDeviceIndex(), this)) == nullptr) {
                 return false;
             }
-            if ((fMidiOut = MidiOutput::openDevice(MidiOutput::getDefaultDeviceIndex())) == nullptr) {
+            if ((fMidiOut = juce::MidiOutput::openDevice(juce::MidiOutput::getDefaultDeviceIndex())) == nullptr) {
                 return false;
             }
             fMidiIn->start();
@@ -210,38 +210,38 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
         // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
-            fMidiOut->sendMessageNow(MidiMessage::noteOn(channel + 1, pitch, uint8(velocity)));
+            fMidiOut->sendMessageNow(juce::MidiMessage::noteOn(channel + 1, pitch, juce::uint8(velocity)));
             return nullptr;
         }
         
         void keyOff(int channel, int pitch, int velocity) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::noteOff(channel + 1, pitch, uint8(velocity)));
+            fMidiOut->sendMessageNow(juce::MidiMessage::noteOff(channel + 1, pitch, juce::uint8(velocity)));
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::controllerEvent(channel + 1, ctrl, uint8(val)));
+            fMidiOut->sendMessageNow(juce::MidiMessage::controllerEvent(channel + 1, ctrl, juce::uint8(val)));
         }
         
         void chanPress(int channel, int press) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::channelPressureChange(channel + 1, press));
+            fMidiOut->sendMessageNow(juce::MidiMessage::channelPressureChange(channel + 1, press));
         }
         
         void progChange(int channel, int pgm) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::programChange(channel + 1, pgm));
+            fMidiOut->sendMessageNow(juce::MidiMessage::programChange(channel + 1, pgm));
         }
           
         void keyPress(int channel, int pitch, int press) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::aftertouchChange(channel + 1, pitch, press));
+            fMidiOut->sendMessageNow(juce::MidiMessage::aftertouchChange(channel + 1, pitch, press));
         }
    
         void pitchWheel(int channel, int wheel) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)));
+            fMidiOut->sendMessageNow(juce::MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)));
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
@@ -251,22 +251,22 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
     
         void startSync(double date) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::midiStart());
+            fMidiOut->sendMessageNow(juce::MidiMessage::midiStart());
         }
        
         void stopSync(double date) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::midiStop());
+            fMidiOut->sendMessageNow(juce::MidiMessage::midiStop());
         }
         
         void clock(double date) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::midiClock());
+            fMidiOut->sendMessageNow(juce::MidiMessage::midiClock());
         }
     
         void sysEx(double date, std::vector<unsigned char>& message)
         {
-            fMidiOut->sendMessageNow(MidiMessage(message.data(), (int)message.size()));
+            fMidiOut->sendMessageNow(juce::MidiMessage(message.data(), (int)message.size()));
         }
     
 };

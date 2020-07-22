@@ -38,9 +38,9 @@ struct JuceStateUI : public MapUI {
     JuceStateUI():fRestored(false) {}
     virtual ~JuceStateUI() {}
     
-    void getStateInformation (MemoryBlock& destData)
+    void getStateInformation (juce::MemoryBlock& destData)
     {
-        MemoryOutputStream stream (destData, true);
+        juce::MemoryOutputStream stream (destData, true);
         
         // Write path and values
         if (sizeof(FAUSTFLOAT) == sizeof(float)) {
@@ -59,7 +59,7 @@ struct JuceStateUI : public MapUI {
     void setStateInformation (const void* data, int sizeInBytes)
     {
         fRestored = true;
-        MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
+        juce::MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
         std::string path;
         
         // Read path then value and try to restore them

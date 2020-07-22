@@ -80,7 +80,7 @@
 
 #if defined(JUCE_POLY)
 
-struct FaustSound : public SynthesiserSound {
+struct FaustSound : public juce::SynthesiserSound {
     
     bool appliesToNote (int /*midiNoteNumber*/) override        { return true; }
     bool appliesToChannel (int /*midiChannel*/) override        { return true; }
@@ -88,29 +88,29 @@ struct FaustSound : public SynthesiserSound {
 
 // An hybrid JUCE and Faust voice
 
-class FaustVoice : public SynthesiserVoice, public dsp_voice {
+class FaustVoice : public juce::SynthesiserVoice, public dsp_voice {
     
     private:
         
-        std::unique_ptr<AudioBuffer<FAUSTFLOAT>> fBuffer;
+        std::unique_ptr<juce::AudioBuffer<FAUSTFLOAT>> fBuffer;
         
     public:
         
         FaustVoice(dsp* dsp):dsp_voice(dsp)
         {
             // Allocate buffer for mixing
-            fBuffer = std::make_unique<AudioBuffer<FAUSTFLOAT>>(dsp->getNumOutputs(), 8192);
-            fDSP->init(SynthesiserVoice::getSampleRate());
+            fBuffer = std::make_unique<juce::AudioBuffer<FAUSTFLOAT>>(dsp->getNumOutputs(), 8192);
+            fDSP->init(juce::SynthesiserVoice::getSampleRate());
         }
         
-        bool canPlaySound (SynthesiserSound* sound) override
+        bool canPlaySound (juce::SynthesiserSound* sound) override
         {
             return dynamic_cast<FaustSound*> (sound) != nullptr;
         }
         
         void startNote (int midiNoteNumber,
                         float velocity,
-                        SynthesiserSound* s,
+                        juce::SynthesiserSound* s,
                         int currentPitchWheelPosition) override
         {
             // Note is triggered
@@ -132,7 +132,7 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
             // not implemented for now
         }
         
-        void renderNextBlock (AudioBuffer<FAUSTFLOAT>& outputBuffer,
+        void renderNextBlock (juce::AudioBuffer<FAUSTFLOAT>& outputBuffer,
                               int startSample,
                               int numSamples) override
         {
@@ -153,11 +153,11 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
 
 // Decorates the JUCE Synthesiser and adds Faust polyphonic code for GUI handling
 
-class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
+class FaustSynthesiser : public juce::Synthesiser, public dsp_voice_group {
     
     private:
         
-        Synthesiser fSynth;
+        juce::Synthesiser fSynth;
     
         static void panic(float val, void* arg)
         {
@@ -183,7 +183,7 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
             dsp_voice_group::addVoice(voice);
         }
         
-        void addSound(SynthesiserSound* sound)
+        void addSound(juce::SynthesiserSound* sound)
         {
             fSynth.addSound(sound);
         }
@@ -198,16 +198,16 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
             fSynth.setCurrentPlaybackSampleRate(newRate);
         }
         
-        void renderNextBlock (AudioBuffer<float>& outputAudio,
-                              const MidiBuffer& inputMidi,
+        void renderNextBlock (juce::AudioBuffer<float>& outputAudio,
+                              const juce::MidiBuffer& inputMidi,
                               int startSample,
                               int numSamples)
         {
             fSynth.renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
         }
         
-        void renderNextBlock (AudioBuffer<double>& outputAudio,
-                              const MidiBuffer& inputMidi,
+        void renderNextBlock (juce::AudioBuffer<double>& outputAudio,
+                              const juce::MidiBuffer& inputMidi,
                               int startSample,
                               int numSamples)
         {
@@ -218,7 +218,7 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
 
 #endif
 
-class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
+class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Timer
 {
 
     public:
@@ -230,22 +230,22 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
     
         bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
         
-        void processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages) override
+        void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override
         {
             jassert (! isUsingDoublePrecision());
             process (buffer, midiMessages);
         }
         
-        void processBlock (AudioBuffer<double>& buffer, MidiBuffer& midiMessages) override
+        void processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override
         {
             jassert (isUsingDoublePrecision());
             process (buffer, midiMessages);
         }
     
-        AudioProcessorEditor* createEditor() override;
+        juce::AudioProcessorEditor* createEditor() override;
         bool hasEditor() const override;
         
-        const String getName() const override;
+        const juce::String getName() const override;
         
         bool acceptsMidi() const override;
         bool producesMidi() const override;
@@ -254,10 +254,10 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         int getNumPrograms() override;
         int getCurrentProgram() override;
         void setCurrentProgram (int index) override;
-        const String getProgramName (int index) override;
-        void changeProgramName (int index, const String& newName) override;
+        const juce::String getProgramName (int index) override;
+        void changeProgramName (int index, const juce::String& newName) override;
         
-        void getStateInformation (MemoryBlock& destData) override;
+        void getStateInformation (juce::MemoryBlock& destData) override;
         void setStateInformation (const void* data, int sizeInBytes) override;
     
         void releaseResources() override
@@ -265,7 +265,7 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         
         void timerCallback() override;
     
-        AudioProcessor::BusesProperties getBusesProperties();
+        juce::AudioProcessor::BusesProperties getBusesProperties();
         bool supportsDoublePrecisionProcessing() const override;
     
     #ifdef JUCE_POLY
@@ -292,13 +292,13 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
     private:
     
         template <typename FloatType>
-        void process (AudioBuffer<FloatType>& buffer, MidiBuffer& midiMessages);
+        void process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages);
     
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
     
 };
 
-class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
+class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
 {
     
     public:
@@ -306,7 +306,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
         FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
         virtual ~FaustPlugInAudioProcessorEditor();
         
-        void paint (Graphics&) override;
+        void paint (juce::Graphics&) override;
         void resized() override;
         
     private:
@@ -322,7 +322,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
 };
 
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
-: AudioProcessor (getBusesProperties()), fParameterUI(this)
+: juce::AudioProcessor (getBusesProperties()), fParameterUI(this)
 {
     bool midi_sync = false;
     int nvoices = 0;
@@ -413,8 +413,8 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     
 #if defined(SOUNDFILE)
     // Use bundle path
-    auto file = File::getSpecialLocation(File::currentExecutableFile)
-    .getParentDirectory().getParentDirectory().getChildFile("Resources");
+    auto file = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
+        .getParentDirectory().getParentDirectory().getChildFile("Resources");
     fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString());
     // SoundUI has to be dispatched on all internal voices
     if (dsp_poly) dsp_poly->setGroup(false);
@@ -444,23 +444,23 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 FaustPlugInAudioProcessor::~FaustPlugInAudioProcessor()
 {}
 
-AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesProperties()
+juce::AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesProperties()
 {
-    if (PluginHostType::getPluginLoadedAs() == wrapperType_Standalone) {
+    if (juce::PluginHostType::getPluginLoadedAs() == wrapperType_Standalone) {
         if (FAUST_INPUTS == 0) {
-            return BusesProperties().withOutput("Output", AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
+            return BusesProperties().withOutput("Output", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
         } else {
             return BusesProperties()
-            .withInput("Input", AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_INPUTS)), true)
-            .withOutput("Output", AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
+            .withInput("Input", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_INPUTS)), true)
+            .withOutput("Output", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
         }
     } else {
         if (FAUST_INPUTS == 0) {
-            return BusesProperties().withOutput("Output", AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
+            return BusesProperties().withOutput("Output", juce::AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
         } else {
             return BusesProperties()
-            .withInput("Input", AudioChannelSet::discreteChannels(FAUST_INPUTS), true)
-            .withOutput("Output", AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
+            .withInput("Input", juce::AudioChannelSet::discreteChannels(FAUST_INPUTS), true)
+            .withOutput("Output", juce::AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
         }
     }
 }
@@ -471,7 +471,7 @@ void FaustPlugInAudioProcessor::timerCallback()
 }
 
 //==============================================================================
-const String FaustPlugInAudioProcessor::getName() const
+const juce::String FaustPlugInAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
@@ -513,12 +513,12 @@ int FaustPlugInAudioProcessor::getCurrentProgram()
 void FaustPlugInAudioProcessor::setCurrentProgram (int index)
 {}
 
-const String FaustPlugInAudioProcessor::getProgramName (int index)
+const juce::String FaustPlugInAudioProcessor::getProgramName (int index)
 {
-    return String();
+    return juce::String();
 }
 
-void FaustPlugInAudioProcessor::changeProgramName (int index, const String& newName)
+void FaustPlugInAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {}
 
 bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
@@ -571,7 +571,7 @@ bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 }
 
 template <typename FloatType>
-void FaustPlugInAudioProcessor::process (AudioBuffer<FloatType>& buffer, MidiBuffer& midiMessages)
+void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages)
 {
     AVOIDDENORMALS;
     
@@ -597,13 +597,13 @@ bool FaustPlugInAudioProcessor::hasEditor() const
     return true;
 }
 
-AudioProcessorEditor* FaustPlugInAudioProcessor::createEditor()
+juce::AudioProcessorEditor* FaustPlugInAudioProcessor::createEditor()
 {
     return new FaustPlugInAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void FaustPlugInAudioProcessor::getStateInformation (MemoryBlock& destData)
+void FaustPlugInAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -622,14 +622,14 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
 
 //==============================================================================
 // This creates new instances of the plugin..
-AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new FaustPlugInAudioProcessor();
 }
 
 //==============================================================================
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
-: AudioProcessorEditor (&p), processor (p), fJuceGUI(!p.fStateUI.fRestored)  // When no previous state was restored, setup GUI with default state of controllers
+: juce::AudioProcessorEditor (&p), processor (p), fJuceGUI(!p.fStateUI.fRestored)  // When no previous state was restored, setup GUI with default state of controllers
 {
 #ifdef JUCE_POLY
     p.fSynth->buildUserInterface(&fJuceGUI);
@@ -647,9 +647,9 @@ FaustPlugInAudioProcessorEditor::~FaustPlugInAudioProcessorEditor()
 {}
 
 //==============================================================================
-void FaustPlugInAudioProcessorEditor::paint (Graphics& g)
+void FaustPlugInAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (Colours::white);
+    g.fillAll (juce::Colours::white);
 }
 
 void FaustPlugInAudioProcessorEditor::resized()
