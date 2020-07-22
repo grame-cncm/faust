@@ -202,6 +202,10 @@ class RustInstVisitor : public TextInstVisitor {
             panic!("wrong number of outputs");
         };
         */
+        
+        // Don't generate if no channels
+        if (inst->fNumChannels == 0) return;
+        
         std::string name = inst->fBufferName;
 
         // Build pattern matching + if let line

@@ -1285,7 +1285,7 @@ struct IteratorForLoopInst : public StatementInst {
     const bool                 fReverse;
     BlockInst*                 fCode;
 
-    IteratorForLoopInst(const std::vector<NamedAddress*> iterators, bool reverse, BlockInst* code)
+    IteratorForLoopInst(const std::vector<NamedAddress*>& iterators, bool reverse, BlockInst* code)
         : fIterators(iterators), fReverse(reverse), fCode(code)
     {
     }
@@ -2109,7 +2109,7 @@ struct InstBuilder {
         faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
         return new SimpleForLoopInst(index, upperBound, lowerBound, reverse, code);
     }
-    static IteratorForLoopInst* genIteratorForLoopInst(const std::vector<NamedAddress*> iterators, bool reverse = false,
+    static IteratorForLoopInst* genIteratorForLoopInst(const std::vector<NamedAddress*>& iterators, bool reverse = false,
                                                        BlockInst* code = new BlockInst())
     {
         return new IteratorForLoopInst(iterators, reverse, code);

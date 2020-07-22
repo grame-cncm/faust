@@ -146,9 +146,13 @@ void RustCodeContainer::produceInternal()
     fCodeProducer.Tab(n + 2);
     generateComputeBlock(&fCodeProducer);
     // FIXME: How should we know the input/output iterators here?
+    
     std::vector<std::string> iterators;
     IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
-    loop->accept(&fCodeProducer);
+    
+    // Makes the compiler hang, deactivated for now....
+    //loop->accept(&fCodeProducer);
+    
     back(1, *fOut);
     *fOut << "}" << endl;
 
@@ -467,14 +471,10 @@ void RustScalarCodeContainer::generateCompute(int n)
     // Generates one single scalar loop
     std::vector<std::string> iterators;
     for (int i = 0; i < fNumInputs; ++i) {
-        std::stringstream ss;
-        ss << "inputs" << i;
-        iterators.push_back(ss.str());
+        iterators.push_back("inputs" + std::to_string(i));
     }
     for (int i = 0; i < fNumOutputs; ++i) {
-        std::stringstream ss;
-        ss << "outputs" << i;
-        iterators.push_back(ss.str());
+        iterators.push_back("outputs"+ std::to_string(i));
     }
     IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
     loop->accept(&fCodeProducer);
