@@ -129,7 +129,7 @@ namespace httpdfaust
         }
         MHD_add_response_header(response, "Content-Type", type ? type : "text/plain");
         MHD_add_response_header(response, "Access-Control-Allow-Origin", "*");
-        MHD_Result ret = MHD_queue_response(connection, status, response);
+        int ret = MHD_queue_response(connection, status, response);
         MHD_destroy_response(response);
         return ret;
     }
