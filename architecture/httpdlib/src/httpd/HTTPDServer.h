@@ -63,8 +63,8 @@ namespace httpdfaust
         struct MHD_Daemon* fServer;
         bool               fDebug;
         
-        MHD_Result send(struct MHD_Connection* connection, std::vector<Message*> msgs);
-        MHD_Result page(struct MHD_Connection* connection, const char* page);
+        int send(struct MHD_Connection* connection, const std::vector<Message*>& msgs);
+        int page(struct MHD_Connection* connection, const char* page);
         const char* getMIMEType(const std::string& page);
         
     public:
@@ -74,10 +74,10 @@ namespace httpdfaust
         /// \brief starts the httpd server
         bool start(int port);
         void stop() { if (fServer) MHD_stop_daemon (fServer); fServer = nullptr; }
-        MHD_Result answer(struct MHD_Connection* connection, const char* url, const char* method, const char* version,
-                          const char* upload_data, long unsigned* upload_data_size, void **con_cls);
+        int answer(struct MHD_Connection* connection, const char* url, const char* method, const char* version,
+                          const char* upload_data, long unsigned* upload_data_size, void** con_cls);
         
-        static MHD_Result send(struct MHD_Connection* connection, const char* page, const char* type, int status = MHD_HTTP_OK);
+        static int send(struct MHD_Connection* connection, const char* page, const char* type, int status = MHD_HTTP_OK);
     };
     
 } // end namespoace
