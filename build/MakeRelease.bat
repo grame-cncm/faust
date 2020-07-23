@@ -15,8 +15,6 @@ set CONT="no"
 set /p CONT=Type Y to continue... 
 if /i NOT %CONT%==Y exit
 
-GOTO FAUSTGEN
-
 echo "###################### Building Faust package ######################"
 cd %BUILD%
 cmake -C ..\backends\most.cmake -C ../targets/all-win64.cmake -DUSE_LLVM_CONFIG=on .. -G "Visual Studio 15 2017 Win64"
