@@ -1,4 +1,4 @@
-% man(1) Version 2.27.1 (15-July-2020) | Faust man page
+% man(1) Version 2.28.0 (23-July-2020) | Faust man page
 
 NAME
 ====
@@ -96,6 +96,7 @@ Code generation options:
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
+  **-rui**        **--range-ui** \<n>              whether to generate code to limit vslider/hslider/nentry values in [min..max] range, 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compile a dsp file.
 
   **-scal**      **--scalar**                     generate non-vectorized code.

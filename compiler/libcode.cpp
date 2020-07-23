@@ -531,6 +531,10 @@ static bool processCmdline(int argc, const char* argv[])
                 throw faustexception(error.str());
             }
             i += 2;
+            
+        } else if (isCmd(argv[i], "-rui", "--range-ui")) {
+            gGlobal->gRangeUI = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gGlobal->gFastMath    = true;
@@ -858,6 +862,9 @@ static void printHelp()
     cout << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
             "2:mask based (fastest)]."
+         << endl;
+    cout << tab
+         << "-rui        --range-ui                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range."
          << endl;
     cout << tab
          << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile "

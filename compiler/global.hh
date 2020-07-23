@@ -134,7 +134,8 @@ struct global {
     bool gUIMacroSwitch;
     bool gDumpNorm;
     int  gFTZMode;
-
+    bool gRangeUI;      // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+    
     int gFloatSize;
 
     bool gPrintFileListSwitch;
