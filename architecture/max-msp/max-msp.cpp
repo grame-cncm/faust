@@ -132,7 +132,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.78"
+#define EXTERNAL_VERSION    "0.79"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -595,8 +595,7 @@ void faust_init(t_faust* x, t_symbol* s, short ac, t_atom* av)
 }
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [path, cur, min, max]
-void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
+void faust_dump_inputs(t_faust* x)
 {
     // Input controllers
     for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
@@ -607,6 +606,11 @@ void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
+}
+
+/*--------------------------------------------------------------------------*/
+void faust_dump_outputs(t_faust* x)
+{
     // Output controllers
     for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
         t_atom myList[4];
@@ -616,6 +620,14 @@ void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
+}
+
+/*--------------------------------------------------------------------------*/
+// Dump controllers as list of [path, cur, min, max]
+void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
+{
+    faust_dump_inputs(x);
+    faust_dump_outputs(x);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -691,7 +703,9 @@ t_int* faust_perform(t_int* w)
         #ifdef OSCCTRL
             if (x->m_oscInterface) x->m_oscInterface->endBundle();
         #endif
-            faust_update_outputs(x);
+            //faust_update_outputs(x);
+            // Use the right outlet to output messages
+            faust_dump_outputs(x);
         }
     #if defined(MIDICTRL) || defined(OSCCTRL)
         GUI::updateAllGuis();

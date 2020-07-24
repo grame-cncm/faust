@@ -1277,7 +1277,7 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     fDSPfactory->unlock_ui();
 }
 
-// Reset controllers to init value and send [label, init, min, max]
+// Reset controllers to init value and send [path, init, min, max]
 void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Reset internal state
@@ -1303,8 +1303,7 @@ void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
-// Dump controllers as list of: [label, cur, min, max]
-void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
+void faustgen::dump_inputs()
 {
     // Input controllers
     for (mspUI::iterator it = fDSPUI->begin2(); it != fDSPUI->end2(); it++) {
@@ -1315,6 +1314,9 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);
     }
+}
+void faustgen::dump_outputs()
+{
     // Output controllers
     for (mspUI::iterator it = fDSPUI->begin4(); it != fDSPUI->end4(); it++) {
         t_atom myList[4];
@@ -1324,6 +1326,13 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);
     }
+}
+
+// Dump controllers as list of [path, cur, min, max]
+void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    dump_inputs();
+    dump_outputs();
 }
 
 // osc 'IP inport outport xmit bundle'
@@ -1499,7 +1508,9 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         if (fDSP) {
             fDSP->compute(vs, static_cast<FAUSTFLOAT**>(inputs), static_cast<FAUSTFLOAT**>(outputs));
             if (fOSCUI) fOSCUI->endBundle();
-            update_outputs();
+            //update_outputs();
+            // Use the right outlet to output messages
+            dump_outputs();
         }
         // Done for fMIDIUI and fOSCUI
         GUI::updateAllGuis();
