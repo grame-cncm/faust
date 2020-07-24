@@ -575,7 +575,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         inst->fCode->accept(this);
         fTab--;
         back(1, *fOut);
-        *fOut << "IteratorForLoop";
+        *fOut << "EndIteratorForLoop";
         tab(fTab, *fOut);
     }
 

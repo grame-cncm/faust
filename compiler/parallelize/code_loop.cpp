@@ -57,8 +57,6 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
 }
 
 // To be used for the 'rust' backend
-/*
-// Do we still need this version for the "internal class for loop"?
 SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 {
     ValueInst* upper_bound = InstBuilder::genLoadFunArgsVar(counter);
@@ -70,7 +68,7 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
     BasicCloneVisitor cloner;
     return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
 }
-*/
+
 IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string>& iterators)
 {
     std::vector<NamedAddress*> iterators_value_inst;
