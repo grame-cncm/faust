@@ -71,7 +71,7 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
     return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
 }
 */
-IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string> iterators)
+IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string>& iterators)
 {
     std::vector<NamedAddress*> iterators_value_inst;
     for (const auto& iterator : iterators) {

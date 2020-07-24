@@ -1907,7 +1907,7 @@ struct InstBuilder {
         return new DeclareStructTypeInst(type);
     }
 
-    static DeclareBufferIteratorsRust* genDeclareBufferIteratorsRust(std::string buffer_name, int num_channels, bool mut)
+    static DeclareBufferIteratorsRust* genDeclareBufferIteratorsRust(const std::string& buffer_name, int num_channels, bool mut)
     {
         return new DeclareBufferIteratorsRust(buffer_name, num_channels, mut);
     }
