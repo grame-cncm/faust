@@ -2,7 +2,7 @@
 
 faust2max6/faust2msp transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it. Polyphonic and MIDI controllable synthesisers can be created.  Note that faust2msp is the old version compiling 32 bits external for Max5, and faust2max6 compiles 64 bits or 64/32 bits externals for Max6 and later versions, and should be preferably used. 
 
-## How to use
+## How to use:
 
 faust2max6 is used with the following parameters: 
 
@@ -20,7 +20,22 @@ process = os.sawtooth(freq) * gain;
 ```
 can be started with the following `@freq 700` and `@gain 0.6` attributes to configure parameters at creation time. Note that labels containing whitespace (like "freq Hz") cannot be used as attributes, they will have to be renamed.
 
-## Options
+Depending of the number of audio inputs and outputs described in the DSP source code, the compiled .xmo/.xme object has:
+- N inlets, the first one being the message control one and a regular audio inlet, an all other audio inlets
+- M outlets, audio outs from 1 to M-1, and the right most outlet being the output messages one
+
+The compiled .xmo/.xme object can be controlled with the following messages, which can be used depending of the parameters used at compilation time:
+
+- `polyphony <nvoices>` : to set the DSP in polyphonic mode with *nvoices* (note that the DSP code has to follow the [polyphonic convention](https://faustdoc.grame.fr/manual/midi/))
+- `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
+- `midievent <midi message>`: to receive and decode MIDI messages
+- `init`: to generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the right most outlet 
+- `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the right most outlet 
+- `mute`: to mute audio rendering
+
+When the object has bargraphs, their values are sent in the right most outlet as a message list *[path, cur, min, max]*.
+
+## Options:
 
 The following options are available: 
 
@@ -43,7 +58,7 @@ The following options are available:
  
 The *faust2msp* tools has to be used to create old Max5 compatible externals, the *faust2max6* tools has to be used starting with Max6. 
 
-## Configuration
+## Configuration:
 
 If you plan to use faust2max6/faust2msp on your own machine, you will have to:
 
