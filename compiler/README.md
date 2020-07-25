@@ -1,4 +1,4 @@
-% man(1) Version 2.26.0 (24-June-2020) | Faust man page
+% man(1) Version 2.28.0 (23-July-2020) | Faust man page
 
 NAME
 ====
@@ -72,7 +72,7 @@ Code generation options:
 
   **-flist**      **--file-list**                 use file list used to eval process.
 
-  **-exp10**      **--generate-exp10**            function call instead of pow(10) function.
+  **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation.
 
@@ -96,6 +96,7 @@ Code generation options:
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
+  **-rui**        **--range-ui** \<n>              whether to generate code to limit vslider/hslider/nentry values in [min..max] range, 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compile a dsp file.
 
   **-scal**      **--scalar**                     generate non-vectorized code.
@@ -124,10 +125,14 @@ Code generation options:
 
   **-fun**       **--fun-tasks**                  separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>,
+  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>.
+
                                           use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
-  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name> 
+  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
+
+  **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
+
 
 Block diagram options:
 ---------------------------------------

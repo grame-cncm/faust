@@ -48,7 +48,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         if (fMetaAux.size() > 0) {
             for (size_t i = 0; i < fMetaAux.size(); i++) {
                 if (!std::isdigit(fMetaAux[i].first[0])) {
-                    fOut << ", " << "meta_" + fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
+                    fOut << ", " << "meta_" + gGlobal->getFreshID(fMetaAux[i].first) << ": " << quote(fMetaAux[i].second);
                 }
             }
         }
@@ -216,7 +216,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
-        gPolyMathLibTable["rintf"]      = "rint";
+        gPolyMathLibTable["rintf"]      = "roundToInt";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
@@ -254,7 +254,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["rint"]      = "rint";
+        gPolyMathLibTable["rint"]      = "roundToInt";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
@@ -363,6 +363,7 @@ class SOULInstVisitor : public TextInstVisitor {
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             } else {
+                // wrap code is automatically added by the SOUL compiler (and the same if [idex] syntax is used)
                 *fOut << ".at (";
                 indexed->fIndex->accept(this);
                 *fOut << ")";

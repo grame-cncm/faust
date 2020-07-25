@@ -19,10 +19,9 @@
 . faustoptflags
 . usage.sh
 
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
 NVOICES=-1
-
-CXXFLAGS=$MYGCCFLAGS
-
 ANDROID_MK=Android.mk
 
 #-------------------------------------------------------------------

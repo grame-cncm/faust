@@ -5,7 +5,7 @@ declare license 	"BSD";
 declare copyright 	"(c)GRAME 2006";
 
  //--------------------------------------
- // very simple real time pitch shifter
+ // Very simple real time pitch shifter
  //--------------------------------------
  
 import("stdfaust.lib");

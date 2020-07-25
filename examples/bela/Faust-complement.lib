@@ -31,8 +31,8 @@ WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0
 
 RSLatch(S, R) = latch(S,R)
     with {
-        trig = _<:_,mem:>;
-        latch(S,R) = _ ~ (ba.if(S>0.5,1,_) : ba.if(R>0.5, 0, _));
+        trig = _<:_,mem: >;
+        latch(S,R) = _ ~ (ba.if(S>0.5,1,_) : ba.if(R>0.5,0,_));
     };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

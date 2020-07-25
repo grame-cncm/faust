@@ -34,7 +34,7 @@ import("stdfaust.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // VOLUME:
-vol	= hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
+vol = hslider("volume[midi:ctrl 7]",1,0,1,0.001);	// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
 drive = hslider("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
@@ -50,7 +50,7 @@ flanger = efx
 	};
 
 // Panoramic:
-panno = _ : sp.panner(hslider ("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
+panno = _ : sp.panner(hslider("pan[midi:ctrl 10]",0.5,0,1,0.001)) : _,_;
 
 // REVERB (from freeverb_demo)
 reverb = _,_ <: (*(g)*fixedgain, *(g)*fixedgain :

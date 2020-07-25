@@ -1,5 +1,7 @@
 
-This folder contains useful scripts that combines Faust and g++ to generates executable binary.
+
+This folder contains useful scripts that combines Faust and the C++ compiler to generates executable binary. Use `-h` or  `-help` to get more information on each specific script options. Additional  Faust compiler options (like `-vec -lv 0 -I /path/to/lib`) can be given. You can possibly use the  `CXXFLAGS ` environment variable to give additional options to the C++ compiler.
+
 You can use 'sudo make install' to install them. 
 
 ###  The following scripts generate audio applications
@@ -8,7 +10,7 @@ You can use 'sudo make install' to install them.
 
 * `faust2alsa <file.dsp>` : create ALSA/GTKk application for each input file
 
-* `faust2au <file.dsp>`	: create Audio Unit Effect for each input file
+* `faust2au <file.dsp>` : create Audio Unit Effect for each input file
 
 * `faust2ausynth <file.dsp>` : create Audio Unit Synth for each input file
 
@@ -18,7 +20,7 @@ You can use 'sudo make install' to install them.
 
 * `faust2dssi <file.dsp>` : create a DSSI plugin for each input file
 
-* `faust2gen  <file.dsp>` : create a wrapping Max/MSP patch that uses faustgen~ for each input file
+* `faust2gen <file.dsp>` : create a wrapping Max/MSP patch that uses faustgen~ for each input file
 
 * `faust2jack <file.dsp>` : create JACK/GTK application for each input file
 
@@ -55,9 +57,7 @@ You can use 'sudo make install' to install them.
 * `faust2webaudiowasm <file.dsp>` : using Emscripten compiler or wasm backend, create a HTML/WebAudioAPI (with wasm code) application for each input file
 
 
-NOTE: In the latest Faust versions there's also an alternative VST
-architecture available, featuring multi-channel MIDI, MIDI CC and MIDI Tuning
-Standard (MTS) support. It is invoked as follows:
+NOTE: In the latest Faust versions there's also an alternative VST architecture available, featuring multi-channel MIDI, MIDI CC and MIDI Tuning Standard (MTS) support. It is invoked as follows:
 
 * `faust2faustvst <file.dsp>` : create a VST plugin for each input file
 
@@ -71,7 +71,7 @@ Standard (MTS) support. It is invoked as follows:
 * `faust2eps <file1.dsp>` : create eps block-diagrams for each input file
 
 
-### The following scripts also integrate a visualization :
+### The following scripts also integrate a visualization
 
 * `faust2firefox <file1.dsp>` : faust2svg with visualization using firefox
 

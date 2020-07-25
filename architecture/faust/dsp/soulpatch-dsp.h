@@ -34,8 +34,8 @@
 #include <map>
 #include <algorithm>
 
-#include <soul/API/soul_patch/API/soul_patch.h>
-#include <soul/API/soul_patch/helper_classes/soul_patch_Utilities.h>
+#include <soul/soul_patch.h>
+#include <soul/patch/helper_classes/soul_patch_Utilities.h>
 
 #include "faust/dsp/dsp.h"
 #include "faust/midi/midi.h"
@@ -308,7 +308,7 @@ class soulpatch_dsp : public dsp {
             }
         
             // Setup audio buffers
-            fRenderContext.inputChannels = (const float**)inputs;
+            fRenderContext.inputChannels = (const FAUSTFLOAT**)inputs;
             fRenderContext.outputChannels = outputs;
             fRenderContext.numFrames = count;
             
@@ -462,6 +462,7 @@ void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
     fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
+    //fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, new ConsolePrinter());
     fMIDIInputMessages.resize(1024);
     fMIDIOutputMessages.resize(1024);
     

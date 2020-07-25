@@ -31,7 +31,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 
-class juceaudio : public audio, private AudioAppComponent {
+class juceaudio : public audio, private juce::AudioAppComponent {
     
     private:
         
@@ -39,8 +39,8 @@ class juceaudio : public audio, private AudioAppComponent {
     
         void prepareToPlay(int, double) override
         {
-            const BigInteger activeInputChannels = deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
-            const BigInteger activeOutputChannels = deviceManager.getCurrentAudioDevice()->getActiveOutputChannels();
+            const juce::BigInteger activeInputChannels = deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
+            const juce::BigInteger activeOutputChannels = deviceManager.getCurrentAudioDevice()->getActiveOutputChannels();
             const int maxInputChannels = activeInputChannels.getHighestBit() + 1;
             const int maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
             
@@ -55,7 +55,7 @@ class juceaudio : public audio, private AudioAppComponent {
         void releaseResources() override
         {}
         
-        void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override
+        void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override
         {
             AVOIDDENORMALS;
             

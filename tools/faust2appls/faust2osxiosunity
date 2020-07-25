@@ -29,7 +29,7 @@
 . faustoptflags
 . usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 NVOICES=-1
 

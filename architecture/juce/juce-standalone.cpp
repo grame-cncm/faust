@@ -63,7 +63,7 @@
 
 <<includeclass>>
 
-class FaustComponent : public AudioAppComponent, private Timer
+class FaustComponent : public juce::AudioAppComponent, private juce::Timer
 {
     public:
    
@@ -142,9 +142,9 @@ class FaustComponent : public AudioAppComponent, private Timer
         #endif
             
         #if defined(SOUNDFILE)
-            auto file = File::getSpecialLocation(File::currentExecutableFile)
+            auto file = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
                 .getParentDirectory().getParentDirectory().getChildFile("Resources");
-            fSoundUI = new SoundUI(file.getFullPathName().toStdString());
+            fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString());
             // SoundUI has to be dispatched on all internal voices
             if (dsp_poly) dsp_poly->setGroup(false);
             fDSP->buildUserInterface(fSoundUI.get());
@@ -172,9 +172,9 @@ class FaustComponent : public AudioAppComponent, private Timer
         //==============================================================================
         void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override
         {
-            AudioIODevice* device = deviceManager.getCurrentAudioDevice();
-            const BigInteger activeInputChannels = device->getActiveInputChannels();
-            const BigInteger activeOutputChannels = device->getActiveOutputChannels();
+            juce::AudioIODevice* device = deviceManager.getCurrentAudioDevice();
+            const juce::BigInteger activeInputChannels = device->getActiveInputChannels();
+            const juce::BigInteger activeOutputChannels = device->getActiveOutputChannels();
             const int maxInputChannels = activeInputChannels.getHighestBit() + 1;
             const int maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
             
@@ -189,7 +189,7 @@ class FaustComponent : public AudioAppComponent, private Timer
         void releaseResources() override
         {}
 
-        void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
+        void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override
         {
             AVOIDDENORMALS;
             
@@ -207,9 +207,9 @@ class FaustComponent : public AudioAppComponent, private Timer
             fDSP->compute(-1, bufferToFill.numSamples, (float**)inputs, outputs);
         }
 
-        void paint (Graphics& g) override
+        void paint (juce::Graphics& g) override
         {
-            g.fillAll (Colour (Colours::white));
+            g.fillAll (juce::Colour (juce::Colours::white));
         }
 
         void resized() override
@@ -219,7 +219,7 @@ class FaustComponent : public AudioAppComponent, private Timer
 
         juce::Rectangle<int> getMinSize()
         {
-            return juce::Rectangle<int>(0, 0, jmin(recommendedSize.getWidth(), screenWidth), jmin(recommendedSize.getHeight(), screenHeight));
+            return juce::Rectangle<int>(0, 0, juce::jmin(recommendedSize.getWidth(), screenWidth), juce::jmin(recommendedSize.getHeight(), screenHeight));
         }
 
         juce::Rectangle<int> getRecommendedSize()
@@ -247,7 +247,7 @@ class FaustComponent : public AudioAppComponent, private Timer
         std::unique_ptr<dsp> fDSP;
     
         juce::Rectangle<int> recommendedSize;
-        juce::Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
+    juce::Rectangle<int> r = juce::Desktop::getInstance().getDisplays().getMainDisplay().userArea;
         int screenWidth = r.getWidth();
         int screenHeight = r.getHeight();
 
@@ -258,19 +258,19 @@ class FaustComponent : public AudioAppComponent, private Timer
 FaustComponent* createFaustComponent()     { return new FaustComponent(); }
 
 //==============================================================================
-class FaustAudioApplication : public JUCEApplication
+class FaustAudioApplication : public juce::JUCEApplication
 {
     
     public:
         //==============================================================================
         FaustAudioApplication() {}
         
-        const String getApplicationName() override       { return ProjectInfo::projectName; }
-        const String getApplicationVersion() override    { return ProjectInfo::versionString; }
+        const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
+        const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
         bool moreThanOneInstanceAllowed() override       { return true; }
         
         //==============================================================================
-        void initialise (const String& commandLine) override
+        void initialise (const juce::String& commandLine) override
         {
             // This method is where you should put your application's initialisation code..
             mainWindow = std::make_unique<MainWindow>(getApplicationName());
@@ -290,7 +290,7 @@ class FaustAudioApplication : public JUCEApplication
             quit();
         }
         
-        void anotherInstanceStarted (const String& commandLine) override
+        void anotherInstanceStarted (const juce::String& commandLine) override
         {
             // When another instance of the app is launched while this one is running,
             // this method is invoked, and the commandLine parameter tells you what
@@ -303,21 +303,22 @@ class FaustAudioApplication : public JUCEApplication
          our FaustComponent class.
          */
         
-        class myViewport : public Viewport
+        class myViewport : public juce::Viewport
         {
             
             public:
             
-                myViewport(String name, int w, int h, int rW, int rH):
-                Viewport(name),
+                myViewport(juce::String name, int w, int h, int rW, int rH):
+                juce::Viewport(name),
                 minWidth(w),
                 minHeight(h),
                 recommendedWidth(rW),
                 recommendedHeight(rH)
                 {}
                 
-                virtual void resized() override {
-                    Viewport::resized();
+                virtual void resized() override
+                {
+                    juce::Viewport::resized();
                     getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth
                                                          : width = recommendedWidth)
                     : width = getBounds().getWidth();
@@ -332,8 +333,9 @@ class FaustAudioApplication : public JUCEApplication
                 #endif
                 }
                 
-                void currentAreaChanged (int w, int h) {
-                    getViewedComponent()->setBounds(0, 0, jmax(getParentWidth(), w), jmax(getParentHeight(), h));
+                void currentAreaChanged (int w, int h)
+                {
+                    getViewedComponent()->setBounds(0, 0, juce::jmax(getParentWidth(), w), juce::jmax(getParentHeight(), h));
                     setSize(getParentWidth(), getParentHeight());
                 }
                 
@@ -344,14 +346,14 @@ class FaustAudioApplication : public JUCEApplication
                 int width, height;
         };
         
-        class MainWindow : public DocumentWindow
+        class MainWindow : public juce::DocumentWindow
         {
             
             public:
             
-                MainWindow (String name) : DocumentWindow (name,
-                                                           Colours::lightgrey,
-                                                           DocumentWindow::allButtons)
+                MainWindow (juce::String name) : juce::DocumentWindow (name,
+                                                                       juce::Colours::lightgrey,
+                                                                       juce::DocumentWindow::allButtons)
                 {
                     setUsingNativeTitleBar (true);
                     

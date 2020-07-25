@@ -6,11 +6,12 @@ The **faust2soul** tool compiles a Faust DSP program in a folder containing the 
 
 Here are the available options:
 
+- `-midi to activate MIDI control`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
 - `-effect <effect.dsp> to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI`
 - `-effect auto to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI`
-- `-midi to activate MIDI control`
 - `-juce to create a JUCE project`
+- `-dsp to create a 'dsp' compatible subclass`
 - `-play to start the 'soul' runtime with the generated SOUL patch`
 
 So for instance:
@@ -19,7 +20,6 @@ So for instance:
 - `faust2soul -play osc.dsp` to produce two osc.soul  and osc.soulpatch files and play the osc.soulpatch
 - `faust2soul -midi -nvoices 16 -play clarinetMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument as two clarinetMIDI.soul and clarinetMIDI.soulpatch files and play the clarinetMIDI.soulpatch
 - `faust2soul -midi -nvoices 16 -effect freeverb.dsp -play violinMIDI.dsp` to produce a 16 voices polyphonic MIDI aware intrument with a global effect as two violinMIDI.soul and violinMIDI.soulpatch files and play the violinMIDI.soulpatch
-
 
 # soul-faust-player 
 
@@ -42,6 +42,13 @@ Or:
 # soul-faust-tester 
 
 The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or SOUL runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
+
+`soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch`
+
+Here are the available options:
+
+- `-bs <frames> to set the maximum buffer-size in frames`
+- `control to update all controllers with random values at each cycle`
 
 So for instance:
 

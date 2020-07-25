@@ -930,6 +930,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fThen->accept(this);
         
         // Create typed local variable
+        
+        // Always at the begining since the block is already branched to next one...
+        fAllocaBuilder->SetInsertPoint(GetIterator(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
         LLVMValue typed_res = fAllocaBuilder->CreateAlloca(getCurType(), nullptr, "select_res");
       
         // "Then" is a BlockInst, result is in fCurValue

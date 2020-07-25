@@ -1,13 +1,13 @@
 
-image: Visual Studio 2015
+image: Visual Studio 2017
 platform: x64
 version: 1.0.{build}
 
 build_script:
   - cd build
-  - mkdir win32 win64
+  - mkdir win64
   - cd win64
-  - cmake -DUSE_LLVM_CONFIG=off -DLLVM_DIR=C:\Libraries\llvm-5.0.0\lib\cmake\llvm -C ../backends/most.cmake -C ../targets/regular.cmake .. -G "Visual Studio 14 2015 Win64"
+  - cmake -C ../backends/regular.cmake -C ../targets/regular.cmake .. -G "Visual Studio 15 2017 Win64"
   - cmake --build . --config Release
   - ls -l ../bin/Release
 

@@ -12,8 +12,6 @@ set -e
 . faustoptflags
 . usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
-
 ARCHFILE=$FAUSTARCH/soul/minimal.soul
 
 #-------------------------------------------------------------------
@@ -27,6 +25,7 @@ OPTIONS=""
 PLAY="false"
 JUCE="false"
 MIDI="false"
+SOUL_EXT="soul";
 
 while [ $1 ] 
 do
@@ -41,6 +40,7 @@ do
         option "-effect <effect.dsp>"
         option "-effect auto"
         option -juce "to create a JUCE project"
+        option -dsp "to create a 'dsp' compatible subclass"
         option -play "to start the 'soul' runtime with the generated SOUL file"
         option "Faust options"
         exit
@@ -62,6 +62,8 @@ do
     	PLAY="true"
     elif [ $p = "-juce" ]; then
     	JUCE="true"
+    elif [ $p = "-dsp" ]; then
+    	SOUL_EXT="soul-dsp"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -126,10 +128,10 @@ for p in $FILES; do
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
             faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
-            faust -lang soul -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
+            faust -lang $SOUL_EXT -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
         else
             faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
-            faust -lang soul -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
+            faust -lang $SOUL_EXT -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
         fi
         cat "$TMP/effect.soul" > "$TMP/${f%.dsp}.soul"
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}_tmp2.soul"
@@ -138,7 +140,7 @@ EndOfCode
     	if [ $NVOICES != -1 ]; then
         	faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
         else
-        	faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        	faust -lang $SOUL_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
         fi
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
     fi

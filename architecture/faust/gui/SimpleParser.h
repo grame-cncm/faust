@@ -51,12 +51,12 @@ struct itemInfo {
     std::string address;
     int index;
     double init;
-    double min;
-    double max;
+    double fmin;
+    double fmax;
     double step;
     std::vector<std::pair<std::string, std::string> > meta;
     
-    itemInfo():index(0), init(0.), min(0.), max(0.), step(0.)
+    itemInfo():index(0), init(0.), fmin(0.), fmax(0.), step(0.)
     {}
 };
 
@@ -443,13 +443,13 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                 
                 else if (label == "min") {
                     if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].min = dbl;
+                        uiItems[numItems].fmin = dbl;
                     }
                 }
                 
                 else if (label == "max") {
                     if (parseChar(p, ':') && parseDouble(p, dbl)) {
-                        uiItems[numItems].max = dbl;
+                        uiItems[numItems].fmax = dbl;
                     }
                 }
                 

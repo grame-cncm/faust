@@ -73,7 +73,6 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
     }
 }
 
-
 // Expand and rewrite ControlInst as 'IF (cond) {....}' instructions
 void ControlExpander::beginCond(ControlInst* inst)
 {

@@ -217,11 +217,6 @@ faustgen_factory::faustgen_factory(const string& name)
         fDrawPath = "";
     }
 #endif
-    
-    t_max_err err = systhread_mutex_new(&fDSPMutex, SYSTHREAD_MUTEX_NORMAL);
-    if (err != MAX_ERR_NONE) {
-        post("Cannot allocate mutex...");
-    }
 }
 
 faustgen_factory::~faustgen_factory()
@@ -233,8 +228,7 @@ faustgen_factory::~faustgen_factory()
     fMidiHandler.stopMidi();
     
     remove_svg();
-    systhread_mutex_free(fDSPMutex);
-    
+
     delete fSoundUI;
     fSoundUI = NULL;
 }
@@ -259,7 +253,9 @@ void faustgen_factory::free_bitcode()
 
 void faustgen_factory::free_dsp_factory()
 {
-    if (lock()) {
+    lock_audio();
+    lock_ui();
+    {
         // Free all instances
         for (auto& it : fInstances) {
             it->free_dsp();
@@ -267,10 +263,9 @@ void faustgen_factory::free_dsp_factory()
         
         //deleteDSPFactory(fDSPfactory);
         fDSPfactory = NULL;
-        unlock();
-    } else {
-        post("Mutex lock cannot be taken...");
     }
+    unlock_ui();
+    unlock_audio();
 }
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
@@ -1156,7 +1151,8 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    if (fDSPfactory->lock()) {
+    fDSPfactory->lock_ui();
+    {
         bool res = false;
         string name = string((s)->s_name);
         
@@ -1235,10 +1231,10 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                 post("Unknown parameter : %s", (s)->s_name);
             }
         }
+    }
         
     unlock:
-        fDSPfactory->unlock();
-    }
+        fDSPfactory->unlock_ui();
 }
 
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv)
@@ -1258,7 +1254,9 @@ void faustgen::write(long inlet, t_symbol* s)
 
 void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    if (fDSPfactory->lock()) {
+    fDSPfactory->lock_audio();
+    fDSPfactory->lock_ui();
+    {
         free_dsp();
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
@@ -1274,13 +1272,12 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
-        fDSPfactory->unlock();
-    } else {
-        post("Mutex lock cannot be taken...");
     }
+    fDSPfactory->unlock_audio();
+    fDSPfactory->unlock_ui();
 }
 
-// Reset controllers to init value and send [label, init, min, max]
+// Reset controllers to init value and send [path, init, min, max]
 void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     // Reset internal state
@@ -1306,8 +1303,7 @@ void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
-// Dump controllers as list of: [label, cur, min, max]
-void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
+void faustgen::dump_inputs()
 {
     // Input controllers
     for (mspUI::iterator it = fDSPUI->begin2(); it != fDSPUI->end2(); it++) {
@@ -1318,6 +1314,9 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(m_control_outlet, 0, 4, myList);
     }
+}
+void faustgen::dump_outputs()
+{
     // Output controllers
     for (mspUI::iterator it = fDSPUI->begin4(); it != fDSPUI->end4(); it++) {
         t_atom myList[4];
@@ -1329,12 +1328,20 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
+// Dump controllers as list of [path, cur, min, max]
+void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    dump_inputs();
+    dump_outputs();
+}
+
 // osc 'IP inport outport xmit bundle'
 void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac == 5) {
-        if (fDSPfactory->lock()) {
-            
+        fDSPfactory->lock_audio();
+        fDSPfactory->lock_ui();
+        {
             delete fOSCUI;
             
             const char* argv1[32];
@@ -1370,10 +1377,9 @@ void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
             fOSCUI->run();
             
             post(fOSCUI->getInfos().c_str());
-            fDSPfactory->unlock();
-        } else {
-            post("Mutex lock cannot be taken...");
         }
+        fDSPfactory->unlock_ui();
+        fDSPfactory->unlock_audio();
     } else {
         post("Should be : osc 'IP inport outport xmit(0|1|2) bundle(0|1)'");
     }
@@ -1497,16 +1503,18 @@ void faustgen::update_sourcecode()
 // Process the signal data with the Faust module
 inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts)
 {
-    if (!fMute && fDSPfactory->try_lock()) {
+    if (!fMute && fDSPfactory->try_lock_audio()) {
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             fDSP->compute(vs, static_cast<FAUSTFLOAT**>(inputs), static_cast<FAUSTFLOAT**>(outputs));
             if (fOSCUI) fOSCUI->endBundle();
-            update_outputs();
+            //update_outputs();
+            // Use the right outlet to output messages
+            dump_outputs();
         }
         // Done for fMIDIUI and fOSCUI
         GUI::updateAllGuis();
-        fDSPfactory->unlock();
+        fDSPfactory->unlock_audio();
     } else {
         // Write null buffers to outs
         for (int i = 0; i < numouts; i++) {
@@ -1636,7 +1644,9 @@ void faustgen::init_controllers()
 
 void faustgen::create_dsp(bool init)
 {
-    if (fDSPfactory->lock()) {
+    fDSPfactory->lock_audio();
+    fDSPfactory->lock_ui();
+    {
         fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
         
@@ -1669,11 +1679,9 @@ void faustgen::create_dsp(bool init)
         
         // Send JSON to JS script
         create_jsui();
-        
-        fDSPfactory->unlock();
-    } else {
-        post("Mutex lock cannot be taken...");
     }
+    fDSPfactory->unlock_ui();
+    fDSPfactory->unlock_audio();
 }
 
 void faustgen::set_dirty()
@@ -1762,16 +1770,6 @@ void faustgen::mute(long inlet, long mute)
 {
     fMute = mute;
 }
-
-/*
- // For Max 6
- #ifdef WIN32
- //extern "C" int main(void)
- extern "C" void ext_main(void* r)
- #else
- int main(void)
- #endif
- */
 
 extern "C" void ext_main(void* r)
 {

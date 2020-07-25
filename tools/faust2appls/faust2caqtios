@@ -11,7 +11,7 @@
 #. faustoptflags
 . usage.sh
 
-CXXFLAGS="-O3 -ffast-math -ftree-vectorize -DIOS"
+CXXFLAGS+=" $MYGCCFLAGS -DIOS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE="ca-qt.cpp"
 ARCHLIB="-framework AudioToolbox -framework CoreMIDI -framework CoreFoundation "

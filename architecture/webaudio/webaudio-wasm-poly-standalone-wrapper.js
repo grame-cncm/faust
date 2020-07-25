@@ -80,6 +80,8 @@ class FaustWasm2ScriptProcessorPoly {
         sp.fFreqLabel = [];
         sp.fGateLabel = [];
         sp.fGainLabel = [];
+        sp.fKeyFun = null;
+        sp.fVelFun = null;
         sp.fDate = 0;
     
         sp.fPitchwheelLabel = [];
@@ -330,23 +332,42 @@ class FaustWasm2ScriptProcessorPoly {
                     sp.dspOutChannnels[i] = sp.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + bufferSize * sp.sample_size) >> 2);
                 }
             }
+            
             // Parse JSON UI part
             sp.parse_ui(sp.json_object.ui);
-            if (sp.effect) sp.parse_ui(sp.effect_json_object.ui);
+            
+            if (sp.effect) {
+            	sp.parse_ui(sp.effect_json_object.ui);
+            }
     
             // keep 'keyOn/keyOff' labels
             sp.inputs_items.forEach(item => {
-                if (item.endsWith("/gate")) sp.fGateLabel.push(sp.pathTable[item]);
-                else if (item.endsWith("/freq")) sp.fFreqLabel.push(sp.pathTable[item])
-                else if (item.endsWith("/gain")) sp.fGainLabel.push(sp.pathTable[item])
+                if (item.endsWith("/gate")) {
+                    sp.fGateLabel.push(sp.pathTable[item]);
+                } else if (item.endsWith("/freq")) {
+                    sp.fKeyFun = (pitch) => { return sp.midiToFreq(pitch); };
+                    sp.fFreqLabel.push(sp.pathTable[item]);
+                } else if (item.endsWith("/key")) {
+                    sp.fKeyFun = (pitch) => { return pitch;} ;
+                    sp.fFreqLabel.push(sp.pathTable[item]);
+                } else if (item.endsWith("/gain")) {
+                    sp.fVelFun = (vel) => { return vel/127.0; };
+                    sp.fGainLabel.push(sp.pathTable[item])
+                } else if (item.endsWith("/vel") || item.endsWith("/velocity")) {
+                    sp.fVelFun = (vel) => { return vel; };
+                    sp.fGainLabel.push(sp.pathTable[item]);
+                }
             })
+            
             // Init DSP voices
             for (let i = 0; i < polyphony; i++) {
                 sp.factory.init(sp.dsp_voices[i], audioCtx.sampleRate);
             }
             
             // Init effect
-            if (sp.effect) sp.effect.init(sp.effect_start, audioCtx.sampleRate);
+            if (sp.effect) {
+            	sp.effect.init(sp.effect_start, audioCtx.sampleRate);
+            }
         }
         
         // Public API
@@ -356,9 +377,9 @@ class FaustWasm2ScriptProcessorPoly {
          */
         sp.destroy = () => {}
         
-        sp.getSampleRate = () => audioCtx.sampleRate; // Return current sample rate
-        sp.getNumInputs = () => sp.numIn; // Return instance number of audio inputs.
-        sp.getNumOutputs = () => sp.numOut; // Return instance number of audio outputs.
+        sp.getSampleRate = () => audioCtx.sampleRate;  // Return current sample rate
+        sp.getNumInputs = () => sp.numIn;              // Return instance number of audio inputs.
+        sp.getNumOutputs = () => sp.numOut;            // Return instance number of audio outputs.
 
         /**
          * Global init, doing the following initialization:
@@ -444,13 +465,13 @@ class FaustWasm2ScriptProcessorPoly {
             const voice = sp.getFreeVoice();
             this.log("keyOn voice " + voice);
             for (let i = 0; i < sp.fFreqLabel.length; i++) {
-                sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.midiToFreq(pitch));
+                sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.fKeyFun(pitch));
             }
             for (let i = 0; i < sp.fGateLabel.length; i++) {
                 sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 1.0);
             }
             for (let i = 0; i < sp.fGainLabel.length; i++) {
-                sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity / 127);
+                sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], sp.fVelFun(velocity));
             }
             sp.dsp_voices_state[voice] = pitch;
         }

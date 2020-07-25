@@ -363,7 +363,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
             nbsamples -= nFrames;
         }
     } catch (...) {
-        cerr << "ERROR in " << file << " line : " << i << std::endl;
+        cerr << "ERROR in '" << file << "' at line : " << i << std::endl;
     }
     
     delete ichan;

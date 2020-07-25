@@ -4,7 +4,7 @@ Several programs and tools are available to test the dynamic compilation chain, 
 
 ## dynamic-faust
 
-The **dynamic-faust** tool uses the dynamic compilation chain, and compiles a Faust DSP source to a LLVM IR (.ll), bicode (.bc), machine code (.mc) or object code (.o) output file.
+The **dynamic-faust** tool uses the dynamic compilation chain (based on the LLVM backend), and compiles a Faust DSP source to a LLVM IR (.ll), bicode (.bc), machine code (.mc) or object code (.o) output file.
 
 `dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp`
 
@@ -42,12 +42,14 @@ Here are the available options:
 - `-opt native to activate the best compilation options for the native CPU`
 - `-opt generic to activate the best compilation options for a generic CPU`
 - `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
-- `-test to compile a test program`
+- `-test to compile a test program which will bench the DSP and render it`
 
 
 A set of header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>` class and a `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric()` creation function). The `-opt native|generic` option runs the **faustbench-llvm** to discover the best possible compilation options and use them in the C++ or LLVM compilation step.
 
 The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi` class) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi();`  or  `dsp* dsp = create<DSPName>multi();`) to load the appropriate object code version depending on the running machine CPU. 
+
+The `-test` parameter can be used to compile a test program which will bench the DSP, print its UI, and render it.
  
 Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
 
@@ -121,9 +123,9 @@ Here are the available options:
 
 ## faustbench
 
-The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
+The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary.
 
-`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
@@ -133,7 +135,8 @@ Here are the available options:
  - `-single to only execute the scalar test`
  - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
- - `-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means "maximal level =-Ofast for now" if range changes in the future)`
+ - `-source to keep the intermediate source folder and exit`
+ - `-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
@@ -142,7 +145,7 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust compiler options can be given beside the ones that will be automatically explored by the tool.
 
-`faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-opt <level(0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-bs <frames>] [-opt <level(0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
@@ -151,6 +154,7 @@ Here are the available options:
 - `-generic to compile for a generic processor, otherwise the native CPU will be used`
 - `-single to only execute the scalar test`
 - `-run <num> to execute each test <num> times`
+- `-bs <frames> to set the maximum buffer-size in frames`
 - `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means "maximal level" if range changes in the future)`
 
 ## faustbench-wasm

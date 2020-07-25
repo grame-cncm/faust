@@ -8,6 +8,8 @@
 #####################################################################
 . usage.sh
 
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
 PATH=$PATH:/usr/local/bin
 DST=`pwd`
 

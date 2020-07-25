@@ -32,10 +32,10 @@
 
 // Link AudioParameterBool with on/off parameter
 
-struct FaustPlugInAudioParameterBool : public AudioParameterBool, public uiOwnedItem {
+struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public uiOwnedItem {
     
     FaustPlugInAudioParameterBool(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label)
-    :AudioParameterBool(path, label, false), uiOwnedItem(gui, zone)
+    :juce::AudioParameterBool(path, label, false), uiOwnedItem(gui, zone)
     {}
     
     virtual ~FaustPlugInAudioParameterBool() {}
@@ -56,10 +56,10 @@ struct FaustPlugInAudioParameterBool : public AudioParameterBool, public uiOwned
 
 // Link AudioParameterFloat with range parameters
 
-struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwnedItem {
+struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public uiOwnedItem {
     
     FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    :AudioParameterFloat(path, label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
+    :juce::AudioParameterFloat(path, label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
     {}
     
     virtual ~FaustPlugInAudioParameterFloat() {}
@@ -86,11 +86,11 @@ class JuceParameterUI : public GUI, public PathBuilder {
     
     private:
         
-        AudioProcessor* fProcessor;
+        juce::AudioProcessor* fProcessor;
         
     public:
         
-        JuceParameterUI(AudioProcessor* processor):fProcessor(processor)
+        JuceParameterUI(juce::AudioProcessor* processor):fProcessor(processor)
         {}
     
         virtual ~JuceParameterUI() {}

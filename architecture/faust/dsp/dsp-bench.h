@@ -59,7 +59,7 @@
 #endif
 
 #define BENCH_SAMPLE_RATE 44100.0
-#define NV 4096     // number of vectors in BIG buffer (should exceed cache)
+#define NBV 4096     // number of vectors in BIG buffer (should exceed cache)
 
 template <typename VAL_TYPE>
 void FAUSTBENCH_LOG(VAL_TYPE val)
@@ -374,11 +374,11 @@ class measure_dsp_aux : public decorator_dsp {
             fInputs = new REAL*[fDSP->getNumInputs()];
             fAllInputs = new REAL*[fDSP->getNumInputs()];
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fAllInputs[i] = new REAL[fBufferSize * NV];
+                fAllInputs[i] = new REAL[fBufferSize * NBV];
                 fInputs[i] = fAllInputs[i];
                 // Write noise in inputs (to avoid 'speedup' effect due to null values)
                 int R0_0 = 0;
-                for (int j = 0; j < fBufferSize * NV; j++) {
+                for (int j = 0; j < fBufferSize * NBV; j++) {
                     int R0temp0 = (12345 + (1103515245 * R0_0));
                     fAllInputs[i][j] = REAL(4.656613e-10f * R0temp0);
                     R0_0 = R0temp0;
@@ -388,10 +388,10 @@ class measure_dsp_aux : public decorator_dsp {
             fOutputs = new REAL*[fDSP->getNumOutputs()];
             fAllOutputs = new REAL*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fAllOutputs[i] = new REAL[fBufferSize * NV];
+                fAllOutputs[i] = new REAL[fBufferSize * NBV];
                 fOutputs[i] = fAllOutputs[i];
                 // Write zero in outputs
-                memset(fAllOutputs[i], 0, sizeof(REAL) * fBufferSize * NV);
+                memset(fAllOutputs[i], 0, sizeof(REAL) * fBufferSize * NBV);
             }
         }
     
@@ -511,12 +511,12 @@ class measure_dsp_aux : public decorator_dsp {
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
                     REAL* allinputs = fAllInputs[i];
                     fInputs[i] = &allinputs[fInputIndex * fBufferSize];
-                    fInputIndex = (1 + fInputIndex) % NV;
+                    fInputIndex = (1 + fInputIndex) % NBV;
                 }
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                     REAL* alloutputs = fAllOutputs[i];
                     fOutputs[i] = &alloutputs[fOutputIndex * fBufferSize];
-                    fOutputIndex = (1 + fOutputIndex) % NV;
+                    fOutputIndex = (1 + fOutputIndex) % NBV;
                 }
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());

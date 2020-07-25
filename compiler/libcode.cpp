@@ -531,11 +531,19 @@ static bool processCmdline(int argc, const char* argv[])
                 throw faustexception(error.str());
             }
             i += 2;
+            
+        } else if (isCmd(argv[i], "-rui", "--range-ui")) {
+            gGlobal->gRangeUI = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gGlobal->gFastMath    = true;
             gGlobal->gFastMathLib = argv[i + 1];
             i += 2;
+            
+        } else if (isCmd(argv[i], "-mapp", "--math-approximation")) {
+            gGlobal->gMathApprox = true;
+            i += 1;
             
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
             gGlobal->gNameSpace = argv[i + 1];
@@ -827,7 +835,7 @@ static void printHelp()
             "auto-vectorization."
          << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
-    cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
+    cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
@@ -854,6 +862,9 @@ static void printHelp()
     cout << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
             "2:mask based (fastest)]."
+         << endl;
+    cout << tab
+         << "-rui        --range-ui                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range."
          << endl;
     cout << tab
          << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile "
@@ -887,12 +898,13 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
-            "<file>,"
+            "<file>."
          << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
     cout << tab
-         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name> "
-         << endl;
+         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
+    cout << tab
+         << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;

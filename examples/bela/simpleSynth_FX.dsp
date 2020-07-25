@@ -31,7 +31,7 @@ import("stdfaust.lib");
 // Keyboard
 midigate = button("gate");
 midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain = nentry("gain", 0.5, 0, 0.5, 0.01);// MIDI KEYBOARD
+midigain = nentry("gain", 0.5, 0, 0.5, 0.01);	// MIDI KEYBOARD
 
 // pitchwheel
 bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));

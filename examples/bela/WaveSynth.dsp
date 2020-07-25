@@ -32,7 +32,7 @@ gFreq = midifreq * bend;
 
 // LFO
 lfoDepth = hslider("lfoDepth[midi:ctrl 1]",0,0.,1,0.001):si.smoo;
-lfoFreq  = hslider("lfoFreq[midi:ctrl 14]",0.1,0.01,10,0.001):si.smoo;
+lfoFreq = hslider("lfoFreq[midi:ctrl 14]",0.1,0.01,10,0.001):si.smoo;
 moov = ((os.lf_trianglepos(lfoFreq) * lfoDepth) + waveTravel) : min(1) : max(0);
 
 volA = hslider("A[midi:ctrl 73]",0.01,0.01,4,0.01);
@@ -44,13 +44,13 @@ envelop = en.adsre(volA,volD,volS,volR,midigate);
 // Out Amplitude
 vol = envelop * midigain;
 
-WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0))-2) -1.;
+WF(tablesize, rang) = abs((fmod((1+(float(ba.time)*rang)/float(tablesize)), 4.0))-2) -1.;
 
 // 4 WF maxi with this version:
 scanner(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)
-with{
+with {
 	coef = 3.14159 * ((nb-1)*0.5);
-	soustraction = select2( position>0, 0, (position/(nb-1)) );
+	soustraction = select2(position>0, 0, (position/(nb-1)));
 };
 
 wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tablesize, wt2, faze)*(moov : scanner(4,1)))

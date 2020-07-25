@@ -38,12 +38,14 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS="-std=c++11 -Ofast -march=native -fvisibility=hidden"
+CXXFLAGS+=" $MYGCCFLAGS -fvisibility=hidden"  # So that additional CXXFLAGS can be used
+
+echo $CXXFLAGS
 
 # Darwin specifics
 if [[ $(uname) == Darwin ]]; then
     dllext=".dylib"
-    CXXFLAGS="-std=c++11 -Ofast -march=native -fvisibility=hidden -I/opt/local/include"
+    CXXFLAGS+=" -I/opt/local/include"
 fi
 
 # dispatch command arguments

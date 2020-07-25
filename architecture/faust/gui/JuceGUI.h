@@ -81,31 +81,31 @@
  * \details     Define the appearance of all the JUCE widgets.
  */
 
-struct CustomLookAndFeel : public LookAndFeel_V3
+struct CustomLookAndFeel : public juce::LookAndFeel_V3
 {
-    void drawRoundThumb (Graphics& g, const float x, const float y,
-                         const float diameter, const Colour& colour, float outlineThickness)
+    void drawRoundThumb (juce::Graphics& g, const float x, const float y,
+                         const float diameter, const juce::Colour& colour, float outlineThickness)
     {
         const juce::Rectangle<float> a (x, y, diameter, diameter);
         const float halfThickness = outlineThickness * 0.5f;
 
-        Path p;
+        juce::Path p;
         p.addEllipse (x + halfThickness, y + halfThickness, diameter - outlineThickness, diameter - outlineThickness);
 
-        const DropShadow ds (Colours::black, 1, Point<int> (0, 0));
+        const juce::DropShadow ds (juce::Colours::black, 1, juce::Point<int> (0, 0));
         ds.drawForPath (g, p);
 
         g.setColour (colour);
         g.fillPath (p);
 
         g.setColour (colour.brighter());
-        g.strokePath (p, PathStrokeType (outlineThickness));
+        g.strokePath (p, juce::PathStrokeType (outlineThickness));
     }
 
-    void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour,
+    void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
                                bool isMouseOverButton, bool isButtonDown) override
     {
-        Colour baseColour (backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
+        juce::Colour baseColour (backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
                            .withMultipliedAlpha (button.isEnabled() ? 0.9f : 0.5f));
 
         if (isButtonDown || isMouseOverButton)
@@ -121,11 +121,11 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
         if (width > 0 && height > 0)
         {
-            const float cornerSize = jmin(15.0f, jmin(width, height) * 0.45f);
+            const float cornerSize = juce::jmin(15.0f, juce::jmin(width, height) * 0.45f);
             const float lineThickness = cornerSize * 0.1f;
             const float halfThickness = lineThickness * 0.5f;
 
-            Path outline;
+            juce::Path outline;
             outline.addRoundedRectangle (0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness,
                                          cornerSize, cornerSize,
                                          ! (flatOnLeft  || flatOnTop),
@@ -133,20 +133,20 @@ struct CustomLookAndFeel : public LookAndFeel_V3
                                          ! (flatOnLeft  || flatOnBottom),
                                          ! (flatOnRight || flatOnBottom));
 
-            const Colour outlineColour (button.findColour (button.getToggleState() ? TextButton::textColourOnId
-                                        : TextButton::textColourOffId));
+            const juce::Colour outlineColour (button.findColour (button.getToggleState() ? juce::TextButton::textColourOnId
+                                        : juce::TextButton::textColourOffId));
 
             g.setColour (baseColour);
             g.fillPath (outline);
 
             if (! button.getToggleState()) {
                 g.setColour (outlineColour);
-                g.strokePath (outline, PathStrokeType (lineThickness));
+                g.strokePath (outline, juce::PathStrokeType (lineThickness));
             }
         }
     }
 
-    void drawTickBox (Graphics& g, Component& component,
+    void drawTickBox (juce::Graphics& g, juce::Component& component,
                       float x, float y, float w, float h,
                       bool ticked,
                       bool isEnabled,
@@ -156,37 +156,37 @@ struct CustomLookAndFeel : public LookAndFeel_V3
         const float boxSize = w * 0.7f;
 
         bool isDownOrDragging = component.isEnabled() && (component.isMouseOverOrDragging() || component.isMouseButtonDown());
-        const Colour colour (component.findColour (TextButton::buttonColourId).withMultipliedSaturation ((component.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
+        const juce::Colour colour (component.findColour (juce::TextButton::buttonColourId).withMultipliedSaturation ((component.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
                              .withMultipliedAlpha (component.isEnabled() ? 1.0f : 0.7f));
 
         drawRoundThumb (g, x, y + (h - boxSize) * 0.5f, boxSize, colour,
                         isEnabled ? ((isButtonDown || isMouseOverButton) ? 1.1f : 0.5f) : 0.3f);
 
         if (ticked) {
-            const Path tick (LookAndFeel_V2::getTickShape (6.0f));
-            g.setColour (isEnabled ? findColour (TextButton::buttonOnColourId) : Colours::grey);
+            const juce::Path tick (juce::LookAndFeel_V2::getTickShape (6.0f));
+            g.setColour (isEnabled ? findColour (juce::TextButton::buttonOnColourId) : juce::Colours::grey);
 
             const float scale = 9.0f;
-            const AffineTransform trans (AffineTransform::scale (w / scale, h / scale)
+            const juce::AffineTransform trans (juce::AffineTransform::scale (w / scale, h / scale)
                                          .translated (x - 2.5f, y + 1.0f));
             g.fillPath (tick, trans);
         }
     }
 
-    void drawLinearSliderThumb (Graphics& g, int x, int y, int width, int height,
+    void drawLinearSliderThumb (juce::Graphics& g, int x, int y, int width, int height,
                                 float sliderPos, float minSliderPos, float maxSliderPos,
-                                const Slider::SliderStyle style, Slider& slider) override
+                                const juce::Slider::SliderStyle style, juce::Slider& slider) override
     {
         const float sliderRadius = (float)(getSliderThumbRadius (slider) - 2);
 
         bool isDownOrDragging = slider.isEnabled() && (slider.isMouseOverOrDragging() || slider.isMouseButtonDown());
-        Colour knobColour (slider.findColour (Slider::thumbColourId).withMultipliedSaturation ((slider.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
+        juce::Colour knobColour (slider.findColour (juce::Slider::thumbColourId).withMultipliedSaturation ((slider.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
                            .withMultipliedAlpha (slider.isEnabled() ? 1.0f : 0.7f));
 
-        if (style == Slider::LinearHorizontal || style == Slider::LinearVertical) {
+        if (style == juce::Slider::LinearHorizontal || style == juce::Slider::LinearVertical) {
             float kx, ky;
 
-            if (style == Slider::LinearVertical) {
+            if (style == juce::Slider::LinearVertical) {
                 kx = x + width * 0.5f;
                 ky = sliderPos;
             } else {
@@ -203,34 +203,34 @@ struct CustomLookAndFeel : public LookAndFeel_V3
                             knobColour, outlineThickness);
         } else {
             // Just call the base class for the demo
-            LookAndFeel_V2::drawLinearSliderThumb (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
+            juce::LookAndFeel_V2::drawLinearSliderThumb (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
     }
 
-    void drawLinearSlider (Graphics& g, int x, int y, int width, int height,
+    void drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
                            float sliderPos, float minSliderPos, float maxSliderPos,
-                           const Slider::SliderStyle style, Slider& slider) override
+                           const juce::Slider::SliderStyle style, juce::Slider& slider) override
     {
-        g.fillAll (slider.findColour (Slider::backgroundColourId));
+        g.fillAll (slider.findColour (juce::Slider::backgroundColourId));
 
-        if (style == Slider::LinearBar || style == Slider::LinearBarVertical) {
+        if (style == juce::Slider::LinearBar || style == juce::Slider::LinearBarVertical) {
             const float fx = (float)x, fy = (float)y, fw = (float)width, fh = (float)height;
 
-            Path p;
+            juce::Path p;
 
-            if (style == Slider::LinearBarVertical)
+            if (style == juce::Slider::LinearBarVertical)
                 p.addRectangle (fx, sliderPos, fw, 1.0f + fh - sliderPos);
             else
                 p.addRectangle (fx, fy, sliderPos - fx, fh);
 
-            Colour baseColour (slider.findColour (Slider::rotarySliderFillColourId)
+            juce::Colour baseColour (slider.findColour (juce::Slider::rotarySliderFillColourId)
                                .withMultipliedSaturation (slider.isEnabled() ? 1.0f : 0.5f)
                                .withMultipliedAlpha (0.8f));
 
             g.setColour (baseColour);
             g.fillPath (p);
 
-            const float lineThickness = jmin(15.0f, jmin(width, height) * 0.45f) * 0.1f;
+            const float lineThickness = juce::jmin(15.0f, juce::jmin(width, height) * 0.45f) * 0.1f;
             g.drawRect (slider.getLocalBounds().toFloat(), lineThickness);
         } else {
             drawLinearSliderBackground (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -238,14 +238,14 @@ struct CustomLookAndFeel : public LookAndFeel_V3
         }
     }
 
-    void drawLinearSliderBackground (Graphics& g, int x, int y, int width, int height,
+    void drawLinearSliderBackground (juce::Graphics& g, int x, int y, int width, int height,
                                      float /*sliderPos*/,
                                      float /*minSliderPos*/,
                                      float /*maxSliderPos*/,
-                                     const Slider::SliderStyle /*style*/, Slider& slider) override
+                                     const juce::Slider::SliderStyle /*style*/, juce::Slider& slider) override
     {
         const float sliderRadius = getSliderThumbRadius (slider) - 5.0f;
-        Path on, off;
+        juce::Path on, off;
 
         if (slider.isHorizontal()) {
             const float iy = y + height * 0.5f - sliderRadius * 0.5f;
@@ -263,17 +263,17 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             off.addRectangle (r);
         }
 
-        g.setColour (slider.findColour (Slider::rotarySliderFillColourId));
+        g.setColour (slider.findColour (juce::Slider::rotarySliderFillColourId));
         g.fillPath (on);
 
-        g.setColour (slider.findColour (Slider::trackColourId));
+        g.setColour (slider.findColour (juce::Slider::trackColourId));
         g.fillPath (off);
     }
 
-    void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
-                           float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
+    void drawRotarySlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+                           float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override
     {
-        const float radius = jmin(width / 2, height / 2) - 4.0f;
+        const float radius = juce::jmin(width / 2, height / 2) - 4.0f;
         const float centreX = x + width * 0.5f;
         const float centreY = y + height * 0.5f;
         const float rx = centreX - radius;
@@ -284,25 +284,25 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
         //Background
         {
-            g.setColour(Colours::lightgrey.withAlpha (isMouseOver ? 1.0f : 0.7f));
-            Path intFilledArc;
+            g.setColour(juce::Colours::lightgrey.withAlpha (isMouseOver ? 1.0f : 0.7f));
+            juce::Path intFilledArc;
             intFilledArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.8);
             g.fillPath(intFilledArc);
         }
 
         if (slider.isEnabled()) {
-            g.setColour(slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
+            g.setColour(slider.findColour (juce::Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
         } else {
-            g.setColour(Colour (0x80808080));
+            g.setColour(juce::Colour (0x80808080));
         }
 
         //Render knob value
         {
-            Path pathArc;
+            juce::Path pathArc;
             pathArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.8);
             g.fillPath(pathArc);
 
-            Path cursor, cursorShadow;
+            juce::Path cursor, cursorShadow;
             float rectWidth = radius*0.4;
             float rectHeight = rectWidth/2;
             float rectX = centreX + radius*0.9 - rectHeight/2;
@@ -311,16 +311,16 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             cursor.addRectangle(rectX, rectY, rectWidth, rectHeight);
             cursorShadow.addRectangle(rectX-1, rectY-1, rectWidth+2, rectHeight+2);
 
-            AffineTransform t = AffineTransform::translation(-rectWidth + 2, rectHeight/2);
-            t = t.rotated((angle - float_Pi/2), centreX, centreY);
+            juce::AffineTransform t = juce::AffineTransform::translation(-rectWidth + 2, rectHeight/2);
+            t = t.rotated((angle - juce::float_Pi/2), centreX, centreY);
 
             cursor.applyTransform(t);
             cursorShadow.applyTransform(t);
 
-            g.setColour(Colours::black);
+            g.setColour(juce::Colours::black);
             g.fillPath(cursor);
 
-            g.setColour(Colours::black .withAlpha(0.15f));
+            g.setColour(juce::Colours::black .withAlpha(0.15f));
             g.fillPath(cursorShadow);
         }
     }
@@ -416,7 +416,7 @@ class uiBase
          * \param r The absolute bounds.
          *
          */
-        void setRelativeSize(Component* comp, const juce::Rectangle<int>& r)
+        void setRelativeSize(juce::Component* comp, const juce::Rectangle<int>& r)
         {
             comp->setBounds(r.getX() - comp->getParentComponent()->getX(),
                             r.getY() - comp->getParentComponent()->getY(),
@@ -424,7 +424,7 @@ class uiBase
                             r.getHeight());
         }
     
-        virtual void init(Component* comp = nullptr)
+        virtual void init(juce::Component* comp = nullptr)
         {
             /** Initialize both vertical and horizontal ratios. */
             assert(comp);
@@ -438,7 +438,7 @@ class uiBase
         virtual void setRecommendedSize()
         {}
         
-        virtual void add(Component* comp)
+        virtual void add(juce::Component* comp)
         {}
     
 };
@@ -447,7 +447,7 @@ class uiBase
  * \brief   Intern class for all FAUST active or passive widgets.
  * \details Every activ or passive widgets derive from this class.
  */
-class uiComponent : public uiBase, public Component, public uiItem
+class uiComponent : public uiBase, public juce::Component, public uiItem
 {
 
     public:
@@ -461,7 +461,7 @@ class uiComponent : public uiBase, public Component, public uiItem
          * \param   h       Height of the widget.
          * \param   name    Name of the widget.
          */
-        uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String name):uiBase(w, h), Component(name), uiItem(gui, zone)
+        uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, juce::String name):uiBase(w, h), Component(name), uiItem(gui, zone)
         {}
 
 };
@@ -475,10 +475,10 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
     
     private:
         
-        Slider::SliderStyle fStyle;
-        Label fLabel;
+        juce::Slider::SliderStyle fStyle;
+        juce::Label fLabel;
         SliderType fType;
-        Slider fSlider;
+        juce::Slider fSlider;
 
     public:
         /**
@@ -495,24 +495,24 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
          * \param   scale                           Scale of the slider, exponential, logarithmic, or linear.
          * \param   type                            Type of slider (see SliderType).
          */
-        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type)
+        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, juce::String name, juce::String unit, juce::String tooltip, MetaDataUI::Scale scale, SliderType type)
             : uiComponent(gui, zone, w, h, name), uiConverter(scale, min, max, min, max), fType(type)
         {
             // Set the JUCE widget initalization variables.
             switch(fType) {
                 case HSlider:
-                    fStyle = Slider::SliderStyle::LinearHorizontal;
+                    fStyle = juce::Slider::SliderStyle::LinearHorizontal;
                     break;
                 case VSlider:
-                    fStyle = Slider::SliderStyle::LinearVertical;
+                    fStyle = juce::Slider::SliderStyle::LinearVertical;
                     fSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
                     break;
                 case NumEntry:
-                    fSlider.setIncDecButtonsMode(Slider::incDecButtonsDraggable_AutoDirection);
-                    fStyle = Slider::SliderStyle::IncDecButtons;
+                    fSlider.setIncDecButtonsMode(juce::Slider::incDecButtonsDraggable_AutoDirection);
+                    fStyle = juce::Slider::SliderStyle::IncDecButtons;
                     break;
                 case Knob:
-                    fStyle = Slider::SliderStyle::Rotary;
+                    fStyle = juce::Slider::SliderStyle::Rotary;
                     fSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
                     break;
                 default:
@@ -543,7 +543,7 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
             // slider name on centered top, which is what we want. It's done manually
             // in the paint method.
             if (fType == HSlider || fType == NumEntry) {
-                fLabel.setText(getName(), dontSendNotification);
+                fLabel.setText(getName(), juce::dontSendNotification);
                 fLabel.attachToComponent(&fSlider, true);
                 fLabel.setTooltip(tooltip);
                 addAndMakeVisible(fLabel);
@@ -551,11 +551,11 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
         }
 
         /** Draw the name of a vertical or circular slider. */
-        virtual void paint(Graphics& g) override
+        virtual void paint(juce::Graphics& g) override
         {
             if (fType == VSlider || fType == Knob) {
-                g.setColour(Colours::black);
-                g.drawText(getName(), getLocalBounds(), Justification::centredTop);
+                g.setColour(juce::Colours::black);
+                g.drawText(getName(), getLocalBounds(), juce::Justification::centredTop);
             }
         }
 
@@ -568,7 +568,7 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
         }
 
         /** JUCE callback for a slider value change, give the value to the FAUST module. */
-        void sliderValueChanged(Slider* slider) override
+        void sliderValueChanged(juce::Slider* slider) override
         {
             float v = slider->getValue();
             modifyZone(FAUSTFLOAT(fConverter->ui2faust(v)));
@@ -585,7 +585,7 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
             switch (fType) {
                     
                 case HSlider: {
-                    int nameWidth = Font().getStringWidth(getName()) + kMargin * 2;
+                    int nameWidth = juce::Font().getStringWidth(getName()) + kMargin * 2;
                     x = nameWidth;
                     y = 0;
                     width = getWidth() - nameWidth;
@@ -605,16 +605,16 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
                     height = kNumEntryHeight;
                     // x position is the top left corner horizontal position of the box
                     // and not the top left of the NumEntry label, so we have to do that
-                    x = (getWidth() - width)/2 + (Font().getStringWidth(getName()) + kMargin)/2;
+                    x = (getWidth() - width)/2 + (juce::Font().getStringWidth(getName()) + kMargin)/2;
                     y = (getHeight() - height)/2;
                     break;
                     
                 case Knob:
                     // The knob name needs to be displayed, kNameHeight pixels
-                    height = width = jmin(getHeight() - kNameHeight, kKnobHeight);
+                    height = width = juce::jmin(getHeight() - kNameHeight, kKnobHeight);
                     x = (getWidth() - width)/2;
                     // kNameHeight pixels for the knob name still
-                    y = jmax((getHeight() - height)/2, kNameHeight);
+                    y = juce::jmax((getHeight() - height)/2, kNameHeight);
                     break;
                     
                 default:
@@ -633,7 +633,7 @@ class uiButton : public uiComponent, private juce::Button::Listener
     
     private:
         
-        TextButton fButton;
+        juce::TextButton fButton;
 
     public:
         /**
@@ -642,7 +642,7 @@ class uiButton : public uiComponent, private juce::Button::Listener
          *
          * \param   gui, zone, w, h, tooltip, label uiComponent variable.
          */
-        uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, label)
+        uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, juce::String label, juce::String tooltip) :  uiComponent(gui, zone, w, h, label)
         {
             int x = 0;
             int y = (getHeight() - kButtonHeight)/2;
@@ -659,11 +659,11 @@ class uiButton : public uiComponent, private juce::Button::Listener
          * which uiButton derives from. Control of user actions is done in buttonStateChanged.
          * \see buttonStateChanged
          */
-        void buttonClicked (Button* button) override
+        void buttonClicked (juce::Button* button) override
         {}
 
         /** Indicate to the FAUST module when the button is pressed and released. */
-        void buttonStateChanged (Button* button) override
+        void buttonStateChanged (juce::Button* button) override
         {
             if (button->isDown()) {
                 modifyZone(FAUSTFLOAT(1));
@@ -686,7 +686,7 @@ class uiButton : public uiComponent, private juce::Button::Listener
         {
             int x = kMargin;
             int width = getWidth() - 2 * kMargin;
-            int height = jmin(getHeight(), kButtonHeight);
+            int height = juce::jmin(getHeight(), kButtonHeight);
             int y = (getHeight()-height)/2;
             fButton.setBounds(x, y, width, height);
         }
@@ -699,16 +699,16 @@ class uiCheckButton : public uiComponent, private juce::Button::Listener
     
     private:
         
-        ToggleButton fCheckButton;
+        juce::ToggleButton fCheckButton;
 
     public:
         /**
          * \brief   Constructor.
          * \details Initialize all uiComponent variables and juce::ToggleButton parameters.
          *
-         * \param   gui, zone, w, h, label, tooltip     uiComponent variables.
+         * \param   gui, zone, w, h, label, tooltip  uiComponent variables.
          */
-        uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, label)
+        uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, juce::String label, juce::String tooltip) : uiComponent(gui, zone, w, h, label)
         {
             int x = 0;
             int y = (getHeight()-h)/2;
@@ -721,7 +721,7 @@ class uiCheckButton : public uiComponent, private juce::Button::Listener
         }
 
         /** Indicate to the FAUST module when the button is toggled or not. */
-        void buttonClicked(Button* button) override
+        void buttonClicked(juce::Button* button) override
         {
             //std::cout << getName() << " : " << button->getToggleState() << std::endl;
             modifyZone(button->getToggleState());
@@ -748,7 +748,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
     
     private:
         
-        ComboBox fComboBox;
+        juce::ComboBox fComboBox;
         std::vector<double> fValues;
 
     public:
@@ -765,11 +765,11 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
          * \param   hi                                  Highest value possible.
          * \param   mdescr                              Menu description. Contains the names of the items associated with their "value".
          */
-        uiMenu(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, label)
+        uiMenu(GUI* gui, FAUSTFLOAT* zone, juce::String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, juce::String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, label)
         {
             //Init ComboBox parameters
             fComboBox.setEditableText(false);
-            fComboBox.setJustificationType(Justification::centred);
+            fComboBox.setJustificationType(juce::Justification::centred);
             fComboBox.addListener(this);
             addAndMakeVisible(fComboBox);
 
@@ -788,7 +788,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
                     if ((v >= lo) && (v <= hi)) {
                         // It is a valid value : add corresponding menu item
                         // item astrating at 1 because index 0 is reserved for a non-defined item.
-                        fComboBox.addItem(String(names[i].c_str()), item++);
+                        fComboBox.addItem(juce::String(names[i].c_str()), item++);
                         fValues.push_back(v);
 
                         // Check if this item is a good candidate to represent the current value
@@ -809,7 +809,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
         }
 
         /** Indicate to the FAUST module when the selected items is changed. */
-        void comboBoxChanged (ComboBox* cb) override
+        void comboBoxChanged (juce::ComboBox* cb) override
         {
             //std::cout << getName( )<< " : " << cb->getSelectedId() - 1 << std::endl;
             // -1 because of the starting item  at 1 at the initialization
@@ -844,10 +844,10 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
         }
 
         /** Display the name of the Menu */
-        virtual void paint(Graphics& g) override
+        virtual void paint(juce::Graphics& g) override
         {
-            g.setColour(Colours::black);
-            g.drawText(getName(), getLocalBounds().withHeight(getHeight()/2), Justification::centredTop);
+            g.setColour(juce::Colours::black);
+            g.drawText(getName(), getLocalBounds().withHeight(getHeight()/2), juce::Justification::centredTop);
         }
     
 };
@@ -859,7 +859,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
     private:
         
         bool fIsVertical;
-        OwnedArray<ToggleButton> fButtons;
+        juce::OwnedArray<juce::ToggleButton> fButtons;
         std::vector<double> fValues;
 
     public:
@@ -882,9 +882,9 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
          * \param   fRadioGroupID               RadioButton being multiple CheckButton in JUCE,
          *                                      we need an ID to know which are linked together.
          */
-        uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, std::vector<std::string>& names, std::vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
+        uiRadioButton(GUI* gui, FAUSTFLOAT* zone, juce::String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, std::vector<std::string>& names, std::vector<double>& values, juce::String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
         {
-            ToggleButton* defaultbutton = 0;
+            juce::ToggleButton* defaultbutton = 0;
             double mindelta = FLT_MAX;
 
             for (int i = 0; i < names.size(); i++) {
@@ -892,7 +892,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
                 if ((v >= lo) && (v <= hi)) {
 
                     // It is a valid value included in slider's range
-                    ToggleButton* tb = new ToggleButton(names[i]);
+                    juce::ToggleButton* tb = new juce::ToggleButton(names[i]);
                     addAndMakeVisible(tb);
                     tb->setRadioGroupId (radioGroupID);
                     tb->addListener(this);
@@ -910,7 +910,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
             }
             // check the best candidate to represent the current value
             if (defaultbutton) {
-                defaultbutton->setToggleState (true, dontSendNotification);
+                defaultbutton->setToggleState (true, juce::dontSendNotification);
             }
         }
      
@@ -931,7 +931,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
                 }
             }
             if (defaultitem > -1) {
-                fButtons.operator[](defaultitem)->setToggleState (true, dontSendNotification);
+                fButtons.operator[](defaultitem)->setToggleState (true, juce::dontSendNotification);
             }
         }
 
@@ -952,16 +952,16 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         }
         
         /** Display the RadioButton name */
-        virtual void paint(Graphics& g) override
+        virtual void paint(juce::Graphics& g) override
         {
-            g.setColour(Colours::black);
-            g.drawText(getName(), getLocalBounds().withHeight(kNameHeight), Justification::centredTop);
+            g.setColour(juce::Colours::black);
+            g.drawText(getName(), getLocalBounds().withHeight(kNameHeight), juce::Justification::centredTop);
         }
 
         /** Check which button is checked, and give its "value" to the FAUST module */
-        void buttonClicked(Button* button) override
+    void buttonClicked(juce::Button* button) override
         {
-            ToggleButton* checkButton = dynamic_cast<ToggleButton*>(button);
+            juce::ToggleButton* checkButton = dynamic_cast<juce::ToggleButton*>(button);
             //std::cout << getName() << " : " << fButtons.indexOf(checkButton) << std::endl;
             modifyZone(fButtons.indexOf(checkButton));
         }
@@ -972,7 +972,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
  * \brief   Intern class for VU-meter
  * \details There is no JUCE widgets for VU-meter, so its fully designed in this class.
  */
-class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
+class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public juce::Timer
 {
     
     private:
@@ -982,8 +982,8 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         FAUSTFLOAT fScaleMin, fScaleMax; // Range in dB if needed.
         bool fDB;                        // True if it's a dB VU-meter, false otherwise.
         VUMeterType fStyle;
-        String fUnit;
-        Label fLabel;               // Name of the VU-meter.
+        juce::String fUnit;
+        juce::Label fLabel;               // Name of the VU-meter.
     
         bool isNameDisplayed()
         {
@@ -1008,12 +1008,12 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         }
         
         /** Contain all the initialization need for our Label */
-        void setupLabel(String tooltip)
+        void setupLabel(juce::String tooltip)
         {
             setLabelPos();
             fLabel.setEditable(false, false, false);
-            fLabel.setJustificationType(Justification::centred);
-            fLabel.setText(String((int)*fZone) + " " + fUnit, dontSendNotification);
+            fLabel.setJustificationType(juce::Justification::centred);
+            fLabel.setText(juce::String((int)*fZone) + " " + fUnit, juce::dontSendNotification);
             fLabel.setTooltip(tooltip);
             addAndMakeVisible(fLabel);
         }
@@ -1031,7 +1031,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   level   Current level that needs to be displayed.
          * \param   dB      True if it's a db level, false otherwise.
          */
-        void drawHBargraph(Graphics& g, int width, int height)
+        void drawHBargraph(juce::Graphics& g, int width, int height)
         {
             float x;
             float y = (float)(getHeight()-height)/2;
@@ -1039,23 +1039,23 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                 x = 120;
                 width -= x;
                 // VUMeter Name
-                g.setColour(Colours::black);
-                g.drawText(getName(), 0, y, 60, height, Justification::centredRight);
+                g.setColour(juce::Colours::black);
+                g.drawText(getName(), 0, y, 60, height, juce::Justification::centredRight);
             } else {
                 x = 60;
                 width -= x;
             }
             
             // VUMeter Background
-            g.setColour(Colours::lightgrey);
+            g.setColour(juce::Colours::lightgrey);
             g.fillRect(x, y, (float)width, (float)height);
-            g.setColour(Colours::black);
+            g.setColour(juce::Colours::black);
             g.fillRect(x+1.0f, y+1.0f, (float)width-2, (float)height-2);
             
             // Label Window
-            g.setColour(Colours::darkgrey);
+            g.setColour(juce::Colours::darkgrey);
             g.fillRect((int)x-58, (getHeight()-22)/2, 52, 22);
-            g.setColour(Colours::white.withAlpha(0.8f));
+            g.setColour(juce::Colours::white.withAlpha(0.8f));
             g.fillRect((int)x-57, (getHeight()-20)/2, 50, 20);
             
             // Call the appropriate drawing method for the level.
@@ -1070,11 +1070,11 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   height  Height of the VU-meter.
          * \param   level   Current level of the VU-meter, in dB.
          */
-        void drawHBargraphDB(Graphics& g, int y, int height)
+        void drawHBargraphDB(juce::Graphics& g, int y, int height)
         {
             // Drawing Scale
             g.setFont(9.0f);
-            g.setColour(Colours::white);
+            g.setColour(juce::Colours::white);
             for (int i = -10; i > fMin; i -= 10) {
                 paintScale(g, i);
             }
@@ -1089,28 +1089,28 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             // and so to start the new color rectangle at the end of the previous one.
             
             // Drawing from the minimal range to the current level, or -10dB.
-            g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(fLevel)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float)height-2);
+            g.setColour(juce::Colour((juce::uint8)40, (juce::uint8)160, (juce::uint8)40, (juce::uint8)alpha));
+            g.fillRect(dB2x(fMin), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float)height-2);
             
             // Drawing from -10dB to the current level, or -6dB.
             if (dblevel > dB2Scale(-10)) {
-                g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(fLevel)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float)height-2);
+                g.setColour(juce::Colour((juce::uint8)160, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(dB2x(-10), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float)height-2);
             }
             // Drawing from -6dB to the current level, or -3dB.
             if (dblevel > dB2Scale(-6)) {
-                g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(fLevel)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float)height-2);
+                g.setColour(juce::Colour((juce::uint8)220, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(dB2x(-6), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float)height-2);
             }
             // Drawing from -3dB to the current level, or 0dB.
             if (dblevel > dB2Scale(-3)) {
-                g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(fLevel)-dB2x(-3), dB2x(0)-dB2x(-3)), (float)height-2);
+                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)160, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(dB2x(-3), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(-3), dB2x(0)-dB2x(-3)), (float)height-2);
             }
             // Drawing from 0dB to the current level, or the max range.
             if (dblevel > dB2Scale(0)) {
-                g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(fLevel)-dB2x(0), dB2x(fMax)-dB2x(0)), (float)height-2);
+                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)0, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(dB2x(0), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(0), dB2x(fMax)-dB2x(0)), (float)height-2);
             }
         }
         
@@ -1124,23 +1124,23 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   width   Width of the VU-meter.
          * \param   level   Current level of the VU-meter, in linear logic.
          */
-        void drawHBargraphLin(Graphics& g, int x, int y, int width, int height)
+        void drawHBargraphLin(juce::Graphics& g, int x, int y, int width, int height)
         {
             int alpha = 200;
-            Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
+            juce::Colour c = juce::Colour((juce::uint8)255, (juce::uint8)165, (juce::uint8)0, (juce::uint8)alpha);
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, y+1.0f, jmin<float>(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
+            g.fillRect(x+1.0f, y+1.0f, juce::jmin<float>(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin<float>((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
+                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, juce::jmin<float>((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
             }
             // Drawing from 90% of the VU-meter to the current level, or the maximal range of the VU-meter
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin<float>((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
+                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, juce::jmin<float>((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
             }
         }
         /**
@@ -1156,7 +1156,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   level   Current level that needs to be displayed.
          * \param   dB      True if it's a db level, false otherwise.
          */
-        void drawVBargraph(Graphics& g, int width, int height)
+        void drawVBargraph(juce::Graphics& g, int width, int height)
         {
             float x = (float)(getWidth()-width)/2;
             float y;
@@ -1164,24 +1164,24 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                 y = (float)getHeight()-height+15;
                 height -= 40;
                 // VUMeter Name
-                g.setColour(Colours::black);
-                g.drawText(getName(), getLocalBounds(), Justification::centredTop);
+                g.setColour(juce::Colours::black);
+                g.drawText(getName(), getLocalBounds(), juce::Justification::centredTop);
             } else {
                 y = (float)getHeight()-height;
                 height -= 25;
             }
             
             // VUMeter Background
-            g.setColour(Colours::lightgrey);
+            g.setColour(juce::Colours::lightgrey);
             g.fillRect(x, y, (float)width, (float)height);
-            g.setColour(Colours::black);
+            g.setColour(juce::Colours::black);
             g.fillRect(x+1.0f, y+1.0f, (float)width-2, (float)height-2);
             
             // Label window
-            g.setColour(Colours::darkgrey);
-            g.fillRect(jmax((getWidth()-50)/2, 0), getHeight()-23, jmin(getWidth(), 50), 22);
-            g.setColour(Colours::white.withAlpha(0.8f));
-            g.fillRect(jmax((getWidth()-48)/2, 1), getHeight()-22, jmin(getWidth()-2, 48), 20);
+            g.setColour(juce::Colours::darkgrey);
+            g.fillRect(juce::jmax((getWidth()-50)/2, 0), getHeight()-23, juce::jmin(getWidth(), 50), 22);
+            g.setColour(juce::Colours::white.withAlpha(0.8f));
+            g.fillRect(juce::jmax((getWidth()-48)/2, 1), getHeight()-22, juce::jmin(getWidth()-2, 48), 20);
             
             fDB ? drawVBargraphDB (g, x, width) : drawVBargraphLin(g, x, width);
         }
@@ -1194,11 +1194,11 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   width   Width of the VU-meter.
          * \param   level   Current level of the VU-meter, in dB.
          */
-        void drawVBargraphDB(Graphics& g, int x, int width)
+        void drawVBargraphDB(juce::Graphics& g, int x, int width)
         {
             // Drawing Scale
             g.setFont(9.0f);
-            g.setColour(Colours::white);
+            g.setColour(juce::Colours::white);
             for (int i = -10; i > fMin; i -= 10) {
                 paintScale(g, i);
             }
@@ -1213,28 +1213,28 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             // and so to start the new color rectangle at the end of the previous one.
             
             // Drawing from the minimal range to the current level, or -10dB.
-            g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-10)), (float)width-2, dB2y(fMin)-jmax(dB2y(fLevel), dB2y(-10)));
+            g.setColour(juce::Colour((juce::uint8)40, (juce::uint8)160, (juce::uint8)40, (juce::uint8)alpha));
+            g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(-10)), (float)width-2, dB2y(fMin)-juce::jmax(dB2y(fLevel), dB2y(-10)));
             
             // Drawing from -10dB to the current level, or -6dB.
             if (dblevel > dB2Scale(-10)) {
-                g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-6)), (float)width-2, dB2y(-10)-jmax(dB2y(fLevel), dB2y(-6)));
+                g.setColour(juce::Colour((juce::uint8)160, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(-6)), (float)width-2, dB2y(-10)-juce::jmax(dB2y(fLevel), dB2y(-6)));
             }
             // Drawing from -6dB to the current level, or -3dB.
             if (dblevel > dB2Scale(-6)) {
-                g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-3)), (float)width-2, dB2y(-6)-jmax(dB2y(fLevel), dB2y(-3)));
+                g.setColour(juce::Colour((juce::uint8)220, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(-3)), (float)width-2, dB2y(-6)-juce::jmax(dB2y(fLevel), dB2y(-3)));
             }
             // Drawing from -3dB to the current level, or 0dB.
             if (dblevel > dB2Scale(-3)) {
-                g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(0)), (float)width-2, dB2y(-3)-jmax(dB2y(fLevel), dB2y(0)));
+                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)160, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(0)), (float)width-2, dB2y(-3)-juce::jmax(dB2y(fLevel), dB2y(0)));
             }
             // Drawing from 0dB to the current level, or the maximum range.
             if (dblevel > dB2Scale(0)) {
-                g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(fMax)), (float)width-2, dB2y(0)-jmax(dB2y(fLevel), dB2y(fMax)));
+                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)0, (juce::uint8)20, (juce::uint8)alpha));
+                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(fMax)), (float)width-2, dB2y(0)-juce::jmax(dB2y(fLevel), dB2y(fMax)));
             }
         }
         
@@ -1246,25 +1246,25 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   width   Width of the VU-meter.
          * \param   level   Current level of the VU-meter, in linear logic.
          */
-        void drawVBargraphLin(Graphics& g, int x, int width)
+        void drawVBargraphLin(juce::Graphics& g, int x, int width)
         {
             int alpha = 200;
-            Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
+            juce::Colour c = juce::Colour((juce::uint8)255, (juce::uint8)165, (juce::uint8)0, (juce::uint8)alpha);
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter.
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2)), (float)width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2)));
+            g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(0.2)), (float)width-2, lin2y(fMin)-juce::jmax(lin2y(fLevel), lin2y(0.2)));
             
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9)), (float)width-2, lin2y(0.2)-jmax(lin2y(fLevel), lin2y(0.9)));
+                g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(0.9)), (float)width-2, lin2y(0.2)-juce::jmax(lin2y(fLevel), lin2y(0.9)));
             }
             
             // Drawing from 90% of the VU-meter to the current level, or the maximum range.
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(fMax)), (float)width-2, lin2y(0.9)-jmax(lin2y(fLevel), lin2y(fMax)));
+                g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(fMax)), (float)width-2, lin2y(0.9)-juce::jmax(lin2y(fLevel), lin2y(fMax)));
             }
         }
         
@@ -1276,11 +1276,11 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   height  Height of the LED.
          * \param   level   Current level of the VU-meter, dB or not.
          */
-        void drawLed(Graphics& g, int width, int height)
+        void drawLed(juce::Graphics& g, int width, int height)
         {
             float x = (float)(getWidth() - width)/2;
             float y = (float)(getHeight() - height)/2;
-            g.setColour(Colours::black);
+            g.setColour(juce::Colours::black);
             g.fillEllipse(x, y, width, height);
             
             if (fDB) {
@@ -1288,24 +1288,24 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                 FAUSTFLOAT dblevel = dB2Scale(fLevel);
                 
                 // Adjust the color depending on the current level
-                g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
+                g.setColour(juce::Colour((juce::uint8)40, (juce::uint8)160, (juce::uint8)40, (juce::uint8)alpha));
                 if (dblevel > dB2Scale(-10)) {
-                    g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
+                    g.setColour(juce::Colour((juce::uint8)160, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
                 }
                 if (dblevel > dB2Scale(-6)) {
-                    g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
+                    g.setColour(juce::Colour((juce::uint8)220, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
                 }
                 if (dblevel > dB2Scale(-3)) {
-                    g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
+                    g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)160, (juce::uint8)20, (juce::uint8)alpha));
                 }
                 if (dblevel > dB2Scale(0))  {
-                    g.setColour(Colour((uint8)240, (uint8)0, (uint8)20, (uint8)alpha));
+                    g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)0, (juce::uint8)20, (juce::uint8)alpha));
                 }
                 
                 g.fillEllipse(x+1, y+1, width-2, height-2);
             } else {
                 // The alpha depend on the level, from 0 to 1
-                g.setColour(Colours::red.withAlpha((float)fLevel));
+                g.setColour(juce::Colours::red.withAlpha((float)fLevel));
                 g.fillEllipse(x+1, y+1, width-2, height-2);
             }
         }
@@ -1318,16 +1318,16 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   height  Height of the Numerical Display.
          * \param   level   Current level of the VU-meter.
          */
-        void drawNumDisplay(Graphics& g, int width, int height)
+        void drawNumDisplay(juce::Graphics& g, int width, int height)
         {
             // Centering it
             int x = (getWidth()-width) / 2;
             int y = (getHeight()-height) / 2;
             
             // Draw box.
-            g.setColour(Colours::darkgrey);
+            g.setColour(juce::Colours::darkgrey);
             g.fillRect(x, y, width, height);
-            g.setColour(Colours::white.withAlpha(0.8f));
+            g.setColour(juce::Colours::white.withAlpha(0.8f));
             g.fillRect(x+1, y+1, width-2, height-2);
             
             // Text is handled by the setLabelPos() function
@@ -1397,7 +1397,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         }
         
         /** Write the different level included in the VU-Meter range. */
-        void paintScale(Graphics& g, float num)
+        void paintScale(juce::Graphics& g, float num)
         {
             juce::Rectangle<int> r;
             
@@ -1406,13 +1406,13 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                                          dB2y(num),                               // Vertically centred with 20 height.
                                          (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
                                          20);                                     // 20 height.
-                g.drawText(String(num), r, Justification::centredRight, false);
+                g.drawText(juce::String(num), r, juce::Justification::centredRight, false);
             } else {
                 r = juce::Rectangle<int>(dB2x(num)-10,                            // Horizontally centred with 20 width.
                                         (getHeight()-kHBargraphHeight/2)/2 + 1,  // Top side of the VU-Meter.
                                         20,                                      // 20 width.
                                         (kHBargraphHeight/2)-2);                 // VU-Meter height with margin
-                g.drawText(String(num), r, Justification::centredTop, false);
+                g.drawText(juce::String(num), r, juce::Justification::centredTop, false);
             }
         }
         
@@ -1425,7 +1425,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             } else {
                 fLevel = range((rawLevel-fMin)/(fMax-fMin));
             }
-            fLabel.setText(String((int)rawLevel) + " " + fUnit, dontSendNotification);
+            fLabel.setText(juce::String((int)rawLevel) + " " + fUnit, juce::dontSendNotification);
         }
         
         FAUSTFLOAT range(FAUSTFLOAT level) { return (level > fMax) ? fMax : ((level < fMin) ? fMin : level); }
@@ -1443,7 +1443,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   style                               Type of the VU-meter (see VUMeterType).
          * \param   vert                                True if vertical, false if horizontal.
          */
-        uiVUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
+        uiVUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, juce::String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, juce::String unit, juce::String tooltip, VUMeterType style, bool vert)
             : uiComponent(gui, zone, w, h, label), fMin(mini), fMax(maxi), fStyle(style)
         {
             fLevel = 0;         // Initialization of the level
@@ -1541,7 +1541,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \see drawVBargraph
          * \see drawHBargraph
          */
-        void paint(Graphics& g) override
+        void paint(juce::Graphics& g) override
         {
             switch (fStyle) {
                 case Led:
@@ -1576,7 +1576,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
 };
 
 /** Intern class for tab widget */
-class uiTabBox : public uiBase, public TabbedComponent
+class uiTabBox : public uiBase, public juce::TabbedComponent
 {
     
 public:
@@ -1584,14 +1584,14 @@ public:
      * \brief   Constructor.
      * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabBox size at 0
      */
-    uiTabBox():uiBase(),TabbedComponent(TabbedButtonBar::TabsAtTop)
+    uiTabBox():uiBase(),juce::TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
     {}
     
     /**
      * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
      * and the uiTabBox size to fit the biggest of its child.
      */
-    void init(Component* comp = nullptr) override
+    void init(juce::Component* comp = nullptr) override
     {
         for (int i = 0; i < getNumTabs(); i++) {
             Component* comp = getTabContentComponent(i);
@@ -1599,8 +1599,8 @@ public:
             base_comp->init(comp);
             
             // The TabbedComponent size should be as big as its bigger child's dimension, done here
-            fTotalWidth = jmax(fTotalWidth, base_comp->getTotalWidth());
-            fTotalHeight = jmax(fTotalHeight, base_comp->getTotalHeight());
+            fTotalWidth = juce::jmax(fTotalWidth, base_comp->getTotalWidth());
+            fTotalHeight = juce::jmax(fTotalHeight, base_comp->getTotalHeight());
         }
         
         fTotalHeight += 30;  // 30 height for the TabBar.
@@ -1613,8 +1613,8 @@ public:
             comp->setRecommendedSize();
             
             // The TabbedComponent size should be as big as its bigger child's dimension, done here
-            fTotalWidth = jmax(fTotalWidth, comp->getTotalWidth());
-            fTotalHeight = jmax(fTotalHeight, comp->getTotalHeight());
+            fTotalWidth = juce::jmax(fTotalWidth, comp->getTotalWidth());
+            fTotalHeight = juce::jmax(fTotalHeight, comp->getTotalHeight());
         }
         
         fTotalHeight += 30;  // 30 height for the TabBar
@@ -1623,7 +1623,7 @@ public:
     void add(Component* comp) override
     {
         // Name of the component is moved in Tab (so removed from component)
-        TabbedComponent::addTab(comp->getName(), Colours::white, comp, true);
+        juce::TabbedComponent::addTab(comp->getName(), juce::Colours::white, comp, true);
         comp->setName("");
     }
     
@@ -1633,7 +1633,7 @@ public:
  * \brief   Intern class for box widgets
  * \details That's the class where the whole layout is calculated.
  */
-class uiBox : public uiBase, public Component
+class uiBox : public uiBase, public juce::Component
 {
   
     private:
@@ -1678,7 +1678,7 @@ class uiBox : public uiBase, public Component
          * \param   vert        True if it's a vertical box, false otherwise.
          * \param   boxName     Name of the uiBox.
          */
-        uiBox(bool vert, String boxName): uiBase(0,0), Component(boxName), fIsVertical(vert)
+        uiBox(bool vert, juce::String boxName): uiBase(0,0), juce::Component(boxName), fIsVertical(vert)
         {}
     
         /**
@@ -1715,11 +1715,11 @@ class uiBox : public uiBase, public Component
             for (int j = 0; j < getNumChildComponents(); j++) {
                 uiBase* base_comp = dynamic_cast<uiBase*>(getChildComponent(j));
                 if (fIsVertical) {
-                    fDisplayRectWidth = jmax(fDisplayRectWidth, base_comp->getTotalWidth());
+                    fDisplayRectWidth = juce::jmax(fDisplayRectWidth, base_comp->getTotalWidth());
                     fDisplayRectHeight += base_comp->getTotalHeight();
                 } else {
                     fDisplayRectWidth += base_comp->getTotalWidth();
-                    fDisplayRectHeight = jmax(fDisplayRectHeight, base_comp->getTotalHeight());
+                    fDisplayRectHeight = juce::jmax(fDisplayRectHeight, base_comp->getTotalHeight());
                 }
             }
             
@@ -1744,7 +1744,7 @@ class uiBox : public uiBase, public Component
         }
 
         /** Initiate the current box ratio, and its child's ones recursively. */
-        void init(Component* comp = nullptr) override
+        void init(juce::Component* comp = nullptr) override
         {
             uiBase::init(this);
             
@@ -1778,7 +1778,7 @@ class uiBox : public uiBase, public Component
             
             // Give child components an adapt size depending on its ratio and the current box size
             for (int i = 0; i < getNumChildComponents(); i++) {
-                Component* comp = getChildComponent(i);
+                juce::Component* comp = getChildComponent(i);
                 uiBase* base_comp = dynamic_cast<uiBase*>(comp);
                 
                 if (fIsVertical) {
@@ -1797,20 +1797,20 @@ class uiBox : public uiBase, public Component
          * Fill the uiBox bounds with a grey color, different shades depending on its order.
          * Write the uiBox name if it needs to.
          */
-        void paint(Graphics& g) override
+        void paint(juce::Graphics& g) override
         {
             // Fill the box background in gray shades
-            g.setColour(Colours::black.withAlpha(0.05f));
+            g.setColour(juce::Colours::black.withAlpha(0.05f));
             g.fillRect(getLocalBounds());
 
             // Display the name if it's needed
             if (isNameDisplayed()) {
-                g.setColour(Colours::black);
-                g.drawText(getName(), getLocalBounds().withHeight(kNameHeight), Justification::centred);
+                g.setColour(juce::Colours::black);
+                g.drawText(getName(), getLocalBounds().withHeight(kNameHeight), juce::Justification::centred);
             }
         }
         
-        void add(Component* comp) override
+        void add(juce::Component* comp) override
         {
             addAndMakeVisible(comp);
         }
@@ -1818,7 +1818,7 @@ class uiBox : public uiBase, public Component
 };
 
 /** Class in charge of doing the glue between FAUST and JUCE */
-class JuceGUI : public GUI, public MetaDataUI, public Component
+class JuceGUI : public GUI, public MetaDataUI, public juce::Component
 {
     
     private:
@@ -1828,8 +1828,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         uiBase* fCurrentBox = nullptr;   // Current box used in buildUserInterface logic.
         
         int fRadioGroupID;               // In case of radio buttons.
-        //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
-        std::unique_ptr<LookAndFeel> fLaf = std::make_unique<LookAndFeel_V4>();
+        std::unique_ptr<juce::LookAndFeel> fLaf = std::make_unique<juce::LookAndFeel_V4>();
     
         FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
         {
@@ -1840,7 +1839,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         void openBox(uiBase* box)
         {
             if (fCurrentBox) {
-                fCurrentBox->add(dynamic_cast<Component*>(box));
+                fCurrentBox->add(dynamic_cast<juce::Component*>(box));
                 fBoxStack.push(fCurrentBox);
             }
             fCurrentBox = box;
@@ -1856,7 +1855,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             } else if (isMenu(zone)) {
                 addMenu(label, zone, defaultVal(zone, init), min, max, step, fMenuDescription[zone].c_str());
             } else {
-                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), type));
+                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, defaultVal(zone, init), min, max, step, juce::String(label), juce::String(fUnit[zone]), juce::String(fTooltip[zone]), getScale(zone), type));
             }
         }
         
@@ -1872,36 +1871,36 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             int checkButtonWidth = 0;
             for (int i = 0; i < names.size(); i++) {
                 // Checking the maximum of horizontal space needed to display the radio buttons
-                checkButtonWidth = jmax(Font().getStringWidth(String(names[i])) + 15, checkButtonWidth);
+                checkButtonWidth = juce::jmax(juce::Font().getStringWidth(juce::String(names[i])) + 15, checkButtonWidth);
             }
             
             if (vert) {
-                fCurrentBox->add(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, names.size() * (kRadioButtonHeight - 25) + 25, defaultVal(zone, init), min, max, true, names, values, String(fTooltip[zone]), fRadioGroupID++));
+                fCurrentBox->add(new uiRadioButton(this, zone, juce::String(label), kCheckButtonWidth, names.size() * (kRadioButtonHeight - 25) + 25, defaultVal(zone, init), min, max, true, names, values, juce::String(fTooltip[zone]), fRadioGroupID++));
             } else {
-                fCurrentBox->add(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, defaultVal(zone, init), min, max, false, names, values, String(fTooltip[zone]), fRadioGroupID++));
+                fCurrentBox->add(new uiRadioButton(this, zone, juce::String(label), kCheckButtonWidth, kRadioButtonHeight, defaultVal(zone, init), min, max, false, names, values, juce::String(fTooltip[zone]), fRadioGroupID++));
             }
         }
         
         /** Add a menu to the user interface. */
         void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
         {
-            fCurrentBox->add(new uiMenu(this, zone, String(label), kMenuWidth, kMenuHeight, defaultVal(zone, init), min, max, String(fTooltip[zone]), mdescr));
+            fCurrentBox->add(new uiMenu(this, zone, juce::String(label), kMenuWidth, kMenuHeight, defaultVal(zone, init), min, max, juce::String(fTooltip[zone]), mdescr));
         }
         
         /** Add a ciruclar slider to the user interface. */
         void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), Knob));
+            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, defaultVal(zone, init), min, max, step, juce::String(label), juce::String(fUnit[zone]), juce::String(fTooltip[zone]), getScale(zone), Knob));
         }
         
         /** Add a bargraph to the user interface. */
         void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, int kWidth, int kHeight, VUMeterType type)
         {
             if (isLed(zone)) {
-                addLed(String(label), zone, min, max);
+                addLed(juce::String(label), zone, min, max);
             } else if (isNumerical(zone)) {
-                addNumericalDisplay(String(label), zone, min, max);
+                addNumericalDisplay(juce::String(label), zone, min, max);
             } else {
-                fCurrentBox->add(new uiVUMeter (this, zone, kWidth, kHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), type, false));
+                fCurrentBox->add(new uiVUMeter (this, zone, kWidth, kHeight, juce::String(label), min, max, juce::String(fUnit[zone]), juce::String(fTooltip[zone]), type, false));
             }
         }
         
@@ -1947,13 +1946,13 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Add a new vertical box to the user interface. */
         virtual void openVerticalBox(const char* label) override
         {
-            openBox(new uiBox(true, String(label)));
+            openBox(new uiBox(true, juce::String(label)));
         }
 
         /** Add a new horizontal box to the user interface. */
         virtual void openHorizontalBox(const char* label) override
         {
-            openBox(new uiBox(false, String(label)));
+            openBox(new uiBox(false, juce::String(label)));
         }
 
         /** Close the current box. */
@@ -1963,7 +1962,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             
             if (fBoxStack.empty()) {
                 // Add root box in JuceGUI component
-                addAndMakeVisible(dynamic_cast<Component*>(fCurrentBox));
+                addAndMakeVisible(dynamic_cast<juce::Component*>(fCurrentBox));
                 fCurrentBox->init();
                 // Force correct draw
                 resized();
@@ -1982,30 +1981,30 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Add a vertical slider to the user interface. */
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
-            int newWidth = jmax(Font().getStringWidth(String(label)), kVSliderWidth) + kMargin;
+            int newWidth = juce::jmax(juce::Font().getStringWidth(juce::String(label)), kVSliderWidth) + kMargin;
             addSlider(label, zone, init, min, max, step, newWidth, kVSliderHeight, VSlider);
         }
         
         /** Add a button to the user interface. */
         virtual void addButton(const char* label, FAUSTFLOAT* zone) override
         {
-            fCurrentBox->add(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label), String(fTooltip[zone])));
+            fCurrentBox->add(new uiButton(this, zone, kButtonWidth, kButtonHeight, juce::String(label), juce::String(fTooltip[zone])));
         }
         
         /** Add a check button to the user interface. */
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) override
         {
             // newWidth is his text size, plus the check box size
-            int newWidth = Font().getStringWidth(String(label)) + kCheckButtonWidth;
-            fCurrentBox->add(new uiCheckButton(this, zone, newWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
+            int newWidth = juce::Font().getStringWidth(juce::String(label)) + kCheckButtonWidth;
+            fCurrentBox->add(new uiCheckButton(this, zone, newWidth, kCheckButtonHeight, juce::String(label), juce::String(fTooltip[zone])));
         }
         
         /** Add a numerical entry to the user interface. */
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
             // kMargin pixels between the slider and his name
-            int newWidth = Font().getStringWidth(String(label)) + kNumEntryWidth + kMargin;
-            fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
+            int newWidth = juce::Font().getStringWidth(juce::String(label)) + kNumEntryWidth + kMargin;
+            fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, defaultVal(zone, init), min, max, step, juce::String(label), juce::String(fUnit[zone]), juce::String(fTooltip[zone]), getScale(zone), NumEntry));
         }
         
         /** Add a vertical bargraph to the user interface. */
@@ -2021,14 +2020,14 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         }
       
         /** Add a LED to the user interface. */
-        void addLed(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        void addLed(juce::String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            fCurrentBox->add(new uiVUMeter(this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
+            fCurrentBox->add(new uiVUMeter(this, zone, kLedWidth, kLedHeight, label, min, max, juce::String(fUnit[zone]), juce::String(fTooltip[zone]), Led, false));
         }
         
         /** Add a numerical display to the user interface. */
-        void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
-            fCurrentBox->add(new uiVUMeter(this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
+        void addNumericalDisplay(juce::String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
+            fCurrentBox->add(new uiVUMeter(this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, juce::String(fUnit[zone]), juce::String(fTooltip[zone]), NumDisplay, false));
         }
         
         /** Declare a metadata. */

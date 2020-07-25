@@ -59,11 +59,11 @@ process = vgroup("Granulator", environment {
     // Pulsar allows to create a more or less random 'pulse'(proba).
 
     pulsar = _<:((_<(ratio_env)):@(100))*(proba>(_,abs(no.noise):ba.latch)); 
-    speed = hslider ("[2]Speed[BELA: ANALOG_1]", 10,1,20,0.0001):fi.lowpass(1,1);
+    speed = hslider("[2]Speed[BELA: ANALOG_1]", 10,1,20,0.0001):fi.lowpass(1,1);
 
     ratio_env = 0.5;
     fade = (0.5); // min > 0 to avoid division by 0
 
-    proba = hslider ("[3]Probability[BELA: ANALOG_2]", 70,50,100,1) * (0.01):fi.lowpass(1,1);
-    duree_env = 1/(speed: / (ratio_env*(0.25)*fade));
+    proba = hslider("[3]Probability[BELA: ANALOG_2]", 70,50,100,1) * (0.01):fi.lowpass(1,1);
+    duree_env = 1/(speed: /(ratio_env*(0.25)*fade));
 }.process);

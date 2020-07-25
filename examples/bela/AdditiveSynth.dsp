@@ -37,7 +37,7 @@ partiel(rang) = os.oscrs(gFreq*(rang+1))*volume
         s = hslider("S%rang", 1, 0, 1, 0.001);
         r = 0.01 * hslider("R%rang", 1, 0, 800, 0.001);
 
-        volume = ((en.adsr(a,d,s,r,midigate))*vol) : max (0) : min (1);
+        volume = ((en.adsr(a,d,s,r,midigate))*vol) : max(0) : min(1);
     };
 
-process = par(i, 8, partiel(i)) :> / (8);
+process = par(i, 8, partiel(i)) :> /(8);

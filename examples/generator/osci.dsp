@@ -5,7 +5,7 @@ declare license 	"BSD";
 declare copyright 	"(c)GRAME 2009";
 
 //-----------------------------------------------
-// 			Sinusoidal Oscillator
+// 		  Sinusoidal Oscillator
 //		(with linear interpolation)
 //-----------------------------------------------
 

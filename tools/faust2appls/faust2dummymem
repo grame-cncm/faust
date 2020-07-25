@@ -10,7 +10,7 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/dummy-mem.cpp
 

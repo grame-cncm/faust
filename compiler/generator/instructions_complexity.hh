@@ -48,7 +48,7 @@ class InstComplexityVisitor : public DispatchVisitor {
     int fLoop;
     int fFunCall;
 
-    map<string, bool> gFunctionSymbolTable;
+    map<string, int> gFunctionSymbolTable;
 
    public:
     using DispatchVisitor::visit;
@@ -65,37 +65,59 @@ class InstComplexityVisitor : public DispatchVisitor {
           fLoop(0),
           fFunCall(0)
     {
-        // Mark all math.h functions as generated...
-        gFunctionSymbolTable["abs"] = true;
+        gFunctionSymbolTable["abs"] = 0;
 
-        gFunctionSymbolTable["max_i"] = true;
-        gFunctionSymbolTable["min_i"] = true;
+        gFunctionSymbolTable["max_i"] = 0;
+        gFunctionSymbolTable["min_i"] = 0;
 
-        gFunctionSymbolTable["max_f"] = true;
-        gFunctionSymbolTable["min_f"] = true;
+        gFunctionSymbolTable["max_f"] = 0;
+        gFunctionSymbolTable["min_f"] = 0;
 
         // Float version
-        gFunctionSymbolTable["absf"]       = true;
-        gFunctionSymbolTable["fabsf"]      = true;
-        gFunctionSymbolTable["acosf"]      = true;
-        gFunctionSymbolTable["asinf"]      = true;
-        gFunctionSymbolTable["atanf"]      = true;
-        gFunctionSymbolTable["atan2f"]     = true;
-        gFunctionSymbolTable["ceilf"]      = true;
-        gFunctionSymbolTable["cosf"]       = true;
-        gFunctionSymbolTable["expf"]       = true;
-        gFunctionSymbolTable["exp10f"]     = true;
-        gFunctionSymbolTable["floorf"]     = true;
-        gFunctionSymbolTable["fmodf"]      = true;
-        gFunctionSymbolTable["logf"]       = true;
-        gFunctionSymbolTable["log10f"]     = true;
-        gFunctionSymbolTable["powf"]       = true;
-        gFunctionSymbolTable["remainderf"] = true;
-        gFunctionSymbolTable["roundf"]     = true;
-        gFunctionSymbolTable["sinf"]       = true;
-        gFunctionSymbolTable["sqrtf"]      = true;
-        gFunctionSymbolTable["tanf"]       = true;
+        gFunctionSymbolTable["absf"]       = 0;
+        gFunctionSymbolTable["fabsf"]      = 0;
+        gFunctionSymbolTable["acosf"]      = 0;
+        gFunctionSymbolTable["asinf"]      = 0;
+        gFunctionSymbolTable["atanf"]      = 0;
+        gFunctionSymbolTable["atan2f"]     = 0;
+        gFunctionSymbolTable["ceilf"]      = 0;
+        gFunctionSymbolTable["cosf"]       = 0;
+        gFunctionSymbolTable["expf"]       = 0;
+        gFunctionSymbolTable["exp10f"]     = 0;
+        gFunctionSymbolTable["floorf"]     = 0;
+        gFunctionSymbolTable["fmodf"]      = 0;
+        gFunctionSymbolTable["logf"]       = 0;
+        gFunctionSymbolTable["log10f"]     = 0;
+        gFunctionSymbolTable["powf"]       = 0;
+        gFunctionSymbolTable["remainderf"] = 0;
+        gFunctionSymbolTable["roundf"]     = 0;
+        gFunctionSymbolTable["sinf"]       = 0;
+        gFunctionSymbolTable["sqrtf"]      = 0;
+        gFunctionSymbolTable["tanf"]       = 0;
+        
+        // Double version
+        gFunctionSymbolTable["abs"]       = 0;
+        gFunctionSymbolTable["fabs"]      = 0;
+        gFunctionSymbolTable["acos"]      = 0;
+        gFunctionSymbolTable["asin"]      = 0;
+        gFunctionSymbolTable["atan"]      = 0;
+        gFunctionSymbolTable["atan2"]     = 0;
+        gFunctionSymbolTable["ceil"]      = 0;
+        gFunctionSymbolTable["cos"]       = 0;
+        gFunctionSymbolTable["exp"]       = 0;
+        gFunctionSymbolTable["exp10"]     = 0;
+        gFunctionSymbolTable["floor"]     = 0;
+        gFunctionSymbolTable["fmod"]      = 0;
+        gFunctionSymbolTable["log"]       = 0;
+        gFunctionSymbolTable["log10"]     = 0;
+        gFunctionSymbolTable["pow"]       = 0;
+        gFunctionSymbolTable["remainder"] = 0;
+        gFunctionSymbolTable["round"]     = 0;
+        gFunctionSymbolTable["sin"]       = 0;
+        gFunctionSymbolTable["sqrt"]      = 0;
+        gFunctionSymbolTable["tan"]       = 0;
     }
+    
     virtual ~InstComplexityVisitor() {}
 
     virtual void visit(Printable* inst) {}
@@ -134,6 +156,7 @@ class InstComplexityVisitor : public DispatchVisitor {
     {
         fFunCall++;
         if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+            gFunctionSymbolTable[inst->fName]++;
             fMathop++;
         }
         DispatchVisitor::visit(inst);
@@ -185,7 +208,17 @@ class InstComplexityVisitor : public DispatchVisitor {
     {
         *dst << "Instructions complexity : ";
         *dst << "Load = " << fLoad << " Store = " << fStore << " Binop = " << fBinop;
-        *dst << " Mathop = " << fMathop << " Numbers = " << fNumbers << " Declare = " << fDeclare;
+        *dst << " Mathop = " << fMathop;
+        if (fMathop > 0) {
+            *dst << " [ ";
+            for (auto& it : gFunctionSymbolTable) {
+                if (it.second > 0) {
+                    *dst << it.first << " = " << it.second << " ";
+                }
+            }
+            *dst << "]";
+        }
+        *dst << " Numbers = " << fNumbers << " Declare = " << fDeclare;
         *dst << " Cast = " << fCast << " Select = " << fSelect << " Loop = " << fLoop << " FunCall = " << fFunCall
              << "\n";
     }
@@ -195,6 +228,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         fLoad += visitor.fLoad;
         fStore += visitor.fStore;
         fBinop += visitor.fBinop;
+        fMathop += visitor.fMathop;
         fNumbers += visitor.fNumbers;
         fDeclare += visitor.fDeclare;
         fCast += visitor.fCast;

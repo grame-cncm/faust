@@ -348,10 +348,19 @@ class CodeContainer : public virtual Garbageable {
     template <typename REAL>
     string generateJSON()
     {
-        JSONInstVisitor<REAL> json_visitor;
-        generateUserInterface(&json_visitor);
-        generateMetaData(&json_visitor);
-        return json_visitor.JSON(true);
+        JSONInstVisitor<REAL> visitor;
+     
+        // Prepare compilation options
+        stringstream compile_options;
+        gGlobal->printCompilationOptions(compile_options);
+      
+        // "name", "filename" found in medata
+        visitor.init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+        gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
+     
+        generateUserInterface(&visitor);
+        generateMetaData(&visitor);
+        return visitor.JSON(true);
     }
 
     DeclareFunInst* generateCalloc();

@@ -55,7 +55,12 @@ class RemainderPrim : public xtended {
         if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(remainder(double(n), double(m)));
         } else {
-            return tree(symbol(), args[0], args[1]);
+            if (gGlobal->gMathApprox) {
+                // res = x - (y * T(int(0.5f + x / y)));
+                return sigBinOp(kSub, args[0], sigBinOp(kMul, args[1], sigFloatCast(sigIntCast(sigBinOp(kAdd, sigReal(0.5), sigBinOp(kDiv, args[0], args[1]))))));
+            } else {
+                return tree(symbol(), args[0], args[1]);
+            }
         }
     }
 

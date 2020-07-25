@@ -10,10 +10,8 @@ HTML_FOOTER=""
 CODE_WRAPPER1=""
 CODE_WRAPPER2=""
 JS_WRAPPER=""
-
 LINKS=""
 SVG=""
-
 EMCC="false"
 POLY="false"
 OPT="false"
@@ -21,7 +19,6 @@ EXPORT="false"
 EFFECT=""
 WORKLET="false"
 WASM=
-
 OPTIONS="-ftz 2"
 
 #-------------------------------------------------------------------

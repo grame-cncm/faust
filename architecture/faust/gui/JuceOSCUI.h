@@ -35,12 +35,12 @@ class oscItem : public uiItem {
     
     protected:
         
-        OSCSender* fSender;
-        String fPath;
+        juce::OSCSender* fSender;
+        juce::String fPath;
         
     public:
         
-        oscItem(OSCSender* sender, GUI* ui, const String& path, FAUSTFLOAT* zone)
+        oscItem(juce::OSCSender* sender, GUI* ui, const juce::String& path, FAUSTFLOAT* zone)
         :uiItem(ui, zone), fSender(sender), fPath(path) {}
         virtual ~oscItem()
         {}
@@ -54,15 +54,15 @@ class oscItem : public uiItem {
     
 };
 
-class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>, public GUI {
+class JuceOSCUI : private juce::OSCReceiver, private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>, public GUI {
     
     private:
         
-        OSCSender fSender;
-        String fIP;
+        juce::OSCSender fSender;
+        juce::String fIP;
         int fInputPort, fOutputPort;
         APIUI fAPIUI;
-        Array<oscItem*> fOSCItems;  // Pointers are kept and desallocated by the GUI class
+        juce::Array<oscItem*> fOSCItems;  // Pointers are kept and desallocated by the GUI class
         
     public:
         
@@ -73,9 +73,9 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
         virtual ~JuceOSCUI()
         {}
         
-        void oscMessageReceived(const OSCMessage& message) override
+        void oscMessageReceived(const juce::OSCMessage& message) override
         {
-            String address = message.getAddressPattern().toString();
+            juce::String address = message.getAddressPattern().toString();
             
             for (int i = 0; i < message.size(); ++i) {
                 if (message[i].isFloat32()) {
@@ -83,7 +83,7 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
                     // "get" message with correct address
                 } else if (message[i].isString()
                            && message[i].getString().equalsIgnoreCase("get")
-                           && String(fAPIUI.getParamAddress(0)).startsWith(address)) {
+                           && juce::String(fAPIUI.getParamAddress(0)).startsWith(address)) {
                     for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
                         fSender.send(fAPIUI.getParamAddress(p), float(fAPIUI.getParamValue(p)), float(fAPIUI.getParamMin(p)), float(fAPIUI.getParamMax(p)));
                     }
@@ -91,7 +91,7 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
                 } else if (message[i].isString()
                            && address.equalsIgnoreCase("/*")
                            && message[i].getString().equalsIgnoreCase("hello")) {
-                    String path = fAPIUI.getParamAddress(0);
+                    juce::String path = fAPIUI.getParamAddress(0);
                     int pos1 = path.indexOfChar('/');
                     int pos2 = path.indexOfChar(pos1 + 1, '/');
                     fSender.send(path.substring(pos1, pos2), fIP, fInputPort, fOutputPort);

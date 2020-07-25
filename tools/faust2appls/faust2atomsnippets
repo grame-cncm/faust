@@ -38,11 +38,9 @@
 #       markdown text....
 # --------------------------------------------------------
 
-
 import sys
 import re
 import getopt
-
 
 # Outdent a comment line by n characters in
 # order to remove the prefix "//   "
@@ -52,19 +50,16 @@ def outdent(line, n):
     else:
         return line[n:]
 
-
 # Match the 2-characters prefix of a library.
 # We want to extract "no" from "...prefix is `no`..."
 def matchPrefixName(line):
     return re.search(r'^.*prefix is .(..).*', line)
-
 
 # Match the first line of a title
 # of type "//#### Title ####
 # at least 3 * are needed
 def matchBeginTitle(line):
     return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
-
 
 # Match the last line of a title
 # of type "//#######"
@@ -79,13 +74,11 @@ def matchEndTitle(line):
 def matchBeginSection(line):
     return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
 
-
 # Match the last line of a section
 # of type "//======="
 # or a blank line
 def matchEndSection(line):
     return re.search(r'^\s*((//={3,})|(\s*))$', line)
-
 
 # Match the first line of a comment
 # of type "//--- foo(x,y) ----"
@@ -93,13 +86,11 @@ def matchEndSection(line):
 def matchBeginComment(line):
     return re.search(r'^\s*//-{3,}\s*`([^-`]+)`-{3,}', line)
 
-
 # Match the last line of a comment
 # of type "//-----------------"
 # or a blank line
 def matchEndComment(line):
     return re.search(r'^\s*((//-{3,})|(\s*))$', line)
-
 
 # Compute the indentation of a line,
 # that is the position of the first word character
@@ -111,7 +102,6 @@ def indentation(line):
     else:
         return 0
 
-
 # Indicates if a line is a comment
 def isComment(line):
     matchComment = re.search(r'^\s*//', line)
@@ -119,7 +109,6 @@ def isComment(line):
         return 1
     else:
         return 0
-
 
 #
 # THE PROGRAM STARTS HERE
@@ -129,7 +118,6 @@ mode = 0             # 0: in code; 1: in md-comment
 idt = 0             # indentation retained to outdent comment lines
 simplified = 0         # 0: full mode; 1: body only
 libprefix = "xx"  #
-
 
 # Analyze command line arguments
 try:

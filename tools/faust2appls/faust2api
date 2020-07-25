@@ -11,7 +11,7 @@
 . faustoptflags
 . usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"

@@ -32,7 +32,6 @@
 #include "sigvisitor.hh"
 #include "tlib.hh"
 
-class CodeGen;
 class CodeContainer;
 
 class xtended : public virtual Garbageable {
@@ -80,7 +79,7 @@ class xtended : public virtual Garbageable {
 };
 
 // True if two floating point numbers are close enough to be considered identical.
-// It is used to recognize PI/n and 0 in some symbolic simplifications
+// It is used to recognize PI/n and 0 in some symbolic simplifications.
 inline bool comparable(double x, double y)
 {
     return fabs(x - y) < 0.00001;
