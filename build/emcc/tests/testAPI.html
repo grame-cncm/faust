@@ -24,13 +24,11 @@ var div = document.getElementById("log");
 function log (str) 			{ div.innerHTML += str + '\n'; }
 function svg (str, name) 	{ log (str); }
 
-function doit (lib) {
-	run (lib, log, "process = +;");
+function doit (faust) {
+	run (faust, log, "process = +;");
 }
 
-var lib = new libfaust;
-lib.initialize ().then (doit);
-
+FaustModule().then( (instance) => { doit (new instance.libFaustWasm()); });
 
 </script>
 </body>

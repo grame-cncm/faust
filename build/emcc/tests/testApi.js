@@ -3,9 +3,8 @@
 //----------------------------------------------------------------------------
 // Misc. functions
 //----------------------------------------------------------------------------
-function factory (lib, log, code )
+function factory (faust, log, code )
 {
-	let faust = lib.faust;
 	log( "\nFactory :");
 	let fact = faust.createDSPFactory("test", code, "", false);
 	log ("  createDSPFactory      " + fact.module  + " : " + fact.error);
@@ -32,27 +31,22 @@ function factory (lib, log, code )
 	}
 }
 
-function modules (lib, log, code )
+function modules (faust, log, code )
 {
-	let faust = lib.faust;
 	log( "\nModules :");
 	let fact = faust.createDSPFactory("test", code, "", false);
 
 	let wasm = faust.getWasmModule (fact.module);
 	log ("  getWasmModule      " + wasm.module + " " + wasm.size + " " + wasm.helper.length);
 
-	// let size = faust.getWasmModuleSize (fact.module);
-	// log ("  getWasmModuleSize  " + size);
-	// let helpers = faust.getWasmHelpers (fact.module);
-	// log ("  getWasmHelpers     " + helpers.length);
 	faust.freeWasmModule (fact.module);
 	log ("  freeWasmModule     done");
 }
 
-function run (engine, log, code) {
-	log ( "libfaust version: " + lib.faust.version());
-	factory (lib, log, code);
-	modules (lib, log, code);
+function run (faust, log, code) {
+	log ( "libfaust version: " + faust.version());
+	factory (faust, log, code);
+	modules (faust, log, code);
 	log ("\nEnd of API tests");
 }
 
