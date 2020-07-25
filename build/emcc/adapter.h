@@ -36,6 +36,12 @@ struct AuxOut {
 	std::string error;
 };
 
+struct FaustWasm {
+	int module;
+	int size;
+	std::string helper;
+};
+
 class libFaustWasm
 {
 	public:
@@ -49,9 +55,10 @@ class libFaustWasm
 
 		void			deleteAllDSPFactories() 			{ ::deleteAllWasmCDSPFactories(); }
 
-		std::string		getWasmModule 		(int module)	{ return getWasmCModule (static_cast<WasmModule*>((void*)module)); }
-		int 			getWasmModuleSize	(int module)	{ return getWasmCModuleSize (static_cast<WasmModule*>((void*)module)); }
-		std::string		getWasmHelpers		(int module)	{ return getWasmCHelpers (static_cast<WasmModule*>((void*)module)); }
+		FaustWasm		getWasmModule 		(int module);
+//		int				getWasmModule 		(int module)	{ return int(getWasmCModule (static_cast<WasmModule*>((void*)module))); }
+//		int 			getWasmModuleSize	(int module)	{ return getWasmCModuleSize (static_cast<WasmModule*>((void*)module)); }
+//		std::string		getWasmHelpers		(int module)	{ return getWasmCHelpers (static_cast<WasmModule*>((void*)module)); }
 
 		void			freeWasmModule		(int module) 	{ ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
 		void			freeMemory( void* ptr ) 			{ ::freeCMemory (ptr); }

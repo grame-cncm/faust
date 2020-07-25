@@ -27,11 +27,15 @@ EMSCRIPTEN_BINDINGS(CStruct) {
 		.field("dsp",    &ExpandOut::dsp)
 		.field("shakey", &ExpandOut::shakey)
 		.field("error",  &ExpandOut::error);
-
 	
 	value_object<AuxOut>("AuxOut")
 		.field("success",  	&AuxOut::success)
 		.field("error",  	&AuxOut::error);
+
+	value_object<FaustWasm>("FaustWasm")
+		.field("module",    &FaustWasm::module)
+		.field("size", 		&FaustWasm::size)
+		.field("helper",	&FaustWasm::helper);
 }
 
 /*
@@ -64,8 +68,8 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
 			.function("deleteAllDSPFactories", 	&libFaustWasm::deleteAllDSPFactories)
 			
 			.function("getWasmModule", 			&libFaustWasm::getWasmModule, allow_raw_pointers())
-			.function("getWasmModuleSize", 		&libFaustWasm::getWasmModuleSize, allow_raw_pointers())
-			.function("getWasmHelpers", 		&libFaustWasm::getWasmHelpers, allow_raw_pointers())
+//			.function("getWasmModuleSize", 		&libFaustWasm::getWasmModuleSize, allow_raw_pointers())
+//			.function("getWasmHelpers", 		&libFaustWasm::getWasmHelpers, allow_raw_pointers())
 
 			.function("freeWasmModule", 		&libFaustWasm::freeWasmModule, allow_raw_pointers())
 			.function("freeMemory", 			&libFaustWasm::freeMemory, allow_raw_pointers())

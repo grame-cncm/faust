@@ -104,3 +104,16 @@ AuxOut libFaustWasm::generateAuxFiles(const string name, const string dsp, const
 	return out;
 }
 
+FaustWasm libFaustWasm::getWasmModule (int mptr)
+{
+	FaustWasm out;
+	out.module = out.size = 0;
+	WasmModule* module = static_cast<WasmModule*>((void*)mptr);
+	if (module) {
+		out.module = int(getWasmCModule (module));
+		out.size   = getWasmCModuleSize (module);
+		out.helper = getWasmCHelpers (module);
+	}
+	return out;
+}
+

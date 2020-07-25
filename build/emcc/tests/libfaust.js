@@ -22,6 +22,7 @@ class libfaust {
 			});
 		}
 		else {
+			// return FaustModule();
 			var module = FaustModule();
 			return new Promise ( (success, failure) => {
 				module['onRuntimeInitialized'] = () => {
