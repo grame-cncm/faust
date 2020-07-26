@@ -198,7 +198,7 @@ ztimedmap GUI::gTimedZoneMap;
 // 									MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	char appname[256];
 	char rcfilename[256];

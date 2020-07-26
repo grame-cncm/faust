@@ -6,8 +6,6 @@
 #    STATIC    embed the backend in the faust static library
 #    DYNAMIC   embed the backend in the faust dynamic library
 #    WASM      embed the backend in the faust wasm library
-#    SOUL      embed the backend in the faust wasm library
-
 
 set ( C_BACKEND      COMPILER STATIC DYNAMIC CACHE STRING  "Include C backend" FORCE )
 set ( CPP_BACKEND    COMPILER STATIC DYNAMIC CACHE STRING  "Include CPP backend" FORCE )
