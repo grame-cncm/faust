@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+ 
+<head>
+  <title>Host that loads a plugin with its GUI</title>
+  <script
+    src="https://mainline.i3s.unice.fr/WebAudioPluginBank/bower_components/webaudio-controls2/webcomponents-lite.js">
+  </script>
+</head>
+<body>
+  <audio src="./CleanGuitarRiff.mp3" id="soundSample" controls loop></audio>
+  <button id="save">Save current state</button>
+  <button id="load">Load last saved state</button>
+</body>
+<script type="module">
+
+    import DSP from "./main.js";
+	
+    var ctx = new AudioContext();
+    var player = document.getElementById("soundSample");
+    player.onplay = () => {
+    	ctx.resume().then(() => {
+      	console.log('Playback resumed successfully');
+    	});
+    }
+
+    var mediaSource = ctx.createMediaElementSource(player);
+    var pluginURL = ".";
+    var plugin = new DSP(ctx, pluginURL);
+
+    plugin.load().then((node) => {
+    plugin.loadGui().then((elem) => {
+      document.body.appendChild(elem);
+      document.querySelector("#save").addEventListener('click', () => {
+        node.getState()
+          .then((data) => {
+            state = data;
+            console.log("State saved :", data);
+          })
+      });
+      document.querySelector("#load").addEventListener('click', () => {
+        node.setState(state).then((data) => {
+          console.log("State restored :", data)
+        })
+      });
+    });
+    console.log(node.getDescriptor());
+    mediaSource.connect(node);
+    node.connect(ctx.destination);
+    });
+    
+</script>
+
+</html>

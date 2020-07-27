@@ -29,7 +29,7 @@ A full JSON description of the node with the complete UI, can be retrieved with:
 
     var json = node.getJSON(); 
 
-The complete usable API is fully documented in the generated JavaScript file in the *Public API* section.
+The complete usable API is fully documented in the generated JavaScript file in the *Public API* section. **To properly deallocate ressources at the end of its life, be sure to call the *destroy* function on the node.**. Use `faust2wasm -h` to see all available options.
 
 ### A simple example Web page
 
@@ -91,7 +91,7 @@ Note that pages loading an additional .wasm file cannot directly be loaded in Ch
 
 ### Generating Polyphonic WebAudio nodes
 
-Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node can be created with the *-poly* parameter, and will generate the following class for the node, to be used like: 
+Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node can be created by adding the *-poly* option, and will generate the following class for the node, to be used like: 
 
 
 ```
@@ -149,7 +149,7 @@ The **faust2webaudiowasm** script can be used to generate a fully working self-c
 
     faust2webaudiowasm -worklet osc.dsp
 
-Assuming that the compiled Faust DSP file is polyphonic ready, the *-poly* parameter can be used to generate a polyphonic MIDI controlable instrument, to be used with a MIDI application or device. 
+Assuming that the compiled Faust DSP file is polyphonic ready, the *-poly* parameter can be used to generate a polyphonic MIDI controllable instrument, to be used with a MIDI application or device. Use `faust2webaudiowasm -h` to see all available options.
 
 
 ## Deploying dynamically compiled Faust WebAudio nodes
@@ -162,7 +162,13 @@ Since the **libfaust** library is available for the Web, it becomes possible to 
 <script src="webaudio-wasm-wrapper.js"></script>
 ```
 
-Then the two following functions are used to generate factories, creating later on *monophonic* or *polyphonic* instances (this is necessary because of the way internal WebAssembly memory is managed): 
+The **faust_module** global is defined in webaudio-wasm-wrapper.js file, `onRuntimeInitialized` will be called when the code is ready. So something like the following line has to be written:
+
+```
+faust_module['onRuntimeInitialized'] = init;
+```
+
+The two following functions are then used to generate factories, creating later on *monophonic* or *polyphonic* instances (this is necessary because of the way internal WebAssembly memory is managed): 
 
 ```
 /**
@@ -257,7 +263,7 @@ The *-ftz 1* mode adds a test in each recursive loop which uses the *fabs* funct
 
 Use for example the following line to active software denormal handing when using **faust2wasm** tool:
 
-    faust2wasm -ftz 2 foo.dsp 
+    faust2wasm -worklet -ftz 2 foo.dsp 
 
 The same for the **faust2webaudiowasm** tool:
 
@@ -265,5 +271,5 @@ The same for the **faust2webaudiowasm** tool:
 
 For dynamic compilation, the *-ftz v* flag will have to be added in the *argv* parameter in **faust.createDSPFactory** or **faust.createPolyDSPFactory**, like for instance:
 
-    faust.createPolyFactory(dsp_code, ['-ftz', '2'], callback);
+    faust.createPolyDSPFactory(dsp_code, ['-ftz', '2'], callback);
 

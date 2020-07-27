@@ -47,20 +47,20 @@ class ScalarCompiler : public Compiler {
     property<pair<string, string> > fStaticInitProperty;    // property added to solve 20101208 kjetil bug
     property<pair<string, string> > fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
 
-    map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
     static map<string, int> fIDCounters;
     Tree                    fSharingKey;
     old_OccMarkup*          fOccMarkup;
-    bool                    fHasIota;
+    int                     fMaxIota;
 
    public:
     ScalarCompiler(const string& name, const string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(0), fHasIota(false)
+        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(0), fMaxIota(-1)
     {
     }
 
-    ScalarCompiler(Klass* k) : Compiler(k), fOccMarkup(0), fHasIota(false) {}
+    ScalarCompiler(Klass* k) : Compiler(k), fOccMarkup(0), fMaxIota(-1) {}
 
     virtual void compileMultiSignal(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);
@@ -156,7 +156,7 @@ class ScalarCompiler : public Compiler {
 
     void declareWaveform(Tree sig, string& vname, int& size);
 
-    virtual string generateEnable(Tree sig, Tree x, Tree y);
+    virtual string generateControl(Tree sig, Tree x, Tree y);
 
     string cnf2code(Tree cc);
     string or2code(Tree oc);

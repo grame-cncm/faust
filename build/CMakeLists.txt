@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.4.0)
+cmake_minimum_required(VERSION 3.5)
 project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.20.2)
+set (VERSION 2.27.1)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -13,13 +13,16 @@ get_major_minor_patch( ${VERSION} )
 set (SOVERS ${VERSION_MAJOR})
 message (STATUS "Configuring version ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
+if (NOT DEFINED LIBSDIR)
+	set ( LIBSDIR  lib)
+endif()
+
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 set (SRCDIR ${ROOT}/compiler)
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/${LIBSDIR})
 
 set (CMAKE_CXX_STANDARD 11)
-
 
 #######################################
 # Output options
@@ -39,7 +42,7 @@ option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY	"Don't search system architecture files." off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
-	set ( DEPLOYMENT_TARGET_VERSION  10.11)
+	set ( DEPLOYMENT_TARGET_VERSION  10.12)
 endif()
 
 #######################################
@@ -80,7 +83,7 @@ if (INCLUDE_LLVM )
 		llvm_cmake()
 	endif()
 
-	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
+	string (REGEX REPLACE "([0-9]+)\\.([0-9]+).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
 
 	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
 	set (TMP ${SRCDIR}/generator/llvm)
@@ -91,6 +94,10 @@ endif()
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 	
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}")
+
+	if("${LLVM_PACKAGE_VERSION}" VERSION_GREATER_EQUAL 10)
+        set (CMAKE_CXX_STANDARD 14)
+	endif()
 endif()
 
 ####################################
@@ -107,6 +114,7 @@ if(APPLE)
 	else()
 		if (DEPLOYMENT_TARGET)
 			set (CMAKE_OSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET_VERSION})
+			message (STATUS "Deployment target is ${DEPLOYMENT_TARGET_VERSION}")
 		endif()
 		set (MACSDK /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 		if (EXISTS ${MACSDK})
@@ -135,8 +143,9 @@ endif()
 if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
-	set(CMAKE_CXX_FLAGS_DEBUG "-g -Wextra -Wno-unused-parameter")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wextra -Wno-unused-parameter")
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
+	set(CMAKE_CXX_FLAGS_DEBUG   "-g  -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
 
@@ -172,7 +181,7 @@ if (INCLUDE_STATIC)
 	else()
 		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
 	endif()
-	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB
+	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
 	set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
 	scan_backends (staticlib STATIC)
@@ -250,6 +259,7 @@ set (ARCHINC ${ARCHDIR}/faust)
 set (ARCHDIRS ${ARCHINC}/au ${ARCHINC}/audio ${ARCHINC}/dsp ${ARCHINC}/gui ${ARCHINC}/midi ${ARCHINC}/unity ${ARCHINC}/vst)
 
 message (STATUS "Install location is ${CMAKE_INSTALL_PREFIX}")
+message (STATUS "Install libraries in ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}")
 message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
 
 ####################################
@@ -260,16 +270,16 @@ endif()
 
 install ( TARGETS ${INSTALL_TARGETS}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
 
 if (INCLUDE_DYNAMIC)
 install ( TARGETS dynamiclib
-	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
 )
 endif()
 
@@ -300,7 +310,7 @@ install (
 
 ####################################
 # install faust2xxx tools
-file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
+file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
 install (
     FILES     ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
@@ -339,8 +349,19 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
+####################################
+# install examples
+install (
+    DIRECTORY     ${ROOT}/examples DESTINATION ${CMAKE_INSTALL_PREFIX}//share/faust
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    PATTERN ".DS_Store" EXCLUDE
+)
+
 # install faust libraries
 file (GLOB FAUSTDSPLIBS ${ROOT}/libraries/*.lib ${ROOT}/libraries/old/*.lib)
+file (GLOB FAUSTDPSEMB ${ROOT}/libraries/embedded/*.lib)
 # install various files from the architecture root folder
 file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
 						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js
@@ -348,6 +369,10 @@ file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
 						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
 install (
     FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} ${ROOT}/tools/faust2appls/Info.plist DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+install (
+    FILES     ${FAUSTDPSEMB} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/embedded
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
@@ -371,14 +396,14 @@ install (
 # install ios lib
 if (NOT WIN32)
 	install (
-		FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+		FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
 		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 	)
 endif()
 
 ####################################
 # install VS redistributables
-if (WIN32)
+if (MSVC)
 if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
 	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
 elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")

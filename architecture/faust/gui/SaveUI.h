@@ -1,7 +1,7 @@
 /************************** BEGIN SaveUI.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
 
-// Base class
+// Base class to handle controllers state save/load
 
 class SaveUI : public GenericUI {
 

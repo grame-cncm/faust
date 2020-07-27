@@ -24,20 +24,20 @@
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
-        <MODULEPATH id="juce_core" path="../../modules"/>
-        <MODULEPATH id="juce_events" path="../../modules"/>
-        <MODULEPATH id="juce_graphics" path="../../modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../modules"/>
-        <MODULEPATH id="juce_opengl" path="../../modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
-        <MODULEPATH id="juce_osc" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="portraitlandscape"
@@ -47,20 +47,20 @@
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
-        <MODULEPATH id="juce_opengl" path="../../modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../modules"/>
-        <MODULEPATH id="juce_graphics" path="../../modules"/>
-        <MODULEPATH id="juce_events" path="../../modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_core" path="../../modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../modules"/>
-        <MODULEPATH id="juce_osc" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
     <VS2015 targetFolder="Builds/VisualStudio2015" extraDefs="PreProcDef">
@@ -71,20 +71,20 @@
                        isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
-        <MODULEPATH id="juce_opengl" path="../../modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../modules"/>
-        <MODULEPATH id="juce_graphics" path="../../modules"/>
-        <MODULEPATH id="juce_events" path="../../modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_core" path="../../modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../modules"/>
-        <MODULEPATH id="juce_osc" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </VS2015>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
@@ -93,20 +93,20 @@
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
-        <MODULEPATH id="juce_opengl" path="../../modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../modules"/>
-        <MODULEPATH id="juce_graphics" path="../../modules"/>
-        <MODULEPATH id="juce_events" path="../../modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_core" path="../../modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../modules"/>
-        <MODULEPATH id="juce_osc" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <ANDROIDSTUDIO targetFolder="Builds/Android" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
@@ -117,20 +117,20 @@
                        targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
-        <MODULEPATH id="juce_opengl" path="../../modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../modules"/>
-        <MODULEPATH id="juce_graphics" path="../../modules"/>
-        <MODULEPATH id="juce_events" path="../../modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_core" path="../../modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../modules"/>
-        <MODULEPATH id="juce_osc" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
+        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </ANDROIDSTUDIO>
   </EXPORTFORMATS>

@@ -395,8 +395,8 @@
 										   handleRect.size.width,
 										   multiplier * valueRect.size.height)
 					   withFont:self.labelFont
-				  lineBreakMode:UILineBreakModeMiddleTruncation
-                      alignment:UITextAlignmentCenter];        
+				  lineBreakMode:NSLineBreakByTruncatingMiddle
+                      alignment:NSTextAlignmentCenter];
 	}
     
     // Draw assignation

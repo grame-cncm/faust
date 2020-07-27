@@ -351,20 +351,14 @@ void CCodeContainer::produceClass()
 
     // Compute
     generateCompute(n);
-    tab(n, *fOut);
-
+  
     // Generate user interface macros if needed
     printMacros(*fOut, n);
 
+    tab(n, *fOut);
     *fOut << "#ifdef __cplusplus" << endl;
     *fOut << "}" << endl;
     *fOut << "#endif" << endl;
-}
-
-void CScalarOneSampleCodeContainer::produceInternal()
-{
-    generateGlobalDeclarations(fCodeProducer);
-    generateDeclarations(fCodeProducer);
 }
 
 void CScalarOneSampleCodeContainer::produceClass()
@@ -383,9 +377,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     
     // Sub containers
     mergeSubContainers();
-  
-    // Sub containers
-    generateSubContainers();
  
     // Functions
     tab(n, *fOut);
@@ -431,6 +422,10 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "#define FAUST_INT_ZONE " << static_cast<CInstVisitor1*>(fCodeProducer)->getIntZoneSize() << endl;
     *fOut << "#define FAUST_FLOAT_ZONE " << static_cast<CInstVisitor1*>(fCodeProducer)->getRealZoneSize();
+    
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "#ifndef TESTBENCH";
     
     // Memory methods
     tab(n, *fOut);
@@ -558,6 +553,9 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", xfloat());
+    // staticInit has to be called for each instance since the tables are actually not shared between instances
+    tab(n + 1, *fOut);
+    *fOut << "staticInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
@@ -570,8 +568,6 @@ void CScalarOneSampleCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", xfloat());
-    tab(n + 1, *fOut);
-    *fOut << "staticInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n, *fOut);
@@ -616,6 +612,9 @@ void CScalarOneSampleCodeContainer::produceClass()
     
     // Compute
     generateCompute(n);
+    
+    tab(n, *fOut);
+    *fOut << "#endif // TESTBENCH" << endl;
     tab(n, *fOut);
     
     // Generate user interface macros if needed
@@ -683,15 +682,16 @@ void CScalarCodeContainer::generateCompute(int n)
     loop->accept(fCodeProducer);
   
     /*
-    // TODO : atomic switch
-    // Currently for soundfile management
+     // TODO : atomic switch
+     // Currently for soundfile management
+     */
     generatePostComputeBlock(fCodeProducer);
-    */
-
+    
     back(1, *fOut);
     *fOut << "}" << endl;
 }
 
+// Special version for -os generation mode
 void CScalarOneSampleCodeContainer::generateCompute(int n)
 {
     // Generates declaration
@@ -709,8 +709,8 @@ void CScalarOneSampleCodeContainer::generateCompute(int n)
     /*
      // TODO : atomic switch
      // Currently for soundfile management
-     generatePostComputeBlock(fCodeProducer);
      */
+    generatePostComputeBlock(fCodeProducer);
     
     back(1, *fOut);
     *fOut << "}" << endl;

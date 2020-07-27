@@ -1,3 +1,9 @@
 [submodule "libraries"]
 	path = libraries
 	url = https://github.com/grame-cncm/faustlibraries.git
+[submodule "architecture/android/app/oboe"]
+	path = architecture/android/app/oboe
+	url = https://github.com/google/oboe
+[submodule "architecture/smartKeyboard/android/app/oboe"]
+	path = architecture/smartKeyboard/android/app/oboe
+	url = https://github.com/google/oboe

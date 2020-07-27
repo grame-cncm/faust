@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 SRC="0"
 ARCHFILE=$FAUSTARCH/minimal-portaudio.rs
@@ -19,8 +20,13 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2portaudiorust [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-source' to only generate the source project"
+        usage faust2portaudiorust "[options] [Faust options] <file.dsp>"
+        require PortAudio
+        echo "Compiles Faust programs to PortAudio and Rust binary"
+        option
+        option -source "only generates the source project."
+        option "Faust options"
+    	exit
     fi
 
     if [ $p = "-source" ]; then
@@ -51,7 +57,9 @@ for p in $FILES; do
     rm -rf "$SRCDIR/$dspName"
 
     # create rust project
+    pushd "$SRCDIR"
     cargo new $dspName --bin
+    popd
 
     # compile Faust DSP and put in the cargo folder
     faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"

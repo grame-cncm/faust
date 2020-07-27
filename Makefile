@@ -1,9 +1,10 @@
-version := 2.20.2
+version := 2.27.1
 
 system	?= $(shell uname -s)
 
 DESTDIR ?=
 PREFIX ?= /usr/local
+INSTALL_LIBDIR ?= lib
 CROSS=i586-mingw32msvc-
 BUILDLOCATION := build
 DEBUGFOLDER := faustdebug
@@ -178,7 +179,7 @@ format :
 
 # the target 'lib' can be used to init and update the libraries submodule
 updatesubmodules :
-	if test -d .git; then git submodule update --init; fi
+	if test -d .git; then git submodule update --init --recursive; fi
 
 
 doclib : updatesubmodules
@@ -198,7 +199,7 @@ uninstall :
 devinstall:
 	$(MAKE) -C tools/benchmark install
 
-# make a faust distribution tarball
+# make a Faust distribution tarball
 dist = faust-$(version)
 submodules = libraries
 dist :

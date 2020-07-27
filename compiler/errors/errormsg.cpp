@@ -35,7 +35,11 @@ void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {
         stringstream str;
+#ifdef EMCC
+        str << "ASSERT : please report this message and the failing DSP file to Faust developers (";
+#else
         str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
+#endif
         str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
         str << "version: " << FAUSTVERSION;
         if (gGlobal) {

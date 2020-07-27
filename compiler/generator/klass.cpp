@@ -20,14 +20,14 @@
  ************************************************************************/
 
 /**********************************************************************
-           - klass.cpp : class C++ a remplir (projet FAUST) -
+        - klass.cpp : class C++ a remplir (projet FAUST) -
 
-       Historique :
-       -----------
-       17-10-2001 : implementation initiale (yo)
-       18-10-2001 : Ajout de getFreshID (yo)
-       02-11-2001 : Ajout de sous classes (yo)
-       06-11-2001 : modif impression des classes (yo)
+        Historique :
+        -----------
+        17-10-2001 : implementation initiale (yo)
+        18-10-2001 : Ajout de getFreshID (yo)
+        02-11-2001 : Ajout de sous classes (yo)
+        06-11-2001 : modif impression des classes (yo)
 
 ***********************************************************************/
 
@@ -87,6 +87,24 @@ void Klass::openLoop(Tree recsymbol, const string& size)
     // cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
+void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
+{
+    if (visited.count(sig)==0) {
+        visited.insert(sig);
+        Loop* l;
+        if (getLoopProperty(sig, l)) {
+            L.insert(l);
+        } else {
+            // we go down the expression
+            vector<Tree> subsigs;
+            int          n = getSubSignals(sig, subsigs, false);
+            for (int i = 0; i < n; i++) {
+                listAllLoopProperties(subsigs[i], L, visited);
+            }
+        }
+    }
+}
+
 /**
  * Close the top loop and either keep it
  * or absorb it within its enclosing loop.
@@ -94,6 +112,15 @@ void Klass::openLoop(Tree recsymbol, const string& size)
 void Klass::closeLoop(Tree sig)
 {
     faustassert(fTopLoop);
+    
+    // fix the missing dependencies
+    set<Loop*> L;
+    set<Tree> V;
+    listAllLoopProperties(sig, L, V);
+    for (Loop* l : L) {
+        fTopLoop->fBackwardLoopDependencies.insert(l);
+    }
+  
     Loop* l  = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     faustassert(fTopLoop);
@@ -102,7 +129,7 @@ void Klass::closeLoop(Tree sig)
     // cerr << endl;
 
     Tree S = symlist(sig);
-    // cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
+    // cerr << "CLOSE LOOP :" << l << " with symbols " << *S << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // cout << " will absorb" << endl;
         // empty or dependent loop -> absorbed by enclosing one
@@ -940,6 +967,16 @@ void Klass::println(int n, ostream& fout)
         tab(n, fout);
         fout << "#ifdef FAUST_UIMACROS";
         tab(n + 1, fout);
+        tab(n + 1, fout);
+        for (auto& it : gGlobal->gMetaDataSet) {
+            if (it.first == tree("filename")) {
+                fout << "#define FAUST_FILE_NAME " << **(it.second.begin());
+                break;
+            }
+        }
+        tab(n + 1, fout);
+        fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
+        tab(n + 1, fout);
         fout << "#define FAUST_INPUTS " << fNumInputs;
         tab(n + 1, fout);
         fout << "#define FAUST_OUTPUTS " << fNumOutputs;
@@ -949,7 +986,7 @@ void Klass::println(int n, ostream& fout)
         fout << "#define FAUST_PASSIVES " << fNumPassives;
         printlines(n + 1, fUIMacro, fout);
         tab(n, fout);
-        fout << "#endif";
+        fout << "#endif" << endl;
     }
 
     fout << endl;
@@ -1405,7 +1442,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
     fout << "}";
 
     tab(n + 1, fout);
-    fout << "void fill (int count, int output[]) {";
+    fout << "void fill(int count, int output[]) {";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1455,7 +1492,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     fout << "}";
 
     tab(n + 1, fout);
-    fout << subst("void fill (int count, $0 output[]) {", ifloat());
+    fout << subst("void fill(int count, $0 output[]) {", ifloat());
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);

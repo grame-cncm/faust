@@ -228,7 +228,7 @@ void Sensors::start()
 #define coreaudio		iosaudio
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char name[256];
     char rcfilename[256];
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
     
 #endif
     
-    if (DSP == 0) {
+    if (!DSP) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
@@ -326,13 +326,13 @@ int main(int argc, char *argv[])
     QApplication myApp(argc, argv);
     
     FUI finterface;
-    QTGUI* interface = new QTGUI();
+    QTGUI interface;
     
 #ifdef PRESETUI
-    PresetUI* pinterface = new PresetUI(interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
-    DSP->buildUserInterface(pinterface);
+    PresetUI pinterface(&interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
+    DSP->buildUserInterface(&pinterface);
 #else
-    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 #endif
     
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
 // After audio init to get SR
 #ifdef SOUNDFILE
     // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"), audio.getSampleRate());
+    SoundUI soundinterface(SoundUI::getBinaryPath() + "/Contents/Resources/", audio.getSampleRate());
     // SoundUI has to be dispatched on all internal voices
     if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(&soundinterface);
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL
-    interface->displayQRCode(httpdinterface.getTCPPort());
+    interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
     
@@ -400,18 +400,20 @@ int main(int argc, char *argv[])
     
     // After the allocation of controllers
     finterface.recallState(rcfilename);
-    interface->run();
+    interface.run();
     
-    myApp.setStyleSheet(interface->styleSheet());
+    myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
     
 #ifdef MIDICTRL
     midiinterface.stop();
 #endif
-    interface->stop();
+    interface.stop();
     
     audio.stop();
+    
     finterface.saveState(rcfilename);
+    delete DSP;
     
     return 0;
 }

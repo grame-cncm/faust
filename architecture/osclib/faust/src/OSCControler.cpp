@@ -103,7 +103,7 @@ static int getPortOption(int argc, char *argv[], const std::string& option, int 
 	return defaultValue;
 }
 
-static const char* getDestOption(int argc, char *argv[], const std::string& option, const char* defaultValue)
+static const char* getDestOption(int argc, char* argv[], const std::string& option, const char* defaultValue)
 {
 	for (int i = 1; i < argc-1; i++) {
 		if (option == argv[i])
@@ -112,7 +112,7 @@ static const char* getDestOption(int argc, char *argv[], const std::string& opti
 	return defaultValue;
 }
 
-static int getIntOption(int argc, char *argv[], const std::string& option, bool defaultValue)
+static int getIntOption(int argc, char* argv[], const std::string& option, bool defaultValue)
 {
 	for (int i = 1; i < argc-1; i++) {
     	if (option == argv[i]) {
@@ -123,7 +123,7 @@ static int getIntOption(int argc, char *argv[], const std::string& option, bool 
 	return defaultValue;
 }
 
-static void treatXmitFilterOption(int argc, char *argv[], const std::string& option)
+static void treatXmitFilterOption(int argc, char* argv[], const std::string& option)
 {
     for (int i = 1; i < argc-1; i++) {
         if (option == argv[i]) {
@@ -208,10 +208,10 @@ void OSCControler::run()
 	SRootNode rootnode = fFactory->root();		// first get the root node
 	if (rootnode) {
 		// informs the root node of the udp ports numbers (required to handle the 'hello' message
-		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
+		rootnode->setPorts(&fUDPPort, &fUDPOut, &fUPDErr);
 		
         // starts the network services
-		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, gBundle, getDestAddress(), fBindAddress.empty() ? 0 : fBindAddress.c_str() );
+		fOsc->start(rootnode, fUDPPort, fUDPOut, fUPDErr, gBundle, getDestAddress(), fBindAddress.empty() ? 0 : fBindAddress.c_str());
 
 		string infos = getInfos();
 		// and outputs a message on the osc output port

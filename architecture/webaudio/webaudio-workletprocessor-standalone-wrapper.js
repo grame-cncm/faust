@@ -87,6 +87,7 @@ class mydspProcessor extends AudioWorkletProcessor {
     constructor(options)
     {
         super(options);
+        this.running = true;
         
        	const importObject = {
                 env: {
@@ -178,6 +179,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
 
+        // Warning: keeps a ref on HEAP in Chrome and prevent proper GC
         //console.log(this.HEAP);
         //console.log(this.HEAP32);
         //console.log(this.HEAPF32);
@@ -260,18 +262,25 @@ class mydspProcessor extends AudioWorkletProcessor {
 
         this.setParamValue = function (path, val)
         {
-            this.HEAPF32[this.pathTable[path]] = val;
+            this.HEAPF32[this.pathTable[path] >> 2] = val;
         }
 
         this.getParamValue = function (path)
         {
-            return this.HEAPF32[this.pathTable[path]];
+            return this.HEAPF32[this.pathTable[path] >> 2];
         }
 
         // Init resulting DSP
         this.initAux();
-        
         console.log(this);
+    }
+    
+    handleMessage(event)
+    {
+        var msg = event.data;
+        switch (msg.type) {
+            case "destroy": this.running = false; break;
+        }
     }
     
     process(inputs, outputs, parameters) 
@@ -280,12 +289,12 @@ class mydspProcessor extends AudioWorkletProcessor {
         var output = outputs[0];
         
         // Check inputs
-        if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+        if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
             //console.log("Process input error");
             return true;
         }
         // Check outputs
-        if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+        if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
             //console.log("Process output error");
             return true;
         }
@@ -305,9 +314,9 @@ class mydspProcessor extends AudioWorkletProcessor {
     	*/
         
         // Update controls
-        var params = Object.entries(parameters);
-        for (var i = 0; i < params.length; i++) {
-            this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+        for (const path in parameters) {
+            const paramArray = parameters[path];
+            this.setParamValue(path, paramArray[0]);
         }
         
         // Compute
@@ -328,7 +337,7 @@ class mydspProcessor extends AudioWorkletProcessor {
             }
         }
         
-        return true;
+        return this.running;
     }
 }
 

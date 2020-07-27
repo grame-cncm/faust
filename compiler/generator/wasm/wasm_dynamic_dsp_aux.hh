@@ -78,10 +78,13 @@ EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* wasm_cod
 
 EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* wasm_code_path);
 
+/*
+ Contains WASM code to be exchanged with the JS side.
+*/
 typedef struct {
-    char*       fCode;
-    int         fCodeSize;
-    const char* fHelpers;
+    char*       fWASMCode;
+    int         fWASMCodeSize;
+    const char* fJSHelpers;
 } WasmModule;
 
 /**

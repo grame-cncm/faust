@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 	
 	// create DSP object
 	DSP = new mydsp();
-	if (DSP == 0) {
+	if (!DSP) {
         ROS_ERROR("Unable to allocate Faust DSP object" );
 		exit(1);
 	}

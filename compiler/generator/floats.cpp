@@ -26,6 +26,10 @@
 #include "floats.hh"
 #include "global.hh"
 
+#define FLOATMACRO "FAUSTFLOAT"
+#define FLOATMACROPTR "FAUSTFLOAT*"
+#define FLOATCASTER "(" FLOATMACRO ")"
+
 //-----------------------------------------------
 // float size coding :
 //-----------------------------------------------
@@ -34,11 +38,65 @@
 //          2: double precision float
 //          3: long double precision float
 
-const char* mathsuffix[4];  // suffix for math functions
-const char* numsuffix[4];   // suffix for numeric constants
-const char* floatname[4];   // float types
-const char* castname[4];    // float castings
-double      floatmin[4];    // minimum float values before denormals
+static const char* mathsuffix[4];  // suffix for math functions
+static const char* numsuffix[4];   // suffix for numeric constants
+static const char* floatname[4];   // float types
+static const char* castname[4];    // float castings
+static double      floatmin[4];    // minimum float values before denormals
+
+void initFaustFloat()
+{
+    // Using in FIR code generation to code math functions type (float/double/quad), same for Rust and C/C++ backends
+    mathsuffix[0] = "";
+    mathsuffix[1] = "f";
+    mathsuffix[2] = "";
+    mathsuffix[3] = "l";
+    
+    // Specific for Rust backend
+    if (gGlobal->gOutputLang == "rust") {
+        numsuffix[0] = "";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "f32";
+        floatname[2] = "f64";
+        floatname[3] = "dummy";
+        
+        castname[0] = FLOATCASTER;
+        castname[1] = "as f32";
+        castname[2] = "as f64";
+        castname[3] = "(dummy)";
+        
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+        
+        // Specific for C/C++ backends
+    } else {
+        numsuffix[0] = "";
+        numsuffix[1] = "f";
+        numsuffix[2] = "";
+        numsuffix[3] = "L";
+        
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "float";
+        floatname[2] = "double";
+        floatname[3] = "quad";
+        
+        castname[0] = FLOATCASTER;
+        castname[1] = "(float)";
+        castname[2] = "(double)";
+        castname[3] = "(quad)";
+        
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+    }
+}
 
 const char* isuffix()
 {
@@ -68,6 +126,21 @@ const char* xfloat()
 const char* xcast()
 {
     return castname[0];
+}
+
+int ifloatsize()
+{
+    switch (gGlobal->gFloatSize) {
+        case 1:
+            return 4;
+        case 2:
+            return 8;
+        case 3:
+            return 16;
+        default:
+            faustassert(false);
+            return 0;
+    }
 }
 
 Typed::VarType itfloat()

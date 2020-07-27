@@ -9,6 +9,11 @@ making compromises. In this section, we demonstrate how the Faust dynamic
 compilation chain can be used to embed the Faust compiler technology directly 
 in applications or plugins.
 
+Note that if you have compiled Faust yourself, `libfaust` is not included in
+the default settings. For more details, run `make help` in the root folder of
+the distribution or see the [advanced compiling](https://github.com/grame-cncm/faust/wiki/Building)
+wiki page.
+
 ## Dynamic Compilation Chain
 
 The Faust compiler uses an intermediate FIR representation (Faust Imperative 
@@ -19,7 +24,7 @@ arithmetic operations, and define the necessary control structures (`for` and
 `while` loops, `if` structure, etc.). 
 
 To generate various output languages, several backends have been developed: 
-for C, C++, Java, JavaScript, asm.js, LLVM IR, webassemble, etc. The native 
+for C, C++, Java, JavaScript, asm.js, LLVM IR, WebAssembly, etc. The native
 LLVM based compilation chain is particularly interesting: it provides direct 
 compilation of a DSP source into executable code in memory, bypassing the 
 external compiler requirement.
@@ -124,32 +129,43 @@ string or file, generates auxiliary files: SVG, XML, ps, etc. depending of the
 The `libfaust` library is fully integrated to the Faust distribution. You'll 
 have to compile and install it in order to use it. For an exhaustive 
 documentation/description of the API, we advise you to have a look at the code 
-in the [`faust/dsp/llvm-dsp.h`](TODO) header file. Note that 
-`faust/dsp/llvm-c-dsp.h` is a pure C version of the same API. Additional 
-functions are available in `faust/dsp/libfaust.h` and their C version can be
-found in `faust/dsp/libfaust-c.h`.
+in the [`faust/dsp/llvm-dsp.h`](https://github.com/grame-cncm/faust/blob/master/architecture/faust/dsp/llvm-dsp.h)
+header file. Note that `faust/dsp/llvm-c-dsp.h` is a pure C version of the same
+API. Additional functions are available in `faust/dsp/libfaust.h` and their C
+version can be found in `faust/dsp/libfaust-c.h`.
 
 More generally, a "typical" use of `libfaust` could look like:
 
 ```
+#include <faust/dsp/llvm-dsp.h>
+
+// ...
+
 // the Faust code to compile (could be in a file too)
-string theCode = "import("stdfaust.lib");process = no.noise;";
-// compiling in memory (createDSPFactoryFromFile could be used alternatively)
+string theCode = "import(\"stdfaust.lib\");process = no.noise;";
+
+// compile in memory (you can also use createDSPFactoryFromFile)
 llvm_dsp_factory *m_factory = createDSPFactoryFromString( 
   "faust", theCode, argc, argv, "", m_errorString, optimize );
-// creating the DSP instance for interfacing
+
+// create the DSP instance for interfacing
 dsp *m_dsp = m_factory->createDSPInstance();
-// creating a generic UI to interact with the DSP
+
+// create a generic UI to interact with the DSP
 my_ui m_ui = new MyUI();
-// linking the interface to the DSP instance
+
+// link the interface to the DSP instance
 m_dsp->buildUserInterface( m_ui );
-// initializing the DSP instance
+
+// initialize the DSP instance
 m_dsp->init( 44100 );
+
 // hypothetical audio callback
 while(...){
   m_dsp->compute( 1, m_input, m_output );
 }
-// cleaning
+
+// cleanup
 delete m_dsp;
 deleteDSPFactory( m_factory );
 m_factory = NULL;
@@ -161,18 +177,19 @@ Thus, very few code is needed to embed Faust to your project!
 
 The dynamic compilation chain has been used in several projects:
 
-* [FaustLive](TODO): an integrated IDE for Faust development offering on-the-fly
-compilation and execution features
+* [FaustLive](https://github.com/grame-cncm/faustlive): an integrated IDE for
+  Faust development offering on-the-fly compilation and execution features
 * [Faustgen](TODO): a generic Faust 
 [Max/MSP](https://cycling74.com/products/max/) object
 * [Faust for CSOUND](TODO): a [CSOUND](https://csound.com/) opcode running the 
 Faust compiler internally
 * [LibAudioStream](TODO): a framework to manipulate audio ressources through 
 the concept of streams
-* [Faust for JUCE](TODO): a tool integrating the Faust compiler to 
-[JUCE](https://juce.com/) developed by Oliver Larkin and available as part of 
-the [pMix2 project](https://github.com/olilarkin/pMix2)
+* [Faust for JUCE](https://github.com/olilarkin/juce_faustllvm): a tool
+integrating the Faust compiler to [JUCE](https://juce.com/) developed by
+Oliver Larkin and available as part of the
+[pMix2 project](https://github.com/olilarkin/pMix2)
 * An experimental integration of Faust in 
 [Antescofo](http://forumnet.ircam.fr/product/antescofo-en/)
-* FaucK: the combination of the 
+* [FaucK](https://ccrma.stanford.edu/~rmichon/fauck/): combination of the
 [ChucK Programming Language](http://chuck.cs.princeton.edu/) and Faust 

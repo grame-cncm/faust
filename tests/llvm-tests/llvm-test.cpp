@@ -30,6 +30,7 @@
 #include "faust/dsp/libfaust.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/gui/DecoratorUI.h"
+#include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -108,7 +109,11 @@ int main(int argc, const char** argv)
         cout << "getName " << factory->getName() << endl;
         cout << "getSHAKey " << factory->getSHAKey() << endl;
         
-        dummyaudio audio(2);
+        cout << "Print UI parameters" << endl;
+        PrintUI print_ui;
+        DSP->buildUserInterface(&print_ui);
+        
+        dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
             return 0;
         }
@@ -142,7 +147,7 @@ int main(int argc, const char** argv)
         cout << "getName " << factory->getName() << endl;
         cout << "getSHAKey " << factory->getSHAKey() << endl;
         
-        dummyaudio audio(2);
+        dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
             return 0;
         }

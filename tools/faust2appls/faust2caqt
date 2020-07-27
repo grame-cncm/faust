@@ -11,8 +11,9 @@ set -e
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/ca-qt.cpp
 
@@ -43,23 +44,24 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-resample] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-me] [-debug] [-nodeploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-opt native' to activate the best compilation options for the native CPU"
-        echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-        echo "Use '-resample' to resample soundfiles to the audio driver sample rate"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-preset <directory>' to add a preset manager on top of GUI and save the preset files in a given directory"
-        echo "Use '-preset auto' to add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        echo "Use '-me' to catch math computation exception (floating point exceptions and integer div-by-zero or overflow)"
-        echo "Use '-debug' to print all the build steps"
-        echo "Use '-nodeploy' to not create a self-contained application using 'macdeployqt'"
+        usage faust2caqt "[options] [Faust options] <file.dsp>"
+		platform MacOS
+		require Qt
+		echo "Compiles Faust programs to CoreAudio and QT"
+		option
+        options -httpd -osc -midi -qrcode -soundfile
+        option "-opt native' to activate the best compilation options for the native CPU"
+        option "-opt generic' to activate the best compilation options for a generic CPU"
+        option "-nvoices <num>"
+        option -resample "to resample soundfiles to the audio driver sample rate"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+        option -me "to catch math computation exceptions (floating point exceptions and integer div-by-zero or overflow)"
+        option -debug "to print all the build steps"
+        option -nodeploy
+        option "Faust options"
         exit
     fi
 
@@ -154,11 +156,12 @@ for p in $FILES; do
 
     # discover best compilation options
     if [ "$OPT" = "generic" ]; then
-        echo "Look for best compilation options in generic mode..."
-        OPTIONS="$(faustbench-llvm -notrace -generic $f)"
+        echo "Look for best compilation options in 'generic' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace -generic $OPTIONS $f)"
+        echo $OPTIONS
     elif [ "$OPT" = "native" ]; then
-        echo "Look for best compilation options in native mode..."
-        OPTIONS="$(faustbench-llvm -notrace $f)"
+        echo "Look for best compilation options in 'native' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
         echo $OPTIONS
     fi
 

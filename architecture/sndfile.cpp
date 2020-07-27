@@ -104,6 +104,9 @@ long loptrm(int* argcP, char* argv[], const char* longname, const char* shortnam
 
 mydsp DSP;
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 #define kFrames 512
 
 int main(int argc, char* argv[])

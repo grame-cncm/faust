@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#include "interpreter_dsp_aux.hh"
+#include "interpreter_dsp.hh"
 #include "compatibility.hh"
 #include "libfaust.h"
 #include "lock_api.hh"
@@ -121,6 +121,7 @@ static string read_real_type(istream* in)
     stringstream type_reader(type_line);
     string       dummy, type;
     type_reader >> dummy;  // Read "interpreter_dsp_factory" token
+    checkToken(dummy, "interpreter_dsp_factory");
     type_reader >> type;
 
     return type;

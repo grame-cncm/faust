@@ -76,7 +76,7 @@ Some default parameters of Faust's ALSA applications are controlled by the follo
        #include <pwd.h>
 o thread
  */
-static bool setRealtimePriority ()
+static bool setRealtimePriority()
 {
     struct passwd*          pw;
     int                     err;

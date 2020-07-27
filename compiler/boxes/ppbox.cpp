@@ -131,7 +131,6 @@ static string type2str(int type)
 }
 
 // if t has a node of type symbol, return its name otherwise error
-
 ostream &boxpp::print(ostream &fout) const
 {
     int    i, id;

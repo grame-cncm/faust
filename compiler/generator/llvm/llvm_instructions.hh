@@ -45,6 +45,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Host.h>
 
 using namespace llvm;
 
@@ -200,7 +201,6 @@ struct LLVMTypeHelper {
             }
             return getStructType("struct.dsp" + struct_typed->fName, llvm_types);
         } else {
-            
             faustassert(false);
             return nullptr;
         }
@@ -224,8 +224,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     map<string, LLVMValue>       fStackVars;    // Variables on the stack
     map<string, GlobalVariable*> fStringTable;  // Global strings
 
-    static list<string> gMathLibTable;
-    
+    list<string> fMathLibTable;                 // All standard math functions
+
+#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+    map<string, Intrinsic::ID> fUnaryIntrinsicTable;    // LLVM unary intrinsic
+    map<string, Intrinsic::ID> fBinaryIntrinsicTable;   // LLVM binary intrinsic
+#endif
     void printVarTable()
     {
         for (auto& it : fStackVars) {
@@ -267,10 +271,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMValue loadArrayAsPointer(LLVMValue variable, bool is_volatile = false)
     {
-        LoadInst* tmp_load = new LoadInst(variable);
-        bool      is_array = isa<ArrayType>(tmp_load->getType());
-        delete tmp_load;
-        if (is_array) {
+        if (isa<ArrayType>(variable->getType()->getPointerElementType())) {
             LLVMValue idx[] = {genInt32(0), genInt32(0)};
             return fBuilder->CreateInBoundsGEP(variable, MakeIdx(idx, idx + 2));
         } else {
@@ -298,71 +299,102 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         fTypeMap[Typed::kObj_ptr] = dsp_ptr;
         fAllocaBuilder            = new IRBuilder<>(fModule->getContext());
-
-        if (gMathLibTable.size()) {
-            return;
-        }
-
+ 
+    #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+        
+        /* This does not work in visit(FunCallInst* inst) for intrinsic, which are deactivated for now
+        call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+        */
+        
+        /*
+        // Float version
+        fUnaryIntrinsicTable["ceilf"] = Intrinsic::ceil;
+        fUnaryIntrinsicTable["cosf"] = Intrinsic::cos;
+        fUnaryIntrinsicTable["expf"] = Intrinsic::exp;
+        fUnaryIntrinsicTable["floorf"] = Intrinsic::floor;
+        fUnaryIntrinsicTable["logf"] = Intrinsic::log;
+        fUnaryIntrinsicTable["log10f"] = Intrinsic::log10;
+        fUnaryIntrinsicTable["rintf"] = Intrinsic::rint;
+        fUnaryIntrinsicTable["roundf"] = Intrinsic::round;
+        fUnaryIntrinsicTable["sqrtf"] = Intrinsic::sqrt;
+        fBinaryIntrinsicTable["powf"] = Intrinsic::pow;
+        fUnaryIntrinsicTable["sinf"] = Intrinsic::sin;
+       
+        // Double version
+        fUnaryIntrinsicTable["ceil"] = Intrinsic::ceil;
+        fUnaryIntrinsicTable["cos"] = Intrinsic::cos;
+        fUnaryIntrinsicTable["exp"] = Intrinsic::exp;
+        fUnaryIntrinsicTable["floor"] = Intrinsic::floor;
+        fUnaryIntrinsicTable["log"] = Intrinsic::log;
+        fUnaryIntrinsicTable["log10"] = Intrinsic::log10;
+        fUnaryIntrinsicTable["rint"] = Intrinsic::rint;
+        fUnaryIntrinsicTable["round"] = Intrinsic::round;
+        fUnaryIntrinsicTable["sqrt"] = Intrinsic::sqrt;
+        fBinaryIntrinsicTable["pow"] = Intrinsic::pow;
+        fUnaryIntrinsicTable["sin"] = Intrinsic::sin;
+        */
+    #endif
+        
         // Integer version
-        gMathLibTable.push_back("abs");
+        fMathLibTable.push_back("abs");
 
         // Float version
-        gMathLibTable.push_back("fabsf");
-        gMathLibTable.push_back("acosf");
-        gMathLibTable.push_back("asinf");
-        gMathLibTable.push_back("atanf");
-        gMathLibTable.push_back("atan2f");
-        gMathLibTable.push_back("ceilf");
-        gMathLibTable.push_back("cosf");
-        gMathLibTable.push_back("expf");
-        gMathLibTable.push_back("exp10f");
-        gMathLibTable.push_back("floorf");
-        gMathLibTable.push_back("fmodf");
-        gMathLibTable.push_back("logf");
-        gMathLibTable.push_back("log10f");
-        gMathLibTable.push_back("powf");
-        gMathLibTable.push_back("rintf");
-        gMathLibTable.push_back("roundf");
-        gMathLibTable.push_back("sinf");
-        gMathLibTable.push_back("sqrtf");
-        gMathLibTable.push_back("tanf");
+        fMathLibTable.push_back("fabsf");
+        fMathLibTable.push_back("acosf");
+        fMathLibTable.push_back("asinf");
+        fMathLibTable.push_back("atanf");
+        fMathLibTable.push_back("atan2f");
+        fMathLibTable.push_back("ceilf");
+        fMathLibTable.push_back("cosf");
+        fMathLibTable.push_back("expf");
+        fMathLibTable.push_back("exp10f");
+        fMathLibTable.push_back("floorf");
+        fMathLibTable.push_back("fmodf");
+        fMathLibTable.push_back("logf");
+        fMathLibTable.push_back("log10f");
+        fMathLibTable.push_back("powf");
+        fMathLibTable.push_back("rintf");
+        fMathLibTable.push_back("roundf");
+        fMathLibTable.push_back("sinf");
+        fMathLibTable.push_back("sqrtf");
+        fMathLibTable.push_back("tanf");
         
         // Additional hyperbolic math functions
-        gMathLibTable.push_back("acoshf");
-        gMathLibTable.push_back("asinhf");
-        gMathLibTable.push_back("atanhf");
-        gMathLibTable.push_back("coshf");
-        gMathLibTable.push_back("sinhf");
-        gMathLibTable.push_back("tanhf");
+        fMathLibTable.push_back("acoshf");
+        fMathLibTable.push_back("asinhf");
+        fMathLibTable.push_back("atanhf");
+        fMathLibTable.push_back("coshf");
+        fMathLibTable.push_back("sinhf");
+        fMathLibTable.push_back("tanhf");
 
         // Double version
-        gMathLibTable.push_back("fabs");
-        gMathLibTable.push_back("acos");
-        gMathLibTable.push_back("asin");
-        gMathLibTable.push_back("atan");
-        gMathLibTable.push_back("atan2");
-        gMathLibTable.push_back("ceil");
-        gMathLibTable.push_back("cos");
-        gMathLibTable.push_back("exp");
-        gMathLibTable.push_back("exp10");
-        gMathLibTable.push_back("floor");
-        gMathLibTable.push_back("fmod");
-        gMathLibTable.push_back("log");
-        gMathLibTable.push_back("log10");
-        gMathLibTable.push_back("pow");
-        gMathLibTable.push_back("rint");
-        gMathLibTable.push_back("round");
-        gMathLibTable.push_back("sin");
-        gMathLibTable.push_back("sqrt");
-        gMathLibTable.push_back("tan");
+        fMathLibTable.push_back("fabs");
+        fMathLibTable.push_back("acos");
+        fMathLibTable.push_back("asin");
+        fMathLibTable.push_back("atan");
+        fMathLibTable.push_back("atan2");
+        fMathLibTable.push_back("ceil");
+        fMathLibTable.push_back("cos");
+        fMathLibTable.push_back("exp");
+        fMathLibTable.push_back("exp10");
+        fMathLibTable.push_back("floor");
+        fMathLibTable.push_back("fmod");
+        fMathLibTable.push_back("log");
+        fMathLibTable.push_back("log10");
+        fMathLibTable.push_back("pow");
+        fMathLibTable.push_back("rint");
+        fMathLibTable.push_back("round");
+        fMathLibTable.push_back("sin");
+        fMathLibTable.push_back("sqrt");
+        fMathLibTable.push_back("tan");
         
         // Additional hyperbolic math functions
-        gMathLibTable.push_back("acosh");
-        gMathLibTable.push_back("asinh");
-        gMathLibTable.push_back("atanh");
-        gMathLibTable.push_back("cosh");
-        gMathLibTable.push_back("sinh");
-        gMathLibTable.push_back("tanh");
+        fMathLibTable.push_back("acosh");
+        fMathLibTable.push_back("asinh");
+        fMathLibTable.push_back("atanh");
+        fMathLibTable.push_back("cosh");
+        fMathLibTable.push_back("sinh");
+        fMathLibTable.push_back("tanh");
     }
 
     virtual ~LLVMInstVisitor() { delete fAllocaBuilder; }
@@ -428,7 +460,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     virtual void visit(DeclareFunInst* inst)
     {
         Function* function = fModule->getFunction(inst->fName);
-
+  
         // Define it
         if (!function) {
             
@@ -455,7 +487,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                                         inst->fName, fModule);
 
             // In order for auto-vectorization to correctly work with vectorizable math functions
-            if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
+            if (find(fMathLibTable.begin(), fMathLibTable.end(), inst->fName) != fMathLibTable.end()) {
                 function->setDoesNotAccessMemory();
             }
             function->setDoesNotThrow();
@@ -795,14 +827,31 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kLT);
         } else if (checkMax(inst->fName) && fun_args.size() == 2) {
             fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kGT);
-        } else {
+    #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+        // LLVM unary intrinsic
+        } else if (fUnaryIntrinsicTable.find(inst->fName) != fUnaryIntrinsicTable.end()) {
             
+            CallInst* call_inst = fBuilder->CreateUnaryIntrinsic(fUnaryIntrinsicTable[inst->fName], fun_args[0]);
+            call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+            fCurValue = call_inst;
+            
+        // LLVM binary intrinsic
+        } else if (fBinaryIntrinsicTable.find(inst->fName) != fBinaryIntrinsicTable.end()) {
+            
+            CallInst* call_inst = fBuilder->CreateBinaryIntrinsic(fBinaryIntrinsicTable[inst->fName], fun_args[0], fun_args[1]);
+            call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+            fCurValue = call_inst;
+            
+    #endif
+        } else {
             // Get function in the module
             Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
             faustassert(function);
-
+        
             // Result is function call
-            fCurValue = CreateFuncall(function, fun_args);
+            CallInst* call_inst = CreateFuncall(function, fun_args);
+            call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+            fCurValue = call_inst;
         }
     }
     
@@ -828,9 +877,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
-  
-        // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "select_cond");
+     
+        // Compare condition to 0
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
 
         // Compile then branch, result in fCurValue
         inst->fThen->accept(this);
@@ -861,9 +910,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
         
-        // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "select_cond");
-        
+        // Compare condition to 0
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+      
         // Get enclosing function
         Function* function = fBuilder->GetInsertBlock()->getParent();
         
@@ -881,6 +930,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fThen->accept(this);
         
         // Create typed local variable
+        
+        // Always at the begining since the block is already branched to next one...
+        fAllocaBuilder->SetInsertPoint(GetIterator(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
         LLVMValue typed_res = fAllocaBuilder->CreateAlloca(getCurType(), nullptr, "select_res");
       
         // "Then" is a BlockInst, result is in fCurValue
@@ -914,10 +966,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile condition, result in fCurValue
         inst->fCond->accept(this);
-
-        // Convert condition to a bool
-        LLVMValue cond_value = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty(), "if_cond");
-
+  
+        // Compare condition to 0
+        LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+ 
         // Get enclosing function
         Function* function = fBuilder->GetInsertBlock()->getParent();
 
@@ -1006,10 +1058,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Compute end condition, result in fCurValue
             inst->fEnd->accept(this);
-
-            // Convert condition to a bool
-            LLVMValue end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
-
+   
+            // Compare condition to 0
+            LLVMValue end_cond = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+      
             // Insert the conditional branch into the last block of loop
             fBuilder->CreateCondBr(end_cond, loop_body_block, exit_block);
         }
@@ -1073,10 +1125,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         // Create the exit_block and insert it
         BasicBlock* exit_block = genBlock("exit_block", function);
-
-        // Convert condition to a bool
-        LLVMValue end_cond = fBuilder->CreateTrunc(fCurValue, fBuilder->getInt1Ty());
-
+ 
+        // Compare condition to 0
+        LLVMValue end_cond = fBuilder->CreateICmp(ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+    
         // Insert the conditional branch into the end of cond_block
         fBuilder->CreateCondBr(end_cond, test_block, exit_block);
 
@@ -1240,13 +1292,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         faustassert(arg1->getType() == arg2->getType());
 
         if (arg1->getType() == getFloatTy() || arg1->getType() == getDoubleTy()) {
-        #if defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
             return (comp == kLT) ? fBuilder->CreateMinNum(arg1, arg2) : fBuilder->CreateMaxNum(arg1, arg2);
-        #else
-            LLVMValue comp_value =
-                fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMFloatInst, arg1, arg2);
-            return fBuilder->CreateSelect(comp_value, arg1, arg2);
-        #endif
         } else if (arg1->getType() == getInt32Ty()) {
             LLVMValue comp_value =
                 fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMIntInst, arg1, arg2);

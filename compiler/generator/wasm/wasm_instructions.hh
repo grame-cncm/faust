@@ -42,7 +42,7 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
     bool debug;
 
    public:
-    BufferWithRandomAccess(bool debug = false) : debug(debug) {}
+    BufferWithRandomAccess(bool dbg = false) : debug(dbg) {}
 
     BufferWithRandomAccess& operator<<(int8_t x)
     {
@@ -455,10 +455,11 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct =
-            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)
+                        || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string      name        = inst->fAddress->getName();
+        string name = inst->fAddress->getName();
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -486,13 +487,12 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
             return;
         } else {
-            fFunctionSymbolTable[inst->fName] = 1;
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
         // will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-            faustassert(fMathLibTable.find(inst->fName) != fMathLibTable.end());
             MathFunDesc desc = fMathLibTable[inst->fName];
 
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
@@ -500,25 +500,20 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 // Build function type (args type same as return type)
                 list<NamedTyped*> args;
                 if (desc.fArgs == 1) {
-                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
                 } else if (desc.fArgs == 2) {
-                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
-                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fTypeIn));
                 } else {
                     faustassert(false);
                 }
 
-                // Args type same as return type
                 FunTyped* fun_type =
-                    InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(desc.fType), FunTyped::kDefault);
+                    InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(desc.fTypeOut), FunTyped::kDefault);
                 fFunTypes[inst->fName] = fun_type;
 
                 // Build function import
-                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    fFunImports[inst->fName] = std::make_pair("env", desc.fName);
-                } else {
-                    faustassert(false);
-                }
+                fFunImports[inst->fName] = std::make_pair("env", desc.fName);
             }
 
         } else {
@@ -815,13 +810,16 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        bool is_struct =
-            (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct)
+                        || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string      name        = inst->fAddress->getName();
-
-        // std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
-        faustassert(fFieldTable.find(name) == fFieldTable.end());
+    
+        // fSampleRate may appear several time (in subcontainers and in main DSP)
+        string name = inst->fAddress->getName();
+        if (name != "fSampleRate") {
+            faustassert(fFieldTable.find(name) == fFieldTable.end());
+        }
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -858,7 +856,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
             return;
         } else {
-            fFunctionSymbolTable[inst->fName] = 1;
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // Generate function body

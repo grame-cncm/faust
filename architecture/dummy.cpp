@@ -172,10 +172,9 @@ int main(int argc, char* argv[])
         DSP = new mydsp();
     #endif
     }
-    
 #endif
     
-    if (DSP == 0) {
+    if (!DSP) {
         cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
@@ -227,7 +226,6 @@ int main(int argc, char* argv[])
     }
     
     // Rendering in now finished...
-    
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
         dsp_poly->keyOn(0, 60, 127);
@@ -248,7 +246,6 @@ int main(int argc, char* argv[])
     }
     
     // Rendering in now finished...
-    
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
         dsp_poly->keyOn(0, 60, 127);
@@ -285,7 +282,6 @@ int main(int argc, char* argv[])
     finterface.saveState(rcfilename);
     
     delete DSP;
-    
     return 0;
 }
 

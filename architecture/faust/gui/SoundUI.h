@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/SimpleParser.h"
@@ -42,6 +43,9 @@
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
 JuceReader gReader;
+#elif defined(ESP32)
+#include "faust/gui/WaveReader.h"
+WaveReader gReader;
 #elif defined(MEMORY_READER)
 #include "faust/gui/MemoryReader.h"
 MemoryReader gReader;
@@ -65,6 +69,15 @@ class SoundUI : public GenericUI
 
      public:
     
+        /**
+         * Create a soundfile loader which will typically use a concrete SoundfileReader like LibsndfileReader or JuceReader to load soundfiles.
+         *
+         * @param sound_directory - the base directory to look for files, which paths will be relative to this one
+         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
+         * @param reader - an alternative soundfile reader
+         *
+         * @return the soundfile loader.
+         */
         SoundUI(const std::string& sound_directory = "", int sample_rate = -1, SoundfileReader* reader = nullptr)
         {
             fSoundfileDir.push_back(sound_directory);
@@ -72,6 +85,15 @@ class SoundUI : public GenericUI
             fSoundReader->setSampleRate(sample_rate);
         }
     
+        /**
+         * Create a soundfile loader which will typically use a concrete SoundfileReader like LibsndfileReader or JuceReader to load soundfiles.
+         *
+         * @param sound_directories - a vector of base directories to look for files, which paths will be relative to these ones
+         * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
+         * @param reader - an alternative soundfile reader
+         *
+         * @return the soundfile loader.
+         */
         SoundUI(const std::vector<std::string>& sound_directories, int sample_rate = -1, SoundfileReader* reader = nullptr)
         :fSoundfileDir(sound_directories)
         {
@@ -82,9 +104,8 @@ class SoundUI : public GenericUI
         virtual ~SoundUI()
         {   
             // Delete all soundfiles
-            std::map<std::string, Soundfile*>::iterator it;
-            for (it = fSoundfileMap.begin(); it != fSoundfileMap.end(); it++) {
-                delete (*it).second;
+            for (auto& it : fSoundfileMap) {
+                delete it.second;
             }
         }
 
@@ -118,16 +139,24 @@ class SoundUI : public GenericUI
             *sf_zone = fSoundfileMap[saved_url];
         }
     
-        static std::string getBinaryPath(std::string folder = "")
+        /**
+         * An OS dependant function to get the path of the running executable or plugin.
+         * This will typically be used when creating a SoundUI soundfile loader, like new SoundUI(SoundUI::getBinaryPath());
+         *
+         * @return the running executable or plugin path.
+         */
+        static std::string getBinaryPath()
         {
             std::string bundle_path_str;
         #ifdef __APPLE__
             CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-            if (bundle_ref) {
-                UInt8 bundle_path[512];
-                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                    bundle_path_str = std::string((char*)bundle_path) + folder;
-                }
+            if (!bundle_ref) { std::cerr << "getBinaryPath CFBundleCopyBundleURL error\n"; return ""; }
+      
+            UInt8 bundle_path[1024];
+            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
+                bundle_path_str = std::string((char*)bundle_path);
+            } else {
+                std::cerr << "getBinaryPath CFURLGetFileSystemRepresentation error\n";
             }
         #endif
         #ifdef ANDROID_DRIVER
@@ -135,18 +164,30 @@ class SoundUI : public GenericUI
         #endif
             return bundle_path_str;
         }
-        
+    
+        /**
+         * An OS dependant function to get the path of the running executable or plugin.
+         * This will typically be used when creating a SoundUI soundfile loader, like new SoundUI(SoundUI::getBinaryPathFrom());
+         *
+         * @param path - entry point to start getting the path of the running executable or plugin.
+         *
+         * @return the running executable or plugin path.
+         */
         static std::string getBinaryPathFrom(const std::string& path)
         {
             std::string bundle_path_str;
         #ifdef __APPLE__
             CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
+            if (!bundle) { std::cerr << "getBinaryPathFrom CFBundleGetBundleWithIdentifier error '" << path << "'" << std::endl; return ""; }
+         
             CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
-            if (bundle_ref) {
-                UInt8 bundle_path[512];
-                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                    bundle_path_str = std::string((char*)bundle_path);
-                }
+            if (!bundle_ref) { std::cerr << "getBinaryPathFrom CFBundleCopyBundleURL error\n"; return ""; }
+            
+            UInt8 bundle_path[1024];
+            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 1024)) {
+                bundle_path_str = std::string((char*)bundle_path);
+            } else {
+                std::cerr << "getBinaryPathFrom CFURLGetFileSystemRepresentation error\n";
             }
         #endif
         #ifdef ANDROID_DRIVER

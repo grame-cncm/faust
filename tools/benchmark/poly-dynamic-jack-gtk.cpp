@@ -1,25 +1,25 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************/
 
 #include <libgen.h>
@@ -28,14 +28,13 @@
 #include <sstream>
 
 /*
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT double
-#endif
-*/
+ #ifndef FAUSTFLOAT
+ #define FAUSTFLOAT double
+ #endif
+ */
 
 #include "faust/audio/coreaudio-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-llvm-dsp.h"
 #include "faust/dsp/poly-interpreter-dsp.h"
@@ -206,7 +205,7 @@ int main(int argc, char* argv[])
     }
     
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
+        cerr << error_msg;
         exit(EXIT_FAILURE);
     }
     
@@ -225,10 +224,10 @@ int main(int argc, char* argv[])
     }
     
     /*
-    JSONUI json(DSP->getNumInputs(), DSP->getNumOutputs());
-    DSP->buildUserInterface(&json);
-    cout << "JSON : " << json.JSON() << endl;
-    */
+     JSONUI json(DSP->getNumInputs(), DSP->getNumOutputs());
+     DSP->buildUserInterface(&json);
+     cout << "JSON : " << json.JSON() << endl;
+     */
     
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
@@ -276,7 +275,7 @@ int main(int argc, char* argv[])
     if (is_httpd) {
         httpdinterface->run();
     }
-
+    
     if (is_osc) {
         oscinterface->run();
     }
@@ -286,38 +285,38 @@ int main(int argc, char* argv[])
     }
     
     /*
-    cout << DSP->getJSON();
+     cout << DSP->getJSON();
      
-    // Test setParamValue API
-    DSP->setParamValue("/Polyphonic/Voices/clarinet/otherParams/bellOpening", 0.35);
-    DSP->setParamValue("/Polyphonic/Voices/clarinet/midi/bend", 1.5);
-    
-    // Test MIDI API
-    DSP->keyOn(0, 60, 100);
-    DSP->keyOn(0, 64, 100);
-    DSP->keyOn(0, 67, 100);
-    
-    usleep(1000000);
-    
-    DSP->keyOff(0, 60, 100);
-    DSP->keyOff(0, 64, 100);
-    DSP->keyOff(0, 67, 100);
-    
-    // Test MIDI API
-    DSP->pitchWheel(0, 4000);
-    DSP->keyOn(0, 60, 100);
-    DSP->keyOn(0, 64, 100);
-    DSP->keyOn(0, 67, 100);
-    
-    usleep(1000000);
-    
-    DSP->keyOff(0, 60, 100);
-    DSP->keyOff(0, 64, 100);
-    DSP->keyOff(0, 67, 100);
-    */
+     // Test setParamValue API
+     DSP->setParamValue("/Polyphonic/Voices/clarinet/otherParams/bellOpening", 0.35);
+     DSP->setParamValue("/Polyphonic/Voices/clarinet/midi/bend", 1.5);
+     
+     // Test MIDI API
+     DSP->keyOn(0, 60, 100);
+     DSP->keyOn(0, 64, 100);
+     DSP->keyOn(0, 67, 100);
+     
+     usleep(1000000);
+     
+     DSP->keyOff(0, 60, 100);
+     DSP->keyOff(0, 64, 100);
+     DSP->keyOff(0, 67, 100);
+     
+     // Test MIDI API
+     DSP->pitchWheel(0, 4000);
+     DSP->keyOn(0, 60, 100);
+     DSP->keyOn(0, 64, 100);
+     DSP->keyOn(0, 67, 100);
+     
+     usleep(1000000);
+     
+     DSP->keyOff(0, 60, 100);
+     DSP->keyOff(0, 64, 100);
+     DSP->keyOff(0, 67, 100);
+     */
     
     interface->run();
-
+    
     audio.stop();
     
     finterface->saveState(rcfilename);

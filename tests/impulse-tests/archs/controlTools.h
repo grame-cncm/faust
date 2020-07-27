@@ -13,7 +13,6 @@
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/channels.h"
-#include "faust/audio/fpe.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/MidiUI.h"
@@ -29,32 +28,6 @@ using namespace std;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
-
-//----------------------------------------------------------------------------
-// me_dsp:  A decorator to check math exceptions
-//----------------------------------------------------------------------------
-
-class me_dsp : public decorator_dsp {
-    
-    public:
-    
-        me_dsp(dsp* dsp):decorator_dsp(dsp) {}
-        
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            TRY_FPE
-            fDSP->compute(count, inputs, outputs);
-            CATCH_FPE
-        }
-        
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            TRY_FPE
-            fDSP->compute(date_usec, count, inputs, outputs);
-            CATCH_FPE
-        }
-  
-};
 
 //----------------------------------------------------------------------------
 // Test MemoryReader
@@ -320,8 +293,14 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
         cerr << "ERROR runDSP in checkDefaults after 'instanceInit'" << std::endl;
     }
     
-    // Init again
-    DSP->init(44100);
+    // To test that instanceInit properly init a cloned DSP
+    DSP = DSP->clone();
+    DSP->instanceInit(44100);
+    
+    // Init UIs on cloned DSP
+    DSP->buildUserInterface(&finterface);
+    DSP->buildUserInterface(&sound_ui);
+    DSP->buildUserInterface(&midi_ui);
     
     int nins = DSP->getNumInputs();
     int nouts = DSP->getNumOutputs();
@@ -384,7 +363,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
             nbsamples -= nFrames;
         }
     } catch (...) {
-        cerr << "ERROR in " << file << " line : " << i << std::endl;
+        cerr << "ERROR in '" << file << "' at line : " << i << std::endl;
     }
     
     delete ichan;

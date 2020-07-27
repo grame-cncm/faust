@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     }
 #endif
     
-    if (DSP == 0) {
+    if (!DSP) {
         cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
@@ -195,7 +195,6 @@ int main(int argc, char* argv[])
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
         cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
     }
-    interface.process_command();
  
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -236,8 +235,12 @@ int main(int argc, char* argv[])
     cout << "MIDI is on" << endl;
 #endif
     
-    
+    // First restore the state
     finterface.recallState(rcfilename);
+    
+    // The process commands and possibly update it
+    interface.process_command();
+    
     if (!audio.start()) {
         cerr << "Unable to start audio" << endl;
         exit(1);

@@ -38,7 +38,7 @@
 
 using namespace std;
 
-// Usage: faust-osc-controller /clarinet -port 5001 -outport 5000 -xmit 1
+// Usage: faust-osc-controller /clarinet localhost -port 5001 -outport 5000 -xmit 1
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -60,22 +60,25 @@ int main(int argc, char* argv[])
     snprintf(rcfilename, 255, "%s/.%s%src", home, name, replaceChar(argv[1], '/', '_').c_str());
     
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faust-osc-controller root [-port <port>] [-outport <port>]" << endl;
+        cout << "faust-osc-controller root [-ip <host_ip>] [-port <port>] [-outport <port>]" << endl;
         cout << "Set root to the OSC root name (like '/freeverb')\n";
+        cout << "Use '-ip <host_ip>' to set the remote application IP address (default 'localhost')\n";
         cout << "Use '-port <port>' to set the OSC input port\n";
         cout << "Use '-outport <port>' to set the OSC output port\n";
         exit(EXIT_FAILURE);
     }
     
+    const char* ip = lopts(argv, "-ip", "localhost");
     int in_port = lopt(argv, "-port", 5511);
     int out_port = lopt(argv, "-outport", 5510);
     
+    
     dsp* DSP = nullptr;
     try {
-        DSP = new proxy_osc_dsp("localhost", argv[1], in_port, out_port);
+        DSP = new proxy_osc_dsp(ip, argv[1], in_port, out_port);
     } catch (...) {
         cerr << "Cannot allocate proxy_osc_dsp..." << endl;
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     
     // Controller

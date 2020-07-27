@@ -60,10 +60,9 @@ void FIRCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* ds
 {
     // User Interface
     if (fUserInterfaceInstructions->fCode.size() > 0) {
-        *dst << "======= User Interface ==========" << endl;
-        *dst << endl;
+        *dst << "======= User Interface begin ==========" << endl << endl;
         fUserInterfaceInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << "======= User Interface end ==========" << endl;
     }
 }
 
@@ -74,32 +73,29 @@ void FIRCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* ds
         it->produceInternal();
         it->dump(dst);
     }
-    *dst << "======= Sub container end ==========" << endl << endl;
+    *dst << endl << "======= Sub container end ==========" << endl << endl;
 }
 
 void FIRCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Global external declarations ==========" << endl;
-        *dst << endl;
+        *dst << "======= Global external declarations begin ==========" << endl << endl;
         fExtGlobalDeclarationInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Global external declarations end ==========" << endl;
     }
 
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Global declarations ==========" << endl;
-        *dst << endl;
+        *dst << "======= Global declarations begin ==========" << endl << endl;
         fGlobalDeclarationInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Global declarations end ==========" << endl;
     }
 
     if (fDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= DSP struct ==========" << endl;
-        *dst << endl;
+        *dst << "======= DSP struct begin ==========" << endl << endl;
         StructInstVisitor visitor;
         fDeclarationInstructions->accept(&visitor);
         visitor.getStructType(fKlassName)->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= DSP struct end ==========" << endl;
     }
 
     generateGetInputs(subst("$0::getNumInputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
@@ -112,48 +108,42 @@ void FIRCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
     *dst << endl;
 
     if (fStaticInitInstructions->fCode.size() > 0) {
-        *dst << "======= Static Init ==========" << endl;
-        *dst << endl;
+        *dst << "======= Static Init begin ==========" << endl << endl;
         fStaticInitInstructions->accept(&firvisitor);
         if (fPostStaticInitInstructions->fCode.size() > 0) {
             fPostStaticInitInstructions->accept(&firvisitor);
         }
-        *dst << endl;
+        *dst << endl << "======= Static Init end ==========" << endl;
     }
 
     if (fInitInstructions->fCode.size() > 0) {
-        *dst << "======= Init ==========" << endl;
-        *dst << endl;
+        *dst << "======= Init begin ==========" << endl << endl;
         fInitInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Init end ==========" << endl;
     }
 
     if (fResetUserInterfaceInstructions->fCode.size() > 0) {
-        *dst << "======= ResetUI ==========" << endl;
-        *dst << endl;
+        *dst << "======= ResetUI begin ==========" << endl << endl;
         fResetUserInterfaceInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= ResetUI end ==========" << endl;
     }
 
     if (fClearInstructions->fCode.size() > 0) {
-        *dst << "======= Clear ==========" << endl;
-        *dst << endl;
+        *dst << "======= Clear begin ==========" << endl << endl;
         fClearInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Clear end ==========" << endl;
     }
 
     if (fDestroyInstructions->fCode.size() > 0) {
-        *dst << "======= Destroy ==========" << endl;
-        *dst << endl;
+        *dst << "======= Destroy begin ==========" << endl << endl;
         fDestroyInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Destroy end ==========" << endl;
     }
 
     if (fAllocateInstructions->fCode.size() > 0) {
-        *dst << "======= Allocate ==========" << endl;
-        *dst << endl;
+        *dst << "======= Allocate begin ==========" << endl << endl;
         fAllocateInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Allocate end ==========" << endl;
     }
 }
 
@@ -168,21 +158,20 @@ static void dumpCost(StatementInst* inst, ostream* dst)
 void FIRCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fComputeBlockInstructions->fCode.size() > 0) {
-        *dst << "======= Compute control ==========" << endl << endl;
+        *dst << "======= Compute control begin ==========" << endl << endl;
         // Complexity estimation
         dumpCost(fComputeBlockInstructions, dst);
         fComputeBlockInstructions->accept(&firvisitor);
-        *dst << endl;
+        *dst << endl << "======= Compute control end ==========" << endl;
     }
 }
 
 void FIRCodeContainer::dumpFlatten(ostream* dst)
 {
-    *dst << "======= Flatten FIR ==========" << endl;
-    *dst << endl;
+    *dst << "======= Flatten FIR begin ==========" << endl << endl;
     FIRInstVisitor firvisitor(dst);
     flattenFIR()->accept(&firvisitor);
-    *dst << endl;
+    *dst << endl << "======= Flatten FIR end ==========" << endl;
 }
 
 void FIRCodeContainer::dumpMemory(ostream* dst)
@@ -245,8 +234,7 @@ void FIRCodeContainer::produceClass()
         (it.second)->accept(&firvisitor);
         *fOut << endl;
     }
-    *fOut << endl;
-
+   
     dumpSubContainers(firvisitor, fOut);
     dumpUserInterface(firvisitor, fOut);
     dumpGlobalsAndInit(firvisitor, fOut);
@@ -260,14 +248,14 @@ void FIRCodeContainer::produceClass()
 
 void FIRCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    *dst << "======= Post compute DSP ==========" << endl;
+    *dst << "======= Post compute DSP begin ==========" << endl;
     fPostComputeBlockInstructions->accept(&firvisitor);
-    *dst << endl;
+    *dst << "======= Post compute DSP end ==========" << endl;
 }
 
 void FIRScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    *dst << "======= Compute DSP ==========" << endl;
+    *dst << "======= Compute DSP begin ==========" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
     // Complexity estimation
     dumpCost(loop, dst);
@@ -276,7 +264,7 @@ void FIRScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     // Currently for soundfile management
     generatePostComputeBlock(&firvisitor);
 
-    *dst << endl;
+    *dst << endl << "======= Compute DSP end ==========" << endl;
 }
 
 void FIRVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
@@ -364,10 +352,10 @@ void FIRWorkStealingCodeContainer::dumpMemory(ostream* dst)
 void FIRWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Generate it
-    *dst << "======= Compute Thread ==========" << endl;
+    *dst << "======= Compute Thread begin ==========" << endl;
     *dst << endl;
     // Complexity estimation
     dumpCost(fThreadLoopBlock, dst);
     fThreadLoopBlock->accept(&firvisitor);
-    *dst << endl;
+    *dst << "======= Compute Thread end ==========" << endl;
 }

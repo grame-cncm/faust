@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 . faustpath
+. usage.sh
 
 #FAUST DATA:
 [ -z "$ARCHFILE" ] && ARCHFILE=$FAUSTARCH/bela.cpp
@@ -31,16 +32,16 @@ do
 
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2bela [-midi] [-gui] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-osc] [-tobela] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-gui' to activate a self-hosted GUI interface. This requires that you installed libmicrohttpd and libHTTPDFaust."
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
-        echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-        echo "Use '-osc' to activate OSC control"
-	    echo "Use '-tobela' to send C++ file into bela, and run it."
+        usage faust2bela "[options] [Faust options] <file.dsp>"
+        platform Bela
+        option
+        options -osc -midi -soundfile
+        option "-nvoices <num>"
+        echo "Polyphonic mode means MIDI instrument with at least 1 voice. Use no arguments for a simple effect."
+        option -gui "activates a self-hosted GUI interface. Requires to have libmicrohttpd and libHTTPDFaust installed."
+        option "-effect <effect.dsp>" "generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        option "-effect auto" "generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
+	    option -tobela "to send C++ file into bela, and to run it."
         exit
     fi
 

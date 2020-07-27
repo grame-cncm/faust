@@ -78,6 +78,8 @@ class portaudio : public audio {
         
         virtual int processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames) 
         {
+            AVOIDDENORMALS;
+            
             // Cleanup hardware outputs that are not used by DSP
             for (int i = fDsp->getNumOutputs(); i < fDevNumOutChans; i++) {
                 memset(obuf[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);

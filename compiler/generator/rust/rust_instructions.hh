@@ -23,6 +23,7 @@
 #define _RUST_INSTRUCTIONS_H
 
 #include "text_instructions.hh"
+#include "Text.hh"
 
 using namespace std;
 
@@ -76,7 +77,7 @@ class RustInstVisitor : public TextInstVisitor {
     using TextInstVisitor::visit;
 
     RustInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-        : TextInstVisitor(out, ".", new RustStringTypeManager(FLOATMACRO, "&"), tab)
+        : TextInstVisitor(out, ".", new RustStringTypeManager(xfloat(), "&"), tab)
     {
         fTypeManager->fTypeDirectTable[Typed::kObj]     = "";
         fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = "";
@@ -102,11 +103,21 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["max_f"]      = "f32::max";
         fMathLibTable["min_f"]      = "f32::min";
         fMathLibTable["powf"]       = "f32::powf";
-        fMathLibTable["remainderf"] = "manual";  // Manually generated : TODO
+        fMathLibTable["remainderf"] = "f32::rem_euclid";
+        //fMathLibTable["rintf"]      = "linux_api_math::rintf"; // TODO
+        fMathLibTable["rintf"]      = "f32::round";
         fMathLibTable["roundf"]     = "f32::round";
         fMathLibTable["sinf"]       = "f32::sin";
         fMathLibTable["sqrtf"]      = "f32::sqrt";
         fMathLibTable["tanf"]       = "f32::tan";
+
+        // Additional hyperbolic math functions
+        fMathLibTable["acoshf"]     = "f32::acosh";
+        fMathLibTable["asinhf"]     = "f32::asinh";
+        fMathLibTable["atanhf"]     = "f32::atanh";
+        fMathLibTable["coshf"]      = "f32::cosh";
+        fMathLibTable["sinhf"]      = "f32::sinh";
+        fMathLibTable["tanhf"]      = "f32::tanh";
 
         // Double version
         fMathLibTable["fabs"]      = "f64::abs";
@@ -120,15 +131,25 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["floor"]     = "f64::floor";
         fMathLibTable["fmod"]      = "libm::fmod";
         fMathLibTable["log"]       = "f64::log";
-        fMathLibTable["log10"]     = "f32::log10";
+        fMathLibTable["log10"]     = "f64::log10";
         fMathLibTable["max_"]      = "f64::max";
         fMathLibTable["min_"]      = "f64::min";
         fMathLibTable["pow"]       = "f64::powf";
-        fMathLibTable["remainder"] = "manual";  // Manually generated : TODO
+        fMathLibTable["remainder"] = "f64::rem_euclid";
+        //fMathLibTable["rint"]      = "linux_api_math::rint";  // TODO
+        fMathLibTable["rint"]      = "f64::round";
         fMathLibTable["round"]     = "f64::round";
         fMathLibTable["sin"]       = "f64::sin";
         fMathLibTable["sqrt"]      = "f64::sqrt";
         fMathLibTable["tan"]       = "f64::tan";
+
+        // Additional hyperbolic math functions
+        fMathLibTable["acosh"]     = "f64::acosh";
+        fMathLibTable["asinh"]     = "f64::asinh";
+        fMathLibTable["atanh"]     = "f64::atanh";
+        fMathLibTable["cosh"]      = "f64::cosh";
+        fMathLibTable["sinh"]      = "f64::sinh";
+        fMathLibTable["tanh"]      = "f64::tanh";
     }
 
     virtual ~RustInstVisitor() {}
@@ -151,13 +172,13 @@ class RustInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
-                name = "ui_interface.openVerticalBox(";
+                name = "ui_interface.open_vertical_box(";
                 break;
             case OpenboxInst::kHorizontalBox:
-                name = "ui_interface.openHorizontalBox(";
+                name = "ui_interface.open_horizontal_box(";
                 break;
             case OpenboxInst::kTabBox:
-                name = "ui_interface.openTabBox(";
+                name = "ui_interface.open_tab_box(";
                 break;
         }
         *fOut << name << quote(inst->fName) << ")";
@@ -166,16 +187,16 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(CloseboxInst* inst)
     {
-        *fOut << "ui_interface.closeBox();";
+        *fOut << "ui_interface.close_box();";
         tab(fTab, *fOut);
     }
 
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
+            *fOut << "ui_interface.add_button(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
         } else {
-            *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
+            *fOut << "ui_interface.add_check_button(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
         }
         EndLine();
     }
@@ -185,13 +206,13 @@ class RustInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                name = "ui_interface.addHorizontalSlider";
+                name = "ui_interface.add_horizontal_slider";
                 break;
             case AddSliderInst::kVertical:
-                name = "ui_interface.addVerticalSlider";
+                name = "ui_interface.add_vertical_slider";
                 break;
             case AddSliderInst::kNumEntry:
-                name = "ui_interface.addNumEntry";
+                name = "ui_interface.add_num_entry";
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
@@ -205,10 +226,10 @@ class RustInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                name = "ui_interface.addHorizontalBargraph";
+                name = "ui_interface.add_horizontal_bargraph";
                 break;
             case AddBargraphInst::kVertical:
-                name = "ui_interface.addVerticalBargraph";
+                name = "ui_interface.add_vertical_bargraph";
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ", " << checkReal(inst->fMin)
@@ -251,7 +272,12 @@ class RustInstVisitor : public TextInstVisitor {
         // Only generates additional functions
         if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {
             // Prototype
-            *fOut << "pub fn " << inst->fName;
+            // Since functions are attached to a trait they must not be prefixed with "pub".
+            // In case we need a mechanism to attach functions to both traits and normal
+            // impls, we need a mechanism to forward the information whether to use "pub"
+            // or not. In the worst case, we have to prefix the name string like "pub fname",
+            // and handle the prefix here.
+            *fOut << "fn " << inst->fName;
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
@@ -383,12 +409,41 @@ class RustInstVisitor : public TextInstVisitor {
         }
     }
 
+    virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
+    {
+        if (inst->fMethod) {
+            list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+            // Compile object arg
+            (*it)->accept(this);
+            // Compile parameters
+            *fOut << fObjectAccess;
+            // Hack for 1 FIR generated names
+            if (startWith(fun_name, "instanceInit")) {
+                *fOut << "instance_init" << fun_name.substr(12) << "(";
+            } else {
+                *fOut << fun_name << "(";
+            }
+            generateFunCallArgs(++it, inst->fArgs.end(), int(inst->fArgs.size()) - 1);
+        } else {
+            *fOut << fun_name << "(";
+            // Compile parameters
+            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), int(inst->fArgs.size()));
+            // Hack for 'log' function that needs a base
+            if (fun_name == "f32::log") {
+                *fOut << ", std::f32::consts::E";
+            } else if (fun_name == "f64::log") {
+                *fOut << ", std::f64::consts::E";
+            }
+        }
+        *fOut << ")";
+    }
+
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "if (";
         inst->fCond->accept(this);
         // Force 'cond' to bool type
-        *fOut << " as i32 == 1) { ";
+        *fOut << " as i32 != 0) { ";
         inst->fThen->accept(this);
         *fOut << " } else { ";
         inst->fElse->accept(this);
@@ -447,9 +502,11 @@ class RustInstVisitor : public TextInstVisitor {
 
         *fOut << "for " << inst->getName() << " in ";
         if (inst->fReverse) {
-            inst->fUpperBound->accept(this);
-            *fOut << "..";
+            *fOut << "(";
             inst->fLowerBound->accept(this);
+            *fOut << "..=";
+            inst->fUpperBound->accept(this);
+            *fOut << ").rev()";
         } else {
             inst->fLowerBound->accept(this);
             *fOut << "..";

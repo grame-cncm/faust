@@ -415,7 +415,9 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
         super.onResume();
         if (permissionToRecordAccepted) {
             if (!isChangingConfigurations()) {
-                dspFaust.start();
+                if (!dspFaust.start()) {
+                    Log.d("FaustJava", "onResume start failure");
+                }
             }
             ui.reloadUIstate();
             mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(

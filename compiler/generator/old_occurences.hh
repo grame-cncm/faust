@@ -23,11 +23,11 @@
 #define __OLD_OCCURENCES__
 
 #include <map>
+
+#include "garbageable.hh"
 #include "tlib.hh"
 
-using namespace std;
-
-class old_Occurences {
+class old_Occurences : public virtual Garbageable {
     const int fXVariability;   ///< Extended Variability of the expression
     int       fOccurences[4];  ///< Occurences count according to Contexts
     bool      fMultiOcc;       ///< True when exp has multiple occ. or occ. in higher ctxt
@@ -51,7 +51,7 @@ class old_Occurences {
  * Occurences Markup of a root tree. First create an OccMarkup om,
  * second om.mark(root) then om.retrieve(subtree)
  */
-class old_OccMarkup {
+class old_OccMarkup : public virtual Garbageable {
     Tree            fRootTree;    ///< occurences computed within this tree
     Tree            fPropKey;     ///< key used to store occurences property
     map<Tree, Tree> fConditions;  ///< condition associated to each tree
@@ -61,8 +61,8 @@ class old_OccMarkup {
     void            setOcc(Tree t, old_Occurences* occ);                     ///< set Occurences property of t
 
    public:
-    old_OccMarkup() {}
-    old_OccMarkup(map<Tree, Tree> conditions) : fConditions(conditions) {}
+    old_OccMarkup() : fRootTree(nullptr), fPropKey(nullptr) {}
+    old_OccMarkup(map<Tree, Tree> conditions) : fRootTree(nullptr), fPropKey(nullptr), fConditions(conditions) {}
 
     void            mark(Tree root);   ///< start markup of root tree with new unique key
     old_Occurences* retrieve(Tree t);  ///< occurences of subtree t within root tree

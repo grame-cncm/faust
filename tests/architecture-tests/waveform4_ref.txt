@@ -13,6 +13,8 @@ Render one buffer
 sample out 30.000000
 Render one buffer
 sample out 60.000000
+Render one buffer
+sample out 20.000000
 free_manager
 free_manager
 free_manager

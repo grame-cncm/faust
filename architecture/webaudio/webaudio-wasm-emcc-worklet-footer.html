@@ -9,7 +9,8 @@ var contextOptions = { latencyHint: "interactive" };
 //var contextOptions = { latencyHint: "playback" };
 
 const isWasm = (typeof(WebAssembly) !== "undefined");
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)(({ latencyHint: 0.00001 }));
+audioCtx.destination.channelInterpretation = "discrete";
 let factory = null;
 let node = null;
 
@@ -89,15 +90,13 @@ function activateMIDIInput() {
 
 function activateAudioInput()
 {
-    if (!navigator.getUserMedia) {
-        navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    }
-
-    if (navigator.getUserMedia) {
-        navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
-                               alert('Error getting audio input');
-                               console.log(e);
-                               });
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
+            .then(getDevice)
+            .catch((e) => {
+                alert('Error getting audio input');
+                console.log(e);
+            });
     } else {
         alert('Audio input API not available');
     }

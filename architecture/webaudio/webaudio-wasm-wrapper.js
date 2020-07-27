@@ -337,7 +337,6 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         faust.cleanupAfterException();
         return null;
     }
-
 }
 
 faust.createDSPFactoryAux = function (code, argv, internal_memory, callback)
@@ -652,9 +651,8 @@ faust.deleteDSPFactory = function (factory)
 { 
 	// The JS side is cleared
 	faust.factory_table[factory.sha_key] = null;
-	// The native C++ is cleared each time (freeWasmCModule has been already called in faust.compile)  
-	faust.deleteAllWasmCDSPFactories();
- };
+	// freeWasmCModule has been already called in faust.compile
+};
 
 // 'mono' DSP
 
@@ -807,7 +805,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
         sp.ptr_size = 4;
         sp.sample_size = 4;
 
-        // Start of DSP memory : DSP is placed first with index 0
+        // Start of DSP memory: DSP is placed first with index 0
         sp.dsp = 0;
 
         sp.pathTable = [];
@@ -974,11 +972,14 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
             // Init DSP
             sp.factory.init(sp.dsp, context.sampleRate);
 	    }
-
-        /*
-     	 Public API to be used to control the DSP.
-         */
-
+	    
+	    // Public API
+         
+       /**
+        * Destroy the node, deallocate resources.
+        */
+        sp.destroy = function () {}
+	
     	/* Return current sample rate */
     	sp.getSampleRate = function ()
         {
@@ -1099,7 +1100,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback)
         * PitchWeel
         *
         * @param channel - the MIDI channel (0..15, not used for now)
-        * @param value - the MIDI controller value (-1..1)
+        * @param value - the MIDI controller value (0..16383)
         */
       	sp.pitchWheel = function (channel, wheel)
         {
@@ -1303,6 +1304,7 @@ var mydspProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
 
             this.json_object = JSON.parse(getJSONmydsp());
 
@@ -1407,12 +1409,12 @@ var mydspProcessorString = `
 
             this.setParamValue = function (path, val)
             {
-                this.HEAPF32[this.pathTable[path]] = val;
+                this.HEAPF32[this.pathTable[path] >> 2] = val;
             }
 
             this.getParamValue = function (path)
             {
-                return this.HEAPF32[this.pathTable[path]];
+                return this.HEAPF32[this.pathTable[path] >> 2];
             }
 
             // Init resulting DSP
@@ -1425,12 +1427,12 @@ var mydspProcessorString = `
             var output = outputs[0];
 
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
@@ -1442,16 +1444,26 @@ var mydspProcessorString = `
                     dspInput.set(input[chan]);
                 }
             }
+            
+            /*
+            TODO: sample accurate control change is not yet handled
+            When no automation occurs, params[i][1] has a length of 1,
+            otherwise params[i][1] has a length of NUM_FRAMES with possible control change each sample
+            */
 
             // Update controls (possibly needed for sample accurate control)
-            var params = Object.entries(parameters);
-            for (var i = 0; i < params.length; i++) {
-                this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+            for (const path in parameters) {
+            	const paramArray = parameters[path];
+            	this.setParamValue(path, paramArray[0]);
             }
 
-            // Compute
-            this.factory.compute(this.dsp, mydspProcessor.buffer_size, this.ins, this.outs);
-
+           // Compute
+            try {
+                this.factory.compute(this.dsp, mydspProcessor.buffer_size, this.ins, this.outs);
+            } catch(e) {
+                console.log("ERROR in compute (" + e + ")");
+            }
+            
             // Update bargraph
             this.update_outputs();
 
@@ -1463,7 +1475,15 @@ var mydspProcessorString = `
                 }
             }
 
-            return true;
+            return this.running;
+        }
+        
+        handleMessage(event)
+        {
+            var msg = event.data;
+            switch (msg.type) {
+                case "destroy": this.running = false; break;
+            }
         }
     }
 
@@ -1653,6 +1673,10 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 
     // Call init
     audio_node.init();
+    
+    // Public API
+    
+    audio_node.destroy = function() { this.port.postMessage({ type: "destroy" }); this.port.close(); }
 
     audio_node.getJSON = function() { return factory.getJSON(); }
     
@@ -1907,6 +1931,8 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.fFreqLabel = [];
     sp.fGateLabel = [];
     sp.fGainLabel = [];
+    sp.fKeyFun = null;
+    sp.fVelFun = null;
     sp.fDate = 0;
 
     sp.fPitchwheelLabel = [];
@@ -2225,15 +2251,23 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         }
 
         // keep 'keyOn/keyOff' labels
-        for (i = 0; i < sp.inputs_items.length; i++) {
-            if (sp.inputs_items[i].endsWith("/gate")) {
-                sp.fGateLabel.push(sp.pathTable[sp.inputs_items[i]]);
-            } else if (sp.inputs_items[i].endsWith("/freq")) {
-                sp.fFreqLabel.push(sp.pathTable[sp.inputs_items[i]]);
-            } else if (sp.inputs_items[i].endsWith("/gain")) {
-                sp.fGainLabel.push(sp.pathTable[sp.inputs_items[i]]);
+        sp.inputs_items.forEach(item => {
+            if (item.endsWith("/gate")) {
+                sp.fGateLabel.push(sp.pathTable[item]);
+            } else if (item.endsWith("/freq")) {
+                sp.fKeyFun = (pitch) => { return sp.midiToFreq(pitch); };
+                sp.fFreqLabel.push(sp.pathTable[item]);
+            } else if (item.endsWith("/key")) {
+                sp.fKeyFun = (pitch) => { return pitch;} ;
+                sp.fFreqLabel.push(sp.pathTable[item]);
+            } else if (item.endsWith("/gain")) {
+                sp.fVelFun = (vel) => { return vel/127.0; };
+                sp.fGainLabel.push(sp.pathTable[item])
+            } else if (item.endsWith("/vel") || item.endsWith("/velocity")) {
+                sp.fVelFun = (vel) => { return vel; };
+                sp.fGainLabel.push(sp.pathTable[item]);
             }
-        }
+        })
 
         // Init DSP voices
         for (i = 0; i < polyphony; i++) {
@@ -2245,10 +2279,13 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             sp.effect.init(sp.effect_start, context.sampleRate);
         }
     }
-
-    /*
-     Public API to be used to control the DSP.
+    
+    // Public API
+     
+    /**
+     * Destroy the node, deallocate resources.
      */
+    sp.destroy = function () {}
 
     /* Return current sample rate. */
     sp.getSampleRate = function ()
@@ -2370,13 +2407,13 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             console.log("keyOn voice %d", voice);
         }
         for (var i = 0; i < sp.fFreqLabel.length; i++) {
-            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.midiToFreq(pitch));
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.fKeyFun(pitch));
         }
         for (var i = 0; i < sp.fGateLabel.length; i++) {
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 1.0);
         }
         for (var i = 0; i < sp.fGainLabel.length; i++) {
-            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity/127.);
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], sp.fVelFun(velocity));
         }
         sp.dsp_voices_state[voice] = pitch;
     }
@@ -2448,7 +2485,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
      * PitchWeel
      *
      * @param channel - the MIDI channel (0..15, not used for now)
-     * @param value - the MIDI controller value (-1..1)
+     * @param value - the MIDI controller value (0..16383)
      */
     sp.pitchWheel = function (channel, wheel)
     {
@@ -2885,6 +2922,7 @@ var mydspPolyProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
 
             this.json_object = JSON.parse(getJSONmydsp());
             if (getJSONeffect() !== "") {
@@ -2906,6 +2944,8 @@ var mydspPolyProcessorString = `
             this.fFreqLabel = [];
             this.fGateLabel = [];
             this.fGainLabel = [];
+            this.fKeyFun = null;
+            this.fVelFun = null;
             this.fDate = 0;
 
             this.fPitchwheelLabel = [];
@@ -3224,8 +3264,16 @@ var mydspPolyProcessorString = `
                     if (this.inputs_items[i].endsWith("/gate")) {
                         this.fGateLabel.push(this.pathTable[this.inputs_items[i]]);
                     } else if (this.inputs_items[i].endsWith("/freq")) {
+                        this.fKeyFun = (pitch) => { return this.midiToFreq(pitch); };
+                        this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
+                    } else if (this.inputs_items[i].endsWith("/key")) {
+                        this.fKeyFun = (pitch) => { return pitch; };
                         this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
                     } else if (this.inputs_items[i].endsWith("/gain")) {
+                        this.fVelFun = (vel) => { return vel/127.0; };
+                        this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
+                    } else if (this.inputs_items[i].endsWith("/vel") || this.inputs_items[i].endsWith("/velocity")) {
+                        this.fVelFun = (vel) => { return vel; };
                         this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
                     }
                 }
@@ -3251,13 +3299,13 @@ var mydspPolyProcessorString = `
                     console.log("keyOn voice %d", voice);
                 }
                 for (var i = 0; i < this.fFreqLabel.length; i++) {
-                    this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.fKeyFun(pitch));
                 }
                 for (var i = 0; i < this.fGateLabel.length; i++) {
-                	this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
-           		}
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
+                }
                 for (var i = 0; i < this.fGainLabel.length; i++) {
-                    this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], this.fVelFun(velocity));
                 }
                 this.dsp_voices_state[voice] = pitch;
             }
@@ -3359,6 +3407,7 @@ var mydspPolyProcessorString = `
                 // Generic data message
                 case "param": this.setParamValue(msg.key, msg.value); break;
                 //case "patch": this.onpatch(msg.data); break;
+                case "destroy": this.running = false; break;
             }
         }
 
@@ -3388,12 +3437,12 @@ var mydspPolyProcessorString = `
             var output = outputs[0];
 
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
@@ -3444,7 +3493,7 @@ var mydspPolyProcessorString = `
                 }
             }
 
-            return true;
+            return this.running;
         }
     }
 
@@ -3556,6 +3605,10 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
 
     // Calls init
     audio_node.init();
+    
+    // Public API
+    
+    audio_node.destroy = function() { this.port.postMessage({ type: "destroy" }); this.port.close(); }
 
     audio_node.getJSON = function()
     {

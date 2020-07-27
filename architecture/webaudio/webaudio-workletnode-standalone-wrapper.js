@@ -104,6 +104,9 @@ class mydspNode extends AudioWorkletNode {
 
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
+        try {
+            if (this.parameters) this.parameters.forEach(p => p.automationRate = "k-rate");
+        } catch (e) {}
     }
 
     // To be called by the message port with messages coming from the processor
@@ -116,6 +119,15 @@ class mydspNode extends AudioWorkletNode {
     }
 
     // Public API
+    
+    /**
+     * Destroy the node, deallocate resources.
+     */
+    destroy()
+    {
+        this.port.postMessage({ type: "destroy" });
+        this.port.close();
+    }
 
     /**
      *  Returns a full JSON description of the DSP.
@@ -260,7 +272,7 @@ class mydspNode extends AudioWorkletNode {
      * PitchWeel
      *
      * @param channel - the MIDI channel (0..15, not used for now)
-     * @param value - the MIDI controller value (-1..1)
+     * @param value - the MIDI controller value (0..16383)
      */
     pitchWheel(channel, wheel)
     {
@@ -481,8 +493,8 @@ class mydsp {
             });
             
         } catch (e) {
-            this.error(e);
-            this.error("Faust " + this.name + " cannot be loaded or compiled");
+            console.error(e);
+            console.error("Faust " + this.name + " cannot be loaded or compiled");
             return null;
         }
     	
@@ -611,6 +623,7 @@ let mydspProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
             
             const importObject = {
                     env: {
@@ -702,6 +715,7 @@ let mydspProcessorString = `
             this.HEAP32 = new Int32Array(this.HEAP);
             this.HEAPF32 = new Float32Array(this.HEAP);
 
+            // Warning: keeps a ref on HEAP in Chrome and prevent proper GC
             //console.log(this.HEAP);
             //console.log(this.HEAP32);
             //console.log(this.HEAPF32);
@@ -781,18 +795,16 @@ let mydspProcessorString = `
 
             this.setParamValue = function (path, val)
             {
-                this.HEAPF32[this.pathTable[path]] = val;
+                this.HEAPF32[this.pathTable[path] >> 2] = val;
             }
 
             this.getParamValue = function (path)
             {
-                return this.HEAPF32[this.pathTable[path]];
+                return this.HEAPF32[this.pathTable[path] >> 2];
             }
 
             // Init resulting DSP
             this.initAux();
-            
-            console.log(this);
         }
         
         process(inputs, outputs, parameters) 
@@ -801,12 +813,12 @@ let mydspProcessorString = `
             var output = outputs[0];
             
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
@@ -826,11 +838,11 @@ let mydspProcessorString = `
             */
             
             // Update controls
-            var params = Object.entries(parameters);
-            for (var i = 0; i < params.length; i++) {
-                this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+            for (const path in parameters) {
+                const paramArray = parameters[path];
+                this.setParamValue(path, paramArray[0]);
             }
-            
+        
           	// Compute
             try {
                 this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
@@ -849,7 +861,15 @@ let mydspProcessorString = `
                 }
             }
             
-            return true;
+            return this.running;
+    	}
+        
+        handleMessage(event)
+        {
+            var msg = event.data;
+            switch (msg.type) {
+                case "destroy": this.running = false; break;
+            }
         }
     }
 

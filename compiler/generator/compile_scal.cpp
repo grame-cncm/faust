@@ -119,7 +119,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
 
     conditionAnnotation(L3);
-    // conditionStatistics(L3);        // count condition occurences
+    // conditionStatistics(L3);        // count condition occurrences
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
@@ -139,7 +139,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L3);  // annotate L3 with occurences analysis
+    fOccMarkup->mark(L3);  // annotate L3 with occurrences analysis
 
     endTiming("ScalarCompiler::prepare");
 
@@ -164,7 +164,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup();
-    fOccMarkup->mark(L0);  // annotate L0 with occurences analysis
+    fOccMarkup->mark(L0);  // annotate L0 with occurrences analysis
 
     endTiming("ScalarCompiler::prepare2");
     return L0;
@@ -182,7 +182,7 @@ string ScalarCompiler::dnf2code(Tree cc)
     if (cc == gGlobal->nil) {
         return and2code(c1);
     } else {
-        return subst("$0 || $1", and2code(c1), dnf2code(cc));
+        return subst("($0 || $1)", and2code(c1), dnf2code(cc));
     }
 }
 
@@ -194,7 +194,7 @@ string ScalarCompiler::and2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return subst("$0 && $1", CS(c1), and2code(cs));
+        return subst("($0 && $1)", CS(c1), and2code(cs));
     }
 }
 
@@ -206,7 +206,7 @@ string ScalarCompiler::cnf2code(Tree cs)
     if (cs == gGlobal->nil) {
         return or2code(c1);
     } else {
-        return subst("($0) && $1", or2code(c1), cnf2code(cs));
+        return subst("(($0) && $1)", or2code(c1), cnf2code(cs));
     }
 }
 
@@ -218,7 +218,7 @@ string ScalarCompiler::or2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return subst("$0 || $1", CS(c1), or2code(cs));
+        return subst("($0 || $1)", CS(c1), or2code(cs));
     }
 }
 
@@ -316,7 +316,7 @@ string ScalarCompiler::CS(Tree sig)
         // not compiled yet
         /*
          if (getRecursivness(sig) != contextRecursivness.get()) {
-         contextRecursivness.set(getRecursivness(sig));
+            contextRecursivness.set(getRecursivness(sig));
          }
          */
         code = generateCode(sig);
@@ -361,6 +361,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
     }
+
+    ensureIotaCode();
 }
 
 /*****************************************************************************
@@ -377,6 +379,8 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
     }
+
+    ensureIotaCode();
 }
 
 /*****************************************************************************
@@ -494,8 +498,11 @@ string ScalarCompiler::generateCode(Tree sig)
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
-    } else if (isSigEnable(sig, x, y)) {
-        return generateEnable(sig, x, y);
+    } else if (isSigControl(sig, x, y)) {
+        if (gGlobal->gVectorSwitch) {
+            throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
+        }
+        return generateControl(sig, x, y);
     }
     /* we should not have any control at this stage*/
     else {
@@ -715,7 +722,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    string vname, ctype;
+    string vname, vname_perm, ctype;
     Type   t = getCertifiedSigType(sig);
 
     switch (t->variability()) {
@@ -732,11 +739,21 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             break;
 
         case kSamp:
-            getTypedNames(t, "TempPerm", ctype, vname);
-            // need to be preserved because of new enable and control primitives
-            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            fClass->addInitCode(subst("$0 = 0;", vname));
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
+            getTypedNames(t, "Temp", ctype, vname);
+            if (getConditionCode(sig) == "") {
+                fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", ctype, vname, exp)));
+            } else {
+                getTypedNames(t, "TempPerm", ctype, vname_perm);
+                // need to be preserved because of new enable and control primitives
+                fClass->addDeclCode(subst("$0 \t$1;", ctype, vname_perm));
+                fClass->addInitCode(subst("$0 = 0;", vname_perm));
+                // copy the object variable to the local one
+                fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, vname_perm));
+                // execute the code
+                fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
+                // copy the local variable to the object one
+                fClass->addZone4(subst("$0 = $1;", vname_perm, vname));
+            }
             break;
     }
     return vname;
@@ -1041,7 +1058,24 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 {
     string tblName(CS(tbl));
-    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+
+    Type t2 = getCertifiedSigType(idx);
+    Type t3 = getCertifiedSigType(data);
+    // TODO : for a bug in type caching, t->variability() is not correct.
+    // Therefore in the meantime we compute it manually. (YO 2020/03/30)
+    int var = t2->variability() | t3->variability();
+    switch (var) {
+        case kKonst:
+            fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+            break;
+        case kBlock:
+            fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+            break;
+        default:
+            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+            break;
+    }
+
     return tblName;
 }
 
@@ -1129,11 +1163,10 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
 
-string ScalarCompiler::generateEnable(Tree sig, Tree x, Tree y)
+string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
 {
     CS(y);
     return generateCacheCode(x, CS(x));
-    // return CS(x);
 }
 
 string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
@@ -1313,17 +1346,14 @@ int ScalarCompiler::pow2limit(int x)
 
  case 1-sample max delay :
  Y(t-0)	Y(t-1)
- Temp	Var                     gLessTempSwitch = false
- V[0]	V[1]                    gLessTempSwitch = true
+ V[0]	V[1]
 
  case max delay < gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...     gLessTempSwitch = false
- V[0]	V[1]	V[2]	...     gLessTempSwitch = true
+ V[0]	V[1]	V[2]	...
 
  case max delay >= gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
- Temp	V[0]	V[1]	...
  V[0]	V[1]	V[2]	...
 
 
@@ -1331,7 +1361,7 @@ int ScalarCompiler::pow2limit(int x)
 
 /**
  * Generate code for accessing a delayed signal. The generated code depend of
- * the maximum delay attached to exp and the gLessTempSwitch.
+ * the maximum delay attached to exp.
  */
 
 string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
@@ -1367,7 +1397,6 @@ string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
         }
 
     } else {
-        // long delay : we use a ring buffer of size 2^x
         int N = pow2limit(mxd + 1);
         return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N - 1)));
     }
@@ -1422,8 +1451,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
 
-        // we need a iota index
-        ensureIotaCode();
+        // we need an iota index
+        fMaxIota = 0;
 
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
@@ -1443,11 +1472,15 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
                                        const string& ccs)
 {
-    // faustassert(mxd > 0);
     if (mxd == 0) {
         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
         // no need for a real vector
-        fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
+        if (ccs == "") {
+            fClass->addExecCode(Statement(ccs, subst("$0 \t$1 = $2;", ctype, vname, exp)));
+        } else {
+            fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
+            fClass->addExecCode(Statement(ccs, subst("\t$0 = $1;", vname, exp)));
+        }
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
         // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
@@ -1469,14 +1502,14 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
-
-        // we need a iota index
-        ensureIotaCode();
-
+        
+        // we need an iota index
+        fMaxIota = 0;
+        
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-
+        
         // execute
         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
     }
@@ -1484,14 +1517,13 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
 /**
  * Generate code for a unique IOTA variable increased at each sample
- * and used to index ring buffers.
+ * and used to index delay buffers.
  */
 void ScalarCompiler::ensureIotaCode()
 {
-    if (!fHasIota) {
-        fHasIota = true;
+    if (fMaxIota >= 0) {
         fClass->addDeclCode("int \tIOTA;");
-        fClass->addClearCode("IOTA = 0;");
+        fClass->addClearCode(subst("IOTA = $0;", T(fMaxIota)));
         fClass->addPostCode(Statement("", "IOTA = IOTA+1;"));
     }
 }

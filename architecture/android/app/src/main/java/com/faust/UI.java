@@ -136,7 +136,7 @@ public class UI {
 		parametersInfo = paramsInfo;
 
 		// the addresses of each param in the tree are retrieved from the native code
-		for(int i = 0; i < numberOfParameters; i++){
+		for(int i = 0; i < numberOfParameters; i++) {
 			parametersInfo.address[i] = FaustActivity.dspFaust.getParamAddress(i);
 		}
 
@@ -219,7 +219,7 @@ public class UI {
 			currentArray = object.getJSONArray("meta");
 			// we parse the object
 			int length = currentArray.length();
-			for (int i = 0; i < length; i++){
+			for (int i = 0; i < length; i++) {
 				currentObject = currentArray.getJSONObject(i);
 				try {
 					value = currentObject.getString(member);
@@ -437,7 +437,7 @@ public class UI {
 	}
 
 	public void reloadUIstate() {
-		for (int i = 0; i < 10; i++){
+		for (int i = 0; i < 10; i++) {
 			parametersCounters[i] = 0;
 		}
 		for (int i = 0; i < parameterNumber; i++) {
@@ -447,7 +447,7 @@ public class UI {
 				parametersCounters[0]++;
 			}
 			else if (parametersInfo.parameterType[i] == 1) {  //1: vslider
-				FaustActivity.dspFaust.setParamValue(hsliders[parametersCounters[1]].address, parametersInfo.values[i]);
+				FaustActivity.dspFaust.setParamValue(vsliders[parametersCounters[1]].address, parametersInfo.values[i]);
 				vsliders[parametersCounters[1]].setValue(FaustActivity.dspFaust.getParamValue(vsliders[parametersCounters[1]].address));
 				parametersCounters[1]++;
 			}
@@ -471,7 +471,7 @@ public class UI {
 	}
 	
 	public void initUIstate() {
-		for (int i = 0; i < 10; i++){
+		for (int i = 0; i < 10; i++) {
 			parametersCounters[i] = 0;
 		}
 		for (int i = 0; i < parameterNumber; i++) {
@@ -535,7 +535,7 @@ public class UI {
 				localScreenWidth, localBackgroundColor, parsedParameters, visibility);
 		menus[parametersCounters[4]].setLabel(label);
 		int init = 0;
-		if(isSavedParameters) init = (int) parametersInfo.values[parameterNumber];
+		if (isSavedParameters) init = (int) parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		menus[parametersCounters[4]].setSelection(init);
         menus[parametersCounters[4]].linkTo(parametersInfo);
@@ -566,7 +566,7 @@ public class UI {
 
 		String parsedParameters = parameters.substring(parameters.indexOf("{") + 1, parameters.indexOf("}"));
     	int init = 0;
-		if(isSavedParameters) init = (int) parametersInfo.values[parameterNumber];
+		if (isSavedParameters) init = (int)parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		radios[parametersCounters[5]] = new Radio(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, parsedParameters, orientation, init, visibility);
@@ -603,7 +603,7 @@ public class UI {
 		hsliders[parametersCounters[0]] = new HorizontalSlider(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, localPadding, visibility);
 		hsliders[parametersCounters[0]].setParams(label, min, max, step);
-    	if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+    	if (isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		hsliders[parametersCounters[0]].setValue(init);
 	    hsliders[parametersCounters[0]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
@@ -640,7 +640,7 @@ public class UI {
 		vsliders[parametersCounters[1]] = new VerticalSlider(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, visibility);
         vsliders[parametersCounters[1]].setParams(label, min, max, step);
-    	if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+    	if (isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		vsliders[parametersCounters[1]].setValue(init);
 	    vsliders[parametersCounters[1]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
@@ -677,7 +677,7 @@ public class UI {
 		knobs[parametersCounters[2]] = new Knob(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, localPadding, visibility);
 		knobs[parametersCounters[2]].setParams(label, min, max, step);
-        if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+        if (isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		knobs[parametersCounters[2]].setValue(init);
 	    knobs[parametersCounters[2]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
@@ -713,7 +713,7 @@ public class UI {
 		nentries[parametersCounters[3]] = new Nentry(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, visibility);
 		nentries[parametersCounters[3]].setParams(label, min, max, step);
-		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+		if (isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		nentries[parametersCounters[3]].setValue(init);
         nentries[parametersCounters[3]].linkTo(parametersInfo, parametersWindow);
@@ -744,7 +744,7 @@ public class UI {
 		buttons[parametersCounters[6]] = new PushButton(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, label);
 	    buttons[parametersCounters[6]].linkTo(parametersInfo);
-	    if(visibility) buttons[parametersCounters[6]].addTo(currentGroup);
+	    if (visibility) buttons[parametersCounters[6]].addTo(currentGroup);
 	    parametersInfo.parameterType[parameterNumber] = 6;
 	    parametersInfo.localId[parameterNumber] = parametersCounters[6];
 	    parametersCounters[6]++;
@@ -767,11 +767,11 @@ public class UI {
 		checkboxes[parametersCounters[7]] = new Checkbox(c,address,parameterNumber,
 				localScreenWidth, height, localBackgroundColor, label);
 		float init = 0.0f; //default value for the checkbox
-		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+		if (isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
 		checkboxes[parametersCounters[7]].setStatus(init);
 	    checkboxes[parametersCounters[7]].linkTo(parametersInfo);
-	    if(visibility) checkboxes[parametersCounters[7]].addTo(currentGroup);
+	    if (visibility) checkboxes[parametersCounters[7]].addTo(currentGroup);
         
         //FaustActivity.dspFaust.setParamValue(address, init);
 	    parametersInfo.parameterType[parameterNumber] = 7;
@@ -791,7 +791,7 @@ public class UI {
 	 *  upperViewWidth: width of the upper group
 	 */
 	public void vgroup(Context c, JSONArray currentArray, LinearLayout currentGroup, String label,
-			int currentGroupLevel, int nItemsUpperLevel, int upperViewWidth){
+			int currentGroupLevel, int nItemsUpperLevel, int upperViewWidth) {
 		// frame to create some padding around the view
 		LinearLayout frame = new LinearLayout(c);
 		// the local group
@@ -802,7 +802,7 @@ public class UI {
 		// padding is adjusted in function of the screen definition
 		int padding = 10*screenSizeX/800;
 		int currentViewPadding = padding;
-		if(currentGroupLevel == 0) currentViewPadding = 0;
+		if (currentGroupLevel == 0) currentViewPadding = 0;
 		int localViewWidth  = (upperViewWidth-currentViewPadding*2)/nItemsUpperLevel;
 
 		// frame to create some padding around the view
@@ -818,7 +818,7 @@ public class UI {
 		localGroup.setBackgroundColor(Color.rgb(localGroupLevel*15,localGroupLevel*15,localGroupLevel*15));
 		localGroup.setPadding(padding,padding,padding,padding);
 
-		if(!label.contains("0x00")){
+		if (!label.contains("0x00")) {
 			TextView textLabel = new TextView(c);
 			textLabel.setText(label);
 			textLabel.setTextSize(22.f);
@@ -844,7 +844,7 @@ public class UI {
 	 *  upperViewWidth: width of the upper group
 	 */
 	public void hgroup(Context c, JSONArray currentArray, LinearLayout currentGroup, String label,
-			int currentGroupLevel, int nItemsUpperLevel, int upperViewWidth){
+			int currentGroupLevel, int nItemsUpperLevel, int upperViewWidth) {
 		// frame to create some padding around the view
 		LinearLayout frame = new LinearLayout(c);
 		// the local group
@@ -857,8 +857,8 @@ public class UI {
 		// padding is adjusted in function of the screen definition
 		int padding = 10*screenSizeX/800;
 		int currentViewPadding = padding;
-		if(currentGroupLevel == 0) currentViewPadding = 0;
-		int localViewWidth  = (upperViewWidth-currentViewPadding*2)/nItemsUpperLevel;
+		if (currentGroupLevel == 0) currentViewPadding = 0;
+		int localViewWidth = (upperViewWidth-currentViewPadding*2)/nItemsUpperLevel;
 
 		localGroup.setOrientation(LinearLayout.HORIZONTAL);
 
@@ -875,7 +875,7 @@ public class UI {
 		localVerticalGroup.setBackgroundColor(Color.rgb(localGroupLevel*15,localGroupLevel*15,localGroupLevel*15));
 		localVerticalGroup.setPadding(padding,padding,padding,padding);
 
-		if (!label.contains("0x00")){
+		if (!label.contains("0x00")) {
 			TextView textLabel = new TextView(c);
 			textLabel.setText(label);
 			textLabel.setTextSize(22.f);
@@ -893,7 +893,7 @@ public class UI {
 	/*
 	 * Count the number of pattern in input
 	 */
-	private int countStringOccurrences(String input, String pattern){
+	private int countStringOccurrences(String input, String pattern) {
 		int lastIndex = 0, count = 0;
 		while (lastIndex != -1) {
 			lastIndex = input.indexOf(pattern,lastIndex);

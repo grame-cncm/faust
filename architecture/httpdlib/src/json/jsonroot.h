@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __jsonroot__
 #define __jsonroot__
 
@@ -33,7 +32,6 @@
 
 #include "smartpointer.h"
 #include "jsonnode.h"
-
 
 namespace httpdfaust
 {

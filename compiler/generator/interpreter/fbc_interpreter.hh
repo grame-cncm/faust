@@ -48,6 +48,7 @@
 
 #define INTEGER_OVERFLOW -1
 #define DIV_BY_ZERO -2
+#define CAST_INT_OVERFLOW -3
 #define DUMMY_REAL 0.12233344445555
 #define DUMMY_INT 1223334444
 
@@ -138,6 +139,7 @@ class FBCInterpreter : public FBCExecutor<T> {
             if (TRACE >= 3) {
                 std::cout << "INTEGER_OVERFLOW: " << fRealStats[INTEGER_OVERFLOW] << std::endl;
                 std::cout << "DIV_BY_ZERO: " << fRealStats[DIV_BY_ZERO] << std::endl;
+                std::cout << "CAST_INT_OVERFLOW: " << fRealStats[CAST_INT_OVERFLOW] << std::endl;
             }
             std::cout << "-------------------------------" << std::endl;
         }
@@ -335,13 +337,13 @@ class FBCInterpreter : public FBCExecutor<T> {
              || (fRealHeap[index] == T(DUMMY_REAL)))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
-                std::cout << "assertLoadRealHeap array: fIntHeapSize ";
+                std::cout << "assertLoadRealHeap array: fRealHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
                 std::cout << " size " << size;
                 std::cout << " value " << fRealHeap[index];
                 std::cout << " name " << (*it)->fName << std::endl;
             } else {
-                std::cout << "assertLoadRealHeap scalar: fIntHeapSize ";
+                std::cout << "assertLoadRealHeap scalar: fRealHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << index;
                 std::cout << " name " << (*it)->fName << std::endl;
             }
@@ -870,12 +872,28 @@ class FBCInterpreter : public FBCExecutor<T> {
     }
 
     do_kCastInt : {
-        pushInt(int(popReal(it)));
+        if (TRACE >= 3) {
+            T val = popReal(it);
+            if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
+                fRealStats[CAST_INT_OVERFLOW]++;
+            }
+            pushInt(int(val));
+        } else {
+            pushInt(int(popReal(it)));
+        }
         dispatchNextScal();
     }
 
     do_kCastIntHeap : {
-        pushInt(int(fRealHeap[(*it)->fOffset1]));
+        if (TRACE >= 3) {
+            T val = fRealHeap[(*it)->fOffset1];
+            if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
+                fRealStats[CAST_INT_OVERFLOW]++;
+            }
+            pushInt(int(val));
+        } else {
+            pushInt(int(fRealHeap[(*it)->fOffset1]));
+        }
         dispatchNextScal();
     }
 
@@ -2465,11 +2483,12 @@ class FBCInterpreter : public FBCExecutor<T> {
             fIntHeap[i] = DUMMY_INT;
         }
 
-        fRealStats[INTEGER_OVERFLOW] = 0;
-        fRealStats[DIV_BY_ZERO]      = 0;
-        fRealStats[FP_INFINITE]      = 0;
-        fRealStats[FP_NAN]           = 0;
-        fRealStats[FP_SUBNORMAL]     = 0;
+        fRealStats[INTEGER_OVERFLOW]  = 0;
+        fRealStats[DIV_BY_ZERO]       = 0;
+        fRealStats[FP_INFINITE]       = 0;
+        fRealStats[FP_NAN]            = 0;
+        fRealStats[FP_SUBNORMAL]      = 0;
+        fRealStats[CAST_INT_OVERFLOW] = 0;
     }
 
     virtual ~FBCInterpreter()

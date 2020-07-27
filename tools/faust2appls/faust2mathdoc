@@ -1,5 +1,7 @@
 #! /bin/bash -e
 
+. usage.sh
+
 # faust2mathdoc.sh
 #
 # Generate a full Faust documentation, in a '*-mdoc' top directory.
@@ -16,9 +18,12 @@
 # Usage.
 print_usage() 
 {
-    echo "usage: faust2mathdoc [-l LANG] [-utf8] faust_file.dsp ..."
-    echo " LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
-    echo " -utf8 force faust_file.dsp to be recoded in UTF-8 before being processed"
+    usage faust2mathdoc "[options] <file.dsp>"
+	require svg2pdf pdflatex breqn
+	echo "Generate a full Faust documentation, in a '*-mdoc' top directory"
+	option
+	option "-l LANG" "LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
+	option -utf8 "force file.dsp to be recoded in UTF-8 before being processed"
 }
 
 # Visit each directory transmited as argument,

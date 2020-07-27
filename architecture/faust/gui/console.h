@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "faust/gui/UI.h"
+#include "faust/gui/GUI.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -90,7 +90,7 @@ class CMDUI : public UI
                 case 2 :
                     // Skip the begin of the label "--foo-"
                     // until 3 '-' have been read
-                    if (src[i]=='-') { level++; }
+                    if (src[i] == '-') { level++; }
                     break;
                     
                 case 3 :
@@ -195,9 +195,10 @@ public:
     virtual bool run()
     {
         char c;
-        std::cout << "Type 'q' to quit\n";
-        while ((c = getchar()) != 'q') {
-            sleep(1);
+        std::cout << "Type Ctrl-C to quit\n";
+        while (true) {
+            usleep(40 * 1000); // 25Hz
+            GUI::updateAllGuis();
         }
         return true;
     }
@@ -290,5 +291,4 @@ public:
 
 #endif
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
 /**************************  END  console.h **************************/

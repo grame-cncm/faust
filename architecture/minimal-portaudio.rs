@@ -19,17 +19,40 @@
 #![allow(unused_parens)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(non_upper_case_globals)]
 
-//! Portaudio architecture file
+//! PortAudio architecture file
 extern crate portaudio;
 use portaudio as pa;
 use std::io;
 extern crate libm;
 
+pub trait FaustDsp {
+    type Sample;
+
+    fn new() -> Self where Self: Sized;
+    fn metadata(&self, m: &mut dyn Meta);
+    fn get_sample_rate(&self) -> i32;
+    fn get_num_inputs(&self) -> i32;
+    fn get_num_outputs(&self) -> i32;
+    fn get_input_rate(&self, channel: i32) -> i32;
+    fn get_output_rate(&self, channel: i32) -> i32;
+    fn class_init(sample_rate: i32) where Self: Sized;
+    fn instance_reset_user_interface(&mut self);
+    fn instance_clear(&mut self);
+    fn instance_constants(&mut self, sample_rate: i32);
+    fn instance_init(&mut self, sample_rate: i32);
+    fn init(&mut self, sample_rate: i32);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
+}
+
 pub trait Meta {
 
     // -- metadata declarations
-
     fn declare(&mut self, key: &str, value: &str) -> ();
 
 }
@@ -37,29 +60,24 @@ pub trait Meta {
 pub trait UI<T> {
 
     // -- widget's layouts
-
-    fn openTabBox(&mut self, label: &str) -> ();
-    fn openHorizontalBox(&mut self, label: &str) -> ();
-    fn openVerticalBox(&mut self, label: &str) -> ();
-    fn closeBox(&mut self) -> ();
+    fn open_tab_box(&mut self, label: &str);
+    fn open_horizontal_box(&mut self, label: &str);
+    fn open_vertical_box(&mut self, label: &str);
+    fn close_box(&mut self);
 
     // -- active widgets
-
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ();
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
+    fn add_button(&mut self, label: &str, zone: &mut T);
+    fn add_check_button(&mut self, label: &str, zone: &mut T);
+    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
+    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
 
     // -- metadata declarations
-
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
-
+    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
 }
 
 <<includeIntrinsic>>
@@ -74,7 +92,6 @@ fn main() {
 }
 
 fn run() -> Result<(), pa::Error> {
-
 
     let pa = pa::PortAudio::new()?;
 
@@ -96,8 +113,8 @@ fn run() -> Result<(), pa::Error> {
     //This would have been interleaved:
     //let mut settings = try!(pa.default_duplex_stream_settings(CHANNELS, CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER));
 
-    println!("getNumInputs: {}", dsp.getNumInputs());
-    println!("getNumOutputs: {}", dsp.getNumOutputs());
+    println!("get_num_inputs: {}", dsp.get_num_inputs());
+    println!("get_num_outputs: {}", dsp.get_num_outputs());
 
     // Init DSP with a given SR
     dsp.init(SAMPLE_RATE as i32);

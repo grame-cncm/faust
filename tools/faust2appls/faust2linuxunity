@@ -16,8 +16,9 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 NVOICES=-1
 
@@ -29,11 +30,13 @@ do
     p=$1
     
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2linuxunity [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
-        echo "Create Linux shared library for faust unity plugin."
-        echo "Use 'faust2unity -linux' to also create the c# files"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "See architecture/unity/README.md for more info"
+        usage faust2linuxunity "[options] [Faust options] <file.dsp>"
+        platform Linux
+        require Jack, Unity
+        echo "Compiles Faust programs to Linux x86_64 library suitable for the Unity environment"
+        option
+        option "-nvoices <num>"
+        option "Faust options"
         exit
     fi
 

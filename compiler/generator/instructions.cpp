@@ -19,10 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
+#include <fstream>
+
 #include "instructions.hh"
 #include "floats.hh"
 #include "global.hh"
 #include "sigtype.hh"
+#include "fir_to_fir.hh"
 
 // Used when inlining functions
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
@@ -138,7 +141,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 {
     // Possibly force FAUSTFLOAT type (= kFloatMacro) to internal real
-    Typed::VarType new_type = ((type == Typed::kFloatMacro) && gGlobal->gFAUSTFLOATToInternal) ? itfloat() : type;
+    Typed::VarType new_type = ((type == Typed::kFloatMacro) && gGlobal->gFAUSTFLOAT2Internal) ? itfloat() : type;
 
     // If not defined, add the type in the table
     if (gGlobal->gTypeTable.find(new_type) == gGlobal->gTypeTable.end()) {
@@ -235,6 +238,16 @@ struct StoreVarInst* DeclareVarInst::store(ValueInst* exp)
 struct LoadVarInst* DeclareVarInst::load()
 {
     return InstBuilder::genLoadVarInst(fAddress);
+}
+
+bool ControlInst::hasCondition(ValueInst* cond)
+{
+    // Compare string representation of both conditions
+    stringstream res1;
+    stringstream res2;
+    dump2FIR(fCond, &res1, false);
+    dump2FIR(cond, &res2, false);
+    return (res1.str() == res2.str());
 }
 
 // Function calls

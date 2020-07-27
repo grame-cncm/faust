@@ -39,6 +39,7 @@
 #include "timing.hh"
 
 #include <llvm/ExecutionEngine/ObjectCache.h>
+#include <llvm/Support/MemoryBuffer.h>
 
 #define LLVM_MAX_OPT_LEVEL 5
 
@@ -200,6 +201,11 @@ class FaustObjectCache : public llvm::ObjectCache {
 
 typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
 
+// Internal API
+typedef void (* deleteDspFun) (dsp_imp* dsp);
+typedef void (* allocateDspFun) (dsp_imp* dsp);
+typedef const char* (* getJSONFun) ();
+
 class llvm_dsp_factory_aux : public dsp_factory_imp {
     friend class llvm_dsp;
 
@@ -215,13 +221,13 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string fClassName;
     std::string fTypeName;
 
-    allocateDspFun fAllocate;
-    destroyDspFun  fDestroy;
-    initFun        fInstanceConstants;
-    clearFun       fInstanceClear;
-    classInitFun   fClassInit;
-    computeFun     fCompute;
-    getJSONFun     fGetJSON;
+    allocateDspFun   fAllocate;
+    destroyDspFun    fDestroy;
+    initFun          fInstanceConstants;
+    instanceClearFun fInstanceClear;
+    classInitFun     fClassInit;
+    computeFun       fCompute;
+    getJSONFun       fGetJSON;
 
     uint64_t loadOptimize(const std::string& function);
 
@@ -235,6 +241,11 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     void stopLLVMLibrary();
 
     std::string writeDSPFactoryToMachineAux(const std::string& target);
+    
+    void checkDecoder()
+    {
+        if (!fDecoder) fDecoder = createJSONUIDecoder(fGetJSON());
+    }
 
    public:
     llvm_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,
@@ -329,13 +340,13 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     void                setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
     dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
 
-    void setMemoryManager(ManagerGlue* manager)
+    void setMemoryManager(MemoryManagerGlue* manager)
     {
         // To check
         fFactory->setMemoryManager(static_cast<dsp_memory_manager*>(manager->managerInterface));
     }
 
-    void write(std::ostream* out, bool binary, bool small = false) {}
+    void write(std::ostream* out, bool binary, bool compact = false) {}
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
 
@@ -464,7 +475,7 @@ EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager);
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 

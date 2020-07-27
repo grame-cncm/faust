@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019 GRAME, Centre National de Creation Musicale &
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale &
  Aalborg University (Copenhagen, Denmark)
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
@@ -31,28 +31,36 @@
 #include "freertos/task.h"
 #include "driver/i2s.h"
 
-
 class dsp;
+class esp32audio;
 class MapUI;
+#ifdef MIDICTRL
+class MidiUI;
+class esp32_midi;
+#endif
 
 class AudioFaust
 {
+    private:
     
-public:
-    AudioFaust(int,int);
-    ~AudioFaust();
-    bool start();
-    void stop();
-    void setParamValue(const std::string&, float);
-private:
-    void configureI2S(int, int, i2s_pin_config_t);
-    dsp* fDSP;
-    MapUI* fUI;
-    float **fInChannel, **fOutChannel;
-    int fBS;
-    void audioTask();
-    static void audioTaskHandler(void*);
-    TaskHandle_t fHandle;
+        esp32audio* fAudio;
+    	dsp* fDSP;
+        MapUI* fUI;
+    #ifdef MIDICTRL
+        esp32_midi* fMIDIHandler;        
+        MidiUI* fMIDIInterface;
+    #endif
+
+    public:
+    
+        AudioFaust(int sample_rate, int buffer_size);
+        ~AudioFaust();
+    
+        bool start();
+        void stop();
+    
+        void setParamValue(const std::string&, float);
+        float getParamValue(const std::string& path);
 };
 
 #endif

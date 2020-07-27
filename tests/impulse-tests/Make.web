@@ -71,11 +71,16 @@ ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
 	mv $@.tmp $@
 	
 ir/$(wasmdir)/%.wasm : dsp/%.dsp
-	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS)  $<  -o $@
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS) $< -o $@
 
 # Specific rule to test 'control' primitive, using a 'fake' test...
 ir/$(wasmdir)/control.wasm : dsp/control.dsp
-	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
+	$(FAUST) -double -lang wasm -I dsp -i $(FAUSTOPTIONS) dsp/simulated_control.dsp -o $@
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/$(wasmdir)/osc_enable.wasm : dsp/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -double -lang wasm -I dsp -i $< -o $@
 
 #########################################################################
 # rules for wast
@@ -88,12 +93,17 @@ ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
 	mv $@.tmp $@
 
 ir/$(wastdir)/%.wast : dsp/%.dsp
-	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS)  $<  -o $@
+	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS) $<  -o $@
 	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
 
 # Specific rule to test 'control' primitive, using a 'fake' test...
 ir/$(wastdir)/control.wast : dsp/control.dsp
-	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
+	$(FAUST) -double -lang wast -i $(FAUSTOPTIONS) dsp/simulated_control.dsp -o $@
 	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
 
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/$(wastdir)/osc_enable.wast : dsp/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -double -lang wast -i  $< -o $@
+	wasm-as $@ -o $(patsubst %.wast,%.wasm,$@)
 

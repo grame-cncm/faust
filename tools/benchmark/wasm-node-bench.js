@@ -162,7 +162,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
             ins = audio_heap_ptr_inputs; 
             for (i = 0; i < numIn; i++) { 
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
-           }
+            }
      
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);

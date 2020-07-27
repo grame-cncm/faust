@@ -191,6 +191,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
     constructor(options)
     {
         super(options);
+        this.running = true;
         
         this.json_object = JSON.parse(getJSONmydsp());
         if (typeof (getJSONeffect) !== "undefined") {
@@ -212,6 +213,8 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.fFreqLabel = [];
         this.fGateLabel = [];
         this.fGainLabel = [];
+        this.fKeyFun = null;
+        this.fVelFun = null;
         this.fDate = 0;
         
         this.fPitchwheelLabel = [];
@@ -312,11 +315,10 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
         
-        /*
-        console.log(this.HEAP);
-        console.log(this.HEAP32);
-        console.log(this.HEAPF32);
-        */
+        // Warning: keeps a ref on HEAP in Chrome and prevent proper GC
+        //console.log(this.HEAP);
+        //console.log(this.HEAP32);
+        //console.log(this.HEAPF32);
         
         // bargraph
         this.outputs_timer = 5;
@@ -531,8 +533,16 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 if (this.inputs_items[i].endsWith("/gate")) {
                     this.fGateLabel.push(this.pathTable[this.inputs_items[i]]);
                 } else if (this.inputs_items[i].endsWith("/freq")) {
+                    this.fKeyFun = (pitch) => { return this.midiToFreq(pitch); };
+                    this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
+                } else if (this.inputs_items[i].endsWith("/key")) {
+                    this.fKeyFun = (pitch) => { return pitch; };
                     this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
                 } else if (this.inputs_items[i].endsWith("/gain")) {
+                    this.fVelFun = (vel) => { return vel/127.0; };
+                    this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
+                } else if (this.inputs_items[i].endsWith("/vel") || this.inputs_items[i].endsWith("/velocity")) {
+                    this.fVelFun = (vel) => { return vel; };
                     this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
                 }
             }
@@ -558,13 +568,13 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 console.log("keyOn voice %d", voice);
             }
             for (var i = 0; i < this.fFreqLabel.length; i++) {
-                this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
+                this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.fKeyFun(pitch));
             }
             for (var i = 0; i < this.fGateLabel.length; i++) {
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 1.0);
             }
             for (var i = 0; i < this.fGainLabel.length; i++) {
-                this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
+                this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], this.fVelFun(velocity));
             }
             this.dsp_voices_state[voice] = pitch;
         }
@@ -668,6 +678,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             // Generic data message
             case "param": this.setParamValue(msg.key, msg.value); break;
             //case "patch": this.onpatch(msg.data); break;
+            case "destroy": this.running = false; break;
         }
     }
   	
@@ -697,12 +708,12 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         var output = outputs[0];
         
         // Check inputs
-        if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+        if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
             //console.log("Process input error");
             return true;
         }
         // Check outputs
-        if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+        if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
             //console.log("Process output error");
             return true;
         }
@@ -714,7 +725,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 dspInput.set(input[chan]);
             }
         }
-         
+       
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
         if (this.compute_handler) {
             this.compute_handler(mydspPolyProcessor.buffer_size);
@@ -757,7 +768,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             }
         }
         
-        return true;
+        return this.running;
     }
 }
 

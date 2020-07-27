@@ -428,7 +428,7 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
     }
 }
 
-static dsp* createDSPParallelize(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2, std::string& error)
 {
     return new dsp_parallelizer(dsp1, dsp2);
 }

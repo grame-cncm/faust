@@ -26,8 +26,6 @@
 
 #include "was_instructions.hh"
 
-using namespace std;
-
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
 #define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
 
@@ -79,9 +77,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     template <class T>
     string checkReal(T val)
     {
-        std::stringstream num;
-        num << setprecision(numeric_limits<T>::max_digits10) << val;
-        return ensureFloat(num.str());
+        if (std::isinf(val)) {
+            return "inf";
+        } else {
+            std::stringstream num;
+            num << setprecision(numeric_limits<T>::max_digits10) << val;
+            return ensureFloat(num.str());
+        }
     }
 
    public:
@@ -101,8 +103,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         string              name        = inst->fAddress->getName();
 
-        // std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
-        faustassert(fFieldTable.find(name) == fFieldTable.end());
+        // fSampleRate may appear several time (in subcontainers and in main DSP)
+        if (name != "fSampleRate") {
+            faustassert(fFieldTable.find(name) == fFieldTable.end());
+        }
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -175,13 +179,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
-        if (inst->fName != "min_i" &&
-            inst->fName != "max_i") {  // adhoc code for now otherwise min_i/max_i are not always correctly generated...
-            if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
-                return;
-            } else {
-                fFunctionSymbolTable[inst->fName] = 1;
-            }
+        if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
+            return;
+        } else {
+            fFunctionSymbolTable[inst->fName] = true;
         }
 
         // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder' will be manually
@@ -190,19 +191,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             MathFunDesc desc = fMathLibTable[inst->fName];
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                 tab(fTab, *fOut);
-                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
-                    *fOut << "(import $" << inst->fName << " \"env\" \""
-                          << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
-                } else {
-                    faustassert(false);
-                }
-
+                // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
+                *fOut << "(import $" << inst->fName << " \"env\" \""
+                      << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
                 for (int i = 0; i < desc.fArgs; i++) {
-                    *fOut << type2String(desc.fType);
+                    *fOut << type2String(desc.fTypeIn);
                     if (i < desc.fArgs - 1) *fOut << " ";
                 }
-                *fOut << ") (result " << type2String(desc.fType) << "))";
+                *fOut << ") (result " << type2String(desc.fTypeOut) << "))";
                 return;
             }
         }
@@ -671,14 +667,19 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
         fTab++;
         tab(fTab, *fOut);
+        *fOut << "(block ";
         inst->fThen->accept(this);
+        *fOut << ")";
         if (inst->fElse->fCode.size() > 0) {
             tab(fTab, *fOut);
+            *fOut << "(block ";
             inst->fElse->accept(this);
+            *fOut << ")";
         }
         fTab--;
         tab(fTab, *fOut);
         *fOut << ")";
+        tab(fTab, *fOut);
 
         fTypingVisitor.visit(inst);
     }

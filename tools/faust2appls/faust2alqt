@@ -9,8 +9,9 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/alsa-qt.cpp
 ARCHLIB="-lasound"
@@ -31,16 +32,7 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 
 OSCINC=""
 QTDEFS=""
@@ -48,25 +40,16 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2alqt [-httpd] [-qrcode] [-midi] [-osc] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
+        usage faust2alqt "[options] <file.dsp>"
+		platform Linux
+		require Alsa, Qt
+		echo "Compiles Faust programs to alsa-qt"
+		option
+        options -httpd -osc -midi -qrcode -poly
         exit
     fi
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
   
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-poly" ]; then
+    if [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"

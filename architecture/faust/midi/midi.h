@@ -160,8 +160,7 @@ class midi {
  A class to decode NRPN and RPN messages, adapted from JUCE forum message: https://forum.juce.com/t/14bit-midi-controller-support/11517
 */
 
-class MidiNRPN
-{
+class MidiNRPN {
     
     private:
     
@@ -282,6 +281,7 @@ class midi_handler : public midi {
             }
         }
 
+        // Those 2 methods have to be implemented by subclasses
         virtual bool startMidi() { return true; }
         virtual void stopMidi() {}
     
@@ -318,7 +318,8 @@ class midi_handler : public midi {
         {
             if (type == MIDI_CLOCK) {
                 handleClock(time);
-            } else if (type == MIDI_START) {
+            // We can consider start and continue as identical messages
+            } else if ((type == MIDI_START) || (type == MIDI_CONT)) {
                 handleStart(time);
             } else if (type == MIDI_STOP) {
                 handleStop(time);
@@ -388,6 +389,13 @@ class midi_handler : public midi {
         {
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->pitchWheel(time, channel, (data2 << 7) + data1);
+            }
+        }
+    
+        void handlePitchWheel(double time, int channel, int bend)
+        {
+            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                fMidiInputs[i]->pitchWheel(time, channel, bend);
             }
         }
         

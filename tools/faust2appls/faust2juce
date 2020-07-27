@@ -3,14 +3,15 @@
 #####################################################################
 #                                                                   #
 #           Compiles Faust programs to JUCE standalone or plugin    #
-#           (c) Grame, 2016-2017                                    #
+#           (c) Grame, 2016-2019                                    #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 DEBUG=false
 
@@ -26,23 +27,29 @@ NVOICES=-1
 STANDALONE="0"
 IS_SYNTH="0"
 IS_MIDI="0"
+IS_LLVM="0"
 JUCE_POLY="0"
 FAUSTFLOAT="float"
+JUCER=""
+JUCE_MODULES_DIR="\.\.\/\.\.\/modules"  # By default, the generated folder is supposed to be copied in JUCE/examples folder
 
 while [ $1 ]
 do
     p=$1
 
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2juce [-standalone] [-nvoices <num>] [-effect auto|<effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile]  [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-standalone' to produce a standalone project, otherwise a plugin project is generated"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+    if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2juce "[options] [Faust options] <file.dsp>"
+        require Juce 
+        echo "Compiles Faust programs to JUCE standalone or plugin."
+        option
+        options -osc -midi -soundfile
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -standalone "to produce a standalone project, otherwise a plugin project is generated"
+        option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
+        option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
+        option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
         exit
     fi
 
@@ -58,6 +65,9 @@ do
         POLY="POLY2"
         shift
         EFFECT=$1
+    elif [ $p = "-jucemodulesdir" ]; then
+	    shift
+	    JUCE_MODULES_DIR=$(echo $1 | sed -e 's/\//\\\//g')
     elif [ $p = "-jsynth" ]; then
         DEF+="JUCE_POLY "
         JUCE_POLY="1"
@@ -65,7 +75,9 @@ do
         DEF+="MIDICTRL "
         IS_MIDI="1"
     elif [ $p = "-osc" ]; then
-		 DEF+="OSCCTRL "
+    	DEF+="OSCCTRL "
+	elif [ $p = "-llvm" ]; then
+		IS_LLVM="1"
     elif [ $p = "-soundfile" ]; then
         DEF+="SOUNDFILE "
     elif [ ${p:0:1} = "-" ]; then
@@ -82,6 +94,22 @@ do
 shift
 
 done
+
+# configure JUCER file
+
+if [ $STANDALONE = "1" ]; then
+    if [ $IS_LLVM = "1" ]; then
+        JUCER="standalone-llvm.jucer"
+    else
+        JUCER="standalone.jucer"
+    fi
+else
+    if [ $IS_LLVM = "1" ]; then
+        JUCER="plugin-llvm.jucer"
+    else
+        JUCER="plugin.jucer"
+    fi
+fi
 
 if [ $STANDALONE = "1" ] && [ $JUCE_POLY = "1" ]; then
     echo "Cannot use -standalone with -jsynth"
@@ -116,11 +144,11 @@ for p in $FILES; do
     if [ $STANDALONE = "0" ]; then
         cp -r $FAUSTARCH/juce/plugin "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
-        sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$SRCDIR/$dspName/plugin.jucer" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
+        sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$SRCDIR/$dspName/$JUCER" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     else
         cp -r $FAUSTARCH/juce/standalone "$SRCDIR/$dspName/"
         # setting project name to match the dsp
-        sed -e "s/ProjectTitle/$dspName/g" "$SRCDIR/$dspName/standalone.jucer" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
+        sed -e "s/ProjectTitle/$dspName/g" "$SRCDIR/$dspName/$JUCER" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     fi
 
     # setting the preprocessing definitions
@@ -136,29 +164,43 @@ for p in $FILES; do
     # FAUSTFLOAT
     sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$SRCDIR/$dspName/$dspName-temp3.jucer" >> "$SRCDIR/$dspName/$dspName-temp4.jucer"
 
+    # JUCE_MODULES_DIR
+    sed -e "s/JUCE_MODULES_DIR_DEFAULT/$JUCE_MODULES_DIR/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName-temp5.jucer"
+
     # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
-        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
-        cp "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName.jucer"
+        cp "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
     # standalone or plugin mode
     if [ $STANDALONE = "0" ]; then
-        rm "$SRCDIR/$dspName/plugin.jucer"
+        rm "$SRCDIR/$dspName/plugin-llvm.jucer" "$SRCDIR/$dspName/plugin.jucer"
     else
-        rm "$SRCDIR/$dspName/standalone.jucer"
+        rm "$SRCDIR/$dspName/standalone-llvm.jucer" "$SRCDIR/$dspName/standalone.jucer"
     fi
-
+  
     rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer" 
     rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" 
+    rm "$SRCDIR/$dspName/$dspName-temp5.jucer"
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -uim -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+        if [ $IS_LLVM = "1" ]; then
+            faust -inj $FAUSTINC/faust/dsp/llvm-dsp-adapter.h -uim -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+            dynamic-faust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/dynamic.o"
+        else
+            faust -uim -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+        fi
     else
-        faust -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+        if [ $IS_LLVM = "1" ]; then
+            faust -inj $FAUSTINC/faust/dsp/llvm-dsp-adapter.h -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+            dynamic-faust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/dynamic.o"
+        else
+            faust -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+        fi
     fi
 
     if [ $POLY = "POLY2" ]; then

@@ -62,7 +62,12 @@ class FmodPrim : public xtended {
         if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(fmod(double(n), double(m)));
         } else {
-            return tree(symbol(), args[0], args[1]);
+            if (gGlobal->gMathApprox) {
+                // res = x - (y * T(int(x / y)))
+                return sigBinOp(kSub, args[0], sigBinOp(kMul, args[1], sigIntCast(sigBinOp(kDiv, args[0], args[1]))));
+            } else {
+                return tree(symbol(), args[0], args[1]);
+            }
         }
     }
 

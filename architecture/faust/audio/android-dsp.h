@@ -39,7 +39,7 @@
 #define NUM_OUTPUTS 2
 #define CPU_TABLE_SIZE 16
 
-static const char *res_str(SLresult result)
+static const char* res_str(SLresult result)
 {
     switch(result)
     {
@@ -127,7 +127,7 @@ class androidaudio : public audio {
         unsigned int fBufferSize;
     
         int64_t fCPUTable[CPU_TABLE_SIZE];
-        int fCPUTableIndex;
+        int64_t fCPUTableIndex;
     
         float** fInputs;
         float** fOutputs;
@@ -278,16 +278,6 @@ class androidaudio : public audio {
                 delete [] fOutputs[i];
             }
             delete [] fOutputs;
-        }
-    
-        // DSP CPU load in percentage of the buffer size duration
-        float getCPULoad()
-        {
-            float sum = 0.f;
-            for (int i = 0; i < CPU_TABLE_SIZE; i++) {
-                sum += fCPUTable[i];
-            }
-            return (sum/float(CPU_TABLE_SIZE))/(10000.f*float(fBufferSize)/float(fSampleRate));
         }
     
         virtual bool init(const char* name, dsp* DSP)
@@ -577,7 +567,17 @@ class androidaudio : public audio {
             return fNumOutChans;
         }
     
+        // Returns the average proportion of available CPU being spent inside the audio callbacks (between 0 and 1.0).
+        float getCPULoad()
+        {
+            float sum = 0.f;
+            for (int i = 0; i < CPU_TABLE_SIZE; i++) {
+                sum += fCPUTable[i];
+            }
+            return (sum/float(CPU_TABLE_SIZE))/(1000000.f*float(fBufferSize)/float(fSampleRate));
+        }
+    
 };
 
-#endif 
+#endif
 /**************************  END  android-dsp.h **************************/

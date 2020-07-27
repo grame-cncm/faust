@@ -31,11 +31,6 @@
 #include "llvm_dynamic_dsp_aux.hh"
 #include "llvm_instructions.hh"
 
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-
-using namespace std;
-
 /*
  LLVM module description:
 
@@ -46,10 +41,8 @@ using namespace std;
 
 // Helper functions
 bool      linkModules(Module* dst, ModulePTR src, string& error);
-ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context);
-Module*   linkAllModules(llvm::LLVMContext* context, Module* dst, string& error);
-
-list<string> LLVMInstVisitor::gMathLibTable;
+ModulePTR loadModule(const string& module_name, LLVMContext* context);
+Module*   linkAllModules(LLVMContext* context, Module* dst, string& error);
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -58,45 +51,39 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
-    initialize(numInputs, numOutputs);
-    fKlassName = name;
-    fContext   = new LLVMContext();
+    LLVMContext* context = new LLVMContext();
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
-    fModule = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *fContext);
-    fBuilder = new IRBuilder<>(*fContext);
-
-    // Check pointer size
-    faustassert((gGlobal->gMachinePtrSize == int(fModule->getDataLayout().getPointerSize())));
-
-    // Set "-fast-math"
-    FastMathFlags FMF;
-#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
-    FMF.setFast();  // has replaced the below function
-#else
-    FMF.setUnsafeAlgebra();
-#endif
-    fBuilder->setFastMathFlags(FMF);
-    fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+    Module* module = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *context);
+    
+    init(name, numInputs, numOutputs, module, context);
 }
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
                                      LLVMContext* context)
 {
+    init(name, numInputs, numOutputs, module, context);
+ }
+
+void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, Module* module,
+                             LLVMContext* context)
+{
     initialize(numInputs, numOutputs);
+    
     fKlassName = name;
     fModule    = module;
     fContext   = context;
     fBuilder   = new IRBuilder<>(*fContext);
-
+    
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80) || defined(LLVM_90)
-    FMF.setFast();  // has replaced the below function
+#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+    FMF.setFast();  // has replaced the following function
 #else
     FMF.setUnsafeAlgebra();
 #endif
     fBuilder->setFastMathFlags(FMF);
+    fModule->setTargetTriple(sys::getDefaultTargetTriple());
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -135,7 +122,7 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
-llvm::PointerType* LLVMCodeContainer::generateDspStruct()
+PointerType* LLVMCodeContainer::generateDspStruct()
 {
     // Generate DSP structure
     LLVMTypeHelper type_helper(fModule);
@@ -150,6 +137,7 @@ llvm::PointerType* LLVMCodeContainer::generateDspStruct()
 void LLVMCodeContainer::generateFunMaps()
 {
     if (gGlobal->gFastMath) {
+        generateFunMap("fabs", "fast_fabs", 1);
         generateFunMap("acos", "fast_acos", 1);
         generateFunMap("asin", "fast_asin", 1);
         generateFunMap("atan", "fast_atan", 1);
@@ -166,6 +154,7 @@ void LLVMCodeContainer::generateFunMaps()
         generateFunMap("log10", "fast_log10", 1);
         generateFunMap("pow", "fast_pow", 2);
         generateFunMap("remainder", "fast_remainder", 2);
+        generateFunMap("rint", "fast_rint", 1);
         generateFunMap("round", "fast_round", 1);
         generateFunMap("sin", "fast_sin", 1);
         generateFunMap("sqrt", "fast_sqrt", 1);
@@ -192,21 +181,21 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
     }
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
+    FunTyped* fun_type1 = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kLocal);
+    FunTyped* fun_type2 = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
 
-    InstBuilder::genDeclareFunInst(fun2, fun_type)->accept(fCodeProducer);
+    InstBuilder::genDeclareFunInst(fun2, fun_type2)->accept(fCodeProducer);
     if (body) {
         BlockInst* block = InstBuilder::genBlockInst();
         block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst(fun2, args2)));
-        InstBuilder::genDeclareFunInst(fun1, fun_type, block)->accept(fCodeProducer);
+        InstBuilder::genDeclareFunInst(fun1, fun_type1, block)->accept(fCodeProducer);
     }
 }
 
 void LLVMCodeContainer::produceInternal()
 {
     // Generate DSP structure
-    llvm::PointerType* dsp_ptr = generateDspStruct();
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
 
     /// Memory methods
     generateCalloc()->accept(fCodeProducer);
@@ -230,8 +219,8 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Sub containers
     generateSubContainers();
 
-    llvm::PointerType* dsp_ptr = generateDspStruct();
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dsp_ptr);
+    // Generate DSP structure
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
 
     generateFunMaps();
 
@@ -257,9 +246,9 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Link LLVM modules defined in 'ffunction'
     set<string> S;
-    string      error;
-
     collectLibrary(S);
+    string error;
+    
     if (S.size() > 0) {
         for (auto& f : S) {
             string module_name = unquote(f);
@@ -310,6 +299,8 @@ BlockInst* LLVMScalarCodeContainer::generateComputeAux()
     block->pushBackInst(fComputeBlockInstructions);
     // Generates the DSP loop
     block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
+    // Generates post DSP loop code
+    block->pushBackInst(fPostComputeBlockInstructions);
     return block;
 }
 

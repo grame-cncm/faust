@@ -10,6 +10,8 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS+=" $MYGCCFLAGS -Wfatal-errors"  # So that additional CXXFLAGS can be used
+
 # VST specific sdk files
 #------------------------
 VSTSDK="/usr/local/include/vstsdk2.4"
@@ -21,8 +23,6 @@ INCLUDES="-I$VSTSDK/ -I$VSTSDK/public.sdk/source/vst2.x/"
 LIBS=" -framework Carbon -framework CoreServices"
 
 SOURCES=" $VSTSDK/public.sdk/source/vst2.x/audioeffect.cpp $VSTSDK/public.sdk/source/vst2.x/audioeffectx.cpp $VSTSDK/public.sdk/source/vst2.x/vstplugmain.cpp"
-
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 createInfoPList() {
 	(
@@ -62,35 +62,16 @@ createInfoPList() {
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
+# dispatch command arguments
 for p in $@; do
-    if [ "$p" = -icc ]; then
-	CXX=icpc
-	CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
-for p in $@; do
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+	if [ $p = "-osc" ]; then
+		OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+		HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+		PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+		PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then

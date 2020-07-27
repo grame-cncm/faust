@@ -38,12 +38,12 @@ class WASTCodeContainer : public virtual CodeContainer {
     std::stringstream fHelper;
     int               fInternalMemory;
 
-    void generateWASTBlock(BlockInst* instructions)
+    void generateWASTBlock(BlockInst* block)
     {
         // Moves all variables declaration at the beginning of the block
         MoveVariablesInFront3 mover;
-        BlockInst*            block = mover.getCode(instructions);
-        block->accept(gGlobal->gWASTVisitor);
+        BlockInst*            block_res = mover.getCode(block);
+        block_res->accept(gGlobal->gWASTVisitor);
     }
 
     DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
@@ -89,7 +89,7 @@ class WASTCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     virtual void generateCompute(int tab) = 0;
 
-    void                      produceInternal();
+    void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

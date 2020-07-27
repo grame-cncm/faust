@@ -85,7 +85,7 @@ class WASMCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     virtual void generateCompute() = 0;
 
-    void                      produceInternal();
+    void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

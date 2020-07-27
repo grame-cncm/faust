@@ -32,6 +32,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string.h>
 #include <assert.h>
 
 #include "faust/gui/SimpleParser.h"

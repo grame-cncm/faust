@@ -23,8 +23,7 @@
 #define _KLASS_H
 
 /**********************************************************************
-            - klass.h : class C++ a remplir (projet FAUST) -
-
+        - klass.h : class C++ a remplir (projet FAUST) -
 
         Historique :
         -----------
@@ -33,7 +32,6 @@
         02-11-2001 : Ajout de sous classes (yo)
 
 ***********************************************************************/
-using namespace std;
 
 #include <list>
 #include <map>
@@ -47,9 +45,9 @@ using namespace std;
 #include "graphSorting.hh"
 #include "loop.hh"
 
-#define kMaxCategory 32
+using namespace std;
 
-class Klass  //: public Target
+class Klass
 {
    protected:
     // we make it global because several classes may need
@@ -135,6 +133,7 @@ class Klass  //: public Target
 
     void setLoopProperty(Tree sig, Loop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
+    void listAllLoopProperties(Tree sig, set<Loop*>&, set<Tree>& visited);  ///< Returns all the loop used to compute a signal
 
     const string& getClassName() const { return fKlassName; }  ///< Returns the name of the class
 

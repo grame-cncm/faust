@@ -470,14 +470,13 @@ class uiComponent : public uiBase, public Component, public uiItem
  * \brief   Intern class for all kind of sliders.
  * \see     SliderType
  */
-class uiSlider : public uiComponent, private juce::Slider::Listener
+class uiSlider : public uiComponent, public uiConverter, private juce::Slider::Listener
 {
     
     private:
         
         Slider::SliderStyle fStyle;
         Label fLabel;
-        std::unique_ptr<ValueConverter> fConverter;
         SliderType fType;
         Slider fSlider;
 
@@ -496,18 +495,9 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
          * \param   scale                           Scale of the slider, exponential, logarithmic, or linear.
          * \param   type                            Type of slider (see SliderType).
          */
-        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
+        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type)
+            : uiComponent(gui, zone, w, h, name), uiConverter(scale, min, max, min, max), fType(type)
         {
-            if (scale == MetaDataUI::kLog) {
-                fConverter = std::make_unique<LogValueConverter>(min, max, min, max);
-                fSlider.setSkewFactor(0.5); // Logarithmic slider
-            } else if (scale == MetaDataUI::kExp) {
-                fConverter = std::make_unique<ExpValueConverter>(min, max, min, max);
-                fSlider.setSkewFactor(2.0); // Exponential slider
-            } else {
-                fConverter = std::make_unique<LinearValueConverter>(min, max, min, max);
-            }
-
             // Set the JUCE widget initalization variables.
             switch(fType) {
                 case HSlider:
@@ -537,6 +527,16 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
             fSlider.setSliderStyle(fStyle);
             fSlider.setTextValueSuffix(" " + unit);
             fSlider.setTooltip(tooltip);
+            switch (scale) {
+                case MetaDataUI::kLog:
+                    fSlider.setSkewFactor(0.25);
+                    break;
+                case MetaDataUI::kExp:
+                    fSlider.setSkewFactor(0.75);
+                    break;
+                default:
+                    break;
+            }
       
             // Label settings, only happens for a horizontal of numerical entry slider
             // because the method attachToComponent only give the choice to place the
@@ -570,9 +570,8 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
         /** JUCE callback for a slider value change, give the value to the FAUST module. */
         void sliderValueChanged(Slider* slider) override
         {
-            float value = slider->getValue();
-            //std::cout << getName() << " : " << value << std::endl;
-            modifyZone(FAUSTFLOAT(value));
+            float v = slider->getValue();
+            modifyZone(FAUSTFLOAT(fConverter->ui2faust(v)));
         }
 
         /** 
@@ -1857,7 +1856,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             } else if (isMenu(zone)) {
                 addMenu(label, zone, defaultVal(zone, init), min, max, step, fMenuDescription[zone].c_str());
             } else {
-                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
+                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), type));
             }
         }
         
@@ -1891,7 +1890,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         /** Add a ciruclar slider to the user interface. */
         void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
+            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), Knob));
         }
         
         /** Add a bargraph to the user interface. */

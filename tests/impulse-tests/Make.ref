@@ -24,7 +24,6 @@ FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
 dspfiles := $(wildcard dsp/*.dsp)
 reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
 
-
 listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
 
 .INTERMEDIATE: $(call listintermediate, $(refdir))
@@ -68,8 +67,8 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
-	$(COMPARE)  $@ $(refdir)/vec/$(notdir $@) 
-	#$(COMPARE)  $@ $(refdir)/sched/$(notdir $@) 1e-02
+	$(COMPARE) $@ $(refdir)/vec/$(notdir $@) 
+	#$(COMPARE) $@ $(refdir)/sched/$(notdir $@) 1e-02
 
 $(refdir)/vec/%.ir: dsp/vec/% dsp/%.dsp dsp/vec/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)
@@ -79,28 +78,33 @@ $(refdir)/sched/%.ir: dsp/sched/% dsp/%.dsp dsp/sched/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
 
-# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend
-dsp/control.cpp : dsp/control.dsp
-	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+dsp/osc_enable.cpp : dsp/osc_enable.dsp
+	$(FAUST) -lang cpp -double -i -a $(arch) $<  -o $@
 
 dsp/%.cpp : dsp/%.dsp
 	$(FAUST) -double -i -a $(arch) $<  -o $@
 
-# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
-dsp/vec/control.cpp : dsp/control.dsp
-	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+dsp/vec/osc_enable.cpp : dsp/osc_enable.dsp
+	$(FAUST) -lang cpp -double -i -a $(arch) $<  -o $@
 
 dsp/vec/%.cpp : dsp/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -double -vec -i -a $(arch) $<  -o $@
 
-# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
-dsp/sched/control.cpp : dsp/control.dsp
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+dsp/sched/osc_enable.cpp : dsp/osc_enable.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
 	
 # Specific rule to test 'soundfile' primitive that does not work yet in sch mode
 dsp/sched/sound.cpp : dsp/sound.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -double -i -a $(arch) $<  -o $@
+
+# Specific rule to test the use of 'bs' that does not work yet in sch mode
+dsp/sched/bs.cpp : dsp/bs.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -double -i -a $(arch) $<  -o $@
 

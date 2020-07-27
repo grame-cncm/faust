@@ -9,8 +9,9 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/sndfile.cpp
 
@@ -25,7 +26,11 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2sndfile <foo.dsp>"
+        usage faust2sndfile "[Faust options] <file.dsp>"
+        require libsndfile
+        echo "Process files with Faust DSP"
+        option "Faust options"
+        exit
     fi
     
     if [ ${p:0:1} = "-" ]; then
@@ -56,7 +61,7 @@ for f in $FILES; do
 	else
 		echo "Will generate an output file"
 		echo "With the compiled program 'foo' you can add:"
-		echo "[-bd 16|24|32] to setup the the output file bit-depth (default: 16)"
+		echo "[-bd 16|24|32] to setup the output file bit-depth (default: 16)"
 		echo "[-sr <num>] to setup the output file sample rate (default: 44100)"
 		echo "[-s <num>] to setup the output file length in frames (default: SR*5)"
 		ARCHFILE=$FAUSTARCH/synthfile.cpp

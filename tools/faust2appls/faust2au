@@ -6,6 +6,9 @@
 #				(c) Grame 2013
 #
 #####################################################################
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 PATH=$PATH:/usr/local/bin
 DST=`pwd`
@@ -44,10 +47,13 @@ MANUFACTURER="Grame"
 for p in $@; do
 
 	 if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2au [-httpd] [-osc] [-install] [-debug] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-debug' to print all the build steps and keep intermediate build folder"
+        usage faust2au "[options] <file.dsp>"
+  		platform MacOS
+  		echo "Compiles Faust programs to Audio Unit"
+		option
+        options -httpd -osc 
+        option -install
+        option -debug "print all the build steps and keep intermediate build folder" 
         exit
     fi
     

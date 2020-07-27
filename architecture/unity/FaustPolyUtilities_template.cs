@@ -3,6 +3,7 @@ using System;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 /* @brief This file contains additionnal codes to communicate with the plugin and build the inspector interface
@@ -386,26 +387,41 @@ namespace FaustUtilities_MODEL {
 				do {
 					if (parseDQString(ref fJSON, out key) && parseChar(ref fJSON, ':')) {
                         switch (key.ToString()) {
-						case "name":
-							success = parseDQString(ref fJSON, out value);
-							faustUI.name = value.ToString();
-							break;
-						case "inputs":
-							success = parseDQString(ref fJSON, out value);
-							faustUI.inputs = Convert.ToInt32(value.ToString());
-							break;
-						case "outputs":
-							success = parseDQString(ref fJSON, out value);
-							faustUI.outputs = Convert.ToInt32(value.ToString());
-							break;
-						case "meta":
-							success = parseGlobalMetaData(ref fJSON);
-							break;
-						case "ui":
-                     		faustUI.ui = new List < Group > ();
-							int numitems = 0;
-							success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
-							break;
+                        case "name":
+                            success = parseDQString(ref fJSON, out value);
+                            faustUI.name = value.ToString();
+                            break;
+                        case "filename":            // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "version":             // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "compile_options":     // Don't use the result
+                            success = parseDQString(ref fJSON, out value);
+                            break;
+                        case "library_list":        // Don't use the result
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "include_pathnames":   // Don't use the result
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "inputs":
+                            success = parseNum(ref fJSON,  out value);
+                            faustUI.inputs = Convert.ToInt32(value.ToString());
+                            break;
+                        case "outputs":
+                            success = parseNum(ref fJSON,  out value);
+                            faustUI.outputs = Convert.ToInt32(value.ToString());
+                            break;
+                        case "meta":
+                            success = parseGlobalMetaData(ref fJSON);
+                            break;
+                        case "ui":
+                            faustUI.ui = new List < Group > ();
+                            int numitems = 0;
+                            success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
+                            break;
 						default:
                             // Unknown items should be parsed
                             success = parseDQString(ref fJSON, out value);
@@ -451,6 +467,22 @@ namespace FaustUtilities_MODEL {
 				}
 				valid = true;
 				s = skipChar(ref s, name.ToString().Length + 2);
+			}
+			return valid;
+		}
+
+		private static bool parseNum(ref string s,  out StringBuilder name) {
+			bool valid = false;
+			name = new StringBuilder();
+			char[] c = s.ToCharArray();
+			if (c[0] == ' ') {
+				int i = 1;
+				while (c[i] != ' ' && c[i] != ',' && c[i] != '}' && c[i] != ']') {
+					name.Append(c[i]);
+					i++;
+				}
+				valid = true;
+				s = skipChar(ref s, name.ToString().Length + 1);
 			}
 			return valid;
 		}
@@ -508,6 +540,7 @@ namespace FaustUtilities_MODEL {
 		}
 
 		private static bool parseUI(ref string s, ref List < Group > uiItems, ref int numItems) {
+			CultureInfo culture = new CultureInfo("en-US");
 			if (parseChar(ref s, '[')) {
 
 				StringBuilder label;
@@ -546,26 +579,26 @@ namespace FaustUtilities_MODEL {
 									}
 									break;
 								case "init":
-									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
-										float x = Convert.ToSingle(value.ToString());
+									if (parseChar(ref s, ':') && parseNum(ref s, out value)) {
+										float x = Convert.ToSingle(value.ToString(), culture);
 										uiItems[numItems].init = x;
 									}
 									break;
 								case "min":
-									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
-										float x = Convert.ToSingle(value.ToString());
+									if (parseChar(ref s, ':') && parseNum(ref s, out value)) {
+										float x = Convert.ToSingle(value.ToString(), culture);
 										uiItems[numItems].min = x;
 									}
 									break;
 								case "max":
-									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
-										float x = Convert.ToSingle(value.ToString());
+									if (parseChar(ref s, ':') && parseNum(ref s, out value)) {
+										float x = Convert.ToSingle(value.ToString(), culture);
 										uiItems[numItems].max = x;
 									}
 									break;
 								case "step":
-									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
-										float x = Convert.ToSingle(value.ToString());
+									if (parseChar(ref s, ':') && parseNum(ref s, out value)) {
+										float x = Convert.ToSingle(value.ToString(), culture);
 										uiItems[numItems].step = x;
 									}
 									break;

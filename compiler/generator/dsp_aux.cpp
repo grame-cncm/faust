@@ -291,6 +291,12 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
     }
 }
 
+string sha1FromDSP(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& sha_key)
+{
+    sha_key = generateSHA1(name_app + dsp_content + reorganizeCompilationOptions(argc, argv));
+    return dsp_content;
+}
+
 // External C libfaust API
 
 #ifdef __cplusplus

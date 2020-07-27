@@ -51,7 +51,7 @@ vol = envelop;
 //============================================ DSP =======================================
 //========================================================================================
 
-FMfeedback(frq) = (+(_,frq):os.osci) ~ (* (feedb));
-FMall(f) = os.osci(f+ (FMdepth*FMfeedback(f*modFreqRatio)));
+FMfeedback(frq) = (+(_,frq):os.osci) ~ (*(feedb));
+FMall(f) = os.osci(f + (FMdepth*FMfeedback(f*modFreqRatio)));
 
 process = FMall(gFreq) * vol;

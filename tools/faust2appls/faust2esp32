@@ -2,15 +2,18 @@
 
 #####################################################################
 #                                                                   #
-#                        Faust2ESP32 generator                      #
-#               (c) Romain Michon CCRMA and Grame, 2016             #
+#                        faust2esp32 generator                      #
+#               (c) Romain Michon CCRMA and Grame, 2016-2020        #
 #                                                                   #
 #####################################################################
 
 . faustpath
+. faustoptflags
+. usage.sh
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
+#LOG="log"
 
 # exit if a command fails
 set -e
@@ -18,18 +21,33 @@ set -e
 # global option variables
 LIB="0"
 
+#variables:
+NVOICES=0
+GRAMOPHONE="0"
+MULTI="0"
+MAIN="0"
+POLY=""
+#EFFECT=""
+MIDIDEFS=""
+#OSCDEFS=""
+DRIVER=""
+#OPTIONS=""
+
 echoHelp ()
 {
-    echo "FAUST2ESP32 HELP"
-    echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects that can be integrated into any ESP32 project. "
+    usage faust2esp32 "[options] [Faust options] <file.dsp> <file.dsp>"
+    echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects"
+    echo "that can be integrated into any ESP32 project. "
     echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
-    echo ""
-    echo "USAGE:"
-    echo "faust2esp32 -lib faustFile.dsp: Generates a package containing an object compatible with any ESP32 project."
-    echo ""
-    echo "Optional: -wm8978 or -ac101 to choose codec driver."
-    echo ""
-    # TODO option for board type
+    option 
+    option -gramophone "generates for GRAME Gramophone"
+    option -multi "generate for GRAME Gramophone in multi DSP mode"
+    option -lib "generates a package containing an object compatible with any ESP32 project"
+    option -midi
+    option -main "add a 'main' entry point"
+    option "-nvoices <num>"
+    option "-wm8978 or -ac101" "to choose codec driver"
+    option "Faust options"
 }
 
 ###########################
@@ -38,15 +56,40 @@ echoHelp ()
 
 while [ $1 ]
 do
-	p=$1
-
+    p=$1
+    # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-		echoHelp
-		exit 0
+        echoHelp
+        exit 0
+    # -nvoices:
+    elif [ $p = "-nvoices" ]; then
+    	shift
+    	NVOICES=$1
+    # -midi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="MIDI"
+    # -gramophone
+    elif [ $p = "-gramophone" ]; then
+        GRAMOPHONE=1
+    # -multi
+    elif [ $p = "-multi" ]; then
+        MULTI=1
+    # -main
+    elif [ $p = "-main" ]; then
+        MAIN=1
+    # Get dsp file
     elif [[ -f "$p" ]]; then
-		FILE="$p"
+    	FILE="$p"
+    # -lib 
     elif [ $p = "-lib" ]; then
-		LIB=1
+    	LIB=1
+    # -wm8978 (ttgo t-audio)
+    elif [ $p = "-wm8978" ] || [ $p = "-WM8978" ]; then
+    	DRIVER="wm8978"
+    # -ac101 (Ai-thinker a1s-board)
+    elif [ $p = "-ac101" ] || [ $p = "-AC101" ]; then
+    	DRIVER="ac101"
+    # other compile options
     else
         OPTIONS="$OPTIONS $p"
     fi
@@ -73,26 +116,178 @@ MODULENAME="${BASENAME%.dsp}"
 
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
-    faust -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
-    cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
-    if [ $OPTIONS = "-wm8978" ] || [ $OPTIONS = "-WM8978" ]; then
-    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
-    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
-    elif [ $OPTIONS = "-ac101" ] || [ $OPTIONS = "-AC101" ]; then
-    		cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
-    		cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME 
+    if [ $GRAMOPHONE -eq 1 ]; then
+    	if [ $MULTI -eq 1 ]; then
+            count=0;
+            echo "" > $MODULENAME/tmp.cpp
+            faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp2 -cn mydsp2 -i $OPTIONS $FILE -o "$MODULENAME/mydsp2.h" 2> /dev/null && echo "#define class_mydsp2" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp3 -cn mydsp3 -i $OPTIONS $FILE -o "$MODULENAME/mydsp3.h" 2> /dev/null && echo "#define class_mydsp3" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp4 -cn mydsp4 -i $OPTIONS $FILE -o "$MODULENAME/mydsp4.h" 2> /dev/null && echo "#define class_mydsp4" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            faust -pn mydsp5 -cn mydsp5 -i $OPTIONS $FILE -o "$MODULENAME/mydsp5.h" 2> /dev/null && echo "#define class_mydsp5" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
+            echo "static int gMydspCount = $count;" >> $MODULENAME/tmp.cpp 
+            faust -pn mydsp1 -a $MODULENAME/tmp.cpp -inj $FAUSTARCH/esp32/gramophone-multi.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+            rm $MODULENAME/tmp.cpp
+    	else
+            # Use the volume wrapper
+            cp $FILE $MODULENAME/mono.dsp
+            cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
+            faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
+            rm $MODULENAME/volume.dsp $MODULENAME/mono.dsp
+    	fi
+    	
+    	# Copy accelerometer/gyroscope code
+    	cp $FAUSTARCH/esp32/MPU9250.cpp $MODULENAME
+    	cp $FAUSTARCH/esp32/MPU9250.h $MODULENAME
     else
-    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
-    		cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+        faust -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
+        cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
+
+        TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+        echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+        TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
+        echo "$TMP" > $MODULENAME/$MODULENAME.h
+        TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
+        echo "$TMP" > $MODULENAME/$MODULENAME.cpp
+        TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
+        echo "$TMP" > $MODULENAME/$MODULENAME.h
     fi
-    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
-    echo "$TMP" > $MODULENAME/$MODULENAME.cpp
-    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
-    echo "$TMP" > $MODULENAME/$MODULENAME.h
-    TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/$MODULENAME.cpp)
-    echo "$TMP" > $MODULENAME/$MODULENAME.cpp
-    TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
-    echo "$TMP" > $MODULENAME/$MODULENAME.h
+    
+    # Copy audio codec code
+    if [[ $DRIVER = "wm8978" ]]; then
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+    elif [[ $DRIVER = "ac101" ]]; then
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME
+    else
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
+    fi
+    
+    echo '// Options:' > "$MODULENAME/tmp.txt"
+
+    if [ $NVOICES -gt 0 ]; then
+    	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [ $MAIN -eq 1 ]; then
+        echo '#define HAS_MAIN' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$MIDIDEFS" == *MIDI* ]]; then
+    	echo '#define MIDICTRL' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$POLY" == *POLY2* ]]; then
+    	echo '#define POLY2' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *ac101* ]]; then
+    	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    #if [[ "$OSCDEFS" == *OSC* ]]; then
+        #echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+    #fi
+
+    #if [[ "$GUIDEFS" == *GUI* ]]; then
+    	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+    	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    #fi
+
+    #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
+    	#echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
+    	#BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
+    #fi
+
+    cat "$MODULENAME/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
+    mv "$MODULENAME/tmp.txt" "$MODULENAME/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
+
+    zip -r $MODULENAME.zip $MODULENAME > $LOG
+    rm -r $MODULENAME
+fi
+
+################################
+# Generating a component package
+################################
+
+if [ $LIB -eq 0 ]; then
+    mkdir -p $MODULENAME/FaustDSP/include
+    faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/FaustDSP/$MODULENAME.cpp
+    cp $FAUSTARCH/esp32/esp32.h $MODULENAME/FaustDSP/include/$MODULENAME.h
+    cp $FAUSTARCH/esp32/component.mk $MODULENAME/FaustDSP/component.mk
+    cp $FAUSTARCH/esp32/CMakeLists.txt $MODULENAME/FaustDSP/CMakeLists.txt
+    if [[ $DRIVER = "wm8978" ]]; then
+        mkdir -p $MODULENAME/WM8978/include
+        cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
+    elif [[ $DRIVER = "ac101" ]]; then
+        mkdir -p $MODULENAME/AC101/include
+        cp $FAUSTARCH/esp32/drivers/ac101/CMakeLists.txt $MODULENAME/AC101
+        cp $FAUSTARCH/esp32/drivers/ac101/component.mk $MODULENAME/AC101
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME/AC101
+        cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME/AC101/include
+    else
+        mkdir -p $MODULENAME/WM8978/include
+        cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/component.mk $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME/WM8978
+        cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME/WM8978/include
+    fi
+
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/FaustDSP/$MODULENAME.cpp)
+    echo "$TMP" > $MODULENAME/FaustDSP/$MODULENAME.cpp
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/FaustDSP/include/$MODULENAME.h)
+    echo "$TMP" > $MODULENAME/FaustDSP/include/$MODULENAME.h
+    TMP=$(awk -v modName="$MODULENAME.h" '{gsub(/esp32.h/,modName)}1' $MODULENAME/FaustDSP/$MODULENAME.cpp)
+    echo "$TMP" > $MODULENAME/FaustDSP/$MODULENAME.cpp
+    TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/FaustDSP/include/$MODULENAME.h)
+    echo "$TMP" > $MODULENAME/FaustDSP/include/$MODULENAME.h
+
+    TMP=$(awk -v modName="$MODULENAME" '{gsub(/esp32/,modName)}1' $MODULENAME/FaustDSP/CMakeLists.txt)
+    echo "$TMP" > $MODULENAME/FaustDSP/CMakeLists.txt
+
+    echo '// Options :' > "$MODULENAME/tmp.txt"
+    if [ $NVOICES -gt 0 ]; then
+    	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$MIDIDEFS" == *MIDI* ]]; then
+    	echo '#define MIDICTRL true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$POLY" == *POLY2* ]]; then
+    	echo '#define POLY2' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *ac101* ]]; then
+    	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *wm8798* ]]; then
+    	echo '#define TTGO_TAUDIO true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    #if [[ "$OSCDEFS" == *OSC* ]]; then
+	#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+    #fi
+
+    #if [[ "$GUIDEFS" == *GUI* ]]; then
+    #echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+    #BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    #fi
+
+    #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
+        #echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
+        #BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
+    #fi
+
+    cat "$MODULENAME/FaustDSP/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
+    mv "$MODULENAME/tmp.txt" "$MODULENAME/FaustDSP/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
+
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
 fi

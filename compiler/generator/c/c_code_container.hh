@@ -115,10 +115,10 @@ class CScalarCodeContainer : public CCodeContainer {
     void generateCompute(int tab);
 };
 
+// Special version for -os generation mode
 class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
-    virtual void produceInternal();
    public:
     CScalarOneSampleCodeContainer(const std::string& name,
                                   int numInputs,

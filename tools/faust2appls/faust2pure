@@ -15,7 +15,7 @@ BITCODE="no"
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 # Darwin specifics
 if [[ $(uname) == Darwin ]]; then

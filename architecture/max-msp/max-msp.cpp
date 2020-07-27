@@ -67,10 +67,10 @@
 #endif
 
 #include "faust/gui/UI.h"
-#include "faust/gui/JSONUI.h"
-#include "faust/gui/JSONUIDecoder.h"
+#include "faust/gui/SimpleParser.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/dsp/dsp-combiner.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 #include "faust/gui/SaveUI.h"
@@ -85,6 +85,19 @@
 #if SOUNDFILE
 #include "faust/gui/SoundUI.h"
 #endif
+
+// For FAUST_CLASS_NAME to be defined
+#define FAUST_UIMACROS
+
+// but we will ignore most of them
+#define FAUST_ADDBUTTON(l,f)
+#define FAUST_ADDCHECKBOX(l,f)
+#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
+#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
+#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+#define FAUST_ADDSOUNDFILE(s,f)
 
 using namespace std;
 
@@ -116,10 +129,10 @@ using namespace std;
 #include "jpatcher_api.h"
 #include <string.h>
 
-#define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
-#define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
+#define ASSIST_INLET 	1
+#define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.70"
+#define EXTERNAL_VERSION    "0.77"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -129,6 +142,8 @@ using namespace std;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+
+static t_class* faust_class;
 
 /*--------------------------------------------------------------------------*/
 typedef struct faust
@@ -141,8 +156,9 @@ typedef struct faust
     void** m_args;
     mspUI* m_dspUI;
     dsp* m_dsp;
+    mydsp_poly* m_dsp_poly;
     void* m_control_outlet;
-    char* m_json;  
+    char* m_json;
     t_systhread_mutex m_mutex;    
     int m_Inputs;
     int m_Outputs;
@@ -159,10 +175,66 @@ typedef struct faust
 #endif
 } t_faust;
 
-void* faust_class;
-
 void faust_create_jsui(t_faust* x);
 void faust_make_json(t_faust* x);
+
+/*--------------------------------------------------------------------------*/
+void faust_allocate(t_faust* x, int nvoices)
+{
+    // Delete old
+    delete x->m_dsp;
+    if (x->m_dspUI) x->m_dspUI->clear();
+    
+    if (nvoices > 0) {
+        post("polyphonic DSP voices = %d", nvoices);
+        x->m_dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+#ifdef POLY2
+        x->m_dsp = new dsp_sequencer(x->m_dsp_poly, new effect());
+#else
+        x->m_dsp = x->m_dsp_poly;
+#endif
+#ifdef MIDICTRL
+        x->m_midiHandler->addMidiIn(x->m_dsp_poly);
+#endif
+    } else {
+        post("monophonic DSP");
+        #if (DOWN_SAMPLING > 0)
+            #if (FILTER_TYPE == 0)
+                x->m_dsp = new dsp_down_sampler<Identity<Double<1,1>, DOWN_SAMPLING>>(new mydsp());
+            #elif (FILTER_TYPE == 1)
+                x->m_dsp = new dsp_down_sampler<LowPass3<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+            #elif (FILTER_TYPE == 2)
+                x->m_dsp = new dsp_down_sampler<LowPass4<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+            #elif (FILTER_TYPE == 3)
+                x->m_dsp = new dsp_down_sampler<LowPass3e<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+            #elif (FILTER_TYPE == 4)
+                x->m_dsp = new dsp_down_sampler<LowPass6eé<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
+            #else
+                #error "ERROR : Filter type must be in [0..4] range"
+            #endif
+        #elif (UP_SAMPLING > 0)
+            #if (FILTER_TYPE == 0)
+                x->m_dsp = new dsp_up_sampler<Identity<Double<1,1>, UP_SAMPLING>>(new mydsp());
+            #elif (FILTER_TYPE == 1)
+                x->m_dsp = new dsp_up_sampler<LowPass3<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+            #elif (FILTER_TYPE == 2)
+                x->m_dsp = new dsp_up_sampler<LowPass4<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+            #elif (FILTER_TYPE == 3)
+                x->m_dsp = new dsp_up_sampler<LowPass3e<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+            #elif (FILTER_TYPE == 4)
+                x->m_dsp = new dsp_up_sampler<LowPass6e<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
+            #else
+                #error "ERROR : Filter type must be in [0..4] range"
+            #endif
+        #else
+            x->m_dsp = new mydsp();
+        #endif
+    }
+    
+#ifdef MIDICTRL
+    x->m_dsp->buildUserInterface(x->m_midiUI);
+#endif
+}
 
 /*--------------------------------------------------------------------------*/
 void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
@@ -184,9 +256,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
     } else if (mspUI::checkDigit(name)) { // List of values
         
-        int ndigit = 0;
-        int pos;
-        
+        int pos, ndigit = 0;
         for (pos = name.size() - 1; pos >= 0; pos--) {
             if (isdigit(name[pos]) || name[pos] == ' ') {
                 ndigit++;
@@ -239,7 +309,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
     } else {
         // Standard parameter name
-        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : av[0].a_w.w_float;
+        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
         res = obj->m_dspUI->setValue(name, value);
         if (!res) {
             post("Unknown parameter : %s", (s)->s_name);
@@ -251,38 +321,20 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
+        
     #ifdef MIDICTRL
         mydsp_poly* poly = dynamic_cast<mydsp_poly*>(x->m_dsp);
         if (poly) {
             x->m_midiHandler->removeMidiIn(poly);
         }
     #endif
-        // Delete old
-        delete x->m_dsp;
-        x->m_dspUI->clear();
-        mydsp_poly* dsp_poly = NULL;
-        // Allocate new one
-        if (av[0].a_w.w_long > 0) {
-            post("polyphonic DSP voices = %d", av[0].a_w.w_long);
-            dsp_poly = new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true);
-        #ifdef POLY2
-            x->m_dsp = new dsp_sequencer(dsp_poly, new effect());
-        #else
-            x->m_dsp = dsp_poly;
-        #endif
-        } else {
-            x->m_dsp = new mydsp();
-            post("monophonic DSP");
-        }
-        // Initialize User Interface (here connnection with controls)
-        x->m_dsp->buildUserInterface(x->m_dspUI);
-    #ifdef MIDICTRL
-        x->m_midiHandler->addMidiIn(dsp_poly);
-        x->m_dsp->buildUserInterface(x->m_midiUI);
-    #endif
-   
+        
+        faust_allocate(x, av[0].a_w.w_long);
+        
         // Initialize at the system's sampling rate
         x->m_dsp->init(long(sys_getsr()));
+        // Initialize User Interface (here connnection with controls)
+        x->m_dsp->buildUserInterface(x->m_dspUI);
         
         // Prepare JSON
         faust_make_json(x);
@@ -378,16 +430,17 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     bool midi_sync = false;
     int nvoices = 0;
-    mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
  
-    t_faust* x = (t_faust*)newobject(faust_class);
+    t_faust* x = (t_faust*)object_alloc(faust_class);
     
     x->m_savedUI = new SaveLabelUI();
-
+    x->m_dspUI = NULL;
+    x->m_dsp = NULL;
+    x->m_dsp_poly = NULL;
     x->m_json = NULL;
     x->m_mute = false;
     
@@ -396,32 +449,17 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
 
-    if (nvoices > 0) {
-        post("polyphonic DSP voices = %d", nvoices);
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
-    #ifdef POLY2
-        x->m_dsp = new dsp_sequencer(dsp_poly, new effect());
-    #else
-        x->m_dsp = dsp_poly;
-    #endif
-        
-    #ifdef MIDICTRL
-        x->m_midiHandler->addMidiIn(dsp_poly);
-        x->m_dsp->buildUserInterface(x->m_midiUI);
-    #endif
-    } else {
-        post("monophonic DSP");
-        x->m_dsp = new mydsp();
-    }
+    faust_allocate(x, nvoices);
 
     x->m_Inputs = x->m_dsp->getNumInputs();
     x->m_Outputs = x->m_dsp->getNumOutputs();
    
     x->m_dspUI = new mspUI();
-    
     x->m_control_outlet = outlet_new((t_pxobject*)x, (char*)"list");
 
+    // Initialize at the system's sampling rate
     x->m_dsp->init(long(sys_getsr()));
+    // Initialize User Interface (here connnection with controls)
     x->m_dsp->buildUserInterface(x->m_dspUI);
     
     t_max_err err = systhread_mutex_new(&x->m_mutex, SYSTHREAD_MUTEX_NORMAL);
@@ -448,13 +486,13 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_dsp->metadata(&meta3);
     string bundle_path_str = SoundUI::getBinaryPathFrom(meta3.fName);
     if (bundle_path_str == "") {
-        post("Bundle_path cannot be found!");
+        post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
     }
     x->m_soundInterface = new SoundUI(bundle_path_str);
     // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
+    if (x->m_dsp_poly) x->m_dsp_poly->setGroup(false);
     x->m_dsp->buildUserInterface(x->m_soundInterface);
-    if (dsp_poly) dsp_poly->setGroup(true);
+    if (x->m_dsp_poly) x->m_dsp_poly->setGroup(true);
 #endif
     
 #ifdef OSCCTRL
@@ -469,6 +507,10 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     
     // Display controls
     x->m_dspUI->displayControls();
+    
+    // Get attributes values
+    attr_args_process(x, ac, av);
+    
     return x;
 }
 
@@ -526,26 +568,26 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 #endif
 
 /*--------------------------------------------------------------------------*/
-// Reset controllers to init value and send [label, init, min, max]
+// Reset controllers to init value and send [path, init, min, max]
 void faust_init(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     // Reset internal state
     x->m_savedUI->reset();
     
     // Input controllers
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[1], (*it).second->getInitValue());    // init value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getInitValue());
+        atom_setfloat(&myList[1], (*it).second->getInitValue());    // init value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
@@ -553,23 +595,23 @@ void faust_init(t_faust* x, t_symbol* s, short ac, t_atom* av)
 }
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [label, cur, min, max]
+// Dump controllers as list of: [path, cur, min, max]
 void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     // Input controllers
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[1], (*it).second->getValue());    // cur value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
     // Output controllers
-    for (mspUI::iterator it = x->m_dspUI->begin3(); it != x->m_dspUI->end3(); it++) {
+    for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
         t_atom myList[4];
         atom_setsym(&myList[0], gensym((*it).first.c_str()));
-        atom_setfloat(&myList[1], (*it).second->getValue());
+        atom_setfloat(&myList[1], (*it).second->getValue());    // cur value
         atom_setfloat(&myList[2], (*it).second->getMinValue());
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
@@ -677,34 +719,61 @@ void faust_dsp(t_faust* x, t_signal** sp, short* count)
 }
 
 /*--------------------------------------------------------------------------*/
-extern "C" int main(void)
+t_max_err faust_attr_set(t_faust* x, t_object* attr, long ac, t_atom* av)
 {
-    setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
-          (short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    if (ac && av) {
+        t_symbol* attrname = (t_symbol*)object_method(attr, gensym("getname"));
+        // Redirect on the generic message handling method
+        faust_anything(x, attrname, ac, av);
+    }
+    return MAX_ERR_NONE;
+}
 
-    dsp* tmp_dsp = new mydsp();
-    mspUI dspUI;
-    tmp_dsp->buildUserInterface(&dspUI);
-
-    // 03/11/14 : use 'anything' to handle all parameter changes
-    addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
-    addmess((method)faust_polyphony, (char*)"polyphony", A_GIMME, 0);
+/*--------------------------------------------------------------------------*/
+#ifdef _WIN32
+extern "C" int main(void)
+#else
+void ext_main(void* r)
+#endif
+{
+    string file_name = string(FAUST_FILE_NAME);
+    // Remove ".dsp" ending
+    string class_name = file_name.erase(file_name.size()-4) + "~";
+    t_class* c = class_new(class_name.c_str(), (method)faust_new, (method)faust_free, sizeof(t_faust), 0L, A_DEFFLOAT, 0);
+    
+    class_addmethod(c, (method)faust_anything, "anything", A_GIMME, 0);
+    class_addmethod(c, (method)faust_polyphony, "polyphony", A_GIMME, 0);
 #ifdef OSCCTRL
-    addmess((method)faust_osc, (char*)"osc", A_GIMME, 0);
+    class_addmethod(c, (method)faust_osc, "osc", A_GIMME, 0);
 #endif
-    addmess((method)faust_init, (char*)"init", A_GIMME, 0);
-    addmess((method)faust_dump, (char*)"dump", A_GIMME, 0);
+    class_addmethod(c, (method)faust_init, "init", A_GIMME, 0);
+    class_addmethod(c, (method)faust_dump, "dump", A_GIMME, 0);
 #ifdef MIDICTRL
-    addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);
+    class_addmethod(c, (method)faust_midievent, "midievent", A_GIMME, 0);
 #endif
-    addmess((method)faust_dsp, (char*)"dsp", A_CANT, 0);
-    addmess((method)faust_dblclick, (char*)"dblclick", A_CANT, 0);
-    addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
-    addmess((method)faust_mute, (char*)"mute", A_GIMME, 0);
-    dsp_initclass();
+    class_addmethod(c, (method)faust_dsp, "dsp", A_CANT, 0);
+    class_addmethod(c, (method)faust_dblclick, "dblclick", A_CANT, 0);
+    class_addmethod(c, (method)faust_assist, "assist", A_CANT, 0);
+    class_addmethod(c, (method)faust_mute, "mute", A_GIMME, 0);
+    
+    dsp* tmp_dsp = new mydsp();
+    mspUI tmp_UI;
+    tmp_dsp->buildUserInterface(&tmp_UI);
+    
+    // Setup attribute
+    int i = 0;
+    for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
+        CLASS_ATTR_FLOAT(c, (*it).first.c_str(), 0, t_faust, m_ob);
+        CLASS_ATTR_ACCESSORS(c, (*it).first.c_str(), NULL, (method)faust_attr_set);
+    }
+    
+    class_dspinit(c);
+    class_register(CLASS_BOX, c);
+    faust_class = c;
     
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012-2019 Grame");
+    post((char*)"Copyright (c) 2012-2020 Grame");
+   
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {
@@ -713,9 +782,10 @@ extern "C" int main(void)
         tmp_dsp->metadata(&meta2);
         post("------------------------------");
     }
-
     delete(tmp_dsp);
+#ifdef _WIN32
     return 0;
+#endif
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

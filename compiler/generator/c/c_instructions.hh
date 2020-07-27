@@ -37,18 +37,21 @@ class CInstVisitor : public TextInstVisitor {
      */
     static map<string, bool> gFunctionSymbolTable;
 
+    // Polymorphic math functions
+    map<string, string> gPolyMathLibTable;
+    
    public:
     using TextInstVisitor::visit;
 
     CInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*", struct_name), tab)
+        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
 
-        gFunctionSymbolTable["max"] = true;
         gFunctionSymbolTable["min"] = true;
-
+        gFunctionSymbolTable["max"] = true;
+    
         // Float version
         gFunctionSymbolTable["fabsf"]      = true;
         gFunctionSymbolTable["acosf"]      = true;
@@ -114,6 +117,28 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+        
+        // Polymath mapping int version
+        gPolyMathLibTable["min_i"] = "min";
+        gPolyMathLibTable["max_i"] = "max";
+        
+        // Polymath mapping float version
+        gPolyMathLibTable["min_f"]  = "fminf";
+        gPolyMathLibTable["max_f"]  = "fmaxf";
+        gPolyMathLibTable["isnanf"] = "isnan";
+        gPolyMathLibTable["isinff"] = "isinf";
+        
+        // Polymath mapping double version
+        gPolyMathLibTable["min_"]   = "fmin";
+        gPolyMathLibTable["max_"]   = "fmax";
+        gPolyMathLibTable["isnan"]  = "isnan";
+        gPolyMathLibTable["isinf"]  = "isinf";
+        
+        // Polymath mapping quad version
+        gPolyMathLibTable["min_l"]  = "fminl";
+        gPolyMathLibTable["max_l"]  = "fmaxl";
+        gPolyMathLibTable["isnanl"] = "isnan";
+        gPolyMathLibTable["isinl"]  = "isinf";
     }
 
     virtual ~CInstVisitor() {}
@@ -309,16 +334,7 @@ class CInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        // Integer and real min/max are mapped on polymorphic ones
-        string name;
-        if (checkMin(inst->fName)) {
-            name = "min";
-        } else if (checkMax(inst->fName)) {
-            name = "max";
-        } else {
-            name = inst->fName;
-        }
-
+        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         *fOut << gGlobal->getMathFunction(name) << "(";
 
         // Compile parameters
@@ -432,7 +448,16 @@ class CInstVisitor1 : public CInstVisitor {
             if (fStructVisitor.hasField(named->fName, type)) {
                 // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
-                *fOut << ((type == Typed::kInt32) ? "iZone": "fZone") << "[" << fStructVisitor.getFieldOffset(named->fName);
+                string zone;
+                int zone_size;
+                if (type == Typed::kInt32) {
+                    zone = "iZone";
+                    zone_size = sizeof(int);
+                } else {
+                    zone = "fZone";
+                    zone_size = ifloatsize();
+                }
+                *fOut << zone << "[" << fStructVisitor.getFieldOffset(named->fName)/zone_size;
                 if (!fIndexedAddress) { *fOut << "]"; }
             } else {
                 fZoneAddress = false;
@@ -464,8 +489,9 @@ class CInstVisitor1 : public CInstVisitor {
             }
         }
     
-        int getIntZoneSize() { return fStructVisitor.fStructIntOffset; }
-        int getRealZoneSize() { return fStructVisitor.fStructRealOffset; }
+        // Size is expressed in unit of the actual type (so 'int' or 'float/double')
+        int getIntZoneSize() { return fStructVisitor.getStructIntSize()/sizeof(int); }
+        int getRealZoneSize() { return fStructVisitor.getStructRealSize()/ifloatsize(); }
    
 };
 

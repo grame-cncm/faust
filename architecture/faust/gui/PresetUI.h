@@ -32,16 +32,6 @@
 #include "faust/gui/FUI.h"
 #include "faust/gui/GUI.h"
 
-class PresetUI;
-
-struct LoaderUI : public GUI
-{
-    PresetUI* fPresetUI;
-    
-    LoaderUI(PresetUI* presetui);
-        
-};
-
 /*
  Decorates an UI to add preset management:
  - a 'preset' num entry allows to select a given preset
@@ -53,9 +43,18 @@ struct LoaderUI : public GUI
 
 class PresetUI : public DecoratorUI
 {
-    friend LoaderUI;
-		
     private:
+    
+        struct LoaderUI : public GUI
+        {
+            LoaderUI(PresetUI* presetui)
+            {
+                // uiCallbackItem(s) are deleted in GUI
+                new uiCallbackItem(this, &presetui->fLoad, PresetUI::load, presetui);
+                new uiCallbackItem(this, &presetui->fSave, PresetUI::save, presetui);
+                new uiCallbackItem(this, &presetui->fReset, PresetUI::reset, presetui);
+            }
+        };
     
         int fGroupCount;
         FAUSTFLOAT fPreset;
@@ -217,13 +216,6 @@ class PresetUI : public DecoratorUI
         }
 
 };
-
-LoaderUI::LoaderUI(PresetUI* presetui)
-{
-    new uiCallbackItem(this, &presetui->fLoad, PresetUI::load, presetui);
-    new uiCallbackItem(this, &presetui->fSave, PresetUI::save, presetui);
-    new uiCallbackItem(this, &presetui->fReset, PresetUI::reset, presetui);
-}
 
 #endif
 /**************************  END  PresetUI.h **************************/

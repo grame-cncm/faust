@@ -41,6 +41,14 @@ Common options for all platforms:
 - `-effect auto`: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified).
 - `-nodoc` : prevents documentation from being generated.
 - `-nozip` : prevents generated files to be put in a zip file.
+- `-target <target>`: sets a name of the target folder or the zip file. Defaults to "dsp-faust"
+
+
+Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE:
+
+- `midi`: add built-in RtMidi support to the API.
+- `osc`: add built-in OSC support to the API.
+- `soundfile`: add built-in Soundfile support to the API.
 
 
 ### Android Support
@@ -125,7 +133,7 @@ The `-osc` option can be used to add OSC support to the API.
 
 ### OpenFrameworks Support
 
-To turn a Faust code into an OpenFrameworks API, just run the following command:
+To turn a Faust code into an openFrameworks API, just run the following command:
 
 ```
 faust2api -of yourFaustCode.dsp

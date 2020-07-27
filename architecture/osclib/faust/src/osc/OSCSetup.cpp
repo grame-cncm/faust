@@ -86,7 +86,7 @@ bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort
 		try {
 			OSCStream::start();
 			oscout.setPort(outPort);
-			oscerr.setPort (errPort);
+			oscerr.setPort(errPort);
 			oscout.setAddress(address);
 			oscerr.setAddress(address);
 			oscout.setBundle(bundlemode);

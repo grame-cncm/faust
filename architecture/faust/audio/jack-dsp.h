@@ -35,7 +35,6 @@
 #include "faust/midi/jack-midi.h"
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
-#include "faust/dsp/dsp-adapter.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define snprintf _snprintf_s
@@ -322,9 +321,7 @@ class jackaudio : public audio {
         
         virtual void setDsp(dsp* dsp)
         {
-            // Warning: possible memory leak here...
-            fDSP = (sizeof(FAUSTFLOAT) == 8) ? (new dsp_sample_adapter<double, float>(dsp)) : dsp;
-            
+            fDSP = dsp;
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
@@ -335,7 +332,6 @@ class jackaudio : public audio {
                 snprintf(buf, 256, "out_%d", i);
                 fOutputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
             }
-            
             fDSP->init(jack_get_sample_rate(fClient));
         }
         

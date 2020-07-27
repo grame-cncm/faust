@@ -38,6 +38,8 @@
 #endif
 
 #include "faust/gui/UI.h"
+#include "faust/gui/ValueConverter.h"
+#include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ring-buffer.h"
 
 /*******************************************************************************
@@ -70,7 +72,7 @@ struct uiItemBase
     virtual void reflectZone() = 0;
 };
 
-
+// Declared as 'static' to avoid code duplication at link time
 static void deleteClist(clist* cl);
 
 struct clist : public std::list<uiItemBase*>
@@ -255,6 +257,32 @@ class uiItem : public uiTypedItem<FAUSTFLOAT> {
 			}
 		}
 
+};
+
+/**
+ * Base class for items with a converter
+ */
+
+struct uiConverter {
+    
+    ValueConverter* fConverter;
+    
+    uiConverter(MetaDataUI::Scale scale, FAUSTFLOAT umin, FAUSTFLOAT umax, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+    {
+        // Select appropriate converter according to scale mode
+        if (scale == MetaDataUI::kLog) {
+            fConverter = new LogValueConverter(umin, umax, fmin, fmax);
+        } else if (scale == MetaDataUI::kExp) {
+            fConverter = new ExpValueConverter(umin, umax, fmin, fmax);
+        } else {
+            fConverter = new LinearValueConverter(umin, umax, fmin, fmax);
+        }
+    }
+    
+    virtual ~uiConverter()
+    {
+        delete fConverter;
+    }
 };
 
 /**

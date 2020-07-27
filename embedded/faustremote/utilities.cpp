@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <iostream> 
+#include <iostream>
 #include <fstream>
 
 //Verify if the word is a number
@@ -43,32 +43,32 @@ bool isInt(const char* word)
 
 long lopt(const char* argv[], const char* name, long def)
 {
-	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
-	return def;
+    for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
+    return def;
 }
 
 const char* loptions(const char* argv[], const char* name, const char* def)
 {
-	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
-	return def;
+    for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
+    return def;
 }
 
 const char* loptions(int argc, const char* argv[], const char* name, const char* def)
 {
-	for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return argv[i+1];
-	return def;
+    for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return argv[i+1];
+    return def;
 }
 
 bool isopt(const char* argv[], const char* name)
 {
-	for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
-	return false;
+    for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+    return false;
 }
 
 bool isopt(int argc, const char* argv[], const char* name)
 {
-	for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return true;
-	return false;
+    for (int i = 0; i < argc; i++) if (!strcmp(argv[i], name)) return true;
+    return false;
 }
 
 int lopt_spe(int i, const char* argv[], const char* name, char* path)
@@ -101,11 +101,11 @@ void printOptions(int argc, const char* argv[])
 }
 
 //------------------------REGISTRATION TO DISCOVERY SYSTEM
-#include <stdio.h>      
+#include <stdio.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
-#include <netinet/in.h> 
-#include <string.h> 
+#include <netinet/in.h>
+#include <string.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
@@ -113,8 +113,8 @@ string searchIP()
 {
     // Works also on OSX...
     
-//#ifdef __linux__
-	struct ifaddrs * ifAddrStruct = NULL;
+    //#ifdef __linux__
+    struct ifaddrs * ifAddrStruct = NULL;
     struct ifaddrs * ifa = NULL;
     void * tmpAddrPtr = NULL;
     string res = "127.0.0.1";
@@ -128,33 +128,33 @@ string searchIP()
             char addressBuffer[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
             printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
-			if (strcmp(addressBuffer, "127.0.0.1") != 0) {
-				res = addressBuffer;
-                break;
-            }
-		}  
-    }
-    if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
-    return res;
-/*
-#else
-    char host_name[256];
-    gethostname(host_name, sizeof(host_name));
-    struct hostent* host = gethostbyname(host_name);
-    string res = "127.0.0.1";
-    
-    if (host){
-        for (int i=0; host->h_addr_list[i] != 0; i++){
-            struct in_addr addr;
-            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
-            if (strcmp(inet_ntoa(addr), "127.0.0.1") != 0) {
-				res = inet_ntoa(addr);
+            if (strcmp(addressBuffer, "127.0.0.1") != 0) {
+                res = addressBuffer;
                 break;
             }
         }
     }
+    if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
     return res;
-#endif
- */
+    /*
+     #else
+     char host_name[256];
+     gethostname(host_name, sizeof(host_name));
+     struct hostent* host = gethostbyname(host_name);
+     string res = "127.0.0.1";
+     
+     if (host) {
+         for (int i=0; host->h_addr_list[i] != 0; i++) {
+            struct in_addr addr;
+            memcpy(&addr, host->h_addr_list[i], sizeof(struct in_addr));
+            if (strcmp(inet_ntoa(addr), "127.0.0.1") != 0) {
+                 res = inet_ntoa(addr);
+                 break;
+            }
+         }
+     }
+     return res;
+     #endif
+    */
 }
 

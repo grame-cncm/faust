@@ -124,11 +124,11 @@ def frontMatter(file):
 #
 # THE PROGRAM STARTS HERE
 #
-tabsize = 4             # tabsize used for expanding tabs
-codeflag = 0             # 0: no source code; 1: print also source code
-frontflag = 0             # 0: no front matter; 1: print front matter
-mode = 0             # 0: in code; 1: in md-comment
-idt = 0             # indentation retained to outdent comment lines
+tabsize = 4        # tabsize used for expanding tabs
+codeflag = 0       # 0: no source code; 1: print also source code
+frontflag = 0      # 0: no front matter; 1: print front matter
+mode = 0           # 0: in code; 1: in md-comment
+idt = 0            # indentation retained to outdent comment lines
 
 # Analyze command line arguments
 try:

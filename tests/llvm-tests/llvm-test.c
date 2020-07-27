@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "faust/dsp/llvm-c-dsp.h"
+#include "faust/gui/PrintCUI.h"
 
 static bool isopt(char* argv[], const char* name)
 {
@@ -46,9 +47,18 @@ int main(int argc, const char** argv)
     argv1[argc1] = 0;
     
     char err[4096];
-    llvm_dsp_factory* factory = createCDSPFactoryFromString("score",
-                                           "process = +;",
-                                           argc1, argv1, "", err, -1);
+    const char* code =
+        "import(\"stdfaust.lib\");\n"
+        "\n"
+        "f0 = hslider(\"[foo:bar]f0\", 110, 110, 880, 1);\n"
+        "\n"
+        "n = 2;\n"
+        "\n"
+        "inst = par(i, n, os.oscs(f0 * (n+i) / n)) :> /(n);\n"
+        "\n"
+        "process = inst, inst;\n";
+    
+    llvm_dsp_factory* factory = createCDSPFactoryFromString("score", code, argc1, argv1, "", err, -1);
     if (!factory) {
         printf("Cannot create factory : %s\n", err);
         exit(EXIT_FAILURE);
@@ -60,6 +70,12 @@ int main(int argc, const char** argv)
         } else {
             printf("getNumInputs : %d\n", getNumInputsCDSPInstance(dsp));
             printf("getNumOutputs : %d\n", getNumOutputsCDSPInstance(dsp));
+            
+            // Defined in PrintCUI.h
+            metadataCDSPInstance(dsp, &mglue);
+            
+            buildUserInterfaceCDSPInstance(dsp, &uglue);
+            
             // Cleanup
             deleteCDSPInstance(dsp);
             deleteCDSPFactory(factory);

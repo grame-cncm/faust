@@ -3,6 +3,7 @@
 #endif
 
 #include "controlTools.h"
+#include "faust/dsp/dsp-checker.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code
@@ -18,13 +19,13 @@ int main(int argc, char* argv[])
     int nbsamples = 60000;
     
     // print general informations
-    printHeader(new me_dsp(new mydsp()), nbsamples);
+    printHeader(new dsp_me_checker(new mydsp()), nbsamples);
     
     // linenum is incremented in runDSP and runPolyDSP
-    runDSP(new me_dsp(new mydsp()), argv[0], linenum, nbsamples/4);
-    runDSP(new me_dsp(new mydsp()), argv[0], linenum, nbsamples/4, false, true);
-    runPolyDSP(new me_dsp(new mydsp()), linenum, nbsamples/4, 4);
-    runPolyDSP(new me_dsp(new mydsp()), linenum, nbsamples/4, 1);
+    runDSP(new dsp_me_checker(new mydsp()), argv[0], linenum, nbsamples/4);
+    runDSP(new dsp_me_checker(new mydsp()), argv[0], linenum, nbsamples/4, false, true);
+    runPolyDSP(new dsp_me_checker(new mydsp()), linenum, nbsamples/4, 4);
+    runPolyDSP(new dsp_me_checker(new mydsp()), linenum, nbsamples/4, 1);
     
     return 0;
 }

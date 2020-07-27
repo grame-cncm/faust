@@ -28,7 +28,6 @@
 #include <utility>
 #include <cctype>
 
-#include "Text.hh"
 #include "text_instructions.hh"
 #include "faust/gui/PathBuilder.h"
 
@@ -42,14 +41,14 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     using DispatchVisitor::visit;
 
-    SOULInstUIVisitor(int tab) : fTypeManager(FLOATMACRO, "*"), fTab(tab) {}
+    SOULInstUIVisitor(int tab) : fTypeManager(xfloat(), "*"), fTab(tab) {}
     
     void addMeta()
     {
         if (fMetaAux.size() > 0) {
             for (size_t i = 0; i < fMetaAux.size(); i++) {
                 if (!std::isdigit(fMetaAux[i].first[0])) {
-                    fOut << ", " << "meta_" + fMetaAux[i].first << ": " << quote(fMetaAux[i].second);
+                    fOut << ", " << "meta_" + gGlobal->getFreshID(fMetaAux[i].first) << ": " << quote(fMetaAux[i].second);
                 }
             }
         }
@@ -177,10 +176,19 @@ class SOULInstVisitor : public TextInstVisitor {
 
     // Whether to consider an 'int' as a 'boolean' later on in code generation
     bool fIntAsBool;
+    
+    inline string checkFloat(float val)
+    {
+        return (std::isinf(val)) ? "inf" : T(val);
+    }
+    inline string checkDouble(double val)
+    {
+        return (std::isinf(val)) ? "inf" : T(val);
+    }
 
    public:
     SOULInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, ".", new SOULStringTypeManager(FLOATMACRO, ""), tab)
+        : TextInstVisitor(out, ".", new SOULStringTypeManager(xfloat(), ""), tab)
     {
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";
@@ -208,7 +216,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
-        gPolyMathLibTable["rintf"]      = "rint";
+        gPolyMathLibTable["rintf"]      = "roundToInt";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
@@ -221,6 +229,9 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["coshf"]  = "cosh";
         gPolyMathLibTable["sinhf"]  = "sinh";
         gPolyMathLibTable["tanhf"]  = "tanh";
+        
+        gPolyMathLibTable["isnanf"]  = "isnan";
+        gPolyMathLibTable["isinff"]  = "isinf";
 
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
@@ -243,7 +254,7 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["rint"]      = "rint";
+        gPolyMathLibTable["rint"]      = "roundToInt";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
@@ -256,6 +267,9 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cosh"]  = "cosh";
         gPolyMathLibTable["sinh"]  = "sinh";
         gPolyMathLibTable["tanh"]  = "tanh";
+
+        gPolyMathLibTable["isnan"]  = "isnan";
+        gPolyMathLibTable["isinf"]  = "isinf";
 
         fIntAsBool = false;
     }
@@ -349,6 +363,7 @@ class SOULInstVisitor : public TextInstVisitor {
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             } else {
+                // wrap code is automatically added by the SOUL compiler (and the same if [idex] syntax is used)
                 *fOut << ".at (";
                 indexed->fIndex->accept(this);
                 *fOut << ")";
@@ -389,6 +404,8 @@ class SOULInstVisitor : public TextInstVisitor {
             EndLine();
         }
     }
+    
+    virtual void visit(FloatNumInst* inst) { *fOut << checkFloat(inst->fNum); }
 
     virtual void visit(FloatArrayNumInst* inst)
     {
@@ -410,6 +427,8 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << ')';
     }
 
+    virtual void visit(DoubleNumInst* inst) { *fOut << checkDouble(inst->fNum); }
+    
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '(';

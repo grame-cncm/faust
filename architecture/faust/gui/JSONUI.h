@@ -43,7 +43,7 @@
  ******************************************************************************/
 
 template <typename REAL>
-class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
+class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
 {
 
     protected:
@@ -115,7 +115,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
       
      public:
      
-        JSONUIAux(const std::string& name,
+        JSONUIReal(const std::string& name,
                   const std::string& filename,
                   int inputs,
                   int outputs,
@@ -132,22 +132,22 @@ class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
             init(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table);
         }
 
-        JSONUIAux(const std::string& name, const std::string& filename, int inputs, int outputs)
+        JSONUIReal(const std::string& name, const std::string& filename, int inputs, int outputs)
         {
             init(name, filename, inputs, outputs, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), -1, std::map<std::string, int>());
         }
 
-        JSONUIAux(int inputs, int outputs)
+        JSONUIReal(int inputs, int outputs)
         {
             init("", "", inputs, outputs, -1, "", "","", "", std::vector<std::string>(), std::vector<std::string>(), -1, std::map<std::string, int>());
         }
         
-        JSONUIAux()
+        JSONUIReal()
         {
             init("", "", -1, -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), -1, std::map<std::string, int>());
         }
  
-        virtual ~JSONUIAux() {}
+        virtual ~JSONUIReal() {}
         
         void setInputs(int inputs) { fInputs = inputs; }
         void setOutputs(int outputs) { fOutputs = outputs; }
@@ -439,113 +439,112 @@ class JSONUIAux : public PathBuilder, public Meta, public UIReal<REAL>
 
 // Externally available class using FAUSTFLOAT
 
-class JSONUI : public JSONUIAux<FAUSTFLOAT>, public UI
+struct JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI
 {
-    public :
     
-        JSONUI(const std::string& name,
-               const std::string& filename,
-               int inputs,
-               int outputs,
-               int sr_index,
-               const std::string& sha_key,
-               const std::string& dsp_code,
-               const std::string& version,
-               const std::string& compile_options,
-               const std::vector<std::string>& library_list,
-               const std::vector<std::string>& include_pathnames,
-               int size,
-               const std::map<std::string, int>& path_table):
-        JSONUIAux<FAUSTFLOAT>(name, filename,
-                              inputs, outputs,
-                              sr_index,
-                              sha_key, dsp_code,
-                              version, compile_options,
-                              library_list, include_pathnames,
-                              size, path_table)
-        {}
-        
-        JSONUI(const std::string& name, const std::string& filename, int inputs, int outputs):
-        JSONUIAux<FAUSTFLOAT>(name, filename, inputs, outputs)
-        {}
-        
-        JSONUI(int inputs, int outputs):JSONUIAux<FAUSTFLOAT>(inputs, outputs)
-        {}
-        
-        JSONUI():JSONUIAux<FAUSTFLOAT>()
-        {}
+    JSONUI(const std::string& name,
+           const std::string& filename,
+           int inputs,
+           int outputs,
+           int sr_index,
+           const std::string& sha_key,
+           const std::string& dsp_code,
+           const std::string& version,
+           const std::string& compile_options,
+           const std::vector<std::string>& library_list,
+           const std::vector<std::string>& include_pathnames,
+           int size,
+           const std::map<std::string, int>& path_table):
+    JSONUIReal<FAUSTFLOAT>(name, filename,
+                          inputs, outputs,
+                          sr_index,
+                          sha_key, dsp_code,
+                          version, compile_options,
+                          library_list, include_pathnames,
+                          size, path_table)
+    {}
     
-        virtual void openTabBox(const char* label)
-        {
-            JSONUIAux<FAUSTFLOAT>::openTabBox(label);
-        }
-        virtual void openHorizontalBox(const char* label)
-        {
-            JSONUIAux<FAUSTFLOAT>::openHorizontalBox(label);
-        }
-        virtual void openVerticalBox(const char* label)
-        {
-            JSONUIAux<FAUSTFLOAT>::openVerticalBox(label);
-        }
-        virtual void closeBox()
-        {
-            JSONUIAux<FAUSTFLOAT>::closeBox();
-        }
-        
-        // -- active widgets
-        
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)
-        {
-            JSONUIAux<FAUSTFLOAT>::addButton(label, zone);
-        }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
-        {
-            JSONUIAux<FAUSTFLOAT>::addCheckButton(label, zone);
-        }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            JSONUIAux<FAUSTFLOAT>::addVerticalSlider(label, zone, init, min, max, step);
-        }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            JSONUIAux<FAUSTFLOAT>::addHorizontalSlider(label, zone, init, min, max, step);
-        }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            JSONUIAux<FAUSTFLOAT>::addNumEntry(label, zone, init, min, max, step);
-        }
-        
-        // -- passive widgets
-        
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            JSONUIAux<FAUSTFLOAT>::addHorizontalBargraph(label, zone, min, max);
-        }
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            JSONUIAux<FAUSTFLOAT>::addVerticalBargraph(label, zone, min, max);
-        }
-        
-        // -- soundfiles
-        
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
-        {
-            JSONUIAux<FAUSTFLOAT>::addSoundfile(label, filename, sf_zone);
-        }
-        
-        // -- metadata declarations
-        
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-        {
-            JSONUIAux<FAUSTFLOAT>::declare(zone, key, val);
-        }
+    JSONUI(const std::string& name, const std::string& filename, int inputs, int outputs):
+    JSONUIReal<FAUSTFLOAT>(name, filename, inputs, outputs)
+    {}
     
-        virtual void declare(const char* key, const char* val)
-        {
-            JSONUIAux<FAUSTFLOAT>::declare(key, val);
-        }
+    JSONUI(int inputs, int outputs):JSONUIReal<FAUSTFLOAT>(inputs, outputs)
+    {}
     
-        virtual ~JSONUI() {}
+    JSONUI():JSONUIReal<FAUSTFLOAT>()
+    {}
+
+    virtual void openTabBox(const char* label)
+    {
+        JSONUIReal<FAUSTFLOAT>::openTabBox(label);
+    }
+    virtual void openHorizontalBox(const char* label)
+    {
+        JSONUIReal<FAUSTFLOAT>::openHorizontalBox(label);
+    }
+    virtual void openVerticalBox(const char* label)
+    {
+        JSONUIReal<FAUSTFLOAT>::openVerticalBox(label);
+    }
+    virtual void closeBox()
+    {
+        JSONUIReal<FAUSTFLOAT>::closeBox();
+    }
+    
+    // -- active widgets
+    
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        JSONUIReal<FAUSTFLOAT>::addButton(label, zone);
+    }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        JSONUIReal<FAUSTFLOAT>::addCheckButton(label, zone);
+    }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        JSONUIReal<FAUSTFLOAT>::addVerticalSlider(label, zone, init, min, max, step);
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        JSONUIReal<FAUSTFLOAT>::addHorizontalSlider(label, zone, init, min, max, step);
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        JSONUIReal<FAUSTFLOAT>::addNumEntry(label, zone, init, min, max, step);
+    }
+    
+    // -- passive widgets
+    
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        JSONUIReal<FAUSTFLOAT>::addHorizontalBargraph(label, zone, min, max);
+    }
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        JSONUIReal<FAUSTFLOAT>::addVerticalBargraph(label, zone, min, max);
+    }
+    
+    // -- soundfiles
+    
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+    {
+        JSONUIReal<FAUSTFLOAT>::addSoundfile(label, filename, sf_zone);
+    }
+    
+    // -- metadata declarations
+    
+    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+    {
+        JSONUIReal<FAUSTFLOAT>::declare(zone, key, val);
+    }
+
+    virtual void declare(const char* key, const char* val)
+    {
+        JSONUIReal<FAUSTFLOAT>::declare(key, val);
+    }
+
+    virtual ~JSONUI() {}
     
 };
 

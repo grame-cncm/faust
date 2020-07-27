@@ -22,8 +22,9 @@
 #ifndef __signals_intervals__
 #define __signals_intervals__
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
+#include "exception.hh"
 
 #ifdef _WIN32
 inline double log2(double e)
@@ -57,10 +58,27 @@ struct interval : public virtual Garbageable {
     double hi;     ///< maximal value
 
     interval() : valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) {}
-    interval(double n) : valid(true), lo(n), hi(n) {}
-    interval(bool v, double n, double m) : valid(v), lo(n), hi(m) {}
-    interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m)) {}
-    interval(const interval& r) : valid(r.valid), lo(r.lo), hi(r.hi) {}
+    interval(double n) : valid(true), lo(n), hi(n)
+    {
+        if (std::isnan(n)) {
+            cerr << "ERROR1 : n is NAN in an Interval" << endl;
+            faustassert(false);
+        }
+    }
+    interval(bool v, double n, double m) : valid(v), lo(n), hi(m)
+    {
+        if (std::isnan(n) || std::isnan(m)) {
+            cerr << "ERROR2 : n or m is NAN in an Interval" << endl;
+            faustassert(false);
+        }
+    }
+    interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m))
+    {
+        if (std::isnan(n) || std::isnan(m)) {
+            cerr << "ERROR3 : n or m is NAN in an Interval" << endl;
+            faustassert(false);
+        }
+    }
 
     // bool isvalid() { return valid; }
     bool isempty() { return hi < lo; }
@@ -118,13 +136,18 @@ inline interval operator-(const interval& x, const interval& y)
     ;
 }
 
+inline double specialmult(double a, double b)
+{
+    // we want inf*0 to be 0
+    return ((a == 0.0) || (b == 0.0)) ? 0.0 : a * b;
+}
 inline interval operator*(const interval& x, const interval& y)
 {
     if (x.valid & y.valid) {
-        double a = x.lo * y.lo;
-        double b = x.lo * y.hi;
-        double c = x.hi * y.lo;
-        double d = x.hi * y.hi;
+        double a = specialmult(x.lo, y.lo);
+        double b = specialmult(x.lo, y.hi);
+        double c = specialmult(x.hi, y.lo);
+        double d = specialmult(x.hi, y.hi);
         return interval(min4(a, b, c, d), max4(a, b, c, d));
     } else {
         return interval();

@@ -349,7 +349,7 @@ public:
         {
             fLabel = [[[UILabel alloc] init] autorelease];
             fLabel.font = [UIFont boldSystemFontOfSize:18];
-            fLabel.textAlignment = UITextAlignmentLeft;
+            fLabel.textAlignment = NSTextAlignmentLeft;
             fLabel.autoresizingMask = UIViewAutoresizingNone;
             fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
             fLabel.textColor = [UIColor colorWithWhite:1. alpha:1.];
@@ -594,7 +594,7 @@ public :
     {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        fLabel.textAlignment = UITextAlignmentCenter;
+        fLabel.textAlignment = NSTextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
         fLabel.backgroundColor = [UIColor clearColor];
@@ -731,8 +731,8 @@ public :
     {        
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        if (horizontal) fLabel.textAlignment = UITextAlignmentRight;
-        else fLabel.textAlignment = UITextAlignmentCenter;
+        if (horizontal) fLabel.textAlignment = NSTextAlignmentRight;
+        else fLabel.textAlignment = NSTextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
         fLabel.backgroundColor = [UIColor clearColor];
@@ -1049,7 +1049,7 @@ public:
     {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        fLabel.textAlignment = UITextAlignmentCenter;
+        fLabel.textAlignment = NSTextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:label encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
         fLabel.backgroundColor = [UIColor clearColor];
@@ -1153,8 +1153,8 @@ public:
         fLed = false;
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        if (horizontal) fLabel.textAlignment = UITextAlignmentRight;
-        else fLabel.textAlignment = UITextAlignmentCenter;
+        if (horizontal) fLabel.textAlignment = NSTextAlignmentRight;
+        else fLabel.textAlignment = NSTextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
         fLabel.backgroundColor = [UIColor blackColor];
@@ -1285,12 +1285,12 @@ public:
         
         if (led)
         {
-            fLabel.textAlignment = UITextAlignmentCenter;
+            fLabel.textAlignment = NSTextAlignmentCenter;
         }
         else
         {
-            if (fHorizontal) fLabel.textAlignment = UITextAlignmentRight;
-            else fLabel.textAlignment = UITextAlignmentCenter;
+            if (fHorizontal) fLabel.textAlignment = NSTextAlignmentRight;
+            else fLabel.textAlignment = NSTextAlignmentCenter;
         }
     }
     

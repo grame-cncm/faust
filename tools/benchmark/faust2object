@@ -1,0 +1,150 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust DSP to machine code                  #
+#               for several CPUs using dynamic-faust                #
+#               (c) Grame, 2020                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+
+FILES=""
+CPU=""
+OPT=""
+MULTI=false
+LLVM=false
+TEST=false
+LLVM_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
+CPP_ADAPTER=$FAUSTINC/faust/dsp/cpp-dsp-adapter.h
+MULTI_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multi.h
+ARCHFILE=$FAUSTARCH/minimal-effect.cpp
+dspName=""
+
+while [ $1 ]
+do
+    p=$1
+ 
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-multi] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use 'core2' to compile for Core2 CPU"
+        echo "Use 'penryn' to compile for Penryn CPU"
+        echo "Use 'nehalem' to compile for Nehalem CPU"
+        echo "Use 'westmere' to compile for Westmere CPU"
+        echo "Use 'sandybridge' to compile for Sandybridge CPU"
+        echo "Use 'ivybridge' to compile for Ivybridge CPU"
+        echo "Use 'haswell' to compile for Haswell CPU"
+        echo "Use 'broadwell' to compile for Broadwell CPU"
+        echo "Use 'skylake' to compile for Skylake CPU"
+        echo "Use 'skylake_avx512' to compile for Skylake-avx512 CPU"
+        echo "Use 'cannonlake' to compile for Cannonlake CPU"
+        echo "Use 'generic' to compile for generic CPU"
+        echo "Use '-all' to compile for all CPUs"
+        echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
+        echo "Use '-opt native' to activate the best compilation options for the native CPU"
+        echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
+        echo "Use '-llvm' to compile using the LLVM backend, otherwise the C++ backend is used"
+        echo "Use '-test' to compile a test program which will bench the DSP and render it"
+        exit
+    fi
+
+    if [ "$p" = "core2" ] || [ "$p" = "penryn" ] || [ "$p" = "nehalem" ] || [ "$p" = "westmere" ] || [ "$p" = "sandybridge" ] || [ "$p" = "ivybridge" ] || [ "$p" = "haswell" ] || [ "$p" = "broadwell" ] || [ "$p" = "skylake" ] || [ "$p" = "skylake_avx512" ] || [ "$p" = "cannonlake" ] || [ "$p" = "generic" ]; then
+        CPU="$CPU $p"
+    elif [ $p = "-opt" ]; then
+        shift
+        OPT=$1
+    elif [ $p = "-cn" ]; then
+        shift
+        dspName=$1
+    elif [ $p = "-llvm" ]; then
+        LLVM=true
+    elif [ $p = "-multi" ]; then
+        MULTI=true
+    elif [ $p = "-test" ]; then
+        TEST=true
+    elif [ $p = "-all" ]; then
+	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake generic"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+done
+
+# If no CPU is gven, compile by default for 'generic'
+if [ -z "$CPU" ]; then
+    echo "ERROR : no CPU was given"
+    exit
+fi
+
+for p in $FILES; do
+
+    f=$(basename "$p")
+
+    if [ -z $dspName ]; then
+        dspName="${f%.dsp}"
+    fi
+
+    # discover best compilation options
+    if [ "$OPT" = "generic" ]; then
+        echo "Look for best compilation options in 'generic' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace -generic $OPTIONS $f)"
+        echo $OPTIONS
+    elif [ "$OPT" = "native" ]; then
+        echo "Look for best compilation options in 'native' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
+        echo $OPTIONS
+    fi
+
+    # compile for each CPU
+    for cpu in $CPU; do
+        echo $cpu
+        if [ $LLVM = true ]; then
+            echo "Compiled using LLVM"
+            sed -e "s/mydsp/$dspName$cpu/g" $LLVM_ADAPTER > $dspName$cpu".h"
+            dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+        else
+            echo "Compiled using C++"
+            sed -e "s/mydsp/$dspName$cpu/g" $CPP_ADAPTER > $dspName$cpu".h"
+            faust -a $ARCHFILE -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
+            # renaming
+            if [ $cpu = skylake_avx512 ]; then
+                arch_cpu=skylake-avx512
+            elif [ $cpu = generic ]; then
+                arch_cpu=""
+            else
+                arch_cpu=$cpu
+            fi
+            c++ -Ofast -march=$arch_cpu -c $dspName$cpu".cpp"
+        fi
+    done
+
+    # possibly aggregate in a unique multi file
+    if [ $MULTI = true ]; then
+        # create file
+        echo "" > $dspName"multi.h"
+        # add conditional #define 'cpu'
+        for cpu in $CPU; do
+            echo "#define "$cpu >> $dspName"multi.h"
+        done
+        # class naming
+        sed -e "s/mydsp/$dspName/g" $MULTI_ADAPTER >> $dspName"multi.h"
+    fi
+    
+    # create a test program
+    if [ $TEST = true ]; then
+    	if [ $MULTI = false ]; then
+    		echo "ERROR : -test option can only be used with -multi option"
+    		exit
+    	fi
+    	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $OPTIONS $p -o $dspName"multi.cpp"
+    	c++ -std=c++14 $dspName"multi.cpp" -dead_strip -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+    	echo "Run ./"$dspName"multi"" to test the program"
+    fi
+
+done

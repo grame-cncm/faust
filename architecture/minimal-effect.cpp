@@ -62,5 +62,7 @@ using std::min;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+// Factory API
+dsp* createmydsp() { return new mydsp(); }
 
+/********************END ARCHITECTURE SECTION (part 2/2)****************/

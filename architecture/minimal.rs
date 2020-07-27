@@ -19,43 +19,65 @@
 #![allow(unused_parens)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(non_upper_case_globals)]
 
-use std::marker::PhantomData;
+extern crate libm;
+extern crate num_traits;
+
+use std::fs::File;
+use std::io::Write;
+use std::env;
+
+use num_traits::{cast::FromPrimitive, float::Float};
+
+pub trait FaustDsp {
+    type Sample;
+
+    fn new() -> Self where Self: Sized;
+    fn metadata(&mut self, m: &mut dyn Meta);
+    fn get_sample_rate(&mut self) -> i32;
+    fn get_num_inputs(&mut self) -> i32;
+    fn get_num_outputs(&mut self) -> i32;
+    fn get_input_rate(&mut self, channel: i32) -> i32;
+    fn get_output_rate(&mut self, channel: i32) -> i32;
+    fn class_init(sample_rate: i32) where Self: Sized;
+    fn instance_reset_user_interface(&mut self);
+    fn instance_clear(&mut self);
+    fn instance_constants(&mut self, sample_rate: i32);
+    fn instance_init(&mut self, sample_rate: i32);
+    fn init(&mut self, sample_rate: i32);
+    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
+}
 
 pub trait Meta {
-
     // -- metadata declarations
-
-    fn declare(&mut self, key: &str, value: &str) -> ();
-
+    fn declare(&mut self, key: &str, value: &str);
 }
 
 pub trait UI<T> {
-
     // -- widget's layouts
-
-    fn openTabBox(&mut self, label: &str) -> ();
-    fn openHorizontalBox(&mut self, label: &str) -> ();
-    fn openVerticalBox(&mut self, label: &str) -> ();
-    fn closeBox(&mut self) -> ();
+    fn open_tab_box(&mut self, label: &str);
+    fn open_horizontal_box(&mut self, label: &str);
+    fn open_vertical_box(&mut self, label: &str);
+    fn close_box(&mut self);
 
     // -- active widgets
-
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ();
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
+    fn add_button(&mut self, label: &str, zone: &mut T);
+    fn add_check_button(&mut self, label: &str, zone: &mut T);
+    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
+    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
 
     // -- metadata declarations
-
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
-
+    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
 }
 
 pub struct PrintMeta {}
@@ -137,38 +159,6 @@ impl<T> UI<T> for PrintUI<T> {
     }
 }
 
-pub trait dsp<T> {
-
-    //fn new() -> dsp<T>;
-
-    fn getSampleRate(&mut self) -> i32;
-
-    fn getNumInputs(&mut self) -> i32;
-
-    fn getNumOutputs(&mut self) -> i32;
-
-    fn getInputRate(&mut self, channel: i32) -> i32;
-
-    fn getOutputRate(&mut self, channel: i32) -> i32;
-
-    fn buildUserInterface(&mut self, ui_interface: &UI<T>) -> ();
-
-    fn classInit(samplingFreq: i32) -> ();
-
-    fn instanceResetUserInterface(&mut self) -> ();
-
-    fn instanceClear(&mut self) -> ();
-
-    fn instanceConstants(&mut self, samplingFreq: i32) -> ();
-
-    fn instanceInit(&mut self, samplingFreq: i32) -> ();
-
-    fn init(&mut self, samplingFreq: i32) -> ();
-
-    fn compute(&mut self, count: i32, inputs: &[&[T]], outputs: &mut[&mut[T]]) -> ();
-
-}
-
 <<includeIntrinsic>>
 <<includeclass>>
 
@@ -178,8 +168,8 @@ fn main() {
 
     let mut dsp = Box::new(mydsp::new());
 
-    println!("getNumInputs: {}", dsp.getNumInputs());
-    println!("getNumOutputs: {}", dsp.getNumOutputs());
+    println!("get_num_inputs: {}", dsp.get_num_inputs());
+    println!("get_num_outputs: {}", dsp.get_num_outputs());
 
     // Init DSP with a given SR
     dsp.init(44100);
@@ -192,7 +182,7 @@ fn main() {
     let mut meta = PrintMeta{};
     dsp.metadata(&mut meta);
 
-    println!("getSampleRate: {}", dsp.getSampleRate());
+    println!("get_sample_rate: {}", dsp.get_sample_rate());
 
     // Has to be done in the audio thread taking adapted "native" (JACK/PortAudio allocated...) audio buffers
     // dsp.compute(512, inputs, outputs);

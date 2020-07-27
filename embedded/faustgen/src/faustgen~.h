@@ -52,6 +52,7 @@
 #include <libgen.h>
 #endif
 
+// Here to be able to use 'post'
 #include "faust/gui/mspUI.h"
 
 #include "jpatcher_api.h"
@@ -59,7 +60,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.41"
+#define FAUSTGEN_VERSION "1.45"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -219,7 +220,7 @@ class faustgen : public MspCpp5<faustgen> {
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI
-        SaveLabelUI fSavedUI;           // Save/load current value, reset to init value
+        SaveUI* fSavedUI;               // Save/load current value, reset to init value
     
         ::dsp* fDSP;                    // LLVM Faust dsp
         t_object* fEditor;              // Text editor object

@@ -9,8 +9,9 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/jack-qt-chain-header.cpp
 
@@ -39,9 +40,12 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jaqtchain [-httpd] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-osc' to activate OSC control"
+        usage faust2jaqtchain "[options] [Faust options] <file.dsp>"
+        require Jack, Qt
+        echo "Compiles several Faust programs to JACK-QT"
+        option
+        options -httpd -osc
+        option "Faust options"
         exit
     fi
 

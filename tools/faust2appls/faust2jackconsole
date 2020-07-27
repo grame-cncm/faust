@@ -9,13 +9,17 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/jack-console.cpp
 
 OSCDEFS=""
 NVOICES=-1
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 
 # Check Darwin specifics
 #
@@ -32,39 +36,23 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jackconsole [-httpd] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
+        usage faust2jackconsole "[options] [Faust options] <file.dsp>"
+        require Jack
+        echo "Compiles Faust programs to JACK-console."
+        option
+        options -httpd -osc -midi -soundfile
+        option "-nvoices <num>"
+        option "Faust options"
     	exit
     fi
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
   
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-osc" ]; then
+  	if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
@@ -76,6 +64,10 @@ do
         fi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -93,7 +85,7 @@ shift
 done
 	
 #-------------------------------------------------------------------
-# compile the *.dsp files using ALSA and GTK on linux
+# compile the *.dsp files using JACK and console
 #
 for f in $FILES; do
 	
@@ -102,10 +94,11 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS $MIDIDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
 	) > /dev/null || exit
-	rm "$f.cpp"
+	
+	# remove tempory files
+	rm -f "$f.cpp"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"

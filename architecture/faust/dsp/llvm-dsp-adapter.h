@@ -1,7 +1,7 @@
 /************************** BEGIN llvm-dsp-adapter.h **************************/
 /************************************************************************
  ************************************************************************
- Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
  
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -20,13 +20,18 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LLVM_DSP_ADAPTER_H
-#define LLVM_DSP_ADAPTER_H
+#ifndef LLVM_mydsp_adapter_H
+#define LLVM_mydsp_adapter_H
 
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
+#include "faust/dsp/dsp.h"
 #include "faust/gui/JSONUIDecoder.h"
 
 /*
- Wraps a LLVM module compiled as object code in a 'dsp' class.
+ Wraps a LLVM module compiled as object code in a C++ 'dsp' class.
  */
 
 #ifdef __cplusplus
@@ -35,20 +40,16 @@ extern "C"
 #endif
     
     // LLVM module API
-    typedef char comp_llvm_dsp;
+    typedef char comp_llvm_mydsp;
 
     // Used in -sch mode
-    void allocatemydsp(comp_llvm_dsp* dsp);
-    void destroymydsp(comp_llvm_dsp* dsp);
-   
-    void instanceConstantsmydsp(comp_llvm_dsp* dsp, int sample_rate);
-    void instanceClearmydsp(comp_llvm_dsp* dsp);
-    
+    void allocatemydsp(comp_llvm_mydsp* dsp);
+    void destroymydsp(comp_llvm_mydsp* dsp);
+    void instanceConstantsmydsp(comp_llvm_mydsp* dsp, int sample_rate);
+    void instanceClearmydsp(comp_llvm_mydsp* dsp);
     void classInitmydsp(int sample_rate);
-    
+    void computemydsp(comp_llvm_mydsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     char* getJSONmydsp();
-    
-    void computemydsp(comp_llvm_dsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 #ifdef __cplusplus
 }
@@ -58,7 +59,7 @@ class mydsp : public dsp {
     
     private:
         
-        comp_llvm_dsp* fDSP;
+        comp_llvm_mydsp* fDSP;
         JSONUITemplatedDecoder* fDecoder;
     
     public:
@@ -66,7 +67,7 @@ class mydsp : public dsp {
         mydsp()
         {
             fDecoder = createJSONUIDecoder(getJSONmydsp());
-            fDSP = static_cast<comp_llvm_dsp*>(calloc(1, fDecoder->getDSPSize()));
+            fDSP = static_cast<comp_llvm_mydsp*>(calloc(1, fDecoder->getDSPSize()));
             allocatemydsp(fDSP);
         }
         
@@ -111,7 +112,11 @@ class mydsp : public dsp {
     
         virtual void instanceResetUserInterface()
         {
+        #if defined(SOUNDFILE)
             fDecoder->resetUserInterface(fDSP, defaultsound);
+        #else
+            fDecoder->resetUserInterface(fDSP, nullptr);
+        #endif
         }
     
         virtual void instanceClear()
@@ -145,6 +150,9 @@ class mydsp : public dsp {
         }
     
 };
+
+// Factory API
+dsp* createmydsp() { return new mydsp(); }
 
 #endif
 /**************************  END  llvm-dsp-adapter.h **************************/

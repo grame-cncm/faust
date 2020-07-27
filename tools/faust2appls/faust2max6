@@ -3,16 +3,17 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to Max6 externals           #
+#               Compiles Faust programs to Max6/7/8 externals       #
 #               using double precision samples                      #
-#               (c) Grame, 2012-2019                                #
+#               (c) Grame, 2012-2020                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGSGENERIC
+CXXFLAGS+=" $MYGCCFLAGSGENERIC"  # So that additional CXXFLAGS can be used
 
 UNIVERSAL=""
 OSCDEFS=""
@@ -25,9 +26,14 @@ SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 OPT=""
+US="0"
+DS="0"
+FILTER="0"
+FAUSTFLOAT="double" # By default since Max6
+POST="-DPOST"
 
 # path to max SDK
-#SDK=/usr/local/include/c74support/    # now declared in faustpath
+# MAXSDK is declared in faustpath
 MAXINC=$MAXSDK/max-includes
 MSPINC=$MAXSDK/msp-includes
 
@@ -79,18 +85,23 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-opt native|generic] [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile/-soundfile-static] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-opt native' to activate the best compilation options for the native CPU"
-        echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
-        echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-universal' to generate a 64/32 bits external"
-        echo "Use '-nopatch' to deactivate patch generation"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-        echo "Use '-soundfile-static' when compiling DSP using 'soundfile' primitive, to add needed resources in static mode"
+        usage faust2max6 "[options] [Faust options] <file.dsp>"
+        require Max-MSP SDK
+        echo "Compiles Faust programs to Max6 externals using double precision samples"
+        option
+        options -osc -midi -soundfile
+        option -soundfile-static "similar to -soundfile with resources in statuc mode."
+        option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
+        option "-nvoices <num>"
+        option "-us <factor>"
+        option "-ds <factor>"
+        option "-filter <filter>"
+        option "-effect <effect.dsp>"
+        option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+        option -universal "to generate a 64/32 bits external"
+        option -nopatch "to deactivate patch generation"
+        option -nopost "to disable Faust messages to Max console"
+        option "Faust options"
         exit
     fi
 
@@ -125,16 +136,29 @@ do
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
+    elif [ $p = "-nopost" ]; then
+        POST="" 
     elif [ $p = "-nopatch" ]; then
         NOPATCH="1"
     elif [ $p = "-native" ]; then
         CXXFLAGS=$MYGCCFLAGS
+    elif [ $p = "-single" ]; then
+        FAUSTFLOAT="float"
+    elif [ $p = "-us" ]; then
+        shift
+        US=$1
+    elif [ $p = "-ds" ]; then
+        shift
+        DS=$1
+    elif [ $p = "-filter" ]; then
+        shift
+        FILTER=$1
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"       
 	fi
 
 shift
@@ -142,11 +166,9 @@ shift
 done
 
 #look for polyphonic "nvoices" metadata in the DSP file
-
 grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 
 #customize CXXFLAGS
-
 CXXFLAGS+=" -fbracket-depth=512"
 
 #-------------------------------------------------------------------
@@ -177,28 +199,33 @@ for p in $FILES; do
 
     # discover best compilation options
     if [ "$OPT" = "generic" ]; then
-        echo "Look for best compilation options in generic mode..."
-        OPTIONS="$(faustbench-llvm -notrace -generic $f)"
+        echo "Look for best compilation options in 'generic' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace -generic $OPTIONS $f)"
         echo $OPTIONS
     elif [ "$OPT" = "native" ]; then
-        echo "Look for best compilation options in native mode..."
-        OPTIONS="$(faustbench-llvm -notrace $f)"
+        echo "Look for best compilation options in 'native' mode..."
+        OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
         echo $OPTIONS
     fi
-
-    # compile faust to c++
-    if [ "$EFFECT" = "" ]; then
-        faust -i -double -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-    else
-        faust -i -double -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -double -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+    
+    # -double is used by default
+    if [ "$FAUSTFLOAT" = "double" ]; then
+        OPTIONS="$OPTIONS -double"
     fi
 
+    # compile Faust to c++
+    if [ "$EFFECT" = "" ]; then
+        faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    else
+        faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+    fi
+   
     # compile c++ to binary
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CXX $CXXFLAGS -std=c++11 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
    	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
@@ -274,5 +301,3 @@ done
 BINARIES="$BINARIES ui.js"
 
 echo $BINARIES
-
-

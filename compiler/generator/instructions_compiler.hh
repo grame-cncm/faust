@@ -33,8 +33,11 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions.hh"
-#include "occurences.hh"
+#include "dcond.hh"
+#include "old_occurences.hh"
 #include "property.hh"
+
+#define _DNF_ 1
 
 using namespace std;
 
@@ -49,14 +52,25 @@ class InstructionsCompiler : public virtual Garbageable {
     property<pair<string, string>>  fStaticInitProperty;
     property<pair<string, string>>  fInstanceInitProperty;
     property<string>                fTableProperty;
+    
+    map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
+    
     Tree                            fSharingKey;
-    OccMarkup                       fOccMarkup;
+    old_OccMarkup*                  fOccMarkup;
 
-    std::map<int, std::string> fIOTATable;  // Ensure IOTA base fixed delays are computed once
+    // Ensure IOTA base fixed delays are computed once
+    std::map<int, std::string> fIOTATable;
 
     Tree         fUIRoot;
     Description* fDescription;
-    bool         fLoadedIota;
+    
+    /*
+     -dlt <N> : threshold between 'mask' and 'select' based ring-buffer delay line model.
+     'mask' delay-lines use the next power-of-two value size and a mask (faster but use more memory)
+     'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but slower)
+    */
+    
+    bool fHasIota;
 
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
@@ -73,6 +87,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
     virtual StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
     virtual StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
+    
     // Redefined in InterpreterInstructionsCompiler
     virtual StatementInst* generateShiftArray(const string& vname, int delay);
 
@@ -80,12 +95,12 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
     ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
 
-    /* wrapper functions to access code container */
+    // wrapper functions to access code container
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }
     StatementInst* pushResetUIInstructions(StatementInst* inst) { return fContainer->pushResetUIInstructions(inst); }
     StatementInst* pushClearMethod(StatementInst* inst) { return fContainer->pushClearMethod(inst); }
     StatementInst* pushPostInitMethod(StatementInst* inst) { return fContainer->pushPostInitMethod(inst); }
-    StatementInst* pushFrontInitMethod(StatementInst* inst) { return fContainer->pushFrontInitMethod(inst); }
+    StatementInst* pushPreInitMethod(StatementInst* inst) { return fContainer->pushPreInitMethod(inst); }
     StatementInst* pushDestroyMethod(StatementInst* inst) { return fContainer->pushDestroyMethod(inst); }
     StatementInst* pushStaticInitMethod(StatementInst* inst) { return fContainer->pushStaticInitMethod(inst); }
     StatementInst* pushPostStaticInitMethod(StatementInst* inst) { return fContainer->pushPostStaticInitMethod(inst); }
@@ -101,9 +116,9 @@ class InstructionsCompiler : public virtual Garbageable {
     StatementInst* pushGlobalDeclare(StatementInst* inst) { return fContainer->pushGlobalDeclare(inst); }
     StatementInst* pushExtGlobalDeclare(StatementInst* inst) { return fContainer->pushExtGlobalDeclare(inst); }
 
-    StatementInst* pushComputePreDSPMethod(StatementInst* inst) { return fContainer->pushComputePreDSPMethod(inst); }
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { return fContainer->pushPreComputeDSPMethod(inst); }
     StatementInst* pushComputeDSPMethod(StatementInst* inst) { return fContainer->pushComputeDSPMethod(inst); }
-    StatementInst* pushComputePostDSPMethod(StatementInst* inst) { return fContainer->pushComputePostDSPMethod(inst); }
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fContainer->pushPostComputeDSPMethod(inst); }
 
     void ensureIotaCode();
 
@@ -115,6 +130,12 @@ class InstructionsCompiler : public virtual Garbageable {
         }
         return n;
     }
+    
+    bool ispowerof2(int x)
+    {
+        /* First x in the below expression is for the case when x is 0 */
+        return x && (!(x&(x-1)));
+    }
 
     CodeContainer* signal2Container(const string& name, Tree sig);
 
@@ -124,6 +145,21 @@ class InstructionsCompiler : public virtual Garbageable {
     void sharingAnnotation(int vctxt, Tree sig);
 
     FIRIndex getCurrentLoopIndex() { return FIRIndex(fContainer->getCurLoop()->getLoopIndex()); }
+    
+    void declareWaveform(Tree sig, string& vname, int& size);
+    
+    // Enable/control
+    void conditionAnnotation(Tree l);
+    void conditionAnnotation(Tree t, Tree nc);
+    void conditionStatistics(Tree l);
+    
+    ValueInst* cnf2code(Tree cc);
+    ValueInst* or2code(Tree oc);
+    
+    ValueInst* dnf2code(Tree cc);
+    ValueInst* and2code(Tree oc);
+    
+    ValueInst* getConditionCode(Tree sig);
 
    public:
     InstructionsCompiler(CodeContainer* container);
@@ -190,7 +226,9 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                         Address::AccessType& var_access);
+                                         Address::AccessType& var_access, ValueInst* ccs);
+    
+    virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
 
     // UI hierachy description
     void addUIWidget(Tree path, Tree widget);
@@ -205,11 +243,10 @@ class InstructionsCompiler : public virtual Garbageable {
 
     void         setDescription(Description* descr) { fDescription = descr; }
     Description* getDescription() { return fDescription; }
-
+    
     Tree prepare(Tree LS);
     Tree prepare2(Tree L0);
-
-    void declareWaveform(Tree sig, string& vname, int& size);
+  
 };
 
 #endif

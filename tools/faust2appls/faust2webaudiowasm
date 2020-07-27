@@ -2,6 +2,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 #-------------------------------------------------------------------
 # Wrapping resources
@@ -9,10 +10,8 @@ HTML_FOOTER=""
 CODE_WRAPPER1=""
 CODE_WRAPPER2=""
 JS_WRAPPER=""
-
 LINKS=""
 SVG=""
-
 EMCC="false"
 POLY="false"
 OPT="false"
@@ -20,7 +19,6 @@ EXPORT="false"
 EFFECT=""
 WORKLET="false"
 WASM=
-
 OPTIONS="-ftz 2"
 
 #-------------------------------------------------------------------
@@ -34,16 +32,19 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2webaudiowasm [-poly] [-effect auto|<effect.dsp>] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
-        echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-emcc' to use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
+        usage faust2webaudiowasm "[options] <file.dsp>"
+        option
+        option -poly
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        option -worklet "generates AudioWorklet compatible code"
+        option -links "add links to source code and SVG diagrams in the generated HTML file"
+        option -emcc "use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
-    elif [ $p = "-links" ]; then
+    fi
+     
+    if [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>
@@ -68,8 +69,8 @@ do
     elif [ $p = "-emcc" ]; then
         EMCC="true"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+ 	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -98,6 +99,8 @@ if [ $POLY = "true" ]; then
             CODE_WRAPPER1=webaudio-workletprocessor-poly-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
+            echo "The mixer32.wasm code is copied"
+            cp $FAUSTARCH/webaudio/mixer32.wasm .
         fi
     else
         if [ $EMCC = "true" ]; then
@@ -110,6 +113,8 @@ if [ $POLY = "true" ]; then
             WASM="wasm-e"
             CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-footer.html
+            echo "The mixer32.wasm code is copied"
+            cp $FAUSTARCH/webaudio/mixer32.wasm .
         fi
     fi
 else

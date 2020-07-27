@@ -153,7 +153,7 @@
                                  self.frame.size.width,
                                  self.frame.size.height)
                    withFont:self.labelFont
-              lineBreakMode:UILineBreakModeTailTruncation];
+              lineBreakMode:NSLineBreakByTruncatingTail];
     
     // Draw assignation
     if (self.assignated)

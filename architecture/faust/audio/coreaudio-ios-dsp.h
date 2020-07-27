@@ -471,7 +471,11 @@ class TiPhoneCoreAudioRenderer
                 goto error;
             }
 
-            enableIO = 1;
+            if (fDevNumInChans > 0) {
+                enableIO = 1;
+            } else {
+                enableIO = 0;
+            }
             err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
             if (err != noErr) {
                 printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input\n");

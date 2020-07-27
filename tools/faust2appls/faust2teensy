@@ -8,6 +8,7 @@
 #####################################################################
 
 . faustpath
+. usage.sh
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
@@ -17,14 +18,18 @@ set -e
 
 # global option variables
 LIB="0"
+NVOICES=0
+MIDI=0
 
 echoHelp ()
 {
     echo "FAUST2TEENSY HELP"
-    echo "faust2teensy can be used to fully program the Teensy microncontroller and to generate DSP objects compatible with the Teensy audio library. In bose cases, we strongly recommend to use the Teensy 3.6 which hosts an FPU (i.e., the Teensy 3.2 doesn't have one). Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
-    echo ""
-    echo "USAGE:"
-    echo "faust2teensy -lib faustFile.dsp: Generates a package containing an object compatible with the Teensy audio library."
+    echo "faust2teensy can be used to fully program the Teensy microcontroller and to generate DSP objects compatible with the Teensy audio library. In both cases, we strongly recommend to use the Teensy 3.6 which hosts an FPU (i.e., the Teensy 3.2 doesn't have one). Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
+    option
+    option -lib "generates a package containing an object compatible with the Teensy audio library."
+    option -midi
+    option "-nvoices <num>"
+    option "Faust options"
 }
 
 ###########################
@@ -33,15 +38,20 @@ echoHelp ()
 
 while [ $1 ]
 do
-	p=$1
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-		echoHelp
-		exit 0
+        echoHelp
+        exit 0
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+    elif [ $p = "-midi" ]; then
+        MIDI=1
     elif [[ -f "$p" ]]; then
-		FILE="$p"
+        FILE="$p"
     elif [ $p = "-lib" ]; then
-		LIB=1
+        LIB=1
     else
         OPTIONS="$OPTIONS $p"
     fi
@@ -68,8 +78,14 @@ MODULENAME="${BASENAME%.dsp}"
 
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
-    faust -a $FAUSTARCH/teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
-    cp $FAUSTARCH/teensy/teensy.h $MODULENAME/$MODULENAME.h
+    faust -uim -a $FAUSTARCH/teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
+    if [ $NVOICES -gt 0 ]; then
+        echo '#define NVOICES '$NVOICES >> $MODULENAME/$MODULENAME.h
+    fi
+    if [ $MIDI -eq 1 ]; then
+        echo '#define MIDICTRL' >> $MODULENAME/$MODULENAME.h
+    fi
+    cat $FAUSTARCH/teensy/teensy.h >> $MODULENAME/$MODULENAME.h
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.h)
@@ -78,6 +94,7 @@ if [ $LIB -eq 1 ]; then
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp
     TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_teensy/,modName)}1' $MODULENAME/$MODULENAME.h)
     echo "$TMP" > $MODULENAME/$MODULENAME.h
+
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
 fi

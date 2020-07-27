@@ -225,6 +225,13 @@ class FaustWasm2ScriptProcessor {
             sp.factory.init(sp.dsp, audioCtx.sampleRate);
         }
         
+        // Public API
+        
+        /**
+         * Destroy the node, deallocate resources.
+         */
+        sp.destroy = () => {}
+        
         sp.getSampleRate = () => audioCtx.sampleRate;   // Return current sample rate
         sp.getNumInputs = () => sp.numIn;               // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.    
@@ -303,7 +310,7 @@ class FaustWasm2ScriptProcessor {
          * PitchWeel
          *
          * @param {number} channel - the MIDI channel (0..15, not used for now)
-         * @param {number} value - the MIDI controller value (-1..1)
+         * @param {number} value - the MIDI controller value (0..16383)
          */
         sp.pitchWheel = (channel, wheel) => {
             sp.fPitchwheelLabel.forEach(pw => {

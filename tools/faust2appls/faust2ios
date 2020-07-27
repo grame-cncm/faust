@@ -9,6 +9,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 ARCHFILE=$FAUSTARCH/ios-coreaudio.cpp
 
@@ -30,24 +31,23 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-xcode' to compile and keep the intermediate Xcode project"
-        echo "Use '-xcodeproj' to produce the intermediate Xcode project"
-        echo "Use '-archive' to generate the archive for Apple Store"
-        echo "Use '-32bits' to compile 32 bits only binary"
-        echo "Use '-noagc' to deactivate audio automatic gain control"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        usage faust2ios "[options] [Faust options] <file.dsp>"
+        platform iOS
+        echo "Compiles Faust programs to iOS applications."
+        option
+        options -midi -osc -soundfile
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -xcode "to compile and keep the intermediate Xcode project"
+        option -xcodeproj "to produce the intermediate Xcode project"
+        option -archive "to generate the archive for Apple Store"
+        option -32bits "to compile 32 bits only binary"
+        option -noagc "to deactivate audio automatic gain control"
     	exit
     fi
 
-    if [ "$p" = -icc ]; then
-        ignore=" "
-    elif [ $p = "-osc" ]; then
+    if [ $p = "-osc" ]; then
         OSCCTRL="1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"

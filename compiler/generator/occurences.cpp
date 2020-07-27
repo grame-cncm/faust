@@ -51,7 +51,6 @@ Occurences::Occurences(int v, int r) : fXVariability(xVariability(v, r))
 {
     for (int i = 0; i < 4; i++) fOccurences[i] = 0;
     fMultiOcc    = false;
-    fMaxDelay    = 0;
     fOutDelayOcc = false;
     fMinDelay    = 0;
     fMaxDelay    = 0;
@@ -198,6 +197,6 @@ static int position (Tree env, Tree t, int p)
 {
     if (isNil(env)) return 0;	// was not in the environment
     if (hd(env) == t) return p;
-    else return position (tl(env), t, p+1);
+    else return position(tl(env), t, p+1);
 }
 #endif

@@ -405,7 +405,7 @@ AudioType* makeTableType(const Type& ct)
         return tt;
     } else {
         gGlobal->gAllocationCount++;
-        tt = new TableType(ct);
+        tt = new TableType(prototype);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;
@@ -422,7 +422,7 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, co
         return tt;
     } else {
         gGlobal->gAllocationCount++;
-        tt = new TableType(ct);
+        tt = new TableType(prototype);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;
@@ -431,15 +431,14 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, co
 
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
 {
-    TableType prototype(ct, n, v, c, vec);
-    Tree      code = codeAudioType(&prototype);
-
+    TableType  prototype(ct, n, v, c, vec);
+    Tree       code = codeAudioType(&prototype);
     AudioType* tt;
     if (gGlobal->gMemoizedTypes->get(code, tt)) {
         return tt;
     } else {
         gGlobal->gAllocationCount++;
-        tt = new TableType(ct);
+        tt = new TableType(prototype);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;

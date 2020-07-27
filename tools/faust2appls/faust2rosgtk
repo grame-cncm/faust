@@ -10,6 +10,8 @@
 
 . faustpath
 
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
 ARCHFILE="jack-gtk-ros.cpp"
 
 path=$(pwd)
@@ -194,7 +196,7 @@ target_link_libraries(\${PROJECT_NAME} \${GTK2_LIBRARIES} jack \${catkin_LIBRARI
 			# Double compilation
 			cd src
 				faust -i -a ros-callbacks.cpp -o "$PACKAGE_PATH/src/$name.cpp" $path/$p || exit
-				g++ $name.cpp -o $name
+				$CXX $name.cpp -o $name
 				faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null || exit
 				./$name		# adds the callbacks declaration to the generated c++ file
     			rm $name 

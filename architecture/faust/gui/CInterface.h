@@ -38,7 +38,7 @@ extern "C" {
 struct Soundfile;
 
 /*******************************************************************************
- * UI and Meta classes for C or LLVM generated code.
+ * UI, Meta and MemoryManager structures for C code.
  ******************************************************************************/
 
 // -- widget's layouts
@@ -46,7 +46,7 @@ struct Soundfile;
 typedef void (* openTabBoxFun) (void* ui_interface, const char* label);
 typedef void (* openHorizontalBoxFun) (void* ui_interface, const char* label);
 typedef void (* openVerticalBoxFun) (void* ui_interface, const char* label);
-typedef void (*closeBoxFun) (void* ui_interface);
+typedef void (* closeBoxFun) (void* ui_interface);
 
 // -- active widgets
 
@@ -104,19 +104,19 @@ typedef struct {
 typedef char dsp_imp;
     
 typedef dsp_imp* (* newDspFun) ();
-typedef void (* deleteDspFun) (dsp_imp* dsp);
-typedef void (* allocateDspFun) (dsp_imp* dsp);
 typedef void (* destroyDspFun) (dsp_imp* dsp);
 typedef int (* getNumInputsFun) (dsp_imp* dsp);
 typedef int (* getNumOutputsFun) (dsp_imp* dsp);
 typedef void (* buildUserInterfaceFun) (dsp_imp* dsp, UIGlue* ui);
-typedef void (* initFun) (dsp_imp* dsp, int sample_rate);
-typedef void (* clearFun) (dsp_imp* dsp);
 typedef int (* getSampleRateFun) (dsp_imp* dsp);
+typedef void (* initFun) (dsp_imp* dsp, int sample_rate);
+typedef void (* classInitFun) (int sample_rate);
+typedef void (* instanceInitFun) (dsp_imp* dsp, int sample_rate);
+typedef void (* instanceConstantsFun) (dsp_imp* dsp, int sample_rate);
+typedef void (* instanceResetUserInterfaceFun) (dsp_imp* dsp);
+typedef void (* instanceClearFun) (dsp_imp* dsp);
 typedef void (* computeFun) (dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
-typedef void (* classInitFun) (int sample_rate);
-typedef const char* (* getJSONFun) ();
     
 /***************************************
  * DSP memory manager functions
@@ -132,7 +132,7 @@ typedef struct {
     allocateFun allocate;
     destroyFun destroy;
     
-} ManagerGlue;
+} MemoryManagerGlue;
 
 #ifdef __cplusplus
 }

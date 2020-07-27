@@ -23,7 +23,6 @@
 #pragma warning(disable : 4996 4146 4244)
 #endif
 
-#include <float.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -112,12 +111,6 @@
 #endif
 
 using namespace std;
-
-extern const char* mathsuffix[4];
-extern const char* numsuffix[4];
-extern const char* floatname[4];
-extern const char* castname[4];
-extern double      floatmin[4];
 
 static unique_ptr<ifstream> injcode;
 static unique_ptr<ifstream> enrobage;
@@ -377,12 +370,12 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gBalancedSwitch = 2;
             i += 1;
 
-        } else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
-            gGlobal->gLessTempSwitch = true;
-            i += 1;
-
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-dlt", "-delay-line-threshold") && (i + 1 < argc)) {
+            gGlobal->gMaskDelayLineThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
@@ -455,7 +448,7 @@ static bool processCmdline(int argc, const char* argv[])
 
             // double float options
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
-            if (float_size) {
+            if (float_size && gGlobal->gFloatSize != 1) {
                 throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
             } else {
                 float_size = true;
@@ -464,7 +457,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-double", "--double-precision-floats")) {
-            if (float_size) {
+            if (float_size && gGlobal->gFloatSize != 2) {
                 throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
             } else {
                 float_size = true;
@@ -473,7 +466,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
-            if (float_size) {
+            if (float_size && gGlobal->gFloatSize != 3) {
                 throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
             } else {
                 float_size = true;
@@ -502,7 +495,8 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
-            gGlobal->gClassName = argv[i + 1];
+            vector<char> rep = {'@', ' ', '(', ')', '/', '\\', '.'};
+            gGlobal->gClassName = replaceCharList(argv[i + 1], rep, '_');
             i += 2;
 
         } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
@@ -542,6 +536,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gFastMath    = true;
             gGlobal->gFastMathLib = argv[i + 1];
             i += 2;
+            
+        } else if (isCmd(argv[i], "-mapp", "--math-approximation")) {
+            gGlobal->gMathApprox = true;
+            i += 1;
             
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
             gGlobal->gNameSpace = argv[i + 1];
@@ -610,7 +608,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
             
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
-            gGlobal->gCheckTable = true;
+            gGlobal->gCheckTable = "ct";
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-cat", "--check-all-table")) {
+            gGlobal->gCheckTable = "cat";
             i += 1;
 
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
@@ -644,6 +646,7 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }
+    
 #if 0
     if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
@@ -696,6 +699,10 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -ns can only be used with cpp backend\n");
     }
     
+    if (gGlobal->gMaskDelayLineThreshold < INT_MAX && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
+        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with -ocpp backend\n");
+    }
+    
     if (gGlobal->gArchFile != ""
         && ((gGlobal->gOutputLang == "wast")
             || (gGlobal->gOutputLang == "wasm")
@@ -723,9 +730,12 @@ static bool processCmdline(int argc, const char* argv[])
 #define kPSEP '/'
 #endif
 
+#ifndef LIBDIR
+#define LIBDIR "lib"
+#endif
 static void printLibDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "lib" << endl;
+    cout << gGlobal->gFaustRootDir << kPSEP << LIBDIR << endl;
 }
 static void printIncludeDir()
 {
@@ -760,7 +770,7 @@ static void printVersion()
 #ifdef LLVM_BUILD
     cout << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
-    cout << "Copyright (C) 2002-2019, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
+    cout << "Copyright (C) 2002-2020, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
 static void printHelp()
@@ -821,7 +831,7 @@ static void printHelp()
             "auto-vectorization."
          << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
-    cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
+    cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
@@ -834,11 +844,14 @@ static void printHelp()
     cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
     cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
     cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
-    cout << tab << "-lt         --less-temporaries          generate less temporaries in compiling delays." << endl;
     cout << tab
          << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
             "samples)."
          << endl;
+    cout << tab
+        << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
+           "samples)."
+        << endl;
     cout << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
          << endl;
@@ -878,12 +891,13 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
-            "<file>,"
+            "<file>."
          << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
     cout << tab
-         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name> "
-         << endl;
+         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
+    cout << tab
+         << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
@@ -921,7 +935,8 @@ static void printHelp()
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check table index range." << endl;
+    cout << tab << "-ct         --check-table               check table index range and fails." << endl;
+    cout << tab << "-cat        --check-all-table           check all table index range." << endl;
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
@@ -1020,60 +1035,6 @@ static string fxName(const string& filename)
     }
 
     return filename.substr(p1, p2 - p1);
-}
-
-static void initFaustFloat()
-{
-    // Using in FIR code generation to code math functions type (float/double/quad), same for Rust and C/C++ backends
-    mathsuffix[0] = "";
-    mathsuffix[1] = "f";
-    mathsuffix[2] = "";
-    mathsuffix[3] = "l";
-
-    // Specific for Rust backend
-    if (gGlobal->gOutputLang == "rust") {
-        numsuffix[0] = "";
-        numsuffix[1] = "";
-        numsuffix[2] = "";
-        numsuffix[3] = "";
-
-        floatname[0] = FLOATMACRO;
-        floatname[1] = "f32";
-        floatname[2] = "f64";
-        floatname[3] = "dummy";
-
-        castname[0] = FLOATCASTER;
-        castname[1] = "as f32";
-        castname[2] = "as f64";
-        castname[3] = "(dummy)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-
-        // Specific for C/C++ backends
-    } else {
-        numsuffix[0] = "";
-        numsuffix[1] = "f";
-        numsuffix[2] = "";
-        numsuffix[3] = "L";
-
-        floatname[0] = FLOATMACRO;
-        floatname[1] = "float";
-        floatname[2] = "double";
-        floatname[3] = "quad";
-
-        castname[0] = FLOATCASTER;
-        castname[1] = "(float)";
-        castname[2] = "(double)";
-        castname[3] = "(quad)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-    }
 }
 
 static void initFaustDirectories(int argc, const char* argv[])
@@ -1232,7 +1193,7 @@ static void includeFile(const string& file, ostream& dst)
     }
 }
 
-static void injectCode(unique_ptr<ifstream>& enrobage, ostream& dst)
+static void injectCode(unique_ptr<ifstream>& enrobage1, ostream& dst)
 {
     /****************************************************************
      1.7 - Inject code instead of compile
@@ -1245,10 +1206,11 @@ static void injectCode(unique_ptr<ifstream>& enrobage, ostream& dst)
             error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
             throw faustexception(error.str());
         } else {
-            streamCopyUntil(*enrobage.get(), dst, "<<includeIntrinsic>>");
-            streamCopyUntil(*enrobage.get(), dst, "<<includeclass>>");
+            streamCopyUntil(*enrobage1.get(), dst, "<<includeIntrinsic>>");
+            container->printMacros(dst, 0);
+            streamCopyUntil(*enrobage1.get(), dst, "<<includeclass>>");
             streamCopyUntilEnd(*injcode.get(), dst);
-            streamCopyUntilEnd(*enrobage.get(), dst);
+            streamCopyUntilEnd(*enrobage1.get(), dst);
         }
         throw faustexception("");
     }
@@ -1291,7 +1253,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOATToInternal = true;
+        gGlobal->gFAUSTFLOAT2Internal = true;
 #ifdef CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         
@@ -1314,7 +1276,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         // libc functions will be found by the LLVM linker, but not user defined ones...
         gGlobal->gAllowForeignFunction = true;
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOATToInternal = true;
+        gGlobal->gFAUSTFLOAT2Internal = true;
 
         gGlobal->gUseDefaultSound = false;
      
@@ -1347,13 +1309,15 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else {
             throw faustexception("ERROR : quad format not supported in Interp\n");
         }
-
         gGlobal->gAllowForeignFunction = false;  // No foreign functions
-        gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
+        gGlobal->gAllowForeignConstant = false;  // No foreign constant
+        gGlobal->gAllowForeignVar      = false;  // No foreign variable
+        //gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
+        
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOATToInternal = true;
-        gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-        gGlobal->gRemoveVarAddress     = true;   // To be used in -vec mode
+        gGlobal->gFAUSTFLOAT2Internal = true;
+        gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+        gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1417,7 +1381,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "rust") {
 #ifdef RUST_BUILD
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
 #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
@@ -1434,8 +1398,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "soul")) {
 #ifdef SOUL_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignConstant = false;  // No foreign constant
+            gGlobal->gAllowForeignVar      = false;  // No foreign variable
+            
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
 
             // "one sample control" model by default;
             gGlobal->gOneSampleControl = true;
@@ -1448,8 +1415,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignConstant = false;  // No foreign constant
+            gGlobal->gAllowForeignVar      = false;  // No foreign variable
+            
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gLoopVarInBytes   = true;
             gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
@@ -1488,8 +1458,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignConstant = false;  // No foreign constant
+            gGlobal->gAllowForeignVar      = false;  // No foreign variable
+            
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOATToInternal = true;
+            gGlobal->gFAUSTFLOAT2Internal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gLoopVarInBytes   = true;
             gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data

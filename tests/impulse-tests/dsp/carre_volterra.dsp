@@ -31,13 +31,11 @@ C = square(freq) + square(freq+delta) : *(level)
 
 M(x,y) = F1(x), F1(x^3 - F1(x)^3 + y);
 
-
 // Module de sortie S.
 // c'est un module M dont l'entrée du deuxième
 // F1 est divisée par 3 et les sorties additionnées
 
 S(x,y) = x + T3*y with { T3 = -1.0/3.0 * checkbox("NL"); };
-
 
 // Fonction F1 avec définition locale du paramètre v controlé
 // par la fréquence de coupure

@@ -123,7 +123,7 @@ void CPPOpenCLCodeContainer::produceClass()
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -150,9 +150,9 @@ void CPPOpenCLCodeContainer::produceClass()
     tab1(n, *fGPUOut);
     *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
     tab1(n, *fGPUOut);
-    *fGPUOut << "#ifndef " << FLOATMACRO;
+    *fGPUOut << "#ifndef " << xfloat();
     tab1(n, *fGPUOut);
-    *fGPUOut << "#define " << FLOATMACRO << " "
+    *fGPUOut << "#define " << xfloat() << " "
              << "float";
     tab1(n, *fGPUOut);
     *fGPUOut << "#endif  ";
@@ -215,16 +215,16 @@ void CPPOpenCLCodeContainer::produceClass()
         // Separate control and non-controls fields in 2 structures
         tab(n + 1, *fOut);
         *fOut << "typedef struct {";
-        DSPInstVisitor dsp_visitor(fOut, n + 2);
-        fDeclarationInstructions->accept(&dsp_visitor);
+        DSPInstVisitor dsp_visitor1(fOut, n + 2);
+        fDeclarationInstructions->accept(&dsp_visitor1);
         tab(n + 1, *fOut);
         *fOut << "} faustdsp;";
         tab(n + 1, *fOut);
 
         tab(n + 1, *fOut);
         *fOut << "typedef struct {";
-        ControlInstVisitor control_visitor(fOut, n + 2);
-        fDeclarationInstructions->accept(&control_visitor);
+        ControlInstVisitor control_visitor1(fOut, n + 2);
+        fDeclarationInstructions->accept(&control_visitor1);
         tab(n + 1, *fOut);
         *fOut << "} faustcontrol;";
 
@@ -1247,7 +1247,7 @@ void CPPCUDACodeContainer::produceClass()
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
-    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+    pushPreInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1272,9 +1272,9 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fGPUOut);
     *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
     tab(n, *fGPUOut);
-    *fGPUOut << "#ifndef " << FLOATMACRO;
+    *fGPUOut << "#ifndef " << xfloat();
     tab(n, *fGPUOut);
-    *fGPUOut << "#define " << FLOATMACRO << " "
+    *fGPUOut << "#define " << xfloat() << " "
              << "float";
     tab(n, *fGPUOut);
     *fGPUOut << "#endif  ";

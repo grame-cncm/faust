@@ -24,5 +24,4 @@ pitchshifter = vgroup("Pitch Shifter", transpose(
 								  )
 				);
 
-
 process = pitchshifter;

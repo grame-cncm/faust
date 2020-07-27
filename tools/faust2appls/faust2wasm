@@ -2,6 +2,7 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
 #-------------------------------------------------------------------
 # Wrapping resources
@@ -18,17 +19,14 @@ COMB_SEP=
 WASM=
 WORKLET="false"
 EFFECT=""
-WAP="false"
+WAP="0"
 NPM="false"
-
 OPT="false"
 EMCC="false"
 POLY="false"
-
 OPTIONS="-ftz 2"
 
 EXPORTED_MONO="['_"$name"_constructor','_"$name"_destructor','_"$name"_getSampleRate','_"$name"_init','_"$name"_instanceInit','_"$name"_instanceConstants','_"$name"_instanceResetUserInterface','_"$name"_instanceClear','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
-
 EXPORTED_POLY="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_getSampleRate','_"$name"_poly_init','_"$name"_poly_instanceInit','_"$name"_poly_instanceConstants','_"$name"_poly_instanceResetUserInterface','_"$name"_poly_instanceClear','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"
 
 #-------------------------------------------------------------------
@@ -42,18 +40,23 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2wasm [-poly] [-effect auto|<effect.dsp>] [-comb] [-opt] [-worklet] [-emcc] [-wap] [-npm] <file.dsp>"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-wap' to generate a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
-        echo "Use '-comb' to combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
-        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
-        echo "Use '-npm' to add a package.json file for npm package distribution"
+        usage faust2wasm "[options] <file.dsp>"
+        echo "Compiles Faust programs to WASM modules"
+        option
+        option -poly
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        option -worklet "generates AudioWorklet compatible code"
+        option -wap "generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        option -wap2 "generates a WAP V2 (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        option -comb "combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
+        option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
+        option -npm "add a package.json file for npm package distribution"
         exit
-    elif [ $p = "-comb" ]; then
+    fi
+    
+    if [ $p = "-comb" ]; then
         COMB="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
@@ -67,14 +70,18 @@ do
     elif [ $p = "-emcc" ]; then
         EMCC="true"
     elif [ $p = "-wap" ]; then
-        WAP="true"
+        WAP="1"
+        echo "Forcing -worklet mode"
+        WORKLET="true"
+    elif [ $p = "-wap2" ]; then
+        WAP="2"
         echo "Forcing -worklet mode"
         WORKLET="true"
     elif [ $p = "-npm" ]; then
         NPM="true"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -e "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
@@ -193,38 +200,56 @@ EndOfCode
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
+            if [ $WAP = "2" ]; then
+            	sed -e "s/class\ mydsp\ /"export\ default\ class\ $name\ "/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 > $name_tmp1.js
+            	sed -e "s/mydsp/"$name"/g" $name_tmp1.js >> $name.js
+            else
+            	sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 >> $name.js
+            fi
         else
-            sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+            if [ $WAP = "2" ]; then
+            	sed -e "s/class\ mydsp\ /"export\ default\ class\ $name\ "/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 > $name_tmp1.js
+            	sed -e "s/mydsp/"$name"/g" $name_tmp1.js >> $name.js
+            else
+            	sed -e "s/mydsp/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+            fi
         fi
     fi
 
     # create additional files for WAP
-	if [ $WAP = true ]; then
+    if [ $WAP = "1" ] || [ $WAP = "2" ]; then
 
-   		# create the main.json file
-    	echo "{" > main.json
-    	echo "\"name\": \"$name\"," >> main.json
-    	echo "\"vendor\": \"Faust\"," >> main.json
-    	echo "\"version\": \"1.01\"," >> main.json
-    	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
-    	echo "\"thumbnail\": \"\"" >> main.json
-    	echo "}" >> main.json
+        # create the main.json file
+        echo "{" > main.json
+        echo "\"name\": \"$name\"," >> main.json
+        echo "\"vendor\": \"Faust\"," >> main.json
+        echo "\"version\": \"1.01\"," >> main.json
+        echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
+        echo "\"thumbnail\": \"default.png\"" >> main.json
+        echo "}" >> main.json
     	
         # compose the HTML test page
         if [ $POLY = true ]; then
-        	cp  $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
+        	if [ $WAP = "2" ]; then
+                cp $FAUSTARCH/webaudio/testWAP2Poly.html test$name-tmp1.html
+        	else
+                cp $FAUSTARCH/webaudio/testWAPPoly.html test$name-tmp1.html
+        	fi
         else
-        	cp  $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        	if [ $WAP = "2" ]; then
+                cp $FAUSTARCH/webaudio/testWAP2.html test$name-tmp1.html
+        	else
+                cp $FAUSTARCH/webaudio/testWAP.html test$name-tmp1.html
+        	fi
         fi
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi
-
+ 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
     	rm -f $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
-    	if [ $WAP = "true" ]; then
+    	if [ $WAP = "1" ] || [ $WAP = "2" ]; then
     		mv $name.js main.js
     		mv test$name.html index.html
         	BINARIES="$BINARIES main.js, $name.wasm, main.json, index.html"

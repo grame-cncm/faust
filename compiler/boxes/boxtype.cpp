@@ -78,7 +78,6 @@ bool getBoxType(Tree box, int* inum, int* onum)
     }
 }
 
-
 /**
  * Produces "1 output" or "n outputs" according to n
  * \param n: the number of outputs
@@ -91,7 +90,6 @@ static string outputs(int n)
     msg << n << ((n == 1) ? " output" : " outputs");
     return msg.str();
 }
-
 
 /**
  * Produces "1 input" or "n inputs" according to n
@@ -114,7 +112,7 @@ static string inputs(int n)
  * \param i: the number of inputs of b
  * \param opcode = the composition operation sign
  * \param opname = the full name of the composition operation
- * \param msg  = indication for the user (ie " must be equals to ")
+ * \param msg  = indication for the user (ie " must be equal to ")
  * \return the error message as a string
  */
 
@@ -128,13 +126,11 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
     error << "ERROR in " << opname << " " << aStr << opcode << bStr << endl
           << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
-          << bStr << endl
-          << endl
-          << "Here  " << aStr << " = " << boxpp(a) << "; has " << outputs(o) << endl
-          << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(i) << endl;
+          << bStr << endl << endl
+          << "Here  " << aStr << " = " << boxpp(a) << ";" << endl << "has " << outputs(o) << endl << endl
+          << "while " << bStr << " = " << boxpp(b) << ";" << endl << "has " << inputs(i) << endl;
     return error.str();
 }
-
 
 /**
  * Compute a parametric type error message for recursions
@@ -155,7 +151,6 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
 
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-
     
     msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
@@ -291,7 +286,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
 
         if (v != x) {
             throw faustexception(
-                computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equals to "));
+                computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equal to "));
         } else {
             *inum = u;
             *onum = y;

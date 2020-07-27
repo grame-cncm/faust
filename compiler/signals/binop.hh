@@ -217,6 +217,7 @@ enum { kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, k
 
 bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);
+bool isShiftOpcode(int o);
 bool isCommutativeOpcode(int o);
 
 #endif

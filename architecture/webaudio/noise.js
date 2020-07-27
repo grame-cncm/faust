@@ -1,13 +1,13 @@
 
 /*
-Code generated with Faust version 2.20.2
+Code generated with Faust version 2.20.3
 Compilation options: -lang wasm-ib -scal -ftz 2
 */
 
 function getJSONnoise() {
-	return '{"name": "noise","filename": "noise.dsp","version": "2.20.2","compile_options": "-lang wasm-ib -scal -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/noises.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 16,"inputs": 0,"outputs": 1,"meta": [ { "filename": "noise.dsp" },{ "name": "noise" },{ "noises.lib/name": "Faust Noise Generator Library" },{ "noises.lib/version": "0.0" }],"ui": [ {"type": "vgroup","label": "noise","items": [ {"type": "hslider","label": "Volume","address": "/noise/Volume","index": 0,"init": 0.5,"min": 0,"max": 1,"step": 0.01}]}]}';
+	return '{"name": "noise","filename": "noise.dsp","version": "2.20.3","compile_options": "-lang wasm-ib -scal -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/noises.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 16,"inputs": 0,"outputs": 1,"meta": [ { "filename": "noise.dsp" },{ "name": "noise" },{ "noises.lib/name": "Faust Noise Generator Library" },{ "noises.lib/version": "0.0" }],"ui": [ {"type": "vgroup","label": "noise","items": [ {"type": "hslider","label": "Volume","address": "/noise/Volume","index": 0,"init": 0.5,"min": 0,"max": 1,"step": 0.01}]}]}';
 }
-function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gA39/fQACgYCAgAAAA4+AgIAADgABAgMEBQYHCAkKCwwNBYyAgIAAAQGBgICAAOmHgIAAB7qBgIAADAdjb21wdXRlAAEMZ2V0TnVtSW5wdXRzAAINZ2V0TnVtT3V0cHV0cwADDWdldFBhcmFtVmFsdWUABA1nZXRTYW1wbGVSYXRlAAUEaW5pdAAGDWluc3RhbmNlQ2xlYXIABxFpbnN0YW5jZUNvbnN0YW50cwAIDGluc3RhbmNlSW5pdAAJGmluc3RhbmNlUmVzZXRVc2VySW50ZXJmYWNlAAoNc2V0UGFyYW1WYWx1ZQANBm1lbW9yeQIACvSCgIAADoKAgIAAAAv9gICAAAICfwF9QQAhBEMAAAAAIQZBACEFIANBAGooAgAhBEMAAAAwQQAqAgCUIQZBACEFA0ACQEEAQe2cmY4EQQAoAghsQbngAGo2AgQgBCAFaiAGQQAoAgSylDgCAEEAQQAoAgQ2AgggBUEEaiEFIAVBBCABbEgEQAwCDAELCwsLhYCAgAAAQQAPC4WAgIAAAEEBDwuLgICAAAAgACABaioCAA8LiICAgAAAQQAoAgwPC46AgIAAACAAIAEQACAAIAEQCQuygICAAAEBf0EAIQFBACEBA0ACQEEEIAFBAnRqQQA2AgAgAUEBaiEBIAFBAkgEQAwCDAELCwsLiYCAgAAAQQAgATYCDAuQgICAAAAgACABEAggABAKIAAQBwuMgICAAABBAEMAAAA/OAIAC5CAgIAAACAAIAFIBH8gAQUgAAsPC5CAgIAAACAAIAFIBH8gAAUgAQsPC4yAgIAAACAAIAFqIAI4AgALC82FgIAAAQBBAAvGBXsibmFtZSI6ICJub2lzZSIsImZpbGVuYW1lIjogIm5vaXNlLmRzcCIsInZlcnNpb24iOiAiMi4yMC4yIiwiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLXNjYWwgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvbm9pc2VzLmxpYiJdLCJpbmNsdWRlX3BhdGhuYW1lcyI6IFsiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3QiLCIvdXNyL3NoYXJlL2ZhdXN0IiwiLiIsIi9Eb2N1bWVudHMvZmF1c3QtZ2l0aHViLWZhdXN0Mi9hcmNoaXRlY3R1cmUvd2ViYXVkaW8iXSwic2l6ZSI6IDE2LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiZmlsZW5hbWUiOiAibm9pc2UuZHNwIiB9LHsgIm5hbWUiOiAibm9pc2UiIH0seyAibm9pc2VzLmxpYi9uYW1lIjogIkZhdXN0IE5vaXNlIEdlbmVyYXRvciBMaWJyYXJ5IiB9LHsgIm5vaXNlcy5saWIvdmVyc2lvbiI6ICIwLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIm5vaXNlIiwiaXRlbXMiOiBbIHsidHlwZSI6ICJoc2xpZGVyIiwibGFiZWwiOiAiVm9sdW1lIiwiYWRkcmVzcyI6ICIvbm9pc2UvVm9sdW1lIiwiaW5kZXgiOiAwLCJpbml0IjogMC41LCJtaW4iOiAwLCJtYXgiOiAxLCJzdGVwIjogMC4wMX1dfV19"; }
+function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gA39/fQACgYCAgAAAA4+AgIAADgABAgMEBQYHCAkKCwwNBYyAgIAAAQGBgICAAOmHgIAAB7qBgIAADAdjb21wdXRlAAEMZ2V0TnVtSW5wdXRzAAINZ2V0TnVtT3V0cHV0cwADDWdldFBhcmFtVmFsdWUABA1nZXRTYW1wbGVSYXRlAAUEaW5pdAAGDWluc3RhbmNlQ2xlYXIABxFpbnN0YW5jZUNvbnN0YW50cwAIDGluc3RhbmNlSW5pdAAJGmluc3RhbmNlUmVzZXRVc2VySW50ZXJmYWNlAAoNc2V0UGFyYW1WYWx1ZQANBm1lbW9yeQIACvSCgIAADoKAgIAAAAv9gICAAAICfwF9QQAhBEMAAAAAIQZBACEFIANBAGooAgAhBEMAAAAwQQAqAgCUIQZBACEFA0ACQEEAQe2cmY4EQQAoAghsQbngAGo2AgQgBCAFaiAGQQAoAgSylDgCAEEAQQAoAgQ2AgggBUEEaiEFIAVBBCABbEgEQAwCDAELCwsLhYCAgAAAQQAPC4WAgIAAAEEBDwuLgICAAAAgACABaioCAA8LiICAgAAAQQAoAgwPC46AgIAAACAAIAEQACAAIAEQCQuygICAAAEBf0EAIQFBACEBA0ACQEEEIAFBAnRqQQA2AgAgAUEBaiEBIAFBAkgEQAwCDAELCwsLiYCAgAAAQQAgATYCDAuQgICAAAAgACABEAggABAKIAAQBwuMgICAAABBAEMAAAA/OAIAC5CAgIAAACAAIAFIBH8gAQUgAAsPC5CAgIAAACAAIAFIBH8gAAUgAQsPC4yAgIAAACAAIAFqIAI4AgALC82FgIAAAQBBAAvGBXsibmFtZSI6ICJub2lzZSIsImZpbGVuYW1lIjogIm5vaXNlLmRzcCIsInZlcnNpb24iOiAiMi4yMC4zIiwiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLXNjYWwgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvbm9pc2VzLmxpYiJdLCJpbmNsdWRlX3BhdGhuYW1lcyI6IFsiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3QiLCIvdXNyL3NoYXJlL2ZhdXN0IiwiLiIsIi9Eb2N1bWVudHMvZmF1c3QtZ2l0aHViLWZhdXN0Mi9hcmNoaXRlY3R1cmUvd2ViYXVkaW8iXSwic2l6ZSI6IDE2LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiZmlsZW5hbWUiOiAibm9pc2UuZHNwIiB9LHsgIm5hbWUiOiAibm9pc2UiIH0seyAibm9pc2VzLmxpYi9uYW1lIjogIkZhdXN0IE5vaXNlIEdlbmVyYXRvciBMaWJyYXJ5IiB9LHsgIm5vaXNlcy5saWIvdmVyc2lvbiI6ICIwLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIm5vaXNlIiwiaXRlbXMiOiBbIHsidHlwZSI6ICJoc2xpZGVyIiwibGFiZWwiOiAiVm9sdW1lIiwiYWRkcmVzcyI6ICIvbm9pc2UvVm9sdW1lIiwiaW5kZXgiOiAwLCJpbml0IjogMC41LCJtaW4iOiAwLCJtYXgiOiAxLCJzdGVwIjogMC4wMX1dfV19"; }
 
 /*
  faust2wasm: GRAME 2017-2019
@@ -115,6 +115,9 @@ class noiseNode extends AudioWorkletNode {
 
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
+        try {
+            if (this.parameters) this.parameters.forEach(p => p.automationRate = "k-rate");
+        } catch (e) {}
     }
 
     // To be called by the message port with messages coming from the processor
@@ -127,6 +130,15 @@ class noiseNode extends AudioWorkletNode {
     }
 
     // Public API
+    
+    /**
+     * Destroy the node, deallocate resources.
+     */
+    destroy()
+    {
+        this.port.postMessage({ type: "destroy" });
+        this.port.close();
+    }
 
     /**
      *  Returns a full JSON description of the DSP.
@@ -492,8 +504,8 @@ class noise {
             });
             
         } catch (e) {
-            this.error(e);
-            this.error("Faust " + this.name + " cannot be loaded or compiled");
+            console.error(e);
+            console.error("Faust " + this.name + " cannot be loaded or compiled");
             return null;
         }
     	
@@ -622,6 +634,7 @@ let noiseProcessorString = `
         constructor(options)
         {
             super(options);
+            this.running = true;
             
             const importObject = {
                     env: {
@@ -792,18 +805,16 @@ let noiseProcessorString = `
 
             this.setParamValue = function (path, val)
             {
-                this.HEAPF32[this.pathTable[path]] = val;
+                this.HEAPF32[this.pathTable[path] >> 2] = val;
             }
 
             this.getParamValue = function (path)
             {
-                return this.HEAPF32[this.pathTable[path]];
+                return this.HEAPF32[this.pathTable[path] >> 2];
             }
 
             // Init resulting DSP
             this.initAux();
-            
-            console.log(this);
         }
         
         process(inputs, outputs, parameters) 
@@ -812,19 +823,19 @@ let noiseProcessorString = `
             var output = outputs[0];
             
             // Check inputs
-            if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            if (this.numIn > 0 && (!input || !input[0] || input[0].length === 0)) {
                 //console.log("Process input error");
                 return true;
             }
             // Check outputs
-            if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            if (this.numOut > 0 && (!output || !output[0] || output[0].length === 0)) {
                 //console.log("Process output error");
                 return true;
             }
             
             // Copy inputs
             if (input !== undefined) {
-                for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
+                for (var chan = 0; chan < Math.min(this.numIn, input.length); ++chan) {
                     var dspInput = this.dspInChannnels[chan];
                     dspInput.set(input[chan]);
                 }
@@ -837,11 +848,11 @@ let noiseProcessorString = `
             */
             
             // Update controls
-            var params = Object.entries(parameters);
-            for (var i = 0; i < params.length; i++) {
-                this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+            for (const path in parameters) {
+                const paramArray = parameters[path];
+                this.setParamValue(path, paramArray[0]);
             }
-            
+        
           	// Compute
             try {
                 this.factory.compute(this.dsp, NUM_FRAMES, this.ins, this.outs);
@@ -860,7 +871,15 @@ let noiseProcessorString = `
                 }
             }
             
-            return true;
+            return this.running;
+    	}
+        
+        handleMessage(event)
+        {
+            var msg = event.data;
+            switch (msg.type) {
+                case "destroy": this.running = false; break;
+            }
         }
     }
 
@@ -873,10 +892,13 @@ let noiseProcessorString = `
     }
 `;
 
+const dspName = "noise";
+
 // WAP factory or npm package module
 if (typeof module === "undefined") {
     window.noise = noise;
     window.Faustnoise = noise;
+    window[dspName] = noise;
 } else {
     module.exports = { noise };
 }

@@ -267,7 +267,7 @@ class LogValueConverter : public LinearValueConverter
     public:
 
         LogValueConverter(double umin, double umax, double fmin, double fmax) :
-        LinearValueConverter(umin, umax, log(std::max<double>(DBL_MIN, fmin)), std::log(std::max<double>(DBL_MIN, fmax)))
+            LinearValueConverter(umin, umax, std::log(std::max<double>(DBL_MIN, fmin)), std::log(std::max<double>(DBL_MIN, fmax)))
         {}
 
         virtual double ui2faust(double x) { return std::exp(LinearValueConverter::ui2faust(x)); }
@@ -284,11 +284,11 @@ class ExpValueConverter : public LinearValueConverter
     public:
 
         ExpValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, exp(fmin), exp(fmax))
+            LinearValueConverter(umin, umax, std::min<double>(DBL_MAX, std::exp(fmin)), std::min<double>(DBL_MAX, std::exp(fmax)))
         {}
 
         virtual double ui2faust(double x) { return std::log(LinearValueConverter::ui2faust(x)); }
-        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::exp(x)); }
+        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::min<double>(DBL_MAX, std::exp(x))); }
 
 };
 
@@ -448,7 +448,7 @@ class ZoneControl
         ZoneControl(FAUSTFLOAT* zone) : fZone(zone) {}
         virtual ~ZoneControl() {}
 
-        virtual void update(double v) {}
+        virtual void update(double v) const {}
 
         virtual void setMappingValues(int curve, double amin, double amid, double amax, double min, double init, double max) {}
         virtual void getMappingValues(double& amin, double& amid, double& amax) {}
@@ -468,16 +468,16 @@ class ZoneControl
 class ConverterZoneControl : public ZoneControl
 {
 
-    private:
+    protected:
 
         ValueConverter* fValueConverter;
 
     public:
 
-        ConverterZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : ZoneControl(zone), fValueConverter(valueConverter) {}
+        ConverterZoneControl(FAUSTFLOAT* zone, ValueConverter* converter) : ZoneControl(zone), fValueConverter(converter) {}
         virtual ~ConverterZoneControl() { delete fValueConverter; } // Assuming fValueConverter is not kept elsewhere...
 
-        void update(double v) { *fZone = fValueConverter->ui2faust(v); }
+        virtual void update(double v) const { *fZone = fValueConverter->ui2faust(v); }
 
         ValueConverter* getConverter() { return fValueConverter; }
 
@@ -513,7 +513,7 @@ class CurveZoneControl : public ZoneControl
                 delete(*it);
             }
         }
-        void update(double v) { if (fValueConverters[fCurve]->getActive()) *fZone = fValueConverters[fCurve]->ui2faust(v); }
+        void update(double v) const { if (fValueConverters[fCurve]->getActive()) *fZone = fValueConverters[fCurve]->ui2faust(v); }
 
         void setMappingValues(int curve, double amin, double amid, double amax, double min, double init, double max)
         {

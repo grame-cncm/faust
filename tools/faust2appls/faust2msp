@@ -10,8 +10,9 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGSGENERIC
+CXXFLAGS+=" $MYGCCFLAGSGENERIC"  # So that additional CXXFLAGS can be used
 
 OSCDEFS=""
 OSCLIB=""
@@ -20,9 +21,12 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+US="0"
+DS="0"
+FILTER="0"
 
 # path to max SDK
-#SDK=/usr/local/include/c74support/
+# MAXSDK is declared in faustpath
 MAXINC=$MAXSDK/max-includes
 MSPINC=$MAXSDK/msp-includes
 
@@ -66,33 +70,28 @@ createInfoPList() {
 # existing *.dsp files          -> FILES
 #
 
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2msp [-native] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-native' to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        usage faust2msp "[options] [Faust options] <file.dsp>"
+        require Max-MSP SDK
+        echo "Compiles Faust programs to Max6 externals using simple precision samples"
+        option
+        options -osc -midi -soundfile
+        option "-nvoices <num>"
+        option "-us <factor>"
+        option "-ds <factor>"
+        option "-filter <filter>"
+        option "-effect <effect.dsp>"
+        option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+        option "Faust options"
         exit
     fi
-
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-nvoices" ]; then
+	
+	if [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
@@ -113,6 +112,15 @@ do
         OSCLIBS="-lOSCFaust"
     elif [ $p = "-native" ]; then
         CXXFLAGS=$MYGCCFLAGS
+    elif [ $p = "-us" ]; then
+        shift
+        US=$1
+    elif [ $p = "-ds" ]; then
+        shift
+        DS=$1
+    elif [ $p = "-filter" ]; then
+        shift
+        FILTER=$1
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -156,9 +164,9 @@ for p in $FILES; do
 
     # compile faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -json -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -json -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
 
@@ -166,7 +174,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC  -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $OSCLIBS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $OSCLIBS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
 	) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

@@ -9,8 +9,9 @@
 
 . faustpath
 . faustoptflags
+. usage.sh
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/jack-qt.cpp
 ARCHLIB="-L/usr/local/lib -ljackserver"
@@ -29,35 +30,23 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 
 CXXFLAGS='-std=c++11 -Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# dispatch command arguments
 
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
 
 for p in $@; do
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2jackserver "[options] [Faust options] <file.dsp>"
+        require Jack, Qt
+        echo "Compiles Faust programs to JACK-QT (server mode)"
+        option
+        options -httpd -osc -qrcode
+        option "Faust options"
+        exit
     fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-osc" ]; then
+   	if [ $p = "-osc" ]; then
 		 OSCDEFS="DEFINES += OSCCTRL"
 		 OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then

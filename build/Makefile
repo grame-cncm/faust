@@ -11,13 +11,14 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.20.2
+VERSION := 2.27.1
 
 #===============================================================
 # current generator and backends
 CACHE  = $(FAUSTDIR)/CMakeCache.txt
 BCACHE = $(FAUSTDIR)/backends.txt
 TCACHE = $(FAUSTDIR)/targets.txt
+LCACHE = $(FAUSTDIR)/libsdir.txt
 ifeq ($(system),  MINGW)
 	GENERATOR ?= $(shell [ -f $(CACHE) ] && (grep CMAKE_GENERATOR:INTERNAL $(CACHE) | cut -d= -f2) || echo MSYS Makefiles)
 	NATIVEPACK = winpack
@@ -49,7 +50,7 @@ endif
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
 BUILDOPT ?= --config Release
 
-#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
+#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
 #BUILDOPT ?= --config Debug
 
 #===============================================================
@@ -57,6 +58,7 @@ BUILDOPT ?= --config Release
 JOBS	 ?= -j 4
 BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo regular.cmake)
 TARGETS  ?= $(shell [ -f $(TCACHE) ] && (grep TARGETS $(TCACHE) | cut -d= -f2) || echo regular.cmake)
+LIBSDIR  ?= $(shell [ -f $(LCACHE) ] && (grep LIBSDIR $(LCACHE) | cut -d= -f2) || echo lib)
 EMCC 	 ?= emcc
 
 #===============================================================
@@ -77,6 +79,10 @@ endif
 all: $(PROJ)
 	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
+full:
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake 
+	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
+
 clean:
 	cmake --build $(FAUSTDIR) --target clean
 
@@ -89,6 +95,7 @@ help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
 	@echo " 'all' (default) : builds the current targets (as defined by your targets setup)."
+	@echo " 'full'          : builds the all targets with all backends."
 	@echo
 	@echo "Targets that require specific setup (see TARGETS option):"
 	@echo " 'faust' 	 : builds the Faust compiler."
@@ -99,7 +106,6 @@ help:
 	@echo " 'oscdynamic' : builds the OSC library in dynamic mode."
 	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode."
 	@echo " 'oscandroid' : builds the OSC library for Android."
-	@echo
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo
 	@echo "Cleaning:"
@@ -112,6 +118,7 @@ help:
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
+	@echo "  LIBSDIR                     : the libraries destination directory, default: $(LIBSDIR)"
 	@echo "  GENERATOR=<a cmake generator>: see cmake -h. Default to '$(GENERATOR)'"
 	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake for project generation."
 	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
@@ -187,7 +194,7 @@ winpack:
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
-	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake
+	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake  CMAKEOPT="-DDEPLOYMENT_TARGET=on"
 	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
@@ -213,7 +220,7 @@ release: APATH=$(shell pwd)
 release:
 	git pull --rebase
 	@echo "################## Building faust package ###################"
-	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake CMAKEOPT="-DDEPLOYMENT_TARGET=on"
 	$(MAKE) all
 	$(MAKE) package
 	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)
@@ -283,12 +290,10 @@ silent: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
 cmake: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -G '$(GENERATOR)' ..
+	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -DLIBSDIR=$(LIBSDIR) -G '$(GENERATOR)' ..
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 	@echo TARGETS=$(TARGETS) > $(TCACHE)
-
-reset: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=off -DINCLUDE_DYNAMIC=off -DINCLUDE_HTTP=on -DOSCDYNAMIC=off -DHTTPDYNAMIC=off ..
+	@echo LIBSDIR=$(LIBSDIR) > $(LCACHE)
 
 
 #===============================================================
@@ -313,8 +318,9 @@ checkemcc:
 #===============================================================
 installLog := $(FAUSTDIR)/install_manifest.txt
 install:
-	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(PREFIX) 
-	cmake --build $(FAUSTDIR) --target install
+	if test -d ../.git; then git submodule update --init; fi
+	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	cmake  --build $(FAUSTDIR) --target install
 uninstall: installedfiles = $(shell cat $(installLog))
 uninstall: $(installLog)
 	rm -f $(installedfiles) $(installLog)

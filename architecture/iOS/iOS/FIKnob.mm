@@ -398,14 +398,14 @@
         }   
 		CGSize valueStringSize = [valueString sizeWithFont:self.labelFont
 												  forWidth:boundsRect.size.width
-											 lineBreakMode:UILineBreakModeTailTruncation];
+											 lineBreakMode:NSLineBreakByTruncatingTail];
 		[valueString drawInRect:CGRectMake(floorf((boundsRect.size.width - valueStringSize.width) / 2.0 + self.labelOffset.x),
 										   floorf((boundsRect.size.height - valueStringSize.height) / 2.0 + self.labelOffset.y),
 										   valueStringSize.width,
 										   multiplier * valueStringSize.height)
 					   withFont:self.labelFont
-				  lineBreakMode:UILineBreakModeTailTruncation
-                      alignment:UITextAlignmentCenter];		
+				  lineBreakMode:NSLineBreakByTruncatingTail
+                      alignment:NSTextAlignmentCenter];		
 	}
     
     // Draw assignation

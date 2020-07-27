@@ -50,8 +50,9 @@ old_Occurences::old_Occurences(int v, int r, Tree xc) : fXVariability(xVariabili
 {
     for (int i = 0; i < 4; i++) fOccurences[i] = 0;
     fMultiOcc      = false;
-    fMaxDelay      = 0;
     fOutDelayOcc   = false;
+    fMinDelay      = 0;
+    fMaxDelay      = 0;
     fExecCondition = xc;
 }
 
@@ -144,7 +145,8 @@ void old_OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         Type ty = getCertifiedSigType(t);
         int  v0 = ty->variability();
         int  r0 = getRecursivness(t);
-        Tree c0 = fConditions[t];
+        // fConditions may have been initialized empty
+        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];        
         occ     = new old_Occurences(v0, r0, c0);
         setOcc(t, occ);
 
@@ -207,6 +209,6 @@ static int position(Tree env, Tree t, int p)
 {
 	if (isNil(env)) return 0;	// was not in the environment
 	if (hd(env) == t) return p;
-	else return position (tl(env), t, p+1);
+	else return position(tl(env), t, p+1);
 }
 #endif

@@ -120,7 +120,8 @@ var faustdsp;
 
 function initAudio(buffer_size) 
 {
-    context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+    context = (isWebKitAudio) ? new webkitAudioContext({ latencyHint: 0.00001 }) : new AudioContext({ latencyHint: 0.00001 });
+    context.destination.channelInterpretation = "discrete";
     
     meta = new Meta(document.getElementById("FaustMeta"));
     ui = new JUI(document.getElementById("FaustUI"));

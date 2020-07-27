@@ -39,7 +39,7 @@ class jsonfaustui : public UI, public Meta
     
 	public:
 
-        jsonfaustui(const char *name, const char* address, int port);
+        jsonfaustui(const char* name, const char* address, int port);
 		virtual ~jsonfaustui();
 
 		//--------------------------------------------

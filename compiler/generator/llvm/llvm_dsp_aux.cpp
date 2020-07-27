@@ -31,21 +31,19 @@
 #include <list>
 #include <sstream>
 
-#include "Text.hh"
-#include "compatibility.hh"
-#include "faust/gui/CGlue.h"
+#include <llvm-c/Core.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/Host.h>
+
 #include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
 #include "lock_api.hh"
-
-#include <llvm-c/Core.h>
-#include <llvm/ExecutionEngine/MCJIT.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
 
 using namespace llvm;
 using namespace std;
@@ -100,7 +98,7 @@ uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
         return fun;
     } else {
         stringstream error;
-        error << "ERROR : loadOptimize failed for '" << function << "'";
+        error << "ERROR : loadOptimize failed for '" << function << "'\n";
         throw faustexception(error.str());
     }
 }
@@ -118,7 +116,11 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
         // Install an LLVM error handler
+    #if defined(__APPLE__) && defined(LLVM_110)
+        #warning Crash on OSX with LLVM_11, so deactivated in this case
+    #else
         LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
+    #endif
     }
 }
 
@@ -141,7 +143,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
 
     init("MachineDSP", "");
     fSHAKey = sha_key;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
+    fTarget = (target == "") ? fTarget = (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
 
     // Restoring the cache
     fObjectCache = new FaustObjectCache(machine_code);
@@ -160,7 +162,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
 
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
+    fTarget = (target == "") ? fTarget = (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     setOptlevel(opt_level);
 
     fModule  = module;
@@ -249,17 +251,16 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
     try {
         fAllocate          = (allocateDspFun)loadOptimize("allocate" + fClassName);
         fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
-        fInstanceConstants = (initFun)loadOptimize("instanceConstants" + fClassName);
-        fInstanceClear     = (clearFun)loadOptimize("instanceClear" + fClassName);
+        fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);
+        fInstanceClear     = (instanceClearFun)loadOptimize("instanceClear" + fClassName);
         fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
         fCompute           = (computeFun)loadOptimize("compute" + fClassName);
         fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
         
-        fDecoder = createJSONUIDecoder(fGetJSON());
         endTiming("initJIT");
         return true;
-    } catch (
-        faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...
+    // Module does not contain the Faust entry points, or external symbol was not found...
+    } catch (faustexception& e) {
         error_msg = e.Message();
         endTiming("initJIT");
         return false;
@@ -287,11 +288,13 @@ int llvm_dsp_factory_aux::getOptlevel()
 
 void llvm_dsp_factory_aux::metadata(Meta* m)
 {
+    checkDecoder();
     fDecoder->metadata(m);
 }
 
 void llvm_dsp_factory_aux::metadata(MetaGlue* glue)
 {
+    checkDecoder();
     fDecoder->metadata(glue);
 }
 
@@ -299,7 +302,8 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory_aux)
 {
     llvm_dsp_factory* factory = static_cast<llvm_dsp_factory*>(factory_aux);
     faustassert(factory);
-
+    checkDecoder();
+    
     if (factory->getFactory()->getMemoryManager()) {
         dsp_imp* dsp = static_cast<dsp_imp*>(factory->getFactory()->allocate(fDecoder->getDSPSize()));
         return (dsp) ? new (factory->getFactory()->allocate(sizeof(llvm_dsp))) llvm_dsp(factory, dsp) : nullptr;
@@ -312,14 +316,19 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory_aux)
 
 string llvm_dsp_factory_aux::getCompileOptions()
 {
+    checkDecoder();
     return fDecoder->getCompileOptions();
 }
+
 vector<string> llvm_dsp_factory_aux::getLibraryList()
 {
+    checkDecoder();
     return fDecoder->getLibraryList();
 }
+
 vector<string> llvm_dsp_factory_aux::getIncludePathnames()
 {
+    checkDecoder();
     return fDecoder->getIncludePathnames();
 }
 
@@ -349,12 +358,12 @@ llvm_dsp::~llvm_dsp()
 
 void llvm_dsp::metadata(Meta* m)
 {
-    fFactory->getFactory()->metadata(m);
+    fFactory->getFactory()->fDecoder->metadata(m);
 }
 
 void llvm_dsp::metadata(MetaGlue* glue)
 {
-    fFactory->getFactory()->metadata(glue);
+    fFactory->getFactory()->fDecoder->metadata(glue);
 }
 
 int llvm_dsp::getNumInputs()
@@ -425,48 +434,6 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fFactory->getFactory()->fCompute(fDSP, count, input, output);
 }
 
-// Public C++ API
-
-EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
-{
-    LOCK_API
-    return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
-}
-
-EXPORT vector<string> getAllDSPFactories()
-{
-    LOCK_API
-    return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
-}
-
-EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
-{
-    LOCK_API
-    return (factory) ? llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory) : false;
-}
-
-string llvm_dsp_factory_aux::getTarget()
-{
-    return fTarget;
-}
-
-EXPORT string getDSPMachineTarget()
-{
-    return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
-}
-
-EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
-{
-    LOCK_API
-    return factory->getLibraryList();
-}
-
-EXPORT void deleteAllDSPFactories()
-{
-    LOCK_API
-    llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
-}
-
 string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
 {
     if (target == "" || target == getTarget()) {
@@ -528,6 +495,48 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
     }
 }
 
+string llvm_dsp_factory_aux::getTarget()
+{
+    return fTarget;
+}
+
+// Public C++ API
+
+EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
+{
+    LOCK_API
+    return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+}
+
+EXPORT vector<string> getAllDSPFactories()
+{
+    LOCK_API
+    return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
+}
+
+EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
+{
+    LOCK_API
+    return (factory) ? llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory) : false;
+}
+
+EXPORT string getDSPMachineTarget()
+{
+    return (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
+}
+
+EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
+{
+    LOCK_API
+    return factory->getLibraryList();
+}
+
+EXPORT void deleteAllDSPFactories()
+{
+    LOCK_API
+    llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
+}
+
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
@@ -541,7 +550,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
                                                        string& error_msg)
 {
     LOCK_API
-    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : " + ec.message() + "\n";
@@ -832,10 +840,10 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
 
 EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
 {
-    return (dsp) ? dsp->clone() : 0;
+    return (dsp) ? dsp->clone() : nullptr;
 }
 
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager)
 {
     if (factory) {
         factory->setMemoryManager(manager);
@@ -844,7 +852,7 @@ EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {
-    return (factory) ? factory->createDSPInstance() : 0;
+    return (factory) ? factory->createDSPInstance() : nullptr;
 }
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)

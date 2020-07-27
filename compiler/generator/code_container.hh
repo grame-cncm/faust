@@ -111,6 +111,8 @@ class CodeContainer : public virtual Garbageable {
 
     list<string> fUICode;
     list<string> fUIMacro;
+    list<string> fUIMacroActives;
+    list<string> fUIMacroPassives;
 
     void merge(set<string>& dst, set<string>& src)
     {
@@ -162,23 +164,23 @@ class CodeContainer : public virtual Garbageable {
         dst << "\n------------------------------------------------------------ */" << endl;
     }
 
-    void printMacros(ostream& fout, int n);
-
     virtual void generateSR()
     {
         if (!fGeneratedSR) {
             pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
         }
-        pushFrontInitMethod(
+        pushPreInitMethod(
             InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
-
+    
    public:
     CodeContainer();
     void initialize(int numInputs, int numOutputs);
     virtual ~CodeContainer();
+    
+    void printMacros(ostream& fout, int n);
 
     CodeLoop* getCurLoop() { return fCurLoop; }
 
@@ -224,6 +226,7 @@ class CodeContainer : public virtual Garbageable {
 
     void setLoopProperty(Tree sig, CodeLoop* l);   ///< Store the loop used to compute a signal
     bool getLoopProperty(Tree sig, CodeLoop*& l);  ///< Returns the loop used to compute a signal
+    void listAllLoopProperties(Tree sig, set<CodeLoop*>&, set<Tree>& visited);  ///< Returns all the loop used to compute a signal
 
     void printGraphDotFormat(ostream& fout);
 
@@ -287,7 +290,7 @@ class CodeContainer : public virtual Garbageable {
     void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
     
     template <typename REAL>
-    void generateMetaData(JSONUIAux<REAL>* json)
+    void generateMetaData(JSONUIReal<REAL>* json)
     {
         // Add global metadata
         for (auto& i : gGlobal->gMetaDataSet) {
@@ -345,10 +348,19 @@ class CodeContainer : public virtual Garbageable {
     template <typename REAL>
     string generateJSON()
     {
-        JSONInstVisitor<REAL> json_visitor;
-        generateUserInterface(&json_visitor);
-        generateMetaData(&json_visitor);
-        return json_visitor.JSON(true);
+        JSONInstVisitor<REAL> visitor;
+     
+        // Prepare compilation options
+        stringstream compile_options;
+        gGlobal->printCompilationOptions(compile_options);
+      
+        // "name", "filename" found in medata
+        visitor.init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+        gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
+     
+        generateUserInterface(&visitor);
+        generateMetaData(&visitor);
+        return visitor.JSON(true);
     }
 
     DeclareFunInst* generateCalloc();
@@ -511,7 +523,7 @@ class CodeContainer : public virtual Garbageable {
         fPostInitInstructions->pushBackInst(inst);
         return inst;
     }
-    StatementInst* pushFrontInitMethod(StatementInst* inst)
+    StatementInst* pushPreInitMethod(StatementInst* inst)
     {
         fInitInstructions->pushFrontInst(inst);
         return inst;
@@ -567,9 +579,9 @@ class CodeContainer : public virtual Garbageable {
         return inst;
     }
 
-    StatementInst* pushComputePreDSPMethod(StatementInst* inst) { return fCurLoop->pushComputePreDSPMethod(inst); }
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushPreComputeDSPMethod(inst); }
     StatementInst* pushComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushComputeDSPMethod(inst); }
-    StatementInst* pushComputePostDSPMethod(StatementInst* inst) { return fCurLoop->pushComputePostDSPMethod(inst); }
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushPostComputeDSPMethod(inst); }
 
     void generateSubContainers()
     {
@@ -582,9 +594,11 @@ class CodeContainer : public virtual Garbageable {
     void mergeSubContainers()
     {
         for (auto& it : fSubContainers) {
+            // Merge the subcontainer in the main one
             fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
             fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
             fDeclarationInstructions->merge(it->fDeclarationInstructions);
+            // Then clear it
             it->fGlobalDeclarationInstructions->fCode.clear();
             it->fExtGlobalDeclarationInstructions->fCode.clear();
             it->fDeclarationInstructions->fCode.clear();
@@ -599,6 +613,8 @@ class CodeContainer : public virtual Garbageable {
 
     // UI construction
     void addUIMacro(const string& str) { fUIMacro.push_back(str); }
+    void addUIMacroActives(const string& str) { fUIMacroActives.push_back(str); }
+    void addUIMacroPassives(const string& str) { fUIMacroPassives.push_back(str); }
     void addUICode(const string& str) { fUICode.push_back(str); }
 
     virtual CodeContainer* createScalarContainer(const string& name, int sub_container_type) = 0;

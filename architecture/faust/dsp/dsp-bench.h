@@ -1,7 +1,7 @@
 /************************** BEGIN dsp-bench.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2016-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@
 #ifndef __dsp_bench__
 #define __dsp_bench__
 
+#include <cmath>
 #include <limits.h>
 #include <sys/time.h>
 #include <iostream>
@@ -35,8 +36,10 @@
 #include <string.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/MapUI.h"
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
@@ -56,7 +59,7 @@
 #endif
 
 #define BENCH_SAMPLE_RATE 44100.0
-#define NV 4096     // number of vectors in BIG buffer (should exceed cache)
+#define NBV 4096     // number of vectors in BIG buffer (should exceed cache)
 
 template <typename VAL_TYPE>
 void FAUSTBENCH_LOG(VAL_TYPE val)
@@ -108,7 +111,6 @@ class time_bench {
                 uint32 i32[2];
                 uint64 i64;
             } count;
-            
             __asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
             return count.i64;
         #endif
@@ -274,51 +276,122 @@ class time_bench {
 };
 
 /*
-    A class to measure DSP CPU use.
+ A class to randomly change control values
+ */
+
+struct RandomControlUI : public MapUI {
+    
+    struct Range {
+        const char* fLabel;
+        FAUSTFLOAT* fZone;
+        FAUSTFLOAT fInit;
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        Range(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init = 0, FAUSTFLOAT min = 0, FAUSTFLOAT max = 0)
+        :fLabel(label), fZone(zone), fInit(init), fMin(min), fMax(max)
+        {}
+    };
+    
+    std::vector<Range> fControls;
+    
+    RandomControlUI()
+    {
+        /* initialize random seed: */
+        srand(time(NULL));
+    }
+    
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        MapUI::addButton(label, zone);
+        fControls.push_back(Range(label, zone, 1, 0, 1));
+    }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        MapUI::addCheckButton(label, zone);
+        fControls.push_back(Range(label, zone, 1, 0, 1));
+    }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+         MapUI::addVerticalSlider(label, zone, init, min, max, step);
+        fControls.push_back(Range(label, zone, init, min, max));
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        MapUI::addHorizontalSlider(label, zone, init, min, max, step);
+        fControls.push_back(Range(label, zone, init, min, max));
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        MapUI::addNumEntry(label, zone, init, min, max, step);
+        fControls.push_back(Range(label, zone, init, min, max));
+    }
+    
+    void update()
+    {
+        for (auto& it : fControls) {
+            *it.fZone = it.fMin + (FAUSTFLOAT(rand())/FAUSTFLOAT(RAND_MAX)) * std::abs(it.fMax - it.fMin);
+        }
+    }
+    
+    void display()
+    {
+        std::cout << "--------- RandomControlUI ---------\n";
+        for (auto& it : fControls) {
+            std::cout << "Path: \"" << getParamAddress(it.fZone) << "\" min: " << it.fMin << " max: " << it.fMax << " cur: " << *it.fZone << std::endl;
+        }
+    }
+};
+
+/*
+A class to measure DSP CPU use
 */
 
-class measure_dsp : public decorator_dsp {
+template <typename REAL>
+class measure_dsp_aux : public decorator_dsp {
     
     protected:
     
-        FAUSTFLOAT** fInputs;
-        FAUSTFLOAT** fAllInputs;
-        FAUSTFLOAT** fOutputs;
-        FAUSTFLOAT** fAllOutputs;
+        REAL** fInputs;
+        REAL** fAllInputs;
+        REAL** fOutputs;
+        REAL** fAllOutputs;
         time_bench* fBench;
         int fBufferSize;
         int fInputIndex;
         int fOutputIndex;
         int fCount;
+        bool fControl;
+        RandomControlUI fRandomUI;
     
         void init()
         {
             fDSP->init(BENCH_SAMPLE_RATE);
+            fDSP->buildUserInterface(&fRandomUI);
             
             fInputIndex = 0;
             fOutputIndex = 0;
             
-            fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
-            fAllInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fInputs = new REAL*[fDSP->getNumInputs()];
+            fAllInputs = new REAL*[fDSP->getNumInputs()];
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fAllInputs[i] = new FAUSTFLOAT[fBufferSize * NV];
+                fAllInputs[i] = new REAL[fBufferSize * NBV];
                 fInputs[i] = fAllInputs[i];
                 // Write noise in inputs (to avoid 'speedup' effect due to null values)
                 int R0_0 = 0;
-                for (int j = 0; j < fBufferSize * NV; j++) {
+                for (int j = 0; j < fBufferSize * NBV; j++) {
                     int R0temp0 = (12345 + (1103515245 * R0_0));
-                    fAllInputs[i][j] = FAUSTFLOAT(4.656613e-10f * R0temp0);
+                    fAllInputs[i][j] = REAL(4.656613e-10f * R0temp0);
                     R0_0 = R0temp0;
                 }
             }
             
-            fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
-            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            fOutputs = new REAL*[fDSP->getNumOutputs()];
+            fAllOutputs = new REAL*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
+                fAllOutputs[i] = new REAL[fBufferSize * NBV];
                 fOutputs[i] = fAllOutputs[i];
                 // Write zero in outputs
-                memset(fAllOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
+                memset(fAllOutputs[i], 0, sizeof(REAL) * fBufferSize * NBV);
             }
         }
     
@@ -354,10 +427,12 @@ class measure_dsp : public decorator_dsp {
          * @param dsp - the dsp to be measured.
          * @param buffer_size - the buffer size used when calling 'computeAll'
          * @param count - the number of cycles using in 'computeAll'
+         * @param trace - whether to log the trace
+         * @param control - whether to activate random changes of all control values at each cycle
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, int count, bool trace = true)
-            :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count)
+        measure_dsp_aux(dsp* dsp, int buffer_size, int count, bool trace = true, bool control = false)
+            :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count), fControl(control)
         {
             init();
             fBench = new time_bench(fCount, 10);
@@ -368,11 +443,13 @@ class measure_dsp : public decorator_dsp {
          *
          * @param dsp - the dsp to be measured.
          * @param buffer_size - the buffer size used when calling 'computeAll'
-         * @param duration_in_sec - the wanted durection used in 'computeAll'
+         * @param duration_in_sec - the wanted duration used in 'computeAll'
+         * @param trace - whether to log the trace
+         * @param random - whether to activate random changes of all control values at each cycle
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true)
-            :decorator_dsp(dsp), fBufferSize(buffer_size)
+        measure_dsp_aux(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true, bool control = false)
+            :decorator_dsp(dsp), fBufferSize(buffer_size), fControl(control)
         {
             init();
             
@@ -388,7 +465,7 @@ class measure_dsp : public decorator_dsp {
             fBench = new time_bench(fCount, 10);
         }
     
-        virtual ~measure_dsp()
+        virtual ~measure_dsp_aux()
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete [] fAllInputs[i];
@@ -409,15 +486,18 @@ class measure_dsp : public decorator_dsp {
         /**
          *  Measure the duration of the compute call
          */
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, REAL** inputs, REAL** outputs)
         {
             AVOIDDENORMALS;
+            // Possibly update all controllers
+            if (fControl) fRandomUI.update();
             fBench->startMeasure();
-            fDSP->compute(count, inputs, outputs);
+            // Only measure the 'compute' method
+            fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             fBench->stopMeasure();
         }
     
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, REAL** inputs, REAL** outputs)
         {
             compute(count, inputs, outputs);
         }
@@ -429,14 +509,14 @@ class measure_dsp : public decorator_dsp {
         {
             do {
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                    FAUSTFLOAT* allinputs = fAllInputs[i];
+                    REAL* allinputs = fAllInputs[i];
                     fInputs[i] = &allinputs[fInputIndex * fBufferSize];
-                    fInputIndex = (1 + fInputIndex) % NV;
+                    fInputIndex = (1 + fInputIndex) % NBV;
                 }
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                    FAUSTFLOAT* alloutputs = fAllOutputs[i];
+                    REAL* alloutputs = fAllOutputs[i];
                     fOutputs[i] = &alloutputs[fOutputIndex * fBufferSize];
-                    fOutputIndex = (1 + fOutputIndex) % NV;
+                    fOutputIndex = (1 + fOutputIndex) % NBV;
                 }
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());
@@ -452,7 +532,6 @@ class measure_dsp : public decorator_dsp {
          */
         void closeMeasure() { fBench->closeMeasure(); }
     
-    
         double measureDurationUsec()
         {
             return fBench->measureDurationUsec();
@@ -461,7 +540,6 @@ class measure_dsp : public decorator_dsp {
         void measure()
         {
             setRealtimePriority();
-            
             openMeasure();
             computeAll();
             closeMeasure();
@@ -491,6 +569,20 @@ class measure_dsp : public decorator_dsp {
         }
     
         int getCount() { return fCount; }
+    
+};
+
+struct measure_dsp : measure_dsp_aux<FAUSTFLOAT> {
+
+    measure_dsp(dsp* dsp,
+                int buffer_size,
+                double duration_in_sec,
+                bool trace = true,
+                bool control = false)
+        :measure_dsp_aux(dsp, buffer_size, duration_in_sec, trace, control)
+    {}
+    virtual~ measure_dsp()
+    {}
     
 };
 

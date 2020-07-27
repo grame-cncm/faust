@@ -79,7 +79,8 @@ class audio {
 
         virtual int getNumInputs() = 0;
         virtual int getNumOutputs() = 0;
-
+    
+        // Returns the average proportion of available CPU being spent inside the audio callbacks (between 0 and 1.0).
         virtual float getCPULoad() { return 0.f; }
 };
 					

@@ -80,10 +80,22 @@ struct Max_Meta2 : Meta
 struct Max_Meta3 : Meta
 {
     string fName;
+    
+    bool endWith(const string& str, const string& suffix)
+    {
+        size_t i = str.rfind(suffix);
+        return (i != string::npos) && (i == (str.length() - suffix.length()));
+    }
+    
     void declare(const char* key, const char* value)
     {
         if ((strcmp("filename", key) == 0)) {
-            fName = "com.grame." + string(value) + "~";
+            string val = value;
+            if (endWith(value, ".dsp")) {
+                fName = "com.grame." + val.substr(0, val.size() - 4) + "~";
+            } else {
+                fName = "com.grame." + val + "~";
+            }
         }
     }
 };
@@ -102,7 +114,7 @@ class mspUIObject {
         mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
         virtual ~mspUIObject() {}
         
-        virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0,1.0,f); }
+        virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0, 1.0, f); }
         virtual FAUSTFLOAT getValue() { return *fZone; }
     
         virtual FAUSTFLOAT getInitValue() { return FAUSTFLOAT(0); }
@@ -162,7 +174,7 @@ class mspSlider : public mspUIObject {
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
-        void setValue(FAUSTFLOAT f) { *fZone = range(fMin,fMax,f); }
+        void setValue(FAUSTFLOAT f) { *fZone = range(fMin, fMax, f); }
     
         virtual FAUSTFLOAT getInitValue() { return fInit; }
         virtual FAUSTFLOAT getMinValue() { return fMin; }
@@ -181,7 +193,7 @@ class mspBargraph : public mspUIObject {
     public:
         
         mspBargraph(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        :mspUIObject(label,zone),fMin(min),fMax(max),fCurrent(*zone) {}
+        :mspUIObject(label,zone), fMin(min), fMax(max), fCurrent(*zone) {}
         virtual ~mspBargraph() {}
         
         void toString(char* buffer)
@@ -242,7 +254,23 @@ class mspUI : public UI, public PathBuilder
                 return string(label);
             }
         }
-        
+    
+        void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
+            fInputLabelTable[string(label)] = obj;
+            fInputPathTable[buildPath(label)] = obj;
+            fDeclareTable.clear();
+        }
+    
+        void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
+            fOutputLabelTable[string(label)] = obj;
+            fOutputPathTable[buildPath(label)] = obj;
+            fDeclareTable.clear();
+        }
+    
     public:
         
         typedef map<string, mspUIObject*>::iterator iterator;
@@ -274,13 +302,6 @@ class mspUI : public UI, public PathBuilder
             fInputPathTable[buildPath(label)] = obj;
         }
         
-        void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        {
-            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
-        }
-        
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             addSlider(label, zone, init, min, max, step);
@@ -293,17 +314,7 @@ class mspUI : public UI, public PathBuilder
         
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
-        }
-    
-        void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
-            fOutputLabelTable[string(label)] = obj;
-            fOutputPathTable[buildPath(label)] = obj;
-            fDeclareTable.clear();
+            addSlider(label, zone, init, min, max, step);
         }
     
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -325,7 +336,7 @@ class mspUI : public UI, public PathBuilder
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-            if (strcmp(key,"multi") == 0) {
+            if (strcmp(key, "multi") == 0) {
                 int index = atoi(val);
                 if (index >= 0 && index < MULTI_SIZE) {
                     fMultiTable[index] = zone;
@@ -366,13 +377,13 @@ class mspUI : public UI, public PathBuilder
             return fInputPathTable.count(name);
         }
     
-        bool setValue(const string& name, FAUSTFLOAT f)
+        bool setValue(const string& name, FAUSTFLOAT val)
         {
             if (fInputLabelTable.count(name)) {
-                fInputLabelTable[name]->setValue(f);
+                fInputLabelTable[name]->setValue(val);
                 return true;
             } else if (fInputPathTable.count(name)) {
-                fInputPathTable[name]->setValue(f);
+                fInputPathTable[name]->setValue(val);
                 return true;
             } else {
                 return false;

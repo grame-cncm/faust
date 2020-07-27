@@ -90,7 +90,7 @@ Tree cnfOr(Tree c1, Tree c2)
             }
         }
         Tree c3 = gGlobal->nil;
-        for(auto t1 : A) { c3 = addElement(t1,c3); }
+        for (auto t1 : A) { c3 = addElement(t1,c3); }
         return c3;
     }
 }

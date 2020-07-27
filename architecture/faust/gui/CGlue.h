@@ -459,23 +459,23 @@ static void buildMetaGlue(MetaGlue* glue, Meta* meta)
  * Memory manager glue code
  ******************************************************************************/
 
-static void* allocateManagerGlue(void* cpp_interface, size_t size)
+static void* allocateMemoryManagerGlue(void* cpp_interface, size_t size)
 {
     dsp_memory_manager* manager_interface = static_cast<dsp_memory_manager*>(cpp_interface);
     return manager_interface->allocate(size);
 }
     
-static void destroyManagerGlue(void* cpp_interface, void* ptr)
+static void destroyMemoryManagerGlue(void* cpp_interface, void* ptr)
 {
     dsp_memory_manager* manager_interface = static_cast<dsp_memory_manager*>(cpp_interface);
     manager_interface->destroy(ptr);
 }
 
-static void buildManagerGlue(ManagerGlue* glue, dsp_memory_manager* manager)
+static void buildManagerGlue(MemoryManagerGlue* glue, dsp_memory_manager* manager)
 {
     glue->managerInterface = manager;
-    glue->allocate = allocateManagerGlue;
-    glue->destroy = destroyManagerGlue;
+    glue->allocate = allocateMemoryManagerGlue;
+    glue->destroy = destroyMemoryManagerGlue;
 }
 
 #ifdef __cplusplus

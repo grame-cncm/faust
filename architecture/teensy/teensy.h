@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@
 #define faust_teensy_h_
 
 #include <string>
+
 #include "Arduino.h"
 #include "AudioStream.h"
 #include "Audio.h"
@@ -40,11 +41,20 @@ class teensy_midi;
 class AudioFaust : public AudioStream
 {
     public:
+    
         AudioFaust();
         ~AudioFaust();
+    
         virtual void update(void);
+    
         void setParamValue(const std::string& path, float value);
+        float getParamValue(const std::string& path);
+    
     private:
+    
+        template <int INPUTS, int OUTPUTS>
+        void updateImp(void);
+    
         float** fInChannel;
         float** fOutChannel;
         MapUI* fUI;

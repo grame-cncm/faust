@@ -52,7 +52,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                         Address::AccessType& var_access);
+                                         Address::AccessType& var_access, ValueInst* ccs);
 
     StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
 

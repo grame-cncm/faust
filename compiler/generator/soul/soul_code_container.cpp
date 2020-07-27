@@ -29,6 +29,7 @@ using namespace std;
 
  - sub-containers are compiled as 'struct' with associated functions
  - classInit is a Processor method for now (waiting for the SOUL external model to be ready)
+ - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - 'boolean' type:
     - are casted to 'int' (for indexes...) and kept for tests (in SelectInst...).
     - 'int' results are casted to 'bool' for tests (in SelectInst...).
@@ -151,7 +152,7 @@ void SOULCodeContainer::produceInit(int tabs)
     tab(tabs + 1, *fOut);
     *fOut << "let sample_rate = int(processor.frequency);";
     tab(tabs + 1, *fOut);
-    *fOut << "classInit (sample_rate);";
+    *fOut << "// classInit is not called here since the tables are actually not shared between instances";
     tab(tabs + 1, *fOut);
     *fOut << "instanceInit (sample_rate);";
     tab(tabs, *fOut);
@@ -162,6 +163,10 @@ void SOULCodeContainer::produceInit(int tabs)
     *fOut << "void instanceInit (int sample_rate)";
     tab(tabs, *fOut);
     *fOut << "{";
+    tab(tabs + 1, *fOut);
+    *fOut << "// classInit has to be called for each instance since the tables are actually not shared between instances";
+    tab(tabs + 1, *fOut);
+    *fOut << "classInit (sample_rate);";
     tab(tabs + 1, *fOut);
     *fOut << "instanceConstants (sample_rate);";
     tab(tabs + 1, *fOut);
@@ -219,11 +224,9 @@ void SOULCodeContainer::produceClass()
     generateDeclarations(&fCodeProducer);
   
     // Control
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "bool fUpdated;";
-        tab(n + 1, *fOut);
-    }
-
+    *fOut << "bool fUpdated;";
+    tab(n + 1, *fOut);
+ 
     // For control computation
     if (fInt32ControlNum > 0) {
         *fOut << "int32[" << fInt32ControlNum << "] iControl;";
@@ -246,6 +249,25 @@ void SOULCodeContainer::produceClass()
         fCodeProducer.Tab(n + 1);
         generateUserInterface(&fCodeProducer);
     }
+    
+    /*
+    // Debug version
+    if (gGlobal->gOutputLang == "soul-dsp") {
+        *fOut << "// Event handler used to call additional methods";
+        tab(n + 1, *fOut);
+        *fOut << "event eventbuildUserInterface (int dummy) { console << \"eventbuildUserInterface\n\"; }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventclassInit (int sample_rate) { console << \"eventclassInit\n\"; classInit(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceConstants (int sample_rate) { console << \"eventinstanceConstants\n\"; instanceConstants(sample_rate); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceResetUserInterface (int dummy) { console << \"eventinstanceResetUserInterface\n\"; instanceResetUserInterface(); }";
+        tab(n + 1, *fOut);
+        *fOut << "event eventinstanceClear (int dummy) { console << \"eventinstanceClear\n\"; instanceClear(); }";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+    }
+    */
     
     if (gGlobal->gOutputLang == "soul-dsp") {
         *fOut << "// Event handler used to call additional methods";
@@ -316,11 +338,9 @@ void SOULCodeContainer::produceClass()
     tab(n + 2, *fOut);
 
     // Control
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "fUpdated = true;";
-        tab(n + 2, *fOut);
-    }
-
+    *fOut << "fUpdated = true;";
+    tab(n + 2, *fOut);
+ 
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
     back(1, *fOut);
@@ -342,19 +362,19 @@ void SOULCodeContainer::produceClass()
     produceInit(n + 1);
 
     // Control
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        tab(n + 1, *fOut);
-        *fOut << "void control()";
-        tab(n + 1, *fOut);
-        *fOut << "{";
-        tab(n + 2, *fOut);
-        fCodeProducer.Tab(n + 2);
-        // Generates local variables declaration and setup
-        generateComputeBlock(&fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}" << endl;
-    }
-
+    tab(n + 1, *fOut);
+    *fOut << "void control()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
+    tab(n + 2, *fOut);
+    // Debug code
+    //*fOut << "console << \"control\\n\";";
+    fCodeProducer.Tab(n + 2);
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}" << endl;
+ 
     // Compute
     generateCompute(n + 1);
     *fOut << "}" << endl;
@@ -374,14 +394,11 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "{";
     tab(n + 2, *fOut);
 
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "// Updates control only if needed";
-        tab(n + 2, *fOut);
-        *fOut << "if (fUpdated) { fUpdated = false; control(); }";
-        tab(n + 2, *fOut);
-        tab(n + 2, *fOut);
-    }
-
+    tab(n + 2, *fOut);
+    *fOut << "if (fUpdated) { fUpdated = false; control(); }";
+    tab(n + 2, *fOut);
+    tab(n + 2, *fOut);
+   
     // Generates one sample computation
     fCodeProducer.Tab(n + 2);
     *fOut << "// Computes one sample";
@@ -422,14 +439,11 @@ void SOULVectorCodeContainer::generateCompute(int n)
     *fOut << "{";
     tab(n + 2, *fOut);
 
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *fOut << "// Updates control only if needed";
-        tab(n + 2, *fOut);
-        *fOut << "if (fUpdated) { fUpdated = false; control(); }";
-        tab(n + 2, *fOut);
-        tab(n + 2, *fOut);
-    }
-
+    tab(n + 2, *fOut);
+    *fOut << "if (fUpdated) { fUpdated = false; control(); }";
+    tab(n + 2, *fOut);
+    tab(n + 2, *fOut);
+ 
     // TODO
     fCodeProducer.Tab(n + 2);
 

@@ -114,7 +114,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gMaxNameSize      = 40;
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
-    gLessTempSwitch   = false;
     gMaxCopyDelay     = 16;
 
     gVectorSwitch      = false;
@@ -142,7 +141,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDSPStruct  = false;
     gLightMode  = false;
     gClang      = false;
-    gCheckTable = false;
+    gCheckTable = "";
 
     gClassName      = "mydsp";
     gSuperClassName = "dsp";
@@ -154,8 +153,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     // Backend configuration : default values
     gAllowForeignFunction = true;
+    gAllowForeignConstant = true;
+    gAllowForeignVar      = true;
     gComputeIOTA          = false;
-    gFAUSTFLOATToInternal = false;
+    gFAUSTFLOAT2Internal  = false;
     gInPlace              = false;
     gHasExp10             = false;
     gLoopVarInBytes       = false;
@@ -163,6 +164,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;
     gFastMath             = false;
+    gMathApprox           = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -171,6 +173,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gNameSpace            = "";
 
     // Fastmath mapping float version
+    gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
     gFastMathLibTable["asinf"]      = "fast_asinf";
     gFastMathLibTable["atanf"]      = "fast_atanf";
@@ -187,12 +190,14 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["log10f"]     = "fast_log10f";
     gFastMathLibTable["powf"]       = "fast_powf";
     gFastMathLibTable["remainderf"] = "fast_remainderf";
+    gFastMathLibTable["rintf"]      = "fast_rintf";
     gFastMathLibTable["roundf"]     = "fast_roundf";
     gFastMathLibTable["sinf"]       = "fast_sinf";
     gFastMathLibTable["sqrtf"]      = "fast_sqrtf";
     gFastMathLibTable["tanf"]       = "fast_tanf";
 
     // Fastmath mapping double version
+    gFastMathLibTable["fabs"]      = "fast_fabs";
     gFastMathLibTable["acos"]      = "fast_acos";
     gFastMathLibTable["asin"]      = "fast_asin";
     gFastMathLibTable["atan"]      = "fast_atan";
@@ -209,6 +214,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["log10"]     = "fast_log10";
     gFastMathLibTable["pow"]       = "fast_pow";
     gFastMathLibTable["remainder"] = "fast_remainder";
+    gFastMathLibTable["rint"]      = "fast_rint";
     gFastMathLibTable["round"]     = "fast_round";
     gFastMathLibTable["sin"]       = "fast_sin";
     gFastMathLibTable["sqrt"]      = "fast_sqrt";
@@ -453,6 +459,7 @@ void global::init()
     // Essential predefined types
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
+    gMaskDelayLineThreshold  = INT_MAX;
 
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
@@ -561,6 +568,14 @@ void global::init()
     gMathForeignFunctions["tanhf"] = true;
     gMathForeignFunctions["tanh"]  = true;
     gMathForeignFunctions["tanhl"] = true;
+    
+    gMathForeignFunctions["isnanf"] = true;
+    gMathForeignFunctions["isnan"] = true;
+    gMathForeignFunctions["isnanl"] = true;
+    
+    gMathForeignFunctions["isinff"] = true;
+    gMathForeignFunctions["isinf"] = true;
+    gMathForeignFunctions["isinfl"] = true;
 }
 
 void global::printCompilationOptions(ostream& dst, bool backend)
@@ -727,14 +742,6 @@ string global::getFreshID(const string& prefix)
     int n               = gIDCounters[prefix];
     gIDCounters[prefix] = n + 1;
     return subst("$0$1", prefix, T(n));
-}
-
-Garbageable::Garbageable()
-{
-}
-
-Garbageable::~Garbageable()
-{
 }
 
 void Garbageable::cleanup()

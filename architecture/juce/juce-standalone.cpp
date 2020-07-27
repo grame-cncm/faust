@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2016-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -118,11 +118,9 @@ class FaustComponent : public AudioAppComponent, private Timer
                 fDSP = std::make_unique<mydsp>();
         #endif
             }
-                
         #endif
 
             addAndMakeVisible(fJuceGUI);
-            
             fDSP->buildUserInterface(&fJuceGUI);
             
         #if defined(MIDICTRL)
@@ -281,7 +279,6 @@ class FaustAudioApplication : public JUCEApplication
         void shutdown() override
         {
             // Add your application's shutdown code here..
-            
             mainWindow = nullptr; // (deletes our window)
         }
         
@@ -317,9 +314,7 @@ class FaustAudioApplication : public JUCEApplication
                 minHeight(h),
                 recommendedWidth(rW),
                 recommendedHeight(rH)
-                {
-                    addAndMakeVisible(tooltipWindow);
-                }
+                {}
                 
                 virtual void resized() override {
                     Viewport::resized();
@@ -347,8 +342,6 @@ class FaustAudioApplication : public JUCEApplication
                 int minWidth, minHeight;
                 int recommendedWidth, recommendedHeight;
                 int width, height;
-                TooltipWindow tooltipWindow;
-                int j = 0;
         };
         
         class MainWindow : public DocumentWindow

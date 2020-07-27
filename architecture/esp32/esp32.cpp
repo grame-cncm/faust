@@ -9,7 +9,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale &
+ Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale &
  Aalborg University (Copenhagen, Denmark)
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
@@ -38,6 +38,22 @@
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
+#include "faust/audio/esp32-dsp.h"
+
+// MIDI support
+#ifdef MIDICTRL
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/esp32-midi.h"
+#endif
+
+// for polyphonic synths
+#ifdef NVOICES
+#include "faust/dsp/poly-dsp.h"
+#endif
+
+#ifdef HAS_MAIN
+#include "WM8978.h"
+#endif
 
 /******************************************************************************
  *******************************************************************************
@@ -59,88 +75,62 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-//#define A1S_BOARD true                  //uncomment for Ai-thinker A1S board
-
-#define MULT_S32 2147483647
-#define DIV_S32 4.6566129e-10
-#define clip(sample) std::max(-MULT_S32, std::min(MULT_S32, ((int32_t)(sample * MULT_S32))));
+#ifdef MIDICTRL
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+#endif
 
 AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 {
-    fBS = buffer_size;
+#ifdef NVOICES
+    int nvoices = NVOICES;
+    mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+    fDSP = dsp_poly;
+#else
     fDSP = new mydsp();
-    fDSP->init(sample_rate);
+#endif
+    
     fUI = new MapUI();
     fDSP->buildUserInterface(fUI);
-    fHandle = NULL;
     
-    i2s_pin_config_t pin_config;
-#if TTGO_TAUDIO
-    pin_config = {
-        .bck_io_num = 33,
-        .ws_io_num = 25,
-        .data_out_num = 26,
-        .data_in_num = 27
-    };
-#elif A1S_BOARD
-    pin_config = {
-        .bck_io_num = 27,
-        .ws_io_num = 26,
-        .data_out_num = 25,
-        .data_in_num = 35
-    };
-#else // Default
-    pin_config = {
-        .bck_io_num = 33,
-        .ws_io_num = 25,
-        .data_out_num = 26,
-        .data_in_num = 27
-    };
+    fAudio = new esp32audio(sample_rate, buffer_size);
+    fAudio->init("esp32", fDSP);
+    
+#ifdef MIDICTRL
+    fMIDIHandler = new esp32_midi();
+#ifdef NVOICES
+    fMIDIHandler->addMidiIn(dsp_poly);
 #endif
-    configureI2S(sample_rate, buffer_size, pin_config);
-    
-    if (fDSP->getNumInputs() > 0) {
-        fInChannel = new float*[fDSP->getNumInputs()];
-        for (int i = 0; i < fDSP->getNumInputs(); i++) {
-            fInChannel[i] = new float[fBS];
-        }
-    }
-    if (fDSP->getNumOutputs() > 0) {
-        fOutChannel = new float*[fDSP->getNumOutputs()];
-        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-            fOutChannel[i] = new float[fBS];
-        }
-    }
+    fMIDIInterface = new MidiUI(fMIDIHandler);
+    fDSP->buildUserInterface(fMIDIInterface);
+#endif
 }
 
 AudioFaust::~AudioFaust()
 {
-    for (int i = 0; i < fDSP->getNumInputs(); i++) {
-        delete[] fInChannel[i];
-    }
-    delete [] fInChannel;
-    
-    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-        delete[] fOutChannel[i];
-    }
-    delete [] fOutChannel;
-    
     delete fDSP;
     delete fUI;
+    delete fAudio;
+#ifdef MIDICTRL
+    delete fMIDIInterface;
+    delete fMIDIHandler;
+#endif
 }
 
 bool AudioFaust::start()
 {
-    xTaskCreate(audioTaskHandler, "Faust DSP Task", 1024, (void*)this, 5, &fHandle);
-    return true;
+#ifdef MIDICTRL
+    if (!fMIDIInterface->run()) return false;
+#endif
+    return fAudio->start();
 }
 
 void AudioFaust::stop()
 {
-    if (fHandle != NULL) {
-        vTaskDelete(fHandle);
-        fHandle = NULL;
-    }
+#ifdef MIDICTRL
+    fMIDIInterface->stop();
+#endif
+    fAudio->stop();
 }
 
 void AudioFaust::setParamValue(const std::string& path, float value)
@@ -148,91 +138,38 @@ void AudioFaust::setParamValue(const std::string& path, float value)
     fUI->setParamValue(path, value);
 }
 
-void AudioFaust::configureI2S(int sample_rate, int buffer_size, i2s_pin_config_t pin_config)
+float AudioFaust::getParamValue(const std::string& path)
 {
-    #if A1S_BOARD
-    i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
-        .sample_rate = sample_rate,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-        .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-        .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
-        .dma_buf_count = 3,
-        .dma_buf_len = buffer_size,
-        .use_apll = true
-    };
-    #else // default
-        i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX),
-        .sample_rate = sample_rate,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
-        .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
-        .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1, // high interrupt priority
-        .dma_buf_count = 3,
-        .dma_buf_len = buffer_size,
-        .use_apll = false
-    };
-    #endif
-    i2s_driver_install((i2s_port_t)0, &i2s_config, 0, NULL);
-    i2s_set_pin((i2s_port_t)0, &pin_config);
-    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
-    REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
+    return fUI->getParamValue(path);
 }
 
-void AudioFaust::audioTask()
+// Entry point
+#ifdef HAS_MAIN
+extern "C" void app_main()
 {
-    while (true) {
-        if (fDSP->getNumInputs() > 0) {
-            
-            // Read from the card
-            int32_t samples_data_in[2*fBS];
-            size_t bytes_read = 0;
-            i2s_read((i2s_port_t)0, &samples_data_in, 8*fBS, &bytes_read, portMAX_DELAY);
-            
-            // Convert and copy inputs
-            if (fDSP->getNumInputs() == 2) { // if stereo
-                for (int i = 0; i < fBS; i++) {
-                    fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
-                    fInChannel[1][i] = (float)samples_data_in[i*2+1]*DIV_S32;
-                }
-            } else {
-                for (int i = 0; i < fBS; i++) {
-                    fInChannel[0][i] = (float)samples_data_in[i*2]*DIV_S32;
-                }
-            }
-        }
-        
-        // Call DSP
-        fDSP->compute(fBS, fInChannel, fOutChannel);
-        
-        // Convert and copy outputs
-        int32_t samples_data_out[2*fBS];
-        if (fDSP->getNumOutputs() == 2) {
-            // if stereo
-            for (int i = 0; i < fBS; i++) {
-                samples_data_out[i*2] = clip(fOutChannel[0][i]);
-                samples_data_out[i*2+1] = clip(fOutChannel[1][i]);
-            }
-        } else {
-            // otherwise only first channel
-            for (int i = 0; i < fBS; i++) {
-                samples_data_out[i*2] = clip(fOutChannel[0][i]);
-                samples_data_out[i*2+1] = samples_data_out[i*2];
-            }
-        }
-        
-        // Write to the card
-        size_t bytes_writen = 0;
-        i2s_write((i2s_port_t)0, &samples_data_out, 8*fBS, &bytes_writen, portMAX_DELAY);
-    }
-}
+    // Init audio codec
+    WM8978 wm8978;
+    wm8978.init();
+    wm8978.addaCfg(1,1);
+    wm8978.inputCfg(1,0,0);
+    wm8978.outputCfg(1,0);
+    wm8978.micGain(30);
+    wm8978.auxGain(0);
+    wm8978.lineinGain(0);
 
-void AudioFaust::audioTaskHandler(void* arg)
-{
-    AudioFaust* audio = (AudioFaust*)arg;
-    audio->audioTask();
+    // Set gain
+    wm8978.spkVolSet(60); // [0-63]
+    
+    wm8978.hpVolSet(40,40);
+    wm8978.i2sCfg(2,0);
+    
+    // Allocate and start Faust DSP
+    AudioFaust* DSP = new AudioFaust(48000, 32);
+    DSP->start();
+    
+    // Waiting forever
+    vTaskSuspend(nullptr);
 }
+#endif
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

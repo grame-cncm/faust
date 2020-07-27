@@ -437,7 +437,8 @@
                 return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
             }
 
-            var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+            var audio_context = (isWebKitAudio) ? new webkitAudioContext({ latencyHint: 0.00001 }) : new AudioContext({ latencyHint: 0.00001 });
+            audio_context.destination.channelInterpretation = "discrete";
             var buffer_size = 1024;
             var audio_input = null;
             var factory = null;
@@ -553,7 +554,7 @@
                 } else if (cmd === 11) {
                     ctrlChange(channel, data1, data2);
                 } else if (cmd === 14) {
-                    pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+                    pitchWheel(channel, (data2 * 128.0 + data1));
                 }
                 
                 /*
@@ -603,16 +604,15 @@
             function activateAudioInput()
             {
                 console.log("activateAudioInput");
-                if (!navigator.getUserMedia) {
-                    navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-                }
 
-                if (navigator.getUserMedia) {
-                    navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
-                                           alert('Error getting audio input');
-                                           console.log(e);
-                                           audio_input = null;
-                                           });
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
+                        .then(getDevice)
+                        .catch((e) => {
+                            alert('Error getting audio input');
+                            console.log(e);
+                            audio_input = null;
+                        });
                 } else {
                     alert('Audio input API not available');
                 }
@@ -824,9 +824,9 @@
             
             function checkPolyphonicDSP(json)
             {
-                if (!((json.indexOf("/freq") !== -1)
-                    && (json.indexOf("/gain") !== -1)
-                    && (json.indexOf("/gate") !== -1))) {
+                if (!(((json.indexOf("/freq") !== -1) || (json.indexOf("/key") !== -1))
+                    && (json.indexOf("/gate") !== -1)
+                    && ((json.indexOf("/gain") !== -1) || (json.indexOf("/vel") !== -1) || (json.indexOf("/velocity") !== -1)))) {
                     alert("Faust DSP code is not Polyphonic, it will probably not work correctly in this mode...")
                 }
             }
@@ -834,6 +834,7 @@
             function deleteDSP()
             {
                 if (DSP) {
+                    DSP.destroy();
                     if (audio_input) {
                         audio_input.disconnect(DSP);
                     }
@@ -1018,7 +1019,7 @@
             // Timer to save page and DSP state to local storage
             setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
             
-            // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when code is ready
+            // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when the code is ready
             // (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
             
             faust_module['onRuntimeInitialized'] = init;

@@ -27,6 +27,18 @@
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/meta.h"
 
+// we require macro declarations
+#define FAUST_UIMACROS
+
+// but we will ignore most of them
+#define FAUST_ADDBUTTON(l,f)
+#define FAUST_ADDCHECKBOX(l,f)
+#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
+#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
+#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
+#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+
 //**************************************************************
 // Soundfile handling
 //**************************************************************
@@ -34,6 +46,10 @@
 // Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known
 
 #if SOUNDFILE
+// So that the code uses JUCE audio file loading code
+#if JUCE_DRIVER
+#define JUCE_64BIT 1
+#endif
 #include "faust/gui/SoundUI.h"
 #endif
 
@@ -68,8 +84,7 @@
 #elif IOS_DRIVER
     #include "faust/audio/coreaudio-ios-dsp.h"
 #elif ANDROID_DRIVER
-    #include <android/log.h>
-    #include "faust/audio/android-dsp.h"
+    #include "faust/audio/oboe-dsp.h"
 #elif ALSA_DRIVER
     #include "faust/audio/alsa-dsp.h"
 #elif JACK_DRIVER
@@ -84,6 +99,8 @@
     #include "faust/audio/juce-dsp.h"
 #elif DUMMY_DRIVER
     #include "faust/audio/dummy-audio.h"
+#elif TEENSY_DRIVER
+    #include "faust/audio/teensy-dsp.h"
 #endif
 
 //**************************************************************
@@ -95,6 +112,8 @@
     // Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
     #include "faust/midi/juce-midi.h"
+#elif TEENSY_DRIVER
+    #include "faust/midi/teensy-midi.h"
 #else
     #include "faust/midi/rt-midi.h"
     #include "faust/midi/RtMidi.cpp"
@@ -136,7 +155,7 @@ DspFaust::DspFaust(bool auto_connect)
     // JUCE audio device has its own sample rate and buffer size
     driver = new juceaudio();
 #else
-    std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
+    std::cerr << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
     throw std::bad_alloc();
 #endif
     init(NULL, driver);
@@ -180,12 +199,14 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
 #elif IOS_DRIVER
     audio* driver = new iosaudio(sample_rate, buffer_size);
 #elif ANDROID_DRIVER
-    audio* driver = new androidaudio(sample_rate, buffer_size);
+    // OBOE has its own and buffer size
+    std::cerr << "You are setting 'buffer_size' with a driver that does not need it !\n";
+    audio* driver = new oboeaudio(-1);
 #elif ALSA_DRIVER
     audio* driver = new alsaaudio(sample_rate, buffer_size);
 #elif JACK_DRIVER
     // JACK has its own sample rate and buffer size
-    std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+    std::cerr << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
 #if MIDICTRL
     audio* driver = new jackaudio_midi(auto_connect);
 #else
@@ -199,10 +220,14 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
     audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+    std::cerr << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
     audio* driver = new juceaudio();
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
+#elif TEENSY_DRIVER
+    // TEENSY has its own and buffer size
+    std::cerr << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+    audio* driver = new teensyaudio();
 #endif
     return driver;
 }
@@ -216,6 +241,9 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     fMidiInterface = new MidiUI(midi);
 #elif JUCE_DRIVER
     midi = new juce_midi();
+    fMidiInterface = new MidiUI(midi, true);
+#elif TEENSY_DRIVER
+    midi = new teensy_midi();
     fMidiInterface = new MidiUI(midi, true);
 #else
     midi = new rt_midi();
@@ -337,7 +365,7 @@ bool DspFaust::isOSCOn()
 #if OSCCTRL
 	return true;
 #else
-  return false;
+    return false;
 #endif
 }
 
@@ -384,6 +412,11 @@ const char* DspFaust::getJSONUI()
 const char* DspFaust::getJSONMeta()
 {
 	return fPolyEngine->getJSONMeta();
+}
+
+void DspFaust::buildUserInterface(UI* ui_interface)
+{
+    fPolyEngine->buildUserInterface(ui_interface);
 }
 
 int DspFaust::getParamsCount()

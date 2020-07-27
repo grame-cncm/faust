@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     }
 #endif
     
-    if (DSP == 0) {
+    if (!DSP) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 // After audio init to get SR
 #ifdef SOUNDFILE
     // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"), audio.getSampleRate());
+    SoundUI soundinterface(SoundUI::getBinaryPath() + "/Contents/Resources/", audio.getSampleRate());
     // SoundUI has to be dispatched on all internal voices
     if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(&soundinterface);
@@ -275,6 +275,11 @@ int main(int argc, char* argv[])
     
     audio.stop();
     finterface.saveState(rcfilename);
+    
+    delete DSP;
+#ifdef MIDICTRL
+    delete midiinterface;
+#endif
     
     return 0;
 }

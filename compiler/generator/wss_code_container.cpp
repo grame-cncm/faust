@@ -212,10 +212,10 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
         InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
 
     for (size_t i = 0; i < ready_loop.size(); i++) {
-        list<ValueInst*> fun_args;
-        fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
-        fun_args.push_back(InstBuilder::genInt32NumInst(ready_loop[i]));
-        pushAllocateMethod(InstBuilder::genVoidFunCallInst("addReadyTask", fun_args));
+        list<ValueInst*> fun_args1;
+        fun_args1.push_back(InstBuilder::genLoadStructVar("fScheduler"));
+        fun_args1.push_back(InstBuilder::genInt32NumInst(ready_loop[i]));
+        pushAllocateMethod(InstBuilder::genVoidFunCallInst("addReadyTask", fun_args1));
     }
     list<ValueInst*> fun_args2;
     fun_args2.push_back(InstBuilder::genLoadStructVar("fScheduler"));
@@ -527,11 +527,11 @@ DeclareFunInst* WSSCodeContainer::generateComputeThreadExternal(const string& na
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args;
-        args.push_back(
+        list<ValueInst*> args1;
+        args1.push_back(
             InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj), InstBuilder::genBasicTyped(Typed::kObj_ptr)));
-        args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-        block->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread" + fKlassName, args));
+        args1.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
+        block->pushBackInst(InstBuilder::genVoidFunCallInst("computeThread" + fKlassName, args1));
     }
 
     // Explicit return

@@ -53,7 +53,7 @@ static const char* kPortOpt	= "-port";
 //--------------------------------------------------------------------------
 // utility for command line arguments 
 //--------------------------------------------------------------------------
-static int getPortOption(int argc, char *argv[], const std::string& option, int defaultValue)
+static int getPortOption(int argc, char* argv[], const std::string& option, int defaultValue)
 {
 	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i]) {
@@ -79,7 +79,7 @@ static bool getNetInfos(string& name, string& ip)
 	if (!host) return false;
 
 	stringstream s;
-	unsigned char * ptr = (unsigned char *)host->h_addr;
+	unsigned char * ptr = (unsigned char*)host->h_addr;
 	s << int(ptr[0]) << "." << int(ptr[1]) << "." << int(ptr[2]) << "." << int(ptr[3]);
 	ip = s.str();
 	return true;
@@ -87,7 +87,7 @@ static bool getNetInfos(string& name, string& ip)
 
 
 //--------------------------------------------------------------------------
-HTTPDControler::HTTPDControler(int argc, char *argv[], const char* applicationname, bool init)
+HTTPDControler::HTTPDControler(int argc, char* argv[], const char* applicationname, bool init)
 	: fTCPPort(kTCPBasePort), fJson(0), fInit(init)
 {
 	fTCPPort = getPortOption(argc, argv, kPortOpt, fTCPPort);

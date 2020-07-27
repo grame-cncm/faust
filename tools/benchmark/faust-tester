@@ -4,15 +4,18 @@ FILES=""
 IMP=false
 RAMP=false
 PULSE=false
+PERIOD=false
+DISPLAY=44100
 
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust-tester [-imp] [-pulse] foo.dsp"
+        echo "faust-tester [-imp] [-pulse <num (in samples)] [-display <num>] foo.dsp"
         echo "Use '-imp' to test with an dirac impulse"
-        echo "Use '-pulse' to test with a periodic pulse"
+        echo "Use '-pulse <num (in samples)>' to test with a periodic pulse generated every 'num' samples"
+        echo "Use '-display <num>' to diplay <num> samples (default 44100)"
         exit
     fi
 
@@ -22,6 +25,11 @@ do
         RMP=true
     elif [ "$p" = "-pulse" ]; then
         PULSE=true
+        shift
+        PERIOD=$1
+    elif [ "$p" = "-display" ]; then
+        shift
+        DISPLAY=$1
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
@@ -41,32 +49,34 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
     dspName="${f%.dsp}"
     
-     # creates a temporary dir
+    # creates a temporary dir
     TMP="${f%.dsp}_tester"
     mkdir "$TMP"
     cp "$SRCDIR/$f" "$TMP"
-    
+
+    # generate and run 'impulse' test
     if [ $IMP == true ]; then
-    	cat > $TMP/test1.dsp << EndOfCode
+    	cat > $TMP/imp.dsp << EndOfCode
     	test = 1 - 1';
     	process = test <: library("$SRCDIR/$f").process;
 EndOfCode
 
-        faust2plot $TMP/test1.dsp || echo "ERROR in faust2plot"
-        ./$TMP/test1 -n 10000 > $TMP/test1.plot
-        octave $TMP/test1.plot
+        faust2plot $TMP/imp.dsp || echo "ERROR in faust2plot"
+        ./$TMP/imp -n $DISPLAY > $TMP/imp.plot
+        octave $TMP/imp.plot
     fi
- 	
+
+    # generate and run 'pulse' test
  	if [ $PULSE == true ]; then
-    	cat > $TMP/test2.dsp << EndOfCode
+    	cat > $TMP/pulse.dsp << EndOfCode
     	import("stdfaust.lib");
-    	test = ba.pulsen(30, 10000);
+    	test = ba.pulsen(30, $PERIOD);
     	process = test <: library("$SRCDIR/$f").process;
 EndOfCode
 
-        faust2plot $TMP/test2.dsp || echo "ERROR in faust2plot"
-        ./$TMP/test2 -n 30000 > $TMP/test2.plot
-        octave $TMP/test2.plot
+        faust2plot $TMP/pulse.dsp || echo "ERROR in faust2plot"
+        ./$TMP/pulse -n $DISPLAY > $TMP/pulse.plot
+        octave  $TMP/pulse.plot
  	fi
 
 done

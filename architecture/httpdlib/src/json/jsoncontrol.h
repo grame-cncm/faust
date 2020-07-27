@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __jsoncontrol__
 #define __jsoncontrol__
 
@@ -46,11 +45,11 @@ template <typename C> class jsoncontrol : public jsonnode
 		
 	public:
 		
-	static Sjsonnode create (const char *name, const char* type, C min, C max, const TMetas& m)
+	static Sjsonnode create (const char* name, const char* type, C min, C max, const TMetas& m)
 			{ return new jsoncontrol (name, type, min, max, m); }
-	static Sjsonnode create (const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
+	static Sjsonnode create (const char* name, const char* type, C init, C min, C max, C step, const TMetas& m)
 			{ return new jsoncontrol (name, type, init, min, max, step, m); }
-	static Sjsonnode create (const char *name, const char* type, const TMetas& m) 
+	static Sjsonnode create (const char* name, const char* type, const TMetas& m)
 			{ return new jsoncontrol (name, type, m); }
 
 		virtual void	print(std::ostream& out, jsonendl& eol) const
@@ -88,13 +87,13 @@ template <typename C> class jsoncontrol : public jsonnode
 	
 	protected:
 
-				 jsoncontrol(const char *name, const char* type, const TMetas& m)
+				 jsoncontrol(const char* name, const char* type, const TMetas& m)
 					: fName(name), fType(type), fInit(0), fMin(0), fMax(1), fStep(1), fMeta(m) {}
 
-				 jsoncontrol(const char *name, const char* type, C min, C max, const TMetas& m)
+				 jsoncontrol(const char* name, const char* type, C min, C max, const TMetas& m)
 					: fName(name), fType(type), fMin(min), fMax(max), fStep(0), fMeta(m) {}
 
-				 jsoncontrol(const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
+				 jsoncontrol(const char* name, const char* type, C init, C min, C max, C step, const TMetas& m)
 					: fName(name), fType(type), fInit(init), fMin(min), fMax(max), fStep(step), fMeta(m) {}
 
 		virtual ~jsoncontrol() {}

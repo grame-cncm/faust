@@ -1,43 +1,50 @@
-#LIB := ../../compiler
 LIB ?= ../../build/lib
-INC = ../../architecture
-INC1 = ../../compiler/generator/interpreter/
+STRIP =
 FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
-#FASTMATH = ../../architecture/faust/dsp/fastmath-light.cpp
+INC = ../../architecture/
 
 DESTDIR ?=
 PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
+system := $(shell uname -s)
+
+ifeq ($(system), Darwin)
+	STRIP = -dead_strip
+endif
+
 all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath faust-osc-controller
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -dead_strip -lz -lncurses -lpthread -o faustbench-llvm
+	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-llvm
 
 faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -dead_strip -lz -lncurses -lpthread -o faustbench-llvm-interp
+	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-llvm-interp
 
 faustbench-interp: faustbench-interp.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faustbench-interp.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -dead_strip -lz -lncurses -lpthread -o faustbench-interp
+	$(CXX) -std=c++11 -O3 faustbench-interp.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-interp
+
+faustbench-interp-comp: faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a
+	$(CXX) -std=c++11 -O3 faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a mir.o mir-gen.o -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-interp-comp
 
 dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-faust.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -dead_strip -o dynamic-faust
+	$(CXX) -std=c++11 -O3 dynamic-faust.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -o dynamic-faust
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack sndfile samplerate gtk+-2.0` -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack sndfile samplerate gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-jack-gtk
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp -I $(INC1) $(LIB)/libfaustmachine.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-machine-jack-gtk
+	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-machine-jack-gtk
 
-poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp
-	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0 sndfile samplerate` -dead_strip -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
+poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0 sndfile samplerate` $(STRIP) -lz -lncurses -lpthread $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
 
 faust-osc-controller: faust-osc-controller.cpp
-	$(CXX) -std=c++11 -O3 faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` -dead_strip -lOSCFaust -llo -o faust-osc-controller
+	$(CXX) -std=c++11 -O3 faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o faust-osc-controller
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 interp-tracer.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` -dead_strip -lz -lncurses -lpthread -o interp-tracer
+	$(CXX) -std=c++11 -O3 interp-tracer.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o interp-tracer
 
 fastmath: $(FASTMATH)
 	clang++ -Ofast -emit-llvm -S $(FASTMATH) -o fastmath.ll
@@ -49,6 +56,7 @@ emcc: $(FASTMATH)
 
 install:
 
+	cp faust2object $(prefix)/bin
 	cp faustbench-wasm $(prefix)/bin
 	cp faust2benchwasm $(prefix)/bin
 	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js wasm-bench-jsmem.js $(prefix)/share/faust/webaudio
@@ -63,9 +71,11 @@ install:
 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
 	([ -e faustbench-interp ]) && cp faustbench-interp $(prefix)/bin || echo faustbench-interp not found
+	([ -e faustbench-interp-comp ]) && cp faustbench-interp-comp $(prefix)/bin || echo faustbench-interp-comp not found
 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
+	cp -r iOS-bench $(shell faust --archdir)
 
 clean:
 
@@ -78,6 +88,7 @@ clean:
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
 	([ -e faustbench-interp ]) && rm faustbench-interp || echo faustbench-interp not found
+	([ -e faustbench-interp-comp ]) && rm faustbench-interp-comp || echo faustbench-interp-comp not found
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && rm fastmath.wasm || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && rm faust-osc-controller || echo faust-osc-controller not found

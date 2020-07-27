@@ -22,12 +22,15 @@
 #ifndef _Text_H
 #define _Text_H
 
+#include <string.h>
+
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -53,18 +56,18 @@ string T(double n);
 string unquote(const string& s);
 string quote(const string& s);
 
-void   tab(int n, ostream& fout);
-void   back(int n, ostream& fout);
-void   printlines(int n, list<string>& lines, ostream& fout, const string& sep = "");
+void tab(int n, ostream& fout);
+void back(int n, ostream& fout);
+void printlines(int n, list<string>& lines, ostream& fout, const string& sep = "");
 string rmWhiteSpaces(const string& s);
 
 inline string checkFloat(float val)
 {
-    return T(val);
+    return (std::isinf(val)) ? "INFINITY" : T(val);
 }
 inline string checkDouble(double val)
 {
-    return T(val);
+    return (std::isinf(val)) ? "INFINITY" : T(val);
 }
 string checkReal(double val);
 
@@ -250,5 +253,16 @@ inline string flattenJSON1(const string& src)
     }
     return dst;
 }
+
+// To filter compilation arguments in 'createDSPFactoryFromString' and 'createInterpreterDSPFactoryFromString'
+inline bool testArg(const char* arg)
+{
+    vector<const char*> filter_argv = { "-tg", "-sg", "-ps", "-svg", "-mdoc", "-mdlang", "-stripdoc", "-sd", "-xml", "-json" };
+    for (size_t i = 0; i < filter_argv.size(); i++) {
+        if (strcmp(filter_argv[i], arg) == 0) return true;
+    }
+    return false;
+}
+
 
 #endif

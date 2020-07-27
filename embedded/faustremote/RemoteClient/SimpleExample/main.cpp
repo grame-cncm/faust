@@ -28,7 +28,7 @@
 // MAIN OF DYNAMIC COMPILER
 //
 //-------------------------------------------------------------------------
-// 									MAIN
+//                                     MAIN
 //-------------------------------------------------------------------------
 #include <sys/stat.h>
 #include <iostream>
@@ -70,25 +70,25 @@ int testClient(int argc, const char* argv[])
     string ipServer = loptions(argv, "--ipserver", "localhost");
     int portServer = lopt(argv, "--portserver", 7777);
     int srate = lopt(argv, "--frequency", 44100);
-    int	fpb = lopt(argv, "--buffer", 512);
-
+    int fpb = lopt(argv, "--buffer", 512);
+    
     QApplication myApp(argc, (char**)argv);
     
     string filePath = loptions(argv, "--file", "");
-            
+    
     string errorFactory("");
     
- /* vector<pair<string, string> > factories_list;
-    getRemoteFactoriesAvailable(ipServer, portServer, &factories_list);
-    
-    printf("Factories List : \n");
-    for(int i=0; i<factories_list.size(); i++)
-        printf("%s : %s\n", factories_list[i].first.c_str(), factories_list[i].second.c_str());
-   */ 
+    /* vector<pair<string, string> > factories_list;
+     getRemoteFactoriesAvailable(ipServer, portServer, &factories_list);
+     
+     printf("Factories List : \n");
+     for(int i=0; i<factories_list.size(); i++)
+     printf("%s : %s\n", factories_list[i].first.c_str(), factories_list[i].second.c_str());
+     */
     const char* arguments[32];
     int nbArgument = 0;
-          
-//--- Separate compilation options
+    
+    //--- Separate compilation options
     for (int i = 1; i < argc; i++) {
         if (string(argv[i]).find("--") != string::npos) {
             i++;
@@ -111,29 +111,29 @@ int testClient(int argc, const char* argv[])
     arguments[nbArgument++] = "-xml";
     //arguments[nbArgument++] = "-mdoc";
     //arguments[nbArgument++] = "-vec";
-              
+    
     string content = pathToContent(filePath);
     remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
     
     /*remote_dsp_factory* factory = 0;
-    
-    if (factories_list.size() > 0)
-        factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].second.c_str());
-    */
+     
+     if (factories_list.size() > 0)
+     factory = getRemoteDSPFactoryFromSHAKey(ipServer, portServer, factories_list[0].second.c_str());
+     */
     if (factory != NULL) {
-                
+        
         remote_dsp* DSP;
         int errorInstance;
         DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), NULL, NULL, errorInstance);
-                    
-        if (DSP != NULL) { 
-                        
+        
+        if (DSP != NULL) {
+            
             QTGUI* interface = new QTGUI();
             jackaudio* audio = new jackaudio;
             //coreaudio* audio = new coreaudio(srate, fpb);
-                    
-            DSP->buildUserInterface(interface);   
-                    
+            
+            DSP->buildUserInterface(interface);
+            
             if (!audio->init("RemoteExample", DSP)) {
                 printf("Audio could not be initialized\n");
             } else if (!audio->start()) {
@@ -144,7 +144,7 @@ int testClient(int argc, const char* argv[])
             
             //myApp.setStyleSheet(STYLESHEET);
             myApp.exec();
-             
+            
             // STOP && DESALLOCATION OF ALL RESOURCES
             
             interface->stop();
@@ -161,20 +161,20 @@ int testClient(int argc, const char* argv[])
     } else {
         printf("CREATE FACTORY FAILED = %s\n", errorFactory.c_str());
     }
-
+    
     return 0;
 }
 
 pthread_t gThread;
 QTGUI* interface = NULL;
 httpdUI* httpdinterface = NULL;
- 
+
 static void* RunDSP(void* arg)
 {
     llvm_dsp* dsp = (llvm_dsp*)arg;
     
     //QTGUI* interface = new QTGUI();
-    //dsp->buildUserInterface(interface);  
+    //dsp->buildUserInterface(interface);
     
     httpdinterface = new httpdUI("toto", dsp->getNumInputs(), dsp->getNumOutputs(), 0, NULL);
     dsp->buildUserInterface(httpdinterface);
@@ -189,25 +189,25 @@ static bool DSPCallback(dsp* dsp, void* arg)
     if (interface) {
         interface->stop();
     }
-     
+    
     if (pthread_create(&gThread, NULL, RunDSP, dsp) != 0) {
         printf("RemoteDSPServer : pthread_create failed\n");
         return false;
     }
-  
+    
     return true;
 }
 
 int testServer(int argc, const char* argv[])
 {
-    int	port = lopt(argv, "--port", 7777);
+    int port = lopt(argv, "--port", 7777);
     QApplication myApp(argc, (char**)argv);
     remote_dsp_server* server = createRemoteDSPServer(0, NULL);
     
     //interface = new QTGUI();
     
     server->setCreateDSPInstanceCallback(DSPCallback, server);
-     
+    
     if (!server->start(port)) {
         std::cerr << "Unable to start Faust Remote Processing Server" << std::endl;
         return -1;
@@ -223,7 +223,7 @@ int testServer(int argc, const char* argv[])
 }
 
 int main(int argc, const char* argv[])
-{    
+{
     return testClient(argc, argv);
     //return testServer(argc, argv);
 }

@@ -227,3 +227,8 @@ bool isLogicalOpcode(int o)
 {
     return (o >= kAND && o <= kXOR);
 }
+
+bool isShiftOpcode(int o)
+{
+    return (o >= kLsh && o <= kRsh);
+}

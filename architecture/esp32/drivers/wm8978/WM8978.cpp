@@ -150,7 +150,7 @@ void WM8978::micGain(uint8_t gain)
 {
     gain &= 0X3F;
     writeReg(45,gain);      // R45,PGA
-    writeReg(46,gain|1<<8);	// R46, PGA
+    writeReg(46,gain|1<<8);    // R46, PGA
 }
 
 // WM8978 L2/R2 (Line In) (L2/R2-->ADC)
@@ -188,7 +188,7 @@ void WM8978::i2sCfg(uint8_t fmt,uint8_t len)
 {
     fmt &= 0X03;
     len &= 0X03;
-    writeReg(4,(fmt<<3)|(len<<5));	// R4, WM8978
+    writeReg(4,(fmt<<3)|(len<<5));    // R4, WM8978
 }
 
 // Headphone Output Volume
@@ -307,7 +307,7 @@ void WM8978::eq5Set(uint8_t cfreq,uint8_t gain)
 }
 
 void WM8978::alcSet(uint8_t enable, uint8_t maxgain, uint8_t mingain)
-{ 
+{
     uint16_t regval;
     
     if(maxgain>7) maxgain=7;
@@ -315,13 +315,13 @@ void WM8978::alcSet(uint8_t enable, uint8_t maxgain, uint8_t mingain)
     
     regval=readReg(32);
     if(enable)
-    regval |= (3<<7);
+        regval |= (3<<7);
     regval |= (maxgain<<3)|(mingain<<0);
     writeReg(32,regval);
 }
 
 void WM8978::noiseSet(uint8_t enable,uint8_t gain)
-{ 
+{
     uint16_t regval;
     
     if(gain>7) gain=7;

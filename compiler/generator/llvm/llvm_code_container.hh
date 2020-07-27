@@ -48,7 +48,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
     void generateFunMaps();
 
-    llvm::PointerType* generateDspStruct();
+    PointerType* generateDspStruct();
 
     // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer
     // classes
@@ -91,6 +91,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         fBuilder->ClearInsertionPoint();
     }
  
+    void init(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context);
 
    public:
     LLVMCodeContainer(const string& name, int numInputs, int numOutputs);

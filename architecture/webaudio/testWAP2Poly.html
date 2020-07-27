@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+ 
+<head>
+  <H1>Host that loads a plugin with its GUI and MIDI</H1>
+  <H2>use a MIDI keyboard to test it !</H2>
+  <script
+    src="https://mainline.i3s.unice.fr/WebAudioPluginBank/bower_components/webaudio-controls2/webcomponents-lite.js">
+  </script>
+</head>
+<script type="module">
+
+    import DSPPoly from "./main.js";
+
+    var ctx = new AudioContext();
+    var dsp_node = null;
+
+    // MIDI input handling
+    function keyOn(channel, pitch, velocity)
+    {
+        if (dsp_node) {
+            dsp_node.keyOn(channel, pitch, velocity);
+        }
+    }
+
+    function keyOff(channel, pitch, velocity)
+    {
+        if (dsp_node) {
+            dsp_node.keyOff(channel, pitch, velocity);
+        }
+    }
+
+    function pitchWheel(channel, bend)
+    {
+        if (dsp_node) {
+            dsp_node.pitchWheel(channel, bend);
+        }
+    }
+
+    function ctrlChange(channel, ctrl, value)
+    {
+        if (dsp_node) {
+            dsp_node.ctrlChange(channel, ctrl, value);
+        }
+    }
+
+    function midiMessageReceived(ev)
+    {
+        var cmd = ev.data[0] >> 4;
+        var channel = ev.data[0] & 0xf;
+        var data1 = ev.data[1];
+        var data2 = ev.data[2];
+        
+        if (channel === 9) {
+            return;
+        } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) {
+            keyOff(channel, data1, data2);
+        } else if (cmd === 9) {
+            keyOn(channel, data1, data2);
+        } else if (cmd === 11) {
+            ctrlChange(channel, data1, data2);
+        } else if (cmd === 14) {
+            pitchWheel(channel, (data2 * 128.0 + data1));
+        }
+    }
+
+    function onerrorcallback(error)
+    {
+        console.log(error);
+    }
+
+    function onsuccesscallbackStandard(access)
+    {
+        access.onstatechange = function(e) {
+            if (e.port.type === "input") {
+                if (e.port.state === "connected") {
+                    console.log(e.port.name + " is connected");
+                    e.port.onmidimessage = midiMessageReceived;
+                } else if (e.port.state  === "disconnected") {
+                    console.log(e.port.name + " is disconnected");
+                    e.port.onmidimessage = null;
+                }
+            }
+        }
+        
+        for (var input of access.inputs.values()) {
+            input.onmidimessage = midiMessageReceived;
+            console.log(input.name + " is connected");
+        }
+    }
+
+    function activateMIDIInput()
+    {
+        console.log("activateMIDIInput");
+        if (typeof(navigator.requestMIDIAccess) !== "undefined") {
+            navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
+        } else {
+            alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+        }
+    }
+
+    var pluginURL = ".";
+    var plugin = new DSPPoly(ctx, 8, pluginURL);
+
+    plugin.load().then((node) => {
+        plugin.loadGui().then((elem) => {
+          document.body.appendChild(elem);
+          document.querySelector("#save").addEventListener('click', () => {
+            node.getState()
+              .then((data) => {
+                state = data;
+                console.log("State saved :", data);
+              })
+          });
+          document.querySelector("#load").addEventListener('click', () => {
+            node.setState(state).then((data) => {
+              console.log("State restored :", data)
+            })
+          });
+        });
+        console.log(node.getDescriptor());
+        // Activate MIDI
+        activateMIDIInput();
+        dsp_node = node;
+        node.connect(ctx.destination);
+    });
+    
+    // To activate audio on iOS
+    window.addEventListener('touchstart', function() {
+                                if (ctx.state !== "suspended") return;
+                                // create empty buffer
+                                var buffer = ctx.createBuffer(1, 1, 22050);
+                                var source = ctx.createBufferSource();
+                                source.buffer = buffer;
+                                
+                                // connect to output (your speakers)
+                                source.connect(ctx.destination);
+                                
+                                // play the file
+                                source.start();
+                                
+                                ctx.resume().then(() => console.log("Audio resumed"));
+                            }, false);
+                            
+    // On desktop
+    window.addEventListener("mousedown", () => {
+                            	if (ctx.state !== "suspended") return;
+                            	ctx.resume().then(() => console.log("Audio resumed"))
+                            });
+    
+</script>
+
+</html>

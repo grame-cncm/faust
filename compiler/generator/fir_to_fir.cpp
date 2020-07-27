@@ -72,3 +72,71 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
         return false;
     }
 }
+
+// Expand and rewrite ControlInst as 'IF (cond) {....}' instructions
+void ControlExpander::beginCond(ControlInst* inst)
+{
+    faustassert(fIfBlockStack.top().fCond == nullptr);
+    faustassert(fIfBlockStack.top().fIfInst == nullptr);
+    
+    fIfBlockStack.top().fCond = inst->fCond;
+    fIfBlockStack.top().fIfInst = new IfInst(inst->fCond->clone(this), new BlockInst(), new BlockInst());
+    fIfBlockStack.top().fIfInst->fThen->pushBackInst(inst->fStatement->clone(this));
+}
+
+void ControlExpander::continueCond(ControlInst* inst)
+{
+    faustassert(fIfBlockStack.top().fIfInst != nullptr);
+    fIfBlockStack.top().fIfInst->fThen->pushBackInst(inst->fStatement->clone(this));
+}
+
+void ControlExpander::endCond()
+{
+    faustassert(fBlockStack.top() != nullptr);
+ 
+    if (fIfBlockStack.size() > 0 && fIfBlockStack.top().fIfInst) {
+        fBlockStack.top()->pushBackInst(fIfBlockStack.top().fIfInst);
+        fIfBlockStack.top().init();
+    }
+}
+
+StatementInst* ControlExpander::visit(ControlInst* inst)
+{
+    if (!fIfBlockStack.top().fCond) {
+        beginCond(inst);
+    } else if (inst->hasCondition(fIfBlockStack.top().fCond)) {
+        continueCond(inst);
+    } else {
+        endCond();
+        beginCond(inst);
+    }
+    
+    // Not used
+    return nullptr;
+}
+
+StatementInst* ControlExpander::visit(BlockInst* inst)
+{
+    BlockInst* cloned = new BlockInst();
+    fBlockStack.push(cloned);
+    
+    fIfBlockStack.push(IfBlock());
+    
+    for (auto& it : inst->fCode) {
+        if (dynamic_cast<ControlInst*>(it)) {
+            // ControlInst will progressively fill the current block by side effect
+            it->clone(this);
+        } else {
+            endCond();
+            cloned->pushBackInst(it->clone(this));
+        }
+    }
+    
+    // Possibly end last IF
+    endCond();
+    
+    fBlockStack.pop();
+    fIfBlockStack.pop();
+    
+    return cloned;
+}

@@ -109,17 +109,17 @@ delR	= delay;
 
 crossLF	= 1200;
 
-CrossFeedb	= 0.6;
-dwDel 		= vslider("dryWetDelay[BELA: ANALOG_4]", 0.5, 0, 1, 0.001);
+CrossFeedb = 0.6;
+dwDel = vslider("dryWetDelay[BELA: ANALOG_4]", 0.5, 0, 1, 0.001);
 
 routeur(a,b,c,d) = ((a*CrossFeedb):fi.lowpass(2,crossLF))+c,
 					((b*CrossFeedb):fi.lowpass(2,crossLF))+d;
 
 xdelay = _,_ <: _,_,((de.sdelay(65536, 512,preDelL),_):
-		(routeur : de.sdelay(65536, 512,delL) ,de.sdelay(65536, 512,delR) ) ~ (_,_)) : dry_wetST(dwDel);
+		(routeur : de.sdelay(65536, 512,delL) ,de.sdelay(65536, 512,delR)) ~ (_,_)) : dry_wetST(dwDel);
 
 // REVERB (from freeverb_demo) /////////////////////////////////////////////////////////////////////////////////////////////////////////
-reverb = _,_ <: (*(g)*fixedgain,*(g)*fixedgain :
+reverb = _,_ <: (*(g)*fixedgain, *(g)*fixedgain :
 	re.stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)),
 	*(1-g), *(1-g) :> _,_
     with {

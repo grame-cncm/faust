@@ -1,6 +1,6 @@
 # Faust - Programming Language for Audio Applications and Plugins
 
-## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
+## Grame, Centre National de Creation Musicale: <https://www.grame.fr>
 
 master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust)
 master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)
@@ -11,7 +11,7 @@ Faust (Functional Audio Stream) is a functional programming language specificall
 
 The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, LLVM IR, WebAssembly etc.) working at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as Csound, LADSPA, Max/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
 
-While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<http://www.grame.fr>), its birthplace.
+While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<https://www.grame.fr>), its birthplace.
 
 ## Versions and Branches
 
@@ -49,67 +49,32 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 ## Libraries
 
-Faust libraries are now in a [separated subproject](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main Faust repository using the following commands:
+Faust libraries are now in a [separated project](https://github.com/grame-cncm/faustlibraries) and included as a git submodule. We also include oboe (https://github.com/google/oboe) as submodule in two different places: architecture/android/app/oboe and architecture/smartkeyboard/app/oboe. These submodules are synchronized from time to time in the main Faust repository using the following commands:
 
     git submodule update --remote --merge
-    git add libraries
-    git commit -m "Project updated to the latest version of the libraries"
+    git add libraries architecture/android/app/oboe architecture/smartKeyboard/android/app/oboe
+    git commit -m "Faust updated to the latest version of the libraries and oboe."
     git push
 
 ## Compilation and Installation
 
-Since release 2.5.18, Faust compilation and installation is based on cmake. For details about compilation, you should look at the [build/README.md](https://github.com/grame-cncm/faust/blob/master-dev/build/README.md) file and have a look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple way](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install. 
-
-
-<!-- ### Getting the source code
-
-In order to compile Faust on your machine you can either download the latest release of the source code <https://github.com/grame-cncm/faust/releases> or clone the git repository. In order to clone the git repository you will have to do the following steps:
-
-	git clone https://github.com/grame-cncm/faust.git
-	cd faust
-	git submodule update --init
-
-The last step `git submodule update --init` is a new one. This is due to the fact that the Faust libraries have been moved to an independent github repository <https://github.com/grame-cncm/faustlibraries.git>. This repository is a submodule of the Faust repository (as well as some other Faust related projects).
-
-### Linux and MacOSX
-
-To build Faust on MacOSX or Linux, just run the following commands from the root of the distribution:
-
-	make
-	sudo make install
-
-This will compile the Faust compiler only, with a set of backends that do not have additional dependencies (so the LLVM backend will **not be compiled**). Use `make help` to see what other targets can be used from the toplevel Makefile.
-
-To refine compilation for more specific cases, go in the build folder and see the [build/README.md](build/README.md) file.
-
-### Windows
-
-You can use either MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See the [build/README.md](build/README.md) file for more details.
-
-### Build & Use Faust with Docker :
-
-	docker build -t faust
-	docker run faust [args...]
-
-For example to display the help:
-
-	docker run faust -h
-
-To use an additional tool, for example faust2pdf:
-
-	docker run --entrypoint faust2pdf faust [args...] -->
+Since release 2.5.18, Faust compilation and installation is based on [CMake](https://cmake.org/). For details about compilation, you should look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple tutorial](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install.
 
 ## Using the Faust Examples
 
 The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
 
-### Faust Editor
+### Online Faust Editor
 
-The [Faust Editor](https://faust.grame.fr/editor) can be used to edit, compile and run Faust code from any recent Web Browser with WebAssembly support.
+The [Online Faust Editor](https://fausteditor.grame.fr) is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures.
 
-### FaustPlayground
+### Online Faust IDE
 
-[FaustPlayground](https://faust.grame.fr/faustplayground/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
+The [Online Faust IDE](https://faustide.grame.fr)  is a zero-conf tool that provides all the compilation services, including binaries generation for all the supported platforms and architectures, but also various utilities for signal processing development.
+
+### Faust Playground
+
+[Faust Playground](https://faustplayground.grame.fr/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
 
 ### FaustLive
 

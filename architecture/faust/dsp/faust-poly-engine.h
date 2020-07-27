@@ -302,8 +302,8 @@ class FaustPolyEngine {
         }
     
         /*
-         * buildUserInterface(ui)
-         * Calls the polyphonic or monophonic buildUserInterface with the ui parameter.
+         * buildUserInterface(UI* ui_interface)
+         * Calls the polyphonic or monophonic buildUserInterface with the ui_interface parameter.
          */
         void buildUserInterface(UI* ui_interface)
         {
@@ -556,7 +556,7 @@ class FaustPolyEngine {
         /*
          * getScreenColor() -> c:int
          * Get the requested screen color c :
-         * c <  0 : no screen color requested (keep regular UI)
+         * c < 0 : no screen color requested (keep regular UI)
          * c >= 0 : requested color (no UI but a colored screen)
          */
         int getScreenColor()

@@ -1,7 +1,7 @@
 /************************** BEGIN dsp-checker.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -29,8 +29,17 @@
 #include <cmath>
 
 #include "faust/dsp/dsp.h"
+#include "faust/audio/fpe.h"
 
-class dsp_checker : public decorator_dsp
+//------------------------------------------------------------------------------
+// dsp_me_checker: a DSP decorator to check math Floating Point Exceptions (FPE)
+// - when 'runtime' is true FPE checking is done with signals/exceptions
+// and the program exit at first exception
+// - when 'runtime' is false FPE checking is done while running and
+// SUBNORMAL, INFINITE, NAN statistics can be displayed with printStats()
+//------------------------------------------------------------------------------
+
+class dsp_me_checker : public decorator_dsp
 {
     
     private:
@@ -38,6 +47,7 @@ class dsp_checker : public decorator_dsp
         long long fFP_SUBNORMAL;
         long long fFP_INFINITE;
         long long fFP_NAN;
+        bool fRuntime;
     
         void getStats(int cout, FAUSTFLOAT** outputs)
         {
@@ -48,7 +58,7 @@ class dsp_checker : public decorator_dsp
                         fFP_NAN++;
                     } else if (std::isinf(value)) {
                         fFP_INFINITE++;
-                    } else if (std::fpclassify(val) == FP_SUBNORMAL) {
+                    } else if (std::fpclassify(value) == FP_SUBNORMAL) {
                         fFP_SUBNORMAL++;
                     }
                 }
@@ -57,33 +67,46 @@ class dsp_checker : public decorator_dsp
     
     public:
     
-        dsp_checker(dsp* dsp):decorator_dsp(dsp)
-        {
-            fFP_SUBNORMAL = 0;
-            fFP_INFINITE = 0;
-            fFP_NAN = 0;
-        }
+        dsp_me_checker(dsp* dsp, bool runtime = false)
+        :decorator_dsp(dsp),
+        fFP_SUBNORMAL(0),
+        fFP_INFINITE(0),
+        fFP_NAN(0),
+        fRuntime(runtime)
+        {}
     
-        virtual ~dsp_checker() {}
+        virtual ~dsp_me_checker() {}
     
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            fDSP->compute(count, inputs, outputs);
-            getStats(count, outputs);
+            if (fRuntime) {
+                TRY_FPE
+                fDSP->compute(count, inputs, outputs);
+                CATCH_FPE
+            } else {
+                fDSP->compute(count, inputs, outputs);
+                getStats(count, outputs);
+            }
         }
         void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            fDSP->compute(date_usec, count, inputs, outputs);
-            getStats(count, outputs);
+            if (fRuntime) {
+                TRY_FPE
+                fDSP->compute(date_usec, count, inputs, outputs);
+                CATCH_FPE
+            } else {
+                fDSP->compute(date_usec, count, inputs, outputs);
+                getStats(count, outputs);
+            }
         }
     
         void printStats()
         {
-            std::cout << "-------------------------------"<< std::endl;
+            std::cout << "-------------------------------" << std::endl;
             std::cout << "FP_SUBNORMAL: " << fFP_SUBNORMAL << std::endl;
             std::cout << "FP_INFINITE: " << fFP_INFINITE << std::endl;
             std::cout << "FP_NAN: " << fFP_NAN << std::endl;
-            std::cout << "-------------------------------"<< std::endl;
+            std::cout << "-------------------------------" << std::endl;
         }
     
 };

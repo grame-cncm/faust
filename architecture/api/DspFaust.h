@@ -20,6 +20,8 @@
 #ifndef __faust_api__
 #define __faust_api__
 
+#include <cstdint>
+
 //===============API Reference==============
 //==========================================
 
@@ -30,6 +32,7 @@ class JuceOSCUI;
 class SoundUI;
 class audio;
 class dsp;
+class UI;
 class dsp_factory;
 
 class DspFaust
@@ -72,7 +75,6 @@ class DspFaust
         // #### Arguments
         //
         // * `auto_connect`: whether to automatically connect audio outpus to the hardware (usable with JACK)
-        //
         //----
         DspFaust(bool auto_connect = true);
 
@@ -87,7 +89,7 @@ class DspFaust
         //--------------------------------------------------------
         DspFaust(int, int, bool auto_connect = true);
 
-        //--------------`DspFaust(cinst string& dsp_content, int SR, int BS)`----------------
+        //--------------`DspFaust(const string& dsp_content, int SR, int BS)`----------------
         // Constructor.
         //
         // #### Arguments
@@ -129,7 +131,7 @@ class DspFaust
         //
         // `keyOn` will return 0 if the Faust object is not
         // polyphonic or the address to the allocated voice as
-        // a `long` otherwise. This value can be used later with
+        // a `uintptr_t` otherwise. This value can be used later with
         // [`setVoiceParamValue`](#setvoiceparamvalue) or
         // [`getVoiceParamValue`](#getvoiceparamvalue) to access
         // the parameters of a specific voice.
@@ -157,7 +159,7 @@ class DspFaust
         //--------------------------------------------------------
         int keyOff(int);
 
-        //-------------------`long newVoice()`--------------------
+        //-------------------`uintptr_t newVoice()`--------------------
         // Instantiate a new polyphonic voice. This method can
         // only be used if the `[style:poly]` metadata is used in
         // the Faust code or if `-nvoices` flag has been
@@ -165,14 +167,14 @@ class DspFaust
         //
         // `newVoice` will return 0 if the Faust object is not
         // polyphonic or the address to the allocated voice as
-        // a `long` otherwise. This value can be used later with
+        // a `uintptr_t` otherwise. This value can be used later with
         // `setVoiceParamValue`, `getVoiceParamValue` or
         // `deleteVoice` to access the parameters of a specific
         // voice.
         //--------------------------------------------------------
         uintptr_t newVoice();
 
-        //---------`int deleteVoice(long voice)`------------------
+        //---------`int deleteVoice(uintptr_t voice)`------------------
         // De-instantiate a polyphonic voice. This method can
         // only be used if the `[style:poly]` metadata is used in
         // the Faust code or if `-nvoices` flag has been
@@ -222,6 +224,15 @@ class DspFaust
         // Returns the JSON description of the metadata of the Faust object.
         //--------------------------------------------------------
         const char* getJSONMeta();
+
+        //--------------`void buildUserInterface(UI* ui_interface)`---------------
+        // Calls the polyphonic or monophonic buildUserInterface with the ui_interface parameter.
+        //
+        // #### Arguments
+        //
+        // * `ui_interface`: an UI* object
+        //--------------------------------------------------------
+        void buildUserInterface(UI*);
 
         //-----------------`int getParamsCount()`-----------------
         // Returns the number of parameters of the Faust object.
@@ -284,7 +295,7 @@ class DspFaust
         //--------------------------------------------------------
         void setVoiceParamValue(const char*, uintptr_t, float);
 
-        //----`void setVoiceValue(int id, long voice, float value)`-----
+        //----`void setVoiceValue(int id, uintptr_t voice, float value)`-----
         // Set the value of one of the parameters of the Faust
         // object in function of its id for a
         // specific voice.
@@ -298,7 +309,7 @@ class DspFaust
         //--------------------------------------------------------
         void setVoiceParamValue(int, uintptr_t, float);
 
-        //----`float getVoiceParamValue(const char* address, long voice)`----
+        //----`float getVoiceParamValue(const char* address, uintptr_t voice)`----
         // Returns the value of a parameter in function of its
         // address (path) for a specific voice.
         //
@@ -310,7 +321,7 @@ class DspFaust
         //--------------------------------------------------------
         float getVoiceParamValue(const char*, uintptr_t);
 
-        //----`float getVoiceParamValue(int id, long voice)`----
+        //----`float getVoiceParamValue(int id, uintptr_t voice)`----
         // Returns the value of a parameter in function of its
         // id for a specific voice.
         //
@@ -332,7 +343,7 @@ class DspFaust
         //--------------------------------------------------------
         const char* getParamAddress(int);
 
-        //----`const char* getVoiceParamAddress(int id, long voice)`-----
+        //----`const char* getVoiceParamAddress(int id, uintptr_t voice)`-----
         // Returns the address (path) of a parameter in function
         // of its ID.
         //
@@ -447,7 +458,6 @@ class DspFaust
         // * `amid`: mapping middle point
         // * `amax`: mapping max point
         //--------------------------------------------------------
-        // TODO: eventually should add a link to tutorials on this in the doc
         void setAccConverter(int, int, int, float, float, float);
 
         //----`void propagateGyr(int gyr, float v)`---------------
@@ -473,16 +483,15 @@ class DspFaust
         // * `amid`: mapping middle point
         // * `amax`: mapping max point
         //--------------------------------------------------------
-        // TODO: eventually should add a link to tutorials on this in the doc
         void setGyrConverter(int, int, int, float, float, float);
 
         //------------------`float getCPULoad()`------------------
-        // Returns the CPU load.
+        // Returns the CPU load (between 0 and 1.0).
         //--------------------------------------------------------
         float getCPULoad();
 
         //----`void configureOSC(int xmit, int inport, int outport, int errport, const char* address)`---------------
-        // Change the OSC configuration
+        // Change the OSC configuration.
         //
         // #### Arguments
         //
@@ -495,10 +504,10 @@ class DspFaust
         bool configureOSC(int xmit, int inport, int outport, int errport, const char* address);
 
         //----------`bool isOSCOn()`---------------
-        // Return OSC Status
+        // Return OSC Status.
         //-----------------------------------------
         bool isOSCOn();
-
+    
         int getScreenColor();
 };
 

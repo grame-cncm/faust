@@ -35,8 +35,9 @@ int main(int argc, char* argv[])
     
     string error_msg;
     dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
+    
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg;
+        cerr << error_msg;
         exit(1);
     }
     

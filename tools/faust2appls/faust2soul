@@ -10,13 +10,12 @@ set -e
 
 . faustpath
 . faustoptflags
-
-CXXFLAGS=$MYGCCFLAGS
+. usage.sh
 
 ARCHFILE=$FAUSTARCH/soul/minimal.soul
 
 #-------------------------------------------------------------------
-#PHASE 1 : dispatch command arguments
+# dispatch command arguments
 #-------------------------------------------------------------------
 
 POLY="POLY"
@@ -24,19 +23,26 @@ EFFECT=""
 NVOICES=-1
 OPTIONS=""
 PLAY="false"
+JUCE="false"
 MIDI="false"
+SOUL_EXT="soul";
 
 while [ $1 ] 
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2soul [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-play] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-midi' to activate MIDI control"
-        echo "Use '-play' to start the 'soul' runtime with the generated SOUL file"
+        usage faust2soul "[options] [Faust options] <file.dsp>"
+        echo  "Compiles Faust programs to SOUL"
+        option
+        option -midi
+        option "-nvoices <num>"
+        option "-effect <effect.dsp>"
+        option "-effect auto"
+        option -juce "to create a JUCE project"
+        option -dsp "to create a 'dsp' compatible subclass"
+        option -play "to start the 'soul' runtime with the generated SOUL file"
+        option "Faust options"
         exit
     fi
 
@@ -54,6 +60,10 @@ do
         echo "MIDI will be used"
     elif [ $p = "-play" ]; then
     	PLAY="true"
+    elif [ $p = "-juce" ]; then
+    	JUCE="true"
+    elif [ $p = "-dsp" ]; then
+    	SOUL_EXT="soul-dsp"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -118,10 +128,10 @@ for p in $FILES; do
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
             faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
-            faust -lang soul -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
+            faust -lang $SOUL_EXT -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
         else
             faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
-            faust -lang soul -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
+            faust -lang $SOUL_EXT -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
         fi
         cat "$TMP/effect.soul" > "$TMP/${f%.dsp}.soul"
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}_tmp2.soul"
@@ -130,7 +140,7 @@ EndOfCode
     	if [ $NVOICES != -1 ]; then
         	faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
         else
-        	faust -lang soul -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        	faust -lang $SOUL_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
         fi
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
     fi
@@ -151,9 +161,15 @@ EndOfCode
     if [ $PLAY = "true" ] ; then
     	soul play "$SRCDIR/$dspName"
     fi
-
+  
     # collect binary file name for FaustGIDE
     BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
+      
+    if [ $JUCE = "true" ] ; then
+    	soul generate --juce "$SRCDIR/$dspName/${f%.dsp}.soulpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
+    	BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"
+    fi
+
 done
 
 echo $BINARIES

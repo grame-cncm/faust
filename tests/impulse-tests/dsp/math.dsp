@@ -2,7 +2,16 @@
 
 import("math.lib");
 
-process = int(_*10.5) % 3,
+singleprecision my_INFINITY = 3.402823466e+38;
+doubleprecision my_INFINITY = 1.7976931348623158e+308;
+quadprecision my_INFINITY = 1.7976931348623158e+308;
+
+my_isnan = ffunction(int isnanf|isnan|isnanl (float),<math.h>,"");
+my_isinf = ffunction(int isinff|isinf|isinfl (float),<math.h>,"");
+
+process = _ >> _,
+		_ << _,
+		int(_*10.5) % 3,
 		int(_*3.5) & int(_*2.4),
 		int(_*3.5) | int(_*2.4),
 		xor(int(_*3.5), int(_*2.4)),

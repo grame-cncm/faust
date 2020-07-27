@@ -25,7 +25,8 @@
 #include "code_container.hh"
 #include "fir_to_fir.hh"
 #include "instructions_compiler.hh"
-#include "interpreter_dsp_aux.hh"
+#include "interpreter_dsp.hh"
+
 #include "interpreter_instructions.hh"
 #include "vec_code_container.hh"
 
@@ -53,7 +54,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
     virtual ~InterpreterCodeContainer() {}
 
-    void                      produceInternal();
+    void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

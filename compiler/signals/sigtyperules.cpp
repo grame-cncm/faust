@@ -107,7 +107,7 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert(int(vdef.size()) == n);
     faustassert(int(vtype.size()) == n);
 
-    // find least fixpoint
+    // cerr << "find least fixpoint" << endl;
     for (bool finished = false; !finished;) {
         // init recursive types
         CTree::startNewVisit();

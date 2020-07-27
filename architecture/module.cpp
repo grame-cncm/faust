@@ -67,20 +67,26 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-extern "C" dsp* newDsp() { return new mydsp(); }
-extern "C" void deleteDsp(dsp* self) { delete self; }
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif
 
-extern "C" int getNumInputs(dsp* self) { return self->getNumInputs(); }
-extern "C" int getNumOutputs(dsp* self) { return self->getNumOutputs(); }
-extern "C" void buildUserInterface(dsp* self, UI* interface) { self->buildUserInterface(interface); }
-extern "C" void getSampleRate(dsp* self) { self->getSampleRate(self); }
-extern "C" void init(dsp* self, int sample_rate) { self->init(sample_rate); }
-extern "C" void instanceInit(dsp* self, int sample_rate) { self->instanceInit(sample_rate); }
-extern "C" void instanceConstants(dsp* self, int sample_rate) { self->instanceConstants(sample_rate); }
-extern "C" void instanceResetUserInterface(dsp* self) { self->instanceResetUserInterface(); }
-extern "C" void clone(dsp* self) { self->clone(); }
-extern "C" void metadata(dsp* self, Meta* m) { self->metadata(m); }
-extern "C" void compute(dsp* self, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { self->compute(count, inputs, outputs); }
+extern "C" EXPORT dsp* newDsp() { return new mydsp(); }
+extern "C" EXPORT void deleteDsp(dsp* self) { delete self; }
+
+extern "C" EXPORT int getNumInputs(dsp* self) { return self->getNumInputs(); }
+extern "C" EXPORT int getNumOutputs(dsp* self) { return self->getNumOutputs(); }
+extern "C" EXPORT void buildUserInterface(dsp* self, UI* interface) { self->buildUserInterface(interface); }
+extern "C" EXPORT void getSampleRate(dsp* self) { self->getSampleRate(self); }
+extern "C" EXPORT void init(dsp* self, int sample_rate) { self->init(sample_rate); }
+extern "C" EXPORT void instanceInit(dsp* self, int sample_rate) { self->instanceInit(sample_rate); }
+extern "C" EXPORT void instanceConstants(dsp* self, int sample_rate) { self->instanceConstants(sample_rate); }
+extern "C" EXPORT void instanceResetUserInterface(dsp* self) { self->instanceResetUserInterface(); }
+extern "C" EXPORT dsp*  clone(dsp* self) { return self->clone(); }
+extern "C" EXPORT void metadata(dsp* self, Meta* m) { self->metadata(m); }
+extern "C" EXPORT void compute(dsp* self, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { self->compute(count, inputs, outputs); }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

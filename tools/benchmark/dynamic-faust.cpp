@@ -1,25 +1,25 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
+ FAUST Architecture File
+ Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
  ************************************************************************/
 
 #include <libgen.h>
@@ -50,6 +50,12 @@ static void splitTarget(const string& target, string& triple, string& cpu)
     }
 }
 
+static string replaceChar(string str, char src, char dst)
+{
+    replace(str.begin(), str.end(), src, dst);
+    return str;
+}
+
 template <typename T>
 static vector<string> bench(dsp_optimizer<T> optimizer, const string& name)
 {
@@ -61,7 +67,7 @@ int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
         cout << "dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
-        cout << "Use '-target xxx' to cross-compile the code for a different architecture (like 'i386-apple-macosx10.6.0:opteron')\n";
+        cout << "Use '-target xxx' to cross-compile the code for a different architecture (like 'x86_64-apple-darwin15.6.0:haswell')\n";
         cout << "Use '-opt (native|generic)' to discover and compile with the optimal compilation parameters\n";
         cout << "Use '-o foo.ll' to generate an LLVM IR textual file\n";
         cout << "Use '-o foo.bc' to generate an LLVM bitcode file\n";
@@ -70,15 +76,12 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    string target = lopts(argv, "-target", "");
+    string target = lopts(argv, "-target", getDSPMachineTarget().c_str());
     bool is_opt = isopt(argv, "-opt");
     string opt = lopts(argv, "-opt", "generic");
     bool is_double = isopt(argv, "-double");
     
-    string in_filename = "";
-    string out_filename = "";
-    string error_msg;
-    
+    string in_filename, out_filename, error_msg;
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
     int argc1 = 0;
@@ -104,22 +107,23 @@ int main(int argc, char* argv[])
         cout << argv[i] << " ";
     }
     cout << endl;
-
     argv1[argc1] = nullptr;  // NULL terminated argv
     
     if (out_filename == "") {
         cerr << "ERROR : no output file given...\n";
         exit(EXIT_FAILURE);
     }
-  
-    string opt_target = "";
+    
+    string opt_target;
     vector<string> optimal_options;
+    
+    string triple, cpu;
+    splitTarget(getDSPMachineTarget(), triple, cpu);
+    cout << "Host : " << triple << ":" << cpu << "\n";
     
     if (is_opt) {
         
         if (opt == "generic") {
-            string triple, cpu;
-            splitTarget(getDSPMachineTarget(), triple, cpu);
             opt_target = triple + ":generic";
             cout << "Using 'generic' mode\n";
         } else {
@@ -128,7 +132,6 @@ int main(int argc, char* argv[])
         
         cout << "Looking for optimal parameters... \n";
         int buffer_size = 512;
-        
         try {
             if (is_double) {
                 optimal_options = bench(dsp_optimizer<double>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
@@ -149,13 +152,16 @@ int main(int argc, char* argv[])
         
         // Compilation target is the opt_target
         target = opt_target;
+    } else {
+        splitTarget(target, triple, cpu);
+        target = triple + ":" + replaceChar(cpu, '_', '-');
     }
     
     // Create factory
     cout << "Compiled with target : " << target << endl;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, target, error_msg, -1);
     if (!factory) {
-        cerr << "ERROR : cannot create factory : " << error_msg;
+        cerr << error_msg;
         exit(EXIT_FAILURE);
     }
     
@@ -184,7 +190,7 @@ int main(int argc, char* argv[])
         cerr << "ERROR : unrecognized file extension " << out_filename << "\n";
         exit(EXIT_FAILURE);
     }
-     
+    
     deleteDSPFactory(factory);
     return 0;
 }

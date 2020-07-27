@@ -4,14 +4,10 @@
 # version management tool
 #
 
-if [ $# -ne 1 ]
-then
-	echo "Faust version management utility"
-	echo "usage: version version_num"
-	echo "       version_num format: n.n.n"
-	exit 1
-fi
-
+function warn {
+	echo "WARNING ! This tools is intended to change the current version number"
+	echo "NOT to recall a previous Faust version !"
+}
 function major {
 	echo $1 | sed 's/\..*//'
 }
@@ -30,6 +26,21 @@ function rcUpdate {
  	sed "s/VALUE \"FileVersion\"..*/VALUE \"FileVersion\", \"$3\"/" | \
  	sed "s/VALUE \"ProductVersion\"..*/VALUE \"ProductVersion\", \"$3\"/"
 }
+
+if [ $# -ne 1 ]
+then
+	echo "Faust version management utility"
+	echo "usage: version version_num"
+	echo "       version_num format: n.n.n"
+	warn
+	exit 1
+fi
+
+warn
+echo "Type OK to continue... "
+read CONT
+[ "$CONT" == "OK" ] || exit 1
+
 
 ROOT=.
 VERSION=$1
@@ -62,6 +73,11 @@ echo " updating $CMAKE"
 sed "s/set (VERSION[ 	]*[0-9].*)/set (VERSION $VERSION)/" $CMAKE > TMP$$
 mv TMP$$ $CMAKE
 
+MAKERELEASE=$ROOT/build/MakeRelease.bat
+echo " updating $MAKERELEASE"
+sed "s/^SET VERSION=[0-9].*/SET (VERSION=$VERSION)/" $MAKERELEASE > TMP$$
+mv TMP$$ $MAKERELEASE
+
 FAUST=$ROOT/compiler/generator/export.hh
 echo " updating $FAUST"
 sed "s/FAUSTVERSION[ 	]\".*\"/FAUSTVERSION \"$VERSION\"/" $FAUST > TMP$$
@@ -89,5 +105,6 @@ mv -f TMP$$ $COPYING
 
 make man
 
+echo $VERSION > version.txt
 echo "### You need to recompile Faust for the change to take effect."
 exit 0
