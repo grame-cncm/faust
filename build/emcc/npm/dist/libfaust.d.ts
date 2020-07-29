@@ -15,9 +15,12 @@ interface Aux {
 	error  : string;
 }
 
+interface IntVector 	{ size(): number; get(i: number) : number; }
+
 interface FaustWasm {
 	module : 	number;		// pointer 
-	size : 		number;
+	data : 		IntVector;
+	// size : 		number;
 	helper :	string;
 }
 

@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "libfaust.h"
 #include "export.hh"
@@ -38,7 +39,8 @@ struct AuxOut {
 
 struct FaustWasm {
 	int module;
-	int size;
+	std::vector<int> data;
+//	int size;
 	std::string helper;
 };
 

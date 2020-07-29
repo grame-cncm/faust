@@ -34,7 +34,8 @@ EMSCRIPTEN_BINDINGS(CStruct) {
 
 	value_object<FaustWasm>("FaustWasm")
 		.field("module",    &FaustWasm::module)
-		.field("size", 		&FaustWasm::size)
+		.field("data",    	&FaustWasm::data)
+//		.field("size", 		&FaustWasm::size)
 		.field("helper",	&FaustWasm::helper);
 }
 
@@ -75,5 +76,8 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
 			.function("freeMemory", 			&libFaustWasm::freeMemory, allow_raw_pointers())
 			.function("cleanupAfterException", 	&libFaustWasm::cleanupAfterException)
 			.function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers());
+
+	register_vector<int>	("vector<int>");
+
 }
 
