@@ -7,9 +7,9 @@ declare copyright 	"(c)GRAME 2006";
 //-------------------------------------------------
 // Simple 8x2 mixer
 //-------------------------------------------------
-import("delay.lib");
-import("basic.lib");
-import("math.lib");
+import("delays.lib");
+import("basics.lib");
+import("maths.lib");
 
 smooth(c)	= *(1-c) : +~*(c);
 

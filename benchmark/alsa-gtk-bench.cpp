@@ -48,6 +48,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "faust/dsp/dsp.h"
 
 using namespace std;
 
@@ -1555,22 +1556,6 @@ void GTKUI::run()
 //----------------------------------------------------------------
 //  Definition of a Faust Digital Signal Processor
 //----------------------------------------------------------------
-			
-class dsp {
- protected:
-	int fSamplingFreq;
-        int fThreadNum;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-	
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-    virtual void buildUserInterface(UI* interface) 					= 0;
-    virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
- 	virtual void conclude() 										{}
-};
 		
 <<includeclass>>
 						
