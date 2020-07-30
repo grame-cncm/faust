@@ -112,14 +112,11 @@ FaustWasm libFaustWasm::getWasmModule (int mptr)
 	if (module) {
 		const char * ptr = getWasmCModule (module);
 		int size = getWasmCModuleSize (module);
-		out.module = int(ptr);
 		for (int i=0; i<size; i++) {
 			out.data.push_back (*ptr++);
 		}
-
-//		out.module = int(getWasmCModule (module));
-//		out.size   = getWasmCModuleSize (module);
 		out.helper = getWasmCHelpers (module);
+//		freeWasmCModule(module);
 	}
 	return out;
 }

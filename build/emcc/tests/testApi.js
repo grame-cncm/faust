@@ -37,7 +37,7 @@ function modules (faust, log, code )
 	let fact = faust.createDSPFactory("test", code, "", false);
 
 	let wasm = faust.getWasmModule (fact.module);
-	log ("  getWasmModule      " + wasm.module + " " + wasm.data.size() + " " + wasm.helper.length);
+	log ("  getWasmModule      " + wasm.data.size() + " " + wasm.helper.length);
 
 	faust.freeWasmModule (fact.module);
 	log ("  freeWasmModule     done");

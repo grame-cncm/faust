@@ -33,31 +33,11 @@ EMSCRIPTEN_BINDINGS(CStruct) {
 		.field("error",  	&AuxOut::error);
 
 	value_object<FaustWasm>("FaustWasm")
-		.field("module",    &FaustWasm::module)
 		.field("data",    	&FaustWasm::data)
-//		.field("size", 		&FaustWasm::size)
 		.field("helper",	&FaustWasm::helper);
 }
 
-/*
- * C functions binding.
- * These functions can be used on javascript side.
- */
 EMSCRIPTEN_BINDINGS(FaustModule) {
-
-	// this is the old C interface
-//	emscripten::function("createWasmCDSPFactoryFromString", &createWasmCDSPFactoryFromString, allow_raw_pointers());
-//	emscripten::function("expandCDSPFromString", 			&expandCDSPFromString, allow_raw_pointers());
-//	emscripten::function("deleteAllWasmCDSPFactories", 		&deleteAllWasmCDSPFactories);
-//	emscripten::function("getCLibFaustVersion", 			&getCLibFaustVersion, allow_raw_pointers());
-//	emscripten::function("getWasmCModule", 					&getWasmCModule, allow_raw_pointers());
-//	emscripten::function("getWasmCModuleSize", 				&getWasmCModuleSize, allow_raw_pointers());
-//	emscripten::function("getWasmCHelpers", 				&getWasmCHelpers, allow_raw_pointers());
-//	emscripten::function("freeWasmCModule", 				&freeWasmCModule, allow_raw_pointers());
-//	emscripten::function("freeCMemory", 					&freeCMemory, allow_raw_pointers());
-//	emscripten::function("cleanupAfterException", 			&cleanupAfterException);
-//	emscripten::function("getErrorAfterException", 			&getErrorAfterException, allow_raw_pointers());
-//	emscripten::function("generateCAuxFilesFromString", 	&generateCAuxFilesFromString, allow_raw_pointers());
 
 	emscripten::class_<libFaustWasm>("libFaustWasm")
 			.constructor<>()
@@ -69,11 +49,8 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
 			.function("deleteAllDSPFactories", 	&libFaustWasm::deleteAllDSPFactories)
 			
 			.function("getWasmModule", 			&libFaustWasm::getWasmModule, allow_raw_pointers())
-//			.function("getWasmModuleSize", 		&libFaustWasm::getWasmModuleSize, allow_raw_pointers())
-//			.function("getWasmHelpers", 		&libFaustWasm::getWasmHelpers, allow_raw_pointers())
-
 			.function("freeWasmModule", 		&libFaustWasm::freeWasmModule, allow_raw_pointers())
-			.function("freeMemory", 			&libFaustWasm::freeMemory, allow_raw_pointers())
+//			.function("freeMemory", 			&libFaustWasm::freeMemory, allow_raw_pointers())
 			.function("cleanupAfterException", 	&libFaustWasm::cleanupAfterException)
 			.function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers());
 

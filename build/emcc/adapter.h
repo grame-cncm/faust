@@ -38,9 +38,7 @@ struct AuxOut {
 };
 
 struct FaustWasm {
-	int module;
 	std::vector<int> data;
-//	int size;
 	std::string helper;
 };
 
@@ -58,30 +56,11 @@ class libFaustWasm
 		void			deleteAllDSPFactories() 			{ ::deleteAllWasmCDSPFactories(); }
 
 		FaustWasm		getWasmModule 		(int module);
-//		int				getWasmModule 		(int module)	{ return int(getWasmCModule (static_cast<WasmModule*>((void*)module))); }
-//		int 			getWasmModuleSize	(int module)	{ return getWasmCModuleSize (static_cast<WasmModule*>((void*)module)); }
-//		std::string		getWasmHelpers		(int module)	{ return getWasmCHelpers (static_cast<WasmModule*>((void*)module)); }
 
 		void			freeWasmModule		(int module) 	{ ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
-		void			freeMemory( void* ptr ) 			{ ::freeCMemory (ptr); }
+//		void			freeMemory( void* ptr ) 			{ ::freeCMemory (ptr); }
 		void			cleanupAfterException() 			{ ::cleanupAfterException(); }
 		std::string		getErrorAfterException ()			{ return ::getErrorAfterException(); }
 };
-
-//-----------------------------------------------------------------
-// list of changes regarding the previous C interface
-//
-//"createWasmCDSPFactoryFromString" -> libFaustWasm::createDSPFactory
-//"expandCDSPFromString" 			-> libFaustWasm::expandDSP
-//"deleteAllWasmCDSPFactories" 		-> libFaustWasm::deleteAllDSPFactories
-//"getCLibFaustVersion" 			-> libFaustWasm::version
-//"getWasmCModule" 					-> libFaustWasm::getWasmModule
-//"getWasmCModuleSize" 				-> libFaustWasm::getWasmCModuleSize
-//"getWasmCHelpers" 				-> libFaustWasm::getWasmCHelpers
-//"freeWasmCModule" 				-> libFaustWasm::freeWasmModule
-//"freeCMemory" 					-> libFaustWasm::freeMemory
-//"cleanupAfterException" 			-> libFaustWasm::cleanupAfterException
-//"getErrorAfterException" 			-> libFaustWasm::getErrorAfterException
-//"generateCAuxFilesFromString" 	-> libFaustWasm::generateAuxFiles
 
 

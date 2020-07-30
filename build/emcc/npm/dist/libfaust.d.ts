@@ -18,9 +18,7 @@ interface Aux {
 interface IntVector 	{ size(): number; get(i: number) : number; }
 
 interface FaustWasm {
-	module : 	number;		// pointer 
 	data : 		IntVector;
-	// size : 		number;
 	helper :	string;
 }
 
@@ -37,11 +35,8 @@ interface LibFaust {
 	deleteAllDSPFactories(): void;
 
 	getWasmModule(module: WasmModule) : FaustWasm;
-	// getWasmModule(module: WasmModule) : string;
-	// getWasmModuleSize( module: WasmModule) : number;
-	// getWasmHelpers(module: WasmModule) : string;
 	freeWasmModule(module: WasmModule) : void;
-	freeMemory (mem: any) : void;		// check if still necessary
+	// freeMemory (mem: any) : void;		// check if still necessary
 
 	cleanupAfterException(): void;
 	getErrorAfterException() : string;
