@@ -38,7 +38,7 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS+=" $MYGCCFLAGS -fvisibility=hidden"  # So that additional CXXFLAGS can be used
+CXXFLAGS+=" -std=c++11 -fvisibility=hidden -O3"  # WARNING: don't modify this setting
 
 echo $CXXFLAGS
 
