@@ -44,6 +44,7 @@
 #endif
 
 using namespace daisysp;
+using namespace daisy;
 
 /******************************************************************************
  *******************************************************************************
@@ -75,17 +76,20 @@ mydsp DSP;
 
 static void AudioCallback(float* in, float* out, size_t size)
 {
+    // count in frames
+    size_t count = size/2;
+    
     // Deinterleave
-    for (size_t frame; frame < size; frame++) {
+    for (size_t frame = 0; frame < count; frame++) {
         finputs[0][frame] = in[frame*2];
         finputs[1][frame] = in[frame*2+1];
     }
     
     // Faust processing
-    DSP.compute(size, finputs, foutputs);
+    DSP.compute(count, finputs, foutputs);
     
     // Interleave
-    for (size_t frame; frame < size; frame++) {
+    for (size_t frame = 0; frame < count; frame++) {
         out[frame*2] = foutputs[0][frame];
         out[frame*2+1] = foutputs[1][frame];
     }
@@ -94,6 +98,7 @@ static void AudioCallback(float* in, float* out, size_t size)
 int main(void)
 {
     // initialize seed hardware and daisysp modules
+    hw.Configure();
     hw.Init();
     
     // set buffer-size
@@ -113,9 +118,8 @@ int main(void)
     daisy_midi midi_handler;
 #endif
     
-    hw.StartAdc();
     // define and start callback
-    hw.StartAudio(AudioCallback)
+    hw.StartAudio(AudioCallback);
     
 #ifdef MIDICTRL
     midi_handler.startMidi();

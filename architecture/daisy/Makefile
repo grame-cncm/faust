@@ -5,10 +5,10 @@ TARGET = ex_faust
 CPP_SOURCES = ex_faust.cpp
 
 # Library Locations
-LIBDAISY_DIR = $(LIBDAISY)/libdaisy
-DAISYSP_DIR = ../../
+LIBDAISY_DIR ?= ../../../libdaisy
+DAISYSP_DIR ?= ../../../DaisySP
 
 # Core location, and generic Makefile.
-SYSTEM_FILES_DIR = $(LIBDAISY)/core
+SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 

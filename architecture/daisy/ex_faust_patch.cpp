@@ -44,6 +44,7 @@
 #endif
 
 using namespace daisysp;
+using namespace daisy;
 
 /******************************************************************************
  *******************************************************************************
@@ -65,20 +66,21 @@ using namespace daisysp;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-DaisySeed hw;
+DaisyPod hw;
 mydsp DSP;
 
 #define MY_BUFFER_SIZE 8
 
-static void AudioCallback(float** in, float** out, size_t size)
+static void AudioCallback(float** in, float** out, size_t count)
 {
     // Faust processing
-    DSP.compute(size, in, out);
+    DSP.compute(count, in, out);
 }
 
 int main(void)
 {
     // initialize seed hardware and daisysp modules
+    hw.Configure();
     hw.Init();
     
     // set buffer-size

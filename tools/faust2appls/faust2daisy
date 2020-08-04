@@ -11,7 +11,10 @@
 . faustoptflags
 . usage.sh
 
-ARCHFILE=$FAUSTARCH/daisy/faust.cpp
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+ARCHFILE=$FAUSTARCH/daisy/ex_faust.cpp
 
 # exit if a command fails
 set -e
@@ -24,9 +27,9 @@ PATCH="0"
 
 echoHelp ()
 {
-    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp> 
+    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
     option
-    echo "Use '-patch' to compile for 4 ins/outs Patch"
+    option -patch "to compile for 4 ins/outs Patch"
     options -midi
     option "-nvoices <num>"
     echo ""
@@ -41,19 +44,20 @@ do
     p=$1
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-	echoHelp
-	exit 0
+        echoHelp
+        exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
-    	shift
-    	NVOICES=$1
+        shift
+        NVOICES=$1
     # -midi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="MIDI"
     elif [ $p = "-patch" ]; then
         PATCH="1"
+        ARCHFILE=$FAUSTARCH/daisy/ex_faust_patch.cpp
     elif [[ -f "$p" ]]; then
-    	FILE="$p"
+        FILE="$p"
     # other compile options
     else
         OPTIONS="$OPTIONS $p"
@@ -63,9 +67,28 @@ shift
 
 done
 
+
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
     exit 1
 fi
 
-# TODO
+###########################
+# Compile the *.dsp files
+###########################
+
+for p in $FILE; do
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+    
+    # creates the dir 
+    dspName="${f%.dsp}"
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    
+    # compile faust to c++
+    cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
+    faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    
+done
