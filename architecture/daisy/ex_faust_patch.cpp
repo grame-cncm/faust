@@ -69,7 +69,7 @@ using namespace daisy;
 DaisyPod hw;
 mydsp DSP;
 
-#define MY_BUFFER_SIZE 8
+#define MY_BUFFER_SIZE 32
 
 static void AudioCallback(float** in, float** out, size_t count)
 {
