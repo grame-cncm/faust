@@ -37,6 +37,7 @@
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/DaisyControlUI.h"
 #include "faust/dsp/dsp.h"
 
 #ifdef MIDICTRL
@@ -67,13 +68,17 @@ using namespace daisy;
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 DaisySeed hw;
+DaisyControlUI* control;
 mydsp DSP;
 
 #define MY_BUFFER_SIZE 32
 
 static void AudioCallback(float** in, float** out, size_t count)
 {
-    // Faust processing
+    // Update controllers
+    control->update();
+    
+    // DSP processing
     DSP.compute(count, in, out);
 }
 
@@ -89,14 +94,15 @@ int main(void)
     // init Faust DSP
     DSP.init(hw.AudioSampleRate());
     
-#ifdef MIDICTRL
-    daisy_midi midi_handler;
-#endif
-    
+    // Setup controllers
+    control = new DaisyControlUI(&hw, hw.AudioSampleRate()/MY_BUFFER_SIZE);
+    DSP.buildUserInterface(control);
+     
     // define and start callback
     hw.StartAudio(AudioCallback);
     
 #ifdef MIDICTRL
+    daisy_midi midi_handler;
     midi_handler.startMidi();
 #endif
     

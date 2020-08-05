@@ -88,16 +88,13 @@ int main(void)
       
     // inti Faust DSP
     DSP.init(hw.AudioSampleRate());
-    
-#ifdef MIDICTRL
-    daisy_midi midi_handler;
-#endif
  
     hw.StartAdc();
     // define and start callback
     hw.StartAudio(AudioCallback)
  
 #ifdef MIDICTRL
+    daisy_midi midi_handler;
     midi_handler.startMidi();
 #endif
 

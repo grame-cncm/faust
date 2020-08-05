@@ -25,7 +25,6 @@
 #ifndef __daisy_midi__
 #define __daisy_midi__
 
-#include <iostream>
 #include <cstdlib>
 
 #include "faust/midi/midi.h"
