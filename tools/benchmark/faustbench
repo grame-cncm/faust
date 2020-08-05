@@ -41,9 +41,10 @@ do
         echo "Use '-run <num>' to execute each test <num> times"
         echo "Use '-source' to keep the intermediate source folder and exit"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
+        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)";
+        echo ""
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
-        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means 'maximal level =-Ofast for now' but may change in the future)\n";
         exit
     fi
 

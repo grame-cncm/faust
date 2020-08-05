@@ -125,7 +125,7 @@ Here are the available options:
 
 The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary.
 
-`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-double] [-opt <level(0..3|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
@@ -136,8 +136,8 @@ Here are the available options:
  - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
  - `-source to keep the intermediate source folder and exit`
- - `-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
+ - `-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
 
@@ -180,13 +180,13 @@ Here is the available options:
 
 The **faust-tester** tool allows to test a Faust effect DSP with test input signals, like dirac impulse or periodic pulses.
 
-`faust-tester [-imp] [-pulse <num (in samples)] [-display <num>] foo.dsp` 
+`faust-tester [-imp] [-pulse <num (in samples)>] [-display <num>] foo.dsp` 
 
 Here is the available options:
 
 - `-imp to test with an dirac impulse`
 - `-pulse <num (in samples)> to test with a periodic pulse generated every 'num' samples`
-- `-display <num> to diplay <num> samples (default 44100)`
+- `-display <num> to diplay 'num' samples (default 44100)`
 
 ## faust-osc-controller
 
