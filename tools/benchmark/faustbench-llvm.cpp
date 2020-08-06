@@ -29,10 +29,10 @@
 using namespace std;
 
 template <typename REAL>
-static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool trace)
+static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool is_trace)
 {
     pair<double, vector<string> > res = optimizer.findOptimizedParameters();
-    if (trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
+    if (is_trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
     for (int i = 0; i < res.second.size(); i++) {
         cout << res.second[i] << " ";
     }
@@ -51,13 +51,13 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-notrace' to only generate the best compilation parameters\n";
         cout << "Use '-control' to update all controllers with random values at each cycle\n";
         cout << "Use '-generic' to compile for a generic processor, otherwise the native CPU will be used\n";
-        cout << "Use '-single' to execute only scalar test\n";
+        cout << "Use '-single' to execute only one test (scalar by default)\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";
-        cout << "Use '-bs <frames>' to set the maximum buffer-size in frames\n";
+        cout << "Use '-bs <frames>' to set the buffer-size in frames\n";
         cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM\n";
         return 0;
     }

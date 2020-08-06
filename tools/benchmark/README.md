@@ -125,21 +125,24 @@ Here are the available options:
 
 The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary.
 
-`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-double] [-opt <level(0..3|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
  - `-notrace to only generate the best compilation parameters`
  - `-generic' to compile for a generic processor, otherwise -march=native will be used`
  - `-ios to generate an iOS project`
- - `-single to only execute the scalar test`
+ - `-single to only execute the one test (scalar by default)`
  - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
+ - `-bs <frames> to set the buffer-size in frames`
  - `-source to keep the intermediate source folder and exit`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
  - `-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
+
+Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
 
 ## faustbench-llvm
 
@@ -152,10 +155,12 @@ Here are the available options:
 - `-notrace to only generate the best compilation parameters`
 - `-control to update all controller with random values at each cycle`
 - `-generic to compile for a generic processor, otherwise the native CPU will be used`
-- `-single to only execute the scalar test`
+- `-single to only execute the one test (scalar by default)`
 - `-run <num> to execute each test <num> times`
-- `-bs <frames> to set the maximum buffer-size in frames`
+- `-bs <frames> to set the buffer-size in frames`
 - `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means "maximal level" if range changes in the future)`
+
+Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
 
 ## faustbench-wasm
 

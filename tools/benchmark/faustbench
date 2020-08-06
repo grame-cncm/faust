@@ -17,6 +17,8 @@ OPTIONS=""
 LIBS=""
 TESTS="all"
 RUN=1
+BUFFER_SIZE=512
+CONTROL=false
 OPT=-1
 NOTRACE=false
 GENERIC=false
@@ -32,16 +34,18 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-control] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-notrace' to only generate the best compilation parameters"
+        echo "Use '-control' to update all controllers with random values at each cycle"
         echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
-        echo "Use '-single' to only execute the scalar test"
+        echo "Use '-single' to only execute the one test (scalar by default)"
         echo "Use '-fast' to only execute some tests"
         echo "Use '-run <num>' to execute each test <num> times"
+        echo "Use '-bs <frames>' to set the buffer-size in frames"
         echo "Use '-source' to keep the intermediate source folder and exit"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
-        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)";
+        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)"
         echo ""
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
@@ -52,6 +56,8 @@ do
         IOS="1"
     elif [ "$p" = "-notrace" ]; then
         NOTRACE=true
+    elif [ "$p" = "-control" ]; then
+        CONTROL=true
     elif [ "$p" = "-generic" ]; then
         GENERIC=true
     elif [ "$p" = "-fast" ]; then
@@ -61,6 +67,9 @@ do
     elif [ "$p" = "-run" ]; then
         shift
         RUN=$1
+    elif [ "$p" = "-bs" ]; then
+        shift
+        BUFFER_SIZE=$1
     elif [ "$p" = "-source" ]; then
         SOURCE=true
     elif [ "$p" = "-opt" ]; then
@@ -256,9 +265,17 @@ for p in $FILES; do
         # run bench
         cd ../../
         if $NOTRACE; then
-            ./$TDR/$dspName/$dspName -run $RUN -notrace
+            if $CONTROL; then
+                ./$TDR/$dspName/$dspName -notrace -control -run $RUN -bs $BUFFER_SIZE
+            else
+                ./$TDR/$dspName/$dspName -notrace -run $RUN -bs $BUFFER_SIZE
+            fi
         else
-            ./$TDR/$dspName/$dspName -run $RUN
+            if $CONTROL; then
+                ./$TDR/$dspName/$dspName -control -run $RUN -bs $BUFFER_SIZE
+            else
+                ./$TDR/$dspName/$dspName -run $RUN -bs $BUFFER_SIZE
+            fi
         fi
 
         # cleanup

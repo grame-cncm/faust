@@ -1,4 +1,4 @@
-% man(1) Version 2.28.0 (23-July-2020) | Faust man page
+% man(1) Version 2.28.1 (06-August-2020) | Faust man page
 
 NAME
 ====
@@ -96,7 +96,8 @@ Code generation options:
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
-  **-rui**        **--range-ui** \<n>              whether to generate code to limit vslider/hslider/nentry values in [min..max] range, 
+  **-rui**        **--range-ui**                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range.
+
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compile a dsp file.
 
   **-scal**      **--scalar**                     generate non-vectorized code.
@@ -125,9 +126,7 @@ Code generation options:
 
   **-fun**       **--fun-tasks**                  separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>.
-
-                                          use 'faust/dsp/fastmath.cpp' when file is 'def'.
+  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
   **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
 

@@ -898,9 +898,8 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
-            "<file>."
+            "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'."
          << endl;
-    cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
     cout << tab
          << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
     cout << tab
