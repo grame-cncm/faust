@@ -89,7 +89,9 @@ int main(void)
     // inti Faust DSP
     DSP.init(hw.AudioSampleRate());
  
+    // start ADC
     hw.StartAdc();
+    
     // define and start callback
     hw.StartAudio(AudioCallback)
  

@@ -67,12 +67,16 @@ using namespace daisy;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+FAUSTFLOAT* finputs[2];
+FAUSTFLOAT* foutputs[2];
+
 DaisySeed hw;
 DaisyControlUI* control;
 mydsp DSP;
 
 #define MY_BUFFER_SIZE 32
 
+/*
 static void AudioCallback(float** in, float** out, size_t count)
 {
     // Update controllers
@@ -81,23 +85,59 @@ static void AudioCallback(float** in, float** out, size_t count)
     // DSP processing
     DSP.compute(count, in, out);
 }
+*/
+
+static void AudioCallback(float* in, float* out, size_t size)
+{
+    // Update controllers
+    control->update();
+    
+    // count in frames
+    size_t count = size/2;
+    
+    // Deinterleave
+    for (size_t frame = 0; frame < count; frame++) {
+        finputs[0][frame] = in[frame*2];
+        finputs[1][frame] = in[frame*2+1];
+    }
+    
+    // Faust processing
+    DSP.compute(count, finputs, foutputs);
+    
+    // Interleave
+    for (size_t frame = 0; frame < count; frame++) {
+        out[frame*2] = foutputs[0][frame];
+        out[frame*2+1] = foutputs[1][frame];
+    }
+}
 
 int main(void)
 {
     // initialize seed hardware and daisysp modules
     hw.Configure();
     hw.Init();
+    dsy_tim_start();
     
     // set buffer-size
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
     
+    // allocate deinterleaved buffers
+    finputs[0] = new FAUSTFLOAT[MY_BUFFER_SIZE];
+    finputs[1] = new FAUSTFLOAT[MY_BUFFER_SIZE];
+    
+    foutputs[0] = new FAUSTFLOAT[MY_BUFFER_SIZE];
+    foutputs[1] = new FAUSTFLOAT[MY_BUFFER_SIZE];
+    
     // init Faust DSP
     DSP.init(hw.AudioSampleRate());
     
-    // Setup controllers
+    // setup controllers
     control = new DaisyControlUI(&hw, hw.AudioSampleRate()/MY_BUFFER_SIZE);
     DSP.buildUserInterface(control);
-     
+    
+    // start ADC
+    hw.adc.Start();
+    
     // define and start callback
     hw.StartAudio(AudioCallback);
     
