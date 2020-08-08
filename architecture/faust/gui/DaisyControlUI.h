@@ -1,4 +1,4 @@
-/************************** BEGIN Esp32ControlUI.h **************************/
+/************************** BEGIN DaisyControlUI.h **************************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2020 GRAME, Centre National de Creation Musicale
