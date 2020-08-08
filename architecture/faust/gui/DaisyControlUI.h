@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <string.h>
 
 #include "daisysp.h"
@@ -57,11 +58,19 @@ class DaisyControlUI : public GenericUI
     
     private:
     
-        struct SwitchButton : daisy::Switch {
-            
+        // Base class for updatable items
+        struct UpdatableZone {
             FAUSTFLOAT* fZone;
             
-            SwitchButton(FAUSTFLOAT* zone):fZone(zone)
+            UpdatableZone(FAUSTFLOAT* zone) : fZone(zone) {}
+            virtual ~UpdatableZone() {}
+            
+            virtual void update() = 0;
+        };
+    
+        struct SwitchButton : daisy::Switch, UpdatableZone {
+            
+            SwitchButton(FAUSTFLOAT* zone):UpdatableZone(zone)
             {}
             
             void update()
@@ -71,12 +80,11 @@ class DaisyControlUI : public GenericUI
         };
     
         // Implement checkbox using daisy::Switch
-        struct CheckButton : daisy::Switch {
+        struct CheckButton : daisy::Switch, UpdatableZone {
             
-            FAUSTFLOAT* fZone;
             FAUSTFLOAT fLastButton;
             
-            CheckButton(FAUSTFLOAT* zone):fZone(zone), fLastButton(0)
+            CheckButton(FAUSTFLOAT* zone):UpdatableZone(zone), fLastButton(0)
             {}
             
             void update()
@@ -89,20 +97,14 @@ class DaisyControlUI : public GenericUI
             }
         };
     
-        struct AnalogKnob : daisy::AnalogControl {
+        struct AnalogKnob : daisy::AnalogControl, UpdatableZone {
             
-            FAUSTFLOAT* fZone;
-            ValueConverter* fConverter;
+            std::unique_ptr<ValueConverter> fConverter;
             
-            AnalogKnob(uint16_t* adcptr, FAUSTFLOAT* zone, ValueConverter* converter, int rate)
-            :fZone(zone), fConverter(converter)
+            AnalogKnob(uint16_t* adcptr, FAUSTFLOAT* zone, std::unique_ptr<ValueConverter>& converter, int rate)
+            :UpdatableZone(zone), fConverter(std::move(converter))
             {
                 Init(adcptr, rate);
-            }
-            
-            virtual ~ AnalogKnob()
-            {
-                delete fConverter;
             }
             
             void update()
@@ -111,15 +113,11 @@ class DaisyControlUI : public GenericUI
             }
         };
     
-        std::vector<SwitchButton*> fSwitchButton;
-        std::vector<CheckButton*> fCheckButton;
-        std::vector<AnalogKnob*> fKnobConverter;
-    
+        std::vector<std::unique_ptr<UpdatableZone>> fItems;
         daisy::DaisySeed* fSeed;
     
         std::string fKey, fValue, fScale;
-        int fRate;
-        int fBoxLevel;
+        int fRate, fBoxLevel;
     
         struct KnobContext {
             int fKnobId;
@@ -155,19 +153,19 @@ class DaisyControlUI : public GenericUI
             fSeed->adc.Init(knobs_init, fKnobs.size());
             
             for (size_t i = 0; i < fKnobs.size(); i++) {
-                ValueConverter* converter;
+                std::unique_ptr<ValueConverter> converter;
                 if (fKnobs[i].fScale == "log") {
-                    converter = new LogValueConverter(0., 1., fKnobs[i].fMin, fKnobs[i].fMax);
+                    converter = std::make_unique<LogValueConverter>(0., 1., fKnobs[i].fMin, fKnobs[i].fMax);
                 } else if (fKnobs[i].fScale == "exp") {
-                    converter = new ExpValueConverter(0., 1., fKnobs[i].fMin, fKnobs[i].fMax);
+                    converter = std::make_unique<ExpValueConverter>(0., 1., fKnobs[i].fMin, fKnobs[i].fMax);
                 } else {
-                    converter = new LinearValueConverter(0., 1., fKnobs[i].fMin, fKnobs[i].fMax);
+                    converter = std::make_unique<LinearValueConverter>(0., 1., fKnobs[i].fMin, fKnobs[i].fMax);
                 }
-                AnalogKnob* knob = new AnalogKnob(fSeed->adc.GetPtr(fKnobs[i].fAdcId),
+                std::unique_ptr<AnalogKnob> knob = std::make_unique<AnalogKnob>(fSeed->adc.GetPtr(fKnobs[i].fAdcId),
                                                   fKnobs[i].fZone,
                                                   converter,
                                                   fRate);
-                fKnobConverter.push_back(knob);
+                fItems.push_back(std::move(knob));
             }
         }
         
@@ -176,13 +174,6 @@ class DaisyControlUI : public GenericUI
         DaisyControlUI(daisy::DaisySeed* seed, int rate)
         :fSeed(seed), fScale("lin"),fRate(rate), fBoxLevel(0)
         {}
-    
-        virtual ~DaisyControlUI()
-        {
-            for (auto& it : fSwitchButton) delete it;
-            for (auto& it : fCheckButton) delete it;
-            for (auto& it : fKnobConverter) delete it;
-        }
     
         // -- widget's layouts
         void openTabBox(const char* label) { fBoxLevel++; }
@@ -197,13 +188,13 @@ class DaisyControlUI : public GenericUI
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
             if (fKey == "switch") {
-                SwitchButton* button = new SwitchButton(zone);
-                fSwitchButton.push_back(button);
+                std::unique_ptr<SwitchButton> button = std::make_unique<SwitchButton>(zone);
                 if (fValue == "1") {
                     button->Init(fSeed->GetPin(SW_1_PIN), fRate);
                 } else if (fValue == "2") {
                     button->Init(fSeed->GetPin(SW_2_PIN), fRate);
                 }
+                fItems.push_back(std::move(button));
             }
             fValue = fKey = "";
         }
@@ -211,13 +202,13 @@ class DaisyControlUI : public GenericUI
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             if (fKey == "switch") {
-                CheckButton* button = new CheckButton(zone);
-                fCheckButton.push_back(button);
+                std::unique_ptr<CheckButton> button = std::make_unique<CheckButton>(zone);
                 if (fValue == "1") {
                     button->Init(fSeed->GetPin(SW_1_PIN), fRate);
                 } else if (fValue == "2") {
                     button->Init(fSeed->GetPin(SW_2_PIN), fRate);
                 }
+                fItems.push_back(std::move(button));
             }
             fValue = fKey = fScale = "";
         }
@@ -257,9 +248,7 @@ class DaisyControlUI : public GenericUI
     
         void update()
         {
-            for (auto& it : fSwitchButton) it->update();
-            for (auto& it : fCheckButton) it->update();
-            for (auto& it : fKnobConverter) it->update();
+            for (const auto& it : fItems) it->update();
         }
     
 };
