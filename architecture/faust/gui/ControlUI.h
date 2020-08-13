@@ -89,7 +89,7 @@ class ControlUI : public UI {
         void encodeMidiControl(void* midi_control_buffer, unsigned int frames)
         { 
             assert(fControlOut.size() <= frames);
-            jack_midi_reset_buffer(midi_control_buffer);
+            jack_midi_clear_buffer(midi_control_buffer);
           
             for (unsigned int i = 0; i < fControlOut.size(); i++) {
                 jack_midi_data_t* buffer = jack_midi_event_reserve(midi_control_buffer, i, 4);
@@ -100,7 +100,7 @@ class ControlUI : public UI {
     
         static void encodeMidiControl(void* midi_control_buffer, float* control_buffer, int count)
         {
-            jack_midi_reset_buffer(midi_control_buffer);
+            jack_midi_clear_buffer(midi_control_buffer);
             
             for (unsigned int i = 0; i < count; i++) {
                 jack_midi_data_t* buffer = jack_midi_event_reserve(midi_control_buffer, i, 4);
