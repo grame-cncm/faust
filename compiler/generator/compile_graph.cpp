@@ -1176,7 +1176,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
                             if (p.second > 0) {
                                 POSTPONE.insert(p.first);
                             } else {
-                                scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
+                                // TO FIX: scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
                             }
                         }
                         // schedule itself
