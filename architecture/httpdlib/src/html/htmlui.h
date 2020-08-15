@@ -24,7 +24,6 @@
 #ifndef __htmlui__
 #define __htmlui__
 
-
 namespace httpdfaust { class htmlfactory; }
 
 class htmlui

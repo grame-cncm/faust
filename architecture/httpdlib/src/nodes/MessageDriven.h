@@ -73,7 +73,7 @@ class MessageDriven : public MessageProcessor, public smartable
 		virtual bool	processMessage( const Message* msg, std::vector<Message*>& outMsg );
 
 		/*!
-			\brief propose an OSc message at a given hierarchy level.
+			\brief propose an OSC message at a given hierarchy level.
 			\param msg the osc message currently processed
 			\param regexp a regular expression based on the osc address head
 			\param addrTail the osc address tail

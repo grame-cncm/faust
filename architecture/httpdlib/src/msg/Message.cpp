@@ -55,17 +55,17 @@ void Message::print(std::ostream& out) const
 	out << address() << " " ;
 	argslist::const_iterator i = params().begin();
 
-	ios::fmtflags f = out.flags ( ios::showpoint );
+	ios::fmtflags f = out.flags(ios::showpoint);
 	while (i != params().end()) {
 		MsgParam<string>* s = dynamic_cast<MsgParam<string>*>((baseparam*)(*i));
 		if (s) out << "\"" << escape(s->getValue()) << "\" ";
 		MsgParam<int>* ip = dynamic_cast<MsgParam<int>*>((baseparam*)(*i));
 		if (ip) out << ip->getValue() << " ";
-		MsgParam<float>* f = dynamic_cast<MsgParam<float>*>((baseparam*)(*i));
-		if (f) out << f->getValue() << " ";
+		MsgParam<float>* f1 = dynamic_cast<MsgParam<float>*>((baseparam*)(*i));
+		if (f1) out << f1->getValue() << " ";
 		i++;
 	}
-	out.flags ( f );
+	out.flags(f);
 }
 
 } // end namespoace

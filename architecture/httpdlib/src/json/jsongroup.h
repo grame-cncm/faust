@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __jsongroup__
 #define __jsongroup__
 
@@ -50,9 +49,9 @@ class jsongroup : public jsonnode
 		virtual ~jsongroup() {}
 		
 	public:
-	static Sjsonnode create (const char *name, const char* type, const TMetas& m) { return new jsongroup (name, type, m); }
+	static Sjsonnode create(const char *name, const char* type, const TMetas& m) { return new jsongroup (name, type, m); }
 
-		virtual void	add (const Sjsonnode& node)		{ fContent.push_back(node); }
+		virtual void	add(const Sjsonnode& node)		{ fContent.push_back(node); }
 		virtual void	print(std::ostream& out, jsonendl& eol) const;
 };
 
