@@ -321,9 +321,10 @@ install:
 	if test -d ../.git; then git submodule update --init; fi
 	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(PREFIX)
 	cmake  --build $(FAUSTDIR) --target install
-uninstall: installedfiles = $(shell cat $(installLog))
+
 uninstall: $(installLog)
-	rm -f $(installedfiles) $(installLog)
+	$(shell cat $(installLog) | xargs rm -f)
+	rm -f $(installLog)
 
 #===============================================================
 undefined:
