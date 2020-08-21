@@ -35,3 +35,4 @@ compiler/faust
 tests/impulse-tests/ir
 ### ESLint
 .eslintrc.json
+*-svg

@@ -30,10 +30,10 @@
 
 #include "Text.hh"
 #include "code_container.hh"
+#include "dcond.hh"
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions.hh"
-#include "dcond.hh"
 #include "old_occurences.hh"
 #include "property.hh"
 
@@ -47,29 +47,29 @@ class InstructionsCompiler : public virtual Garbageable {
    protected:
     CodeContainer* fContainer;
 
-    property<ValueInst*>            fCompileProperty;
-    property<string>                fVectorProperty;
-    property<pair<string, string>>  fStaticInitProperty;
-    property<pair<string, string>>  fInstanceInitProperty;
-    property<string>                fTableProperty;
-    
+    property<ValueInst*>           fCompileProperty;
+    property<string>               fVectorProperty;
+    property<pair<string, string>> fStaticInitProperty;
+    property<pair<string, string>> fInstanceInitProperty;
+    property<string>               fTableProperty;
+
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
-    
-    Tree                            fSharingKey;
-    old_OccMarkup*                  fOccMarkup;
+
+    Tree           fSharingKey;
+    old_OccMarkup* fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;
 
     Tree         fUIRoot;
     Description* fDescription;
-    
+
     /*
      -dlt <N> : threshold between 'mask' and 'select' based ring-buffer delay line model.
      'mask' delay-lines use the next power-of-two value size and a mask (faster but use more memory)
      'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but slower)
     */
-    
+
     bool fHasIota;
 
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
@@ -87,7 +87,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
     virtual StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
     virtual StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
-    
+
     // Redefined in InterpreterInstructionsCompiler
     virtual StatementInst* generateShiftArray(const string& vname, int delay);
 
@@ -130,11 +130,11 @@ class InstructionsCompiler : public virtual Garbageable {
         }
         return n;
     }
-    
+
     bool ispowerof2(int x)
     {
         /* First x in the below expression is for the case when x is 0 */
-        return x && (!(x&(x-1)));
+        return x && (!(x & (x - 1)));
     }
 
     CodeContainer* signal2Container(const string& name, Tree sig);
@@ -145,20 +145,20 @@ class InstructionsCompiler : public virtual Garbageable {
     void sharingAnnotation(int vctxt, Tree sig);
 
     FIRIndex getCurrentLoopIndex() { return FIRIndex(fContainer->getCurLoop()->getLoopIndex()); }
-    
+
     void declareWaveform(Tree sig, string& vname, int& size);
-    
+
     // Enable/control
     void conditionAnnotation(Tree l);
-    void conditionAnnotation(Tree t, Tree nc);
+    void conditionAnnotation(Tree t, Tree nc, Tree clkstack);
     void conditionStatistics(Tree l);
-    
+
     ValueInst* cnf2code(Tree cc);
     ValueInst* or2code(Tree oc);
-    
+
     ValueInst* dnf2code(Tree cc);
     ValueInst* and2code(Tree oc);
-    
+
     ValueInst* getConditionCode(Tree sig);
 
    public:
@@ -227,7 +227,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
                                          Address::AccessType& var_access, ValueInst* ccs);
-    
+
     virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
 
     // UI hierachy description
@@ -243,10 +243,9 @@ class InstructionsCompiler : public virtual Garbageable {
 
     void         setDescription(Description* descr) { fDescription = descr; }
     Description* getDescription() { return fDescription; }
-    
+
     Tree prepare(Tree LS);
     Tree prepare2(Tree L0);
-  
 };
 
 #endif

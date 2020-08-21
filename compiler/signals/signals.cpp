@@ -518,6 +518,15 @@ bool isSigControl(Tree t, Tree& t0, Tree& t1)
     return isTree(t, gGlobal->SIGCONTROL, t0, t1);
 }
 
+Tree sigUpsampling(Tree t0, Tree t1)
+{
+    return tree(gGlobal->SIGUPSAMPLING, t0, t1);
+}
+bool isSigUpsampling(Tree t, Tree& t0, Tree& t1)
+{
+    return isTree(t, gGlobal->SIGUPSAMPLING, t0, t1);
+}
+
 bool sameMagnitude(Tree a, Tree b)
 {
     return sameMagnitude(a->node(), b->node());

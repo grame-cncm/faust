@@ -43,6 +43,7 @@ Compile a list of FAUST signals into a C++ class.
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
+#include "xtended.hh"
 
 /*****************************************************************************
 ******************************************************************************
@@ -172,7 +173,7 @@ void ScalarCompiler::conditionStatistics(Tree l)
 void ScalarCompiler::conditionAnnotation(Tree l)
 {
     while (isList(l)) {
-        conditionAnnotation(hd(l), gGlobal->nil);
+        conditionAnnotation(hd(l), gGlobal->nil, gGlobal->nil);
         l = tl(l);
     }
 }
@@ -191,7 +192,7 @@ void ScalarCompiler::conditionAnnotation(Tree l)
 
 #endif
 
-void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
+void ScalarCompiler::conditionAnnotation(Tree t, Tree nc, Tree clkstack)
 {
     // Check if we need to annotate the tree with new conditions
     auto p = fConditionProperty.find(t);
@@ -217,15 +218,32 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
     Tree x, y;
     if (isSigControl(t, x, y)) {
         // specific annotation case for SigControl
-        conditionAnnotation(y, nc);
-        conditionAnnotation(x, _AND_(nc, _CND_(y)));
+        conditionAnnotation(y, nc, clkstack);
+        conditionAnnotation(x, _AND_(nc, _CND_(y)), clkstack);
+    } else if (isSigUpsampling(t, x, y)) {
+        // std::cerr << "Saving previous condition " << ppsig(nc) << std::endl;
+        // specific annotation case for upsampling, remember condition to be able restore it
+        conditionAnnotation(y, nc, clkstack);
+        conditionAnnotation(x, _AND_(nc, _CND_(y)), cons(nc, clkstack));
+    } else if (gGlobal->gDownsamplingPrim->is(t, x, y)) {
+        // we end here current condition and continue annotation with previous condition from stack
+        faustassert(!isNil(clkstack));
+        Tree oldnc     = hd(clkstack);
+        Tree prevstack = tl(clkstack);
+        // std::cerr << "Restoring previous condition " << ppsig(oldnc) << std::endl;
+        vector<Tree> subsig;
+        int          n = getSubSignals(t, subsig);
+        if (n > 0 && !isSigGen(t)) {
+            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], oldnc, prevstack);
+        }
+
     } else {
         // general annotation case
         // Annotate the sub signals with nc
         vector<Tree> subsig;
         int          n = getSubSignals(t, subsig);
         if (n > 0 && !isSigGen(t)) {
-            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
+            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc, clkstack);
         }
     }
 }

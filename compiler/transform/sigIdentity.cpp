@@ -184,6 +184,8 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigEnable(self(x), self(y));
     } else if (isSigControl(sig, x, y)) {
         return sigControl(self(x), self(y));
+    } else if (isSigUpsampling(sig, x, y)) {
+        return sigUpsampling(self(x), self(y));
     }
 
     else {

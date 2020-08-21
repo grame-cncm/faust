@@ -121,6 +121,12 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(",", out);
         printSignal(y, out, 0);
         fputs(")", out);
+    } else if (isSigUpsampling(sig, x, y)) {
+        fputs("upsampling(", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
     } else if (isSigFixDelay(sig, x, y)) {
         if (prec > 4) fputs("(", out);
         printSignal(x, out, 4);

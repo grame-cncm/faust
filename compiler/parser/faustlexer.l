@@ -189,6 +189,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "fmod"		return FMOD;
 "remainder"	return REMAINDER;
 
+
 "floor"		return FLOOR;
 "ceil"		return CEIL;
 "rint"		return RINT;
@@ -198,12 +199,16 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "sum"		return ISUM;
 "prod"		return IPROD;
 
-"inputs"	return INPUTS;
-"outputs"	return OUTPUTS;
+"inputs"		return INPUTS;
+"outputs"		return OUTPUTS;
+"ondemand"		return ONDEMAND;
+"upsampling"	return UPSAMPLING;
+"downsampling"	return DOWNSAMPLING;
+"clocksync"		return CLOCKSYNC;
 
-"import"	return IMPORT;
-"component" return COMPONENT;
-"library"   return LIBRARY;
+"import"		return IMPORT;
+"component" 	return COMPONENT;
+"library"   	return LIBRARY;
 "environment"   return ENVIRONMENT;
 
 "waveform"  return WAVEFORM;

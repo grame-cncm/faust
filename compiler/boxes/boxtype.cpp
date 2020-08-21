@@ -126,9 +126,13 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
     error << "ERROR in " << opname << " " << aStr << opcode << bStr << endl
           << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
-          << bStr << endl << endl
-          << "Here  " << aStr << " = " << boxpp(a) << ";" << endl << "has " << outputs(o) << endl << endl
-          << "while " << bStr << " = " << boxpp(b) << ";" << endl << "has " << inputs(i) << endl;
+          << bStr << endl
+          << endl
+          << "Here  " << aStr << " = " << boxpp(a) << ";" << endl
+          << "has " << outputs(o) << endl
+          << endl
+          << "while " << bStr << " = " << boxpp(b) << ";" << endl
+          << "has " << inputs(i) << endl;
     return error.str();
 }
 
@@ -151,14 +155,19 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
 
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-    
+
     msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
-        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
+        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x
+            << "] of " << bStr << ". ";
     if (u < y)
-        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". ";
+        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y
+            << "] of " << bStr << ". ";
 
-    msg << endl << endl << "Here  " << aStr << " = " << boxpp(a) << "; has " << inputs(u) << " and " << outputs(v) << "," << endl << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(x) << " and " << outputs(y) << "." << endl;
+    msg << endl
+        << endl
+        << "Here  " << aStr << " = " << boxpp(a) << "; has " << inputs(u) << " and " << outputs(v) << "," << endl
+        << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(x) << " and " << outputs(y) << "." << endl;
     return msg.str();
 }
 
@@ -345,6 +354,13 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
 
     } else if (isBoxRoute(t, ins, outs, lroutes)) {
         return isBoxInt(ins, inum) & isBoxInt(outs, onum);
+
+    } else if (isBoxOndemand(t, a)) {
+        int u, v;
+        if (!getBoxType(a, &u, &v)) return false;
+
+        *inum = u + 1;
+        *onum = v;
 
     } else {
         stringstream error;

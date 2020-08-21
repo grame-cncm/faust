@@ -69,6 +69,7 @@ const char *prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigAttach) return "attach";
     if (ptr == sigEnable) return "enable";
     if (ptr == sigControl) return "control";
+    if (ptr == sigUpsampling) return "upsampling";
 
     return "prim2???";
 }
@@ -230,6 +231,9 @@ ostream &boxpp::print(ostream &fout) const
         fout << "inputs(" << boxpp(t1) << ")";
     else if (isBoxOutputs(box, t1))
         fout << "outputs(" << boxpp(t1) << ")";
+
+    else if (isBoxOndemand(box, t1))
+        fout << "ondemand(" << boxpp(t1) << ")";
 
     // user interface
     else if (isBoxButton(box, label))

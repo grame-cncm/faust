@@ -167,6 +167,9 @@ static int infereSigOrder(Tree sig)
     else if (isSigControl(sig, s1, s2))
         return max(O(s1), O(s2));  // O(s1);
 
+    else if (isSigUpsampling(sig, s1, s2))
+        return max(O(s1), O(s2));  // O(s1);
+
     else if (isSigSoundfile(sig, l))
         throw faustexception("ERROR inferring signal order : isSigSoundfile\n");  // not supposed to happen.;
 

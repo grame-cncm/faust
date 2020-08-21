@@ -90,7 +90,7 @@ class ScalarCompiler : public Compiler {
     void sharingAnnotation(int vctxt, Tree t);
 
     void   conditionAnnotation(Tree l);
-    void   conditionAnnotation(Tree t, Tree nc);
+    void   conditionAnnotation(Tree t, Tree nc, Tree clkstack);
     void   conditionStatistics(Tree l);
     string getConditionCode(Tree t);
 
@@ -157,6 +157,7 @@ class ScalarCompiler : public Compiler {
     void declareWaveform(Tree sig, string& vname, int& size);
 
     virtual string generateControl(Tree sig, Tree x, Tree y);
+    virtual string generateUpsampling(Tree sig, Tree x, Tree y);
 
     string cnf2code(Tree cc);
     string or2code(Tree oc);

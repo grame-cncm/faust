@@ -168,7 +168,7 @@ void InstructionsCompiler::conditionStatistics(Tree l)
 void InstructionsCompiler::conditionAnnotation(Tree l)
 {
     while (isList(l)) {
-        conditionAnnotation(hd(l), gGlobal->nil);
+        conditionAnnotation(hd(l), gGlobal->nil, gGlobal->nil);
         l = tl(l);
     }
 }
@@ -187,7 +187,7 @@ void InstructionsCompiler::conditionAnnotation(Tree l)
 
 #endif
 
-void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc)
+void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc, Tree clkstack)
 {
     // Check if we need to annotate the tree with new conditions
     auto p = fConditionProperty.find(t);
@@ -213,15 +213,15 @@ void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc)
     Tree x, y;
     if (isSigControl(t, x, y)) {
         // specific annotation case for sigControl
-        conditionAnnotation(y, nc);
-        conditionAnnotation(x, _AND_(nc, _CND_(y)));
+        conditionAnnotation(y, nc, clkstack);
+        conditionAnnotation(x, _AND_(nc, _CND_(y)), clkstack);
     } else {
         // general annotation case
         // Annotate the sub signals with nc
         vector<Tree> subsig;
         int          n = getSubSignals(t, subsig);
         if (n > 0 && !isSigGen(t)) {
-            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
+            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc, clkstack);
         }
     }
 }

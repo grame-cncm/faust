@@ -156,6 +156,9 @@ Tree unquote(char* str)
 
 %token FMOD
 %token REMAINDER
+%token DOWNSAMPLING
+%token UPSAMPLING
+%token CLOCKSYNC
 
 %token FLOOR
 %token CEIL
@@ -206,6 +209,7 @@ Tree unquote(char* str)
 
 %token INPUTS
 %token OUTPUTS
+%token ONDEMAND
 
 %token STRING
 %token FSTRING
@@ -291,6 +295,7 @@ Tree unquote(char* str)
 
 %type <exp> finputs
 %type <exp> foutputs
+%type <exp> fondemand
 
 %type <exp> button
 %type <exp> checkbox
@@ -560,6 +565,10 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
 				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
 
+				| UPSAMPLING					{ $$ = boxPrim2(sigUpsampling); }
+				| DOWNSAMPLING					{ $$ = gGlobal->gDownsamplingPrim->box(); }
+				| CLOCKSYNC						{ $$ = gGlobal->gClocksyncPrim->box(); }
+
 				| ident 						{ $$ = $1;  setUseProp($1, yyfilename, yylineno);}
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
 
@@ -596,6 +605,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				
 				| finputs						{ $$ = $1; }
 				| foutputs						{ $$ = $1; }
+				| fondemand						{ $$ = $1; }
 				
 				;
 
@@ -653,6 +663,10 @@ finputs			: INPUTS LPAR expression RPAR { $$ = boxInputs($3); }
 
 foutputs		: OUTPUTS LPAR expression RPAR { $$ = boxOutputs($3); }
 				;
+
+fondemand		: ONDEMAND LPAR expression RPAR { $$ = boxOndemand($3); }
+				;
+
 
 				
 

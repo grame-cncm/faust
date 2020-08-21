@@ -284,6 +284,10 @@ Tree boxOutputs(Tree x)
 {
     return tree(gGlobal->BOXOUTPUTS, x);
 }
+Tree boxOndemand(Tree x)
+{
+    return tree(gGlobal->BOXONDEMAND, x);
+}
 
 bool isBoxInputs(Tree t, Tree& x)
 {
@@ -292,6 +296,10 @@ bool isBoxInputs(Tree t, Tree& x)
 bool isBoxOutputs(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXOUTPUTS, x);
+}
+bool isBoxOndemand(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->BOXONDEMAND, x);
 }
 
 /*****************************************************************************
@@ -992,6 +1000,8 @@ static Tree preparePattern(Tree box)
         return boxInputs(preparePattern(t1));
     else if (isBoxOutputs(box, t1))
         return boxOutputs(preparePattern(t1));
+    else if (isBoxOndemand(box, t1))
+        return boxOndemand(preparePattern(t1));
 
     // user interface
     else if (isBoxButton(box, label))

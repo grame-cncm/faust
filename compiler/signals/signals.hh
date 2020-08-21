@@ -319,6 +319,10 @@ Tree sigControl(Tree x, Tree y);
 bool isSigControl(Tree s);
 bool isSigControl(Tree s, Tree& x, Tree& y);
 
+Tree sigUpsampling(Tree x, Tree y);
+bool isSigUpsampling(Tree s);
+bool isSigUpsampling(Tree s, Tree& x, Tree& y);
+
 /*****************************************************************************
                              Sounfiles (also UI elements)
 *****************************************************************************/

@@ -218,6 +218,10 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;
+    } else if (isSigUpsampling(sig, x, y)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 2;
     } else if (isList(sig)) {
         vsigs.push_back(hd(sig));
         vsigs.push_back(tl(sig));

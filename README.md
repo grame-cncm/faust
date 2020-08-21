@@ -1,5 +1,10 @@
 # Faust - Programming Language for Audio Applications and Plugins
 
+## NOTE
+- `experimental-ondemand`, branch to test the new `ondemand(P)` primitive. 
+- See detailed specification of the primitive here : https://github.com/orlarey/faust-ondemand-spec.
+
+
 ## Grame, Centre National de Creation Musicale: <https://www.grame.fr>
 
 master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust)

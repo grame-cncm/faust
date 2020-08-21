@@ -112,6 +112,9 @@ void sigvisitor::visit(Tree sig)
     else if (isSigControl(sig, s1, s2))
         visitControl(sig, s1, s2);
 
+    else if (isSigUpsampling(sig, s1, s2))
+        visitUpsampling(sig, s1, s2);
+
     //------------------------
 
     else if (isRec(sig, var, body))

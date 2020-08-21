@@ -28,7 +28,7 @@ using namespace std;
 
 /**
  * Returns an enlarged schema, but only if really needed
- * that is if the requiered width is greater that the schema width.
+ * that is if the required width is greater that the schema width.
  */
 schema* makeEnlargedSchema(schema* s, double width)
 {

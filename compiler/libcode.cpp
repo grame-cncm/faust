@@ -63,6 +63,7 @@
 #include "simplify.hh"
 #include "sourcereader.hh"
 #include "timing.hh"
+#include "boxIdentity.hh"
 
 #ifdef C_BUILD
 #include "c_code_container.hh"
@@ -195,6 +196,20 @@ static void* threadEvaluateBlockDiagram(void* arg)
     try {
         gGlobal->gProcessTree =
             evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+
+        // experimental test of boxindentity transformation
+        /*
+        BoxIdentity bi;
+
+        Tree transformedProcess = bi.self(gGlobal->gProcessTree);
+        if (transformedProcess == gGlobal->gProcessTree) {
+            std::cerr << "OK: the transformation preserved the identity" << std::endl;
+        } else {
+            std::cerr << "ERROR: the identity was not preseved\nThe original process was:\n\n"
+                     << boxpp(gGlobal->gProcessTree) << "\n\nWhile the resulting is:\n\n"
+                     << boxpp(transformedProcess) << endl;
+        }
+        */
     } catch (faustexception& e) {
         gGlobal->gErrorMessage = e.Message();
     }

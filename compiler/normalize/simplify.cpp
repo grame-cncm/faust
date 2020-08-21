@@ -202,6 +202,21 @@ static Tree simplification(Tree sig)
         else
             return sig;
 
+        // upsampling(t1, 0) => 0
+        // upsampling(t1, 1) => t1
+        // otherwise sig
+    } else if (isSigUpsampling(sig, t1, t2)) {
+        Node n2 = t2->node();
+
+        if (isZero(n2))
+            return sigInt(0);  // a 'zero' with the correct type
+
+        else if (isOne(n2))
+            return t1;
+
+        else
+            return sig;
+
     } else {
         return sig;
     }

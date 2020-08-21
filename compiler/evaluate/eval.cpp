@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <cstdlib>
 
+#include "boxClockMarking.hh"
 #include "compatibility.hh"
 #include "errormsg.hh"
 #include "eval.hh"
@@ -567,6 +568,28 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             error << "ERROR : can't evaluate ' : " << *exp << endl;
             throw faustexception(error.str());
         }
+
+    } else if (isBoxOndemand(exp, body)) {
+#if 1
+        // experimental
+        BoxClockMarking M;
+        // std::cerr << "PHASE 0: " << boxpp(exp) << std::endl;
+        Tree B2 = a2sb(eval(body, visited, localValEnv));
+        // std::cerr << "PHASE 1: " << boxpp(B2) << std::endl;
+        Tree B3 = M.self(B2);
+        // std::cerr << "PHASE 2: " << boxpp(B3) << std::endl;
+        Tree B4 = M.clockPrefix(B3);
+        // std::cerr << "PHASE 3: " << boxpp(B4) << std::endl;
+        Tree B5 = M.clockPostfix(B4);
+        // std::cerr << "PHASE 4: " << boxpp(B5) << std::endl;
+
+        Tree P2 = boxSymbolic(M.clockSlot(), B5);
+        // std::cerr << "PHASE 5: " << boxpp(P2) << std::endl;
+
+        return eval(P2, visited, localValEnv);  // Not sure evaluation is needed here ????
+#else
+        return boxOndemand(eval(body, visited, localValEnv));
+#endif
 
     } else if (isBoxSlot(exp)) {
         return exp;

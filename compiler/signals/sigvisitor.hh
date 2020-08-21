@@ -66,6 +66,7 @@ struct sigvisitor {
     virtual void visitAttach(Tree sig, Tree s1, Tree s2)                                      = 0;
     virtual void visitEnable(Tree sig, Tree s1, Tree s2)                                      = 0;
     virtual void visitControl(Tree sig, Tree s1, Tree s2)                                     = 0;
+    virtual void visitUpsampling(Tree sig, Tree s1, Tree s2)                                  = 0;
 
     // recursive
     virtual void visitRec(Tree sig, Tree var, Tree body) = 0;

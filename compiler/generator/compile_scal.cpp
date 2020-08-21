@@ -503,6 +503,11 @@ string ScalarCompiler::generateCode(Tree sig)
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
         }
         return generateControl(sig, x, y);
+    } else if (isSigUpsampling(sig, x, y)) {
+        if (gGlobal->gVectorSwitch) {
+            throw faustexception("ERROR : 'upsampling' can only be used in scalar mode\n");
+        }
+        return generateUpsampling(sig, x, y);
     }
     /* we should not have any control at this stage*/
     else {
@@ -1169,6 +1174,12 @@ string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
     return generateCacheCode(x, CS(x));
 }
 
+string ScalarCompiler::generateUpsampling(Tree sig, Tree x, Tree y)
+{
+    CS(y);
+    return generateCacheCode(x, CS(x));
+}
+
 string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
     Type te = getCertifiedSigType(sig);  //, tEnv);
@@ -1502,14 +1513,14 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
-        
+
         // we need an iota index
         fMaxIota = 0;
-        
+
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-        
+
         // execute
         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
     }

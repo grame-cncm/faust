@@ -134,18 +134,18 @@ struct global {
     bool gUIMacroSwitch;
     bool gDumpNorm;
     int  gFTZMode;
-    bool gRangeUI;      // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
-    
+    bool gRangeUI;  // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+
     int gFloatSize;
 
     bool gPrintFileListSwitch;
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;    // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
-                        // for JavaScript)
-    bool gClang;        // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    string gCheckTable; // whether to check RDTable and RWTable index range
+    bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
+                      // for JavaScript)
+    bool   gClang;    // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    string gCheckTable;  // whether to check RDTable and RWTable index range
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -217,7 +217,8 @@ struct global {
     int gCountMaximal;
     int gDummyInput;
 
-    int gBoxSlotNumber;  ///< counter for unique slot number
+    int gBoxSlotNumber;   ///< counter for unique slot number
+    int gBoxClockNumber;  ///< counter for unique clock number
 
     bool gMemoryManager;
 
@@ -268,6 +269,8 @@ struct global {
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
     xtended* gFtzPrim;
+    xtended* gDownsamplingPrim;
+    xtended* gClocksyncPrim;
 
     Sym BOXIDENT;
     Sym BOXCUT;
@@ -320,6 +323,7 @@ struct global {
     Sym BOXPATVAR;
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
+    Sym BOXONDEMAND;
     Sym BOXSOUNDFILE;
     Sym BOXMETADATA;
     Sym DOCEQN;
@@ -383,6 +387,7 @@ struct global {
     Sym SIGATTACH;
     Sym SIGENABLE;
     Sym SIGCONTROL;
+    Sym SIGUPSAMPLING;
     Sym SIGSOUNDFILE;
     Sym SIGSOUNDFILELENGTH;
     Sym SIGSOUNDFILERATE;
@@ -483,8 +488,8 @@ struct global {
     char* gCurrentLocal;
 
     int gAllocationCount;  // Internal signal types counter
-    
-    int gMaskDelayLineThreshold;   // Power-of-two and mask delay-lines treshold
+
+    int gMaskDelayLineThreshold;  // Power-of-two and mask delay-lines treshold
 
     bool gEnableFlag;
 

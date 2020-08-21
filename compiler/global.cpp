@@ -29,7 +29,9 @@
 #include "atanprim.hh"
 #include "binop.hh"
 #include "ceilprim.hh"
+#include "clocksyncprim.hh"
 #include "cosprim.hh"
+#include "downsamplingprim.hh"
 #include "exp10prim.hh"
 #include "expprim.hh"
 #include "floorprim.hh"
@@ -236,7 +238,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gDummyInput = 10000;
 
-    gBoxSlotNumber = 0;
+    gBoxSlotNumber  = 0;
+    gBoxClockNumber = 0;
+
     gMemoryManager = false;
 
     gLocalCausalityCheck = false;
@@ -246,28 +250,30 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFoldingFlag = false;
     gDevSuffix   = 0;
 
-    gAbsPrim       = new AbsPrim();
-    gAcosPrim      = new AcosPrim();
-    gTanPrim       = new TanPrim();
-    gSqrtPrim      = new SqrtPrim();
-    gSinPrim       = new SinPrim();
-    gRintPrim      = new RintPrim();
-    gRemainderPrim = new RemainderPrim();
-    gPowPrim       = new PowPrim();
-    gMinPrim       = new MinPrim();
-    gMaxPrim       = new MaxPrim();
-    gLogPrim       = new LogPrim();
-    gLog10Prim     = new Log10Prim();
-    gFmodPrim      = new FmodPrim();
-    gFloorPrim     = new FloorPrim();
-    gExpPrim       = new ExpPrim();
-    gExp10Prim     = new Exp10Prim();
-    gCosPrim       = new CosPrim();
-    gCeilPrim      = new CeilPrim();
-    gAtanPrim      = new AtanPrim();
-    gAtan2Prim     = new Atan2Prim();
-    gAsinPrim      = new AsinPrim();
-    gFtzPrim       = new FtzPrim();
+    gAbsPrim          = new AbsPrim();
+    gAcosPrim         = new AcosPrim();
+    gTanPrim          = new TanPrim();
+    gSqrtPrim         = new SqrtPrim();
+    gSinPrim          = new SinPrim();
+    gRintPrim         = new RintPrim();
+    gRemainderPrim    = new RemainderPrim();
+    gPowPrim          = new PowPrim();
+    gMinPrim          = new MinPrim();
+    gMaxPrim          = new MaxPrim();
+    gLogPrim          = new LogPrim();
+    gLog10Prim        = new Log10Prim();
+    gFmodPrim         = new FmodPrim();
+    gFloorPrim        = new FloorPrim();
+    gExpPrim          = new ExpPrim();
+    gExp10Prim        = new Exp10Prim();
+    gCosPrim          = new CosPrim();
+    gCeilPrim         = new CeilPrim();
+    gAtanPrim         = new AtanPrim();
+    gAtan2Prim        = new Atan2Prim();
+    gAsinPrim         = new AsinPrim();
+    gFtzPrim          = new FtzPrim();
+    gDownsamplingPrim = new DownsamplingPrim();
+    gClocksyncPrim    = new ClocksyncPrim();
 
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
@@ -320,6 +326,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     BOXPATVAR        = symbol("BoxPatVar");
     BOXINPUTS        = symbol("BoxInputs");
     BOXOUTPUTS       = symbol("BoxOutputs");
+    BOXONDEMAND      = symbol("BoxOndemand");
     BOXSOUNDFILE     = symbol("boxSoundfile");
     BOXMETADATA      = symbol("boxMetadata");
 
@@ -370,6 +377,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGATTACH          = symbol("SigAttach");
     SIGENABLE          = symbol("SigEnable");
     SIGCONTROL         = symbol("SigControl");
+    SIGUPSAMPLING      = symbol("SigUpsampling");
     SIGSOUNDFILE       = symbol("SigSoundfile");
     SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
     SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
@@ -458,9 +466,9 @@ void global::init()
     gSymListProp           = new property<Tree>();
 
     // Essential predefined types
-    gMemoizedTypes   = new property<AudioType*>();
-    gAllocationCount = 0;
-    gMaskDelayLineThreshold  = INT_MAX;
+    gMemoizedTypes          = new property<AudioType*>();
+    gAllocationCount        = 0;
+    gMaskDelayLineThreshold = INT_MAX;
 
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
@@ -569,13 +577,13 @@ void global::init()
     gMathForeignFunctions["tanhf"] = true;
     gMathForeignFunctions["tanh"]  = true;
     gMathForeignFunctions["tanhl"] = true;
-    
+
     gMathForeignFunctions["isnanf"] = true;
-    gMathForeignFunctions["isnan"] = true;
+    gMathForeignFunctions["isnan"]  = true;
     gMathForeignFunctions["isnanl"] = true;
-    
+
     gMathForeignFunctions["isinff"] = true;
-    gMathForeignFunctions["isinf"] = true;
+    gMathForeignFunctions["isinf"]  = true;
     gMathForeignFunctions["isinfl"] = true;
 }
 

@@ -433,6 +433,11 @@ static Type infereSigType(Tree sig, Tree env)
         return T(s1, env);
     }
 
+    else if (isSigUpsampling(sig, s1, s2)) {
+        T(s2, env);
+        return T(s1, env);
+    }
+
     else if (isRec(sig, var, body))
         return infereRecType(sig, body, env);
 

@@ -147,13 +147,13 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     gGlobal->gDevSuffix   = dev;
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
 
-    mkchDir(projname);      // create a directory to store files
+    mkchDir(projname);  // create a directory to store files
 
-    scheduleDrawing(bd);    // schedule the initial drawing
+    scheduleDrawing(bd);  // schedule the initial drawing
 
     Tree t;
     while (pendingDrawing(t)) {
-        writeSchemaFile(t); // generate all the pending drawing
+        writeSchemaFile(t);  // generate all the pending drawing
     }
 
     choldDir();  // return to current directory
@@ -532,6 +532,10 @@ static schema* generateInsideSchema(Tree t)
                   << endl;
             throw faustexception(error.str());
         }
+
+    } else if (isBoxOndemand(t, a)) {
+        return makeOndemandSchema(generateDiagramSchema(a));
+
     } else {
         stringstream error;
         error << "ERROR in generateInsideSchema, box expression not recognized : ";

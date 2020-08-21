@@ -175,6 +175,10 @@ int computeBoxComplexity(Tree box)
     else if (isBoxTGroup(box, label, t1))
         return BC(t1);
 
+    // ondemand
+    else if (isBoxOndemand(box, t1))
+        return BC(t1) + 1;
+
     // environment
     else if (isBoxEnvironment(box))
         return 0;
