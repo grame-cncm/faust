@@ -356,7 +356,7 @@ class CodeContainer : public virtual Garbageable {
       
         // "name", "filename" found in medata
         visitor.init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-        gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
+                     gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
      
         generateUserInterface(&visitor);
         generateMetaData(&visitor);

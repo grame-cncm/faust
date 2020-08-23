@@ -49,20 +49,22 @@
 
 using namespace llvm;
 
+#define LLVMValue llvm::Value*
+#define LLVMType llvm::Type*
+#define LLVMPtrType llvm::PointerType*
+#define LLVMVecTypes vector<LLVMType>
+#define MapOfTtypes map<Typed::VarType, LLVMType>
+
+#define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
+#define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
 #define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(0, v1, v2);
 #define MakeConstGEP32(type_def, llvm_name) fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
 
-#define LLVMValue llvm::Value*
-#define LLVMType llvm::Type*
-#define LLVMPtrType llvm::PointerType*
-#define GetIterator(it) &(*(it))
-#define LLVMVecTypes vector<LLVMType>
-#define MapOfTtypes map<Typed::VarType, LLVMType>
-#define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
-#define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
+
+#define GetIterator(it) &(*(it))
 
 #define dumpLLVM(val)                    \
     {                                    \

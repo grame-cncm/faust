@@ -814,8 +814,8 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
-            "llvm, cllvm, fir, wast/wasm, soul, interp."
+         << "                                        'lang' should be c, ocpp, cpp (default), rust, java, "
+            "llvm, fir, wast/wasm, soul or interp."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
@@ -901,9 +901,9 @@ static void printHelp()
             "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'."
          << endl;
     cout << tab
-         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
-    cout << tab
          << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
+    cout << tab
+         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
@@ -941,7 +941,7 @@ static void printHelp()
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check table index range and fails." << endl;
+    cout << tab << "-ct         --check-table               check table index range and exit at first failure." << endl;
     cout << tab << "-cat        --check-all-table           check all table index range." << endl;
 
     cout << endl << "Information options:" << line;

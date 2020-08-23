@@ -407,7 +407,7 @@ class CInstVisitor1 : public CInstVisitor {
     
     private:
     
-        StructInstVisitor1 fStructVisitor;
+        StructInstVisitor fStructVisitor;
         bool fZoneAddress;      // If a zone address is currently written
         bool fIndexedAddress;   // If an indexed address is currently written
     
