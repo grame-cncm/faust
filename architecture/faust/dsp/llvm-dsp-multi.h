@@ -25,10 +25,6 @@
 
 #include <string>
 #include <iostream>
-#include <sstream>
-#include <fstream>
-#include <sys/types.h>
-#include <sys/sysctl.h>
 #include <assert.h>
 
 // CPUs
