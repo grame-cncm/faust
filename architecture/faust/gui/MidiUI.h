@@ -322,7 +322,7 @@ class uiMidiProgChange : public uiMidiTimedItem {
         
 };
 
-class uiMidiChanPress : public uiMidiTimedItem {
+class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
     
     private:
         
@@ -330,9 +330,13 @@ class uiMidiChanPress : public uiMidiTimedItem {
   
     public:
     
-        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone,
-                        bool input = true, int chan = -1)
-            :uiMidiTimedItem(midi_out, ui, zone, input, chan), fPress(press)
+        uiMidiChanPress(midi* midi_out, GUI* ui,
+                        FAUSTFLOAT* zone,
+                        FAUSTFLOAT min, FAUSTFLOAT max,
+                        bool input = true,
+                        MetaDataUI::Scale scale = MetaDataUI::kLin,
+                        int chan = -1)
+            :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max)
         {}
         virtual ~uiMidiChanPress()
         {}
@@ -341,8 +345,20 @@ class uiMidiChanPress : public uiMidiTimedItem {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (v != FAUSTFLOAT(0)) {
-                fMidiOut->chanPress(rangeChan(), fPress);
+            fMidiOut->chanPress(rangeChan(), fConverter->faust2ui(v));
+        }
+    
+        void modifyZone(FAUSTFLOAT v)
+        {
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(fConverter->ui2faust(v)));
+            }
+        }
+    
+        void modifyZone(double date, FAUSTFLOAT v)
+        {
+            if (fInputCtrl) {
+                uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fConverter->ui2faust(v)));
             }
         }
         
@@ -602,7 +618,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
     // Add uiItem subclasses objects are deallocated by the inherited GUI class
     typedef std::map <int, std::vector<uiMidiCtrlChange*> > TCtrlChangeTable;
     typedef std::vector<uiMidiProgChange*>                  TProgChangeTable;
-    typedef std::map <int, std::vector<uiMidiChanPress*> >  TChanPressTable;
+    typedef std::vector<uiMidiChanPress*>                   TChanPressTable;
     typedef std::map <int, std::vector<uiMidiKeyOn*> >      TKeyOnTable;
     typedef std::map <int, std::vector<uiMidiKeyOff*> >     TKeyOffTable;
     typedef std::map <int, std::vector<uiMidiKeyPress*> >   TKeyPressTable;
@@ -660,10 +676,10 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
                             fProgChangeTable.push_back(new uiMidiProgChange(fMidiHandler, this, zone, min, max, input, chan));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pgm") == 0) {
                             fProgChangeTable.push_back(new uiMidiProgChange(fMidiHandler, this, zone, min, max, input));
-                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u %u", &num, &chan) == 2) {
-                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input, chan));
-                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
-                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num, &chan) == 1) {
+                            fChanPressTable.push_back(new uiMidiChanPress(fMidiHandler, this, zone, min, max, input, getScale(zone), chan));
+                        } else if ((fMetaAux[i].second == "chanpress")) {
+                            fChanPressTable.push_back(new uiMidiChanPress(fMidiHandler, this, zone, min, max, input, getScale(zone)));
                         } else if ((gsscanf(fMetaAux[i].second.c_str(), "pitchwheel %u", &chan) == 1) || (gsscanf(fMetaAux[i].second.c_str(), "pitchbend %u", &chan) == 1)) {
                             fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max, input, chan));
                         } else if ((fMetaAux[i].second == "pitchwheel") || (fMetaAux[i].second == "pitchbend")) {
@@ -838,7 +854,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         
         void chanPress(double date, int channel, int press)
         {
-            updateTable2<TChanPressTable>(fChanPressTable, date, channel, press, FAUSTFLOAT(1));
+            updateTable1<TChanPressTable>(fChanPressTable, date, channel, press);
         }
         
         void ctrlChange14bits(double date, int channel, int ctrl, int value) {}
