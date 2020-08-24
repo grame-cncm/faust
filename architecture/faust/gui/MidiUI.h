@@ -676,7 +676,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
                             fProgChangeTable.push_back(new uiMidiProgChange(fMidiHandler, this, zone, min, max, input, chan));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pgm") == 0) {
                             fProgChangeTable.push_back(new uiMidiProgChange(fMidiHandler, this, zone, min, max, input));
-                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num, &chan) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &chan) == 1) {
                             fChanPressTable.push_back(new uiMidiChanPress(fMidiHandler, this, zone, min, max, input, getScale(zone), chan));
                         } else if ((fMetaAux[i].second == "chanpress")) {
                             fChanPressTable.push_back(new uiMidiChanPress(fMidiHandler, this, zone, min, max, input, getScale(zone)));
