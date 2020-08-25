@@ -664,10 +664,9 @@ CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, in
     fSubContainerType = sub_container_type;
 }
 
-void CScalarCodeContainer::generateCompute(int n)
+void CScalarCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
           << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -692,10 +691,9 @@ void CScalarCodeContainer::generateCompute(int n)
 }
 
 // Special version for -os generation mode
-void CScalarOneSampleCodeContainer::generateCompute(int n)
+void CScalarOneSampleCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
           << subst("* dsp, $0* inputs, $0* outputs, int* iControl, $0* fControl, int* iZone, $0* fZone) {", xfloat());
@@ -722,13 +720,8 @@ CVectorCodeContainer::CVectorCodeContainer(const string& name, int numInputs, in
 {
 }
 
-void CVectorCodeContainer::generateCompute(int n)
+void CVectorCodeContainer::generateComputeAux(int n)
 {
-    // Possibly generate separated functions
-    fCodeProducer->Tab(n);
-    tab(n, *fOut);
-    generateComputeFunctions(fCodeProducer);
-
     // Generates declaration
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
@@ -752,13 +745,8 @@ COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, in
 {
 }
 
-void COpenMPCodeContainer::generateCompute(int n)
+void COpenMPCodeContainer::generateComputeAux(int n)
 {
-    // Possibly generate separated functions
-    fCodeProducer->Tab(n);
-    tab(n, *fOut);
-    generateComputeFunctions(fCodeProducer);
-
     // Compute declaration
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
@@ -783,13 +771,8 @@ CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int n
 {
 }
 
-void CWorkStealingCodeContainer::generateCompute(int n)
+void CWorkStealingCodeContainer::generateComputeAux(int n)
 {
-    // Possibly generate separated functions
-    fCodeProducer->Tab(n);
-    tab(n, *fOut);
-    generateComputeFunctions(fCodeProducer);
-
     // Generates "computeThread" code
     tab(n, *fOut);
     *fOut << "static void computeThread" << fKlassName << "(" << fKlassName << "* dsp, int num_thread) {";

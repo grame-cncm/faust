@@ -1,4 +1,4 @@
-% man(1) Version 2.28.1 (06-August-2020) | Faust man page
+% man(1) Version 2.28.2 (25-August-2020) | Faust man page
 
 NAME
 ====
@@ -54,7 +54,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, soul, interp.
+                                          'lang' should be c, ocpp, cpp (default), rust, java, llvm, fir, wast/wasm, soul or interp.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -128,9 +128,9 @@ Code generation options:
 
   **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
-  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
-
   **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
+
+  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
 
 
 Block diagram options:
@@ -177,7 +177,7 @@ Debug options:
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
-  **-ct**         **--check-table**               check table index range and fails.
+  **-ct**         **--check-table**               check table index range and exit at first failure.
 
   **-cat**        **--check-all-table**           check all table index range.
 

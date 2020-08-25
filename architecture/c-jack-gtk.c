@@ -127,7 +127,7 @@ class Cdsp : public dsp {
         glue.addNumEntry = addNumEntryGlueFloat;
         glue.addHorizontalBargraph = addHorizontalBargraphGlueFloat;
         glue.addVerticalBargraph = addVerticalBargraphGlueFloat;
-        glue.addSoundFile = addSoundFileGlueFloat;
+        glue.addSoundfile = addSoundfileGlueFloat;
         glue.declare = declareGlueFloat;
         
         buildUserInterfacemydsp(fDSP, &glue);

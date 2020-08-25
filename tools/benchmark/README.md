@@ -38,7 +38,9 @@ Here are the available options:
 - `cannonlake to compile for Cannonlake CPU`
 - `generic to compile for generic CPU`
 - `-all to compile for all CPUs`
+- `-sources' to only generate source files`
 - `-multi to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime`
+- `-multifun to compile for several CPUs using GCC MultiFun feature and aggregate them in a 'multi' class that choose the correct one at runtime`
 - `-opt native to activate the best compilation options for the native CPU`
 - `-opt generic to activate the best compilation options for a generic CPU`
 - `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
@@ -49,9 +51,21 @@ A set of header and object code files will be generated, and will have to be add
 
 The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi` class) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi();`  or  `dsp* dsp = create<DSPName>multi();`) to load the appropriate object code version depending on the running machine CPU. 
 
+Note that this code uses the [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU. Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
+
+The `-multifun` mode uses the GCC [multiversion feature](https://gcc.gnu.org/wiki/FunctionMultiVersioning) to generate an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi` class) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi();`  or  `dsp* dsp = create<DSPName>multi();`) to load the appropriate object code version depending on the running machine CPU. The list of CPUs to be compiled for must be defined in the `FAUST_ARCHS` environment variable.
+
 The `-test` parameter can be used to compile a test program which will bench the DSP, print its UI, and render it.
  
-Note that this code uses the  [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU.  Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
+ Examples:
+ 
+ - create multi-cpu files using the C++ backend (giving an explicit list of supported CPUS), and then compile them as object files:  `faust2object haswell core2 generic foo.dsp`. 
+ - create multi-cpu files using the LLVM backend (giving an explicit list of supported CPUS), and then compile them as object files:  `faust2object -llvm haswell core2 generic foo.dsp`. 
+ - create multi-cpu files for all possible CPUs using C++ backend, and then compile them as object files : `faust2object -all foo.dsp`. 
+ - create multi-cpu files for all possible CPUs and the multi-loader file, and them compile them as object files:  `faust2object -all -multi foo.dsp`. 
+ - create multi-cpu files for all possible CPUs and the multi-loader file, them compile them as object files, and compile a test program :  `faust2object -all -multi -test foo.dsp`. 
+ - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file:  `export FAUST_ARCHS="core2 haswell" && faust2object -sources -multifun generic foo.dsp`. 
+ - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, them compile them as object files, and compile a test program:  `export FAUST_ARCHS="core2 haswell" && faust2object -multi generic -test foo.dsp`. 
 
 
 ## dynamic-jack-gtk
