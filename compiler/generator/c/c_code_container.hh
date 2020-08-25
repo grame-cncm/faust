@@ -55,7 +55,6 @@ class CCodeContainer : public virtual CodeContainer {
         if (archs) {
             tab(n, *fOut);
             for (auto& it : tokenizeString(archs, ' ')) {
-                //tab(n, *fOut);
                 *fOut << "__attribute__ ((target (\"arch=" << it << "\")))";
                 generateComputeAux(n);
                 tab(n, *fOut);

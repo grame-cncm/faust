@@ -52,7 +52,7 @@ done
 for f in $FILES; do
 
 	SRCDIR=$(dirname "$p")
-	LINPUTS=$(faust -uim "$f" | grep FAUST_INPUTS)
+	LINPUTS=$(faust $OPTIONS -uim "$f" | grep FAUST_INPUTS)
 	NINPUTS=${LINPUTS//[^0-9]/}
 	if [ $NINPUTS -gt 0 ]; then
 		echo "Will process an input file to produce an output file"
