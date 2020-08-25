@@ -21,7 +21,7 @@ Here are the available options:
 
 The **faust2object** tool  either uses the standard C++ compiler or the LLVM dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
 
-`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake_avx512] [cannonlake] [generic] [-all] [-multi] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake_avx512] [cannonlake] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
