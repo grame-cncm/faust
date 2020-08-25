@@ -87,21 +87,7 @@ class Cdsp : public dsp {
         virtual void buildUserInterface(UI* interface)
         {
             UIGlue glue;
-            glue.uiInterface = interface;
-            glue.openTabBox = openTabBoxGlueFloat;
-            glue.openHorizontalBox = openHorizontalBoxGlueFloat;
-            glue.openVerticalBox = openVerticalBoxGlueFloat;
-            glue.closeBox = closeBoxGlueFloat;
-            glue.addButton = addButtonGlueFloat;
-            glue.addCheckButton = addCheckButtonGlueFloat;
-            glue.addVerticalSlider = addVerticalSliderGlueFloat;
-            glue.addHorizontalSlider = addHorizontalSliderGlueFloat;
-            glue.addNumEntry = addNumEntryGlueFloat;
-            glue.addHorizontalBargraph = addHorizontalBargraphGlueFloat;
-            glue.addVerticalBargraph = addVerticalBargraphGlueFloat;
-            glue.addSoundfile = addSoundfileGlueFloat;
-            glue.declare = declareGlueFloat;
-            
+            buildUIGlue(&glue, interface, sizeof(FAUSTFLOAT) == 8);
             buildUserInterfacemydsp(fDSP, &glue);
         }
     
