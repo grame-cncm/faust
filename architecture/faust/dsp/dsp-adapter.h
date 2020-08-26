@@ -31,6 +31,7 @@
 #include <string.h>
 #include <iostream>
 #include <cmath>
+#include <assert.h>
 
 #include "faust/dsp/dsp.h"
 
@@ -41,54 +42,58 @@ class dsp_adapter : public decorator_dsp {
         
         FAUSTFLOAT** fAdaptedInputs;
         FAUSTFLOAT** fAdaptedOutputs;
-        int fHardwareInputs;
-        int fHardwareOutputs;
+        int fHWInputs;
+        int fHWOutputs;
+        int fBufferSize;
         
         void adaptBuffers(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            for (int i = 0; i < fHardwareInputs; i++) {
+            for (int i = 0; i < fHWInputs; i++) {
                 fAdaptedInputs[i] = inputs[i];
             }
-            for (int i = 0; i < fHardwareOutputs; i++) {
+            for (int i = 0; i < fHWOutputs; i++) {
                 fAdaptedOutputs[i] = outputs[i];
             }
         }
         
     public:
         
-        dsp_adapter(dsp* dsp, int hardware_inputs, int hardware_outputs, int buffer_size):decorator_dsp(dsp)
+        dsp_adapter(dsp* dsp, int hw_inputs, int hw_outputs, int buffer_size):decorator_dsp(dsp)
         {
-            fHardwareInputs = hardware_inputs;
-            fHardwareOutputs = hardware_outputs;
+            fHWInputs = hw_inputs;
+            fHWOutputs = hw_outputs;
+            fBufferSize = buffer_size;
              
             fAdaptedInputs = new FAUSTFLOAT*[dsp->getNumInputs()];
-            for (int i = 0; i < dsp->getNumInputs() - fHardwareInputs; i++) {
-                fAdaptedInputs[i + fHardwareInputs] = new FAUSTFLOAT[buffer_size];
-                memset(fAdaptedInputs[i + fHardwareInputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
+            for (int i = 0; i < dsp->getNumInputs() - fHWInputs; i++) {
+                fAdaptedInputs[i + fHWInputs] = new FAUSTFLOAT[buffer_size];
+                memset(fAdaptedInputs[i + fHWInputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             
             fAdaptedOutputs = new FAUSTFLOAT*[dsp->getNumOutputs()];
-            for (int i = 0; i < dsp->getNumOutputs() - fHardwareOutputs; i++) {
-                fAdaptedOutputs[i + fHardwareOutputs] = new FAUSTFLOAT[buffer_size];
-                memset(fAdaptedOutputs[i + fHardwareOutputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
+            for (int i = 0; i < dsp->getNumOutputs() - fHWOutputs; i++) {
+                fAdaptedOutputs[i + fHWOutputs] = new FAUSTFLOAT[buffer_size];
+                memset(fAdaptedOutputs[i + fHWOutputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
         }
         
         virtual ~dsp_adapter()
         {
-            for (int i = 0; i < fDSP->getNumInputs() - fHardwareInputs; i++) {
-                delete [] fAdaptedInputs[i + fHardwareInputs];
+            for (int i = 0; i < fDSP->getNumInputs() - fHWInputs; i++) {
+                delete [] fAdaptedInputs[i + fHWInputs];
             }
             delete [] fAdaptedInputs;
             
-            for (int i = 0; i < fDSP->getNumOutputs() - fHardwareOutputs; i++) {
-                delete [] fAdaptedOutputs[i + fHardwareOutputs];
+            for (int i = 0; i < fDSP->getNumOutputs() - fHWOutputs; i++) {
+                delete [] fAdaptedOutputs[i + fHWOutputs];
             }
             delete [] fAdaptedOutputs;
         }
     
-        virtual int getNumInputs() { return fHardwareInputs; }
-        virtual int getNumOutputs() { return fHardwareOutputs; }
+        virtual int getNumInputs() { return fHWInputs; }
+        virtual int getNumOutputs() { return fHWOutputs; }
+    
+        virtual dsp_adapter* clone() { return new dsp_adapter(fDSP->clone(), fHWInputs, fHWOutputs, fBufferSize); }
     
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
@@ -107,7 +112,7 @@ class dsp_adapter : public decorator_dsp {
 template <typename REAL_INT, typename REAL_EXT>
 class dsp_sample_adapter : public decorator_dsp {
     
-    protected:
+    private:
     
         REAL_INT** fAdaptedInputs;
         REAL_INT** fAdaptedOutputs;
@@ -158,8 +163,11 @@ class dsp_sample_adapter : public decorator_dsp {
             delete [] fAdaptedOutputs;
         }
     
+        virtual dsp_sample_adapter* clone() { return new dsp_sample_adapter(fDSP->clone()); }
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
+            assert(count <= 4096);
             adaptInputBuffers(count, inputs);
             // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
@@ -168,6 +176,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
+            assert(count <= 4096);
             adaptInputBuffers(count, inputs);
             // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
@@ -513,6 +522,8 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
             this->fDSP->instanceConstants(sample_rate / this->getFactor());
         }
     
+        virtual dsp_down_sampler* clone() { return new dsp_down_sampler(decorator_dsp::clone()); }
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             int real_count = count / this->getFactor();
@@ -580,6 +591,8 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
         {
             this->fDSP->instanceConstants(sample_rate * this->getFactor());
         }
+    
+        virtual dsp_up_sampler* clone() { return new dsp_up_sampler(decorator_dsp::clone()); }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
