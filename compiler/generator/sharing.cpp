@@ -213,7 +213,6 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
 
     // Annotate the subtrees with the new condition nc
     // which is either the nc passed as argument or nc <- (cc v nc)
-
     Tree x, y;
     if (isSigControl(t, x, y)) {
         // specific annotation case for SigControl

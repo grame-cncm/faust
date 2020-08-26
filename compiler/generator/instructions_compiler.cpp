@@ -209,7 +209,6 @@ void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc)
     
     // Annotate the subtrees with the new condition nc
     // which is either the nc passed as argument or nc <- (cc v nc)
-    
     Tree x, y;
     if (isSigControl(t, x, y)) {
         // specific annotation case for sigControl
@@ -259,9 +258,13 @@ Tree InstructionsCompiler::prepare(Tree LS)
     Tree L4 = SK.mapself(L3);
     endTiming("Constant propagation");
 
+    startTiming("privatise");
     Tree L5 = privatise(L4);  // Un-share tables with multiple writers
+    endTiming("privatise");
     
+    startTiming("conditionAnnotation");
     conditionAnnotation(L5);
+    endTiming("conditionAnnotation");
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
@@ -269,19 +272,25 @@ Tree InstructionsCompiler::prepare(Tree LS)
         throw faustexception("Dump normal form finished...\n");
     }
 
+    startTiming("recursivnessAnnotation");
     recursivnessAnnotation(L5);  // Annotate L5 with recursivness information
+    endTiming("recursivnessAnnotation");
 
     startTiming("L5 typeAnnotation");
     typeAnnotation(L5, true);    // Annotate L5 with type information and check causality
     endTiming("L5 typeAnnotation");
 
+    startTiming("sharingAnalysis");
     sharingAnalysis(L5);         // Annotate L5 with sharing count
+    endTiming("sharingAnalysis");
     
+    startTiming("occurrences analysis");
     if (fOccMarkup != 0) {
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
     fOccMarkup->mark(L5);        // Annotate L5 with occurrences analysis
+    endTiming("occurrences analysis");
     
     // annotationStatistics();
     endTiming("prepare");
