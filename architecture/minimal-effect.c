@@ -71,15 +71,14 @@ class Cdsp : public dsp {
     
     public:
     
-        Cdsp()
-        {
-            fDSP = newmydsp();
-        }
+        Cdsp():fDSP(newmydsp())
+        {}
     
         virtual ~Cdsp()
         {
             deletemydsp(fDSP);
         }
+    
         virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
     
         virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
@@ -126,7 +125,7 @@ class Cdsp : public dsp {
             instanceClearmydsp(fDSP);
         }
     
-        virtual dsp* clone()
+        virtual Cdsp* clone()
         {
             return new Cdsp();
         }

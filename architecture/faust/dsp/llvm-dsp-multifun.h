@@ -38,14 +38,11 @@
  */
 class mydspmulti : public decorator_dsp {
     
-    
     public:
     
-        mydspmulti()
-        {
-            fDSP = createmydspgeneric();
-        }
-        
+        mydspmulti():decorator_dsp(createmydspgeneric())
+        {}
+    
         virtual ~mydspmulti()
         {}
   

@@ -206,7 +206,6 @@ dsp* createmydspmulti() { return new mydspmulti(); }
 #endif
 /**************************  END  llvm-dsp-multi.h **************************/
 
-//#define TEST
 #ifdef TEST
 int main()
 {
