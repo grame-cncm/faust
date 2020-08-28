@@ -849,47 +849,44 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
     string format;     // current format
 
     while (state != -1) {
-        char c = *src++;
-
         if (state == 0) {
-            if (c == 0) {
+            if (*src == 0) {
                 state = -1;
-            } else if (c == '%') {
+            } else if (*src == '%') {
                 ident  = "";
                 format = "";
                 state  = 1;
+                src++;
             } else {
-                dst += c;
+                dst += *src++;
                 state = 0;
             }
 
         } else if (state == 1) {
-            if (c == 0) {
+            if (*src == 0) {
                 // fin et pas d'indentifiant, abandon
                 dst += '%';
                 dst += format;
                 state = -1;
-            } else if (isDigitChar(c)) {
-                format += c;
+            } else if (isDigitChar(*src)) {
+                format += *src++;
                 state = 1;
-            } else if (isIdentChar(c)) {
-                ident += c;
+            } else if (isIdentChar(*src)) {
+                ident += *src++;
                 state = 2;
             } else {
                 // caractere de ponctuation et pas d'indentifiant, abandon
                 dst += '%';
                 dst += format;
-                src--;
                 state = 0;
             }
 
         } else if (state == 2) {
-            if (isIdentChar(c)) {
-                ident += c;
+            if (isIdentChar(*src)) {
+                ident += *src++;
                 state = 2;
             } else {
                 writeIdentValue(dst, format, ident, visited, localValEnv);
-                src--;
                 state = 0;
             }
 
