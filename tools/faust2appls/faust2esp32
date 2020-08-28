@@ -46,7 +46,7 @@ echoHelp ()
     option -midi
     option -main "add a 'main' entry point"
     option "-nvoices <num>"
-    option "-wm8978 or -ac101" "to choose codec driver"
+    option "-wm8978, -es8338 or -ac101" "to choose codec driver"
     option "Faust options"
 }
 
@@ -89,6 +89,9 @@ do
     # -ac101 (Ai-thinker a1s-board)
     elif [ $p = "-ac101" ] || [ $p = "-AC101" ]; then
     	DRIVER="ac101"
+    # -es8388 (espressif LyraT)
+    elif [ $p = "-es8388" ] || [ $p = "-ES8388" ]; then
+    	DRIVER="es8388"
     # other compile options
     else
         OPTIONS="$OPTIONS $p"
@@ -160,6 +163,10 @@ if [ $LIB -eq 1 ]; then
     elif [[ $DRIVER = "ac101" ]]; then
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME
+    elif [[ $DRIVER = "es8388" ]]; then
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.h $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/es8388/adf_structs.h $MODULENAME
     else
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
@@ -185,6 +192,10 @@ if [ $LIB -eq 1 ]; then
 
     if [[ "$DRIVER" == *ac101* ]]; then
     	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *es8388* ]]; then
+        echo '#define LYRA_T true' >> "$MODULENAME/tmp.txt"
     fi
 
     #if [[ "$OSCDEFS" == *OSC* ]]; then
@@ -230,6 +241,13 @@ if [ $LIB -eq 0 ]; then
         cp $FAUSTARCH/esp32/drivers/ac101/component.mk $MODULENAME/AC101
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME/AC101
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME/AC101/include
+    elif [[ $DRIVER = "es8388" ]]; then
+        mkdir -p $MODULENAME/es8388/include
+        cp $FAUSTARCH/esp32/drivers/es8388/CMakeLists.txt $MODULENAME/es8388
+        cp $FAUSTARCH/esp32/drivers/es8388/component.mk $MODULENAME/es8388
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.cpp $MODULENAME/es8388
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.h $MODULENAME/es8388/include
+        cp $FAUSTARCH/esp32/drivers/es8388/adf_structs.h $MODULENAME/es8388/include
     else
         mkdir -p $MODULENAME/WM8978/include
         cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
@@ -267,7 +285,11 @@ if [ $LIB -eq 0 ]; then
     	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
     fi
 
-    if [[ "$DRIVER" == *wm8798* ]]; then
+    if [[ "$DRIVER" == *es8388* ]]; then
+        echo '#define LYRA_T true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *wm8978* ]]; then
     	echo '#define TTGO_TAUDIO true' >> "$MODULENAME/tmp.txt"
     fi
 
