@@ -45,6 +45,9 @@
 JuceReader gReader;
 #elif defined(ESP32)
 #include "faust/gui/Esp32Reader.h"
+Esp32Reader gReader;
+#elif defined(DAISY)
+#include "faust/gui/WaveReader.h"
 WaveReader gReader;
 #elif defined(MEMORY_READER)
 #include "faust/gui/MemoryReader.h"

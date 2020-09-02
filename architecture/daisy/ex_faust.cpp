@@ -44,6 +44,11 @@
 #include "faust/midi/daisy-midi.h"
 #endif
 
+#if SOUNDFILE
+#define DAISY
+#include "faust/gui/SoundUI.h"
+#endif
+
 using namespace daisysp;
 using namespace daisy;
 
@@ -108,6 +113,12 @@ int main(void)
     daisy_midi midi_handler;
     midi_handler.startMidi();
 #endif
+    
+    // After audio init to get SR
+#if SOUNDFILE
+    SoundUI soundinterface("", hw.AudioSampleRate());
+    DSP.buildUserInterface(&soundinterface);
+ endif
     
     while(1) {
 #ifdef MIDICTRL

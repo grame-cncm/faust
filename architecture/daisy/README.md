@@ -18,6 +18,7 @@ Only programming the POD can been tested. The 2 *switches* and 2 *knobs* can be 
 - `[knob:N]` (with N from 1 to 2) has to be used in a `vslider`, `hslider` or `nentry` item to connect it to the POD knob number N. The knob [0..1] range will be mapped to the slider/nentry [min..max] range.
 
 Other metadata:
+
 - `[scale:lin|log|exp]` metadata is implemented.
 
 ## DSP examples
