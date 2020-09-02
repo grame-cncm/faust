@@ -39,7 +39,7 @@
 
 #define SOUND_CHAN      2
 #define SOUND_LENGTH    4096
-#define SOUND_SR        40100
+#define SOUND_SR        44100
 
 struct MemoryReader : public SoundfileReader {
     

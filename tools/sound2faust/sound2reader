@@ -9,16 +9,18 @@ LLVM="false"
 FAUSTFLOAT="float"
 LOCAL="false"
 EMBED="false"
+INTERLEAVED="false"
 WAVEFORM="false"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "sound2reader [-a] [-d] [-l] [-e] [-w] <file.wav> (or <file.aif>) or sound2reader ... *.wav (or *.aif) for a set of files"
+        echo "sound2reader [-a] [-d] [-l] [-e] [-i] [-w] <file.wav> (or <file.aif>) or sound2reader ... *.wav (or *.aif) for a set of files"
         echo "sound2reader -w <file.wav> (or <file.aif>) or sound2reader -w *.wav (or *.aif) for a set of files"
         echo "Use '-a' to use an absolute path to localize the sound file"
         echo "Use '-d' to use double samples"
         echo "Use '-l' to compile the sound reader code as a LLVM module"
         echo "Use '-e' to embed the sound in the C produced program"
+        echo "Use '-i' to embed the sound in the C produced program in interleaved format"
         echo "Use '-w' to convert the 'foo' soundfile as 'foo.dsp' waveform"
   	elif [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
@@ -30,6 +32,8 @@ for p in $@; do
 	    LOCAL="true"
     elif [ $p = "-e" ]; then
 	    EMBED="true"
+	elif [ $p = "-i" ]; then
+	    INTERLEAVED="true"
     elif [ $p = "-w" ]; then
 	    WAVEFORM="true"
 	fi
@@ -101,9 +105,17 @@ for f in $FILES; do
     else 
         echo "Generates the C embedded sound table"
         if [ $FAUSTFLOAT = "double" ]; then
-            sound2file $f -d -o $name.c
+        	if [ $INTERLEAVED = "true" ]; then
+            	sound2file $f -i -d -o $name.c
+            else
+            	sound2file $f -d -o $name.c
+            fi
         else
-            sound2file $f -o $name.c
+        	if [ $INTERLEAVED = "true" ]; then
+            	sound2file $f -i -o $name.c
+            else
+            	sound2file $f -o $name.c
+            fi
         fi
     fi
     

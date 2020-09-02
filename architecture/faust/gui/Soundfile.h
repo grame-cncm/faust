@@ -163,12 +163,12 @@ class SoundfileReader {
      * Check the availability of a sound resource.
      *
      * @param buffer - the sound buffer
-     * @param buffer - the sound buffer length
+     * @param size - the sound buffer length
      *
      * @return true if the sound resource is available, false otherwise.
      */
 
-    virtual bool checkFile(unsigned char* buffer, size_t length) { return true; }
+    virtual bool checkFile(unsigned char* buffer, size_t size) { return true; }
 
     /**
      * Get the channels and length values of the given sound resource.
@@ -184,7 +184,7 @@ class SoundfileReader {
      * Get the channels and length values of the given sound resource.
      *
      * @param buffer - the sound buffer
-     * @param buffer - the sound buffer length
+     * @param size - the sound buffer length
      * @param channels - the channels value to be filled with the sound resource number of channels
      * @param length - the length value to be filled with the sound resource length in frames
      *
@@ -194,6 +194,7 @@ class SoundfileReader {
     /**
      * Read one sound resource and fill the 'soundfile' structure accordingly
      *
+     * @param soundfile - the soundfile to be filled
      * @param path_name - the name of the file, or sound resource identified this way
      * @param part - the part number to be filled in the soundfile
      * @param offset - the offset value to be incremented with the actual sound resource length in frames
@@ -205,14 +206,15 @@ class SoundfileReader {
     /**
      * Read one sound resource and fill the 'soundfile' structure accordingly
      *
+     * @param soundfile - the soundfile to be filled
      * @param buffer - the sound buffer
-     * @param buffer - the sound buffer length
+     * @param size - the sound buffer length
      * @param part - the part number to be filled in the soundfile
      * @param offset - the offset value to be incremented with the actual sound resource length in frames
      * @param max_chan - the maximum number of mono channels to fill
      *
      */
-    virtual void readFile(Soundfile* soundfile, unsigned char* buffer, size_t length, int part, int& offset, int max_chan) {}
+    virtual void readFile(Soundfile* soundfile, unsigned char* buffer, size_t size, int part, int& offset, int max_chan) {}
 
   public:
     
