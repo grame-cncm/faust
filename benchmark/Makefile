@@ -287,24 +287,24 @@ clean :
 
 # DO NOT DELETE
 
+alsa-gtk-bench.o: /usr/local/include/faust/dsp/dsp.h
 console-bench-llvm.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
 console-bench-llvm.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
-console-bench-llvm.o: /usr/local/include/faust/dsp/llvm-dsp.h /usr/local/include/faust/gui/meta.h
-console-bench-llvm.o: /usr/local/include/faust/misc.h
+console-bench-llvm.o: /usr/local/include/faust/gui/MapUI.h /usr/local/include/faust/gui/UI.h
+console-bench-llvm.o: /usr/local/include/faust/gui/PathBuilder.h /usr/local/include/faust/dsp/llvm-dsp.h
+console-bench-llvm.o: /usr/local/include/faust/gui/meta.h /usr/local/include/faust/misc.h
 console-bench.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
 console-bench.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
-console-bench.o: /usr/local/include/faust/gui/UI.h /usr/local/include/faust/dsp/llvm-dsp.h
+console-bench.o: /usr/local/include/faust/gui/MapUI.h /usr/local/include/faust/gui/UI.h
+console-bench.o: /usr/local/include/faust/gui/PathBuilder.h /usr/local/include/faust/dsp/llvm-dsp.h
 console-bench.o: /usr/local/include/faust/gui/meta.h /usr/local/include/faust/misc.h
 coreaudio-gtk-bench.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
 coreaudio-gtk-bench.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
-coreaudio-gtk-bench.o: /usr/local/include/faust/misc.h /usr/local/include/faust/gui/meta.h
-coreaudio-gtk-bench.o: /usr/local/include/faust/gui/QTKUI.h /usr/local/include/faust/gui/GUI.h
-coreaudio-gtk-bench.o: /usr/local/include/faust/gui/UI.h /usr/local/include/faust/gui/ring-buffer.h
-coreaudio-gtk-bench.o: /usr/local/include/faust/gui/MetaDataUI.h /usr/local/include/faust/gui/SimpleParser.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/gui/MapUI.h /usr/local/include/faust/gui/UI.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/gui/PathBuilder.h /usr/local/include/faust/misc.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/gui/meta.h
 coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
 coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
-coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/dsp/llvm-dsp.h /usr/local/include/faust/gui/meta.h
-coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/misc.h /usr/local/include/faust/gui/QTKUI.h
-coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/GUI.h /usr/local/include/faust/gui/UI.h
-coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/ring-buffer.h /usr/local/include/faust/gui/MetaDataUI.h
-coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/SimpleParser.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/MapUI.h /usr/local/include/faust/gui/UI.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/PathBuilder.h /usr/local/include/faust/dsp/llvm-dsp.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/meta.h /usr/local/include/faust/misc.h

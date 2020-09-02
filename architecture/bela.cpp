@@ -52,7 +52,6 @@ using namespace std;
 
 #include "faust/gui/SimpleParser.h"
 #include "faust/dsp/timed-dsp.h"
-#include "faust/dsp/dsp.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MidiUI.h"
 

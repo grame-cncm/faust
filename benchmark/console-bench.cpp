@@ -43,7 +43,7 @@ using namespace std;
 //                                     MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char name[256];
     char rcfilename[256];
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
     
     long srate = (long)lopt(argv, "--frequency", 44100);
-    int    fpb = lopt(argv, "--buffer", 512);
+    int fpb = lopt(argv, "--buffer", 512);
     
     measure_dsp* dsp = new measure_dsp(new mydsp(), fpb, 100000, 20);
     

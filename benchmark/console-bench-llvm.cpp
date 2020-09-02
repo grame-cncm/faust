@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
     
     long srate = (long)lopt(argv, "--frequency", 44100);
-    int    fpb = lopt(argv, "--buffer", 512);
+    int fpb = lopt(argv, "--buffer", 512);
     
     string error;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error, -1);

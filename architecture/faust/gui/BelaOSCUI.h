@@ -34,6 +34,7 @@
 #include <libraries/OscSender/OscSender.h>
 #include <libraries/OscReceiver/OscReceiver.h>
 
+#include "faust/gui/GUI.h"
 #include "faust/gui/APIUI.h"
 
 /**************************BEGIN OSC SECTION **************************/
