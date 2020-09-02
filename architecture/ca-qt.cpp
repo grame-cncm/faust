@@ -327,14 +327,14 @@ int main(int argc, char* argv[])
     
     QApplication myApp(argc, argv);
     
+    QTGUI* interface = new QTGUI();
     FUI finterface;
-    QTGUI interface;
     
 #ifdef PRESETUI
-    PresetUI pinterface(&interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
     DSP->buildUserInterface(&pinterface);
 #else
-    DSP->buildUserInterface(&interface);
+    DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
 #endif
     
@@ -387,7 +387,7 @@ int main(int argc, char* argv[])
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL
-    interface.displayQRCode(httpdinterface.getTCPPort());
+    interface->displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
     
@@ -403,19 +403,20 @@ int main(int argc, char* argv[])
     
     // After the allocation of controllers
     finterface.recallState(rcfilename);
-    interface.run();
+    /* call run all GUI instances */
+    GUI::runAllGuis();
     
-    myApp.setStyleSheet(interface.styleSheet());
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     
 #ifdef MIDICTRL
     midiinterface.stop();
 #endif
-    interface.stop();
+    interface->stop();
     
     audio.stop();
-    
     finterface.saveState(rcfilename);
+    
     delete DSP;
     
     return 0;

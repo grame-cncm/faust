@@ -43,6 +43,7 @@
 #include "faust/misc.h"
 #include "faust/gui/GTKUI.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/PresetUI.h"
 #include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL
@@ -181,10 +182,16 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
-    GTKUI interface(name, &argc, &argv);
+    GTKUI* interface = new GTKUI(name, &argc, &argv);
     FUI finterface;
-    DSP->buildUserInterface(&interface);
+  
+#ifdef PRESETUI
+    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    DSP->buildUserInterface(&pinterface);
+#else
+    DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
+#endif
     
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -262,6 +269,7 @@ int main(int argc, char* argv[])
 #ifdef MIDICTRL
     midiinterface->stop();
 #endif
+    interface->stop();
     
     audio.stop();
     finterface.saveState(rcfilename);

@@ -21,6 +21,8 @@ NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+PRESETDIR="auto"
+PRESETDEFS=""
 
 if [[ $(uname -s) != Darwin ]]; then
 	LFLAGS+="-no-pie"
@@ -51,6 +53,8 @@ do
         option "-nvoices <num>"
         option "-effect <effect.dsp>"
         option "-effect auto"
+        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
         option "Faust options"
         exit
     fi
@@ -80,6 +84,10 @@ do
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+    elif [ "$p" = "-preset" ]; then
+        PRESETDEFS="-DPRESETUI"
+        shift
+        PRESETDIR=$1
 	elif [ $p = "-ocv" ]; then
         OCVDEFS="-DOCVCTRL -lpthread"
         OCVLIBS="opencv"
@@ -115,24 +123,35 @@ for f in $FILES; do
             adaptor(F,G) = adapt(outputs(F),inputs(G));
             process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
 EndOfCode
-            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp"|| exit
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp effect.dsp -o effect.h || exit
             rm effect.dsp
         else
-            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "effect.h" || exit
         fi
     else
-        faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+        faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp"|| exit
     fi
+    
+    # add preset management
+    if [ $PRESETDIR = "auto" ]; then
+        echo "#define PRESETDIR \"/var/tmp/\"" > "preset.cpp"
+    else
+        echo "#define PRESETDIR \"$PRESETDIR\"" > "preset.cpp"
+    fi
+
+    cat "preset.cpp" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
+    rm "preset.cpp" "${f%.dsp}_tmp.cpp"
+
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
 	) > /dev/null || exit
 
     # remove tempory files
-	rm -f "$f.cpp" effect.h "$f.json"
+	rm -f "${f%.dsp}.cpp" effect.h "$f.json"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"

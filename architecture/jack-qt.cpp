@@ -40,6 +40,7 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/PresetUI.h"
 #include "faust/misc.h"
 #include "faust/gui/QTUI.h"
 #include "faust/audio/jack-dsp.h"
@@ -183,10 +184,16 @@ int main(int argc, char* argv[])
     
     QApplication myApp(argc, argv);
     
-    QTGUI interface;
+    QTGUI* interface = new QTGUI();
     FUI finterface;
-    DSP->buildUserInterface(&interface);
+    
+#ifdef PRESETUI
+    PresetUI pinterface(interface, string(PRESETDIR) + string(name) + ((nvoices > 0) ? "_poly" : ""));
+    DSP->buildUserInterface(&pinterface);
+#else
+    DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
+#endif
     
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -236,7 +243,7 @@ int main(int argc, char* argv[])
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL
-    interface.displayQRCode(httpdinterface.getTCPPort());
+    interface->displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
     
@@ -255,9 +262,9 @@ int main(int argc, char* argv[])
     /* call run all GUI instances */
     GUI::runAllGuis();
     
-    myApp.setStyleSheet(interface.styleSheet());
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
-    interface.stop();
+    interface->stop();
     
 #ifdef MIDICTRL
     midiinterface->stop();

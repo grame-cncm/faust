@@ -48,7 +48,7 @@ The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL pr
 Here are the available options:
 
 - `-bs <frames> to set the maximum buffer-size in frames`
-- `control to update all controllers with random values at each cycle`
+- `-control to update all controllers with random values at each cycle`
 
 So for instance:
 

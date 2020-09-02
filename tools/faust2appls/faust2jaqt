@@ -37,6 +37,8 @@ OSCLIB=""
 POLY="POLY"
 DEPLOY=""
 NVOICES=-1
+PRESETDIR="auto"
+PRESETDEFS=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
@@ -56,6 +58,8 @@ do
         option "-nvoices <num>"
         option "-effect <effect.dsp>"
         option "-effect auto"
+        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
         option -resample "to resample soundfiles to the audio driver sample rate."
         option "Faust options"
 
@@ -111,6 +115,10 @@ do
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+	elif [ "$p" = "-preset" ]; then
+        PRESETDEFS="DEFINES += PRESETUI"
+        shift
+        PRESETDIR=$1
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -186,11 +194,21 @@ EndOfCode
     else
         faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
     fi
+    
+    # add preset management
+    if [ $PRESETDIR = "auto" ]; then
+        echo "#define PRESETDIR \"/var/tmp/\"" > "$TMP/preset.cpp"
+    else
+        echo "#define PRESETDIR \"$PRESETDIR\"" > "$TMP/preset.cpp"
+    fi
+
+    cat "$TMP/preset.cpp" "$TMP/${f%.dsp}_tmp.cpp" > "$TMP/${f%.dsp}.cpp"
+    rm "$TMP/preset.cpp" "$TMP/${f%.dsp}_tmp.cpp"
 
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS"
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
 	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
