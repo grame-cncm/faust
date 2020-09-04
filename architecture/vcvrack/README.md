@@ -1,22 +1,24 @@
 # faust2vcvrack
 
-The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing the VCV Rack plugin C++ source code and a Makefile to compile it.  
+The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing the [VCV Rack](https://vcvrack.com) plugin C++ source code and a Makefile to compile it.  
 
 `faust2vcvrack [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
-- `-midi to activate MIDI control (TODO)`
-- `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI (TODO)`
+- `-midi to activate MIDI control [WIP]`
+- `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI [WIP]`
 
 The generated folder has to be moved in the *Rack SDK* folder and compiled from there. 
+
+Parameters will be controllable using specific metadata [WIP]:
 
 - `[switch:N]` (with N from 1 to 2) has to be used in a `button` or `checkbox` item to connect it to the switch number N.
 - `[knob:N]` (with N from 1 to 2) has to be used in a `vslider`, `hslider` or `nentry` item to connect it to the knob number N. The knob [0..1] range will be mapped to the slider/nentry [min..max] range.
 
 ## DSP examples
 
-Here is a simple example showing how oscillators can be controlled by parameters:
+Here is a simple example showing how oscillators can be controlled by parameters [WIP]:
 
 ```
 import("stdfaust.lib");
