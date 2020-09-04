@@ -7,7 +7,7 @@ The **faust2daisy** tool compiles a Faust DSP program in a folder containing the
 Here are the available options:
 
 - `-patch : to compile for 4 ins/outs Patch (TODO)`
-- `-midi to activate MIDI control (TODO)`
+- `-midi to activate MIDI control`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI (TODO)`
 
 The generated folder has to be moved in the *DaisyExamples/seed* folder and compiled from there. 
@@ -23,14 +23,14 @@ Other metadata:
 
 ## DSP examples
 
-Here is a simple example showing how oscillators can be controlled by UI items:
+Here is a simple example showing how oscillators can be controlled by physical items and MIDI messages:
 
 ```
 import("stdfaust.lib");
 
 // UI controllers connected using metadata
-freq = hslider("freq [knob:1] [scale:log]", 200, 50, 5000, 0.01);
-gain = hslider("gain [knob:2]", 0.5, 0, 1, 0.01);
+freq = hslider("freq [knob:1] [midi:ctrl 1] [scale:log]", 200, 50, 5000, 0.01);
+gain = hslider("gain [knob:2] [midi:ctrl 7]", 0.5, 0, 1, 0.01);
 gate = button("gate [switch:1]");
 check = checkbox("check [switch:2]");
 
