@@ -120,8 +120,8 @@ class soulpatch_dsp : public dsp {
     
         // MIDI handling
         midi_handler* fMIDIHander;
-        std::vector<soul::patch::MIDIMessage> fMIDIInputMessages;
-        std::vector<soul::patch::MIDIMessage> fMIDIOutputMessages;
+        std::vector<soul::MIDIEvent> fMIDIInputMessages;
+        std::vector<soul::MIDIEvent> fMIDIOutputMessages;
     
     public:
 
