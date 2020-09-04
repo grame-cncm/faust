@@ -377,7 +377,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU esp32 iOS juce soul max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
+set (ARCHSRC android api AU esp32 iOS juce soul max-msp nodejs osclib sam smartKeyboard teensy unity vcvrack webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()

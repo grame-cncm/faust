@@ -1,0 +1,89 @@
+#!/bin/bash -e
+
+#####################################################################
+#                                                                   #
+#                    faust2vcvrack generator                        #
+#                       (c) Grame, 2020                             #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+ARCHFILE=$FAUSTARCH/vcvrack/template/src/FaustModule.cpp
+
+# exit if a command fails
+set -e
+
+# global option variables
+NVOICES=0
+MULTI="0"
+POLY=""
+PATCH="0"
+
+echoHelp ()
+{
+    echo "faust2vcvrack [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    option
+    options -midi
+    option "-nvoices <num>"
+    echo ""
+}
+
+###########################
+# Processing Arguments
+###########################
+
+while [ $1 ]
+do
+    p=$1
+    # help
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+        exit 0
+    # -nvoices:
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+    # -midi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDI"
+    elif [[ -f "$p" ]]; then
+        FILE="$p"
+    # other compile options
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+
+if [ -z $FILE ]; then
+    echo "Please, provide a Faust file to process"
+    exit 1
+fi
+
+###########################
+# Compile the *.dsp files
+###########################
+
+for p in $FILE; do
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+    
+    # creates the dir 
+    dspName="${f%.dsp}"
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    
+    # compile faust to c++
+    cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
+    faust -scn rack_dsp -uim -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+    
+done
