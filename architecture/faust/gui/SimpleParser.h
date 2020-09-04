@@ -36,7 +36,9 @@
 #include <map>
 #include <string>
 #include <cmath>
-#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <stdio.h> // We use the lighter fprintf code
 #include <ctype.h>
 
 #ifndef _WIN32
@@ -66,7 +68,7 @@ struct itemInfo {
 // Report a parsing error
 static bool parseError(const char*& p, const char* errmsg)
 {
-    std::cerr << "Parse error : " << errmsg << " here : " << p << std::endl;
+    fprintf(stderr, "Parse error : %s here : %s\n", errmsg, p);
     return true;
 }
 
@@ -334,7 +336,7 @@ static bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool
     }
     
 error:
-    if (debug) { std::cerr << "parseMenuList2 : (" << saved << ") is not a valid list !\n"; }
+    if (debug) { fprintf(stderr, "parseMenuList2 : (%s) is not a valid list !\n", p); }
     p = saved;
     return false;
 }

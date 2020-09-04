@@ -34,6 +34,7 @@
 #include <string>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h> // We use the lighter fprintf code
 
 #include "faust/gui/SimpleParser.h"
 
@@ -292,7 +293,7 @@ class MetaDataUI {
                         break;
                         
                     default:
-                        std::cerr << "ERROR unrecognized state " << state << std::endl;
+                        fprintf(stderr, "ERROR unrecognized state %d\n", state);
                 }
             }
             label = rmWhiteSpaces(label);

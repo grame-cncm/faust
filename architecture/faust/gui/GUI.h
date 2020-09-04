@@ -28,7 +28,6 @@
 #include <list>
 #include <map>
 #include <vector>
-#include <iostream>
 #include <assert.h>
 
 #ifdef _WIN32
@@ -409,7 +408,7 @@ class uiTimedItem : public uiItem
             size_t res;
             DatedControl dated_val(date, v);
             if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedControl))) != sizeof(DatedControl)) {
-                std::cerr << "ringbuffer_write error DatedControl" << std::endl;
+                fprintf(stderr, "ringbuffer_write error DatedControl\n");
             }
         }
     

@@ -27,13 +27,15 @@
 
 #include <cstdlib>
 
+#include "daisysp.h"
 #include "faust/midi/midi.h"
+#include "faust/gui/GUI.h"
 
 class daisy_midi : public midi_handler {
     
     private:
     
-        MidiHandler fMidi;
+        daisy::MidiHandler fMidi;
     
     public:
     
@@ -47,7 +49,7 @@ class daisy_midi : public midi_handler {
 
         bool startMidi()
         {
-            fMidi.Init(MidiHandler::INPUT_MODE_UART1, MidiHandler::OUTPUT_MODE_NONE);
+            fMidi.Init(daisy::MidiHandler::INPUT_MODE_UART1, daisy::MidiHandler::OUTPUT_MODE_NONE);
             return true;
         }
 
@@ -59,38 +61,48 @@ class daisy_midi : public midi_handler {
             fMidi.Listen();
             while (fMidi.HasEvents()) {
                 
-                MidiEvent m = fMidi.PopEvent();
+                double time = 0.;
+                daisy::MidiEvent m = fMidi.PopEvent();
                 switch(m.type) {
                         
-                    case NoteOff:
+                    case daisy::MidiMessageType::NoteOff: {
                         // TODO
                         //NoteOff p = m.AsNoteOff();
                         //handleKeyOff(time, p.channel, p.note, p.velocity);
                         break;
+                    }
                         
-                    case NoteOn:
-                        NoteOn p = m.AsNoteOn();
+                    case daisy::MidiMessageType::NoteOn: {
+                        daisy::NoteOnEvent p = m.AsNoteOn();
                         handleKeyOn(time, p.channel, p.note, p.velocity);
                         break;
+                    }
                         
-                    case PolyphonicKeyPressure:
+                    case daisy::MidiMessageType::PolyphonicKeyPressure: {
                         // TODO
                         //handlePolyAfterTouch(time, m.channel, m.control_number, m.value);
                         break;
+                    }
                         
-                    case ControlChange:
-                        ControlChangeEvent p = m.AsControlChange();
+                    case daisy::MidiMessageType::ControlChange: {
+                        daisy::ControlChangeEvent p = m.AsControlChange();
                         handleCtrlChange(time, p.channel, p.control_number, p.value);
                         break;
+                    }
                         
-                    case ProgramChange:
+                    case daisy::MidiMessageType::ProgramChange: {
                         // TODO
                         //handleProgChange(time, p.channel, p.control_number, p.value);
                         break;
+                    }
                         
-                    case PitchBend:
+                    case daisy::MidiMessageType::PitchBend: {
                         // TODO
                         //handlePitchWheel(time, p.channel, p.control_number, p.value);
+                        break;
+                    }
+                        
+                    default:
                         break;
                 }
             }

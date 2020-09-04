@@ -52,7 +52,7 @@ do
         NVOICES=$1
     # -midi
     elif [ $p = "-midi" ]; then
-        MIDIDEFS="MIDI"
+        MIDIDEFS="-DMIDI"
     elif [ $p = "-patch" ]; then
         PATCH="1"
         ARCHFILE=$FAUSTARCH/daisy/ex_faust_patch.cpp

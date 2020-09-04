@@ -40,17 +40,15 @@
 #include "faust/gui/DaisyControlUI.h"
 #include "faust/dsp/dsp.h"
 
+#define MIDICTRL  // Test
+
 #ifdef MIDICTRL
 #include "faust/midi/daisy-midi.h"
 #endif
 
-#if SOUNDFILE
-#define DAISY
-#include "faust/gui/SoundUI.h"
-#endif
-
 using namespace daisysp;
 using namespace daisy;
+using namespace std;
 
 /******************************************************************************
  *******************************************************************************
@@ -75,6 +73,11 @@ using namespace daisy;
 DaisySeed hw;
 DaisyControlUI* control;
 mydsp DSP;
+
+#ifdef MIDICTRL
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+#endif
 
 #define MY_BUFFER_SIZE 32
 
@@ -113,12 +116,6 @@ int main(void)
     daisy_midi midi_handler;
     midi_handler.startMidi();
 #endif
-    
-    // After audio init to get SR
-#if SOUNDFILE
-    SoundUI soundinterface("", hw.AudioSampleRate());
-    DSP.buildUserInterface(&soundinterface);
- endif
     
     while(1) {
 #ifdef MIDICTRL
