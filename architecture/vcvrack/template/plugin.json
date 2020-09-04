@@ -12,5 +12,12 @@
   "sourceUrl": "https://github.com/grame-cncm/faust",
   "donateUrl": "",
   "changelogUrl": "",
-  "modules": []
+  "modules": [
+    {
+      "slug": "FaustModule",
+      "name": "FaustModule",
+      "description": "",
+      "tags": []
+    }
+  ]
 }
