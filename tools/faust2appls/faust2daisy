@@ -21,9 +21,9 @@ set -e
 
 # global option variables
 NVOICES=0
-MULTI="0"
+MIDI=false
 POLY=""
-PATCH="0"
+PATCH=false
 
 echoHelp ()
 {
@@ -52,7 +52,7 @@ do
         NVOICES=$1
     # -midi
     elif [ $p = "-midi" ]; then
-        MIDIDEFS="-DMIDI"
+        MIDI=true
     elif [ $p = "-patch" ]; then
         PATCH="1"
         ARCHFILE=$FAUSTARCH/daisy/ex_faust_patch.cpp
@@ -64,7 +64,6 @@ do
     fi
 
 shift
-
 done
 
 
@@ -90,5 +89,9 @@ for p in $FILE; do
     # compile faust to c++
     cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    if [ $MIDI == true ]; then
+        echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+    
     
 done

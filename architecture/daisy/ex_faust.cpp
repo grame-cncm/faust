@@ -40,8 +40,6 @@
 #include "faust/gui/DaisyControlUI.h"
 #include "faust/dsp/dsp.h"
 
-#define MIDICTRL  // Test
-
 #ifdef MIDICTRL
 #include "faust/midi/daisy-midi.h"
 #endif
