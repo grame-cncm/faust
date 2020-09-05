@@ -90,12 +90,33 @@ struct UIItemsCounter : public GenericUI
     void addButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
     void addCheckButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
     
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    { fNumEntry++; }
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    { fNumEntry++; }
-    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    { fNumEntry++; }
+    void addVerticalSlider(const char* label,
+                           FAUSTFLOAT* zone,
+                           FAUSTFLOAT init,
+                           FAUSTFLOAT min,
+                           FAUSTFLOAT max,
+                           FAUSTFLOAT step)
+    {
+        fNumEntry++;
+    }
+    void addHorizontalSlider(const char* label,
+                             FAUSTFLOAT* zone,
+                             FAUSTFLOAT init,
+                             FAUSTFLOAT min,
+                             FAUSTFLOAT max,
+                             FAUSTFLOAT step)
+    {
+        fNumEntry++;
+    }
+    void addNumEntry(const char* label,
+                     FAUSTFLOAT* zone,
+                     FAUSTFLOAT init,
+                     FAUSTFLOAT min,
+                     FAUSTFLOAT max,
+                     FAUSTFLOAT step)
+    {
+        fNumEntry++;
+    }
     
     void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
     void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
@@ -116,7 +137,7 @@ struct RackUI : public GenericUI
     struct CheckBox { float fLastButton = 0.0f; };
     std::map <FAUSTFLOAT*, CheckBox> fCheckBoxes;
     
-    UIItemsCounter fCounter;    
+    UIItemsCounter fCounter;
     std::string fKey, fValue, fScale;
     
     int getIndex(const std::string& value)
@@ -206,7 +227,6 @@ struct RackUI : public GenericUI
             fUpdateFunIn.push_back([=] (std::vector<Param>& params)
                                    {
                                        // 'nentries' start at fCounter.fButton
-                                       //std::cout << "index " << index << " getValue() " << params[index + fCounter.fButton].getValue() << std::endl;
                                        converter->update(params[index + fCounter.fButton].getValue());
                                    });
             fConverters.push_back(converter);
@@ -287,12 +307,15 @@ struct RackUI : public GenericUI
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+#define CONTROL_RATE_HZ 100
+
 struct FaustModule : Module {
     
     FAUSTFLOAT** fInputs;
     FAUSTFLOAT** fOutputs;
     RackUI* fRackUI;
     mydsp fDSP;
+    int fControlCounter;
     
     FaustModule()
     {
@@ -320,6 +343,7 @@ struct FaustModule : Module {
         
         // Init DSP with default SR
         fDSP.init(44100);
+        fControlCounter = 44100/CONTROL_RATE_HZ;
     }
     
     ~FaustModule()
@@ -342,32 +366,40 @@ struct FaustModule : Module {
             fDSP.init(args.sampleRate);
         }
         
+        // Update control rate counter
+        fControlCounter--;
+        
         // Copy inputs
         for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
-            fInputs[chan][0] = inputs[chan].getVoltage() / 5.0f;
+            fInputs[chan][0] = inputs[chan].getVoltage()/5.0f;
         }
         
-        // Update inputs controllers
-        for (auto& it : fRackUI->fUpdateFunIn) it(params);
+        // Update inputs controllers at CONTROL_RATE_HZ
+        if (fControlCounter == 0) {
+            for (auto& it : fRackUI->fUpdateFunIn) it(params);
+        }
         
         // Compute one sample
         fDSP.compute(1, fInputs, fOutputs);
         
-        // Update output controllers
-        for (auto& it : fRackUI->fUpdateFunOut) it(params);
+        // Update output controllers at CONTROL_RATE_HZ
+        if (fControlCounter == 0) {
+            for (auto& it : fRackUI->fUpdateFunOut) it(params);
+            fControlCounter = args.sampleRate/CONTROL_RATE_HZ;
+        }
         
         // Copy outputs
         for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
-            outputs[chan].setVoltage(fOutputs[chan][0] * 5.0f);
+            outputs[chan].setVoltage(fOutputs[chan][0]*5.0f);
         }
     }
     
 };
 
 struct FaustModuleWidget : ModuleWidget {
+    
     FaustModuleWidget(FaustModule* module) {
         setModule(module);
-        
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
@@ -377,17 +409,19 @@ struct FaustModuleWidget : ModuleWidget {
         
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.002, 21.161)), module, 0));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.705, 21.161)), module, 1));
+        
         /*
-         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(7.877, 42.705)), module, 2));
+         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(7.877, 42.857)), module, 2));
          addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.92, 42.857)), module, 3));
          
          addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.569, 75.336)), module, 0));
          addInput(createInputCentered<PJ301MPort>(mm2px(Vec(22.894, 75.336)), module, 1));
          */
         
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.323, 100.332)), module, 0));
-        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(22.92, 100.332)), module, 1));
+        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.002, 100.332)), module, 0));
+        addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(22.705, 100.332)), module, 1));
     }
+    
 };
 
 Model* modelFaustModule = createModel<FaustModule, FaustModuleWidget>("FaustModule");
