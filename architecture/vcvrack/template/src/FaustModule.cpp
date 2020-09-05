@@ -32,16 +32,19 @@
  ************************************************************************
  ************************************************************************/
 
-//#include "faust/dsp/dsp.h"
-
+// #include "faust/dsp/dsp.h"
 // dsp.h file is included and dsp file is renamed to rack_dsp to avoid name conflicts. Then 'faust -scn rack_dsp' has to be used.
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <functional>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
+
+using namespace std;
 
 struct UI;
 struct Meta;
@@ -73,22 +76,196 @@ class rack_dsp {
     
 };
 
-#include "faust/gui/UI.h"
+#include <faust/gui/DecoratorUI.h>
+#include <faust/gui/ValueConverter.h>
 #include "faust/misc.h"
-
 #include "plugin.hpp"
 
-// we require macro declarations
-#define FAUST_UIMACROS
+struct UIItemsCounter : public GenericUI
+{
+    int fButton = 0;
+    int fNumEntry = 0;
+    int fBargraph = 0;
+    
+    void addButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
+    void addCheckButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
+    
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    { fNumEntry++; }
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    { fNumEntry++; }
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    { fNumEntry++; }
+    
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
+};
 
-// but we will ignore most of them
-#define FAUST_ADDBUTTON(l,f)
-#define FAUST_ADDCHECKBOX(l,f)
-#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
-#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
-#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+// params  = [buttons][entries][bargraph]
+
+// UI handler for switches, knobs and lights
+struct RackUI : public GenericUI
+{
+    typedef function<void(std::vector<Param>& params)> updateFunction;
+    
+    std::vector<ConverterZoneControl*> fConverters;
+    std::vector<updateFunction> fUpdateFunIn;
+    std::vector<updateFunction> fUpdateFunOut;
+    
+    // For checkbox handling
+    struct CheckBox { float fLastButton = 0.0f; };
+    std::map <FAUSTFLOAT*, CheckBox> fCheckBoxes;
+    
+    UIItemsCounter fCounter;    
+    std::string fKey, fValue, fScale;
+    
+    int getIndex(const std::string& value)
+    {
+        try {
+            return std::stoi(value);
+        } catch (invalid_argument& e) {
+            return -1;
+        }
+    }
+    
+    RackUI(UIItemsCounter counter):fCounter(counter), fScale("lin")
+    {}
+    
+    virtual ~RackUI()
+    {
+        for (auto& it : fConverters) delete it;
+    }
+    
+    void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        int index = getIndex(fValue);
+        if (fKey == "switch" && (index != -1)) {
+            fUpdateFunIn.push_back([=] (std::vector<Param>& params)
+                                   {
+                                       // 'buttons' start at 0
+                                       *zone = params[index-1].getValue();
+                                       
+                                       // And set the color to red when ON
+                                       //args.switchLights[index-1][0] = *zone;
+                                   });
+        }
+    }
+    
+    void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        // index start at 0
+        int index = getIndex(fValue) - 1;
+        if (fKey == "switch" && (index != -1)) {
+            // Add a checkbox
+            fCheckBoxes[zone] = CheckBox();
+            // Update function
+            fUpdateFunIn.push_back([=] (std::vector<Param>& params)
+                                   {
+                                       // 'buttons' start at 0
+                                       float button = params[index].getValue();
+                                       // Detect upfront
+                                       if (button == 1.0 && (button != fCheckBoxes[zone].fLastButton)) {
+                                           // Switch button state
+                                           *zone = !*zone;
+                                           /*
+                                           // And set the color to white when ON
+                                           args.switchLights[index-1][0] = *zone;
+                                           args.switchLights[index-1][1] = *zone;
+                                           args.switchLights[index-1][2] = *zone;
+                                           */
+                                       }
+                                       // Keep previous button state
+                                       fCheckBoxes[zone].fLastButton = button;
+                                   });
+        }
+    }
+    
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        addNumEntry(label, zone, init, min, max, step);
+    }
+    
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        addNumEntry(label, zone, init, min, max, step);
+    }
+    
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        // index start at 0
+        int index = getIndex(fValue) - 1;
+        if (fKey == "knob" && (index != -1)) {
+            ConverterZoneControl* converter;
+            if (fScale == "log") {
+                converter = new ConverterZoneControl(zone, new LogValueConverter(0., 1., min, max));
+            } else if (fScale == "exp") {
+                converter = new ConverterZoneControl(zone, new ExpValueConverter(0., 1., min, max));
+            } else {
+                converter = new ConverterZoneControl(zone, new LinearValueConverter(0., 1., min, max));
+            }
+            fUpdateFunIn.push_back([=] (std::vector<Param>& params)
+                                   {
+                                       // 'nentries' start at fCounter.fButton
+                                       //std::cout << "index " << index << " getValue() " << params[index + fCounter.fButton].getValue() << std::endl;
+                                       converter->update(params[index + fCounter.fButton].getValue());
+                                   });
+            fConverters.push_back(converter);
+        }
+        fScale = "lin";
+    }
+    
+    void addBarGraph(FAUSTFLOAT* zone)
+    {
+        /*
+        // index start at 0
+        int index = getIndex(fValue) - 1;
+        if ((fKey == "light_red") && (index != -1)) {
+            fUpdateFunOut.push_back([=] (std::vector<Param>& params)
+                                    {
+                                        // 'nentries' start at fCounter.fButton + fCounter.fNumEntry
+                                        params[index + fCounter.fButton + fCounter.fNumEntry][0].setValue(*zone);
+                                    });
+        } else if ((fKey == "light_green") && (index != -1)) {
+            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { lights[index-1][1] = *zone; });
+        } else if ((fKey == "light_blue") && (index != -1)) {
+            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { lights[index-1][2] = *zone; });
+        } else if ((fKey == "switchlight_red") && (index != -1)) {
+            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { switchLights[index-1][0] = *zone; });
+        } else if ((fKey == "switchlight_green") && (index != -1)) {
+            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { switchLights[index-1][1] = *zone; });
+        } else if ((fKey == "switchlight_blue") && (index != -1)) {
+            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { switchLights[index-1][2] = *zone; });
+        }
+        */
+    }
+    
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        addBarGraph(zone);
+    }
+    
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        addBarGraph(zone);
+    }
+    
+    void addSoundfile(const char* label, const char* soundpath, Soundfile** sf_zone)
+    {
+        WARN("Faust Prototype : 'soundfile' primitive not yet supported", "");
+    }
+    
+    void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+    {
+        static vector<std::string> keys = {"switch", "knob", "light_red", "light_green", "light_blue", "switchlight_red", "switchlight_green", "switchlight_blue"};
+        if (find(keys.begin(), keys.end(), key) != keys.end()) {
+            fKey = key;
+            fValue = val;
+        } else if (std::string(key) == "scale") {
+            fScale = val;
+        }
+    }
+    
+};
 
 /******************************************************************************
  *******************************************************************************
@@ -110,64 +287,78 @@ class rack_dsp {
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
-
 struct FaustModule : Module {
     
     FAUSTFLOAT** fInputs;
     FAUSTFLOAT** fOutputs;
+    RackUI* fRackUI;
+    mydsp fDSP;
     
     FaustModule()
     {
-        config(FAUST_ACTIVES, FAUST_INPUTS, FAUST_OUTPUTS, FAUST_PASSIVES);
-        for (int param = 0; param < FAUST_ACTIVES; param++) {
+        // Count items of button, nentry, bargraph categories
+        UIItemsCounter counter;
+        fDSP.buildUserInterface(&counter);
+        
+        fRackUI = new RackUI(counter);
+        fDSP.buildUserInterface(fRackUI);
+        
+        config(counter.fNumEntry, fDSP.getNumInputs(), fDSP.getNumOutputs(), counter.fBargraph);
+        for (int param = 0; param < counter.fNumEntry; param++) {
             configParam(param, 0.f, 1.f, 0.f, "");
         }
         
-        fInputs = new FAUSTFLOAT*[DSP.getNumInputs()];
-        for (int chan = 0; chan < DSP.getNumInputs(); chan++) {
+        fInputs = new FAUSTFLOAT*[fDSP.getNumInputs()];
+        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
             fInputs[chan] = new FAUSTFLOAT[1];
         }
         
-        fOutputs = new FAUSTFLOAT*[DSP.getNumOutputs()];
-        for (int chan = 0; chan < DSP.getNumOutputs(); chan++) {
+        fOutputs = new FAUSTFLOAT*[fDSP.getNumOutputs()];
+        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
             fOutputs[chan] = new FAUSTFLOAT[1];
         }
         
         // Init DSP with default SR
-        DSP.init(44100);
+        fDSP.init(44100);
     }
     
     ~FaustModule()
     {
-        for (int chan = 0; chan < DSP.getNumInputs(); chan++) {
+        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
             delete [] fInputs[chan];
         }
         delete [] fInputs;
-        for (int chan = 0; chan < DSP.getNumOutputs(); chan++) {
+        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
             delete [] fOutputs[chan];
         }
         delete [] fOutputs;
+        delete fRackUI;
     }
     
     void process(const ProcessArgs& args) override
     {
         // Possibly update SR
-        if (args.sampleRate != DSP.getSampleRate()) {
-            DSP.init(args.sampleRate);
+        if (args.sampleRate != fDSP.getSampleRate()) {
+            fDSP.init(args.sampleRate);
         }
         
         // Copy inputs
-        for (int chan = 0; chan < DSP.getNumInputs(); chan++) {
-            fInputs[chan][0] = inputs[chan + 1].getVoltage() / 5.0f;
+        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
+            fInputs[chan][0] = inputs[chan].getVoltage() / 5.0f;
         }
         
-        // Compute samples
-        DSP.compute(1, fInputs, fOutputs);
+        // Update inputs controllers
+        for (auto& it : fRackUI->fUpdateFunIn) it(params);
+        
+        // Compute one sample
+        fDSP.compute(1, fInputs, fOutputs);
+        
+        // Update output controllers
+        for (auto& it : fRackUI->fUpdateFunOut) it(params);
         
         // Copy outputs
-        for (int chan = 0; chan < DSP.getNumOutputs(); chan++) {
-            outputs[chan + 1].setVoltage(fOutputs[chan][0] * 5.0f);
+        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
+            outputs[chan].setVoltage(fOutputs[chan][0] * 5.0f);
         }
     }
     
@@ -184,9 +375,9 @@ struct FaustModuleWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.002, 21.161)), module, 0));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.705, 21.161)), module, 1));
         /*
-         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.002, 21.161)), module, 0));
-         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.705, 21.161)), module, 1));
          addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(7.877, 42.705)), module, 2));
          addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.92, 42.857)), module, 3));
          
