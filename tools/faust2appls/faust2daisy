@@ -89,9 +89,14 @@ for p in $FILE; do
     # compile faust to c++
     cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+    # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
-    
+    # for POLY
+    if [ "$NVOICES" -gt "0" ]; then
+        echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
     
 done

@@ -21,6 +21,8 @@
 
 */
 
+#include <iostream>
+
 #include "faust/osc/FaustNode.h"
 #include "faust/osc/RootNode.h"
 #include "faust/OSCControler.h"

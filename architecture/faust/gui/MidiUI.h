@@ -28,7 +28,6 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include <iostream>
 #include <cstdlib>
 #include <cmath>
 
@@ -39,7 +38,6 @@
 #include "faust/gui/MapUI.h"
 #include "faust/gui/MetaDataUI.h"
 #include "faust/midi/midi.h"
-#include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
 
 #ifdef _MSC_VER

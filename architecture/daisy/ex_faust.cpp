@@ -42,6 +42,7 @@
 
 #ifdef MIDICTRL
 #include "faust/midi/daisy-midi.h"
+#include "faust/gui/MidiUI.h"
 #endif
 
 using namespace daisysp;
@@ -68,9 +69,14 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+mydsp_poly* dsp_poly = nullptr;
+#endif
+
 DaisySeed hw;
-DaisyControlUI* control;
-mydsp DSP;
+DaisyControlUI* control_UI;
+dsp* DSP = nullptr;
 
 #ifdef MIDICTRL
 list<GUI*> GUI::fGuiList;
@@ -82,10 +88,10 @@ ztimedmap GUI::gTimedZoneMap;
 static void AudioCallback(float** in, float** out, size_t count)
 {
     // Update controllers
-    control->update();
+    control_UI->update();
     
     // DSP processing
-    DSP.compute(count, in, out);
+    DSP->compute(count, in, out);
 }
 
 int main(void)
@@ -94,15 +100,27 @@ int main(void)
     hw.Configure();
     hw.Init();
     
+    // allocate DSP
+#ifdef POLY
+    int nvoices = 0;
+    bool midi_sync = false;
+    mydsp* dsp = new mydsp();
+    MidiMeta::analyse(dsp, midi_sync, nvoices);
+    dsp_poly = new mydsp_poly(dsp, nvoices, true, true);
+    DSP = dsp_poly;
+#else
+    DSP = new mydsp();
+#endif
+    
     // set buffer-size
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
     
     // init Faust DSP
-    DSP.init(hw.AudioSampleRate());
+    DSP->init(hw.AudioSampleRate());
     
     // setup controllers
-    control = new DaisyControlUI(&hw, hw.AudioSampleRate()/MY_BUFFER_SIZE);
-    DSP.buildUserInterface(control);
+    control_UI = new DaisyControlUI(&hw, hw.AudioSampleRate()/MY_BUFFER_SIZE);
+    DSP->buildUserInterface(control_UI);
     
     // start ADC
     hw.adc.Start();
@@ -112,9 +130,15 @@ int main(void)
     
 #ifdef MIDICTRL
     daisy_midi midi_handler;
+#ifdef POLY
+    midi_handler.addMidiIn(dsp_poly);
+#endif
+    MidiUI midi_interface(&midi_handler);
+    DSP->buildUserInterface(&midi_interface);
     midi_handler.startMidi();
 #endif
     
+    // MIDI handling loop
     while(1) {
 #ifdef MIDICTRL
         midi_handler.processMidi();
