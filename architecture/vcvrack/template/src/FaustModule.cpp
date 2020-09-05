@@ -87,14 +87,33 @@ class rack_dsp {
 struct RackUI : public GenericUI
 {
     // A internal class to count items of each type
-    struct UIItemsCounter : public GenericUI
+    struct UILayout : public GenericUI
     {
-        int fButton = 0;
-        int fNumEntry = 0;
-        int fBargraph = 0;
+        #define PARAM_WIDTH 20
+        #define PARAM_HEIGHT 20
         
-        void addButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
-        void addCheckButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
+        struct ZoneItem {
+            std::string fLabel;
+            ZoneItem(const std::string& label):fLabel(label) {}
+        };
+        
+        std::vector<ZoneItem> fButtonParams;
+        std::vector<ZoneItem> fRangeParams;
+        std::vector<ZoneItem> fOutputParams;
+        
+        void openTabBox(const char* label) {}
+        void openHorizontalBox(const char* label) {}
+        void openVerticalBox(const char* label) {}
+        void closeBox() {}
+        
+        void addButton(const char* label, FAUSTFLOAT* zone)
+        {
+            fButtonParams.push_back(ZoneItem(label));
+        }
+        void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        {
+            fButtonParams.push_back(ZoneItem(label));
+        }
         
         void addVerticalSlider(const char* label,
                                FAUSTFLOAT* zone,
@@ -103,7 +122,7 @@ struct RackUI : public GenericUI
                                FAUSTFLOAT max,
                                FAUSTFLOAT step)
         {
-            fNumEntry++;
+            fRangeParams.push_back(ZoneItem(label));
         }
         void addHorizontalSlider(const char* label,
                                  FAUSTFLOAT* zone,
@@ -112,7 +131,7 @@ struct RackUI : public GenericUI
                                  FAUSTFLOAT max,
                                  FAUSTFLOAT step)
         {
-            fNumEntry++;
+            fRangeParams.push_back(ZoneItem(label));
         }
         void addNumEntry(const char* label,
                          FAUSTFLOAT* zone,
@@ -121,11 +140,20 @@ struct RackUI : public GenericUI
                          FAUSTFLOAT max,
                          FAUSTFLOAT step)
         {
-            fNumEntry++;
+            fRangeParams.push_back(ZoneItem(label));
         }
         
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            fOutputParams.push_back(ZoneItem(label));
+        }
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            fOutputParams.push_back(ZoneItem(label));
+        }
+        
+        int getWidth() { return (fButtonParams.size() + fRangeParams.size()) * PARAM_WIDTH; }
+        int getHeight() { return (fButtonParams.size() + fRangeParams.size()) * PARAM_HEIGHT; }
     };
     
     typedef function<void(std::vector<Param>& params)> updateFunction;
@@ -138,7 +166,7 @@ struct RackUI : public GenericUI
     struct CheckBox { float fLastButton = 0.0f; };
     std::map <FAUSTFLOAT*, CheckBox> fCheckBoxes;
     
-    RackUI::UIItemsCounter fCounter;
+    RackUI::UILayout fCounter;
     std::string fKey, fValue, fScale;
     
     int getIndex(const std::string& value)
@@ -150,7 +178,7 @@ struct RackUI : public GenericUI
         }
     }
     
-    RackUI(const RackUI::UIItemsCounter& counter):fCounter(counter), fScale("lin")
+    RackUI(const RackUI::UILayout& counter):fCounter(counter), fScale("lin")
     {}
     
     virtual ~RackUI()
@@ -227,8 +255,8 @@ struct RackUI : public GenericUI
             }
             fUpdateFunIn.push_back([=] (std::vector<Param>& params)
                                    {
-                                       // 'nentries' start at fCounter.fButton
-                                       converter->update(params[index + fCounter.fButton].getValue());
+                                       // 'nentries' start at fCounter.fButtonParams.size()
+                                       converter->update(params[index + fCounter.fButtonParams.size()].getValue());
                                    });
             fConverters.push_back(converter);
         }
@@ -322,17 +350,22 @@ struct FaustModule : Module {
     FaustModule()
     {
         // Count items of button, nentry, bargraph categories
-        RackUI::UIItemsCounter counter;
+        RackUI::UILayout counter;
         fDSP.buildUserInterface(&counter);
         
         fRackUI = new RackUI(counter);
         fDSP.buildUserInterface(fRackUI);
         
-        config(counter.fNumEntry, fDSP.getNumInputs(), fDSP.getNumOutputs(), counter.fBargraph);
-        for (int param = 0; param < counter.fNumEntry; param++) {
+        // Config
+        config(counter.fButtonParams.size() + counter.fRangeParams.size(),
+               fDSP.getNumInputs(),
+               fDSP.getNumOutputs(),
+               counter.fOutputParams.size());
+        for (int param = 0; param < (counter.fButtonParams.size() + counter.fRangeParams.size()); param++) {
             configParam(param, 0.f, 1.f, 0.f, "");
         }
         
+        // Allocate non-interleaved audio ins/outs buffers for 'compute'
         fInputs = new FAUSTFLOAT*[fDSP.getNumInputs()];
         for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
             fInputs[chan] = new FAUSTFLOAT[1];
@@ -402,7 +435,9 @@ struct FaustModuleWidget : ModuleWidget {
     
     FaustModuleWidget(FaustModule* module) {
         setModule(module);
+        // Set a large SVG
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
+        box.size.x = RACK_GRID_WIDTH * 30;
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
