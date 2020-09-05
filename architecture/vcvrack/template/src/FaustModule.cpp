@@ -33,7 +33,7 @@
  ************************************************************************/
 
 // #include "faust/dsp/dsp.h"
-// dsp.h file is included and dsp file is renamed to rack_dsp to avoid name conflicts. Then 'faust -scn rack_dsp' has to be used.
+// dsp.h file is included and dsp file is renamed to rack_dsp to avoid name conflicts. Then 'faust -scn rack_dsp' is used in faust2vcvrack.
 
 #include <string>
 #include <vector>
@@ -81,52 +81,53 @@ class rack_dsp {
 #include "faust/misc.h"
 #include "plugin.hpp"
 
-struct UIItemsCounter : public GenericUI
-{
-    int fButton = 0;
-    int fNumEntry = 0;
-    int fBargraph = 0;
-    
-    void addButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
-    void addCheckButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
-    
-    void addVerticalSlider(const char* label,
-                           FAUSTFLOAT* zone,
-                           FAUSTFLOAT init,
-                           FAUSTFLOAT min,
-                           FAUSTFLOAT max,
-                           FAUSTFLOAT step)
-    {
-        fNumEntry++;
-    }
-    void addHorizontalSlider(const char* label,
-                             FAUSTFLOAT* zone,
-                             FAUSTFLOAT init,
-                             FAUSTFLOAT min,
-                             FAUSTFLOAT max,
-                             FAUSTFLOAT step)
-    {
-        fNumEntry++;
-    }
-    void addNumEntry(const char* label,
-                     FAUSTFLOAT* zone,
-                     FAUSTFLOAT init,
-                     FAUSTFLOAT min,
-                     FAUSTFLOAT max,
-                     FAUSTFLOAT step)
-    {
-        fNumEntry++;
-    }
-    
-    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
-    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
-};
-
 // params  = [buttons][entries][bargraph]
 
 // UI handler for switches, knobs and lights
 struct RackUI : public GenericUI
 {
+    // A internal class to count items of each type
+    struct UIItemsCounter : public GenericUI
+    {
+        int fButton = 0;
+        int fNumEntry = 0;
+        int fBargraph = 0;
+        
+        void addButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
+        void addCheckButton(const char* label, FAUSTFLOAT* zone) { fButton++; }
+        
+        void addVerticalSlider(const char* label,
+                               FAUSTFLOAT* zone,
+                               FAUSTFLOAT init,
+                               FAUSTFLOAT min,
+                               FAUSTFLOAT max,
+                               FAUSTFLOAT step)
+        {
+            fNumEntry++;
+        }
+        void addHorizontalSlider(const char* label,
+                                 FAUSTFLOAT* zone,
+                                 FAUSTFLOAT init,
+                                 FAUSTFLOAT min,
+                                 FAUSTFLOAT max,
+                                 FAUSTFLOAT step)
+        {
+            fNumEntry++;
+        }
+        void addNumEntry(const char* label,
+                         FAUSTFLOAT* zone,
+                         FAUSTFLOAT init,
+                         FAUSTFLOAT min,
+                         FAUSTFLOAT max,
+                         FAUSTFLOAT step)
+        {
+            fNumEntry++;
+        }
+        
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fBargraph++; }
+    };
+    
     typedef function<void(std::vector<Param>& params)> updateFunction;
     
     std::vector<ConverterZoneControl*> fConverters;
@@ -137,7 +138,7 @@ struct RackUI : public GenericUI
     struct CheckBox { float fLastButton = 0.0f; };
     std::map <FAUSTFLOAT*, CheckBox> fCheckBoxes;
     
-    UIItemsCounter fCounter;
+    RackUI::UIItemsCounter fCounter;
     std::string fKey, fValue, fScale;
     
     int getIndex(const std::string& value)
@@ -149,7 +150,7 @@ struct RackUI : public GenericUI
         }
     }
     
-    RackUI(UIItemsCounter counter):fCounter(counter), fScale("lin")
+    RackUI(const RackUI::UIItemsCounter& counter):fCounter(counter), fScale("lin")
     {}
     
     virtual ~RackUI()
@@ -307,7 +308,8 @@ struct RackUI : public GenericUI
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-#define CONTROL_RATE_HZ 100
+#define CONTROL_RATE_HZ  100
+#define DEFAULT_SR       44100
 
 struct FaustModule : Module {
     
@@ -320,7 +322,7 @@ struct FaustModule : Module {
     FaustModule()
     {
         // Count items of button, nentry, bargraph categories
-        UIItemsCounter counter;
+        RackUI::UIItemsCounter counter;
         fDSP.buildUserInterface(&counter);
         
         fRackUI = new RackUI(counter);
@@ -342,8 +344,8 @@ struct FaustModule : Module {
         }
         
         // Init DSP with default SR
-        fDSP.init(44100);
-        fControlCounter = 44100/CONTROL_RATE_HZ;
+        fDSP.init(DEFAULT_SR);
+        fControlCounter = DEFAULT_SR/CONTROL_RATE_HZ;
     }
     
     ~FaustModule()
