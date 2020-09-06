@@ -948,8 +948,8 @@ process = @(10);
 
 will delay the incoming signal by 10 samples. 
 
-A delay expressed with `@` doesn't have to be fixed but it must be positive 
-and bounded. Therefore, the values of a slider are perfectly acceptable:
+A delay expressed with `@` doesn't have to be fixed but it must be bounded 
+and cannot be negative. Therefore, the values of a slider are perfectly acceptable:
 
 <!-- faust-run -->
 ```
