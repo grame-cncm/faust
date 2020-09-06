@@ -20,13 +20,12 @@ set -e
 
 # global option variables
 NVOICES=0
-MULTI="0"
 POLY=""
 PATCH="0"
 
 echoHelp ()
 {
-    echo "faust2vcvrack [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "faust2vcvrack [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
     option
     options -midi
     option "-nvoices <num>"
@@ -48,9 +47,6 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
-    # -midi
-    elif [ $p = "-midi" ]; then
-        MIDIDEFS="-DMIDI"
     elif [[ -f "$p" ]]; then
         FILE="$p"
     # other compile options
@@ -61,7 +57,6 @@ do
 shift
 
 done
-
 
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
