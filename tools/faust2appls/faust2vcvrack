@@ -27,7 +27,6 @@ echoHelp ()
 {
     echo "faust2vcvrack [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
     option
-    options -midi
     option "-nvoices <num>"
     echo ""
 }

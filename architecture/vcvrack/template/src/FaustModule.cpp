@@ -298,11 +298,6 @@ struct RackUI : public GenericUI
         addBarGraph(zone);
     }
     
-    void addSoundfile(const char* label, const char* soundpath, Soundfile** sf_zone)
-    {
-        WARN("Faust Prototype : 'soundfile' primitive not yet supported", "");
-    }
-    
     void declare(FAUSTFLOAT* zone, const char* key, const char* val)
     {
         static vector<std::string> keys = {"switch", "knob", "light_red", "light_green", "light_blue", "switchlight_red", "switchlight_green", "switchlight_blue"};
@@ -436,6 +431,9 @@ struct FaustModuleWidget : ModuleWidget {
     FaustModuleWidget(FaustModule* module) {
         setModule(module);
         
+        // May be null...
+        if (!module) return;
+        
         // Set a large SVG
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
         box.size.x = RACK_GRID_WIDTH * 30;
@@ -446,20 +444,36 @@ struct FaustModuleWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
         // Add params
+        addLabel(mm2px(Vec(10, 5.0)), "Params");
         int params = module->fRackUI->fParams.fButtons.size() + module->fRackUI->fParams.fRanges.size();
         for (int pa = 0; pa < params; pa++) {
-            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 21.0)), module, pa));
+            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 20.0)), module, pa));
         }
         
         // Add inputs
+        addLabel(mm2px(Vec(10, 60.0)), "Inputs");
         for (int chan = 0; chan < module->fDSP.getNumInputs(); chan++) {
             addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 75.0)), module, chan));
         }
         
         // Add outputs
+        addLabel(mm2px(Vec(10, 85.0)), "Outputs");
         for (int chan = 0; chan < module->fDSP.getNumOutputs(); chan++) {
             addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
         }
+        
+    }
+    
+    // TODO: use nvgText
+    Label* addLabel(const Vec& v, const std::string& str)
+    {
+        NVGcolor black = nvgRGB(0,0,0);
+        Label* label = new Label();
+        label->box.pos = v;
+        label->text = str;
+        label->color = black;
+        addChild(label);
+        return label;
     }
     
 };

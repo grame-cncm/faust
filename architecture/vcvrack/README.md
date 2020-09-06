@@ -2,11 +2,10 @@
 
 The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing the [VCV Rack](https://vcvrack.com) plugin C++ source code and a Makefile to compile it.  
 
-`faust2vcvrack [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+`faust2vcvrack [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
-- `-midi to activate MIDI control [WIP]`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI [WIP]`
 
 The generated folder has to be moved in the *Rack SDK* folder and compiled from there. 
