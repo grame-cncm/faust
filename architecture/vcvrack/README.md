@@ -6,7 +6,7 @@ The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing t
 
 Here are the available options:
 
-- `-source : to only create the source folder`
+- `-source to only create the source folder`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI [WIP]`
 
 The generated folder has to be moved in the *Rack SDK* folder and compiled from there. 

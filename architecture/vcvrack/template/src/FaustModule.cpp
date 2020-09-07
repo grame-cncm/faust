@@ -438,16 +438,19 @@ struct FaustModuleWidget : ModuleWidget {
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
         box.size.x = RACK_GRID_WIDTH * 30;
         
+        // General title
+        addLabel(mm2px(Vec(10, 10.0)), "Faust");
+        
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
         // Add params
-        addLabel(mm2px(Vec(10, 5.0)), "Params");
+        addLabel(mm2px(Vec(10, 20.0)), "Params");
         int params = module->fRackUI->fParams.fButtons.size() + module->fRackUI->fParams.fRanges.size();
         for (int pa = 0; pa < params; pa++) {
-            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 20.0)), module, pa));
+            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
         }
         
         // Add inputs
