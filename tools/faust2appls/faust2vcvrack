@@ -21,12 +21,13 @@ set -e
 # global option variables
 NVOICES=0
 POLY=""
-PATCH="0"
+SOURCE=false
 
 echoHelp ()
 {
-    echo "faust2vcvrack [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+  	echo "faust2vcvrack [-source] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
     option
+    option "-source"
     option "-nvoices <num>"
     echo ""
 }
@@ -46,6 +47,8 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
+    elif [ $p = "-source" ]; then
+        SOURCE=true
     elif [[ -f "$p" ]]; then
         FILE="$p"
     # other compile options
@@ -79,5 +82,9 @@ for p in $FILE; do
     # compile faust to c++
     cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
     faust -scn rack_dsp -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
-    
+    if [ $SOURCE == false ] ; then
+    	cd "$SRCDIR/$dspName" && make && make install
+    else
+    	echo "Create the $SRCDIR/$dspName folder"
+    fi 
 done

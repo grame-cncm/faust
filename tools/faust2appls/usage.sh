@@ -41,6 +41,7 @@ function option() {
 				"-us <factor>") doc="upsample the DSP by a factor";;
 				"-ds <factor>") doc="downsample the DSP by a factor";;
 				"-filter <filter>") doc="use a filter for upsampling or downsampling [0..4]";;
+				"-source") doc="to only create the source folder";;
 				"-soundfile") doc="when compiling a DSP using the 'soundfile' primitive, add required resources";;
 				"-nodeploy") doc="skip self-contained application generation (using 'macdeployqt')";;
        			"-effect <effect.dsp>") doc="generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC";;
