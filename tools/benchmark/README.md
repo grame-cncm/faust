@@ -65,7 +65,7 @@ The `-test` parameter can be used to compile a test program which will bench the
  - create multi-cpu files for all possible CPUs and the multi-loader file, and them compile them as object files:  `faust2object -all -multi foo.dsp`. 
  - create multi-cpu files for all possible CPUs and the multi-loader file, them compile them as object files, and compile a test program :  `faust2object -all -multi -test foo.dsp`. 
  - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file:  `export FAUST_ARCHS="core2 haswell" && faust2object -sources -multifun generic foo.dsp`. 
- - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, them compile them as object files, and compile a test program:  `export FAUST_ARCHS="core2 haswell" && faust2object -multi generic -test foo.dsp`. 
+ - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, and compile a test program:  `export FAUST_ARCHS="core2 haswell" && faust2object -multifun generic -test foo.dsp`. 
 
 
 ## dynamic-jack-gtk
