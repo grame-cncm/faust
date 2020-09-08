@@ -39,6 +39,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <iostream>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -73,6 +74,43 @@ class rack_dsp {
         virtual void metadata(Meta* m) = 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
         virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+    
+};
+
+struct one_sample_dsp : public rack_dsp {
+    
+    int* iZone;
+    FAUSTFLOAT* fZone;
+    
+    one_sample_dsp():iZone(nullptr), fZone(nullptr)
+    {}
+    
+    virtual ~one_sample_dsp()
+    {
+        delete [] iZone;
+        delete [] fZone;
+    }
+    
+    void initControl()
+    {
+        iZone = new int[getNumIntControls()];
+        fZone = new FAUSTFLOAT[getNumRealControls()];
+    }
+    
+    virtual int getNumIntControls() = 0;
+    virtual int getNumRealControls() = 0;
+    
+    virtual void control(int* iControl, FAUSTFLOAT* fControl) = 0;
+    
+    virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
+    
+    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+    {}
+    
+    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        compute(count, inputs, outputs);
+    }
     
 };
 
@@ -116,7 +154,7 @@ struct RackUI : public GenericUI
                    FAUSTFLOAT fmin,
                    FAUSTFLOAT fmax,
                    UIType type)
-                :fLabel(label), fInit(init), fMin(fmin), fMax(fmax), fType(type)
+                :fLabel(label), fType(type), fInit(init), fMin(fmin), fMax(fmax)
             {}
         };
         
@@ -323,8 +361,6 @@ struct RackUI : public GenericUI
 
 struct mydspModule : Module {
     
-    FAUSTFLOAT** fInputs;
-    FAUSTFLOAT** fOutputs;
     RackUI* fRackUI;
     mydsp fDSP;
     int fControlCounter;
@@ -353,32 +389,18 @@ struct mydspModule : Module {
             configParam(pa + buttons, params.fRanges[pa].fMin, params.fRanges[pa].fMax, params.fRanges[pa].fInit, "");
         }
         
-        // Allocate non-interleaved audio ins/outs buffers for 'compute'
-        fInputs = new FAUSTFLOAT*[fDSP.getNumInputs()];
-        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
-            fInputs[chan] = new FAUSTFLOAT[1];
-        }
-        
-        fOutputs = new FAUSTFLOAT*[fDSP.getNumOutputs()];
-        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
-            fOutputs[chan] = new FAUSTFLOAT[1];
-        }
+        // Init control zones
+        fDSP.initControl();
         
         // Init DSP with default SR
         fDSP.init(DEFAULT_SR);
-        fControlCounter = DEFAULT_SR/CONTROL_RATE_HZ;
+        
+        // So that control will be called at first cycle
+        fControlCounter = 1;
     }
     
     ~mydspModule()
     {
-        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
-            delete [] fInputs[chan];
-        }
-        delete [] fInputs;
-        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
-            delete [] fOutputs[chan];
-        }
-        delete [] fOutputs;
         delete fRackUI;
     }
     
@@ -392,28 +414,34 @@ struct mydspModule : Module {
         // Update control rate counter
         fControlCounter--;
         
-        // Copy inputs
-        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
-            fInputs[chan][0] = inputs[chan].getVoltage()/5.0f;
-        }
-        
-        // Update inputs controllers at CONTROL_RATE_HZ
+        // Update control and inputs controllers at CONTROL_RATE_HZ
         if (fControlCounter == 0) {
+            // DSP Control
+            fDSP.control(fDSP.iZone, fDSP.fZone);
+            // Controller update
             for (auto& it : fRackUI->fUpdateFunIn) it(params);
         }
         
-        // Compute one sample
-        fDSP.compute(1, fInputs, fOutputs);
+        FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP.getNumInputs() * sizeof(FAUSTFLOAT)));
+        FAUSTFLOAT* outputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP.getNumOutputs() * sizeof(FAUSTFLOAT)));
+        
+        // Copy inputs
+        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
+            inputs_aux[chan] = inputs[chan].getVoltage()/5.0f;
+        }
+        
+        // One sample compute
+        fDSP.compute(inputs_aux, outputs_aux, fDSP.iZone, fDSP.fZone);
+        
+        // Copy outputs
+        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
+            outputs[chan].setVoltage(outputs_aux[chan]*5.0f);
+        }
         
         // Update output controllers at CONTROL_RATE_HZ
         if (fControlCounter == 0) {
             for (auto& it : fRackUI->fUpdateFunOut) it(params);
             fControlCounter = args.sampleRate/CONTROL_RATE_HZ;
-        }
-        
-        // Copy outputs
-        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
-            outputs[chan].setVoltage(fOutputs[chan][0]*5.0f);
         }
     }
     
@@ -441,6 +469,8 @@ struct mydspModuleWidget : ModuleWidget {
         
             // Add params
             addLabel(mm2px(Vec(10, 20.0)), "Params");
+            
+            // Add buttons
             uint buttons = module->fRackUI->fParams.fButtons.size();
             for (uint pa = 0; pa < buttons; pa++) {
                 if (module->fRackUI->fParams.fButtons[pa].fType == RackUI::UILayout::UIType::kButton) {
@@ -450,6 +480,7 @@ struct mydspModuleWidget : ModuleWidget {
                 }
             }
             
+            // Add ranges
             uint nentries = module->fRackUI->fParams.fRanges.size();
             for (uint pa = 0; pa < nentries; pa++) {
                  addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 50.0)), module, pa + buttons));
@@ -483,6 +514,6 @@ struct mydspModuleWidget : ModuleWidget {
     
 };
 
-Model* modelFaustModule = createModel<mydspModule, mydspModuleWidget>("mydspModule");
+Model* modelFaustModule = createModel<mydspModule, mydspModuleWidget>("mydsp");
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

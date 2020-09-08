@@ -36,11 +36,20 @@ class one_sample_dsp : public dsp {
     
     public:
     
-        one_sample_dsp():iZone(NULL),fZone(NULL)
+        one_sample_dsp():iZone(nullptr), fZone(nullptr)
         {}
     
         virtual ~one_sample_dsp()
-        {}
+        {
+            delete [] iZone;
+            delete [] fZone;
+        }
+    
+        void initControl()
+        {
+            iZone = new int[getNumIntControls()];
+            fZone = new FAUSTFLOAT[getNumRealControls()];
+        }
     
         /**
          * Return the number of 'int' typed values necessary to compute the internal DSP state

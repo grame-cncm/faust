@@ -14,8 +14,8 @@
   "changelogUrl": "",
   "modules": [
     {
-      "slug": "mydspModule",
-      "name": "mydspModule",
+      "slug": "mydsp",
+      "name": "mydsp",
       "description": "",
       "tags": []
     }
