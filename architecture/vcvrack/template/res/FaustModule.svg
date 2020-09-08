@@ -9,7 +9,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="4097"
+   width="100mm"
    height="128.5mm"
    viewBox="0 0 30.480002 128.50002"
    version="1.1"
@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="298.55802"
-     inkscape:cy="328.5478"
+     inkscape:zoom="0.7"
+     inkscape:cx="-18.171687"
+     inkscape:cy="352.02047"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -38,8 +38,8 @@
      inkscape:snap-bbox-edge-midpoints="false"
      inkscape:window-width="1338"
      inkscape:window-height="816"
-     inkscape:window-x="47"
-     inkscape:window-y="62"
+     inkscape:window-x="18"
+     inkscape:window-y="71"
      inkscape:window-maximized="0"
      inkscape:snap-bbox-midpoints="true"
      inkscape:snap-nodes="false" />
@@ -62,12 +62,12 @@
      inkscape:groupmode="layer"
      style="display:inline">
     <rect
-       style="display:inline;opacity:1;vector-effect:none;fill:#e6e6e6;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.89417118;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+       style="display:inline;opacity:1;vector-effect:none;fill:#e6e6e6;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.65184718;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
        id="rect420"
-       width="4097"
-       height="128.5"
-       x="-35.346329"
-       y="168.57889" />
+       width="100"
+       height="128.689"
+       x="-34.773815"
+       y="168.80237" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"

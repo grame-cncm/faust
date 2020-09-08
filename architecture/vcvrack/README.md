@@ -16,6 +16,8 @@ Parameters will be controllable using specific metadata [WIP]:
 - `[switch:N]` has to be used in a `button` or `checkbox` item to connect it to the switch number N.
 - `[knob:N]` has to be used in a `vslider`, `hslider` or `nentry` item to connect it to the knob number N. The knob [0..1] range will be mapped to the slider/nentry [min..max] range.
 
+Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5..5] range, they are automatically converted in the architecture file. VC control in the [0..10] volts range will be mapped to the controllers [min..max] range.
+
 ## DSP examples
 
 Here is a simple example showing how oscillators can be controlled by parameters [WIP]:

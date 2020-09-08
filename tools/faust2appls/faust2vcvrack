@@ -81,7 +81,13 @@ for p in $FILE; do
     
     # compile faust to c++
     cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
-    faust -scn rack_dsp -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+    faust -scn rack_dsp -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+
+    # set name in plugin.json
+    sed -e "s/mydsp/"$dspName"/g" "$SRCDIR/$dspName/plugin_base.json" >> "$SRCDIR/$dspName/plugin.json"
+    rm "$SRCDIR/$dspName/plugin_base.json"
+
+    # compile and install plugin or keep the source folder
     if [ $SOURCE == false ] ; then
     	cd "$SRCDIR/$dspName" && make && make install
     else

@@ -1,6 +1,6 @@
 {
-  "slug": "Faust",
-  "name": "Faust",
+  "slug": "mydsp",
+  "name": "mydsp",
   "version": "1.0.0",
   "license": "MIT",
   "brand": "Faust",
@@ -14,8 +14,8 @@
   "changelogUrl": "",
   "modules": [
     {
-      "slug": "FaustModule",
-      "name": "FaustModule",
+      "slug": "mydspModule",
+      "name": "mydspModule",
       "description": "",
       "tags": []
     }

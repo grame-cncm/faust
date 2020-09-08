@@ -33,7 +33,7 @@
  ************************************************************************/
 
 // #include "faust/dsp/dsp.h"
-// dsp.h file is included and dsp file is renamed to rack_dsp to avoid name conflicts. Then 'faust -scn rack_dsp' is used in faust2vcvrack.
+// dsp.h file is included and dsp file is renamed to rack_dsp to avoid namespace conflicts. Then 'faust -scn rack_dsp' is used in faust2vcvrack.
 
 #include <string>
 #include <vector>
@@ -334,7 +334,7 @@ struct RackUI : public GenericUI
 #define CONTROL_RATE_HZ  100
 #define DEFAULT_SR       44100
 
-struct FaustModule : Module {
+struct mydspModule : Module {
     
     FAUSTFLOAT** fInputs;
     FAUSTFLOAT** fOutputs;
@@ -342,7 +342,7 @@ struct FaustModule : Module {
     mydsp fDSP;
     int fControlCounter;
     
-    FaustModule()
+    mydspModule()
     {
         // Count items of button, nentry, bargraph categories
         RackUI::UILayout counter;
@@ -376,7 +376,7 @@ struct FaustModule : Module {
         fControlCounter = DEFAULT_SR/CONTROL_RATE_HZ;
     }
     
-    ~FaustModule()
+    ~mydspModule()
     {
         for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
             delete [] fInputs[chan];
@@ -426,18 +426,15 @@ struct FaustModule : Module {
     
 };
 
-struct FaustModuleWidget : ModuleWidget {
+struct mydspModuleWidget : ModuleWidget {
     
-    FaustModuleWidget(FaustModule* module) {
+    mydspModuleWidget(mydspModule* module) {
         setModule(module);
-        
-        // May be null...
-        if (!module) return;
-        
+       
         // Set a large SVG
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
-        box.size.x = RACK_GRID_WIDTH * 30;
-        
+        //box.size.x = RACK_GRID_WIDTH * 30;
+       
         // General title
         addLabel(mm2px(Vec(10, 10.0)), "Faust");
         
@@ -446,25 +443,28 @@ struct FaustModuleWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
-        // Add params
-        addLabel(mm2px(Vec(10, 20.0)), "Params");
-        int params = module->fRackUI->fParams.fButtons.size() + module->fRackUI->fParams.fRanges.size();
-        for (int pa = 0; pa < params; pa++) {
-            addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
-        }
+         // Module is null at plugins selection step, so we can not create the final GUI at that timej...
+        if (module) {
         
-        // Add inputs
-        addLabel(mm2px(Vec(10, 60.0)), "Inputs");
-        for (int chan = 0; chan < module->fDSP.getNumInputs(); chan++) {
-            addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 75.0)), module, chan));
+            // Add params
+            addLabel(mm2px(Vec(10, 20.0)), "Params");
+            int params = module->fRackUI->fParams.fButtons.size() + module->fRackUI->fParams.fRanges.size();
+            for (int pa = 0; pa < params; pa++) {
+                addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
+            }
+            
+            // Add inputs
+            addLabel(mm2px(Vec(10, 60.0)), "Inputs");
+            for (int chan = 0; chan < module->fDSP.getNumInputs(); chan++) {
+                addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 75.0)), module, chan));
+            }
+            
+            // Add outputs
+            addLabel(mm2px(Vec(10, 85.0)), "Outputs");
+            for (int chan = 0; chan < module->fDSP.getNumOutputs(); chan++) {
+                addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
+            }
         }
-        
-        // Add outputs
-        addLabel(mm2px(Vec(10, 85.0)), "Outputs");
-        for (int chan = 0; chan < module->fDSP.getNumOutputs(); chan++) {
-            addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
-        }
-        
     }
     
     // TODO: use nvgText
@@ -481,6 +481,6 @@ struct FaustModuleWidget : ModuleWidget {
     
 };
 
-Model* modelFaustModule = createModel<FaustModule, FaustModuleWidget>("FaustModule");
+Model* modelFaustModule = createModel<mydspModule, mydspModuleWidget>("mydspModule");
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
