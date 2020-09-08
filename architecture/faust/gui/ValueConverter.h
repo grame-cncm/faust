@@ -162,14 +162,14 @@ class Interpolator3pt
 //--------------------------------------------------------------------------------------
 // Abstract ValueConverter class. Converts values between UI and Faust representations
 //--------------------------------------------------------------------------------------
-class ValueConverter
+class ValueConverter // Identity by default
 {
 
     public:
 
         virtual ~ValueConverter() {}
-        virtual double ui2faust(double x) = 0;
-        virtual double faust2ui(double x) = 0;
+        virtual double ui2faust(double x) { return x; };
+        virtual double faust2ui(double x) { return x; };
 };
 
 //--------------------------------------------------------------------------------------
@@ -196,7 +196,6 @@ class UpdatableValueConverter : public ValueConverter {
         bool getActive() { return fActive; }
     
 };
-
 
 //--------------------------------------------------------------------------------------
 // Linear conversion between ui and Faust values

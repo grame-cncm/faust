@@ -92,14 +92,37 @@ struct RackUI : public GenericUI
         #define PARAM_WIDTH 20
         #define PARAM_HEIGHT 20
         
-        struct ZoneItem {
-            std::string fLabel;
-            ZoneItem(const std::string& label):fLabel(label) {}
+        enum UIType {
+            kButton,
+            kCheckbox,
+            kVSlider,
+            kHSlider,
+            kNumEntry,
+            kVBargraph,
+            kHBargraph,
+            kNotype
         };
         
-        std::vector<ZoneItem> fButtons;
-        std::vector<ZoneItem> fRanges;
-        std::vector<ZoneItem> fOutputs;
+        struct UIItem {
+            std::string fLabel;
+            float fWidth = 0.f;
+            float fHight = 0.f;
+            UIType fType = kNotype;
+            FAUSTFLOAT fInit;
+            FAUSTFLOAT fMin;
+            FAUSTFLOAT fMax;
+            UIItem(const std::string& label,
+                   FAUSTFLOAT init,
+                   FAUSTFLOAT fmin,
+                   FAUSTFLOAT fmax,
+                   UIType type)
+                :fLabel(label), fInit(init), fMin(fmin), fMax(fmax), fType(type)
+            {}
+        };
+        
+        std::vector<UIItem> fButtons;
+        std::vector<UIItem> fRanges;
+        std::vector<UIItem> fOutputs;
         
         void openTabBox(const char* label) {}
         void openHorizontalBox(const char* label) {}
@@ -108,11 +131,11 @@ struct RackUI : public GenericUI
         
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            fButtons.push_back(ZoneItem(label));
+            fButtons.push_back(UIItem(label, 0, 1, 0, kButton));
         }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            fButtons.push_back(ZoneItem(label));
+            fButtons.push_back(UIItem(label, 0, 1, 0, kCheckbox));
         }
         
         void addVerticalSlider(const char* label,
@@ -122,7 +145,7 @@ struct RackUI : public GenericUI
                                FAUSTFLOAT max,
                                FAUSTFLOAT step)
         {
-            fRanges.push_back(ZoneItem(label));
+            fRanges.push_back(UIItem(label, init, min, max, kVSlider));
         }
         void addHorizontalSlider(const char* label,
                                  FAUSTFLOAT* zone,
@@ -131,7 +154,7 @@ struct RackUI : public GenericUI
                                  FAUSTFLOAT max,
                                  FAUSTFLOAT step)
         {
-            fRanges.push_back(ZoneItem(label));
+            fRanges.push_back(UIItem(label, init, min, max, kHSlider));
         }
         void addNumEntry(const char* label,
                          FAUSTFLOAT* zone,
@@ -140,16 +163,16 @@ struct RackUI : public GenericUI
                          FAUSTFLOAT max,
                          FAUSTFLOAT step)
         {
-            fRanges.push_back(ZoneItem(label));
+            fRanges.push_back(UIItem(label, init, min, max, kNumEntry));
         }
         
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            fOutputs.push_back(ZoneItem(label));
+            fOutputs.push_back(UIItem(label, 0, min, max, kHBargraph));
         }
         void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            fOutputs.push_back(ZoneItem(label));
+            fOutputs.push_back(UIItem(label, 0, min, max, kVBargraph));
         }
         
         int getWidth() { return (fButtons.size() + fRanges.size()) * PARAM_WIDTH; }
@@ -162,21 +185,11 @@ struct RackUI : public GenericUI
     std::vector<updateFunction> fUpdateFunIn;
     std::vector<updateFunction> fUpdateFunOut;
     
-    // For checkbox handling
-    struct CheckBox { float fLastButton = 0.0f; };
-    std::map <FAUSTFLOAT*, CheckBox> fCheckBoxes;
-    
     RackUI::UILayout fParams;
-    std::string fKey, fValue, fScale;
+    std::string fScale;
     
-    int getIndex(const std::string& value)
-    {
-        try {
-            return std::stoi(value);
-        } catch (invalid_argument& e) {
-            return -1;
-        }
-    }
+    int fButtonsCounter = 0;
+    int fParamsCounter = 0;
     
     RackUI(const RackUI::UILayout& counter):fParams(counter), fScale("lin")
     {}
@@ -188,46 +201,23 @@ struct RackUI : public GenericUI
     
     void addButton(const char* label, FAUSTFLOAT* zone)
     {
-        int index = getIndex(fValue);
-        if (fKey == "switch" && (index != -1)) {
-            fUpdateFunIn.push_back([=] (std::vector<Param>& params)
-                                   {
-                                       // 'buttons' start at 0
-                                       *zone = params[index-1].getValue();
-                                       
-                                       // And set the color to red when ON
-                                       //args.switchLights[index-1][0] = *zone;
-                                   });
-        }
+        // Takes the value at lambda contruction time
+        int index = fButtonsCounter;
+        fUpdateFunIn.push_back([=] (std::vector<Param>& params)
+                               {
+                                   // 'buttons' start at 0
+                                   *zone = params[index].getValue();
+                                   //std::cout << "switch " << std::string(label) << " " << index << " " << params[index].getValue() << std::endl;
+                                   
+                                   // And set the color to red when ON
+                                   //args.switchLights[index-1][0] = *zone;
+                               });
+        fButtonsCounter++;
     }
     
     void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
-        // index start at 0
-        int index = getIndex(fValue) - 1;
-        if (fKey == "switch" && (index != -1)) {
-            // Add a checkbox
-            fCheckBoxes[zone] = CheckBox();
-            // Update function
-            fUpdateFunIn.push_back([=] (std::vector<Param>& params)
-                                   {
-                                       // 'buttons' start at 0
-                                       float button = params[index].getValue();
-                                       // Detect upfront
-                                       if (button == 1.0 && (button != fCheckBoxes[zone].fLastButton)) {
-                                           // Switch button state
-                                           *zone = !*zone;
-                                           /*
-                                           // And set the color to white when ON
-                                           args.switchLights[index-1][0] = *zone;
-                                           args.switchLights[index-1][1] = *zone;
-                                           args.switchLights[index-1][2] = *zone;
-                                           */
-                                       }
-                                       // Keep previous button state
-                                       fCheckBoxes[zone].fLastButton = button;
-                                   });
-        }
+        addButton(label, zone);
     }
     
     void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -242,25 +232,26 @@ struct RackUI : public GenericUI
     
     void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        // index start at 0
-        int index = getIndex(fValue) - 1;
-        if (fKey == "knob" && (index != -1)) {
-            ConverterZoneControl* converter;
-            if (fScale == "log") {
-                converter = new ConverterZoneControl(zone, new LogValueConverter(0., 1., min, max));
-            } else if (fScale == "exp") {
-                converter = new ConverterZoneControl(zone, new ExpValueConverter(0., 1., min, max));
-            } else {
-                converter = new ConverterZoneControl(zone, new LinearValueConverter(0., 1., min, max));
-            }
-            fUpdateFunIn.push_back([=] (std::vector<Param>& params)
-                                   {
-                                       // 'nentries' start at fParams.fButtons.size()
-                                       converter->update(params[index + fParams.fButtons.size()].getValue());
-                                   });
-            fConverters.push_back(converter);
+        ConverterZoneControl* converter;
+        if (fScale == "log") {
+            converter = new ConverterZoneControl(zone, new LogValueConverter(min, max, min, max));
+        } else if (fScale == "exp") {
+            converter = new ConverterZoneControl(zone, new ExpValueConverter(min, max, min, max));
+        } else {
+            converter = new ConverterZoneControl(zone, new ValueConverter());
         }
+        
+        // Takes the value at lambda contruction time
+        int index = fParamsCounter;
+        fUpdateFunIn.push_back([=] (std::vector<Param>& params)
+                               {
+                                   // 'nentries' start at fParams.fButtons.size()
+                                   //std::cout << "knob " << std::string(label) << " " << index << " " << params[index + fParams.fButtons.size()].getValue() << std::endl;
+                                   converter->update(params[index + fParams.fButtons.size()].getValue());
+                               });
+        fConverters.push_back(converter);
         fScale = "lin";
+        fParamsCounter++;
     }
     
     void addBarGraph(FAUSTFLOAT* zone)
@@ -300,11 +291,7 @@ struct RackUI : public GenericUI
     
     void declare(FAUSTFLOAT* zone, const char* key, const char* val)
     {
-        static vector<std::string> keys = {"switch", "knob", "light_red", "light_green", "light_blue", "switchlight_red", "switchlight_green", "switchlight_blue"};
-        if (find(keys.begin(), keys.end(), key) != keys.end()) {
-            fKey = key;
-            fValue = val;
-        } else if (std::string(key) == "scale") {
+        if (std::string(key) == "scale") {
             fScale = val;
         }
     }
@@ -345,19 +332,25 @@ struct mydspModule : Module {
     mydspModule()
     {
         // Count items of button, nentry, bargraph categories
-        RackUI::UILayout counter;
-        fDSP.buildUserInterface(&counter);
+        RackUI::UILayout params;
+        fDSP.buildUserInterface(&params);
         
-        fRackUI = new RackUI(counter);
+        fRackUI = new RackUI(params);
         fDSP.buildUserInterface(fRackUI);
         
-        // Config
-        config(counter.fButtons.size() + counter.fRanges.size(),
-               fDSP.getNumInputs(),
-               fDSP.getNumOutputs(),
-               counter.fOutputs.size());
-        for (uint param = 0; param < (counter.fButtons.size() + counter.fRanges.size()); param++) {
-            configParam(param, 0.f, 1.f, 0.f, "");
+        uint buttons = params.fButtons.size();
+        uint entries = params.fRanges.size();
+        
+        // Config: by default we allocate complete set of parameters, even if all off them are not 'connected' using metadata
+        config(buttons + entries, fDSP.getNumInputs(), fDSP.getNumOutputs(), params.fOutputs.size());
+        
+        // Setup buttons
+        for (uint pa = 0; pa < buttons; pa++) {
+            configParam(pa, 0.f, 1.f, 0.f, "");
+        }
+        // Setup range params min/max/init values
+        for (uint pa = 0; pa < entries; pa++) {
+            configParam(pa + buttons, params.fRanges[pa].fMin, params.fRanges[pa].fMax, params.fRanges[pa].fInit, "");
         }
         
         // Allocate non-interleaved audio ins/outs buffers for 'compute'
@@ -448,9 +441,18 @@ struct mydspModuleWidget : ModuleWidget {
         
             // Add params
             addLabel(mm2px(Vec(10, 20.0)), "Params");
-            int params = module->fRackUI->fParams.fButtons.size() + module->fRackUI->fParams.fRanges.size();
-            for (int pa = 0; pa < params; pa++) {
-                addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
+            uint buttons = module->fRackUI->fParams.fButtons.size();
+            for (uint pa = 0; pa < buttons; pa++) {
+                if (module->fRackUI->fParams.fButtons[pa].fType == RackUI::UILayout::UIType::kButton) {
+                    addParam(createParamCentered<BefacoPush>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
+                } else {
+                    addParam(createParamCentered<CKSS>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
+                }
+            }
+            
+            uint nentries = module->fRackUI->fParams.fRanges.size();
+            for (uint pa = 0; pa < nentries; pa++) {
+                 addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 50.0)), module, pa + buttons));
             }
             
             // Add inputs
