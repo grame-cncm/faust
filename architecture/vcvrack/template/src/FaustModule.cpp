@@ -359,26 +359,27 @@ struct RackUI : public GenericUI
 #define CONTROL_RATE_HZ  100
 #define DEFAULT_SR       44100
 
+template <int VOICES>
 struct mydspModule : Module {
     
     RackUI* fRackUI;
-    mydsp fDSP;
+    mydsp fDSP[VOICES];
     int fControlCounter;
     
     mydspModule()
     {
         // Count items of button, nentry, bargraph categories
         RackUI::UILayout params;
-        fDSP.buildUserInterface(&params);
+        fDSP[0].buildUserInterface(&params);
         
         fRackUI = new RackUI(params);
-        fDSP.buildUserInterface(fRackUI);
+        fDSP[0].buildUserInterface(fRackUI);
         
         uint buttons = params.fButtons.size();
         uint entries = params.fRanges.size();
         
         // Config: by default we allocate complete set of parameters, even if all off them are not 'connected' using metadata
-        config(buttons + entries, fDSP.getNumInputs(), fDSP.getNumOutputs(), params.fOutputs.size());
+        config(buttons + entries, fDSP[0].getNumInputs(), fDSP[0].getNumOutputs(), params.fOutputs.size());
         
         // Setup buttons
         for (uint pa = 0; pa < buttons; pa++) {
@@ -388,14 +389,15 @@ struct mydspModule : Module {
         for (uint pa = 0; pa < entries; pa++) {
             configParam(pa + buttons, params.fRanges[pa].fMin, params.fRanges[pa].fMax, params.fRanges[pa].fInit, "");
         }
+       
+        for (int v = 0; v < VOICES; v++) {
+            // Init control zones
+            fDSP[v].initControl();
+            // Init DSP with default SR
+            fDSP[v].init(DEFAULT_SR);
+        }
         
-        // Init control zones
-        fDSP.initControl();
-        
-        // Init DSP with default SR
-        fDSP.init(DEFAULT_SR);
-        
-        // So that control will be called at first cycle
+        // So that control update will be done at first cycle
         fControlCounter = 1;
     }
     
@@ -407,34 +409,37 @@ struct mydspModule : Module {
     void process(const ProcessArgs& args) override
     {
         // Possibly update SR
-        if (args.sampleRate != fDSP.getSampleRate()) {
-            fDSP.init(args.sampleRate);
+        if (args.sampleRate != fDSP[0].getSampleRate()) {
+            for (int v = 0; v < VOICES; v++) {
+                fDSP[v].init(args.sampleRate);
+            }
         }
         
-        // Update control rate counter
-        fControlCounter--;
-        
         // Update control and inputs controllers at CONTROL_RATE_HZ
-        if (fControlCounter == 0) {
+        if (--fControlCounter == 0) {
             // DSP Control
-            fDSP.control(fDSP.iZone, fDSP.fZone);
+            for (int v = 0; v < VOICES; v++) {
+                fDSP[v].control(fDSP[v].iZone, fDSP[v].fZone);
+            }
             // Controller update
             for (auto& it : fRackUI->fUpdateFunIn) it(params);
         }
         
-        FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP.getNumInputs() * sizeof(FAUSTFLOAT)));
-        FAUSTFLOAT* outputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP.getNumOutputs() * sizeof(FAUSTFLOAT)));
+        FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumInputs() * sizeof(FAUSTFLOAT)));
+        FAUSTFLOAT* outputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumOutputs() * sizeof(FAUSTFLOAT)));
         
         // Copy inputs
-        for (int chan = 0; chan < fDSP.getNumInputs(); chan++) {
+        for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
             inputs_aux[chan] = inputs[chan].getVoltage()/5.0f;
         }
         
         // One sample compute
-        fDSP.compute(inputs_aux, outputs_aux, fDSP.iZone, fDSP.fZone);
+        for (int v = 0; v < VOICES; v++) {
+            fDSP[v].compute(inputs_aux, outputs_aux, fDSP[v].iZone, fDSP[v].fZone);
+        }
         
         // Copy outputs
-        for (int chan = 0; chan < fDSP.getNumOutputs(); chan++) {
+        for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
             outputs[chan].setVoltage(outputs_aux[chan]*5.0f);
         }
         
@@ -447,9 +452,10 @@ struct mydspModule : Module {
     
 };
 
+template <int VOICES>
 struct mydspModuleWidget : ModuleWidget {
     
-    mydspModuleWidget(mydspModule* module) {
+    mydspModuleWidget(mydspModule<VOICES>* module) {
         setModule(module);
        
         // Set a large SVG
@@ -488,13 +494,13 @@ struct mydspModuleWidget : ModuleWidget {
             
             // Add inputs
             addLabel(mm2px(Vec(10, 60.0)), "Inputs");
-            for (int chan = 0; chan < module->fDSP.getNumInputs(); chan++) {
+            for (int chan = 0; chan < module->fDSP[0].getNumInputs(); chan++) {
                 addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 75.0)), module, chan));
             }
             
             // Add outputs
             addLabel(mm2px(Vec(10, 85.0)), "Outputs");
-            for (int chan = 0; chan < module->fDSP.getNumOutputs(); chan++) {
+            for (int chan = 0; chan < module->fDSP[0].getNumOutputs(); chan++) {
                 addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
             }
         }
@@ -514,6 +520,6 @@ struct mydspModuleWidget : ModuleWidget {
     
 };
 
-Model* modelFaustModule = createModel<mydspModule, mydspModuleWidget>("mydsp");
+Model* modelFaustModule = createModel<mydspModule<NVOICES>, mydspModuleWidget<NVOICES> >("mydsp");
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

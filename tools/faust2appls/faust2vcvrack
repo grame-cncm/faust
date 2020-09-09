@@ -19,7 +19,7 @@ ARCHFILE=$FAUSTARCH/vcvrack/template/src/FaustModule.cpp
 set -e
 
 # global option variables
-NVOICES=0
+NVOICES=1
 POLY=""
 SOURCE=false
 
@@ -82,6 +82,9 @@ for p in $FILE; do
     # compile faust to c++
     cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
     faust -os -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+
+    # add NVOICES flag
+    echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
 
     # set name in plugin.json
     sed -e "s/mydsp/"$dspName"/g" "$SRCDIR/$dspName/plugin_base.json" >> "$SRCDIR/$dspName/plugin.json"
