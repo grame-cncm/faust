@@ -1,8 +1,0 @@
-*.aux
-*.fdb_latexmk
-*.fls
-*.log
-*.rai
-*.rao
-*.synctex.gz
-exfaust*
