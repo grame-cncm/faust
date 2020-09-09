@@ -380,6 +380,7 @@ struct mydspModule : Module {
         RackUI::UILayout params;
         fDSP[0].buildUserInterface(&params);
         
+        // Controllers are connected to all VOICES
         fRackUI = new RackUI(params);
         for (int v = 0; v < VOICES; v++) {
             fDSP[v].buildUserInterface(fRackUI);
