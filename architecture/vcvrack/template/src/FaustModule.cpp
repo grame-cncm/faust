@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <assert.h>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -237,6 +238,13 @@ struct RackUI : public GenericUI
         for (auto& it : fConverters) delete it;
     }
     
+    void reset()
+    {
+        fButtonsCounter = 0;
+        fParamsCounter = 0;
+        fScale = "lin";
+    }
+    
     void addButton(const char* label, FAUSTFLOAT* zone)
     {
         // Takes the value at lambda contruction time
@@ -362,7 +370,7 @@ struct RackUI : public GenericUI
 template <int VOICES>
 struct mydspModule : Module {
     
-    RackUI* fRackUI;
+    RackUI* fRackUI;    // One single version for all VOICES
     mydsp fDSP[VOICES];
     int fControlCounter;
     
@@ -373,7 +381,10 @@ struct mydspModule : Module {
         fDSP[0].buildUserInterface(&params);
         
         fRackUI = new RackUI(params);
-        fDSP[0].buildUserInterface(fRackUI);
+        for (int v = 0; v < VOICES; v++) {
+            fDSP[v].buildUserInterface(fRackUI);
+            fRackUI->reset();
+        }
         
         uint buttons = params.fButtons.size();
         uint entries = params.fRanges.size();
@@ -428,19 +439,33 @@ struct mydspModule : Module {
         FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumInputs() * sizeof(FAUSTFLOAT)));
         FAUSTFLOAT* outputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumOutputs() * sizeof(FAUSTFLOAT)));
         
-        // Copy inputs
+        // Setup polyphony for inputs
         for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
-            inputs_aux[chan] = inputs[chan].getVoltage()/5.0f;
+            inputs[chan].setChannels(VOICES);
         }
         
-        // One sample compute
-        for (int v = 0; v < VOICES; v++) {
-            fDSP[v].compute(inputs_aux, outputs_aux, fDSP[v].iZone, fDSP[v].fZone);
-        }
-        
-        // Copy outputs
+        // Setup polyphony for outputs
         for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
-            outputs[chan].setVoltage(outputs_aux[chan]*5.0f);
+            outputs[chan].setChannels(VOICES);
+        }
+       
+        // Compute all VOICES
+        for (int v = 0; v < VOICES; v++) {
+            
+            // Copy inputs
+            for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
+                //inputs_aux[chan] = inputs[chan].getVoltage(v)/5.0f;
+                inputs_aux[chan] = inputs[chan].getVoltage(v);
+            }
+            
+            // One sample compute
+            fDSP[v].compute(inputs_aux, outputs_aux, fDSP[v].iZone, fDSP[v].fZone);
+            
+            // Copy outputs
+            for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
+                //outputs[chan].setVoltage(outputs_aux[chan]*5.0f, v);
+                outputs[chan].setVoltage(outputs_aux[chan], v);
+            }
         }
         
         // Update output controllers at CONTROL_RATE_HZ
