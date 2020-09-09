@@ -65,6 +65,39 @@ if [ -z $FILE ]; then
     exit 1
 fi
 
+createPluginJSON()
+{
+    (
+    echo '{'
+    echo -e "\t\"slug\": \"$1\","
+    echo -e "\t\"name\": \"$1\","
+    echo -e '\t"version": "1.0.0",'
+    echo -e '\t"license": "MIT",'
+    echo -e '\t"brand": "Faust",'
+    echo -e '\t"author": "GRAME",'
+    echo -e '\t"authorEmail": "research@grame.fr",'
+    echo -e '\t"authorUrl": "https://faust.grame.fr",'
+    echo -e '\t"pluginUrl": "",'
+    echo -e '\t"manualUrl": "",'
+    echo -e '\t"sourceUrl": "https://github.com/grame-cncm/faust",'
+    echo -e '\t"donateUrl": "",'
+    echo -e '\t"changelogUrl": "",'
+    echo -e '\t"modules": ['
+    echo -e '\t\t{'
+    echo -e "\t\t\t\"slug\": \"$1\","
+    echo -e "\t\t\t\"name\": \"$1\","
+    echo -e '\t\t\t"description": "",'
+    echo -e '\t\t\t"tags": ['
+    if [ $NVOICES -gt 1 ]; then
+        echo -e '\t\t\t\t"Polyphonic"'
+    fi
+    echo -e '\t\t\t]'
+    echo -e '\t\t}'
+    echo -e '\t]'
+    echo '}'
+    ) > "$2"
+}
+
 ###########################
 # Compile the *.dsp files
 ###########################
@@ -86,13 +119,13 @@ for p in $FILE; do
     # add NVOICES flag
     echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
 
-    # set name in plugin.json
-    sed -e "s/mydsp/"$dspName"/g" "$SRCDIR/$dspName/plugin_base.json" >> "$SRCDIR/$dspName/plugin.json"
-    rm "$SRCDIR/$dspName/plugin_base.json"
+    # set DSP name and polyphonic mode in plugin.json
+    createPluginJSON "$dspName" "$SRCDIR/$dspName/plugin.json"
 
     # compile and install plugin or keep the source folder
-    if [ $SOURCE == false ] ; then
-    	cd "$SRCDIR/$dspName" && make && make install
+    if [ $SOURCE == false ]; then
+    	( cd "$SRCDIR/$dspName" && make && make install ) > /dev/null || exit
+    	rm -rf "$SRCDIR/$dspName"
     else
     	echo "Create the $SRCDIR/$dspName folder"
     fi 
