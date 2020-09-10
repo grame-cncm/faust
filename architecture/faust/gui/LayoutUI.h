@@ -1,7 +1,7 @@
-/************************** BEGIN PrintUI.h **************************/
+/************************** BEGIN LayoutUI.h **************************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -68,6 +68,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     #define kHBargraphWidth 20
     #define kHBargraphHeight 10
 
+    // Base class
     struct UIItem {
         
         UIItem(float width = 0.0f, float height = 0.0f):fWidth(width), fHeight(height) {}
@@ -108,6 +109,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     };
     
+    // Grouping classes
     struct Group : UIItem {
         
         typedef std::shared_ptr<Group> shared_group;
@@ -196,6 +198,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
     };
     
+    // Terminal items
     struct Button : UIItem {
         
         Button():UIItem(kButtonWidth, kButtonHeight) {}

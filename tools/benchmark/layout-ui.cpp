@@ -43,6 +43,11 @@ int main(int argc, char* argv[])
     
     dsp* DSP = factory->createDSPInstance();
     
+    if (!DSP) {
+        cerr << "Cannot allocate instance\n";
+        exit(EXIT_FAILURE);
+    }
+    
     LayoutUI layoutUI;
     DSP->buildUserInterface(&layoutUI);
     
@@ -53,7 +58,6 @@ int main(int argc, char* argv[])
     
     cout << "Width " << layoutUI.fCurrentGroup->getWidth() << endl;
     cout << "Height " << layoutUI.fCurrentGroup->getHeight() << endl;
-    
     
     delete DSP;
     deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));

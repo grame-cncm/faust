@@ -139,11 +139,8 @@ struct one_sample_dsp : public rack_dsp {
 struct RackUI : public GenericUI
 {
     // A internal class to count items of each type
-    struct UILayout : public GenericUI
+    struct ManagerUI : public GenericUI
     {
-        #define PARAM_WIDTH 20
-        #define PARAM_HEIGHT 20
-        
         enum UIType {
             kButton,
             kCheckbox,
@@ -226,9 +223,6 @@ struct RackUI : public GenericUI
         {
             fOutputs.push_back(UIItem(label, 0, min, max, kVBargraph));
         }
-        
-        int getWidth() { return (fButtons.size() + fRanges.size()) * PARAM_WIDTH; }
-        int getHeight() { return (fButtons.size() + fRanges.size()) * PARAM_HEIGHT; }
     };
     
     typedef function<void(std::vector<Param>& params)> updateFunction;
@@ -237,13 +231,13 @@ struct RackUI : public GenericUI
     std::vector<updateFunction> fUpdateFunIn;
     std::vector<updateFunction> fUpdateFunOut;
     
-    RackUI::UILayout fParams;
+    RackUI::ManagerUI fParams;
     std::string fScale;
     
     int fButtonsCounter = 0;
     int fParamsCounter = 0;
     
-    RackUI(const RackUI::UILayout& counter):fParams(counter), fScale("lin")
+    RackUI(const RackUI::ManagerUI& counter):fParams(counter), fScale("lin")
     {}
     
     virtual ~RackUI()
@@ -394,7 +388,7 @@ struct mydspModule : Module {
     mydspModule()
     {
         // Count items of button, nentry, bargraph categories
-        RackUI::UILayout params;
+        RackUI::ManagerUI params;
         fDSP[0].buildUserInterface(&params);
         
         // Controllers are connected to all VOICES
@@ -454,9 +448,6 @@ struct mydspModule : Module {
             fRackUI->updateInputs(params);
         }
         
-        FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumInputs() * sizeof(FAUSTFLOAT)));
-        FAUSTFLOAT* outputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumOutputs() * sizeof(FAUSTFLOAT)));
-        
         // Setup polyphony for inputs
         for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
             inputs[chan].setChannels(VOICES);
@@ -466,7 +457,10 @@ struct mydspModule : Module {
         for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
             outputs[chan].setChannels(VOICES);
         }
-       
+        
+        FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumInputs() * sizeof(FAUSTFLOAT)));
+        FAUSTFLOAT* outputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumOutputs() * sizeof(FAUSTFLOAT)));
+        
         // Compute all VOICES
         for (int v = 0; v < VOICES; v++) {
             
@@ -511,7 +505,7 @@ struct mydspModuleWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
-         // Module is null at plugins selection step, so we can not create the final GUI at that timej...
+         // Module is null at plugins selection step, so we can not create the final GUI at that time...
         if (module) {
         
             // Add params
@@ -520,7 +514,7 @@ struct mydspModuleWidget : ModuleWidget {
             // Add buttons
             uint buttons = module->fRackUI->fParams.fButtons.size();
             for (uint pa = 0; pa < buttons; pa++) {
-                if (module->fRackUI->fParams.fButtons[pa].fType == RackUI::UILayout::UIType::kButton) {
+                if (module->fRackUI->fParams.fButtons[pa].fType == RackUI::ManagerUI::UIType::kButton) {
                     addParam(createParamCentered<BefacoPush>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
                 } else {
                     addParam(createParamCentered<CKSS>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
