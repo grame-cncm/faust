@@ -253,11 +253,7 @@ struct RackUI : public GenericUI
                                {
                                    // 'buttons' start at 0
                                    *zone = params[index].getValue();
-                                   //std::cout << "switch " << std::string(label) << " " << index << " " << params[index].getValue() << std::endl;
-                                   
-                                   // And set the color to red when ON
-                                   //args.switchLights[index-1][0] = *zone;
-                               });
+                                });
         fButtonsCounter++;
     }
     
@@ -292,7 +288,6 @@ struct RackUI : public GenericUI
         fUpdateFunIn.push_back([=] (std::vector<Param>& params)
                                {
                                    // 'nentries' start at fParams.fButtons.size()
-                                   //std::cout << "knob " << std::string(label) << " " << index << " " << params[index + fParams.fButtons.size()].getValue() << std::endl;
                                    converter->update(params[index + fParams.fButtons.size()].getValue());
                                });
         fConverters.push_back(converter);
@@ -342,6 +337,15 @@ struct RackUI : public GenericUI
         }
     }
     
+    void updateInputs(std::vector<Param>& params)
+    {
+        for (auto& it : fUpdateFunIn) it(params);
+    }
+    
+    void updateOutputs(std::vector<Param>& params)
+    {
+        for (auto& it : fUpdateFunOut) it(params);
+    }
 };
 
 /******************************************************************************
@@ -434,7 +438,7 @@ struct mydspModule : Module {
                 fDSP[v].control(fDSP[v].iZone, fDSP[v].fZone);
             }
             // Controller update
-            for (auto& it : fRackUI->fUpdateFunIn) it(params);
+            fRackUI->updateInputs(params);
         }
         
         FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumInputs() * sizeof(FAUSTFLOAT)));
@@ -455,8 +459,7 @@ struct mydspModule : Module {
             
             // Copy inputs
             for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
-                //inputs_aux[chan] = inputs[chan].getVoltage(v)/5.0f;
-                inputs_aux[chan] = inputs[chan].getVoltage(v);
+                inputs_aux[chan] = (VOICES == 1) ? inputs[chan].getVoltageSum() : inputs[chan].getVoltage(v);
             }
             
             // One sample compute
@@ -464,14 +467,13 @@ struct mydspModule : Module {
             
             // Copy outputs
             for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
-                //outputs[chan].setVoltage(outputs_aux[chan]*5.0f, v);
                 outputs[chan].setVoltage(outputs_aux[chan], v);
             }
         }
         
         // Update output controllers at CONTROL_RATE_HZ
         if (fControlCounter == 0) {
-            for (auto& it : fRackUI->fUpdateFunOut) it(params);
+            fRackUI->updateOutputs(params);
             fControlCounter = args.sampleRate/CONTROL_RATE_HZ;
         }
     }
