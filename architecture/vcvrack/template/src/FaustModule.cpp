@@ -115,12 +115,25 @@ struct one_sample_dsp : public rack_dsp {
     
 };
 
-#include <faust/gui/DecoratorUI.h>
-#include <faust/gui/ValueConverter.h>
+#include "faust/gui/DecoratorUI.h"
+#include "faust/gui/ValueConverter.h"
 #include "faust/misc.h"
 #include "plugin.hpp"
 
 // params  = [buttons][entries][bargraph]
+
+/*
+ - notion of minimal size for leaves items
+ 
+ ==> compute the global minimal width/height pour the entire UI
+ 
+ - on peut calculer la taille minimale width/height de la section audio inputs et audio outputs
+ 
+ 1) calculer somme taille minimale width/height des section audio inputs et audio outputs tous en ligne
+ 2) en deduire la taille width/height pour l'UI globale
+ 3) eventuellement ajuster les groupages audio inputs et audio outputs (passer de 1 à 2 ligne), recalculer la taille width/height pour l'UI globale
+ 
+ */
 
 // UI handler for switches, knobs and lights
 struct RackUI : public GenericUI
