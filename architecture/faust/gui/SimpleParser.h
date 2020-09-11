@@ -35,8 +35,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <fstream>
-#include <sstream>
+#include <cmath>
 #include <iostream>
 #include <ctype.h>
 
@@ -129,30 +128,68 @@ static bool parseWord(const char*& p, const char* w)
 }
 
 /**
- * @brief parseDouble : parse number [s]dddd[.dddd] and store the result in x
+ * @brief parseDouble : parse number [s]dddd[.dddd] or [s]d[.dddd][E|e][s][dddd] and store the result in x
  * @param p the string to parse, then the remaining string
  * @param x the float number found if any
  * @return true if a float number was found at the begin of p
  */
 static bool parseDouble(const char*& p, double& x)
 {
-    std::stringstream reader(p);
-    std::streambuf* pbuf = reader.rdbuf();
+    double sign = 1.0;     // sign of the number
+    double ipart = 0;      // integral part of the number
+    double dpart = 0;      // decimal part of the number before division
+    double dcoef = 1.0;    // division factor for the decimal part
+    double expsign = 1.0;  // sign of the E|e part
+    double expcoef = 0.0;  // multiplication factor of E|e part
     
-    // Keep position before parsing
-    std::streamsize size1 = pbuf->in_avail();
+    bool valid = false;    // true if the number contains at least one digit
     
-    // Parse the number
-    reader >> x;
+    skipBlank(p);
+    const char* saved = p;  // to restore position if we fail
     
-    // Keep position after parsing
-    std::streamsize size2 = pbuf->in_avail();
+    // Sign
+    if (parseChar(p, '+')) {
+        sign = 1.0;
+    } else if (parseChar(p, '-')) {
+        sign = -1.0;
+    }
     
-    // Move from the actual size
-    p += (size1 - size2);
+    // Integral part
+    while (isdigit(*p)) {
+        valid = true;
+        ipart = ipart*10 + (*p - '0');
+        p++;
+    }
     
-    // True if the number contains at least one digit
-    return (size1 > size2);
+    // Possible decimal part
+    if (parseChar(p, '.')) {
+        while (isdigit(*p)) {
+            valid = true;
+            dpart = dpart*10 + (*p - '0');
+            dcoef *= 10.0;
+            p++;
+        }
+    }
+    
+    // Possible E|e part
+    if (parseChar(p, 'E') || parseChar(p, 'e')) {
+        if (parseChar(p, '+')) {
+            expsign = 1.0;
+        } else if (parseChar(p, '-')) {
+            expsign = -1.0;
+        }
+        while (isdigit(*p)) {
+            expcoef = expcoef*10 + (*p - '0');
+            p++;
+        }
+    }
+    
+    if (valid)  {
+        x = (sign*(ipart + dpart/dcoef)) * std::pow(10.0, expcoef*expsign);
+    } else {
+        p = saved;
+    }
+    return valid;
 }
 
 /**

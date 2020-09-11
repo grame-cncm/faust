@@ -158,12 +158,6 @@ for p in $FILES; do
     
     # possibly aggregate in a unique multi file
     if [ $MULTIFUN = true ]; then
-        # create file
-        echo "" > $dspName"multi.h"
-        # add conditional #define 'cpu'
-        for cpu in $CPU; do
-            echo "#define "$cpu >> $dspName"multi.h"
-        done
         # class naming
         sed -e "s/mydsp/$dspName/g" $MULTIFUN_ADAPTER >> $dspName"multi.h"
     fi
