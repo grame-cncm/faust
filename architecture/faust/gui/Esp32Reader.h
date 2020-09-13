@@ -96,7 +96,7 @@ struct Esp32Reader : public WaveReader {
         sdcard_init();
     }
    
-    // Acess methods inherited from WaveReader
+    // Access methods inherited from WaveReader
 }
 
 #endif // FAUST_ESP32READER_H

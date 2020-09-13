@@ -103,7 +103,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     
 #ifdef SOUNDFILE
     fSoundUI = new SoundUI("/sdcard/", sample_rate);
-    DSP->buildUserInterface(fSoundUI);
+    fDSP->buildUserInterface(fSoundUI);
 #endif
     
 #ifdef MIDICTRL
