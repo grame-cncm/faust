@@ -116,6 +116,7 @@ struct one_sample_dsp : public rack_dsp {
 };
 
 #include "faust/gui/DecoratorUI.h"
+#include "faust/gui/MapUI.h"
 #include "faust/gui/ValueConverter.h"
 #include "faust/misc.h"
 #include "plugin.hpp"
@@ -135,109 +136,173 @@ struct one_sample_dsp : public rack_dsp {
  
  */
 
-// UI handler for switches, knobs and lights
-struct RackUI : public GenericUI
+// A class to count items of each type.
+// Parameters with the "CV:N" metadata are kept separately in fInputCV and fOutputCV
+// and will be connected to audio VC inputs and outputs.
+
+struct ManagerUI : public GenericUI
 {
-    // A internal class to count items of each type
-    struct ManagerUI : public GenericUI
-    {
-        enum UIType {
-            kButton,
-            kCheckbox,
-            kVSlider,
-            kHSlider,
-            kNumEntry,
-            kVBargraph,
-            kHBargraph,
-            kNotype
-        };
-        
-        struct UIItem {
-            std::string fLabel;
-            float fWidth = 0.f;
-            float fHight = 0.f;
-            UIType fType = kNotype;
-            FAUSTFLOAT fInit;
-            FAUSTFLOAT fMin;
-            FAUSTFLOAT fMax;
-            UIItem(const std::string& label,
-                   FAUSTFLOAT init,
-                   FAUSTFLOAT fmin,
-                   FAUSTFLOAT fmax,
-                   UIType type)
-                :fLabel(label), fType(type), fInit(init), fMin(fmin), fMax(fmax)
-            {}
-        };
-        
-        std::vector<UIItem> fButtons;
-        std::vector<UIItem> fRanges;
-        std::vector<UIItem> fOutputs;
-        
-        void openTabBox(const char* label) {}
-        void openHorizontalBox(const char* label) {}
-        void openVerticalBox(const char* label) {}
-        void closeBox() {}
-        
-        void addButton(const char* label, FAUSTFLOAT* zone)
-        {
-            fButtons.push_back(UIItem(label, 0, 1, 0, kButton));
-        }
-        void addCheckButton(const char* label, FAUSTFLOAT* zone)
-        {
-            fButtons.push_back(UIItem(label, 0, 1, 0, kCheckbox));
-        }
-        
-        void addVerticalSlider(const char* label,
-                               FAUSTFLOAT* zone,
-                               FAUSTFLOAT init,
-                               FAUSTFLOAT min,
-                               FAUSTFLOAT max,
-                               FAUSTFLOAT step)
-        {
-            fRanges.push_back(UIItem(label, init, min, max, kVSlider));
-        }
-        void addHorizontalSlider(const char* label,
-                                 FAUSTFLOAT* zone,
-                                 FAUSTFLOAT init,
-                                 FAUSTFLOAT min,
-                                 FAUSTFLOAT max,
-                                 FAUSTFLOAT step)
-        {
-            fRanges.push_back(UIItem(label, init, min, max, kHSlider));
-        }
-        void addNumEntry(const char* label,
-                         FAUSTFLOAT* zone,
-                         FAUSTFLOAT init,
-                         FAUSTFLOAT min,
-                         FAUSTFLOAT max,
-                         FAUSTFLOAT step)
-        {
-            fRanges.push_back(UIItem(label, init, min, max, kNumEntry));
-        }
-        
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            fOutputs.push_back(UIItem(label, 0, min, max, kHBargraph));
-        }
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        {
-            fOutputs.push_back(UIItem(label, 0, min, max, kVBargraph));
-        }
+    enum UIType {
+        kButton,
+        kCheckbox,
+        kVSlider,
+        kHSlider,
+        kNumEntry,
+        kVBargraph,
+        kHBargraph,
+        kNotype
     };
     
-    typedef function<void(std::vector<Param>& params)> updateFunction;
+    struct UIItem {
+        std::string fLabel;
+        float fWidth = 0.f;
+        float fHight = 0.f;
+        UIType fType = kNotype;
+        FAUSTFLOAT fInit;
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        UIItem(const std::string& label,
+               FAUSTFLOAT init,
+               FAUSTFLOAT fmin,
+               FAUSTFLOAT fmax,
+               UIType type)
+        :fLabel(label), fType(type), fInit(init), fMin(fmin), fMax(fmax)
+        {}
+    };
+    
+    std::vector<UIItem> fButtons;
+    std::vector<UIItem> fRanges;
+    std::vector<UIItem> fBargraph;
+    std::vector<UIItem> fInputCV;
+    std::vector<UIItem> fOutputCV;
+    
+    std::string fCV;
+    
+    void addRange(const char* label,
+                  FAUSTFLOAT init,
+                  FAUSTFLOAT min,
+                  FAUSTFLOAT max,
+                  UIType type)
+    {
+        if (fCV != "") {
+            fInputCV.push_back(UIItem(label, init, min, max, type));
+            fCV = "";
+        } else {
+            fRanges.push_back(UIItem(label, init, min, max, type));
+        }
+    }
+    
+    void addBargraph(const char* label,
+                     FAUSTFLOAT min,
+                     FAUSTFLOAT max,
+                     UIType type)
+    {
+        if (fCV != "") {
+            fOutputCV.push_back(UIItem(label, 0, min, max, type));
+            fCV = "";
+        } else {
+            fBargraph.push_back(UIItem(label, 0, min, max, type));
+        }
+    }
+    
+    // External API
+    void openTabBox(const char* label) {}
+    void openHorizontalBox(const char* label) {}
+    void openVerticalBox(const char* label) {}
+    void closeBox() {}
+    
+    void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        if (fCV != "") {
+            fInputCV.push_back(UIItem(label, 0, 1, 0, kButton));
+            fCV = "";
+        } else {
+            fButtons.push_back(UIItem(label, 0, 1, 0, kButton));
+        }
+    }
+    void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        if (fCV != "") {
+            fInputCV.push_back(UIItem(label, 0, 1, 0, kCheckbox));
+            fCV = "";
+        } else {
+            fButtons.push_back(UIItem(label, 0, 1, 0, kCheckbox));
+        }
+    }
+    
+    void addVerticalSlider(const char* label,
+                           FAUSTFLOAT* zone,
+                           FAUSTFLOAT init,
+                           FAUSTFLOAT min,
+                           FAUSTFLOAT max,
+                           FAUSTFLOAT step)
+    {
+        addRange(label, init, min, max, kVSlider);
+    }
+    void addHorizontalSlider(const char* label,
+                             FAUSTFLOAT* zone,
+                             FAUSTFLOAT init,
+                             FAUSTFLOAT min,
+                             FAUSTFLOAT max,
+                             FAUSTFLOAT step)
+    {
+        addRange(label, init, min, max, kHSlider);
+    }
+    void addNumEntry(const char* label,
+                     FAUSTFLOAT* zone,
+                     FAUSTFLOAT init,
+                     FAUSTFLOAT min,
+                     FAUSTFLOAT max,
+                     FAUSTFLOAT step)
+    {
+        addRange(label, init, min, max, kNumEntry);
+    }
+    
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        addBargraph(label, min, max, kHBargraph);
+    }
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        addBargraph(label, min, max, kVBargraph);
+    }
+    
+    void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+    {
+        if (std::string(key) == "CV" || std::string(key) == "cv") {
+            fCV = val;
+        }
+    }
+};
+
+// UI handler for switches, knobs and lights
+template <int VOICES>
+struct RackUI : public GenericUI
+{
+    
+    typedef function<void(Module* module)> updateFunction;
     
     std::vector<ConverterZoneControl*> fConverters;
     std::vector<updateFunction> fUpdateFunIn;
     std::vector<updateFunction> fUpdateFunOut;
     
-    RackUI::ManagerUI fParams;
-    std::string fScale;
+    ManagerUI fParams;
+    std::string fScale, fCV;
     
     int fButtonsCounter = 0;
     int fParamsCounter = 0;
+    int fCurVoice = -1;
     
-    RackUI(const RackUI::ManagerUI& counter):fParams(counter), fScale("lin")
+    int parseIndex(const std::string& value)
+    {
+        try {
+            return stoi(value);
+        } catch (invalid_argument& e) {
+            return -1;
+        }
+    }
+    
+    RackUI(const ManagerUI& counter):fParams(counter), fScale("lin")
     {}
     
     virtual ~RackUI()
@@ -250,18 +315,39 @@ struct RackUI : public GenericUI
         fButtonsCounter = 0;
         fParamsCounter = 0;
         fScale = "lin";
+        fCV = "";
     }
     
     void addButton(const char* label, FAUSTFLOAT* zone)
     {
-        // Takes the value at lambda contruction time
-        int index = fButtonsCounter;
-        fUpdateFunIn.push_back([=] (std::vector<Param>& params)
-                               {
-                                   // 'buttons' start at 0
-                                   *zone = params[index].getValue();
-                                });
-        fButtonsCounter++;
+        if (fCV != "") {
+            int index = parseIndex(fCV)-1;
+            if (index < 0) {
+                WARN("Incorrect index");
+                return;
+            }
+            
+            //std::cout << "CV index " << index << std::endl;
+            // Capture current voice
+            int voice = fCurVoice;
+            fUpdateFunIn.push_back([=] (Module* module)
+                                   {
+                                       float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
+                                       //std::cout << "CV index VOICES " << voice << " cv " << cv << std::endl;
+                                       *zone = cv/10.f;
+                                   });
+          
+            fCV = "";
+        } else {
+            // Takes the value at lambda contruction time
+            int index = fButtonsCounter;
+            fUpdateFunIn.push_back([=] (Module* module)
+                                   {
+                                       // 'buttons' start at 0
+                                       *zone = module->params[index].getValue()/10.f;
+                                   });
+            fButtonsCounter++;
+        }
     }
     
     void addCheckButton(const char* label, FAUSTFLOAT* zone)
@@ -282,24 +368,95 @@ struct RackUI : public GenericUI
     void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         ConverterZoneControl* converter;
-        if (fScale == "log") {
-            converter = new ConverterZoneControl(zone, new LogValueConverter(min, max, min, max));
-        } else if (fScale == "exp") {
-            converter = new ConverterZoneControl(zone, new ExpValueConverter(min, max, min, max));
-        } else {
-            converter = new ConverterZoneControl(zone, new ValueConverter());
-        }
+        //std::cout << "addNumEntry " << label << std::endl;
         
-        // Takes the value at lambda contruction time
-        int index = fParamsCounter;
-        fUpdateFunIn.push_back([=] (std::vector<Param>& params)
-                               {
-                                   // 'nentries' start at fParams.fButtons.size()
-                                   converter->update(params[index + fParams.fButtons.size()].getValue());
-                               });
+        if (fCV != "") {
+            
+            int index = parseIndex(fCV)-1;
+            if (index < 0) {
+                WARN("Incorrect index");
+                return;
+            }
+            
+            // Capture current voice
+            int voice = fCurVoice;
+            
+            if (MapUI::endsWith(label, "freq")) {
+
+                converter = new ConverterZoneControl(zone, new ValueConverter());
+                //std::cout << "freq CV index " << index << std::endl;
+                fUpdateFunIn.push_back([=] (Module* module)
+                                       {
+                                           float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
+                                           float freq = 440.f * std::pow(2.f, (cv - 0.75f));
+                                           //std::cout << "CV index freq " << voice << " cv " << cv << " freq " << freq << std::endl;
+                                           converter->update(freq);
+                                       });
+               
+            } else if (MapUI::endsWith(label, "gate")) {
+                
+                converter = new ConverterZoneControl(zone, new ValueConverter());
+                //std::cout << "gate CV index " << index << std::endl;
+                fUpdateFunIn.push_back([=] (Module* module)
+                                       {
+                                           float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
+                                           //std::cout << "CV index gate " << voice << " cv " << cv << std::endl;
+                                           converter->update(cv/10.f);
+                                       });
+                
+                
+            } else if (MapUI::endsWith(label, "gain")) {
+                
+                converter = new ConverterZoneControl(zone, new ValueConverter());
+                //std::cout << "gain CV index " << index << std::endl;
+                fUpdateFunIn.push_back([=] (Module* module)
+                                       {
+                                           float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
+                                           //std::cout << "CV index gain " << voice << " cv " << cv << std::endl;
+                                           converter->update(cv/10.f);
+                                       });
+                
+            } else {
+                if (fScale == "log") {
+                    converter = new ConverterZoneControl(zone, new LogValueConverter(-5, 5, min, max));
+                } else if (fScale == "exp") {
+                    converter = new ConverterZoneControl(zone, new ExpValueConverter(-5, 5, min, max));
+                } else {
+                    converter = new ConverterZoneControl(zone, new LinearValueConverter(-5, 5, min, max));
+                }
+            
+                //std::cout << "CV index " << index << std::endl;
+                fUpdateFunIn.push_back([=] (Module* module)
+                                       {
+                                           float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
+                                           //std::cout << "CV index " << voice << " cv " << cv << std::endl;
+                                           converter->update(cv);
+                                       });
+            }
+           
+            fCV = "";
+        } else {
+            
+            if (fScale == "log") {
+                converter = new ConverterZoneControl(zone, new LogValueConverter(min, max, min, max));
+            } else if (fScale == "exp") {
+                converter = new ConverterZoneControl(zone, new ExpValueConverter(min, max, min, max));
+            } else {
+                converter = new ConverterZoneControl(zone, new ValueConverter());
+            }
+            
+            // Takes the value at lambda contruction time
+            int index = fParamsCounter;
+            fUpdateFunIn.push_back([=] (Module* module)
+                                   {
+                                       // 'nentries' start at fParams.fButtons.size()
+                                       //std::cout << "Param " << module->params[index + fParams.fButtons.size()].getValue() << std::endl;
+                                       converter->update(module->params[index + fParams.fButtons.size()].getValue());
+                                   });
+            fScale = "lin";
+            fParamsCounter++;
+        }
         fConverters.push_back(converter);
-        fScale = "lin";
-        fParamsCounter++;
     }
     
     void addBarGraph(FAUSTFLOAT* zone)
@@ -308,21 +465,21 @@ struct RackUI : public GenericUI
         // index start at 0
         int index = getIndex(fValue) - 1;
         if ((fKey == "light_red") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (std::vector<Param>& params)
+            fUpdateFunOut.push_back([=] (Module* module)
                                     {
                                         // 'nentries' start at fParams.fButton + fParams.fNumEntry
-                                        params[index + fParams.fButton + fParams.fNumEntry][0].setValue(*zone);
+                                        module->params[index + fParams.fButton + fParams.fNumEntry][0].setValue(*zone);
                                     });
         } else if ((fKey == "light_green") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { lights[index-1][1] = *zone; });
+            fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][1] = *zone; });
         } else if ((fKey == "light_blue") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { lights[index-1][2] = *zone; });
+            fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][2] = *zone; });
         } else if ((fKey == "switchlight_red") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { switchLights[index-1][0] = *zone; });
+            fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][0] = *zone; });
         } else if ((fKey == "switchlight_green") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { switchLights[index-1][1] = *zone; });
+            fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][1] = *zone; });
         } else if ((fKey == "switchlight_blue") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (std::vector<Param>& params) { switchLights[index-1][2] = *zone; });
+            fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][2] = *zone; });
         }
         */
     }
@@ -341,17 +498,20 @@ struct RackUI : public GenericUI
     {
         if (std::string(key) == "scale") {
             fScale = val;
+        } else if (std::string(key) == "CV" || std::string(key) == "cv") {
+            fCV = val;
+            //std::cout << "declare " << fCV << std::endl;
         }
     }
     
-    void updateInputs(std::vector<Param>& params)
+    void updateInputs(Module* module)
     {
-        for (auto& it : fUpdateFunIn) it(params);
+        for (auto& it : fUpdateFunIn) it(module);
     }
     
-    void updateOutputs(std::vector<Param>& params)
+    void updateOutputs(Module* module)
     {
-        for (auto& it : fUpdateFunOut) it(params);
+        for (auto& it : fUpdateFunOut) it(module);
     }
 };
 
@@ -381,28 +541,31 @@ struct RackUI : public GenericUI
 template <int VOICES>
 struct mydspModule : Module {
     
-    RackUI* fRackUI;    // One single version for all VOICES
+    RackUI<VOICES>* fRackUI;    // One single version for all VOICES
     mydsp fDSP[VOICES];
     int fControlCounter;
     
     mydspModule()
     {
         // Count items of button, nentry, bargraph categories
-        RackUI::ManagerUI params;
+        ManagerUI params;
         fDSP[0].buildUserInterface(&params);
         
         // Controllers are connected to all VOICES
-        fRackUI = new RackUI(params);
+        fRackUI = new RackUI<VOICES>(params);
         for (int v = 0; v < VOICES; v++) {
+            fRackUI->fCurVoice = v;
             fDSP[v].buildUserInterface(fRackUI);
             fRackUI->reset();
         }
         
         uint buttons = params.fButtons.size();
         uint entries = params.fRanges.size();
+        uint inputCV = params.fInputCV.size();
+        uint outputCV = params.fOutputCV.size();
         
         // Config: by default we allocate complete set of parameters, even if all off them are not 'connected' using metadata
-        config(buttons + entries, fDSP[0].getNumInputs(), fDSP[0].getNumOutputs(), params.fOutputs.size());
+        config(buttons + entries, fDSP[0].getNumInputs() + inputCV, fDSP[0].getNumOutputs() + outputCV, params.fBargraph.size());
         
         // Setup buttons
         for (uint pa = 0; pa < buttons; pa++) {
@@ -445,17 +608,29 @@ struct mydspModule : Module {
                 fDSP[v].control(fDSP[v].iZone, fDSP[v].fZone);
             }
             // Controller update
-            fRackUI->updateInputs(params);
+            fRackUI->updateInputs(this);
         }
         
-        // Setup polyphony for inputs
-        for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
+        // Setup polyphony for CV inputs
+        uint inputsCV = fRackUI->fParams.fInputCV.size();
+        for (uint chan = 0; chan < inputsCV; chan++) {
             inputs[chan].setChannels(VOICES);
         }
         
-        // Setup polyphony for outputs
-        for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
+        // Setup polyphony for audio inputs (shifted by inputsCV in 'inputs' struct)
+        for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
+            inputs[chan + inputsCV].setChannels(VOICES);
+        }
+        
+        // Setup polyphony for CV outputs
+        uint outputsCV = fRackUI->fParams.fOutputCV.size();
+        for (uint chan = 0; chan < outputsCV; chan++) {
             outputs[chan].setChannels(VOICES);
+        }
+        
+        // Setup polyphony for audio outputs (shifted by outputsCV in 'outputs' struct)
+        for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
+            outputs[chan + outputsCV].setChannels(VOICES);
         }
         
         FAUSTFLOAT* inputs_aux = static_cast<FAUSTFLOAT*>(alloca(fDSP[0].getNumInputs() * sizeof(FAUSTFLOAT)));
@@ -466,7 +641,7 @@ struct mydspModule : Module {
             
             // Copy inputs
             for (int chan = 0; chan < fDSP[0].getNumInputs(); chan++) {
-                inputs_aux[chan] = (VOICES == 1) ? inputs[chan].getVoltageSum() : inputs[chan].getVoltage(v);
+                inputs_aux[chan] = ((VOICES == 1) ? inputs[chan + inputsCV].getVoltageSum() : inputs[chan + inputsCV].getVoltage(v))/5.0f;
             }
             
             // One sample compute
@@ -474,13 +649,13 @@ struct mydspModule : Module {
             
             // Copy outputs
             for (int chan = 0; chan < fDSP[0].getNumOutputs(); chan++) {
-                outputs[chan].setVoltage(outputs_aux[chan], v);
+                outputs[chan + outputsCV].setVoltage(outputs_aux[chan]*5.0f, v);
             }
         }
         
         // Update output controllers at CONTROL_RATE_HZ
         if (fControlCounter == 0) {
-            fRackUI->updateOutputs(params);
+            fRackUI->updateOutputs(this);
             fControlCounter = args.sampleRate/CONTROL_RATE_HZ;
         }
     }
@@ -498,7 +673,7 @@ struct mydspModuleWidget : ModuleWidget {
         //box.size.x = RACK_GRID_WIDTH * 30;
        
         // General title
-        addLabel(mm2px(Vec(10, 10.0)), "Faust");
+        addLabel(mm2px(Vec(6, 05.0)), "Faust");
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -509,34 +684,48 @@ struct mydspModuleWidget : ModuleWidget {
         if (module) {
         
             // Add params
-            addLabel(mm2px(Vec(10, 20.0)), "Params");
+            addLabel(mm2px(Vec(6, 18.0)), "Params");
             
             // Add buttons
             uint buttons = module->fRackUI->fParams.fButtons.size();
             for (uint pa = 0; pa < buttons; pa++) {
-                if (module->fRackUI->fParams.fButtons[pa].fType == RackUI::ManagerUI::UIType::kButton) {
-                    addParam(createParamCentered<BefacoPush>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
+                if (module->fRackUI->fParams.fButtons[pa].fType == ManagerUI::UIType::kButton) {
+                    addParam(createParamCentered<BefacoPush>(mm2px(Vec(8.0 + pa * 15, 30.0)), module, pa));
                 } else {
-                    addParam(createParamCentered<CKSS>(mm2px(Vec(8.0 + pa * 15, 35.0)), module, pa));
+                    addParam(createParamCentered<CKSS>(mm2px(Vec(8.0 + pa * 15, 30.0)), module, pa));
                 }
             }
             
             // Add ranges
             uint nentries = module->fRackUI->fParams.fRanges.size();
             for (uint pa = 0; pa < nentries; pa++) {
-                 addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 50.0)), module, pa + buttons));
+                 addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 45.0)), module, pa + buttons));
             }
             
-            // Add inputs
-            addLabel(mm2px(Vec(10, 60.0)), "Inputs");
+            // Add CV inputs
+            addLabel(mm2px(Vec(6, 55.0)), "Inputs CV");
+            uint inputsCV = module->fRackUI->fParams.fInputCV.size();
+            for (uint chan = 0; chan < inputsCV; chan++) {
+                addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 66.0)), module, chan));
+            }
+            
+            // Add audio inputs (shifted by inputsCV in 'inputs' struct)
+            addLabel(mm2px(Vec(6, 72.0)), "Inputs");
             for (int chan = 0; chan < module->fDSP[0].getNumInputs(); chan++) {
-                addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 75.0)), module, chan));
+                addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 83.0)), module, inputsCV + chan));
             }
             
-            // Add outputs
-            addLabel(mm2px(Vec(10, 85.0)), "Outputs");
-            for (int chan = 0; chan < module->fDSP[0].getNumOutputs(); chan++) {
+            // Add CV outputs
+            addLabel(mm2px(Vec(6, 89.0)), "Outputs CV");
+            uint outputsCV = module->fRackUI->fParams.fOutputCV.size();
+            for (uint chan = 0; chan < outputsCV; chan++) {
                 addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
+            }
+            
+            // Add outputs (shifted by outputsCV in 'outputs' struct)
+            addLabel(mm2px(Vec(6, 106.0)), "Outputs");
+            for (int chan = 0; chan < module->fDSP[0].getNumOutputs(); chan++) {
+                addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 117.0)), module, outputsCV + chan));
             }
         }
     }

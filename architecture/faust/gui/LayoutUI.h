@@ -132,6 +132,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         virtual std::ostream& print(std::ostream& file) override { return file; }
         
+        
     };
     
     struct HGroup : Group {
@@ -203,7 +204,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         Button():UIItem(kButtonWidth, kButtonHeight) {}
         
-        virtual std::ostream& print(std::ostream& file) override
+        std::ostream& print(std::ostream& file) override
         {
             file << "----------Button----------" << std::endl;
             file <<"fWidth = " << fWidth << " fHeight = " << fHeight << std::endl;
@@ -233,7 +234,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         HSlider():UIItem(kVSliderWidth, kVSliderHeight) {}
         
-        virtual std::ostream& print(std::ostream& file) override
+        std::ostream& print(std::ostream& file) override
         {
             file << "----------HSlider----------" << std::endl;
             file <<"fWidth = " << fWidth << " fHeight = " << fHeight << std::endl;
@@ -248,7 +249,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         VSlider():UIItem(kHSliderWidth, kHSliderHeight) {}
         
-        virtual std::ostream& print(std::ostream& file) override
+        std::ostream& print(std::ostream& file) override
         {
             file << "----------VSlider----------" << std::endl;
             file <<"fWidth = " << fWidth << " fHeight = " << fHeight << std::endl;
@@ -399,6 +400,12 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
 };
 
+// Generic print
+template <typename T>
+inline std::ostream& operator<<(std::ostream& file, std::shared_ptr<T> item)
+{
+    return item->print(file);
+}
 
 #endif // FAUST_LAYOUTUI_H
 /**************************  END  LayoutUI.h **************************/

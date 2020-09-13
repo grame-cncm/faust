@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     
     for (auto& it : layoutUI.fPathItemMap) {
         cout << it.first << endl;
-        it.second->print(cout);
+        cout << it.second << endl;
     }
     
     cout << "Width " << layoutUI.fCurrentGroup->getWidth() << endl;
