@@ -303,14 +303,14 @@ struct MemoryReader : public Reader {
     
 };
 
-
 // Using a FileReader to implement SoundfileReader
 
 struct WaveReader : public SoundfileReader {
     
     WaveReader() {}
+    virtual ~WaveReader() {}
     
-    bool checkFile(const std::string& path_name)
+    virtual bool checkFile(const std::string& path_name)
     {
         try {
             FileReader reader(path_name);
@@ -320,14 +320,14 @@ struct WaveReader : public SoundfileReader {
         }
     }
     
-    void getParamsFile(const std::string& path_name, int& channels, int& length)
+    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
         FileReader reader(path_name);
         channels = reader.fWave->num_channels;
         length = (reader.fWave->subchunk_2_size * 8) / (reader.fWave->num_channels * reader.fWave->bits_per_sample);
     }
     
-    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         FileReader reader(path_name);
         reader.load_wave();

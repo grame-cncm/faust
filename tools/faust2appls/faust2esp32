@@ -31,6 +31,7 @@ POLY=""
 MIDIDEFS=""
 #OSCDEFS=""
 DRIVER=""
+SOUNDFILE="0"
 #OPTIONS=""
 
 echoHelp ()
@@ -43,7 +44,7 @@ echoHelp ()
     option -gramophone "generates for GRAME Gramophone"
     option -multi "generate for GRAME Gramophone in multi DSP mode"
     option -lib "generates a package containing an object compatible with any ESP32 project"
-    option -midi
+    options -midi -soundfile
     option -main "add a 'main' entry point"
     option "-nvoices <num>"
     option "-wm8978, -es8338 or -ac101" "to choose codec driver"
@@ -83,6 +84,9 @@ do
     # -lib 
     elif [ $p = "-lib" ]; then
     	LIB=1
+    # -soundfile 
+    elif [ $p = "-soundfile" ]; then
+    	SOUNDFILE=1
     # -wm8978 (ttgo t-audio)
     elif [ $p = "-wm8978" ] || [ $p = "-WM8978" ]; then
     	DRIVER="wm8978"
@@ -180,6 +184,10 @@ if [ $LIB -eq 1 ]; then
 
     if [ $MAIN -eq 1 ]; then
         echo '#define HAS_MAIN' >> "$MODULENAME/tmp.txt"
+    fi
+    
+    if [ $SOUNDFILE -eq 1 ]; then
+        echo '#define SOUNDFILE' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$MIDIDEFS" == *MIDI* ]]; then

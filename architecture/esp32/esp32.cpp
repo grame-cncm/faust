@@ -33,8 +33,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include "esp32.h"
-
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
@@ -51,9 +49,16 @@
 #include "faust/dsp/poly-dsp.h"
 #endif
 
+#if SOUNDFILE
+#define ESP32
+#include "faust/gui/SoundUI.h"
+#endif
+
 #ifdef HAS_MAIN
 #include "WM8978.h"
 #endif
+
+#include "esp32.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -96,6 +101,11 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
     
+#ifdef SOUNDFILE
+    fSoundUI = new SoundUI("/sdcard/", sample_rate);
+    DSP->buildUserInterface(fSoundUI);
+#endif
+    
 #ifdef MIDICTRL
     fMIDIHandler = new esp32_midi();
 #ifdef NVOICES
@@ -114,6 +124,9 @@ AudioFaust::~AudioFaust()
 #ifdef MIDICTRL
     delete fMIDIInterface;
     delete fMIDIHandler;
+#endif
+#ifdef SOUNDFILE
+    delete fSoundUI;
 #endif
 }
 
