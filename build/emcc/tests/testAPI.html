@@ -24,8 +24,19 @@ var div = document.getElementById("log");
 function log (str) 			{ div.innerHTML += str + '\n'; }
 function svg (str, name) 	{ log (str); }
 
+var noise = 'random  = +(12345)~*(1103515245); \
+noise   = random/2147483647.0; \
+process = noise * vslider("Volume[style:knob][acc: 0 0 -10 0 10]", 0.5, 0, 1, 0.1);';
+
+var osc = 'import("stdfaust.lib"); \
+vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; \
+freq = hslider("freq [unit:Hz]", 1000, 20, 24000, 1); \
+process = vgroup("Oscillator", os.osc(freq) * vol);';
+
+var dspcode = osc;
+
 function doit (faust) {
-	run (faust, log, "process = +;");
+	run (faust, log, dspcode);
 }
 
 FaustModule().then( (instance) => { doit (new instance.libFaustWasm()); });
