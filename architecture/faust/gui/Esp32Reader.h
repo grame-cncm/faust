@@ -26,22 +26,21 @@
 #define FAUST_ESP32READER_H
 
 #include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "esp_vfs_fat.h"
-#include "driver/i2c.h"
-#include "driver/i2s.h"
-#include "driver/ledc.h"
 #include "driver/sdspi_host.h"
 #include "sdmmc_cmd.h"
 
 #include "faust/gui/WaveReader.h"
+
+#define TAG "Esp32Reader"
+
+#define SD_PIN_NUM_MISO GPIO_NUM_2
+#define SD_PIN_NUM_MOSI GPIO_NUM_15
+#define SD_PIN_NUM_CLK  GPIO_NUM_14
+#define SD_PIN_NUM_CS   GPIO_NUM_13
 
 struct Esp32Reader : public WaveReader {
     
@@ -97,7 +96,7 @@ struct Esp32Reader : public WaveReader {
     }
    
     // Access methods inherited from WaveReader
-}
+};
 
 #endif // FAUST_ESP32READER_H
 /**************************  END  Esp32Reader.h **************************/
