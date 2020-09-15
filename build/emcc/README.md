@@ -3,7 +3,7 @@
 ## Building
 
 For convenience, a Makefile is present in this folder. 
-You should use it to be able to perform the tests located in the `tests`folder.
+You should use it to be able to perform the tests located in the `tests` folder.
 Available targets are:
 
 - **all** (default): build the faust wasm library and copy the result to the `npm/dist` folder. Creates also a sym link for data in the `tests` folder.

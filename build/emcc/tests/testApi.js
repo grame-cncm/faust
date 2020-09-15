@@ -19,8 +19,8 @@ function factory (faust, log, code )
 	log ("  expandDSP             " + exp.dsp + " sha: " + exp.shakey + " " + exp.error);
 
 	try {
-	let aux = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
-	log ("  generateAuxFiles      " + aux.success + " " + aux.error);
+		let aux = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
+		log ("  generateAuxFiles      " + aux.success + " " + aux.error);
 	}
 	catch {
 		log ("=> exception raised while running generateAuxFiles: " + faust.getErrorAfterException() );
@@ -28,8 +28,8 @@ function factory (faust, log, code )
 	}
 
 	try {
-	faust.deleteAllDSPFactories();
-	log ("  deleteAllDSPFactories done"); 
+		faust.deleteAllDSPFactories();
+		log ("  deleteAllDSPFactories done"); 
 	}
 	catch {
 		log ("=> exception raised while running deleteAllDSPFactories: " + faust.getErrorAfterException() );
