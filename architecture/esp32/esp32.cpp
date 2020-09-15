@@ -33,10 +33,17 @@
  ************************************************************************
  ************************************************************************/
 
+#include "esp32.h"
+
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
 #include "faust/audio/esp32-dsp.h"
+
+#ifdef SOUNDFILE
+#define ESP32
+#include "faust/gui/SoundUI.h"
+#endif
 
 // MIDI support
 #ifdef MIDICTRL
@@ -49,16 +56,9 @@
 #include "faust/dsp/poly-dsp.h"
 #endif
 
-#if SOUNDFILE
-#define ESP32
-#include "faust/gui/SoundUI.h"
-#endif
-
 #ifdef HAS_MAIN
 #include "WM8978.h"
 #endif
-
-#include "esp32.h"
 
 /******************************************************************************
  *******************************************************************************
