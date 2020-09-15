@@ -3,7 +3,7 @@ echo off
 IF [%1]==[]     GOTO USAGE
 IF NOT EXIST %1 GOTO USAGE
 
-SET (VERSION=2.28.0)
+SET VERSION=2.27.2
 SET BUILD=%1
 SET FAUSTGENVERSION=1.45
 SET FAUSTLIVE=../../faustlive
@@ -11,11 +11,10 @@ SET FAUSTLIVE=../../faustlive
 echo "Building Faust version %VERSION%"
 echo "Building Faustgen version %FAUSTGENVERSION%"
 echo "Using build folder %BUILD%"
+echo "Make sure that faust submodules are up-to-date"
 set CONT="no"
 set /p CONT=Type Y to continue... 
 if /i NOT %CONT%==Y exit
-
-GOTO FAUSTGEN
 
 echo "###################### Building Faust package ######################"
 cd %BUILD%
