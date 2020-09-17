@@ -1,5 +1,5 @@
 
-///<reference path="faustcompiler.ts"/>
+///<reference path="FaustCompiler.ts"/>
 
 
 interface FaustAudioNode extends AudioNode {
