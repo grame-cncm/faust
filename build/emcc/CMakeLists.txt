@@ -18,7 +18,7 @@ set (WASMGLUE ${ROOT}/build/wasmglue)
 ####################################
 # emscripten support
 
-file (GLOB BINDINGS *.cpp)
+file (GLOB BINDINGS ${ROOT}/compiler/generator/wasm/bindings/*.cpp)
 set (SRC ${SRC} ${BINDINGS})
 
 set (WASM_EXTRA_EXPORTED "\"['cwrap', 'UTF8ToString', 'stringToUTF8', 'FS']\"")
