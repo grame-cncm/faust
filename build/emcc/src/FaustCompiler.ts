@@ -23,10 +23,10 @@
 ///<reference path="FaustCompiler.d.ts"/>
 
 
-class FaustModuleAPIImpl implements FaustModuleAPI {
-	private readonly fExports: FaustModuleAPI;
+class FaustInstanceAPIImpl implements FaustInstanceAPI {
+	private readonly fExports: FaustInstanceAPI;
 
-	constructor (exports: FaustModuleAPI) { this.fExports = exports; }
+	constructor (exports: FaustInstanceAPI) { this.fExports = exports; }
 
 	compute(count: number, input: number, output: number) { this.fExports.compute(count, input, output); }
 	getNumInputs()                  { return this.fExports.getNumInputs(); }
@@ -34,10 +34,10 @@ class FaustModuleAPIImpl implements FaustModuleAPI {
 	getParamValue(index: number)   	{ return this.fExports.getParamValue(index); }
 	getSampleRate()   				{ return this.fExports.getSampleRate(); }
 	init(sampleRate: number)		{ this.fExports.init (sampleRate); }
-	instanceClear() 				{ this.instanceClear(); }
-	instanceConstants(sampleRate: number)	{ this.fExports.instanceConstants (sampleRate); }
-	instanceInit (sampleRate: number) 		{ this.fExports.instanceInit (sampleRate); }
-	instanceResetUserInterface()			{ this.fExports.instanceResetUserInterface (); }
+	instanceClear() { this.fExports.instanceClear(); }
+	instanceConstants(sampleRate: number) { this.fExports.instanceConstants(sampleRate); }
+	instanceInit (sampleRate: number) { this.fExports.instanceInit (sampleRate); }
+	instanceResetUserInterface()	{ this.fExports.instanceResetUserInterface (); }
 	setParamValue (index: number, value: number) { this.fExports.setParamValue (index, value); }
 }
 
@@ -79,20 +79,21 @@ class FaustCompiler {
 		//     table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
 		}
 	});
-	
 
-	constructor(engine: LibFaust) { this.fFaustEngine = engine; }
+
+	constructor(engine: LibFaust) {
+		this.fFaustEngine = engine;
+	}
 
 	version() : string 		{ return this.fFaustEngine.version(); }
 
-	//-----------------------------------------------------------------------------------
-	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
+	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustFactory> {
 		return new Promise((resolve, reject) => {
 		try {
 			let fact = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
 			if (!fact.error) {
 				let wasm = this.fFaustEngine.getWasmModule (fact.module);
-				WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => { 
+				WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => {
 					this.fFaustEngine.freeWasmModule (fact.module);
 					resolve( { module: module, poly: poly} );
 				});
@@ -114,26 +115,23 @@ class FaustCompiler {
 	// createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
 	// 	let fact = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
 	// 	let wasm = this.fFaustEngine.getWasmModule (fact.module);
-	// 	return WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => { 
+	// 	return WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => {
 	// 		this.fFaustEngine.freeWasmModule (fact.module);
 	// 		return { module: module, poly: poly};
 	// 	}
 	// 	);
 	// }
 
-	//-----------------------------------------------------------------------------------
-	createDSPInstance(module: FaustModule) : Promise<FaustInstance> {
-		return WebAssembly.instantiate ( module.module, this.createWasmImport() ).then ( instance => { 
+	createDSPInstance(module: FaustFactory) : Promise<FaustInstance> {
+		return WebAssembly.instantiate ( module.module, this.createWasmImport() ).then ( instance => {
 			let tmp: any = instance.exports;
-			let moduleapi = new FaustModuleAPIImpl(<FaustModuleAPI>tmp);
-			return { instance: instance, api: moduleapi }
+			let api = new FaustInstanceAPIImpl(<FaustInstanceAPI>tmp);
+			return { instance: instance, api: api }
 		});
 	}
 
-	//-----------------------------------------------------------------------------------
-	expandDSP (name: string, dsp: string, args: string)       { return this.fFaustEngine.expandDSP(name, dsp, args); }
-	generateAuxFiles(name: string, dsp: string, args: string) { return this.fFaustEngine.generateAuxFiles(name, dsp, args); }
+	expandDSP (name_app: string, dsp_content: string, args: string)       { return this.fFaustEngine.expandDSP(name_app, dsp_content, args); }
+	generateAuxFiles(name_app: string, dsp_content: string, args: string) { return this.fFaustEngine.generateAuxFiles(name_app, dsp_content, args); }
 
 //	deleteAllDSPFactories(): void;
 }
-

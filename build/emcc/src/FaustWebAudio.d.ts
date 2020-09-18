@@ -23,10 +23,8 @@ interface OutputParamHandler 	{ (path: string, value: number) : void }
 interface MetadataHandler 		{ (key: string, value: number) : void }
 
 interface FaustAudioNode {  // extends AudioNode { : pose problème, il manque des fonctions à implémenter pour AudioNode
-	// handler is actually a function of type function(path, value), how to we represent that?
-	setOutputParamHandler (handler: OutputParamHandler) : void; 
+	setOutputParamHandler (handler: OutputParamHandler) : void;
 	getOutputParamHandler () : OutputParamHandler;
-	 // handler is actually a function of type function(key, value), how to we represent that?
 	metadata(handler: MetadataHandler) : void;
 	ctrlChange(chan: number, ctrl: number, value: number) : void;
 	pitchWheel(chan: number, value: number) : void;
@@ -47,6 +45,6 @@ interface FaustWebAudioNode {
 	compileMonoNode(faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean) 					: Promise<FaustAudioNode>;
 	compilePolyNode(faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean)	: Promise<FaustAudioPolyNode>;
 
-	getMonoNode(module: FaustModule, scriptprocessor: boolean) 					: Promise<FaustAudioNode>;
-	getPolyNode(module: FaustModule, voices: number, scriptprocessor: boolean) 	: Promise<FaustAudioPolyNode>;
+	createMonoNode(module: FaustFactory, scriptprocessor: boolean) 					: Promise<FaustAudioNode>;
+	createPolyNode(module: FaustFactory, voices: number, scriptprocessor: boolean) 	: Promise<FaustAudioPolyNode>;
 }

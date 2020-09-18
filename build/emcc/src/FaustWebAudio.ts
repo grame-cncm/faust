@@ -29,11 +29,14 @@ class FaustAudioNodeImpl implements FaustAudioNode {
 	setOutputParamHandler(handler: OutputParamHandler) {}
 	getOutputParamHandler() { return function (path: string, value: number) {} }
 
-	metadata(handler: MetadataHandler) { return function(path: string, value: number) {}  }
+	metadata(handler: MetadataHandler) { return function(path: string, value: number) {} }
+
 	ctrlChange(chan: number, ctrl: number, value: number) {}
 	pitchWheel(chan: number, value: number) {}
+
 	setParamValue(path: string, value: number) {}
 	getParamValue(path: string) { return 0; }
+
 	getJSON() { return ""; }
 	destroy() {} // to do: check is this function is still really needed
 }
@@ -47,27 +50,27 @@ class FaustAudioPolyNodeImpl extends FaustAudioNodeImpl implements FaustAudioPol
 
 
 class FaustWebAudioNode {
-	private getFaustModule (faust: LibFaust, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
+	private createDSPFactory(faust: LibFaust, dsp_content: string, args: string, poly: boolean) : Promise<FaustFactory> {
 		let compiler = new FaustCompiler(faust);
-		return compiler.createDSPFactory ( "faustdsp", dsp_content, args, poly); 
+		return compiler.createDSPFactory("faustdsp", dsp_content, args, poly);
 	}
 
 	compileMonoNode(faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean) : Promise<FaustAudioNode> {
-		return this.getFaustModule(faust, dsp_content, args, false).then (module => {
-			return this.getMonoNode ( module, scriptprocessor );
+		return this.createDSPFactory(faust, dsp_content, args, false).then (module => {
+			return this.createMonoNode(module, scriptprocessor);
 		});
 	}
 
 	compilePolyNode(faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean) : Promise<FaustAudioPolyNode> {
-		return this.getFaustModule(faust, dsp_content, args, true).then (module => {
-			return this.getPolyNode ( module, voices, scriptprocessor );
+		return this.createDSPFactory(faust, dsp_content, args, true).then (module => {
+			return this.createPolyNode(module, voices, scriptprocessor);
 		});
 	}
 
-	getMonoNode(module: FaustModule, scriptprocessor: boolean) 					: Promise<FaustAudioNode> {
+	createMonoNode(module: FaustFactory, scriptprocessor: boolean) : Promise<FaustAudioNode> {
 		return null;
 	}
-	getPolyNode(module: FaustModule, voices: number, scriptprocessor: boolean) 	: Promise<FaustAudioPolyNode> {
+	createPolyNode(module: FaustFactory, voices: number, scriptprocessor: boolean) : Promise<FaustAudioPolyNode> {
 		return null;
 	}
 }

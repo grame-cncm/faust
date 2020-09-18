@@ -20,7 +20,7 @@
  ************************************************************************/
 
 
-interface FaustModuleAPI {
+interface FaustInstanceAPI {
 	compute (count: number, inputs: number, output: number) : void;
 	getNumInputs() : number;
 	getNumOutputs() : number;
@@ -36,10 +36,10 @@ interface FaustModuleAPI {
 
 interface FaustInstance {
  	instance  : WebAssembly.Instance;
- 	api       : FaustModuleAPI;
+ 	api       : FaustInstanceAPI;
 }
 
-interface FaustModule {
+interface FaustFactory {
 	module  : WebAssembly.Module;
 	poly    : boolean;
 }
@@ -50,8 +50,8 @@ interface FaustCompiler {
 
 	version() : string;
 
-	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule>;
-	createDSPInstance(module: FaustModule) : Promise<FaustInstance>;
+	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustFactory>;
+	createDSPInstance(module: FaustFactory) : Promise<FaustInstance>;
 
 	expandDSP(name_app: string, dsp_content: string, args: string) : Expand
 	generateAuxFiles(name_app: string, dsp_content: string, args: string) : Aux;
