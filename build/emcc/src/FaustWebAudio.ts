@@ -12,9 +12,9 @@ interface FaustAudioPolyNode extends FaustAudioNode {
 }
 
 interface FaustWebAudioNode {
-	compileMonoNode (compiler: FaustCompiler, dsp_content: string, args: string, scriptprocessor: boolean) : FaustAudioNode;
-	compilePolyNode (compiler: FaustCompiler, dsp_content: string, args: string, voices: number, scriptprocessor: boolean) : FaustAudioPolyNode;
+	compileMonoNode(compiler: FaustCompiler, dsp_content: string, args: string, scriptprocessor: boolean) : FaustAudioNode;
+	compilePolyNode(compiler: FaustCompiler, dsp_content: string, args: string, voices: number, scriptprocessor: boolean) : FaustAudioPolyNode;
 
-	getMonoNode (module: WasmModule, scriptprocessor: boolean) : FaustAudioNode;
-	getPolyNode (module: WasmModule, voices: number, scriptprocessor: boolean) : FaustAudioPolyNode;
+	getMonoNode(module: WasmModule, scriptprocessor: boolean) : FaustAudioNode;
+	getPolyNode(module: WasmModule, voices: number, scriptprocessor: boolean) : FaustAudioPolyNode;
 }
