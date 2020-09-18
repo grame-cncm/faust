@@ -1,29 +1,73 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+///<reference path="libfaust.d.ts"/>
 ///<reference path="FaustCompiler.ts"/>
+///<reference path="FaustWebAudio.d.ts"/>
 
-interface FaustAudioNode extends AudioNode {
-	setOutputParamHandler(handler: any) : void; // handler is actually a function of type function(path, value), how to we represent that?
-	getOutputParamHandler() : any;
-	metadata(handler: any) : void; // handler is actually a function of type function(key, value), how to we represent that?
-	ctrlChange(chan: number, ctrl: number, value: number) : void;
-	pitchWheel(chan: number, value: number) : void;
-	setParamValue(path: string, value: number) : void;
-	getParamValue(path: string) : number;
-	//getParams() : any;   // returns an array of paths
-	getJSON() : string;
-	destroy() : void; // to check is this function is still really needed
+
+class FaustAudioNodeImpl implements FaustAudioNode {
+
+	setOutputParamHandler(handler: OutputParamHandler) {}
+	getOutputParamHandler() { return function (path: string, value: number) {} }
+
+	metadata(handler: MetadataHandler) { return function(path: string, value: number) {}  }
+	ctrlChange(chan: number, ctrl: number, value: number) {}
+	pitchWheel(chan: number, value: number) {}
+	setParamValue(path: string, value: number) {}
+	getParamValue(path: string) { return 0; }
+	getJSON() { return ""; }
+	destroy() {} // to do: check is this function is still really needed
 }
 
-interface FaustAudioPolyNode extends FaustAudioNode {
-	keyOn(key: number, vel: number) : void;
-	keyOff(key: number, vel: number) : void;
-	allNotesOff() : void;
+
+class FaustAudioPolyNodeImpl extends FaustAudioNodeImpl implements FaustAudioPolyNode {
+	keyOn(key: number, vel: number) 	{}
+	keyOff(key: number, vel: number) 	{}
+	allNotesOff() 						{}
 }
 
-interface FaustWebAudioNode {
-	compileMonoNode(compiler: FaustCompiler, dsp_content: string, args: string, scriptprocessor: boolean) : FaustAudioNode;
-	compilePolyNode(compiler: FaustCompiler, dsp_content: string, args: string, voices: number, scriptprocessor: boolean) : FaustAudioPolyNode;
 
-	getMonoNode(module: WasmModule, scriptprocessor: boolean) : FaustAudioNode;
-	getPolyNode(module: WasmModule, voices: number, scriptprocessor: boolean) : FaustAudioPolyNode;
+class FaustWebAudioNode {
+	private getFaustModule (faust: LibFaust, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
+		let compiler = new FaustCompiler(faust);
+		return compiler.createDSPFactory ( "faustdsp", dsp_content, args, poly); 
+	}
+
+	compileMonoNode(faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean) : Promise<FaustAudioNode> {
+		return this.getFaustModule(faust, dsp_content, args, false).then (module => {
+			return this.getMonoNode ( module, scriptprocessor );
+		});
+	}
+
+	compilePolyNode(faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean) : Promise<FaustAudioPolyNode> {
+		return this.getFaustModule(faust, dsp_content, args, true).then (module => {
+			return this.getPolyNode ( module, voices, scriptprocessor );
+		});
+	}
+
+	getMonoNode(module: FaustModule, scriptprocessor: boolean) 					: Promise<FaustAudioNode> {
+		return null;
+	}
+	getPolyNode(module: FaustModule, voices: number, scriptprocessor: boolean) 	: Promise<FaustAudioPolyNode> {
+		return null;
+	}
 }
