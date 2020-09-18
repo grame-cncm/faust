@@ -1,3 +1,23 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
 
 ///<reference path="libfaust.d.ts"/>
 ///<reference path="FaustCompiler.d.ts"/>
@@ -14,10 +34,10 @@ class FaustModuleAPIImpl implements FaustModuleAPI {
 	getParamValue(index: number)   	{ return this.fExports.getParamValue(index); }
 	getSampleRate()   				{ return this.fExports.getSampleRate(); }
 	init(sampleRate: number)		{ this.fExports.init (sampleRate); }
-	// instanceClear
-	// instanceConstants
-	instanceInit (sampleRate: number) { this.fExports.instanceInit (sampleRate); }
-	instanceResetUserInterface()	{ this.fExports.instanceResetUserInterface (); }
+	instanceClear() 				{ this.instanceClear(); }
+	instanceConstants(sampleRate: number)	{ this.fExports.instanceConstants (sampleRate); }
+	instanceInit (sampleRate: number) 		{ this.fExports.instanceInit (sampleRate); }
+	instanceResetUserInterface()			{ this.fExports.instanceResetUserInterface (); }
 	setParamValue (index: number, value: number) { this.fExports.setParamValue (index, value); }
 }
 
@@ -61,12 +81,11 @@ class FaustCompiler {
 	});
 	
 
-	constructor(engine: LibFaust) {
-		this.fFaustEngine = engine;
-	}
+	constructor(engine: LibFaust) { this.fFaustEngine = engine; }
 
 	version() : string 		{ return this.fFaustEngine.version(); }
 
+	//-----------------------------------------------------------------------------------
 	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
 		return new Promise((resolve, reject) => {
 		try {
@@ -102,6 +121,7 @@ class FaustCompiler {
 	// 	);
 	// }
 
+	//-----------------------------------------------------------------------------------
 	createDSPInstance(module: FaustModule) : Promise<FaustInstance> {
 		return WebAssembly.instantiate ( module.module, this.createWasmImport() ).then ( instance => { 
 			let tmp: any = instance.exports;
@@ -110,6 +130,7 @@ class FaustCompiler {
 		});
 	}
 
+	//-----------------------------------------------------------------------------------
 	expandDSP (name: string, dsp: string, args: string)       { return this.fFaustEngine.expandDSP(name, dsp, args); }
 	generateAuxFiles(name: string, dsp: string, args: string) { return this.fFaustEngine.generateAuxFiles(name, dsp, args); }
 
