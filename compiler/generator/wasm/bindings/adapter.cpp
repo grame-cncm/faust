@@ -11,12 +11,11 @@
 */
 
 #include <vector>
-
 #include "adapter.h"
 
 using namespace std;
 
-static void string2StringsVector (const string& args, vector<string>& strings)
+static void string2StringsVector(const string& args, vector<string>& strings)
 {
 	string str = args;
 	while (true) {
@@ -28,20 +27,20 @@ static void string2StringsVector (const string& args, vector<string>& strings)
 	if (str.size()) strings.push_back(str);
 }
 
-static const char** stringVector2argv (const vector<string>& v)
+static const char** stringVector2argv(const vector<string>& v)
 {
-	const char **argv = 0;
+	const char** argv = 0;
 	size_t n = v.size();
 	if (n) {
 		argv = new const char*[n];
-		for (size_t i=0; i < v.size(); i++)
+        for (size_t i = 0; i < v.size(); i++) {
 			argv[i] = v[i].c_str();
+        }
 	}
 	return argv;
 }
 
-
-FactoryOut libFaustWasm::createDSPFactory (const string name, const string dsp, const string args, bool internal_memory)
+FactoryOut libFaustWasm::createDSPFactory(const string name, const string dsp, const string args, bool internal_memory)
 {
 	vector<string> argsv;
 	string2StringsVector (args, argsv);
@@ -49,20 +48,20 @@ FactoryOut libFaustWasm::createDSPFactory (const string name, const string dsp, 
 	cerr << "libFaustWasm::createDSPFactory " << name << " " << args;
 	
 	FactoryOut out;
+    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
 	char errmsg[4096]; errmsg[0] = 0;
 	if (n) {
 		const char** args = stringVector2argv (argsv);
 		out.module = int(::createWasmCDSPFactoryFromString (name.c_str(), dsp.c_str(), n, args, errmsg, internal_memory));
 		delete [] args;
-	}
-	else
+    } else {
 		out.module = int(::createWasmCDSPFactoryFromString (name.c_str(), dsp.c_str(), 0, 0, errmsg, internal_memory));
+    }
 	
-	out.error = errmsg;
 	return out;
 }
 
-ExpandOut libFaustWasm::expandDSP (const string name, const string dsp, const string args)
+ExpandOut libFaustWasm::expandDSP(const string name, const string dsp, const string args)
 {
 	vector<string> argsv;
 	string2StringsVector (args, argsv);
@@ -70,17 +69,17 @@ ExpandOut libFaustWasm::expandDSP (const string name, const string dsp, const st
 	cerr << "libFaustWasm::expandDSP " << name << " " ;
 	
 	ExpandOut out;
+    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
 	char errmsg[4096]; errmsg[0] = 0;
 	char sha[4096];
 	if (n) {
 		const char** args = stringVector2argv (argsv);
-		out.dsp = ::expandCDSPFromString (name.c_str(), dsp.c_str(), n, args, sha, errmsg);
+		out.dsp = ::expandCDSPFromString(name.c_str(), dsp.c_str(), n, args, sha, errmsg);
 		delete [] args;
-	}
-	else
-		out.dsp = ::expandCDSPFromString (name.c_str(), dsp.c_str(), 0, 0, sha, errmsg);
+    } else {
+		out.dsp = ::expandCDSPFromString(name.c_str(), dsp.c_str(), 0, 0, sha, errmsg);
+    }
 	out.shakey = sha;
-	out.error = errmsg;
 	return out;
 }
 
@@ -92,31 +91,28 @@ AuxOut libFaustWasm::generateAuxFiles(const string name, const string dsp, const
 	cerr << "libFaustWasm::generateAuxFiles " << name << " " ;
 
 	AuxOut out;
+    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
 	char errmsg[4096]; errmsg[0] = 0;
 	if (n) {
-		const char** args = stringVector2argv (argsv);
-		out.success = ::generateCAuxFilesFromString (name.c_str(), dsp.c_str(), n, stringVector2argv (argsv), errmsg);
+		const char** args = stringVector2argv(argsv);
+		out.success = ::generateCAuxFilesFromString(name.c_str(), dsp.c_str(), n, stringVector2argv (argsv), errmsg);
 		delete [] args;
-	}
-	else
-		out.success = ::generateCAuxFilesFromString (name.c_str(), dsp.c_str(), 0, 0, errmsg);
-	out.error = errmsg;
+    } else {
+		out.success = ::generateCAuxFilesFromString(name.c_str(), dsp.c_str(), 0, 0, errmsg);
+    }
 	return out;
 }
 
-FaustWasm libFaustWasm::getWasmModule (int mptr)
+FaustWasm libFaustWasm::getWasmModule(int mptr)
 {
 	FaustWasm out;
-//	out.module = out.size = 0;
 	WasmModule* module = static_cast<WasmModule*>((void*)mptr);
 	if (module) {
-		const char * ptr = getWasmCModule (module);
-		int size = getWasmCModuleSize (module);
-		for (int i=0; i<size; i++) {
-			out.data.push_back (*ptr++);
+		const char* ptr = getWasmCModule(module);
+		int size = getWasmCModuleSize(module);
+		for (int i = 0; i < size; i++) {
+			out.data.push_back(*ptr++);
 		}
-		out.helper = getWasmCHelpers (module);
-//		freeWasmCModule(module);
 	}
 	return out;
 }

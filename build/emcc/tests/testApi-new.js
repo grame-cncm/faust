@@ -7,22 +7,18 @@ var errCode = "foo";
 function misc (faust, log, code )
 {
 	let exp = faust.expandDSP("test", code, options);
-	log ("  expandDSP             " + exp.dsp + " sha: " + exp.shakey + " " + exp.error);
+	log ("  expandDSP             " + exp.dsp + " sha " + exp.shakey + " " + exp.error);
 
-	try {
-		let aux = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
-		log ("  generateAuxFiles      " + aux.success + " " + aux.error);
-	}
-	catch {
-		log ("=> exception raised while running generateAuxFiles: " + faust.getErrorAfterException() );
-		faust.cleanupAfterException();
-	}
+	let aux = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
+	log ("  generateAuxFiles      " + aux.success + " " + aux.error);
 }
 
 async function createDsp (faust, log, code) {
 	log ("\nCreating DSP instance:");
 	log ( "createDSPFactory: ");
-	let faustmodule = await faust.createDSPFactory  ("test", code, options, false);
+	let faustmodule = await faust.createDSPFactory ("test", code, options, false);
+
+	// Je ne comprends pas !?
 	if (typeof faustmodule == "string") {
 		log ("createDSPFactory error: " + faustmodule);
 		return;
@@ -39,6 +35,7 @@ async function run (engine, log, code) {
 	let faust = new FaustCompiler (engine);
 	log ( "libfaust version: " + faust.version());
 	misc (faust, log, code);
+	misc (faust, log, errCode);
 	await createDsp (faust, log, code); //.then ( () => { log ("\nEnd of API tests"); } );
 	await createDsp (faust, log, errCode).catch (e => {log(e); }); 
 	log ("\nEnd of API tests");

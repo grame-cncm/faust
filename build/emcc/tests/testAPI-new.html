@@ -39,7 +39,7 @@ function doit (faust) {
 	run (faust, log, dspcode);
 }
 
-FaustModule().then( (instance) => { doit (new instance.libFaustWasm()); });
+FaustModule().then((instance) => { doit (new instance.libFaustWasm()); });
 
 </script>
 </body>

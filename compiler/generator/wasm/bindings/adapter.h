@@ -21,25 +21,23 @@
 
 using namespace std;
 
+// TODO: directly return the std::vector<int> data in FactoryOut (FaustWasm type can be removed)
+
 struct FactoryOut {
 	int module = 0;
-	std::string error;
 };
 
 struct ExpandOut {
 	std::string dsp;
 	std::string shakey;
-	std::string error;
 };
 
 struct AuxOut {
 	bool success;
-	std::string error;
 };
 
 struct FaustWasm {
 	std::vector<int> data;
-	std::string helper;
 };
 
 class libFaustWasm
@@ -48,19 +46,18 @@ class libFaustWasm
 				 libFaustWasm() {};
 		virtual ~libFaustWasm() {};
 
-		std::string		version()							{ return ::getCLibFaustVersion(); }
-		FactoryOut		createDSPFactory 	(const std::string name, const std::string dsp, const std::string args, bool internal_memory);
-		ExpandOut 		expandDSP 			(const std::string name, const std::string dsp, const std::string args);
-		AuxOut 			generateAuxFiles	(const std::string name, const std::string dsp, const std::string args);
+		std::string	version() { return ::getCLibFaustVersion(); }
+		FactoryOut	createDSPFactory(const std::string name, const std::string dsp, const std::string args, bool internal_memory);
+		ExpandOut 	expandDSP(const std::string name, const std::string dsp, const std::string args);
+		AuxOut 		generateAuxFiles(const std::string name, const std::string dsp, const std::string args);
 
-		void			deleteAllDSPFactories() 			{ ::deleteAllWasmCDSPFactories(); }
+		void		deleteAllDSPFactories() { ::deleteAllWasmCDSPFactories(); }
 
-		FaustWasm		getWasmModule 		(int module);
-
-		void			freeWasmModule		(int module) 	{ ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
-//		void			freeMemory( void* ptr ) 			{ ::freeCMemory (ptr); }
-		void			cleanupAfterException() 			{ ::cleanupAfterException(); }
-		std::string		getErrorAfterException ()			{ return ::getErrorAfterException(); }
+		FaustWasm	getWasmModule(int module);
+        void		freeWasmModule(int module) { ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
+    
+		void		cleanupAfterException() { ::cleanupAfterException(); }
+		std::string	getErrorAfterException() { return ::getErrorAfterException(); }
 };
 
 

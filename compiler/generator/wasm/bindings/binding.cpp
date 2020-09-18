@@ -20,21 +20,17 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(CStruct) {
 	
 	value_object<FactoryOut>("FactoryOut")
-		.field("module",   &FactoryOut::module)
-		.field("error",    &FactoryOut::error);
+		.field("module", &FactoryOut::module);
 
 	value_object<ExpandOut>("ExpandOut")
-		.field("dsp",    &ExpandOut::dsp)
-		.field("shakey", &ExpandOut::shakey)
-		.field("error",  &ExpandOut::error);
+		.field("dsp", &ExpandOut::dsp)
+		.field("shakey", &ExpandOut::shakey);
 	
 	value_object<AuxOut>("AuxOut")
-		.field("success",  	&AuxOut::success)
-		.field("error",  	&AuxOut::error);
+		.field("success", &AuxOut::success);
 
 	value_object<FaustWasm>("FaustWasm")
-		.field("data",    	&FaustWasm::data)
-		.field("helper",	&FaustWasm::helper);
+		.field("data", &FaustWasm::data);
 }
 
 EMSCRIPTEN_BINDINGS(FaustModule) {
@@ -50,11 +46,10 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
 			
 			.function("getWasmModule", 			&libFaustWasm::getWasmModule, allow_raw_pointers())
 			.function("freeWasmModule", 		&libFaustWasm::freeWasmModule, allow_raw_pointers())
-//			.function("freeMemory", 			&libFaustWasm::freeMemory, allow_raw_pointers())
 			.function("cleanupAfterException", 	&libFaustWasm::cleanupAfterException)
 			.function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers());
 
-	register_vector<int>	("vector<int>");
+	register_vector<int>("vector<int>");
 
 }
 
