@@ -3,29 +3,29 @@
 ///<reference path="FaustCompiler.d.ts"/>
 
 
-class FaustInstanceAPIImpl implements FaustInstanceAPI {
-	private readonly fExports: FaustInstanceAPI;
+class FaustModuleAPIImpl implements FaustModuleAPI {
+	private readonly fExports: FaustModuleAPI;
 
-	constructor(exports: FaustInstanceAPI) { this.fExports = exports; }
+	constructor (exports: FaustModuleAPI) { this.fExports = exports; }
 
 	compute(count: number, input: number, output: number) { this.fExports.compute(count, input, output); }
-	getNumInputs() { return this.fExports.getNumInputs(); }
-	getNumOutputs() { return this.fExports.getNumOutputs(); }
-	getParamValue(index: number) { return this.fExports.getParamValue(index); }
-	getSampleRate() { return this.fExports.getSampleRate(); }
-	init(sampleRate: number) { this.fExports.init(sampleRate); }
-	instanceClear() { this.fExports.instanceClear(); }
-	instanceConstants(sampleRate: number) { this.fExports.instanceConstants(sampleRate); }
-	instanceInit(sampleRate: number) { this.fExports.instanceInit(sampleRate); }
-	instanceResetUserInterface() { this.fExports.instanceResetUserInterface(); }
-	setParamValue(index: number, value: number) { this.fExports.setParamValue(index, value); }
+	getNumInputs()                  { return this.fExports.getNumInputs(); }
+	getNumOutputs()                 { return this.fExports.getNumOutputs(); }
+	getParamValue(index: number)   	{ return this.fExports.getParamValue(index); }
+	getSampleRate()   				{ return this.fExports.getSampleRate(); }
+	init(sampleRate: number)		{ this.fExports.init (sampleRate); }
+	// instanceClear
+	// instanceConstants
+	instanceInit (sampleRate: number) { this.fExports.instanceInit (sampleRate); }
+	instanceResetUserInterface()	{ this.fExports.instanceResetUserInterface (); }
+	setParamValue (index: number, value: number) { this.fExports.setParamValue (index, value); }
 }
 
 
 class FaustCompiler {
 	private fFaustEngine: LibFaust;
 
-	private intVec2intArray(vec: IntVector) : Uint8Array {
+	private intVec2intArray (vec: IntVector) : Uint8Array {
 		const size = vec.size();
 		const ui8Code = new Uint8Array(size);
 		for (let i = 0; i < size; i++) {
@@ -37,7 +37,6 @@ class FaustCompiler {
 	private createWasmImport = () => ({
 		env: {
 			memory: new WebAssembly.Memory({ initial: 100 }),
-			// Integer version
 			_abs: Math.abs,
 			// Float version
 			_acosf: Math.acos, _asinf: Math.asin, _atanf: Math.atan, _atan2f: Math.atan2,
@@ -60,34 +59,60 @@ class FaustCompiler {
 		//     table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
 		}
 	});
-
+	
 
 	constructor(engine: LibFaust) {
 		this.fFaustEngine = engine;
 	}
 
-	version() : string { return this.fFaustEngine.version(); }
+	version() : string 		{ return this.fFaustEngine.version(); }
 
-	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustFactory> {
-		let fact = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
-		let wasm = this.fFaustEngine.getWasmModule(fact.module);
-		return WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => {
-			this.fFaustEngine.freeWasmModule(fact.module);
-			return { module: module, poly: poly};
+	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
+		return new Promise((resolve, reject) => {
+		try {
+			let fact = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
+			if (!fact.error) {
+				let wasm = this.fFaustEngine.getWasmModule (fact.module);
+				WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => { 
+					this.fFaustEngine.freeWasmModule (fact.module);
+					resolve( { module: module, poly: poly} );
+				});
+			}
+			else {
+				console.log("===> call reject");
+				reject (fact.error);
+			}
 		}
-		);
+		catch {
+			let msg = this.fFaustEngine.getErrorAfterException();
+			console.log ("=> exception raised while running createDSPFactory: " + msg );
+			this.fFaustEngine.cleanupAfterException();
+			reject (msg);
+		}
+	});
 	}
 
-	createDSPInstance(module: FaustFactory) : Promise<FaustInstance> {
-		return WebAssembly.instantiate(module.module, this.createWasmImport() ).then( instance => {
+	// createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean) : Promise<FaustModule> {
+	// 	let fact = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
+	// 	let wasm = this.fFaustEngine.getWasmModule (fact.module);
+	// 	return WebAssembly.compile( this.intVec2intArray(wasm.data)).then ( module => { 
+	// 		this.fFaustEngine.freeWasmModule (fact.module);
+	// 		return { module: module, poly: poly};
+	// 	}
+	// 	);
+	// }
+
+	createDSPInstance(module: FaustModule) : Promise<FaustInstance> {
+		return WebAssembly.instantiate ( module.module, this.createWasmImport() ).then ( instance => { 
 			let tmp: any = instance.exports;
-			let moduleapi = new FaustInstanceAPIImpl(<FaustInstanceAPI>tmp);
+			let moduleapi = new FaustModuleAPIImpl(<FaustModuleAPI>tmp);
 			return { instance: instance, api: moduleapi }
 		});
 	}
 
-	expandDSP(name: string, dsp: string, args: string) { return this.fFaustEngine.expandDSP(name, dsp, args); }
+	expandDSP (name: string, dsp: string, args: string)       { return this.fFaustEngine.expandDSP(name, dsp, args); }
 	generateAuxFiles(name: string, dsp: string, args: string) { return this.fFaustEngine.generateAuxFiles(name, dsp, args); }
 
-	// deleteAllDSPFactories(): void;
+//	deleteAllDSPFactories(): void;
 }
+
