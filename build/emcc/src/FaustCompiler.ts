@@ -6,7 +6,7 @@
 class FaustInstanceAPIImpl implements FaustInstanceAPI {
 	private readonly fExports: FaustInstanceAPI;
 
-	constructor (exports: FaustInstanceAPI) { this.fExports = exports; }
+	constructor(exports: FaustInstanceAPI) { this.fExports = exports; }
 
 	compute(count: number, input: number, output: number) { this.fExports.compute(count, input, output); }
 	getNumInputs() { return this.fExports.getNumInputs(); }
@@ -86,8 +86,8 @@ class FaustCompiler {
 		});
 	}
 
-	expandDSP (name: string, dsp: string, args: string)       { return this.fFaustEngine.expandDSP(name, dsp, args); }
+	expandDSP(name: string, dsp: string, args: string) { return this.fFaustEngine.expandDSP(name, dsp, args); }
 	generateAuxFiles(name: string, dsp: string, args: string) { return this.fFaustEngine.generateAuxFiles(name, dsp, args); }
 
-//	deleteAllDSPFactories(): void;
+	// deleteAllDSPFactories(): void;
 }

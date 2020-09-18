@@ -1,5 +1,5 @@
 
-interface WasmModule     {}
+interface WasmModule {}
 
 interface Factory {
 	module  : WasmModule;
@@ -26,13 +26,13 @@ interface LibFaust {
 	version() : string;
 
 	createDSPFactory(name_app: string, dsp_content: string, args: string, internal_memory: boolean) : Factory;
-	expandDSP(name_app: string, dsp_content: string, args: string) 			: Expand	
-	generateAuxFiles(name_app: string, dsp_content: string, args: string) 	: Aux;
-	deleteAllDSPFactories()													: void;
+	expandDSP(name_app: string, dsp_content: string, args: string) : Expand
+	generateAuxFiles(name_app: string, dsp_content: string, args: string) : Aux;
+	deleteAllDSPFactories() : void;
 
-	getWasmModule  (module: WasmModule) 	: FaustWasm;
-	freeWasmModule (module: WasmModule) 	: void;
+	getWasmModule(module: WasmModule) : FaustWasm;
+	freeWasmModule(module: WasmModule) : void;
 
-	cleanupAfterException()		: void;
-	getErrorAfterException() 	: string;
+	cleanupAfterException() : void;
+	getErrorAfterException() : string;
 }

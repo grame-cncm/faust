@@ -26,7 +26,7 @@ interface FaustFactory {
 
 interface FaustCompiler {
 
-	new (engine: LibFaust) : FaustCompiler;
+	new(engine: LibFaust) : FaustCompiler;
 
 	version() : string;
 
