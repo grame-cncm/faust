@@ -14,9 +14,9 @@ interface InstanceAPI {
     /**
      * The dsp computation.
      *
-     * @param {number} count - an arbitrary name for the faust module
+     * @param {number} count - the audio buffer size
      * @param {AudioBuffer} inputs - the input audio buffer
-     * @param {AudioBuffer} output - the outpu audio buffer
+     * @param {AudioBuffer} output - the output audio buffer
      */
 	compute(count: number, inputs: AudioBuffer, output: AudioBuffer): void;
 
