@@ -23,22 +23,22 @@ using namespace std;
 
 // TODO: directly return the std::vector<int> data in FactoryOut (FaustWasm type can be removed)
 
-struct FactoryOut {
-    int module = 0;
-};
+//struct FactoryOut {
+//    int module = 0;
+//};
 
 struct ExpandOut {
     std::string dsp;
     std::string shakey;
 };
 
-struct AuxOut {
-    bool success;
-};
+//struct AuxOut {
+//    bool success;
+//};
 
-struct FaustWasm {
-    std::vector<int> data;
-};
+//struct FaustWasm {
+//    std::vector<int> data;
+//};
 
 class libFaustWasm
 {
@@ -47,13 +47,13 @@ class libFaustWasm
         virtual ~libFaustWasm() {};
     
         std::string version() { return ::getCLibFaustVersion(); }
-        FactoryOut  createDSPFactory(const std::string name, const std::string dsp, const std::string args, bool internal_memory);
+        int  		createDSPFactory(const std::string name, const std::string dsp, const std::string args, bool internal_memory);
         ExpandOut   expandDSP(const std::string name, const std::string dsp, const std::string args);
-        AuxOut      generateAuxFiles(const std::string name, const std::string dsp, const std::string args);
+        bool      	generateAuxFiles(const std::string name, const std::string dsp, const std::string args);
     
         void        deleteAllDSPFactories() { ::deleteAllWasmCDSPFactories(); }
     
-        FaustWasm   getWasmModule(int module);
+        std::vector<int>   getWasmModule(int module);
         void        freeWasmModule(int module) { ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
     
         void        cleanupAfterException() { ::cleanupAfterException(); }

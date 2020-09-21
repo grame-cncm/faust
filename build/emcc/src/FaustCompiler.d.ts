@@ -55,5 +55,5 @@ interface FaustCompiler {
 	createDSPInstance(module: FaustFactory): Promise<FaustInstance>;
 
 	expandDSP(name_app: string, dsp_content: string, args: string): Expand
-	generateAuxFiles(name_app: string, dsp_content: string, args: string): Aux;
+	generateAuxFiles(name_app: string, dsp_content: string, args: string): boolean;
 }

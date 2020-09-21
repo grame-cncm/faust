@@ -19,18 +19,18 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(CStruct) {
     
-    value_object<FactoryOut>("FactoryOut")
-        .field("module", &FactoryOut::module);
+//    value_object<FactoryOut>("FactoryOut")
+//        .field("module", &FactoryOut::module);
     
     value_object<ExpandOut>("ExpandOut")
         .field("dsp", &ExpandOut::dsp)
         .field("shakey", &ExpandOut::shakey);
     
-    value_object<AuxOut>("AuxOut")
-        .field("success", &AuxOut::success);
-    
-    value_object<FaustWasm>("FaustWasm")
-        .field("data", &FaustWasm::data);
+//    value_object<AuxOut>("AuxOut")
+//        .field("success", &AuxOut::success);
+//
+//    value_object<FaustWasm>("FaustWasm")
+//        .field("data", &FaustWasm::data);
 }
 
 EMSCRIPTEN_BINDINGS(FaustModule) {

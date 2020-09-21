@@ -100,9 +100,9 @@ class FaustCompiler {
 		return new Promise((resolve, reject) => {
 			try {
 				let factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
-				let wasm = this.fFaustEngine.getWasmModule(factory.module);
-				WebAssembly.compile(this.intVec2intArray(wasm.data)).then(module => {
-					this.fFaustEngine.freeWasmModule(factory.module);
+				let wasm = this.fFaustEngine.getWasmModule(factory);
+				WebAssembly.compile(this.intVec2intArray(wasm)).then(module => {
+					this.fFaustEngine.freeWasmModule(factory);
 					resolve({ module: module, poly: poly });
 				});
 			} catch {
