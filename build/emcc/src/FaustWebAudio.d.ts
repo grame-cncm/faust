@@ -45,6 +45,6 @@ interface FaustWebAudioNode {
 	compileMonoNode(faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean)				 : Promise<FaustAudioNode>;
 	compilePolyNode(faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
 
-	createMonoNode(module: FaustFactory, scriptprocessor: boolean)					: Promise<FaustAudioNode>;
-	createPolyNode(module: FaustFactory, voices: number, scriptprocessor: boolean)	: Promise<FaustAudioPolyNode>;
+	createMonoNode(module: Faust.Factory, scriptprocessor: boolean)					: Promise<FaustAudioNode>;
+	createPolyNode(module: Faust.Factory, voices: number, scriptprocessor: boolean)	: Promise<FaustAudioPolyNode>;
 }

@@ -22,11 +22,12 @@
 ///<reference path="libfaust.d.ts"/>
 ///<reference path="FaustCompiler.d.ts"/>
 
+namespace Faust {
 
-class FaustInstanceAPIImpl implements FaustInstanceAPI {
-	private readonly fExports: FaustInstanceAPI;
+class InstanceAPIImpl implements InstanceAPI {
+	private readonly fExports: InstanceAPI;
 
-	constructor(exports: FaustInstanceAPI) { this.fExports = exports; }
+	constructor(exports: InstanceAPI) { this.fExports = exports; }
 
 	compute(count: number, input: number, output: number) { this.fExports.compute(count, input, output); }
 	getNumInputs() { return this.fExports.getNumInputs(); }
@@ -42,7 +43,7 @@ class FaustInstanceAPIImpl implements FaustInstanceAPI {
 }
 
 
-class FaustCompiler {
+export class Compiler {
 	private fFaustEngine: LibFaust;
 
 	private intVec2intArray(vec: IntVector): Uint8Array {
@@ -96,7 +97,7 @@ class FaustCompiler {
 
 	version(): string { return this.fFaustEngine.version(); }
 
-	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<FaustFactory> {
+	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory> {
 		return new Promise((resolve, reject) => {
 			try {
 				let factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
@@ -114,10 +115,10 @@ class FaustCompiler {
 		});
 	}
 
-	createDSPInstance(module: FaustFactory): Promise<FaustInstance> {
+	createDSPInstance(module: Factory): Promise<Instance> {
 		return WebAssembly.instantiate(module.module, this.createWasmImport()).then(instance => {
 			let functions: any = instance.exports;
-			let api = new FaustInstanceAPIImpl(<FaustInstanceAPI>functions);
+			let api = new InstanceAPIImpl(<InstanceAPI>functions);
 			let memory: any = instance.exports.memory;
 			let json = this.heap2Str(new Uint8Array(memory.buffer));
 			return { instance: instance, api: api, json: json }
@@ -126,7 +127,8 @@ class FaustCompiler {
 
 	expandDSP(name_app: string, dsp_content: string, args: string) {
 		try {
-			return this.fFaustEngine.expandDSP(name_app, dsp_content, args);
+			let out = this.fFaustEngine.expandDSP(name_app, dsp_content, args);
+			return { dsp: out.dsp, shakey: out.shakey, error: "" };
 		} catch {
 			let error = this.fFaustEngine.getErrorAfterException();
 			console.log("=> exception raised while running expandDSP: " + error);
@@ -137,7 +139,8 @@ class FaustCompiler {
 
 	generateAuxFiles(name_app: string, dsp_content: string, args: string) {
 		try {
-			return this.fFaustEngine.generateAuxFiles(name_app, dsp_content, args);
+			let done = this.fFaustEngine.generateAuxFiles(name_app, dsp_content, args);
+			return { success: done, error: "" };
 		} catch {
 			let error = this.fFaustEngine.getErrorAfterException();
 			console.log("=> exception raised while running generateAuxFiles: " + error);
@@ -147,4 +150,6 @@ class FaustCompiler {
 	}
 
 	//	deleteAllDSPFactories(): void;
+}
+
 }

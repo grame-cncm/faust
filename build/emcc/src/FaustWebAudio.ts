@@ -50,8 +50,8 @@ class FaustAudioPolyNodeImpl extends FaustAudioNodeImpl implements FaustAudioPol
 
 
 class FaustWebAudioNode {
-	private createDSPFactory(faust: LibFaust, dsp_content: string, args: string, poly: boolean): Promise<FaustFactory> {
-		let compiler = new FaustCompiler(faust);
+	private createDSPFactory(faust: LibFaust, dsp_content: string, args: string, poly: boolean): Promise<Faust.Factory> {
+		let compiler = new Faust.Compiler(faust);
 		return compiler.createDSPFactory("faustdsp", dsp_content, args, poly);
 	}
 
@@ -67,10 +67,10 @@ class FaustWebAudioNode {
 		});
 	}
 
-	createMonoNode(module: FaustFactory, scriptprocessor: boolean): Promise<FaustAudioNode> {
+	createMonoNode(module: Faust.Factory, scriptprocessor: boolean): Promise<FaustAudioNode> {
 		return null;
 	}
-	createPolyNode(module: FaustFactory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode> {
+	createPolyNode(module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode> {
 		return null;
 	}
 }

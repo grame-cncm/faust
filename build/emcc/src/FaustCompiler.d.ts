@@ -19,8 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+declare namespace Faust {
 
-interface FaustInstanceAPI {
+interface InstanceAPI {
 	compute(count: number, inputs: number, output: number): void;
 	getNumInputs(): number;
 	getNumOutputs(): number;
@@ -34,26 +35,34 @@ interface FaustInstanceAPI {
 	setParamValue(index: number, value: number): void;
 }
 
-interface FaustInstance {
+interface Instance {
 	instance: WebAssembly.Instance;
-	api: FaustInstanceAPI;
+	api: InstanceAPI;
 	json: string;
 }
 
-interface FaustFactory {
+interface Factory {
 	module: WebAssembly.Module;
 	poly: boolean;
 }
 
-interface FaustCompiler {
+interface ExpandOut extends Expand { error: string; }
+interface AuxOut  { 
+	success: boolean;
+	error: string; 
+}
 
-	new(engine: LibFaust): FaustCompiler;
+interface Compiler {
+
+	new(engine: LibFaust): Compiler;
 
 	version(): string;
 
-	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<FaustFactory>;
-	createDSPInstance(module: FaustFactory): Promise<FaustInstance>;
+	createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory>;
+	createDSPInstance(module: Factory): Promise<Instance>;
 
-	expandDSP(name_app: string, dsp_content: string, args: string): Expand
-	generateAuxFiles(name_app: string, dsp_content: string, args: string): boolean;
+	expandDSP(name_app: string, dsp_content: string, args: string): ExpandOut
+	generateAuxFiles(name_app: string, dsp_content: string, args: string): AuxOut;
+}
+
 }
