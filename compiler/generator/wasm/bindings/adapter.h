@@ -21,24 +21,11 @@
 
 using namespace std;
 
-// TODO: directly return the std::vector<int> data in FactoryOut (FaustWasm type can be removed)
-
-//struct FactoryOut {
-//    int module = 0;
-//};
 
 struct ExpandOut {
     std::string dsp;
     std::string shakey;
 };
-
-//struct AuxOut {
-//    bool success;
-//};
-
-//struct FaustWasm {
-//    std::vector<int> data;
-//};
 
 class libFaustWasm
 {
