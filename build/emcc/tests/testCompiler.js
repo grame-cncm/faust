@@ -7,22 +7,17 @@ var errCode = "foo";
 function misc (faust, log, code )
 {
 	let exp = faust.expandDSP("test", code, options);
-	log ("  expandDSP             " + exp.dsp + " sha " + exp.shakey + " " + exp.error);
+	let  msg = exp.error ? exp.error : exp.dsp + " sha " + exp.shakey;
+	log ("  expandDSP             " + msg);
 
 	let aux = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
-	log ("  generateAuxFiles      " + aux.success + " " + aux.error);
+	msg = aux.success ? "done" : aux.error;
+	log ("  generateAuxFiles      " + msg);
 }
 
 async function createDsp (faust, log, code) {
-	log ("\nCreating DSP instance:");
 	log ( "createDSPFactory: ");
 	let faustmodule = await faust.createDSPFactory ("test", code, options, false);
-
-	// Je ne comprends pas !?
-	if (typeof faustmodule == "string") {
-		log ("createDSPFactory error: " + faustmodule);
-		return;
-	}
 
 	log ( "faustmodule poly: " + faustmodule.poly);
 	log ( "createDSPInstance: ");
@@ -32,23 +27,17 @@ async function createDsp (faust, log, code) {
 }
 
 async function run (engine, log, code) {
-	let faust = new FaustCompiler (engine);
+	let faust = new Faust.Compiler (engine);
 	log ( "libfaust version: " + faust.version());
+	log ( "\n-----------------\nMisc tests" + faust.version());
 	misc (faust, log, code);
+	log ( "\n-----------------\nMisc tests with error code");
 	misc (faust, log, errCode);
-	await createDsp (faust, log, code); //.then ( () => { log ("\nEnd of API tests"); } );
+	log ("\n-----------------\nCreating DSP instance:");
+	await createDsp (faust, log, code);
+	log ("\n-----------------\nCreating DSP instance with error code:");
 	await createDsp (faust, log, errCode).catch (e => {log(e); }); 
 	log ("\nEnd of API tests");
-	//.then ( () => { log ("\nEnd of API tests"); } );
-	// log ( "createDSPFactory: ");
-	// faust.createDSPFactory  ("test", code, options, false).then (faustmodule => {
-	// 	log ( "createDSPInstance: ");
-	// 	faust.createDSPInstance (faustmodule).then (instance => {
-	// 		log ( "  getNumInputs : " + instance.api.getNumInputs());
-	// 		log ( "  getNumOutputs: " + instance.api.getNumOutputs());
-	// 		log ("\nEnd of API tests");
-	// 	});
-	// });
 }
 
 if ((typeof process !== 'undefined') && (process.release.name === 'node')) {
