@@ -21,26 +21,12 @@
 
 interface WasmModule { }
 
-// interface Factory {
-// 	module: WasmModule;
-// 	error: string;
-// }
 interface Expand {
 	dsp: string;
 	shakey: string;
-	// error: string;
 }
-// interface Aux {
-// 	success: boolean;
-// 	error: string;
-// }
 
 interface IntVector { size(): number; get(i: number): number; }
-
-// interface FaustWasm {
-// 	data: IntVector;
-// 	json: string;
-// }
 
 interface LibFaust {
 	version(): string;
