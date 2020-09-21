@@ -35,6 +35,7 @@ class FaustAudioNodeImpl extends AudioNode implements FaustAudioNode {
 
 	setParamValue(path: string, value: number) { }
 	getParamValue(path: string) { return 0; }
+	getParams() 				{ return new Array<string>(); }
 
 	getJSON() { return ""; }
 	destroy() { } // to do: check is this function is still really needed
