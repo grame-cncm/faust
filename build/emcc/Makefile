@@ -8,10 +8,13 @@ all:
 	[ -e tests/libfaust-wasm.data ] || (cd tests && ln -s ../npm/dist/libfaust-wasm.data .)
 	make js
 
-js: faustwebaudio.js
+js: faustwebaudio.js faustcompiler.js
 
 faustwebaudio.js : $(jssrc)
 	tsc
+
+faustcompiler.js : src/FaustCompiler.d.ts src/FaustCompiler.ts src/libfaust.d.ts
+	tsc -p tsCompiler.json
 
 clean:
 	make -C ../faustdir/emcc clean
