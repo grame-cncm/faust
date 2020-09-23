@@ -26,6 +26,17 @@ interface MetadataHandler { (key: string, value: number): void }
 // Implemntation types
 interface MonoDSP {
 
+
+	fInChannels: Float32Array[];
+	fOutChannels: Float32Array[];
+
+	fInstance: Faust.Instance;
+
+	getNumInputs(): number;
+	getNumOutputs(): number;
+
+	compute(inputs: Float32Array[], outputs: Float32Array[]): boolean;
+
 	ctrlChange(chan: number, ctrl: number, value: number): void;
 	pitchWheel(chan: number, value: number): void;
 
@@ -33,6 +44,8 @@ interface MonoDSP {
 	getParamValue(path: string): number;
 
 	getParams(): Array<string>;
+
+	getJSON(): string;
 
 }
 

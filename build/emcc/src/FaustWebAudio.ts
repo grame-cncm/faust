@@ -25,6 +25,20 @@
 
 // JSON UI
 
+export type TFaustJSON = {
+	name: string;
+	filename: string;
+	compile_options: string;
+	include_pathnames: string[];
+	inputs: number;
+	outputs: number;
+	size: number;
+	version: string;
+	library_list: string[];
+	meta: { [key: string]: string }[];
+	ui: TFaustUI;
+};
+
 export type TFaustUI = TFaustUIGroup[];
 export type TFaustUIItem = TFaustUIInputItem | TFaustUIOutputItem | TFaustUIGroup;
 export type TFaustUIInputItem = {
@@ -73,8 +87,6 @@ class MonoDSPImp implements MonoDSP {
 	fInputs: number;
 	fOutputs: number;
 
-	fJSON: {};
-
 	fInChannels: Float32Array[];
 	fOutChannels: Float32Array[];
 
@@ -93,7 +105,6 @@ class MonoDSPImp implements MonoDSP {
 	fAudioOutputs: number;
 	fDSP: number;
 
-	//fPitchwheelLabel: Array<string>;
 	fPitchwheelLabel: { path: string; min: number; max: number }[];
 	fCtrlLabel: { path: string; min: number; max: number }[][];
 
@@ -101,8 +112,11 @@ class MonoDSPImp implements MonoDSP {
 
 	fDestroyed: boolean;
 
-	constructor() {
+	fJSONObj: TFaustJSON;
+
+	constructor(instance: Faust.Instance) {
 		this.fOutputHandler = null;
+		this.fInstance = instance;
 
 		this.gPtrSize = 4;
 		this.gSampleSize = 4;
@@ -112,62 +126,24 @@ class MonoDSPImp implements MonoDSP {
 	}
 
 	// JSON parsing functions
-	static parseUI(ui: TFaustUI, obj: AudioParamDescriptor[] | MonoDSPImp, callback: (...args: any[]) => any) {
-		for (let i = 0; i < ui.length; i++) {
-			this.parseGroup(ui[i], obj, callback);
-		}
+	static parseUI(ui: TFaustUI, callback: (...args: any[]) => any) {
+		ui.forEach(group => MonoDSPImp.parseGroup(group, callback));
 	}
-	static parseGroup(group: TFaustUIGroup, obj: AudioParamDescriptor[] | MonoDSPImp, callback: (...args: any[]) => any) {
+
+	static parseGroup(group: TFaustUIGroup, callback: (...args: any[]) => any) {
 		if (group.items) {
-			this.parseItems(group.items, obj, callback);
+			MonoDSPImp.parseItems(group.items, callback);
 		}
 	}
-	static parseItems(items: TFaustUIItem[], obj: AudioParamDescriptor[] | MonoDSPImp, callback: (...args: any[]) => any) {
-		for (let i = 0; i < items.length; i++) {
-			callback(items[i], obj, callback);
-		}
+	static parseItems(items: TFaustUIItem[], callback: (...args: any[]) => any) {
+		items.forEach(item => MonoDSPImp.parseItem(item, callback));
 	}
-	static parseItem(item: TFaustUIItem, obj: AudioParamDescriptor[], callback: (...args: any[]) => any) {
+
+	static parseItem(item: TFaustUIItem, callback: (...args: any[]) => any) {
 		if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
-			this.parseItems(item.items, obj, callback); // callback may not binded to this
-		} else if (item.type === "hbargraph" || item.type === "vbargraph") {
-			// Nothing
-		} else if (item.type === "vslider" || item.type === "hslider" || item.type === "nentry") {
-			//if (!faustData.voices || (!item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain"))) {
-			if ((!item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain"))) {
-				obj.push({ name: item.address, defaultValue: item.init || 0, minValue: item.min || 0, maxValue: item.max || 0 });
-			}
-		} else if (item.type === "button" || item.type === "checkbox") {
-			//if (!faustData.voices || (!item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain"))) {
-			if ((!item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain"))) {
-				obj.push({ name: item.address, defaultValue: item.init || 0, minValue: 0, maxValue: 1 });
-			}
-		}
-	}
-	static parseItem2(item: TFaustUIItem, obj: MonoDSPImp, callback: (...args: any[]) => any) {
-		if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
-			this.parseItems(item.items, obj, callback); // callback may not binded to this
-		} else if (item.type === "hbargraph" || item.type === "vbargraph") {
-			// Keep bargraph adresses
-			obj.fOutputsItems.push(item.address);
-			obj.fPathTable[item.address] = item.index;
-		} else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
-			// Keep inputs adresses
-			obj.fInputsItems.push(item.address);
-			obj.fPathTable[item.address] = item.index;
-			if (!item.meta) return;
-			item.meta.forEach((meta) => {
-				const { midi } = meta;
-				if (!midi) return;
-				const strMidi = midi.trim();
-				if (strMidi === "pitchwheel") {
-					obj.fPitchwheelLabel.push({ path: item.address, min: item.min, max: item.max });
-				} else {
-					const matched = strMidi.match(/^ctrl\s(\d+)/);
-					if (!matched) return;
-					obj.fCtrlLabel[parseInt(matched[1])].push({ path: item.address, min: item.min, max: item.max });
-				}
-			});
+			MonoDSPImp.parseItems(item.items, callback);
+		} else {
+			callback(item);
 		}
 	}
 
@@ -177,10 +153,7 @@ class MonoDSPImp implements MonoDSP {
 		this.fDSP = 0;
 
 		// DSP is placed first with index 0. Audio buffer start at the end of DSP.
-
-		// TODO
-		//let audio_ptr = this.fJSON.size;
-		let audio_ptr = 0;
+		let audio_ptr = this.fJSONObj.size;
 
 		// Setup pointers offset
 		this.fAudioInputs = audio_ptr;
@@ -190,16 +163,15 @@ class MonoDSPImp implements MonoDSP {
 		let audio_inputs_ptr = this.fAudioOutputs + (this.fOutputs * this.gPtrSize);
 		let audio_outputs_ptr = audio_inputs_ptr + (this.fInputs * this.fBufferSize * this.gSampleSize);
 
-		// TODO
-		//const HEAP = fInstance.instance.memory;
-		const HEAP: any = null;
+		const memory: any = this.fInstance.instance.exports.memory;
+		const HEAP = memory.buffer;
 
-		let HEAP32 = new Int32Array(HEAP);
-		let HEAPF32 = new Float32Array(HEAP);
+		const HEAP32 = new Int32Array(HEAP);
+		const HEAPF32 = new Float32Array(HEAP);
 
 		if (this.fInputs > 0) {
-			//node.$ins = node.$$audioHeapInputs;
 
+			//node.$ins = node.$$audioHeapInputs;
 			for (let chan = 0; chan < this.fInputs; chan++) {
 				HEAP32[(this.fAudioInputs >> 2) + chan] = audio_inputs_ptr + this.fBufferSize * this.gSampleSize * chan;
 			}
@@ -223,13 +195,10 @@ class MonoDSPImp implements MonoDSP {
 		}
 	}
 
-	private compute(inputs: Float32Array[][], outputs: Float32Array[][]) {
+	compute(input: Float32Array[], output: Float32Array[]) {
 
 		// CHeck DSP state
 		if (this.fDestroyed) return false;
-
-		const input = inputs[0];
-		const output = outputs[0];
 
 		// Check inputs
 		if (this.fInputs > 0 && (!input || !input[0] || input[0].length === 0)) {
@@ -244,7 +213,7 @@ class MonoDSPImp implements MonoDSP {
 		}
 
 		// Copy inputs
-		if (input !== undefined) {
+		if (input !== undefined) { // TO CHECK
 			for (let chan = 0; chan < Math.min(this.fInputs, input.length); ++chan) {
 				const dspInput = this.fInChannels[chan];
 				dspInput.set(input[chan]);
@@ -268,7 +237,7 @@ class MonoDSPImp implements MonoDSP {
 		this.updateOutputs();
 
 		// Copy outputs
-		if (output !== undefined) {
+		if (output !== undefined) {	// TO CHECK
 			for (let chan = 0; chan < Math.min(this.fOutputs, output.length); chan++) {
 				const dspOutput = this.fOutChannels[chan];
 				output[chan].set(dspOutput);
@@ -288,19 +257,63 @@ class MonoDSPImp implements MonoDSP {
 		this.setupMemory();
 
 		// Parse UI
-		//this.parseUI(this.dspMeta.ui);
+		this.fJSONObj = JSON.parse(this.fInstance.json);
+
+		let callback = (item: TFaustUIItem) => {
+
+			if (item.type === "hbargraph" || item.type === "vbargraph") {
+				// Keep bargraph adresses
+				this.fOutputsItems.push(item.address);
+				this.fPathTable[item.address] = item.index;
+			} else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+				// Keep inputs adresses
+				this.fInputsItems.push(item.address);
+				this.fPathTable[item.address] = item.index;
+				// TODO
+				/*
+				if (item.meta) {
+					item.meta.forEach((meta) => {
+						const { midi } = meta;
+						if (!midi) return;
+						const strMidi = midi.trim();
+						if (strMidi === "pitchwheel") {
+							node.fPitchwheelLabel.push({ path: item.address, min: item.min, max: item.max });
+						} else {
+							const matched = strMidi.match(/^ctrl\s(\d+)/);
+							if (!matched) return;
+							node.fCtrlLabel[parseInt(matched[1])].push({ path: item.address, min: item.min, max: item.max });
+						}
+					});
+				}
+				*/
+			}
+		}
+
+		MonoDSPImp.parseUI(this.fJSONObj.ui, callback);
 	}
 
-	updateOutputs() { }
+	private updateOutputs() { }
+
+	getNumInputs() {
+		return this.fInstance.api.getNumInputs(this.fDSP);
+	}
+	getNumOutputs() {
+		return this.fInstance.api.getNumOutputs(this.fDSP);
+	}
 
 	ctrlChange(chan: number, ctrl: number, value: number) { }
 	pitchWheel(chan: number, value: number) { }
 
-	setParamValue(path: string, value: number) { }
-	getParamValue(path: string) { return 0; }
+	setParamValue(path: string, value: number) {
+		this.fInstance.api.setParamValue(this.fDSP, this.fPathTable[path], value);
+	}
+	getParamValue(path: string) {
+		return this.fInstance.api.getParamValue(this.fDSP, this.fPathTable[path]);
+	}
 
-	getParams() { return new Array<string>(); }
+	getParams() { return this.fInputsItems; }
 
+	getJSON() { return this.fInstance.json; }
 
 }
 
@@ -348,7 +361,7 @@ class FaustAudioWorkletNode extends AudioWorkletNode implements FaustAudioNode {
 	getParamValue(path: string) { return this.fDSPCode.getParamValue(path); }
 	getParams() { return this.fDSPCode.getParams(); }
 
-	getJSON() { return ""; }
+	getJSON() { return this.fDSPCode.getJSON(); }
 	destroy() { } // to do: check is this function is still really needed
 }
 
@@ -361,7 +374,9 @@ class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode implements FaustAu
 	keyOn(pitch: number, vel: number) {
 
 	}
+
 	keyOff(pitch: number, velocity: number) { }
+
 	allNotesOff() { }
 }
 
@@ -444,6 +459,26 @@ class FaustScriptProcessorNode extends ScriptProcessorNode implements FaustAudio
 
 	fDSPCode: MonoDSP;
 
+	fInputs: Float32Array[];
+	fOutputs: Float32Array[];
+
+	constructor(context: BaseAudioContext, bufferSize?: number) {
+		super();
+		this.onaudioprocess = (e) => {
+
+			// TODO
+			for (let chan = 0; chan < this.fDSPCode.getNumInputs(); chan++) { // Read inputs
+				this.fInputs[chan] = e.inputBuffer.getChannelData(chan);
+			}
+			for (let chan = 0; chan < this.fDSPCode.getNumOutputs(); chan++) { // Read outputs
+				this.fOutputs[chan] = e.outputBuffer.getChannelData(chan);
+			}
+
+			return this.fDSPCode.compute(this.fInputs, this.fOutputs);
+		}
+
+	}
+
 	setOutputParamHandler(handler: OutputParamHandler) { }
 	getOutputParamHandler() { return function (path: string, value: number) { } }
 
@@ -456,13 +491,15 @@ class FaustScriptProcessorNode extends ScriptProcessorNode implements FaustAudio
 	getParamValue(path: string) { return this.fDSPCode.getParamValue(path); }
 	getParams() { return this.fDSPCode.getParams(); }
 
-
-	getJSON() { return ""; }
+	getJSON() { return this.fDSPCode.getJSON(); }
 	destroy() { } // to do: check is this function is still really needed
 }
 
 class FaustPolyScriptProcessorNode extends FaustScriptProcessorNode implements FaustAudioPolyNode {
 
+	constructor(context: BaseAudioContext, bufferSize?: number) {
+		super(context, bufferSize);
+	}
 	keyOn(key: number, vel: number) { }
 	keyOff(key: number, vel: number) { }
 	allNotesOff() { }
@@ -470,28 +507,28 @@ class FaustPolyScriptProcessorNode extends FaustScriptProcessorNode implements F
 
 class FaustWebAudioNode {
 
-	compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean): Promise<FaustAudioNode> {
+	async compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioNode> {
 		return new Faust.Compiler(faust).createDSPFactory("faustdsp", dsp_content, args, false).then(module => {
 			return this.createMonoNode(context, name, module, scriptprocessor);
 		});
 	}
 
-	compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode> {
+	async compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioPolyNode> {
 		return new Faust.Compiler(faust).createDSPFactory("faustdsp", dsp_content, args, true).then(module => {
 			return this.createPolyNode(context, name, module, voices, scriptprocessor);
 		});
 	}
 
-	createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean): Promise<FaustAudioNode> {
+	async createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioNode> {
 		return new Promise((resolve, reject) => {
-			resolve((scriptprocessor) ? new FaustScriptProcessorNode() : new FaustAudioWorkletNode(context, name));
+			resolve((scriptprocessor) ? new FaustScriptProcessorNode(context, bufferSize) : new FaustAudioWorkletNode(context, name));
 			// TODO: reject ?
 		});
 	}
 
-	createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode> {
+	async createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioPolyNode> {
 		return new Promise((resolve, reject) => {
-			resolve((scriptprocessor) ? new FaustPolyScriptProcessorNode() : new FaustPolyAudioWorkletNode(context, name));
+			resolve((scriptprocessor) ? new FaustPolyScriptProcessorNode(context, bufferSize) : new FaustPolyAudioWorkletNode(context, name));
 			// TODO: reject ?
 		});
 	}

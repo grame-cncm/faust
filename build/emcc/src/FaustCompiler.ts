@@ -100,14 +100,14 @@ namespace Faust {
 		createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory> {
 			return new Promise((resolve, reject) => {
 				try {
-					let factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
-					let wasm = this.fFaustEngine.getWasmModule(factory);
+					const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
+					const wasm = this.fFaustEngine.getWasmModule(factory);
 					WebAssembly.compile(this.intVec2intArray(wasm)).then(module => {
 						this.fFaustEngine.freeWasmModule(factory);
 						resolve({ module: module, poly: poly });
 					});
 				} catch {
-					let error = this.fFaustEngine.getErrorAfterException();
+					const error = this.fFaustEngine.getErrorAfterException();
 					console.log("=> exception raised while running createDSPFactory: " + error);
 					this.fFaustEngine.cleanupAfterException();
 					reject(error);
@@ -117,20 +117,20 @@ namespace Faust {
 
 		createDSPInstance(module: Factory): Promise<Instance> {
 			return WebAssembly.instantiate(module.module, this.createWasmImport()).then(instance => {
-				let functions: any = instance.exports;
-				let api = new InstanceAPIImpl(<InstanceAPI>functions);
-				let memory: any = instance.exports.memory;
-				let json = this.heap2Str(new Uint8Array(memory.buffer));
+				const functions: any = instance.exports;
+				const api = new InstanceAPIImpl(<InstanceAPI>functions);
+				const memory: any = instance.exports.memory;
+				const json = this.heap2Str(new Uint8Array(memory.buffer));
 				return { instance: instance, api: api, json: json }
 			});
 		}
 
 		expandDSP(name_app: string, dsp_content: string, args: string) {
 			try {
-				let out = this.fFaustEngine.expandDSP(name_app, dsp_content, args);
+				const out = this.fFaustEngine.expandDSP(name_app, dsp_content, args);
 				return { dsp: out.dsp, shakey: out.shakey, error: "" };
 			} catch {
-				let error = this.fFaustEngine.getErrorAfterException();
+				const error = this.fFaustEngine.getErrorAfterException();
 				console.log("=> exception raised while running expandDSP: " + error);
 				this.fFaustEngine.cleanupAfterException();
 				return { dsp: "", shakey: "", error: error };
@@ -139,10 +139,10 @@ namespace Faust {
 
 		generateAuxFiles(name_app: string, dsp_content: string, args: string) {
 			try {
-				let done = this.fFaustEngine.generateAuxFiles(name_app, dsp_content, args);
+				const done = this.fFaustEngine.generateAuxFiles(name_app, dsp_content, args);
 				return { success: done, error: "" };
 			} catch {
-				let error = this.fFaustEngine.getErrorAfterException();
+				const error = this.fFaustEngine.getErrorAfterException();
 				console.log("=> exception raised while running generateAuxFiles: " + error);
 				this.fFaustEngine.cleanupAfterException();
 				return { success: false, error: error };
