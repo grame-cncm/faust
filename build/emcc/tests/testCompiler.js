@@ -38,15 +38,17 @@ async function run(engine, log, code) {
 	await createDsp(faust, log, code);
 	log("\n-----------------\nCreating DSP instance with error code:");
 	await createDsp(faust, log, errCode).catch(e => { log(e); });
-	log("\nEnd of API tests");
 
 	// Test nodes
 	let module = await faust.createDSPFactory("test", code, options, false);
 	console.log(module);
 	const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
 	console.log(context);
-	let node = FaustWebAudioNode.createMonoNode(audioCtx, "test", module, true, 512);
+	let fwan = new Faust.FaustWebAudioNode();
+	let node = fwan.createMonoNode(context, "test", module, true, 512);
 	console.log(node);
+	
+	log("\nEnd of API tests");
 }
 
 if ((typeof process !== 'undefined') && (process.release.name === 'node')) {
