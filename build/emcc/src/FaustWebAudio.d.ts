@@ -20,6 +20,8 @@
  ************************************************************************/
 
 
+declare namespace Faust {
+
 interface OutputParamHandler { (path: string, value: number): void }
 interface MetadataHandler { (key: string, value: number): void }
 
@@ -81,4 +83,6 @@ interface FaustWebAudioNode {
 
 	createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean): Promise<FaustAudioNode>;
 	createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+}
+
 }

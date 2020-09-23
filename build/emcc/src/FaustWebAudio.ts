@@ -25,6 +25,9 @@
 
 // JSON UI
 
+
+namespace Faust {
+
 export type TFaustJSON = {
 	name: string;
 	filename: string;
@@ -80,9 +83,9 @@ export type TFaustUIGroup = {
 }
 export type TFaustUIType = TFaustUIGroupType | TFaustUIOutputType | TFaustUIInputType;
 
-class MonoDSPImp implements MonoDSP {
+class MonoDSPImp implements Faust.MonoDSP {
 
-	fOutputHandler: OutputParamHandler;
+	fOutputHandler: Faust.OutputParamHandler;
 
 	fInputs: number;
 	fOutputs: number;
@@ -341,7 +344,7 @@ class PolyDSPImp extends MonoDSPImp {
 // Public API
 
 // Test extending 'AudioWorkletNode'
-class FaustAudioWorkletNode extends AudioWorkletNode implements FaustAudioNode {
+class FaustAudioWorkletNode extends AudioWorkletNode implements Faust.FaustAudioNode {
 
 	fDSPCode: MonoDSP;
 
@@ -365,7 +368,7 @@ class FaustAudioWorkletNode extends AudioWorkletNode implements FaustAudioNode {
 	destroy() { } // to do: check is this function is still really needed
 }
 
-class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode implements FaustAudioPolyNode {
+class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode implements Faust.FaustAudioPolyNode {
 
 	constructor(context: BaseAudioContext, name: string, options?: AudioWorkletNodeOptions) {
 		super(context, name, options);
@@ -388,9 +391,11 @@ declare class AudioWorkletProcessor {
 	public process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [key: string]: Float32Array }): boolean;
 	constructor(options: AudioWorkletNodeOptions);
 }
+
 type AudioWorkletProcessorConstructor<T extends AudioWorkletProcessor> = {
 	new(options: AudioWorkletNodeOptions): T;
 };
+
 declare function registerProcessor<T extends AudioWorkletProcessor>(name: string, constructor: AudioWorkletProcessorConstructor<T>): void;
 declare const currentFrame: number;
 declare const currentTime: number;
@@ -404,60 +409,60 @@ interface AudioParamDescriptor {
 }
 
 // Test extending 'AudioWorkletNode'
-class FaustAudioWorkletProcessor extends AudioWorkletProcessor {
-	constructor(options: AudioWorkletNodeOptions) {
-		super(options);
-	}
+// class FaustAudioWorkletProcessor extends AudioWorkletProcessor {
+// 	constructor(options: AudioWorkletNodeOptions) {
+// 		super(options);
+// 	}
 
-	private midiMessage(data: number[] | Uint8Array) {
-		/*
-		const cmd = data[0] >> 4;
-		const channel = data[0] & 0xf;
-		const data1 = data[1];
-		const data2 = data[2];
-		if (channel === 9) return;
-		if (cmd === 8 || (cmd === 9 && data2 === 0)) this.keyOff(channel, data1, data2);
-		else if (cmd === 9) this.keyOn(channel, data1, data2);
-		else if (cmd === 11) this.ctrlChange(channel, data1, data2);
-		else if (cmd === 14) this.pitchWheel(channel, data2 * 128.0 + data1);
-		*/
-	}
+// 	private midiMessage(data: number[] | Uint8Array) {
+// 		/*
+// 		const cmd = data[0] >> 4;
+// 		const channel = data[0] & 0xf;
+// 		const data1 = data[1];
+// 		const data2 = data[2];
+// 		if (channel === 9) return;
+// 		if (cmd === 8 || (cmd === 9 && data2 === 0)) this.keyOff(channel, data1, data2);
+// 		else if (cmd === 9) this.keyOn(channel, data1, data2);
+// 		else if (cmd === 11) this.ctrlChange(channel, data1, data2);
+// 		else if (cmd === 14) this.pitchWheel(channel, data2 * 128.0 + data1);
+// 		*/
+// 	}
 
-	private handleMessage = (e: MessageEvent) => { // use arrow function for binding
-		const msg = e.data;
-		// TODO
-		//this.cachedEvents.push({ type: e.data.type, data: e.data.data });
+// 	private handleMessage = (e: MessageEvent) => { // use arrow function for binding
+// 		const msg = e.data;
+// 		// TODO
+// 		//this.cachedEvents.push({ type: e.data.type, data: e.data.data });
 
-		/*
-		switch (msg.type) {
-			// Generic MIDI message
-			case "midi": this.midiMessage(msg.data); break;
-			// Typed MIDI message
-			case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
-			case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
-			case "ctrlChange": this.ctrlChange(msg.data[0], msg.data[1], msg.data[2]); break;
-			case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
-			// Generic data message
-			case "param": this.setParamValue(msg.data.path, msg.data.value); break;
-			// case "patch": this.onpatch(msg.data); break;
-			case "destroy": {
-				this.port.close();
-				this.fDestroyed = true;
-				delete this.fOutputHandler;
-				delete this.fComputeHandler;
-				break;
-			}
-			default:
-		}
-		*/
-	}
+// 		/*
+// 		switch (msg.type) {
+// 			// Generic MIDI message
+// 			case "midi": this.midiMessage(msg.data); break;
+// 			// Typed MIDI message
+// 			case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
+// 			case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
+// 			case "ctrlChange": this.ctrlChange(msg.data[0], msg.data[1], msg.data[2]); break;
+// 			case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
+// 			// Generic data message
+// 			case "param": this.setParamValue(msg.data.path, msg.data.value); break;
+// 			// case "patch": this.onpatch(msg.data); break;
+// 			case "destroy": {
+// 				this.port.close();
+// 				this.fDestroyed = true;
+// 				delete this.fOutputHandler;
+// 				delete this.fComputeHandler;
+// 				break;
+// 			}
+// 			default:
+// 		}
+// 		*/
+// 	}
 
-}
+// }
 
 // Test extending 'ScriptProcessorNode'
-class FaustScriptProcessorNode extends ScriptProcessorNode implements FaustAudioNode {
+class FaustScriptProcessorNode extends ScriptProcessorNode implements Faust.FaustAudioNode {
 
-	fDSPCode: MonoDSP;
+	fDSPCode: Faust.MonoDSP;
 
 	fInputs: Float32Array[];
 	fOutputs: Float32Array[];
@@ -479,10 +484,10 @@ class FaustScriptProcessorNode extends ScriptProcessorNode implements FaustAudio
 
 	}
 
-	setOutputParamHandler(handler: OutputParamHandler) { }
+	setOutputParamHandler(handler: Faust.OutputParamHandler) { }
 	getOutputParamHandler() { return function (path: string, value: number) { } }
 
-	metadata(handler: MetadataHandler) { return function (path: string, value: number) { } }
+	metadata(handler: Faust.MetadataHandler) { return function (path: string, value: number) { } }
 
 	ctrlChange(chan: number, ctrl: number, value: number) { this.fDSPCode.ctrlChange(chan, ctrl, value); }
 	pitchWheel(chan: number, value: number) { this.fDSPCode.pitchWheel(chan, value); }
@@ -495,7 +500,7 @@ class FaustScriptProcessorNode extends ScriptProcessorNode implements FaustAudio
 	destroy() { } // to do: check is this function is still really needed
 }
 
-class FaustPolyScriptProcessorNode extends FaustScriptProcessorNode implements FaustAudioPolyNode {
+class FaustPolyScriptProcessorNode extends FaustScriptProcessorNode implements Faust.FaustAudioPolyNode {
 
 	constructor(context: BaseAudioContext, bufferSize?: number) {
 		super(context, bufferSize);
@@ -505,28 +510,29 @@ class FaustPolyScriptProcessorNode extends FaustScriptProcessorNode implements F
 	allNotesOff() { }
 }
 
-class FaustWebAudioNode {
+export class FaustWebAudioNode implements Faust.FaustWebAudioNode {
 
-	async compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioNode> {
+
+	async compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean, bufferSize?: number): Promise<Faust.FaustAudioNode> {
 		return new Faust.Compiler(faust).createDSPFactory("faustdsp", dsp_content, args, false).then(module => {
 			return this.createMonoNode(context, name, module, scriptprocessor);
 		});
 	}
 
-	async compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioPolyNode> {
+	async compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean, bufferSize?: number): Promise<Faust.FaustAudioPolyNode> {
 		return new Faust.Compiler(faust).createDSPFactory("faustdsp", dsp_content, args, true).then(module => {
 			return this.createPolyNode(context, name, module, voices, scriptprocessor);
 		});
 	}
 
-	async createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioNode> {
+	createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean, bufferSize?: number): Promise<Faust.FaustAudioNode> {
 		return new Promise((resolve, reject) => {
 			resolve((scriptprocessor) ? new FaustScriptProcessorNode(context, bufferSize) : new FaustAudioWorkletNode(context, name));
 			// TODO: reject ?
 		});
 	}
 
-	async createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number): Promise<FaustAudioPolyNode> {
+	async createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number): Promise<Faust.FaustAudioPolyNode> {
 		return new Promise((resolve, reject) => {
 			resolve((scriptprocessor) ? new FaustPolyScriptProcessorNode(context, bufferSize) : new FaustPolyAudioWorkletNode(context, name));
 			// TODO: reject ?
@@ -534,3 +540,4 @@ class FaustWebAudioNode {
 	}
 }
 
+}
