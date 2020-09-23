@@ -24,22 +24,22 @@
 
 namespace Faust {
 
-	class InstanceAPIImpl implements InstanceAPI {
-		private readonly fExports: InstanceAPI;
+	class InstanceAPIImpl implements Faust.InstanceAPI {
+		private readonly fExports: Faust.InstanceAPI;
 
-		constructor(exports: InstanceAPI) { this.fExports = exports; }
+		constructor(exports: Faust.InstanceAPI) { this.fExports = exports; }
 
-		compute(dsp: DSP, count: number, input: AudioBuffer, output: AudioBuffer) { this.fExports.compute(dsp, count, input, output); }
-		getNumInputs(dsp: DSP) { return this.fExports.getNumInputs(dsp); }
-		getNumOutputs(dsp: DSP) { return this.fExports.getNumOutputs(dsp); }
-		getParamValue(dsp: DSP, index: number) { return this.fExports.getParamValue(dsp, index); }
-		getSampleRate(dsp: DSP) { return this.fExports.getSampleRate(dsp); }
-		init(dsp: DSP, sampleRate: number) { this.fExports.init(dsp, sampleRate); }
-		instanceClear(dsp: DSP) { this.fExports.instanceClear(dsp); }
-		instanceConstants(dsp: DSP, sampleRate: number) { this.fExports.instanceConstants(dsp, sampleRate); }
-		instanceInit(dsp: DSP, sampleRate: number) { this.fExports.instanceInit(dsp, sampleRate); }
-		instanceResetUserInterface(dsp: DSP) { this.fExports.instanceResetUserInterface(dsp); }
-		setParamValue(dsp: DSP, index: number, value: number) { this.fExports.setParamValue(dsp, index, value); }
+		compute(dsp: Faust.DSP, count: number, input: Faust.AudioBuffer, output: Faust.AudioBuffer) { this.fExports.compute(dsp, count, input, output); }
+		getNumInputs(dsp: Faust.DSP) 				{ return this.fExports.getNumInputs(dsp); }
+		getNumOutputs(dsp: Faust.DSP) 				{ return this.fExports.getNumOutputs(dsp); }
+		getParamValue(dsp: Faust.DSP, index: number) { return this.fExports.getParamValue(dsp, index); }
+		getSampleRate(dsp: Faust.DSP) 				{ return this.fExports.getSampleRate(dsp); }
+		init(dsp: Faust.DSP, sampleRate: number) 	{ this.fExports.init(dsp, sampleRate); }
+		instanceClear(dsp: Faust.DSP) 				{ this.fExports.instanceClear(dsp); }
+		instanceConstants(dsp: Faust.DSP, sampleRate: number)	{ this.fExports.instanceConstants(dsp, sampleRate); }
+		instanceInit(dsp: Faust.DSP, sampleRate: number) 		{ this.fExports.instanceInit(dsp, sampleRate); }
+		instanceResetUserInterface(dsp: Faust.DSP) 				{ this.fExports.instanceResetUserInterface(dsp); }
+		setParamValue(dsp: Faust.DSP, index: number, value: number) { this.fExports.setParamValue(dsp, index, value); }
 	}
 
 
@@ -97,7 +97,7 @@ namespace Faust {
 
 		version(): string { return this.fFaustEngine.version(); }
 
-		createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory> {
+		createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Faust.Factory> {
 			return new Promise((resolve, reject) => {
 				try {
 					const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
