@@ -1,5 +1,6 @@
 var options = "-I libraries/";
 var errCode = "foo";
+var effectCode = "process = _,_;";
 
 //----------------------------------------------------------------------------
 // Misc. functions
@@ -26,6 +27,7 @@ async function createDsp(faust, log, code) {
 	log("  JSON: " + instance.json);
 }
 
+
 async function run(engine, log, code) {
 	let faust = new Faust.Compiler(engine);
 	log("libfaust version: " + faust.version());
@@ -39,6 +41,7 @@ async function run(engine, log, code) {
 	log("\n-----------------\nCreating DSP instance with error code:");
 	await createDsp(faust, log, errCode).catch(e => { log(e); });
 
+	/*
 	// Test nodes
 	let module = await faust.createDSPFactory("test", code, options, false);
 	console.log(module);
@@ -47,7 +50,8 @@ async function run(engine, log, code) {
 	let fwan = new Faust.FaustWebAudioNode();
 	let node = fwan.createMonoNode(context, "test", module, true, 512);
 	console.log(node);
-	
+	*/
+
 	log("\nEnd of API tests");
 }
 

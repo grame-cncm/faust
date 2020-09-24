@@ -30,18 +30,17 @@ namespace Faust {
 		constructor(exports: Faust.InstanceAPI) { this.fExports = exports; }
 
 		compute(dsp: Faust.DSP, count: number, input: Faust.AudioBuffer, output: Faust.AudioBuffer) { this.fExports.compute(dsp, count, input, output); }
-		getNumInputs(dsp: Faust.DSP) 				{ return this.fExports.getNumInputs(dsp); }
-		getNumOutputs(dsp: Faust.DSP) 				{ return this.fExports.getNumOutputs(dsp); }
+		getNumInputs(dsp: Faust.DSP) { return this.fExports.getNumInputs(dsp); }
+		getNumOutputs(dsp: Faust.DSP) { return this.fExports.getNumOutputs(dsp); }
 		getParamValue(dsp: Faust.DSP, index: number) { return this.fExports.getParamValue(dsp, index); }
-		getSampleRate(dsp: Faust.DSP) 				{ return this.fExports.getSampleRate(dsp); }
-		init(dsp: Faust.DSP, sampleRate: number) 	{ this.fExports.init(dsp, sampleRate); }
-		instanceClear(dsp: Faust.DSP) 				{ this.fExports.instanceClear(dsp); }
-		instanceConstants(dsp: Faust.DSP, sampleRate: number)	{ this.fExports.instanceConstants(dsp, sampleRate); }
-		instanceInit(dsp: Faust.DSP, sampleRate: number) 		{ this.fExports.instanceInit(dsp, sampleRate); }
-		instanceResetUserInterface(dsp: Faust.DSP) 				{ this.fExports.instanceResetUserInterface(dsp); }
+		getSampleRate(dsp: Faust.DSP) { return this.fExports.getSampleRate(dsp); }
+		init(dsp: Faust.DSP, sampleRate: number) { this.fExports.init(dsp, sampleRate); }
+		instanceClear(dsp: Faust.DSP) { this.fExports.instanceClear(dsp); }
+		instanceConstants(dsp: Faust.DSP, sampleRate: number) { this.fExports.instanceConstants(dsp, sampleRate); }
+		instanceInit(dsp: Faust.DSP, sampleRate: number) { this.fExports.instanceInit(dsp, sampleRate); }
+		instanceResetUserInterface(dsp: Faust.DSP) { this.fExports.instanceResetUserInterface(dsp); }
 		setParamValue(dsp: Faust.DSP, index: number, value: number) { this.fExports.setParamValue(dsp, index, value); }
 	}
-
 
 	export class Compiler {
 		private fFaustEngine: LibFaust;
@@ -64,9 +63,10 @@ namespace Faust {
 			return str;
 		}
 
-		private createWasmImport = () => ({
+		private createWasmImport = (memory?: WebAssembly.Memory) => ({
 			env: {
-				memory: new WebAssembly.Memory({ initial: 100 }),
+				//memory: new WebAssembly.Memory({ initial: 100 }),
+				memory: memory, memoryBase: 0, tableBase: 0,
 				// Integer version
 				_abs: Math.abs,
 				// Float version
@@ -87,11 +87,35 @@ namespace Faust {
 				_pow: Math.pow, _round: Math.fround, _sin: Math.sin, _sqrt: Math.sqrt, _tan: Math.tan,
 				_acosh: Math.acosh, _asinh: Math.asinh, _atanh: Math.atanh,
 				_cosh: Math.cosh, _sinh: Math.sinh, _tanh: Math.tanh,
-				// table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
+				table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
 			}
 		});
 
-		constructor(engine: LibFaust) {
+		private createWasmMemory = (voicesIn: number, dspMeta: TFaustJSON, effectMeta: TFaustJSON, bufferSize: number) => {
+			// Hack : at least 4 voices (to avoid weird WASM memory bug?)
+			const voices = Math.max(4, voicesIn);
+			// Memory allocator
+			const ptrSize = 4;
+			const sampleSize = 4;
+			const pow2limit = (x: number) => {
+				let n = 65536; // Minimum = 64 kB
+				while (n < x) { n *= 2; }
+				return n;
+			};
+			const effectSize = effectMeta ? effectMeta.size : 0;
+
+			// Memory for voices + effect + audio buffers. TODO: handle effect memory separately
+			let memorySize = pow2limit(
+				effectSize
+				+ dspMeta.size * voices
+				+ (dspMeta.inputs + dspMeta.outputs * 2)
+				* (ptrSize + bufferSize * sampleSize)
+			) / 65536;
+			memorySize = Math.max(2, memorySize); // As least 2
+			return new WebAssembly.Memory({ initial: memorySize, maximum: memorySize });
+		};
+
+		constructor(engine?: LibFaust) {
 			this.fFaustEngine = engine;
 		}
 
@@ -100,7 +124,7 @@ namespace Faust {
 		createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Faust.Factory> {
 			return new Promise((resolve, reject) => {
 				try {
-					const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, poly ? false : true);
+					const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, !poly);
 					const wasm = this.fFaustEngine.getWasmModule(factory);
 					WebAssembly.compile(this.intVec2intArray(wasm)).then(module => {
 						this.fFaustEngine.freeWasmModule(factory);
@@ -115,14 +139,13 @@ namespace Faust {
 			});
 		}
 
-		createDSPInstance(module: Factory): Promise<Instance> {
-			return WebAssembly.instantiate(module.module, this.createWasmImport()).then(instance => {
-				const functions: any = instance.exports;
-				const api = new InstanceAPIImpl(<InstanceAPI>functions);
-				const memory: any = instance.exports.memory;
-				const json = this.heap2Str(new Uint8Array(memory.buffer));
-				return { instance: instance, api: api, json: json }
-			});
+		createDSPInstance(module: Factory): Instance {
+			const instance = new WebAssembly.Instance(module.module, this.createWasmImport());
+			const functions: any = instance.exports;
+			const api = new InstanceAPIImpl(<InstanceAPI>functions);
+			const memory: any = instance.exports.memory;
+			const json = this.heap2Str(new Uint8Array(memory.buffer));
+			return { memory: memory, api: api, json: json }
 		}
 
 		expandDSP(name_app: string, dsp_content: string, args: string) {
@@ -149,7 +172,7 @@ namespace Faust {
 			}
 		}
 
-		//	deleteAllDSPFactories(): void;
+		// deleteAllDSPFactories(): void;
 	}
 
 }

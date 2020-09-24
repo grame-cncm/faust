@@ -21,7 +21,6 @@
 
 using namespace std;
 
-
 struct ExpandOut {
     std::string dsp;
     std::string shakey;

@@ -7,6 +7,62 @@ declare namespace Faust {
     type AudioBuffer = number;
     type DSP = number;
 
+    type TFaustJSON = {
+        name: string;
+        filename: string;
+        compile_options: string;
+        include_pathnames: string[];
+        inputs: number;
+        outputs: number;
+        size: number;
+        version: string;
+        library_list: string[];
+        meta: { [key: string]: string }[];
+        ui: TFaustUI;
+    };
+
+    type TFaustUI = TFaustUIGroup[];
+    type TFaustUIItem = TFaustUIInputItem | TFaustUIOutputItem | TFaustUIGroup;
+    type TFaustUIInputItem = {
+        type: TFaustUIInputType;
+        label: string;
+        address: string;
+        index: number;
+        init?: number;
+        min?: number;
+        max?: number;
+        step?: number;
+        meta?: TFaustUIMeta[];
+    };
+    type TFaustUIOutputItem = {
+        type: TFaustUIOutputType;
+        label: string;
+        address: string;
+        index: number;
+        min?: number;
+        max?: number;
+        meta?: TFaustUIMeta[];
+    };
+    type TFaustUIMeta = {
+        [order: number]: string;
+        style?: string; // "knob" | "menu{'Name0':value0;'Name1':value1}" | "radio{'Name0':value0;'Name1':value1}" | "led";
+        unit?: string;
+        scale?: "linear" | "exp" | "log";
+        tooltip?: string;
+        hidden?: string;
+        [key: string]: string;
+    }
+    type TFaustUIGroupType = "vgroup" | "hgroup" | "tgroup";
+    type TFaustUIOutputType = "hbargraph" | "vbargraph";
+    type TFaustUIInputType = "vslider" | "hslider" | "button" | "checkbox" | "nentry";
+    type TFaustUIGroup = {
+        type: TFaustUIGroupType;
+        label: string;
+        items: TFaustUIItem[];
+    }
+    type TFaustUIType = TFaustUIGroupType | TFaustUIOutputType | TFaustUIInputType;
+
+
     /**
      * A Faust wasm instance interface.
     */
@@ -63,14 +119,17 @@ declare namespace Faust {
         setParamValue(dsp: DSP, index: number, value: number): void;
     }
 
-    interface Instance {
-        instance: WebAssembly.Instance;
-        api: InstanceAPI;
-        json: string;
+    /**
+     * Mixer used in polyphonic mode.
+    */
+    interface MixerAPI {
+        clearOutput(bufferSize: number, chans: number, ouputs: AudioBuffer): void;
+        mixVoice(bufferSize: number, chans: number, inputs: AudioBuffer, ouputs: AudioBuffer): void;
     }
 
     interface Factory {
         module: WebAssembly.Module;
+        //json: string;
         poly: boolean;
     }
 
@@ -83,6 +142,21 @@ declare namespace Faust {
     interface AuxOut {
         success: boolean;
         error: string;
+    }
+
+    interface Instance {
+        memory: WebAssembly.Memory;
+        api: InstanceAPI;
+        json: string;
+    }
+
+    interface PolyInstance {
+        memory: WebAssembly.Memory;
+        voice_api: InstanceAPI;
+        effect_api: InstanceAPI;
+        mixer_api: MixerAPI;
+        voice_json: string;
+        effect_json: string;
     }
 
     interface Compiler {
@@ -105,21 +179,32 @@ declare namespace Faust {
          * @param {string} name - an arbitrary name for the faust module
          * @param {string} code - faust dsp code
          * @param {string} args - the compiler options
-         * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
+         * @param {boolean} poly - tell the compiler to generate static embedded memory or not
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
         createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory>;
 
         /**
-         * Create a wasm instance of a wasm factory. This function is running asynchronously.
+         * Create a wasm instance of a wasm factory.
          *
          * @param {Factory} module - a module previously created using createDSPFactory
-         * @returns {Promise<Instance>} on completion, gives a wasm instance and the associated object to manipulate this instance.
+         * @returns {Instance} on completion, gives a wasm instance and the associated object to manipulate this instance.
          */
-        createDSPInstance(module: Factory): Promise<Instance>;
+        createDSPInstance(module: Factory): Instance;
 
         /**
-         * Expand faust code i.e. linearize included libraries
+         * Create a polyphonic wasm instance of a wasm voice factory and effect factory. 
+         *
+         * @param {Factory} voice_module - a module previously created using createDSPFactory
+         * @param {Factory} effect_module - a module previously created using createDSPFactory
+         * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
+         * @param {number} nvoices - the number of voices to be created
+         * @returns {PolyInstance} on completion, gives a wasm instance and the associated object to manipulate this instance.
+         */
+        createPolyDSPInstance(voice_module: Factory, effect_module: Factory, mixer_module: WebAssembly.Module, nvoices: number): PolyInstance;
+
+        /**
+         * Expand faust code i.e. linearize included libraries.
          *
          * @param {string} name - an arbitrary name for the faust module
          * @param {string} code - faust dsp code
@@ -129,7 +214,7 @@ declare namespace Faust {
         expandDSP(name_app: string, dsp_content: string, args: string): ExpandOut
 
         /**
-         * Generates auxiliary files from faust code. The output depends on the compiler options
+         * Generates auxiliary files from faust code. The output depends on the compiler options.
          *
          * @param {string} name - an arbitrary name for the faust module
          * @param {string} code - faust dsp code

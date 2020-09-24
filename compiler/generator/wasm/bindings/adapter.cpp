@@ -19,7 +19,7 @@ static void string2StringsVector(const string& args, vector<string>& strings)
 {
     string str = args;
     while (true) {
-        size_t pos = str.find_first_of (' ', 0);
+        size_t pos = str.find_first_of(' ', 0);
         if (pos == string::npos) break;
         if (pos > 1) strings.push_back(str.substr(0, pos));
         str = str.substr(pos+1, string::npos);
@@ -51,11 +51,11 @@ int libFaustWasm::createDSPFactory(const string name, const string dsp, const st
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
     char errmsg[4096]; errmsg[0] = 0;
     if (n) {
-        const char** args = stringVector2argv (argsv);
-        out = int(::createWasmCDSPFactoryFromString (name.c_str(), dsp.c_str(), n, args, errmsg, internal_memory));
+        const char** args = stringVector2argv(argsv);
+        out = int(::createWasmCDSPFactoryFromString(name.c_str(), dsp.c_str(), n, args, errmsg, internal_memory));
         delete [] args;
     } else {
-        out = int(::createWasmCDSPFactoryFromString (name.c_str(), dsp.c_str(), 0, 0, errmsg, internal_memory));
+        out = int(::createWasmCDSPFactoryFromString(name.c_str(), dsp.c_str(), 0, 0, errmsg, internal_memory));
     }
     return out;
 }

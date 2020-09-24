@@ -47,7 +47,11 @@ using namespace std;
  - move loop 'i' variable by bytes instead of frames to save index code generation of input/output accesses
  (gLoopVarInBytes)
  - offset of inputs/outputs are constant, so can be directly generated
-
+ 
+ Code generation, the flags can be:
+    - 'wast-i' (internal memory for monophonic DSP)
+    - 'wast-e' (external memory for polyphonic DSP)
+    - 'wast' which is equivalent to 'wasm-i'
 */
 
 dsp_factory_base* WASTCodeContainer::produceFactory()
@@ -349,7 +353,7 @@ void WASTCodeContainer::produceClass()
 
     // Helper code
 
-    // Generate JSON and getSize
+    // Generate JSON
     tab(n, fHelper);
     fHelper << "/*\n"
             << "Code generated with Faust version " << FAUSTVERSION << endl;

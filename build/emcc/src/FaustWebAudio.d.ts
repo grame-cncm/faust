@@ -19,70 +19,87 @@
  ************************************************************************
  ************************************************************************/
 
-
 declare namespace Faust {
 
-interface OutputParamHandler { (path: string, value: number): void }
-interface MetadataHandler { (key: string, value: number): void }
+	interface OutputParamHandler { (path: string, value: number): void }
+	interface MetadataHandler { (key: string, value: number): void }
 
-// Implemntation types
-interface MonoDSP {
+	// Implementation types
+	interface MonoDSP {
 
+		fInChannels: Float32Array[];
+		fOutChannels: Float32Array[];
 
-	fInChannels: Float32Array[];
-	fOutChannels: Float32Array[];
+		fInstance: Faust.Instance;
 
-	fInstance: Faust.Instance;
+		setOutputParamHandler(handler: OutputParamHandler): void;
+		getOutputParamHandler(): OutputParamHandler;
 
-	getNumInputs(): number;
-	getNumOutputs(): number;
+		getNumInputs(): number;
+		getNumOutputs(): number;
 
-	compute(inputs: Float32Array[], outputs: Float32Array[]): boolean;
+		compute(inputs: Float32Array[], outputs: Float32Array[]): boolean;
 
-	ctrlChange(chan: number, ctrl: number, value: number): void;
-	pitchWheel(chan: number, value: number): void;
+		// TODO: do proper typing
+		midiMessage(data: any): void;
+		ctrlChange(chan: number, ctrl: number, value: number): void;
+		pitchWheel(chan: number, value: number): void;
 
-	setParamValue(path: string, value: number): void;
-	getParamValue(path: string): number;
+		setParamValue(path: string, value: number): void;
+		getParamValue(path: string): number;
 
-	getParams(): Array<string>;
+		getParams(): string[];
 
-	getJSON(): string;
+		getJSON(): string;
 
-}
+	}
 
-interface PolyDSP extends MonoDSP {
-}
+	interface PolyDSP extends MonoDSP {
+	}
 
-// Public API
-interface FaustAudioNode {
+	// Public API
+	interface FaustAudioNode {
 
-	setOutputParamHandler(handler: OutputParamHandler): void;
-	getOutputParamHandler(): OutputParamHandler;
-	metadata(handler: MetadataHandler): void;
-	ctrlChange(chan: number, ctrl: number, value: number): void;
-	pitchWheel(chan: number, value: number): void;
-	setParamValue(path: string, value: number): void;
-	getParamValue(path: string): number;
-	getParams(): Array<string>;
-	getJSON(): string;
-	destroy(): void; // to do: check is this function is still really needed
-}
+		setOutputParamHandler(handler: OutputParamHandler): void;
+		getOutputParamHandler(): OutputParamHandler;
+		metadata(handler: MetadataHandler): void;
+		ctrlChange(chan: number, ctrl: number, value: number): void;
+		pitchWheel(chan: number, value: number): void;
+		setParamValue(path: string, value: number): void;
+		getParamValue(path: string): number;
+		getParams(): string[];
+		getJSON(): string;
+		destroy(): void; // to do: check is this function is still really needed
+	}
 
-interface FaustAudioPolyNode extends FaustAudioNode {
-	keyOn(pitch: number, velocity: number): void;
-	keyOff(pitch: number, velocity: number): void;
-	allNotesOff(): void;
+	interface FaustAudioPolyNode extends FaustAudioNode {
+		keyOn(pitch: number, velocity: number): void;
+		keyOff(pitch: number, velocity: number): void;
+		allNotesOff(): void;
 
-	//midiMessage(data: number[] | Uint8Array): void;
-}
+		//midiMessage(data: number[] | Uint8Array): void;
+	}
 
-interface FaustWebAudioNode {
-	compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean): Promise<FaustAudioNode>;
-	compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+	interface FaustScriptProcessorNode extends ScriptProcessorNode, MonoDSP {
 
-	createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean): Promise<FaustAudioNode>;
-	createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
-}
+	}
+
+	interface FaustWebAudioNode {
+		compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean): Promise<FaustAudioNode>;
+
+		// We assume that 'dsp_content' contains an integrated effect
+		compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+
+		// Separated 'voice' and 'effect' DSP
+		compilePolyNode2(context: BaseAudioContext, name: string, faust: LibFaust, voice_dsp: string, effect_dsp: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+
+		createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean): Promise<FaustAudioNode>;
+
+		// We assume that 'dsp_content' contains an integrated effect
+		createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+
+		// Separated 'voice' and 'effect' modules
+		createPolyNode2(context: BaseAudioContext, name: string, voice_module: Faust.Factory, effect_module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+	}
 
 }
