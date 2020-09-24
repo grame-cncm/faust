@@ -19,14 +19,19 @@
  ************************************************************************
  ************************************************************************/
 
-// SVGDev.h
-
 #if !defined SVGDEV_H
 #define SVGDEV_H
+
+#include <iostream>
 
 #include "device.h"
 
 class SVGDev : public device {
+   private:
+	std::ostream * fOutStream = 0;
+	
+	inline std::ostream& outstream() 	{ return *fOutStream; }
+
    public:
     SVGDev(const char*, double, double);
     ~SVGDev();

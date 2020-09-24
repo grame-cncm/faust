@@ -26,132 +26,114 @@
 #include "global.hh"
 
 #include <stdio.h>
-#include <iostream>
+#include <fstream>
 #include <sstream>
 
 using namespace std;
 
-static char* xmlcode(const char* name, char* name2)
+
+static string xmlcode(const char* name)
 {
-    int i, j;
-
+    stringstream out;
     // SUBSTITUTION DES CARACTeRES INTERDITS EN XML
-
-    for (i = 0, j = 0; (name[i] != 0) && (j < 250); i++) {
-        switch (name[i]) {
+    while (*name) {
+		char c = *name++;
+		switch (c) {
             case '<':
-                name2[j++] = '&';
-                name2[j++] = 'l';
-                name2[j++] = 't';
-                name2[j++] = ';';
+                out << "&lt;";
                 break;
             case '>':
-                name2[j++] = '&';
-                name2[j++] = 'g';
-                name2[j++] = 't';
-                name2[j++] = ';';
+                out << "&gt;";
                 break;
             case '\'':
-                name2[j++] = '&';
-                name2[j++] = 'a';
-                name2[j++] = 'p';
-                name2[j++] = 'o';
-                name2[j++] = 's';
-                name2[j++] = ';';
+                out << "&apos;";
                 break;
             case '"':
-                name2[j++] = '&';
-                name2[j++] = 'q';
-                name2[j++] = 'u';
-                name2[j++] = 'o';
-                name2[j++] = 't';
-                name2[j++] = ';';
+                out << "&quot;";
                 break;
             case '&':
-                name2[j++] = '&';
-                name2[j++] = 'a';
-                name2[j++] = 'm';
-                name2[j++] = 'p';
-                name2[j++] = ';';
+                out << "&amp;";
                 break;
             default:
-                name2[j++] = name[i];
-        }
+				out << c;
+		}
     }
-    name2[j] = 0;
-
-    return name2;
+    return out.str();
 }
 
 SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
     double gScale = 0.5;
-    if ((fic_repr = fopen(ficName, "w+")) == nullptr) {
+    fOutStream = new ofstream (ficName);
+    if (fOutStream->fail()) {
         stringstream error;
         error << "ERROR : impossible to create or open " << ficName << endl;
         throw faustexception(error.str());
     }
 
     // representation file:
-    fprintf(fic_repr, "<?xml version=\"1.0\"?>\n");
-    // + DTD ...
+    outstream() << "<?xml version=\"1.0\"?>" << endl;
+	// + DTD ...
     // viewBox:
+    const char* svgref = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"";
+    
     if (gGlobal->gScaledSVG) {
-        fprintf(fic_repr,
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 "
-                "%f %f\" width=\"100%%\" height=\"100%%\" version=\"1.1\">\n",
-                largeur, hauteur);
+        outstream() << svgref << " viewBox=\"0 0 " << largeur << " " << hauteur << "\" width=\"100%%\" height=\"100%%\" version=\"1.1\">" << endl;
     } else {
-        fprintf(fic_repr,
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 "
-                "%f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n",
-                largeur, hauteur, largeur * gScale, hauteur * gScale);
+        outstream() << svgref << " viewBox=\"0 0 " << largeur << " " << hauteur
+					<< "\" width=\"" << largeur * gScale << "mm\" height=\"" << hauteur * gScale << "mm\" version=\"1.1\">" << endl;
     }
 
     if (gGlobal->gShadowBlur) {
-        fprintf(fic_repr,
-                "<defs>\n"
+        outstream() <<
+				"<defs>\n"
                 "   <filter id=\"filter\" filterRes=\"18\" x=\"0\" y=\"0\">\n"
                 "     <feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"1.55\" result=\"blur\"/>\n"
                 "     <feOffset in=\"blur\" dx=\"3\" dy=\"3\"/>\n"
                 "   </filter>\n"
-                "</defs>\n");
+                "</defs>" << endl;
     }
+    outstream() <<
+			"<style>\n"
+			"   .arrow { stroke:black; stroke-width:0.25; fill:none}\n"
+			"   .line  { stroke:black; stroke-linecap:round; stroke-width:0.25; }\n"
+			"   .dash  { stroke-dasharray:3,3; }\n"
+			"   .text  { font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF; }\n"
+			"   .label { font-family:Arial; font-size:7px; }\n"
+			"   .error { stroke-width:0.3; fill:red; text-anchor:middle; }\n"
+			"   .reason{ stroke-width:0.3; fill:none; text-anchor:middle; }\n"
+			"   .carre { stroke:black; stroke-width:0.5; fill:none; }\n"
+			"   .shadow{ stroke:none; fill:#aaaaaa; filter:url(#filter); }\n"
+			"   .border{ stroke:none; fill:#cccccc; }\n"
+			"</style>" << endl;
 }
 
 SVGDev::~SVGDev()
 {
-    fprintf(fic_repr, "</svg>\n");
-    fclose(fic_repr);
+    outstream() << "</svg>" << endl;
+    delete fOutStream;
 }
 
 void SVGDev::rect(double x, double y, double l, double h, const char* color, const char* link)
 {
-    char buf[512];
     if (link != 0 && link[0] != 0) {
         // open the optional link tag
-        fprintf(fic_repr, "<a xlink:href=\"%s\">\n", xmlcode(link, buf));
+        outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">" << endl;
     }
     // draw the shadow
-    if (gGlobal->gShadowBlur) {
-        fprintf(fic_repr,
-                "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0.1\" ry=\"0.1\" "
-                "style=\"stroke:none;fill:#aaaaaa;;filter:url(#filter);\"/>\n",
-                x + 1, y + 1, l, h);
-    } else {
-        fprintf(fic_repr,
-                "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" "
-                "style=\"stroke:none;fill:#cccccc;\"/>\n",
-                x + 1, y + 1, l, h);
-    }
+    string rclass = (gGlobal->gShadowBlur) ? "shadow" : "border";
+	outstream() << "<rect x=\"" << x+1 << "\" y=\"" << y+1
+				<< "\" width=\"" << l << "\" height=\"" << h
+				<< "\" rx=\"0.1\" ry=\"0.1\" class=\"" << rclass << "\"/>" << endl;
 
     // draw the rectangle
-    fprintf(fic_repr,
-            "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n",
-            x, y, l, h, color);
+	outstream() << "<rect x=\"" << x << "\" y=\"" << y
+				<< "\" width=\"" << l << "\" height=\"" << h
+				<< "\" rx=\"0\" ry=\"0\""
+				<< " style=\"stroke:none; fill:" << color << "\"/>" << endl;
     if (link != 0 && link[0] != 0) {
         // close the optional link tag
-        fprintf(fic_repr, "</a>\n");
+        outstream() << "</a>" << endl;
     }
 }
 
@@ -161,10 +143,9 @@ void SVGDev::rect(double x, double y, double l, double h, const char* color, con
 
 void SVGDev::triangle(double x, double y, double l, double h, const char* color, const char* link, bool leftright)
 {
-    char buf[512];
     if (link != 0 && link[0] != 0) {
         // open the optional link tag
-        fprintf(fic_repr, "<a xlink:href=\"%s\">\n", xmlcode(link, buf));
+        outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">" << endl;
     }
     // draw triangle+circle
     float r = 1.5;  // circle radius
@@ -178,107 +159,72 @@ void SVGDev::triangle(double x, double y, double l, double h, const char* color,
         x1 = (float)(x + 2 * r);
         x2 = (float)(x + r);
     }
-    fprintf(fic_repr, "<polygon fill=\"%s\" stroke=\"black\" stroke-width=\".25\" points=\"%f,%f %f,%f %f,%f\"/>\n",
-            color, x0, y, x1, y + h / 2.0, x0, y + h);
-    fprintf(fic_repr, "<circle  fill=\"%s\" stroke=\"black\" stroke-width=\".25\" cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n",
-            color, x2, y + h / 2.0, r);
+    outstream() << "<polygon fill=\"" << color << "\" stroke=\"black\" stroke-width=\".25\""
+				<< " points=\"" << x0 << "," << y << "," << x1 << "," << (y + h / 2.0f) << "," << x0 << "," << (y+h) << "\"/>" << endl;
+    outstream() << "<circle  fill=\"" << color << "\" stroke=\"black\" stroke-width=\".25\""
+				<< " cx=\"" << x2 << "\" cy=\"" << (y + h / 2.0f) << "\" r=\"" << r << "\"/>" << endl;
+    if (link != 0 && link[0] != 0) {
+        // close the optional link tag
+        outstream() << "</a>" << endl;
+    }
 }
 
 void SVGDev::rond(double x, double y, double rayon)
 {
-    fprintf(fic_repr, "<circle cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n", x, y, rayon);
+    outstream() << "<circle cx=\"" << x << "\" cy=\"" << y << "\" r=\"" << rayon << "\"/>" << endl;
 }
 
 void SVGDev::fleche(double x, double y, double rotation, int sens)
 {
-    double dx = 3;
+    double dx = (sens == 1) ? 3 : -3;
     double dy = 1;
-
-    if (sens == 1) {
-        fprintf(fic_repr,
-                "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  transform=\"rotate(%f,%f,%f)\" style=\"stroke: black; "
-                "stroke-width:0.25;\"/>\n",
-                x - dx, y - dy, x, y, rotation, x, y);
-        fprintf(fic_repr,
-                "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  transform=\"rotate(%f,%f,%f)\" style=\"stroke: black; "
-                "stroke-width:0.25;\"/>\n",
-                x - dx, y + dy, x, y, rotation, x, y);
-    } else  // for recursion
-    {
-        fprintf(fic_repr,
-                "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  transform=\"rotate(%f,%f,%f)\" style=\"stroke: black; "
-                "stroke-width:0.25;\"/>\n",
-                x + dx, y - dy, x, y, rotation, x, y);
-        fprintf(fic_repr,
-                "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  transform=\"rotate(%f,%f,%f)\" style=\"stroke: black; "
-                "stroke-width:0.25;\"/>\n",
-                x + dx, y + dy, x, y, rotation, x, y);
-    }
+	outstream() << "<path d=\"M" << x-dx << " " << y-dy << " L" << x << " " << y << " L" << x-dx << " " << y+dy << "\" class=\"arrow\" />" << endl;
 }
 
 void SVGDev::carre(double x, double y, double cote)
 {
-    fprintf(
-        fic_repr,
-        "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" style=\"stroke: black;stroke-width:0.5;fill:none;\"/>\n",
-        x - 0.5 * cote, y - cote, cote, cote);
+    outstream() << "<rect x=\"" << (x - 0.5 * cote) << "\" y=\"" << (y - cote)
+				<< "\" width=\"" << cote << "\" height=\"" << cote << "\" class=\"carre\"/>" << endl;
 }
 
 void SVGDev::trait(double x1, double y1, double x2, double y2)
 {
-    fprintf(fic_repr,
-            "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke:black; stroke-linecap:round; "
-            "stroke-width:0.25;\"/>\n",
-            x1, y1, x2, y2);
+    outstream() << "<line x1=\"" << x1 << "\" y1=\"" << y1 << "\" x2=\"" << x2 << "\" y2=\"" << y2 << "\" class=\"line\"/>" << endl;
 }
 
 void SVGDev::dasharray(double x1, double y1, double x2, double y2)
 {
-    fprintf(fic_repr,
-            "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke: black; stroke-linecap:round; "
-            "stroke-width:0.25; stroke-dasharray:3,3;\"/>\n",
-            x1, y1, x2, y2);
+    outstream() << "<line x1=\"" << x1 << "\" y1=\"" << y1 << "\" x2=\"" << x2 << "\" y2=\"" << y2 << "\" class=\"line dash\"/>" << endl;
 }
 
 void SVGDev::text(double x, double y, const char* name, const char* link)
 {
-    char buf[512];
     if (link != 0 && link[0] != 0) {
         // open the optional link tag
-        fprintf(fic_repr, "<a xlink:href=\"%s\">\n", xmlcode(link, buf));
+        outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">"<< endl;
     }
-    char name2[256];
-    fprintf(fic_repr,
-            "<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\" text-anchor=\"middle\" "
-            "fill=\"#FFFFFF\">%s</text>\n",
-            x, y + 2, xmlcode(name, name2));
+    outstream() << "<text x=\"" << x << "\" y=\"" << y+2 << "\" class=\"text\">" << xmlcode(name) << "</text>" << endl;
     if (link != 0 && link[0] != 0) {
         // close the optional link tag
-        fprintf(fic_repr, "</a>\n");
+        outstream() << "</a>" << endl;
     }
 }
 
 void SVGDev::label(double x, double y, const char* name)
 {
-    char name2[256];
-    fprintf(fic_repr, "<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\">%s</text>\n", x, y + 2,
-            xmlcode(name, name2));
+    outstream() << "<text x=\"" << x << "\" y=\"" << y+2 << "\" class=\"label\">" << xmlcode(name) << "</text>" << endl;
 }
 
 void SVGDev::markSens(double x, double y, int sens)
 {
     int offset = (sens == 1) ? 2 : -2;
-    fprintf(fic_repr, "<circle cx=\"%f\" cy=\"%f\" r=\"1\"/>\n", x + offset, y + offset);
+    outstream() << "<circle cx=\"" << x + offset << "\" cy=\"" << y + offset << "\" r=\"1\"/>" << endl;
 }
 
 void SVGDev::Error(const char* message, const char* reason, int nb_error, double x, double y, double largeur)
 {
-    fprintf(fic_repr,
-            "<text x=\"%f\" y=\"%f\"  textLength=\"%f\" lengthAdjust=\"spacingAndGlyphs\" style=\"stroke: red; "
-            "stroke-width:0.3; fill:red; text-anchor:middle;\">%d : %s</text>\n",
-            x, y - 7, largeur, nb_error, message);
-    fprintf(fic_repr,
-            "<text x=\"%f\" y=\"%f\"  textLength=\"%f\" lengthAdjust=\"spacingAndGlyphs\" style=\"stroke: red; "
-            "stroke-width:0.3; fill:none; text-anchor:middle;\">%s</text>\n",
-            x, y + 7, largeur, reason);
+    outstream() << "<text x=\"" << x << "\" y=\"" << y-7 << "\"  textLength=\"" << largeur
+				<< "\" lengthAdjust=\"spacingAndGlyphs\" class=\"error\">" << nb_error << " : " << message << "</text>" << endl;
+    outstream() << "<text x=\"" << x << "\" y=\"" << y+7 << "\"  textLength=\"" << largeur
+				<< "\" lengthAdjust=\"spacingAndGlyphs\" class=\"reason\"> " << reason << "</text>" << endl;
 }
