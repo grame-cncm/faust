@@ -26,6 +26,11 @@ struct ExpandOut {
     std::string shakey;
 };
 
+struct FaustWasm {
+    std::vector<int> data;
+    std::string json;
+};
+
 class libFaustWasm
 {
     public:
@@ -39,7 +44,7 @@ class libFaustWasm
     
         void        deleteAllDSPFactories() { ::deleteAllWasmCDSPFactories(); }
     
-        std::vector<int>   getWasmModule(int module);
+        FaustWasm   getWasmModule(int module);
         void        freeWasmModule(int module) { ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
     
         void        cleanupAfterException() { ::cleanupAfterException(); }

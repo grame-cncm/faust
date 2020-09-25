@@ -29,8 +29,9 @@ EMSCRIPTEN_BINDINGS(CStruct) {
 //    value_object<AuxOut>("AuxOut")
 //        .field("success", &AuxOut::success);
 //
-//    value_object<FaustWasm>("FaustWasm")
-//        .field("data", &FaustWasm::data);
+    value_object<FaustWasm>("FaustWasm")
+        .field("data", &FaustWasm::data)
+        .field("json", &FaustWasm::json);
 }
 
 EMSCRIPTEN_BINDINGS(FaustModule) {

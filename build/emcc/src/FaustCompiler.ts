@@ -54,14 +54,14 @@ namespace Faust {
 			return ui8Code;
 		}
 
-		private heap2Str(buf: Uint8Array) {
-			let str = "";
-			let i = 0;
-			while (buf[i] !== 0) {
-				str += String.fromCharCode(buf[i++]);
-			}
-			return str;
-		}
+		// private heap2Str(buf: Uint8Array) {
+		// 	let str = "";
+		// 	let i = 0;
+		// 	while (buf[i] !== 0) {
+		// 		str += String.fromCharCode(buf[i++]);
+		// 	}
+		// 	return str;
+		// }
 
 		private createWasmImport = (memory?: WebAssembly.Memory) => ({
 			env: {
@@ -126,9 +126,10 @@ namespace Faust {
 				try {
 					const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, !poly);
 					const wasm = this.fFaustEngine.getWasmModule(factory);
-					WebAssembly.compile(this.intVec2intArray(wasm)).then(module => {
+					console.log(wasm.json);
+					WebAssembly.compile(this.intVec2intArray(wasm.data)).then(module => {
 						this.fFaustEngine.freeWasmModule(factory);
-						resolve({ module: module, poly: poly });
+						resolve({ module: module, json: wasm.json, poly: poly });
 					});
 				} catch {
 					const error = this.fFaustEngine.getErrorAfterException();
@@ -139,13 +140,12 @@ namespace Faust {
 			});
 		}
 
-		createDSPInstance(module: Factory): Instance {
-			const instance = new WebAssembly.Instance(module.module, this.createWasmImport());
+		createDSPInstance(factory: Factory): Instance {
+			const instance = new WebAssembly.Instance(factory.module, this.createWasmImport());
 			const functions: any = instance.exports;
 			const api = new InstanceAPIImpl(<InstanceAPI>functions);
 			const memory: any = instance.exports.memory;
-			const json = this.heap2Str(new Uint8Array(memory.buffer));
-			return { memory: memory, api: api, json: json }
+			return { memory: memory, api: api, json: factory.json }
 		}
 
 		expandDSP(name_app: string, dsp_content: string, args: string) {

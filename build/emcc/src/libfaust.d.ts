@@ -1,39 +1,43 @@
 /************************************************************************
  ************************************************************************
-	FAUST compiler
-	Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
-	---------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    FAUST compiler
+    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
 type WasmModule = number;
 
 interface Expand {
-	dsp: string;
-	shakey: string;
+    dsp: string;
+    shakey: string;
 }
 
 interface IntVector { size(): number; get(i: number): number; }
 
+interface FaustWasm {
+    data: IntVector;
+    json: string;
+}
 /*
-	Low level interface to the faust library.
-	Used for internal dev purpose only (not public)
+    Low level interface to the faust library.
+    Used for internal dev purpose only (not public)
 */
 interface LibFaust {
-	version(): string;
+    version(): string;
 
     /**
      * Create a dsp factory from faust code
@@ -42,9 +46,9 @@ interface LibFaust {
      * @param {string} code - faust dsp code
      * @param {string} args - the compiler options
      * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
-	 * @returns {WasmModule} an opaque reference to the factory
+     * @returns {WasmModule} an opaque reference to the factory
      */
-	createDSPFactory(name: string, code: string, args: string, internal_memory: boolean): WasmModule;
+    createDSPFactory(name: string, code: string, args: string, internal_memory: boolean): WasmModule;
 
     /**
      * Expand faust code i.e. linearize included libraries
@@ -52,9 +56,9 @@ interface LibFaust {
      * @param {string} name - an arbitrary name for the faust module
      * @param {string} code - faust dsp code
      * @param {string} args - the compiler options
-	 * @returns {Expand} contains the expanded dsp code and the corresponding sha key
+     * @returns {Expand} contains the expanded dsp code and the corresponding sha key
      */
-	expandDSP(name_app: string, dsp_content: string, args: string): Expand
+    expandDSP(name_app: string, dsp_content: string, args: string): Expand
 
     /**
      * Generates auxiliary files from faust code. The output depends on the compiler options
@@ -63,35 +67,35 @@ interface LibFaust {
      * @param {string} code - faust dsp code
      * @param {string} args - the compiler options
      */
-	generateAuxFiles(name_app: string, dsp_content: string, args: string): boolean;
+    generateAuxFiles(name_app: string, dsp_content: string, args: string): boolean;
 
     /**
      * Delete all existing dsp factories 
      */
-	deleteAllDSPFactories(): void;
+    deleteAllDSPFactories(): void;
 
     /**
      * Get wasm code from a module
      *
      * @param {WasmModule} module - a module created using createDSPFactory
-     * @return {IntVector} wasm code as vector of numbers
+     * @return {FaustWasm} wasm code as vector of numbers and JSON string
     */
-	getWasmModule(module: WasmModule): IntVector;
+    getWasmModule(module: WasmModule): FaustWasm;
 
     /**
      * Release a module created using createDSPFactory
      *
      * @param {WasmModule} module - a module created using createDSPFactory
      */
-	freeWasmModule(module: WasmModule): void;
+    freeWasmModule(module: WasmModule): void;
 
     /**
      * Exception management: gives an error string
      */
-	getErrorAfterException(): string;
+    getErrorAfterException(): string;
     /**
      * Exception management: cleanup
-	 * Should be called after each exception generated by the LibFaust methods.
+     * Should be called after each exception generated by the LibFaust methods.
      */
-	cleanupAfterException(): void;
+    cleanupAfterException(): void;
 }

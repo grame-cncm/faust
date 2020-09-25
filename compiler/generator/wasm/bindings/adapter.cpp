@@ -45,7 +45,7 @@ int libFaustWasm::createDSPFactory(const string name, const string dsp, const st
     vector<string> argsv;
     string2StringsVector (args, argsv);
     size_t n = argsv.size();
-//    cerr << "libFaustWasm::createDSPFactory " << name << " " << args;
+    // cerr << "libFaustWasm::createDSPFactory " << name << " " << args;
     
     int out;
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
@@ -102,17 +102,18 @@ bool libFaustWasm::generateAuxFiles(const string name, const string dsp, const s
     return out;
 }
 
-std::vector<int> libFaustWasm::getWasmModule(int mptr)
+FaustWasm libFaustWasm::getWasmModule(int mptr)
 {
-    std::vector<int> out;
     WasmModule* module = static_cast<WasmModule*>((void*)mptr);
-    if (module) {
-        const char* ptr = getWasmCModule(module);
-        int size = getWasmCModuleSize(module);
-        for (int i = 0; i < size; i++) {
-            out.push_back(*ptr++);
-        }
+    faustassert(module);
+    
+    FaustWasm out;
+    const char* ptr = getWasmCModule(module);
+    int size = getWasmCModuleSize(module);
+    for (int i = 0; i < size; i++) {
+        out.data.push_back(*ptr++);
     }
+    out.json = getWasmCHelpers(module);
     return out;
 }
 

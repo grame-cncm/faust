@@ -354,24 +354,26 @@ void WASTCodeContainer::produceClass()
     // Helper code
 
     // Generate JSON
-    tab(n, fHelper);
-    fHelper << "/*\n"
-            << "Code generated with Faust version " << FAUSTVERSION << endl;
-    fHelper << "Compilation options: ";
-    gGlobal->printCompilationOptions(fHelper);
-    fHelper << "\n*/\n";
-
-    // Generate JSON
-    tab(n, fHelper);
-    string json2 = flattenJSON1(json);
-    fHelper << "function getJSON" << fKlassName << "() {";
-    tab(n + 1, fHelper);
-    fHelper << "return '";
-    fHelper << json2;
-    fHelper << "';";
-    printlines(n + 1, fUICode, fHelper);
-    tab(n, fHelper);
-    fHelper << "}\n";
+//    tab(n, fHelper);
+//    fHelper << "/*\n"
+//            << "Code generated with Faust version " << FAUSTVERSION << endl;
+//    fHelper << "Compilation options: ";
+//    gGlobal->printCompilationOptions(fHelper);
+//    fHelper << "\n*/\n";
+//
+//    // Generate JSON
+//    tab(n, fHelper);
+//    string json2 = flattenJSON1(json);
+//    fHelper << "function getJSON" << fKlassName << "() {";
+//    tab(n + 1, fHelper);
+//    fHelper << "return '";
+//    fHelper << json2;
+//    fHelper << "';";
+//    printlines(n + 1, fUICode, fHelper);
+//    tab(n, fHelper);
+//    fHelper << "}\n";
+    
+    fHelper << json;
 }
 
 DeclareFunInst* WASInst::generateIntMin()

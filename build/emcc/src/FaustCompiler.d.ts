@@ -129,7 +129,7 @@ declare namespace Faust {
 
     interface Factory {
         module: WebAssembly.Module;
-        //json: string;
+        json: string;
         poly: boolean;
     }
 

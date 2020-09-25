@@ -354,24 +354,26 @@ void WASMCodeContainer::produceClass()
     int n = 0;
 
     // Generate JSON
-    tab(n, fHelper);
-    fHelper << "/*\n"
-            << "Code generated with Faust version " << FAUSTVERSION << endl;
-    fHelper << "Compilation options: ";
-    gGlobal->printCompilationOptions(fHelper);
-    fHelper << "\n*/\n";
+//    tab(n, fHelper);
+//    fHelper << "/*\n"
+//            << "Code generated with Faust version " << FAUSTVERSION << endl;
+//    fHelper << "Compilation options: ";
+//    gGlobal->printCompilationOptions(fHelper);
+//    fHelper << "\n*/\n";
 
-    // Generate JSON
-    tab(n, fHelper);
-    string json2 = flattenJSON1(json);
-    fHelper << "function getJSON" << fKlassName << "() {";
-    tab(n + 1, fHelper);
-    fHelper << "return '";
-    fHelper << json2;
-    fHelper << "';";
-    printlines(n + 1, fUICode, fHelper);
-    tab(n, fHelper);
-    fHelper << "}\n";
+//    // Generate JSON
+//    tab(n, fHelper);
+//    string json2 = flattenJSON1(json);
+//    fHelper << "function getJSON" << fKlassName << "() {";
+//    tab(n + 1, fHelper);
+//    fHelper << "return '";
+//    fHelper << json2;
+//    fHelper << "';";
+//    printlines(n + 1, fUICode, fHelper);
+//    tab(n, fHelper);
+//    fHelper << "}\n";
+    
+    fHelper << json;
 
     if (gGlobal->gOutputLang == "wasm-ib" || gGlobal->gOutputLang == "wasm-eb") {
         /*
