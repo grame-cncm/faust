@@ -45,7 +45,6 @@ int libFaustWasm::createDSPFactory(const string name, const string dsp, const st
     vector<string> argsv;
     string2StringsVector (args, argsv);
     size_t n = argsv.size();
-    // cerr << "libFaustWasm::createDSPFactory " << name << " " << args;
     
     int out;
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
@@ -65,7 +64,6 @@ ExpandOut libFaustWasm::expandDSP(const string name, const string dsp, const str
     vector<string> argsv;
     string2StringsVector (args, argsv);
     size_t n = argsv.size();
-//    cerr << "libFaustWasm::expandDSP " << name << " " ;
     
     ExpandOut out;
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'

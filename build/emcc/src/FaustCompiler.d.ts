@@ -190,18 +190,18 @@ declare namespace Faust {
          * @param {Factory} module - a module previously created using createDSPFactory
          * @returns {Instance} on completion, gives a wasm instance and the associated object to manipulate this instance.
          */
-        createDSPInstance(module: Factory): Instance;
+        createDSPInstance(factory: Factory): Instance;
 
         /**
          * Create a polyphonic wasm instance of a wasm voice factory and effect factory. 
          *
-         * @param {Factory} voice_module - a module previously created using createDSPFactory
-         * @param {Factory} effect_module - a module previously created using createDSPFactory
+         * @param {Factory} voice_factory - a factory previously created using createDSPFactory
          * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
          * @param {number} nvoices - the number of voices to be created
+         * @param {Factory} effect_factory - a factory previously created using createDSPFactory
          * @returns {PolyInstance} on completion, gives a wasm instance and the associated object to manipulate this instance.
          */
-        createPolyDSPInstance(voice_module: Factory, effect_module: Factory, mixer_module: WebAssembly.Module, nvoices: number): PolyInstance;
+        createPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, nvoices: number, effect_factory?: Factory): PolyInstance;
 
         /**
          * Expand faust code i.e. linearize included libraries.

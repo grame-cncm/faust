@@ -577,8 +577,6 @@ namespace Faust {
 
 			return node;
 		}
-
-
 	}
 
 	/*
@@ -609,7 +607,7 @@ namespace Faust {
 
 		createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean, bufferSize?: number): Promise<Faust.FaustAudioNode> {
 			return new Promise((resolve, reject) => {
-				//resolve((scriptprocessor) ? new FaustScriptProcessorNode(context, module, bufferSize) : new FaustAudioWorkletNode(context, module, name));
+				//resolve((scriptprocessor) ? new FaustScriptProcessorNode(context, module, bufferSize).initNode(context, bufferSize) : new FaustAudioWorkletNode(context, module, name));
 				// TODO: reject ?
 			});
 		}
