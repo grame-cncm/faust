@@ -29,8 +29,12 @@
 class SVGDev : public device {
    private:
 	std::ostream * fOutStream = 0;
+	bool fJSLink = true;		// a flag to use js for links (i.e. function call) instead of xlink:href
 	
 	inline std::ostream& outstream() 	{ return *fOutStream; }
+	
+	std::string startlink	(const char* link);
+	void		endlink		(const char* link);
 
    public:
     SVGDev(const char*, double, double);

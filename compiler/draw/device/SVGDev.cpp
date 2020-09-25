@@ -31,6 +31,7 @@
 
 using namespace std;
 
+static const char* jsLinkFunction = "FaustDiagramLinkTo";
 
 static string xmlcode(const char* name)
 {
@@ -60,6 +61,15 @@ static string xmlcode(const char* name)
     }
     return out.str();
 }
+
+
+static string getJSLink(const char* link)
+{
+	stringstream jslink;
+	jslink << " onclick=\"" << jsLinkFunction << "('" << xmlcode(link) << "')\"";
+    return jslink.str();
+}
+
 
 SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
@@ -96,16 +106,21 @@ SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
     outstream() <<
 			"<style>\n"
 			"   .arrow { stroke:black; stroke-width:0.25; fill:none}\n"
-			"   .line  { stroke:black; stroke-linecap:round; stroke-width:0.25; }\n"
-			"   .dash  { stroke-dasharray:3,3; }\n"
-			"   .text  { font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF; }\n"
-			"   .label { font-family:Arial; font-size:7px; }\n"
-			"   .error { stroke-width:0.3; fill:red; text-anchor:middle; }\n"
-			"   .reason{ stroke-width:0.3; fill:none; text-anchor:middle; }\n"
-			"   .carre { stroke:black; stroke-width:0.5; fill:none; }\n"
-			"   .shadow{ stroke:none; fill:#aaaaaa; filter:url(#filter); }\n"
-			"   .border{ stroke:none; fill:#cccccc; }\n"
-			"</style>" << endl;
+			"   .line  { stroke:black; stroke-linecap:round; stroke-width:0.25;}\n"
+			"   .dash  { stroke-dasharray:3,3;}\n"
+			"   .text  { font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF;}\n"
+			"   .label { font-family:Arial; font-size:7px;}\n"
+			"   .error { stroke-width:0.3; fill:red; text-anchor:middle;}\n"
+			"   .reason{ stroke-width:0.3; fill:none; text-anchor:middle;}\n"
+			"   .carre { stroke:black; stroke-width:0.5; fill:none;}\n"
+			"   .shadow{ stroke:none; fill:#aaaaaa; filter:url(#filter);}\n"
+			"   .rect  { stroke:none;}\n"
+			"   .border{ stroke:none; fill:#cccccc;}" << endl;
+	if (fJSLink)
+		outstream() <<
+			"   .link { stroke:none;}\n"
+			"   .link:hover { cursor:pointer;}" << endl;
+	outstream() << "</style>" << endl;
 }
 
 SVGDev::~SVGDev()
@@ -114,14 +129,27 @@ SVGDev::~SVGDev()
     delete fOutStream;
 }
 
-void SVGDev::rect(double x, double y, double l, double h, const char* color, const char* link)
+string SVGDev::startlink (const char* link)
 {
     if (link != 0 && link[0] != 0) {
-        // open the optional link tag
-        outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">" << endl;
+		if (fJSLink)
+			return getJSLink(link);
+        else
+			outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">" << endl;
     }
-    // draw the shadow
+    return "";
+}
+
+void SVGDev::endlink (const char* link)
+{
+    if (link != 0 && link[0] != 0 && !fJSLink) outstream() << "</a>" << endl;
+}
+
+void SVGDev::rect(double x, double y, double l, double h, const char* color, const char* link)
+{
+	string jslink = startlink(link);
     string rclass = (gGlobal->gShadowBlur) ? "shadow" : "border";
+    string lclass = (fJSLink) ? "rect link" : "rect";
 	outstream() << "<rect x=\"" << x+1 << "\" y=\"" << y+1
 				<< "\" width=\"" << l << "\" height=\"" << h
 				<< "\" rx=\"0.1\" ry=\"0.1\" class=\"" << rclass << "\"/>" << endl;
@@ -130,11 +158,8 @@ void SVGDev::rect(double x, double y, double l, double h, const char* color, con
 	outstream() << "<rect x=\"" << x << "\" y=\"" << y
 				<< "\" width=\"" << l << "\" height=\"" << h
 				<< "\" rx=\"0\" ry=\"0\""
-				<< " style=\"stroke:none; fill:" << color << "\"/>" << endl;
-    if (link != 0 && link[0] != 0) {
-        // close the optional link tag
-        outstream() << "</a>" << endl;
-    }
+				<< " style=\"fill:" << color << "\" class=\"" << lclass << "\" " << jslink << "/>" << endl;
+	endlink(link);
 }
 
 //<polygon fill="lightsteelblue" stroke="midnightblue" stroke-width="5"
@@ -143,10 +168,7 @@ void SVGDev::rect(double x, double y, double l, double h, const char* color, con
 
 void SVGDev::triangle(double x, double y, double l, double h, const char* color, const char* link, bool leftright)
 {
-    if (link != 0 && link[0] != 0) {
-        // open the optional link tag
-        outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">" << endl;
-    }
+	string jslink = startlink(link);
     // draw triangle+circle
     float r = 1.5;  // circle radius
     float x0, x1, x2;
@@ -159,14 +181,13 @@ void SVGDev::triangle(double x, double y, double l, double h, const char* color,
         x1 = (float)(x + 2 * r);
         x2 = (float)(x + r);
     }
+    string lclass = (fJSLink) ? " class=\"link\" " : " ";
     outstream() << "<polygon fill=\"" << color << "\" stroke=\"black\" stroke-width=\".25\""
-				<< " points=\"" << x0 << "," << y << "," << x1 << "," << (y + h / 2.0f) << "," << x0 << "," << (y+h) << "\"/>" << endl;
+				<< " points=\"" << x0 << "," << y << "," << x1 << "," << (y + h / 2.0f) << "," << x0 << "," << (y+h)
+				<< lclass << jslink << "\"/>" << endl;
     outstream() << "<circle  fill=\"" << color << "\" stroke=\"black\" stroke-width=\".25\""
-				<< " cx=\"" << x2 << "\" cy=\"" << (y + h / 2.0f) << "\" r=\"" << r << "\"/>" << endl;
-    if (link != 0 && link[0] != 0) {
-        // close the optional link tag
-        outstream() << "</a>" << endl;
-    }
+				<< " cx=\"" << x2 << "\" cy=\"" << (y + h / 2.0f) << "\" r=\"" << r << "\"/>" << lclass << jslink << endl;
+	endlink(link);
 }
 
 void SVGDev::rond(double x, double y, double rayon)
@@ -199,15 +220,10 @@ void SVGDev::dasharray(double x1, double y1, double x2, double y2)
 
 void SVGDev::text(double x, double y, const char* name, const char* link)
 {
-    if (link != 0 && link[0] != 0) {
-        // open the optional link tag
-        outstream() << "<a xlink:href=\"" << xmlcode(link) << "\">"<< endl;
-    }
-    outstream() << "<text x=\"" << x << "\" y=\"" << y+2 << "\" class=\"text\">" << xmlcode(name) << "</text>" << endl;
-    if (link != 0 && link[0] != 0) {
-        // close the optional link tag
-        outstream() << "</a>" << endl;
-    }
+	string jslink = startlink(link);
+	string tclass = (fJSLink) ? "text link" : "text";
+	outstream() << "<text x=\"" << x << "\" y=\"" << y+2 << "\" class=\"" << tclass << "\" " << jslink << ">" << xmlcode(name) << "</text>" << endl;
+	endlink(link);
 }
 
 void SVGDev::label(double x, double y, const char* name)
