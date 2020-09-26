@@ -9,8 +9,6 @@ Here are the available options:
 - `-source to only create the source folder`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
 
-The generated folder has to be moved in the *Rack SDK* folder and compiled from there. 
-
 [WIP]: Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5..5] range, they are automatically converted in the architecture file. VC control in the [0..10] volts range will be mapped to the controllers [min..max] range.
 
 ## DSP examples

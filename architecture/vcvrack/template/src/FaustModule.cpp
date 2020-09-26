@@ -390,6 +390,7 @@ struct RackUI : public GenericUI
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
                                            float freq = 440.f * std::pow(2.f, (cv - 0.75f));
                                            //std::cout << "CV index freq " << voice << " cv " << cv << " freq " << freq << std::endl;
+                                           // Receive a 1V/oct pitch signal of the last held MIDI note: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(freq);
                                        });
                
@@ -401,6 +402,7 @@ struct RackUI : public GenericUI
                                        {
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
                                            //std::cout << "CV index gate " << voice << " cv " << cv << std::endl;
+                                           // Receive a 10V signal when a key is held: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(cv/10.f);
                                        });
                 
@@ -413,6 +415,7 @@ struct RackUI : public GenericUI
                                        {
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
                                            //std::cout << "CV index gain " << voice << " cv " << cv << std::endl;
+                                           // Receive a signal from 0V to 10V for the velocity: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(cv/10.f);
                                        });
                 

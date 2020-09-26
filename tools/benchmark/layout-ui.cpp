@@ -51,16 +51,34 @@ int main(int argc, char* argv[])
     LayoutUI layoutUI;
     DSP->buildUserInterface(&layoutUI);
     
-    for (auto& it : layoutUI.fPathItemMap) {
-        cout << it.first << endl;
-        cout << it.second << endl;
+    {
+        cout << "==========================" << endl;
+        for (auto& it : layoutUI.fPathItemMap) {
+            cout << it.first << endl;
+            cout << it.second << endl;
+        }
+        
+        cout << "Width " << layoutUI.fCurrentGroup->getWidth() << endl;
+        cout << "Height " << layoutUI.fCurrentGroup->getHeight() << endl;
     }
     
-    cout << "Width " << layoutUI.fCurrentGroup->getWidth() << endl;
-    cout << "Height " << layoutUI.fCurrentGroup->getHeight() << endl;
-    
+    {
+        cout << "==========================" << endl;
+        layoutUI.fCurrentGroup->setSize(100.f, 30.f);
+        layoutUI.fCurrentGroup->setPos(0.f, 0.f);
+        
+        for (auto& it : layoutUI.fPathItemMap) {
+            cout << it.first << endl;
+            cout << it.second << endl;
+        }
+        
+        cout << "Width " << layoutUI.fCurrentGroup->getWidth() << endl;
+        cout << "Height " << layoutUI.fCurrentGroup->getHeight() << endl;
+    }
+        
     delete DSP;
     deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     return 0;
 }
+
 
