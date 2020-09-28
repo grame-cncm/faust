@@ -40,33 +40,39 @@
  * LayoutUI
  ******************************************************************************/
 
+// Definition of the elements standard size
+
+struct LayoutItemSize {
+    
+    float kKnobWidth = 10.f;
+    float kKnobHeight = 10.f;
+
+    float kVSliderWidth = 10.f;
+    float kVSliderHeight = 25.f;
+
+    float kHSliderWidth = 25.f;
+    float kHSliderHeight = 10.f;
+
+    float kButtonWidth = 10.f;
+    float kButtonHeight = 10.f;
+
+    float kCheckButtonWidth = 10.f;
+    float kCheckButtonHeight = 10.f;
+
+    float kNumEntryWidth = 10.f;
+    float kNumEntryHeight = 10.f;
+
+    float kVBargraphWidth = 10.f;
+    float kVBargraphHeight = 20.f;
+
+    float kHBargraphWidth = 20.f;
+    float kHBargraphHeight = 10.f;
+};
+
+static LayoutItemSize gItemSize;
+
 struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
 {
-    // Definition of the elements standard size
-    
-    #define kKnobWidth 10.f
-    #define kKnobHeight 10.f
-    
-    #define kVSliderWidth 10.f
-    #define kVSliderHeight 25.f
-    
-    #define kHSliderWidth 25.f
-    #define kHSliderHeight 10.f
-    
-    #define kButtonWidth 10.f
-    #define kButtonHeight 10.f
-
-    #define kCheckButtonWidth 10.f
-    #define kCheckButtonHeight 10.f
-    
-    #define kNumEntryWidth 10.f
-    #define kNumEntryHeight 10.f
-    
-    #define kVBargraphWidth 10.f
-    #define kVBargraphHeight 20.f
-    
-    #define kHBargraphWidth 20.f
-    #define kHBargraphHeight 10.f
 
     // Base class
     struct UIItem {
@@ -238,7 +244,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     // Terminal items
     struct Button : UILeaveItem {
         
-        Button(const std::string& label):UILeaveItem(label, kButtonWidth, kButtonHeight) {}
+        Button(const std::string& label):UILeaveItem(label, gItemSize.kButtonWidth, gItemSize.kButtonHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -249,7 +255,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct CheckButton : UILeaveItem {
         
-        CheckButton(const std::string& label):UILeaveItem(label, kCheckButtonWidth, kCheckButtonHeight) {}
+        CheckButton(const std::string& label):UILeaveItem(label, gItemSize.kCheckButtonWidth, gItemSize.kCheckButtonHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -260,7 +266,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct HSlider : UILeaveItem {
         
-        HSlider(const std::string& label):UILeaveItem(label, kVSliderWidth, kVSliderHeight) {}
+        HSlider(const std::string& label):UILeaveItem(label, gItemSize.kVSliderWidth, gItemSize.kVSliderHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -271,7 +277,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct VSlider : UILeaveItem {
         
-        VSlider(const std::string& label):UILeaveItem(label, kHSliderWidth, kHSliderHeight) {}
+        VSlider(const std::string& label):UILeaveItem(label, gItemSize.kHSliderWidth, gItemSize.kHSliderHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -282,7 +288,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct NumEntry : UILeaveItem {
         
-        NumEntry(const std::string& label):UILeaveItem(label, kNumEntryWidth, kNumEntryHeight) {}
+        NumEntry(const std::string& label):UILeaveItem(label, gItemSize.kNumEntryWidth, gItemSize.kNumEntryHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -293,7 +299,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct HBargraph : UILeaveItem {
         
-        HBargraph(const std::string& label):UILeaveItem(label, kHBargraphWidth, kHBargraphHeight) {}
+        HBargraph(const std::string& label):UILeaveItem(label, gItemSize.kHBargraphWidth, gItemSize.kHBargraphHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -304,7 +310,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct VBargraph : UILeaveItem {
         
-        VBargraph(const std::string& label):UILeaveItem(label, kVBargraphWidth, kVBargraphHeight) {}
+        VBargraph(const std::string& label):UILeaveItem(label, gItemSize.kVBargraphWidth, gItemSize.kVBargraphHeight) {}
         
         std::ostream& print(std::ostream& file) override
         {
