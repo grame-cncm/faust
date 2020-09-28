@@ -19,14 +19,30 @@
  ************************************************************************
  ************************************************************************/
 
-// SVGDev.h
-
 #if !defined SVGDEV_H
 #define SVGDEV_H
 
+#include <iostream>
+
 #include "device.h"
 
+#ifdef EMCC
+#define JSLINKSTATUS true
+#else
+#define JSLINKSTATUS false
+#endif
+
+
 class SVGDev : public device {
+   private:
+	std::ostream * fOutStream = 0;
+	bool fJSLink = JSLINKSTATUS;		// a flag to use js for links (i.e. function call) instead of xlink:href
+	
+	inline std::ostream& outstream() 	{ return *fOutStream; }
+	
+	std::string startlink	(const char* link);
+	void		endlink		(const char* link);
+
    public:
     SVGDev(const char*, double, double);
     ~SVGDev();

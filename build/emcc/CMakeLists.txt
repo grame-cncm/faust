@@ -8,6 +8,7 @@ set ( CMAKE_OSX_DEPLOYMENT_TARGET	"")
 set ( CMAKE_OSX_SYSROOT 		"")
 set ( CMAKE_CXX_COMPILER 	"emcc")
 set ( CMAKE_CXX_LINK_FLAGS "")
+set ( CMAKE_CXX_FLAGS "-DEMCC")
 
 if (UNIVERSAL)
 message (WARNING "WASM do not support universal mode. Switch back to native mode before compiling")
