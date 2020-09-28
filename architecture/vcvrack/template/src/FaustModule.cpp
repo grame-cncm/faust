@@ -117,6 +117,7 @@ struct one_sample_dsp : public rack_dsp {
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
+#include "faust/gui/LayoutUI.h"
 #include "faust/gui/ValueConverter.h"
 #include "faust/misc.h"
 #include "plugin.hpp"
@@ -279,7 +280,6 @@ struct ManagerUI : public GenericUI
 template <int VOICES>
 struct RackUI : public GenericUI
 {
-    
     typedef function<void(Module* module)> updateFunction;
     
     std::vector<ConverterZoneControl*> fConverters;
@@ -544,6 +544,7 @@ struct RackUI : public GenericUI
 template <int VOICES>
 struct mydspModule : Module {
     
+    LayoutUI fLayoutUI;
     RackUI<VOICES>* fRackUI;    // One single version for all VOICES
     mydsp fDSP[VOICES];
     int fControlCounter;
@@ -553,7 +554,7 @@ struct mydspModule : Module {
         // Count items of button, nentry, bargraph categories
         ManagerUI params;
         fDSP[0].buildUserInterface(&params);
-        
+       
         // Controllers are connected to all VOICES
         fRackUI = new RackUI<VOICES>(params);
         for (int v = 0; v < VOICES; v++) {
@@ -663,6 +664,40 @@ struct mydspModule : Module {
         }
     }
     
+    void setSize(float width, float height)
+    {
+        // Set items minimal size
+        gItemSize.kHSliderWidth = 50.0;
+        gItemSize.kVSliderWidth = 50.0;
+        
+        gItemSize.kButtonWidth = 50.0;
+        gItemSize.kButtonHeight = 50.0;
+        
+        // Prepare layout
+        fDSP[0].buildUserInterface(&fLayoutUI);
+        
+        cout << "==========================" << endl;
+        for (auto& it : fLayoutUI.fPathItemMap) {
+            cout << it.first << endl;
+            cout << it.second << endl;
+        }
+        
+        cout << "Width " << fLayoutUI.fCurrentGroup->getWidth() << endl;
+        cout << "Height " << fLayoutUI.fCurrentGroup->getHeight() << endl;
+        
+        fLayoutUI.fCurrentGroup->setSize(100.f, 30.f);
+        fLayoutUI.fCurrentGroup->setPos(0.f, 0.f);
+        
+        cout << "==========================" << endl;
+        for (auto& it : fLayoutUI.fPathItemMap) {
+            cout << it.first << endl;
+            cout << it.second << endl;
+        }
+        
+        cout << "Width " << fLayoutUI.fCurrentGroup->getWidth() << endl;
+        cout << "Height " << fLayoutUI.fCurrentGroup->getHeight() << endl;
+    }
+    
 };
 
 template <int VOICES>
@@ -685,6 +720,8 @@ struct mydspModuleWidget : ModuleWidget {
         
          // Module is null at plugins selection step, so we can not create the final GUI at that time...
         if (module) {
+            
+            module->setSize(200.f, 50.f);
         
             // Add params
             addLabel(mm2px(Vec(6, 18.0)), "Params");
