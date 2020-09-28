@@ -62,12 +62,14 @@ wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 
 wasm_dsp_factory::~wasm_dsp_factory()
 {
+    /* Deactivated for 'wasm' branch version
     // Empty the JS structures so that the instance can be GCed
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0] = null; }, fInstance);
 #else
     EM_ASM({ faust_module.faust.wasm_instance[$0] = null; }, fInstance);
 #endif
+    */
     delete fFactory;
     delete fDecoder;
     delete fSoundUI;
@@ -80,6 +82,7 @@ wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std
     return factory;
 }
 
+/* Deactivated for 'wasm' branch version
 // To keep 'wasmMemory' in the generated JS library
 #ifdef AUDIO_WORKLET
 EM_JS(void, connectMemory, (),
@@ -94,10 +97,13 @@ EM_JS(void, connectMemory, (),
     faust_module.faust.memory = faust_module.faust.memory || wasmMemory;
 });
 #endif
+*/
 
 string wasm_dsp_factory::extractJSON(const string& code)
 {
+/* Deactivated for 'wasm' branch version
     connectMemory();
+*/
     if (code != "") {
         WasmBinaryReader reader(code);
         reader.read();
@@ -162,11 +168,13 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
 
 wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     fDSP = EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize());
 #else
     fDSP = EM_ASM_INT({ return faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize());
 #endif
+*/
     // First instance builds the map
     if (fFactory->fMapUI.getParamsCount() == 0) {
         buildUserInterface(&fFactory->fMapUI);
@@ -176,31 +184,39 @@ wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 
 wasm_dsp::~wasm_dsp()
 {
+/* Deactivated for 'wasm' branch version
     // Free the DSP memory
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module._free($0); }, fDSP);
 #else
     EM_ASM({ faust_module._free($0); }, fDSP);
 #endif
+*/
     wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
 int wasm_dsp::getNumInputs()
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     return EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); }, fFactory->fInstance, fDSP);
 #else
     return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); }, fFactory->fInstance, fDSP);
 #endif
+*/
+    return -1;
 }
 
 int wasm_dsp::getNumOutputs()
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     return EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fFactory->fInstance, fDSP);
 #else
     return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fFactory->fInstance, fDSP);
 #endif
+*/
+    return -1;
 }
 
 void wasm_dsp::buildUserInterface(UI* ui_interface)
@@ -210,56 +226,69 @@ void wasm_dsp::buildUserInterface(UI* ui_interface)
 
 int wasm_dsp::getSampleRate()
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     return EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); }, fFactory->fInstance, fDSP);
 #else
     return EM_ASM_INT({ return faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); }, fFactory->fInstance, fDSP);
 #endif
+*/
+    return -1;
 }
 
 void wasm_dsp::init(int sample_rate)
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.init($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #else
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.init($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #endif
+*/
 }
 
 void wasm_dsp::instanceInit(int sample_rate)
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #else
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #endif
+*/
 }
 
 void wasm_dsp::instanceConstants(int sample_rate)
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #else
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
 #endif
+*/
 }
 
 void wasm_dsp::instanceResetUserInterface()
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); }, fFactory->fInstance, fDSP);
 #else
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); }, fFactory->fInstance, fDSP);
 #endif
+*/
 }
 
 void wasm_dsp::instanceClear()
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceClear($1); }, fFactory->fInstance, fDSP);
 #else
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.instanceClear($1); }, fFactory->fInstance, fDSP);
 #endif
+*/
 }
 
 wasm_dsp* wasm_dsp::clone()
@@ -274,6 +303,7 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); },
            fFactory->fInstance, fDSP, count, inputs, outputs);
@@ -281,10 +311,12 @@ void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); },
            fFactory->fInstance, fDSP, count, inputs, outputs);
 #endif
+*/
 }
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
+/* Deactivated for 'wasm' branch version
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count,
            reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs));
@@ -292,6 +324,7 @@ void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     EM_ASM({ faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count,
            reinterpret_cast<uintptr_t>(inputs), reinterpret_cast<uintptr_t>(outputs));
 #endif
+*/
 }
 
 void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
@@ -464,6 +497,9 @@ wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 {
     fFactory = factory;
     fDecoder = nullptr;
+#ifdef EMCC
+    fSoundUI = nullptr;
+#endif
 }
 
 string wasm_dsp_factory::getName()

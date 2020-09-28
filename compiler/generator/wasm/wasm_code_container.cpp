@@ -51,6 +51,12 @@ using namespace std;
  (gLoopVarInBytes)
  - offset of inputs/outputs are constant, so can be directly generated
 
+ Code generation, the flags can be:
+    - 'wasm-i' (internal memory for monophonic DSP)
+    - 'wasm-e' (external memory for polyphonic DSP)
+    - 'wasm-ib' (internal memory for monophonic DSP and binary code generated as base64)
+    - 'wasm-eb' (external memory for polyphonic DSP and binary code generated as base64)
+    - or 'wasm' which is equivalent to 'wasm-i'
 */
 
 dsp_factory_base* WASMCodeContainer::produceFactory()
@@ -335,10 +341,10 @@ void WASMCodeContainer::produceClass()
         // must be computed taking account JSON size and DSP + audio buffer size
         fBinaryOut.writeAt(begin_memory, U32LEB(memory_size));
         // maximum memory pages number, minimum value is to be extended on JS side for soundfiles
-        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size+1000));
+        fBinaryOut.writeAt(begin_memory + 5, U32LEB(memory_size + 1000));
     }
 
-    // Data segment contains the JSON string starting at offset 0,
+    // Data segment contains the JSON string starting at offset 0
     gGlobal->gWASMVisitor->generateJSON(json);
 
     // Finally produce output stream
@@ -347,25 +353,27 @@ void WASMCodeContainer::produceClass()
     // Helper code
     int n = 0;
 
-    // Generate JSON and getSize
-    tab(n, fHelper);
-    fHelper << "/*\n"
-            << "Code generated with Faust version " << FAUSTVERSION << endl;
-    fHelper << "Compilation options: ";
-    gGlobal->printCompilationOptions(fHelper);
-    fHelper << "\n*/\n";
-
     // Generate JSON
-    tab(n, fHelper);
-    string json2 = flattenJSON1(json);
-    fHelper << "function getJSON" << fKlassName << "() {";
-    tab(n + 1, fHelper);
-    fHelper << "return '";
-    fHelper << json2;
-    fHelper << "';";
-    printlines(n + 1, fUICode, fHelper);
-    tab(n, fHelper);
-    fHelper << "}\n";
+//    tab(n, fHelper);
+//    fHelper << "/*\n"
+//            << "Code generated with Faust version " << FAUSTVERSION << endl;
+//    fHelper << "Compilation options: ";
+//    gGlobal->printCompilationOptions(fHelper);
+//    fHelper << "\n*/\n";
+
+//    // Generate JSON
+//    tab(n, fHelper);
+//    string json2 = flattenJSON1(json);
+//    fHelper << "function getJSON" << fKlassName << "() {";
+//    tab(n + 1, fHelper);
+//    fHelper << "return '";
+//    fHelper << json2;
+//    fHelper << "';";
+//    printlines(n + 1, fUICode, fHelper);
+//    tab(n, fHelper);
+//    fHelper << "}\n";
+    
+    fHelper << json;
 
     if (gGlobal->gOutputLang == "wasm-ib" || gGlobal->gOutputLang == "wasm-eb") {
         /*
