@@ -43,7 +43,7 @@ namespace Faust {
 	}
 
 	export class Compiler {
-		private fFaustEngine: LibFaust;
+		private fFaustEngine: Faust.LibFaust;
 
 		private intVec2intArray(vec: IntVector): Uint8Array {
 			const size = vec.size();
@@ -114,7 +114,7 @@ namespace Faust {
 			return new WebAssembly.Memory({ initial: memorySize, maximum: memorySize });
 		};
 
-		constructor(engine?: LibFaust) {
+		constructor(engine?: Faust.LibFaust) {
 			this.fFaustEngine = engine;
 		}
 

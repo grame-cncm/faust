@@ -165,7 +165,7 @@ declare namespace Faust {
          * The Faust.Compiler constructor.
          * @param {LibFaust} engine - an instance of the low level engine, actually a libFaustWasm instance of FaustModule
          */
-        new(engine: LibFaust): Compiler;
+        new(engine: Faust.LibFaust): Compiler;
 
         /**
          * Gives the Faust engine version.
