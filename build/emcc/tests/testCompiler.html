@@ -18,6 +18,8 @@
 <hr>
 <pre id=log>
 </pre>
+<div id=svg>
+</div>
 <hr>
 
 <script>
@@ -40,7 +42,7 @@ function doit (faust) {
 	run (faust, log, dspcode);
 }
 
-FaustModule().then((instance) => { doit (new instance.libFaustWasm()); });
+FaustModule().then((instance) => { doit (new Faust.LibFaust(instance)); });
 
 </script>
 </body>

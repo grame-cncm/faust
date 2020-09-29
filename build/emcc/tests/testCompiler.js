@@ -15,6 +15,9 @@ function misc(faust, log, code) {
 	log("  generateAuxFiles      " + msg);
 }
 
+//----------------------------------------------------------------------------
+// create dsp factory and instance 
+//----------------------------------------------------------------------------
 async function createDsp(faust, log, code) {
 	log("createDSPFactory: ");
 	let factory = await faust.createDSPFactory("test", code, options, false);
@@ -53,6 +56,30 @@ async function createPolyDsp(faust, log, voice_code, effect_code) {
 	log("  JSON: " + poly_instance.effect_json);
 }
 
+//----------------------------------------------------------------------------
+// Test svg diagrams
+//----------------------------------------------------------------------------
+var svg;
+function svgdiagrams(faust, log, code) {
+	svg = new Faust.SVGDiagrams (faust, "TestSVG", code, options)
+	if (!svg.success()) {
+		log (svg.error());
+	}
+	else {
+		log ("success");
+		let div = document.getElementById("svg");
+		div.innerHTML = svg.getSVG();
+	}
+}
+
+function FaustDiagramLinkTo(file) {
+	let div = document.getElementById("svg");
+	div.innerHTML = svg.getSVG(file);
+}
+
+//----------------------------------------------------------------------------
+// Main entry point
+//----------------------------------------------------------------------------
 async function run(engine, log, code) {
 	let faust = new Faust.Compiler(engine);
 	log("libfaust version: " + faust.version());
@@ -65,20 +92,23 @@ async function run(engine, log, code) {
 	log("\n-----------------\nCreating DSP instance:");
 	await createDsp(faust, log, code);
 
-	log("\n-----------------\nCreating Poly DSP instance:");
-	await createPolyDsp(faust, log, code, effectCode);
+	// log("\n-----------------\nCreating Poly DSP instance:");
+	// await createPolyDsp(faust, log, code, effectCode);
 
-	log("\n-----------------\nCreating DSP instance with error code:");
-	await createDsp(faust, log, errCode).catch(e => { log(e); });
+	// log("\n-----------------\nCreating DSP instance with error code:");
+	// await createDsp(faust, log, errCode).catch(e => { log(e); });
 
 	// Test nodes
-	let module = await faust.createDSPFactory("test", code, options, false);
-	console.log(module);
-	const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
-	console.log(context);
-	let fwan = new Faust.FaustWebAudioNode();
-	let node = await fwan.createMonoNode(context, "test", module, true, 512);
-	console.log(node);
+	// let module = await faust.createDSPFactory("test", code, options, false);
+	// console.log(module);
+	// const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
+	// console.log(context);
+	// let fwan = new Faust.FaustWebAudioNode();
+	// let node = await fwan.createMonoNode(context, "test", module, true, 512);
+	// console.log(node);
+
+	log("\n-----------------\nTest SVG diagrams: ");
+	svgdiagrams (engine, log, code);
 
 	log("\nEnd of API tests");
 }
