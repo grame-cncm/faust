@@ -206,8 +206,8 @@ declare namespace Faust {
         /**
          * Expand faust code i.e. linearize included libraries.
          *
-         * @param {string} name - an arbitrary name for the faust module
-         * @param {string} code - faust dsp code
+         * @param {string} name_app - an arbitrary name for the faust module
+         * @param {string} dsp_content - faust dsp code
          * @param {string} args - the compiler options
          * @returns {Expand} contains the expanded dsp code, the corresponding sha key and an error string (empty in case of success)
          */
@@ -216,8 +216,8 @@ declare namespace Faust {
         /**
          * Generates auxiliary files from faust code. The output depends on the compiler options.
          *
-         * @param {string} name - an arbitrary name for the faust module
-         * @param {string} code - faust dsp code
+         * @param {string} name_app - an arbitrary name for the faust module
+         * @param {string} dsp_content - faust dsp code
          * @param {string} args - the compiler options
          * @returns {AuxOut} contains the boolean status code and an error string (empty in case of success)
         */
