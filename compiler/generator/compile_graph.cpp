@@ -64,6 +64,493 @@
 
 using namespace std;
 
+//=============================================================================================================
+//================================================== STATIC DECL ==============================================
+//=============================================================================================================
+
+static void      compileInsOuts(Klass* K);
+static bool      isControl(Tree i);
+static bool      isInit(Tree i);
+static set<Tree> ListOutputs(const set<Tree>& I);
+static void scheduleInstr(const digraph<Tree>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE, set<Tree>& POSTPONE);
+
+template <typename N>
+inline vector<N> serialize2(const digraph<N>& g, const set<N>& E);
+
+template <typename N>
+inline vector<N> serialize3(const digraph<N>& g, const set<N>& E);
+
+//=============================================================================================================
+//====================================================== API ==================================================
+//=============================================================================================================
+
+/**
+ * @brief Compile a list of signals (Main function)
+ *
+ * @param L
+ */
+void GraphCompiler::compileMultiSignal(Tree L)
+{
+    L               = prepare(L);  // optimize, share and annotate expressions
+    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
+
+    // lookForChains(INSTR);
+    InstructionsToClass(INSTR, fClass);
+    tableDependenciesGraph(INSTR);
+
+    generateMetaData();
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
+    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    if (fDescription) {
+        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
+
+    if (gGlobal->gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param sig
+ */
+void GraphCompiler::compileSingleSignal(Tree sig)
+{
+    // contextor recursivness(0);
+    sig = prepare2(sig);  // optimize and annotate expression
+    fClass->addExecCode(Statement("", subst("output[i] = $0;", CS(sig))));
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
+    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    if (fDescription) {
+        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+    }
+}
+
+//=============================================================================================================
+//=============================================== IMPLEMENTATION 1 ============================================
+//=============================================================================================================
+
+/**
+ * @brief Prepare
+ *
+ * @param LS
+ * @return Tree
+ */
+
+Tree GraphCompiler::prepare(Tree LS)
+{
+    startTiming("GraphCompiler::prepare");
+    //  startTiming("first simplification");
+    //  LS = simplify(LS);
+    //  endTiming("first simplification");
+    startTiming("deBruijn2Sym");
+    Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
+    endTiming("deBruijn2Sym");
+
+    startTiming("L1 typeAnnotation");
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+    endTiming("L1 typeAnnotation");
+
+    startTiming("Cast and Promotion");
+    SignalPromotion SP;
+    SP.trace(gGlobal->gDebugSwitch, "Cast");
+    Tree L1b = SP.mapself(L1);
+    endTiming("Cast and Promotion");
+
+    startTiming("second simplification");
+    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
+    endTiming("second simplification");
+
+    startTiming("Constant propagation");
+    SignalConstantPropagation SK;
+    SK.trace(gGlobal->gDebugSwitch, "ConstProp2");
+    Tree L2b = SK.mapself(L2);
+    endTiming("Constant propagation");
+
+    Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
+
+    conditionAnnotation(L3);
+    // conditionStatistics(L3);        // count condition occurrences
+
+    // dump normal form
+    if (gGlobal->gDumpNorm) {
+        cout << ppsig(L3) << endl;
+        throw faustexception("Dump normal form finished...\n");
+    }
+
+    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
+
+    startTiming("typeAnnotation");
+    typeAnnotation(L3, true);  // Annotate L3 with type information
+    endTiming("typeAnnotation");
+
+    sharingAnalysis(L3);  // annotate L3 with sharing count
+
+    if (fOccMarkup != nullptr) {
+        delete fOccMarkup;
+    }
+    fOccMarkup = new old_OccMarkup(fConditionProperty);
+    fOccMarkup->mark(L3);  // annotate L3 with occurrences analysis
+
+    // sharingAnalysis(L3);  // annotate L3 with sharing count
+
+    if (gGlobal->gDrawSignals) {
+        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
+        // SL : 28/09/17 : deactivated for now
+        // sigToGraph(L3, dotfile);
+    }
+
+    return L3;
+}
+
+/**
+ * @brief prepare2(L)
+ *
+ * @param L0
+ * @return Tree
+ */
+Tree GraphCompiler::prepare2(Tree L0)
+{
+    startTiming("GraphCompiler::prepare2");
+
+    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
+    sharingAnalysis(L0);         // annotate L0 with sharing count
+
+    if (fOccMarkup != nullptr) {
+        delete fOccMarkup;
+    }
+    fOccMarkup = new old_OccMarkup();
+    fOccMarkup->mark(L0);  // annotate L0 with occurrences analysis
+
+    endTiming("GraphCompiler::prepare2");
+    return L0;
+}
+
+/**
+ * @brief prepare3(L): prepare a list of expressions to be ready to be translated into a set of instructions
+ *
+ * @param L1
+ * @return Tree
+ */
+Tree GraphCompiler::prepare3(Tree L1)
+{
+    recursivnessAnnotation(L1);  // Annotate L0 with recursivness information
+    typeAnnotation(L1, true);    // Annotate L0 with type information
+
+    SignalPromotion           SP;
+    Tree                      L1b = SP.mapself(L1);
+    Tree                      L2  = simplify(L1b);  // simplify by executing every computable operation
+    SignalConstantPropagation SK;
+    Tree                      L2b = SK.mapself(L2);
+
+    // Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
+
+    return L2b;
+}
+
+//=============================================================================================================
+//=============================================== IMPLEMENTATION 2 ============================================
+//=============================================================================================================
+
+/**
+ * @brief ExpressionsListToInstructionsSet(): transfoms a list of signals expressions
+ * into a set of instructions
+ *
+ * @param L3 a list of expressions
+ * @return set<Tree> the resulting set of instructions
+ */
+set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
+{
+    // Each expression represent an output. We decorate them with
+    // output informations
+    Tree L3d  = gGlobal->nil;
+    int  onum = 0;
+    for (Tree l = L3; isList(l); l = tl(l)) {
+        L3d = cons(sigOutput(onum++, hd(l)), L3d);
+    }
+    L3d = reverse(L3d);
+    recursivnessAnnotation(L3d);  // Annotate L3 with recursivness information
+
+    startTiming("typeAnnotation");
+    typeAnnotation(L3d, true);  // Annotate L3 with type information
+    endTiming("typeAnnotation");
+
+    // cerr << ">>Transformation into Instructions\n" << endl;
+    startTiming("Transformation into Instructions");
+    set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
+    if (gGlobal->gDebugDiagram) signalGraph("phase1-beforeSimplification.dot", INSTR1);
+
+    // cerr << ">>delayLineSimplifier\n" << endl;
+    set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
+    if (gGlobal->gDebugDiagram) signalGraph("phase2-afterSimplification.dot", INSTR2);
+
+    // list short dline candidates (IN PROGRESS)
+    set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2) : INSTR2;
+    if (gGlobal->gDebugDiagram) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
+
+    // cerr << ">>transformDelayToTable\n" << endl;
+    set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
+    if (gGlobal->gDebugDiagram) signalGraph("phase3-afterTable.dot", INSTR3);
+
+    // cerr << ">>transformOld2NewTables\n" << endl;
+    set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
+    if (gGlobal->gDebugDiagram) signalGraph("phase4-afterTableTransform.dot", INSTR4);
+
+    // cerr << ">>transformTime\n" << endl;
+    set<Tree> INSTR4b = transformTime(INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph("phase4b-afterTimeTransform.dot", INSTR4);
+
+    // cerr << ">>splitCommonSubexpr\n" << endl;
+    set<Tree> INSTR5 = splitCommonSubexpr(INSTR4b);
+    if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
+
+    // cerr << ">>splitAddBranches\n" << endl;
+    set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
+    if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
+
+    signalGraph("SPECIAL1.dot", INSTR6);
+    signalGraph2("SPECIAL2.dot", INSTR6);
+#if 0
+    cerr << "Start scalarscheduling" << endl;
+    scalarScheduling("phase5-scalarScheduling.txt", INSTR4);
+
+    cerr << "Start parallelScheduling" << endl;
+    parallelScheduling("phase6-parallelScheduling.txt", INSTR4);
+
+    endTiming("Transformation into Instructions");
+#endif
+    return INSTR6;
+}
+
+/**
+ * @brief InstructionsToClass: Transform a set of instructions into a C++ class
+ *
+ * @param name
+ * @param super
+ * @param numInputs
+ * @param numOutputs
+ * @param S
+ * @return Klass
+ */
+void GraphCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
+{
+    compileInsOuts(K);
+    InstructionsToMethod(I, K);
+}
+
+/**
+ * @brief
+ *
+ * @param I
+ * @param K
+ */
+void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
+{
+    // compileGlobalTime(K);
+    Scheduling S = schedule(I);
+    for (Tree instr : S.fInitLevel) {
+        compileSingleInstruction(instr, K);
+    }
+
+    for (Tree instr : S.fBlockLevel) {
+        compileSingleInstruction(instr, K);
+    }
+
+    for (Tree instr : S.fExecLevel) {
+        compileSingleInstruction(instr, K);
+    }
+}
+
+/**
+ * @brief Schedule a set of instructions into init, block and
+ * exec instruction sequences
+ *
+ * @param I the set of instructions to schedule
+ * @return the sequential Scheduling
+ */
+Scheduling GraphCompiler::schedule(const set<Tree>& I)
+{
+    digraph<Tree> G;  // the signal graph
+    Scheduling    S;
+
+    // 1) build the graph and the dictionnary
+    for (auto i : I) {
+        G.add(dependencyGraph(i));
+        // S.fDic.add(i);
+    }
+
+    digraph<Tree> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree> K;  // the subgraph of init-time instructions
+    digraph<Tree> B;  // the subgraph of block-time instructions
+    digraph<Tree> E;  // the subgraph at sample-time instructions
+
+    // 2) split in three sub-graphs: K, B, E
+
+    splitgraph<Tree>(G, &isControl, T, E);
+    splitgraph<Tree>(T, &isInit, K, B);
+
+    // 3) fill the scheduling
+
+    // a) for the init and block level graph we know they don't have cycles
+    // and can be directly serialized
+    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
+    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
+
+    if (gGlobal->gCodeMode == 0) {
+        // b) for the sample level graph we have (probably) cycles
+        digraph<digraph<Tree>> DG = graph2dag(E);
+        vector<digraph<Tree>>  VG = serialize(DG);
+        for (digraph<Tree> g : VG) {
+            vector<Tree> v = serialize(cut(g, 1));
+            for (Tree i : v) {
+                S.fExecLevel.push_back(i);
+            }
+        }
+
+        // cerr << "Schedule 0 is \n" << S << endl;
+        return S;
+
+    } else if (gGlobal->gCodeMode == 1) {
+        // If we cut all connexions > 0 we should not have any cycles
+        vector<Tree> v = serialize(cut(E, 1));
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+
+        // cerr << "Schedule 1 is \n" << S << endl;
+        return S;
+
+    } else if (gGlobal->gCodeMode == 2) {
+        // If we cut all connexions > 0 we should not have any cycles
+        vector<vector<Tree>> P = parallelize(cut(E, 1));
+        for (auto l : P) {
+            for (Tree i : l) S.fExecLevel.push_back(i);
+        }
+
+        // cerr << "Schedule 2 is \n" << S << endl;
+        return S;
+
+    } else if (gGlobal->gCodeMode == 3) {
+        // we serialize from a set of output instructions
+        set<Tree> Outputs;
+        for (Tree instr : E.nodes()) {
+            int  n;
+            Tree exp;
+            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+        }
+        vector<Tree> v = serialize2(cut(E, 1), Outputs);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+        // cerr << "Schedule 3 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 4) {
+        // we serialize from a set of table write instructions
+        set<Tree> tables;
+        for (Tree instr : E.nodes()) {
+            int  nature, tblsize;
+            Tree id, origin, init, idx, content;
+            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
+                tables.insert(instr);
+        }
+        vector<Tree> v = serialize2(cut(E, 1), tables);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+        // cerr << "Schedule 4 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 5) {
+        // we serialize from a set of output instructions
+        set<Tree> Outputs;
+        for (Tree instr : E.nodes()) {
+            int  n;
+            Tree exp;
+            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
+        }
+        vector<Tree> v = serialize3(E, Outputs);
+        for (Tree i : v) {
+            S.fExecLevel.push_back(i);
+        }
+        // cerr << "Schedule 5 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 6) {
+        // we serialize from a set of output instructions
+
+        set<Tree> DONE;
+        set<Tree> TODO = ListOutputs(I);
+        while (TODO.size() > 0) {
+            set<Tree> POSTPONE;
+            for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
+            TODO = POSTPONE;
+        }
+        // cerr << "Schedule 6 is \n" << S << endl;
+        return S;
+    } else if (gGlobal->gCodeMode == 7) {
+        // we serialize from a set of output instructions
+
+        set<Tree> DONE;
+        for (Tree o : ListOutputs(I)) {
+            set<Tree> TODO;
+            TODO.insert(o);
+            while (TODO.size() > 0) {
+                set<Tree> POSTPONE;
+                for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
+                TODO = POSTPONE;
+            }
+        }
+        // cerr << "Schedule 7 is \n" << S << endl;
+        return S;
+    } else /*if (gGlobal->gCodeMode == 8)*/ {
+        // b) for the sample level graph we have (probably) cycles
+        digraph<digraph<Tree>> DG = graph2dag(E);
+        digraph<digraph<Tree>> RG = reverse(DG);
+
+        // compute the output nodes
+        set<digraph<Tree>> outputs;
+        for (const auto& n : RG.nodes()) {
+            if (RG.connections(n).size() == 0) outputs.insert(n);
+        }
+
+        set<digraph<Tree>>    DONE;
+        vector<digraph<Tree>> SCHED;
+
+        for (const auto& o : outputs) {
+            set<digraph<Tree>> TODO;
+            TODO.insert(o);
+            while (TODO.size() > 0) {
+                set<digraph<Tree>> POSTPONE;
+                for (const auto& i : TODO) {
+                    if (DONE.find(i) == DONE.end()) {
+                        // mark i as done
+                        DONE.insert(i);
+                        SCHED.push_back(i);
+
+                        // schedule its dependencies
+                        for (auto p : DG.connections(i)) {
+                            if (p.second > 0) {
+                                POSTPONE.insert(p.first);
+                            } else {
+                                // TO FIX: scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
+                            }
+                        }
+                        // schedule itself
+                    }
+                }
+                TODO = POSTPONE;
+            }
+        }
+
+        return S;
+    }
+}
+
+//=============================================================================================================
+//=============================================== IMPLEMENTATION 2 ============================================
+//=============================================================================================================
+
 //===========================================================
 //===========================================================
 // serialize2 : transfoms a DAG into a sequence of nodes
@@ -234,116 +721,6 @@ string GraphCompiler::getFreshID(const string& prefix)
     return subst("$0$1", prefix, T(n));
 }
 
-/*****************************************************************************
- prepare
- *****************************************************************************/
-
-Tree GraphCompiler::prepare(Tree LS)
-{
-    startTiming("GraphCompiler::prepare");
-    //  startTiming("first simplification");
-    //  LS = simplify(LS);
-    //  endTiming("first simplification");
-    startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
-    endTiming("deBruijn2Sym");
-
-    startTiming("L1 typeAnnotation");
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-    endTiming("L1 typeAnnotation");
-
-    startTiming("Cast and Promotion");
-    SignalPromotion SP;
-    SP.trace(gGlobal->gDebugSwitch, "Cast");
-    Tree L1b = SP.mapself(L1);
-    endTiming("Cast and Promotion");
-
-    startTiming("second simplification");
-    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
-    endTiming("second simplification");
-
-    startTiming("Constant propagation");
-    SignalConstantPropagation SK;
-    SK.trace(gGlobal->gDebugSwitch, "ConstProp2");
-    Tree L2b = SK.mapself(L2);
-    endTiming("Constant propagation");
-
-    Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
-
-    conditionAnnotation(L3);
-    // conditionStatistics(L3);        // count condition occurences
-
-    // dump normal form
-    if (gGlobal->gDumpNorm) {
-        cout << ppsig(L3) << endl;
-        throw faustexception("Dump normal form finished...\n");
-    }
-
-    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
-
-    startTiming("typeAnnotation");
-    typeAnnotation(L3, true);  // Annotate L3 with type information
-    endTiming("typeAnnotation");
-
-    sharingAnalysis(L3);  // annotate L3 with sharing count
-
-    if (fOccMarkup != nullptr) {
-        delete fOccMarkup;
-    }
-    fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L3);  // annotate L3 with occurences analysis
-
-    // sharingAnalysis(L3);  // annotate L3 with sharing count
-
-    if (gGlobal->gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        // SL : 28/09/17 : deactivated for now
-        // sigToGraph(L3, dotfile);
-    }
-
-    return L3;
-}
-
-Tree GraphCompiler::prepare2(Tree L0)
-{
-    startTiming("GraphCompiler::prepare2");
-
-    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);    // Annotate L0 with type information
-    sharingAnalysis(L0);         // annotate L0 with sharing count
-
-    if (fOccMarkup != nullptr) {
-        delete fOccMarkup;
-    }
-    fOccMarkup = new old_OccMarkup();
-    fOccMarkup->mark(L0);  // annotate L0 with occurences analysis
-
-    endTiming("GraphCompiler::prepare2");
-    return L0;
-}
-
-/**
- * @brief prepare3(L): prepare a list of expressions to be ready to be translated into a set of instructions
- *
- * @param L1
- * @return Tree
- */
-Tree GraphCompiler::prepare3(Tree L1)
-{
-    recursivnessAnnotation(L1);  // Annotate L0 with recursivness information
-    typeAnnotation(L1, true);    // Annotate L0 with type information
-
-    SignalPromotion           SP;
-    Tree                      L1b = SP.mapself(L1);
-    Tree                      L2  = simplify(L1b);  // simplify by executing every computable operation
-    SignalConstantPropagation SK;
-    Tree                      L2b = SK.mapself(L2);
-
-    // Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
-
-    return L2b;
-}
-
 /**
  * @brief expression2Instructions() : transform a single expression into
  * a set of instructions
@@ -388,76 +765,6 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
         }
     }
     return IDs;
-}
-
-/**
- * @brief ExpressionsListToInstructionsSet(): transfoms a list of signals expressions
- * into a set of instructions
- *
- * @param L3 a list of expressions
- * @return set<Tree> the resulting set of instructions
- */
-set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
-{
-    // Each expression represent an output. We decorate them with
-    // output informations
-    Tree L3d  = gGlobal->nil;
-    int  onum = 0;
-    for (Tree l = L3; isList(l); l = tl(l)) {
-        L3d = cons(sigOutput(onum++, hd(l)), L3d);
-    }
-    L3d = reverse(L3d);
-    recursivnessAnnotation(L3d);  // Annotate L3 with recursivness information
-
-    startTiming("typeAnnotation");
-    typeAnnotation(L3d, true);  // Annotate L3 with type information
-    endTiming("typeAnnotation");
-
-    // cerr << ">>Transformation into Instructions\n" << endl;
-    startTiming("Transformation into Instructions");
-    set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    if (gGlobal->gDebugDiagram) signalGraph("phase1-beforeSimplification.dot", INSTR1);
-
-    // cerr << ">>delayLineSimplifier\n" << endl;
-    set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    if (gGlobal->gDebugDiagram) signalGraph("phase2-afterSimplification.dot", INSTR2);
-
-    // list short dline candidates (IN PROGRESS)
-    set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2) : INSTR2;
-    if (gGlobal->gDebugDiagram) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
-
-    // cerr << ">>transformDelayToTable\n" << endl;
-    set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
-    if (gGlobal->gDebugDiagram) signalGraph("phase3-afterTable.dot", INSTR3);
-
-    // cerr << ">>transformOld2NewTables\n" << endl;
-    set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
-    if (gGlobal->gDebugDiagram) signalGraph("phase4-afterTableTransform.dot", INSTR4);
-
-    // cerr << ">>transformTime\n" << endl;
-    set<Tree> INSTR4b = transformTime(INSTR4);
-    if (gGlobal->gDebugDiagram) signalGraph("phase4b-afterTimeTransform.dot", INSTR4);
-
-    // cerr << ">>splitCommonSubexpr\n" << endl;
-    set<Tree> INSTR5 = splitCommonSubexpr(INSTR4b);
-    if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
-
-    // cerr << ">>splitAddBranches\n" << endl;
-    set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
-    if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
-
-    signalGraph("SPECIAL1.dot", INSTR6);
-    signalGraph2("SPECIAL2.dot", INSTR6);
-#if 0
-    cerr << "Start scalarscheduling" << endl;
-    scalarScheduling("phase5-scalarScheduling.txt", INSTR4);
-
-    cerr << "Start parallelScheduling" << endl;
-    parallelScheduling("phase6-parallelScheduling.txt", INSTR4);
-
-    endTiming("Transformation into Instructions");
-#endif
-    return INSTR6;
 }
 
 /**
@@ -815,76 +1122,6 @@ static void compileInsOuts(Klass* K)
     }
 }
 
-// static void compileGlobalTime(Klass* K)
-// {
-//     // Handling global time 'gTime' with a local version 'time'
-//     K->addDeclCode("int \tgTime;");
-//     K->addClearCode("gTime = 0;");
-//     K->addZone3("int \ttime = gTime;");
-//     K->addPostCode(Statement("", "++time;"));
-//     K->addZone4("gTime = time;");
-// }
-#if 1
-void GraphCompiler::compileMultiSignal(Tree L)
-{
-    L               = prepare(L);  // optimize, share and annotate expressions
-    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
-
-    // lookForChains(INSTR);
-    InstructionsToClass(INSTR, fClass);
-    tableDependenciesGraph(INSTR);
-
-    generateMetaData();
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-    if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
-    }
-
-    if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-        xout << fJSON.JSON();
-    }
-}
-#else
-void GraphCompiler::compileMultiSignal(Tree L)
-{
-    L               = prepare(L);  // optimize, share and annotate expressions
-    set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
-
-    InstructionsToVectorClass(INSTR, fClass);
-    tableDependenciesGraph(INSTR);
-
-    generateMetaData();
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-    if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
-    }
-
-    if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-        xout << fJSON.JSON();
-    }
-}
-#endif
-
-/**
- * @brief Transform a scheduling into a C++ class
- *
- * @param name
- * @param super
- * @param numInputs
- * @param numOutputs
- * @param S
- * @return Klass
- */
-void GraphCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
-{
-    compileInsOuts(K);
-    InstructionsToMethod(I, K);
-}
-
 void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
 {
     compileInsOuts(Kl);
@@ -919,23 +1156,6 @@ void GraphCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
             compileSingleInstruction(i, Kl);
         }
         Kl->addExecCode(Statement("", "close for loop"));
-    }
-}
-
-void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
-{
-    // compileGlobalTime(K);
-    Scheduling S = schedule(I);
-    for (Tree instr : S.fInitLevel) {
-        compileSingleInstruction(instr, K);
-    }
-
-    for (Tree instr : S.fBlockLevel) {
-        compileSingleInstruction(instr, K);
-    }
-
-    for (Tree instr : S.fExecLevel) {
-        compileSingleInstruction(instr, K);
     }
 }
 
@@ -1007,206 +1227,11 @@ static void scheduleInstr(const digraph<Tree>& G, Tree i, vector<Tree>& SCHED, s
     }
 }
 
-/**
- * @brief Schedule a set of instructions into init, block and
- * exec instruction sequences
- *
- * @param I the set of instructions to schedule
- * @return the sequential Scheduling
- */
-Scheduling GraphCompiler::schedule(const set<Tree>& I)
-{
-    digraph<Tree> G;  // the signal graph
-    Scheduling    S;
-
-    // 1) build the graph and the dictionnary
-    for (auto i : I) {
-        G.add(dependencyGraph(i));
-        // S.fDic.add(i);
-    }
-
-    digraph<Tree> T;  // the subgraph of control instructions (temporary)
-    digraph<Tree> K;  // the subgraph of init-time instructions
-    digraph<Tree> B;  // the subgraph of block-time instructions
-    digraph<Tree> E;  // the subgraph at sample-time instructions
-
-    // 2) split in three sub-graphs: K, B, E
-
-    splitgraph<Tree>(G, &isControl, T, E);
-    splitgraph<Tree>(T, &isInit, K, B);
-
-    // 3) fill the scheduling
-
-    // a) for the init and block level graph we know they don't have cycles
-    // and can be directly serialized
-    for (Tree i : serialize(K)) S.fInitLevel.push_back(i);
-    for (Tree i : serialize(B)) S.fBlockLevel.push_back(i);
-
-    if (gGlobal->gCodeMode == 0) {
-        // b) for the sample level graph we have (probably) cycles
-        digraph<digraph<Tree>> DG = graph2dag(E);
-        vector<digraph<Tree>>  VG = serialize(DG);
-        for (digraph<Tree> g : VG) {
-            vector<Tree> v = serialize(cut(g, 1));
-            for (Tree i : v) {
-                S.fExecLevel.push_back(i);
-            }
-        }
-
-        // cerr << "Schedule 0 is \n" << S << endl;
-        return S;
-
-    } else if (gGlobal->gCodeMode == 1) {
-        // If we cut all connexions > 0 we should not have any cycles
-        vector<Tree> v = serialize(cut(E, 1));
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-
-        // cerr << "Schedule 1 is \n" << S << endl;
-        return S;
-
-    } else if (gGlobal->gCodeMode == 2) {
-        // If we cut all connexions > 0 we should not have any cycles
-        vector<vector<Tree>> P = parallelize(cut(E, 1));
-        for (auto l : P) {
-            for (Tree i : l) S.fExecLevel.push_back(i);
-        }
-
-        // cerr << "Schedule 2 is \n" << S << endl;
-        return S;
-
-    } else if (gGlobal->gCodeMode == 3) {
-        // we serialize from a set of output instructions
-        set<Tree> Outputs;
-        for (Tree instr : E.nodes()) {
-            int  n;
-            Tree exp;
-            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
-        }
-        vector<Tree> v = serialize2(cut(E, 1), Outputs);
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-        // cerr << "Schedule 3 is \n" << S << endl;
-        return S;
-    } else if (gGlobal->gCodeMode == 4) {
-        // we serialize from a set of table write instructions
-        set<Tree> tables;
-        for (Tree instr : E.nodes()) {
-            int  nature, tblsize;
-            Tree id, origin, init, idx, content;
-            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
-                tables.insert(instr);
-        }
-        vector<Tree> v = serialize2(cut(E, 1), tables);
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-        // cerr << "Schedule 4 is \n" << S << endl;
-        return S;
-    } else if (gGlobal->gCodeMode == 5) {
-        // we serialize from a set of output instructions
-        set<Tree> Outputs;
-        for (Tree instr : E.nodes()) {
-            int  n;
-            Tree exp;
-            if (isSigOutput(instr, &n, exp)) Outputs.insert(instr);
-        }
-        vector<Tree> v = serialize3(E, Outputs);
-        for (Tree i : v) {
-            S.fExecLevel.push_back(i);
-        }
-        // cerr << "Schedule 5 is \n" << S << endl;
-        return S;
-    } else if (gGlobal->gCodeMode == 6) {
-        // we serialize from a set of output instructions
-
-        set<Tree> DONE;
-        set<Tree> TODO = ListOutputs(I);
-        while (TODO.size() > 0) {
-            set<Tree> POSTPONE;
-            for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
-            TODO = POSTPONE;
-        }
-        // cerr << "Schedule 6 is \n" << S << endl;
-        return S;
-    } else if (gGlobal->gCodeMode == 7) {
-        // we serialize from a set of output instructions
-
-        set<Tree> DONE;
-        for (Tree o : ListOutputs(I)) {
-            set<Tree> TODO;
-            TODO.insert(o);
-            while (TODO.size() > 0) {
-                set<Tree> POSTPONE;
-                for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
-                TODO = POSTPONE;
-            }
-        }
-        // cerr << "Schedule 7 is \n" << S << endl;
-        return S;
-    } else /*if (gGlobal->gCodeMode == 8)*/ {
-        // b) for the sample level graph we have (probably) cycles
-        digraph<digraph<Tree>> DG = graph2dag(E);
-        digraph<digraph<Tree>> RG = reverse(DG);
-
-        // compute the output nodes
-        set<digraph<Tree>> outputs;
-        for (const auto& n : RG.nodes()) {
-            if (RG.connections(n).size() == 0) outputs.insert(n);
-        }
-
-        set<digraph<Tree>>    DONE;
-        vector<digraph<Tree>> SCHED;
-
-        for (const auto& o : outputs) {
-            set<digraph<Tree>> TODO;
-            TODO.insert(o);
-            while (TODO.size() > 0) {
-                set<digraph<Tree>> POSTPONE;
-                for (const auto& i : TODO) {
-                    if (DONE.find(i) == DONE.end()) {
-                        // mark i as done
-                        DONE.insert(i);
-                        SCHED.push_back(i);
-
-                        // schedule its dependencies
-                        for (auto p : DG.connections(i)) {
-                            if (p.second > 0) {
-                                POSTPONE.insert(p.first);
-                            } else {
-                                // TO FIX: scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
-                            }
-                        }
-                        // schedule itself
-                    }
-                }
-                TODO = POSTPONE;
-            }
-        }
-
-        return S;
-    }
-}
-
 ///
 
 /*****************************************************************************
  compileSingleSignal
  *****************************************************************************/
-
-void GraphCompiler::compileSingleSignal(Tree sig)
-{
-    // contextor recursivness(0);
-    sig = prepare2(sig);  // optimize and annotate expression
-    fClass->addExecCode(Statement("", subst("output[i] = $0;", CS(sig))));
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-    if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
-    }
-}
 
 /**
  * @brief generate sigTime 'time' variable code
@@ -1613,18 +1638,6 @@ string GraphCompiler::generateSoundfile(Tree sig, Tree path)
 /*----------------------------------------------------------------------------
                         sigGen : initial table content
 ----------------------------------------------------------------------------*/
-
-string GraphCompiler::generateSigGen(Tree /*sig*/, Tree content)
-{
-    string klassname = getFreshID("SIG");
-    string signame   = getFreshID("sig");
-
-    fClass->addSubKlass(signal2klass(fClass, klassname, content));
-    fClass->addInitCode(subst("$0 $1;", klassname, signame));
-    fInstanceInitProperty.set(content, pair<string, string>(klassname, signame));
-
-    return signame;
-}
 
 string GraphCompiler::generateStaticSigGen(Tree /*sig*/, Tree content)
 {

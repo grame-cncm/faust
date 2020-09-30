@@ -73,7 +73,7 @@ class GraphCompiler : public Compiler {
 
     void compileMultiSignal(Tree lsig) override;
     void compileSingleSignal(Tree lsig) override;
-    void compileMultiSignalVec(Tree L);  // experimental vector mode
+    // void compileMultiSignalVec(Tree L);  // experimental vector mode
 
    protected:
     virtual string CS(Tree sig);
@@ -135,7 +135,6 @@ class GraphCompiler : public Compiler {
     string generateStaticTable(Tree sig, Tree tsize, Tree content);
     string generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data);
     string generateRDTbl(Tree sig, Tree tbl, Tree idx);
-    string generateSigGen(Tree sig, Tree content);
     string generateStaticSigGen(Tree sig, Tree content);
 
     string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
