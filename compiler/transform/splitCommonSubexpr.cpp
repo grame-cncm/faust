@@ -83,7 +83,7 @@ class CommonSubexpr : public SignalIdentity {
 
         if ((n > 1) && (t->variability() >= kSamp) && needCache(sig)) {
             Tree r  = SignalIdentity::transformation(sig);
-            Tree id = (t->nature() == kInt) ? uniqueID("iVar", sig) : uniqueID("fVar", sig);
+            Tree id = (t->nature() == kInt) ? uniqueID("V", sig) : uniqueID("V", sig);
 #if 1
             fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, t->nature(), r));
             Tree inst = sigInstructionSharedRead(id, sig, t->nature());

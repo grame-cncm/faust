@@ -1,5 +1,5 @@
 # Faust - Programming Language for Audio Applications and Plugins
-
+for f in *.dot; do echo $f; dot -Tpdf $f -o ${f%.dot}.pdf; done
 ## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
 
 master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust)

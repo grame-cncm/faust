@@ -114,7 +114,7 @@ Tree SignalSplitter::transformation(Tree sig)
                 Tree id;
                 if (!fDelayLineName.get(x, id)) {
                     // Never visited before, it is the first time for this branch
-                    id = tree(unique("RDL"));   // we need a unique id for the recursive delay line
+                    id = tree(unique("R"));     // we need a unique id for the recursive delay line
                     fDelayLineName.set(x, id);  // we save it for the next visit
                     fSplittedSignals.insert(sigInstructionDelayLineWrite(id, x, t->nature(), dmax, self(nth(le, n))));
                 }
@@ -197,7 +197,7 @@ Tree SignalSplitter::transformation(Tree sig)
     } else if ((occ != nullptr) && (occ->hasMultiOccurences()) && (t->variability() < kSamp) &&
                !(isSigTable(sig, id, tblsize, wsig))) {
         Tree r  = SignalIdentity::transformation(sig);
-        Tree id = uniqueID("CTRL", sig);
+        Tree id = uniqueID("C", sig);
         fSplittedSignals.insert(sigInstructionControlWrite(id, sig, t->nature(), r));
         Tree inst = sigInstructionControlRead(id, sig, t->nature());
         return inst;

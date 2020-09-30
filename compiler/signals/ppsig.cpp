@@ -383,9 +383,9 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigInstructionTimeWrite(sig)) {
-        fout << "Time++;";
+        fout << "time := time+1;";
     } else if (isSigInstructionTimeRead(sig)) {
-        fout << "Time";
+        fout << "time";
     }
 
     else {
