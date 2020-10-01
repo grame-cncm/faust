@@ -7,10 +7,6 @@
 
 namespace Faust {
 
-    // class FaustFS extends Faust.LibFaust {
-    //     FS: typeof FS;
-    // }
-
     export class SVGDiagrams implements SVGDiagrams {
         private fSuccess: boolean;
         private fError: string;
@@ -20,7 +16,6 @@ namespace Faust {
         constructor(engine: Faust.LibFaust, name_app: string, dsp_content: string, args: string) {
             this.fEngine = engine;
             let compiler = new Faust.Compiler(engine);
-            console.log("SVGDiagrams name: " + name_app);
             let result = compiler.generateAuxFiles(name_app, dsp_content, "-lang wasm -svg " + args);
             this.fSuccess = result.success;
             this.fError = result.error;
@@ -30,20 +25,26 @@ namespace Faust {
         error(): string { return this.fError; }
         success(): boolean { return this.fSuccess; }
 
+        private debug (path: string) {
+            console.log("getSVG file: " + path );
+            let content = this.fEngine.module().FS.readdir(".");
+            console.log("getSVG dir: " + content );
+        }
+
         getSVG(name?: string): string {
-            if (!name) name = "process.svg";
+            if (!name) name = this.fFolder + "/process.svg";
             if (!this.fSuccess)
-                return "not a valid diagram: " + this.fError;
+                return "SVGDiagrams: not a valid diagram: " + this.fError;
 
-            let path = this.fFolder + "/" + name;
-
-            // console.log("getSVG file: " + path );
-            // let content = this.fEngine.module().FS.readdir(".");
-            // console.log("getSVG dir: " + content );
-            // content = this.fEngine.module().FS.readdir("-svg");
-            // console.log("getSVG dir: " + content );
-
-            return this.fEngine.module().FS.readFile(path, { encoding: "utf8" }) as string;
+            let path = name;
+            try {
+                // this.debug(path);
+                return this.fEngine.module().FS.readFile(path, { encoding: "utf8" }) as string;
+            }
+            catch (e) {
+                console.log ("SVGDiagrams: can't read file " + path);
+                return "";
+            }
         }
     }
 }
