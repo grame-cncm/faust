@@ -56,25 +56,35 @@ async function createPolyDsp(faust, log, voice_code, effect_code) {
 	log("  JSON: " + poly_instance.effect_json);
 }
 
+var TestSVG1svg;
+var TestSVG2svg;
 //----------------------------------------------------------------------------
 // Test svg diagrams
 //----------------------------------------------------------------------------
-var svg;
 function svgdiagrams(faust, log, code) {
-	svg = new Faust.SVGDiagrams (faust, "TestSVG", code, options)
-	if (!svg.success()) {
-		log (svg.error());
+	filter = "import(\"stdfaust.lib\");\nprocess = dm.oscrs_demo;";
+
+	let svg1 = new Faust.SVGDiagrams (faust, "TestSVG1", code, options)
+	if (!svg1.success()) {
+		log (svg1.error());
 	}
 	else {
 		log ("success");
-		let div = document.getElementById("svg");
-		div.innerHTML = svg.getSVG();
+		let div1 = document.getElementById("svg1");
+		div1.innerHTML = svg1.getSVG();
+		TestSVG1svg = (path) => { div1.innerHTML = svg1.getSVG (path); }
 	}
-}
 
-function FaustDiagramLinkTo(file) {
-	let div = document.getElementById("svg");
-	div.innerHTML = svg.getSVG(file);
+	let svg2 = new Faust.SVGDiagrams (faust, "TestSVG2", filter, options)
+	if (!svg2.success()) {
+		log (svg2.error());
+	}
+	else {
+		log ("success");
+		let div2 = document.getElementById("svg2");
+		div2.innerHTML = svg2.getSVG();
+		TestSVG2svg = (path) => { div2.innerHTML = svg2.getSVG(path); }
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -95,8 +105,8 @@ async function run(engine, log, code) {
 	// log("\n-----------------\nCreating Poly DSP instance:");
 	// await createPolyDsp(faust, log, code, effectCode);
 
-	// log("\n-----------------\nCreating DSP instance with error code:");
-	// await createDsp(faust, log, errCode).catch(e => { log(e); });
+	log("\n-----------------\nCreating DSP instance with error code:");
+	await createDsp(faust, log, errCode).catch(e => { log(e); });
 
 	// Test nodes
 	// let module = await faust.createDSPFactory("test", code, options, false);
