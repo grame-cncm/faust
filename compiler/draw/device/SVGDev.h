@@ -42,6 +42,8 @@ class SVGDev : public device {
 	
 	std::string startlink	(const char* link);
 	void		endlink		(const char* link);
+	const char*	rectColor2Style	(const std::string color);
+	std::string	getStyle	(const std::string& file);
 
    public:
     SVGDev(const char*, double, double);

@@ -116,6 +116,7 @@ struct global {
     bool   gSimpleNames;
     bool   gSimplifyDiagrams;
     int    gMaxCopyDelay;
+    string gStyleFile;
     string gOutputFile;
 
     bool gVectorSwitch;

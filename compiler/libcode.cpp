@@ -342,6 +342,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gDrawSVGSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-style", "--svgstyle")) {
+            gGlobal->gStyleFile = argv[i + 1];
+            i += 2;
+
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
             gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
@@ -926,6 +930,7 @@ static void printHelp()
             "generation."
          << endl;
     cout << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes." << endl;
+    cout << tab << "-style <f> --svgstyle <f>               use file 'f' as style sheet for svg diagrams." << endl;
 
     cout << endl << "Math doc options:" << line;
     cout << tab

@@ -103,24 +103,31 @@ SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
                 "   </filter>\n"
                 "</defs>" << endl;
     }
-    outstream() <<
-			"<style>\n"
-			"   .arrow { stroke:black; stroke-width:0.25; fill:none}\n"
-			"   .line  { stroke:black; stroke-linecap:round; stroke-width:0.25;}\n"
-			"   .dash  { stroke-dasharray:3,3;}\n"
-			"   .text  { font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF;}\n"
-			"   .label { font-family:Arial; font-size:7px;}\n"
-			"   .error { stroke-width:0.3; fill:red; text-anchor:middle;}\n"
-			"   .reason{ stroke-width:0.3; fill:none; text-anchor:middle;}\n"
-			"   .carre { stroke:black; stroke-width:0.5; fill:none;}\n"
-			"   .shadow{ stroke:none; fill:#aaaaaa; filter:url(#filter);}\n"
-			"   .rect  { stroke:none;}\n"
-			"   .border{ stroke:none; fill:#cccccc;}" << endl;
-	if (fJSLink)
-		outstream() <<
-			"   .link { stroke:none;}\n"
-			"   .link:hover { cursor:pointer;}" << endl;
-	outstream() << "</style>" << endl;
+    outstream() << getStyle(gGlobal->gStyleFile.c_str()) << endl;
+//			"<style>\n"
+//			"   .arrow {stroke:black; stroke-width:0.25; fill:none}\n"
+//			"   .line  {stroke:black; stroke-linecap:round; stroke-width:0.25;}\n"
+//			"   .dashline {stroke:black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;}\n"
+//			"   .text  {font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF;}\n"
+//			"   .label {font-family:Arial; font-size:7px;}\n"
+//			"   .error {stroke-width:0.3; fill:red; text-anchor:middle;}\n"
+//			"   .reason{stroke-width:0.3; fill:none; text-anchor:middle;}\n"
+//			"   .carre {stroke:black; stroke-width:0.5; fill:none;}\n"
+//			"   .shadow{stroke:none; fill:#aaaaaa; filter:url(#filter);}\n"
+//			"   .rect  {stroke:none;}\n"
+//			"   .border {stroke:none; fill:#cccccc;}\n"
+//			"   .linkbox {stroke:none; fill:#003366;}\n"
+//			"   .normalbox {stroke:none; fill:#4B71A1;}\n"
+//			"   .uibox {stroke:none; fill:#477881;}\n"
+//			"   .slotbox {stroke:none; fill:#47945E;}\n"
+//			"   .numcolorbox {stroke:none; fill:#f44800;}\n"
+//			"   .invcolorbox {stroke:none; fill:#ffffff;}" << endl;
+//
+//	if (fJSLink)
+//		outstream() <<
+//			"   .link { stroke:none;}\n"
+//			"   .link:hover { cursor:pointer;}" << endl;
+//	outstream() << "</style>" << endl;
 }
 
 SVGDev::~SVGDev()
@@ -128,6 +135,64 @@ SVGDev::~SVGDev()
     outstream() << "</svg>" << endl;
     delete fOutStream;
 }
+
+std::string	SVGDev::getStyle (const string& styleFile)
+{
+	string defaultStyle = 	"<style>\n"
+			" .arrow {stroke:black; stroke-width:0.25; fill:none}\n"
+			" .line  {stroke:black; stroke-linecap:round; stroke-width:0.25;}\n"
+			" .dashline {stroke:black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;}\n"
+			" .text  {font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF;}\n"
+			" .label {font-family:Arial; font-size:7px;}\n"
+			" .error {stroke-width:0.3; fill:red; text-anchor:middle;}\n"
+			" .reason{stroke-width:0.3; fill:none; text-anchor:middle;}\n"
+			" .carre {stroke:black; stroke-width:0.5; fill:none;}\n"
+			" .shadow{stroke:none; fill:#aaaaaa; filter:url(#filter);}\n"
+			" .rect  {stroke:none;}\n"
+			" .border {stroke:none; fill:#cccccc;}\n"
+			" .linkbox {stroke:none; fill:#003366;}\n"
+			" .normalbox {stroke:none; fill:#4B71A1;}\n"
+			" .uibox {stroke:none; fill:#477881;}\n"
+			" .slotbox {stroke:none; fill:#47945E;}\n"
+			" .numcolorbox {stroke:none; fill:#f44800;}\n"
+			" .invcolorbox {stroke:none; fill:#ffffff;}\n"
+#ifdef EMCC
+			" .link:hover { cursor:pointer;}\n"
+#endif
+			"</style>";
+
+	if (styleFile.size()) {
+		ifstream file (styleFile);
+		if (file.is_open()) {
+		    file.seekg (0, file.end);
+			int length = file.tellg();
+			file.seekg (0, file.beg);
+			char * buffer = new char [length+1];
+			file.read (buffer,length);
+			buffer[length] = 0;
+			string style(buffer);
+			delete[] buffer;
+			if (file.gcount() != length)
+				cerr << "failed to read style file '" << styleFile << "'" << endl;
+			else return style;
+		}
+		else cerr << "cannot open style file '" << styleFile << "'" << endl;
+	}
+	return defaultStyle;
+}
+
+
+const char*	SVGDev::rectColor2Style	(const string color)
+{
+	if (color == "#003366") return "linkbox";
+	if (color == "#4B71A1") return "normalbox";
+	if (color == "#477881") return "uibox";
+	if (color == "#47945E") return "slotbox";
+	if (color == "#f44800") return "numcolorbox";
+	if (color == "#ffffff") return "invcolorbox";
+	return "rect";
+}
+
 
 string SVGDev::startlink (const char* link)
 {
@@ -149,7 +214,8 @@ void SVGDev::rect(double x, double y, double l, double h, const char* color, con
 {
 	string jslink = startlink(link);
     string rclass = (gGlobal->gShadowBlur) ? "shadow" : "border";
-    string lclass = (fJSLink) ? "rect link" : "rect";
+    string style = rectColor2Style(color);
+    string lclass = (fJSLink) ? style + " link" : style;
 	outstream() << "<rect x=\"" << x+1 << "\" y=\"" << y+1
 				<< "\" width=\"" << l << "\" height=\"" << h
 				<< "\" rx=\"0.1\" ry=\"0.1\" class=\"" << rclass << "\"/>" << endl;
@@ -158,7 +224,8 @@ void SVGDev::rect(double x, double y, double l, double h, const char* color, con
 	outstream() << "<rect x=\"" << x << "\" y=\"" << y
 				<< "\" width=\"" << l << "\" height=\"" << h
 				<< "\" rx=\"0\" ry=\"0\""
-				<< " style=\"fill:" << color << "\" class=\"" << lclass << "\" " << jslink << "/>" << endl;
+				<< " class=\"" << lclass << "\" " << jslink << "/>" << endl;
+//				<< " style=\"fill:" << color << "\" class=\"" << lclass << "\" " << jslink << "/>" << endl;
 	endlink(link);
 }
 
@@ -215,7 +282,7 @@ void SVGDev::trait(double x1, double y1, double x2, double y2)
 
 void SVGDev::dasharray(double x1, double y1, double x2, double y2)
 {
-    outstream() << "<line x1=\"" << x1 << "\" y1=\"" << y1 << "\" x2=\"" << x2 << "\" y2=\"" << y2 << "\" class=\"line dash\"/>" << endl;
+    outstream() << "<line x1=\"" << x1 << "\" y1=\"" << y1 << "\" x2=\"" << x2 << "\" y2=\"" << y2 << "\" class=\"dashline\"/>" << endl;
 }
 
 void SVGDev::text(double x, double y, const char* name, const char* link)
