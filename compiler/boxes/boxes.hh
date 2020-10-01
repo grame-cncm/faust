@@ -148,9 +148,11 @@ bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z);
 
 Tree boxInputs(Tree x);
 Tree boxOutputs(Tree x);
+Tree boxOndemand(Tree x);
 
 bool isBoxInputs(Tree t, Tree& x);
 bool isBoxOutputs(Tree t, Tree& x);
+bool isBoxOndemand(Tree t, Tree& x);
 
 /*****************************************************************************
                               Lambda-Calculus of Boxes

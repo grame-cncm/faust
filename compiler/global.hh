@@ -320,6 +320,7 @@ struct global {
     Sym BOXPATVAR;
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
+    Sym BOXONDEMAND;
     Sym BOXSOUNDFILE;
     Sym BOXMETADATA;
     Sym DOCEQN;

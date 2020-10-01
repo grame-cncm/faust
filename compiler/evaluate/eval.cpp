@@ -568,6 +568,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             throw faustexception(error.str());
         }
 
+    } else if (isBoxOndemand(exp, body)) {
+        return boxOndemand(eval(body, visited, localValEnv));
+
     } else if (isBoxSlot(exp)) {
         return exp;
 
@@ -1469,16 +1472,16 @@ Tree numericBoxSimplification(Tree box)
             result = box;
         } else {
             // propagate signals to discover if it simplifies to a number
-            int    i;
-            double x;
+            int    ii;
+            double xx;
             Tree   lsignals = boxPropagateSig(gGlobal->nil, box, makeSigInputList(0));
             // cerr << "simplify 1389" << endl;
             Tree s = simplify(hd(lsignals));
 
-            if (isSigReal(s, &x)) {
-                result = boxReal(x);
-            } else if (isSigInt(s, &i)) {
-                result = boxInt(i);
+            if (isSigReal(s, &xx)) {
+                result = boxReal(xx);
+            } else if (isSigInt(s, &ii)) {
+                result = boxInt(ii);
             } else {
                 result = insideBoxSimplification(box);
             }

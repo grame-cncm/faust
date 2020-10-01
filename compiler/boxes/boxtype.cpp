@@ -352,6 +352,16 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
     } else if (isBoxRoute(t, ins, outs, lroutes)) {
         return isBoxInt(ins, inum) & isBoxInt(outs, onum);
 
+    } else if (isBoxOndemand(t, a)) {
+        int u, v;
+        if (getBoxType(a, &u, &v)) {
+            *inum = u + 1;
+            *onum = v;
+            return true;
+        } else {
+            return false;
+        }
+
     } else {
         stringstream error;
         error << "boxType() internal error : unrecognized box expression " << boxpp(t) << endl;

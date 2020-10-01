@@ -316,6 +316,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     BOXPATVAR        = symbol("BoxPatVar");
     BOXINPUTS        = symbol("BoxInputs");
     BOXOUTPUTS       = symbol("BoxOutputs");
+    BOXONDEMAND      = symbol("BoxOndemand");
     BOXSOUNDFILE     = symbol("boxSoundfile");
     BOXMETADATA      = symbol("boxMetadata");
 

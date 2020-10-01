@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.2.4.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -147,51 +148,51 @@ extern int yydebug;
     IPROD = 354,
     INPUTS = 355,
     OUTPUTS = 356,
-    STRING = 357,
-    FSTRING = 358,
-    IDENT = 359,
-    EXTRA = 360,
-    DECLARE = 361,
-    CASE = 362,
-    ARROW = 363,
-    BDOC = 364,
-    EDOC = 365,
-    BEQN = 366,
-    EEQN = 367,
-    BDGM = 368,
-    EDGM = 369,
-    BLST = 370,
-    ELST = 371,
-    BMETADATA = 372,
-    EMETADATA = 373,
-    DOCCHAR = 374,
-    NOTICE = 375,
-    LISTING = 376,
-    LSTTRUE = 377,
-    LSTFALSE = 378,
-    LSTDEPENDENCIES = 379,
-    LSTMDOCTAGS = 380,
-    LSTDISTRIBUTED = 381,
-    LSTEQ = 382,
-    LSTQ = 383
+    ONDEMAND = 357,
+    STRING = 358,
+    FSTRING = 359,
+    IDENT = 360,
+    EXTRA = 361,
+    DECLARE = 362,
+    CASE = 363,
+    ARROW = 364,
+    BDOC = 365,
+    EDOC = 366,
+    BEQN = 367,
+    EEQN = 368,
+    BDGM = 369,
+    EDGM = 370,
+    BLST = 371,
+    ELST = 372,
+    BMETADATA = 373,
+    EMETADATA = 374,
+    DOCCHAR = 375,
+    NOTICE = 376,
+    LISTING = 377,
+    LSTTRUE = 378,
+    LSTFALSE = 379,
+    LSTDEPENDENCIES = 380,
+    LSTMDOCTAGS = 381,
+    LSTDISTRIBUTED = 382,
+    LSTEQ = 383,
+    LSTQ = 384
   };
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
 union YYSTYPE
 {
-#line 73 "faustparser.y" /* yacc.c:1906  */
+#line 73 "faustparser.y"
 
 	CTree* 	exp;
 	char* str;
 	string* cppstr;
 	bool b;
 
-#line 193 "faustparser.hpp" /* yacc.c:1906  */
-};
+#line 194 "faustparser.hpp"
 
+};
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

@@ -201,6 +201,9 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "inputs"	return INPUTS;
 "outputs"	return OUTPUTS;
 
+"ondemand"      return ONDEMAND;
+
+
 "import"	return IMPORT;
 "component" return COMPONENT;
 "library"   return LIBRARY;

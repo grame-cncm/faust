@@ -284,6 +284,10 @@ Tree boxOutputs(Tree x)
 {
     return tree(gGlobal->BOXOUTPUTS, x);
 }
+Tree boxOndemand(Tree x)
+{
+    return tree(gGlobal->BOXONDEMAND, x);
+}
 
 bool isBoxInputs(Tree t, Tree& x)
 {
@@ -292,6 +296,10 @@ bool isBoxInputs(Tree t, Tree& x)
 bool isBoxOutputs(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXOUTPUTS, x);
+}
+bool isBoxOndemand(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->BOXONDEMAND, x);
 }
 
 /*****************************************************************************

@@ -350,6 +350,10 @@ ostream &boxpp::print(ostream &fout) const
         fout << "route(" << boxpp(ins) << "," << boxpp(outs) << "," << boxpp(lroutes) << ")";
     }
 
+    else if (isBoxOndemand(box, body)) {
+        fout << "ondemand(" << boxpp(body) << ")";
+    }
+
     else if (isBoxError(box)) {
         fout << "ERROR";
     }
