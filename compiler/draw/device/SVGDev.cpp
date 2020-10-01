@@ -28,10 +28,11 @@
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
+namespace fs = std::__fs::filesystem;
+
 
 using namespace std;
-
-static const char* jsLinkFunction = "FaustDiagramLinkTo";
 
 static string xmlcode(const char* name)
 {
@@ -63,16 +64,9 @@ static string xmlcode(const char* name)
 }
 
 
-static string getJSLink(const char* link)
-{
-	stringstream jslink;
-	jslink << " onclick=\"" << jsLinkFunction << "('" << xmlcode(link) << "')\"";
-    return jslink.str();
-}
-
-
 SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
+	fCurrentPath = fs::current_path();
     double gScale = 0.5;
     fOutStream = new ofstream (ficName);
     if (fOutStream->fail()) {
@@ -104,30 +98,6 @@ SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
                 "</defs>" << endl;
     }
     outstream() << getStyle(gGlobal->gStyleFile.c_str()) << endl;
-//			"<style>\n"
-//			"   .arrow {stroke:black; stroke-width:0.25; fill:none}\n"
-//			"   .line  {stroke:black; stroke-linecap:round; stroke-width:0.25;}\n"
-//			"   .dashline {stroke:black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;}\n"
-//			"   .text  {font-family:Arial; font-size:7px; text-anchor:middle; fill:#FFFFFF;}\n"
-//			"   .label {font-family:Arial; font-size:7px;}\n"
-//			"   .error {stroke-width:0.3; fill:red; text-anchor:middle;}\n"
-//			"   .reason{stroke-width:0.3; fill:none; text-anchor:middle;}\n"
-//			"   .carre {stroke:black; stroke-width:0.5; fill:none;}\n"
-//			"   .shadow{stroke:none; fill:#aaaaaa; filter:url(#filter);}\n"
-//			"   .rect  {stroke:none;}\n"
-//			"   .border {stroke:none; fill:#cccccc;}\n"
-//			"   .linkbox {stroke:none; fill:#003366;}\n"
-//			"   .normalbox {stroke:none; fill:#4B71A1;}\n"
-//			"   .uibox {stroke:none; fill:#477881;}\n"
-//			"   .slotbox {stroke:none; fill:#47945E;}\n"
-//			"   .numcolorbox {stroke:none; fill:#f44800;}\n"
-//			"   .invcolorbox {stroke:none; fill:#ffffff;}" << endl;
-//
-//	if (fJSLink)
-//		outstream() <<
-//			"   .link { stroke:none;}\n"
-//			"   .link:hover { cursor:pointer;}" << endl;
-//	outstream() << "</style>" << endl;
 }
 
 SVGDev::~SVGDev()
@@ -136,9 +106,28 @@ SVGDev::~SVGDev()
     delete fOutStream;
 }
 
-std::string	SVGDev::getStyle (const string& styleFile)
+static string toJSName(const char* path) {
+	string name;
+	while (*path) {
+		char c = *path++;
+		if (c!='-' && c!='/') name += c;
+	}
+	return name;
+}
+
+string SVGDev::getJSLink(const char* link) const
 {
-	string defaultStyle = 	"<style>\n"
+	string path = fCurrentPath + "/" + xmlcode(link);
+	stringstream jslink;
+	jslink << " onclick=\"" << toJSName(fCurrentPath.c_str()) << "('" << path << "')\"";
+    return jslink.str();
+}
+
+
+std::string	SVGDev::getStyle (const string& styleFile) const
+{
+	string defaultStyle =
+			"<style>\n"
 			" .arrow {stroke:black; stroke-width:0.25; fill:none}\n"
 			" .line  {stroke:black; stroke-linecap:round; stroke-width:0.25;}\n"
 			" .dashline {stroke:black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;}\n"
@@ -156,9 +145,7 @@ std::string	SVGDev::getStyle (const string& styleFile)
 			" .slotbox {stroke:none; fill:#47945E;}\n"
 			" .numcolorbox {stroke:none; fill:#f44800;}\n"
 			" .invcolorbox {stroke:none; fill:#ffffff;}\n"
-#ifdef EMCC
 			" .link:hover { cursor:pointer;}\n"
-#endif
 			"</style>";
 
 	if (styleFile.size()) {
@@ -182,7 +169,7 @@ std::string	SVGDev::getStyle (const string& styleFile)
 }
 
 
-const char*	SVGDev::rectColor2Style	(const string color)
+const char*	SVGDev::rectColor2Style	(const string color) const
 {
 	if (color == "#003366") return "linkbox";
 	if (color == "#4B71A1") return "normalbox";
@@ -207,7 +194,7 @@ string SVGDev::startlink (const char* link)
 
 void SVGDev::endlink (const char* link)
 {
-    if (link != 0 && link[0] != 0 && !fJSLink) outstream() << "</a>" << endl;
+	if (link != 0 && link[0] != 0 && !fJSLink) outstream() << "</a>" << endl;
 }
 
 void SVGDev::rect(double x, double y, double l, double h, const char* color, const char* link)
