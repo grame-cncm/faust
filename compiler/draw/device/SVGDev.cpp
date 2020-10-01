@@ -28,9 +28,11 @@
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
+
+#ifndef WIN32
 #include <filesystem>
 namespace fs = std::__fs::filesystem;
-
+#endif
 
 using namespace std;
 
@@ -66,7 +68,9 @@ static string xmlcode(const char* name)
 
 SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
-	fCurrentPath = fs::current_path();
+#ifdef EMCC
+	fCurrentPath = fs::current_path();		// filesystem not supported by Visual Studio 15
+#endif
     double gScale = 0.5;
     fOutStream = new ofstream (ficName);
     if (fOutStream->fail()) {
@@ -152,7 +156,7 @@ std::string	SVGDev::getStyle (const string& styleFile) const
 		ifstream file (styleFile);
 		if (file.is_open()) {
 		    file.seekg (0, file.end);
-			int length = file.tellg();
+			int length = int(file.tellg());
 			file.seekg (0, file.beg);
 			char * buffer = new char [length+1];
 			file.read (buffer,length);
