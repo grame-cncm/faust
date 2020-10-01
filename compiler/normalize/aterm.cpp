@@ -132,8 +132,6 @@ Tree aterm::normalizedTree() const
     // positive terms are stored in P[]
     // negative terms are inverted (made positive) and stored in N[]
     Tree P[4], N[4];
-    bool hasPositiveTerm = false;
-    bool hasNegativeTerm = false;
 
     // prepare
     for (int order = 0; order < 4; order++) P[order] = N[order] = tree(0);
@@ -142,15 +140,13 @@ Tree aterm::normalizedTree() const
     for (SM::const_iterator p = fSig2MTerms.begin(); p != fSig2MTerms.end(); p++) {
         const mterm& m = p->second;
         if (m.isNegative()) {
-            Tree t          = m.normalizedTree(false, true);
-            int  order      = getSigOrder(t);
-            N[order]        = simplifyingAdd(N[order], t);
-            hasNegativeTerm = true;
+            Tree t     = m.normalizedTree(false, true);
+            int  order = getSigOrder(t);
+            N[order]   = simplifyingAdd(N[order], t);
         } else {
-            Tree t          = m.normalizedTree();
-            int  order      = getSigOrder(t);
-            P[order]        = simplifyingAdd(P[order], t);
-            hasPositiveTerm = true;
+            Tree t     = m.normalizedTree();
+            int  order = getSigOrder(t);
+            P[order]   = simplifyingAdd(P[order], t);
         }
     }
 

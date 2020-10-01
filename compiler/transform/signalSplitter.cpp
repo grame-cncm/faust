@@ -87,7 +87,7 @@ Tree SignalSplitter::transformation(Tree sig)
     faustassert(sig);
     int             n;
     double          v;
-    Tree            minv, maxv, label, val, id, x, y, tbl, tblsize, idx, ridx, wtbl, widx, wsig, itbl, init, gexp;
+    Tree            minv, maxv, label, val, id, x, y, tblsize, ridx, wtbl, widx, wsig, itbl, init;
     Type            t   = getCertifiedSigType(sig);
     old_Occurences* occ = fOccMarkup->retrieve(sig);
 
@@ -111,15 +111,15 @@ Tree SignalSplitter::transformation(Tree sig)
                     // cerr << "FALSE RECURSION " << endl;
                     return self(nth(le, n));
                 }
-                Tree id;
-                if (!fDelayLineName.get(x, id)) {
+                Tree dlid;
+                if (!fDelayLineName.get(x, dlid)) {
                     // Never visited before, it is the first time for this branch
-                    id = tree(unique("R"));     // we need a unique id for the recursive delay line
-                    fDelayLineName.set(x, id);  // we save it for the next visit
-                    fSplittedSignals.insert(sigInstructionDelayLineWrite(id, x, t->nature(), dmax, self(nth(le, n))));
+                    dlid = tree(unique("R"));     // we need a unique id for the recursive delay line
+                    fDelayLineName.set(x, dlid);  // we save it for the next visit
+                    fSplittedSignals.insert(sigInstructionDelayLineWrite(dlid, x, t->nature(), dmax, self(nth(le, n))));
                 }
                 Tree w = self(y);
-                return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
+                return sigInstructionDelayLineRead(dlid, x, t->nature(), dmax, int(i.lo), w);
 
             } else {
                 // This case is impossible (in principle ;-))
@@ -128,24 +128,24 @@ Tree SignalSplitter::transformation(Tree sig)
             }
         } else {
             // Delay on a regular expression
-            Tree id;
-            if (!fDelayLineName.get(x, id)) {
+            Tree dlid;
+            if (!fDelayLineName.get(x, dlid)) {
                 // The delayed signal was never visited before
-                id = tree(unique("D"));     // we need a unique id for it
-                fDelayLineName.set(x, id);  // we save it for the next visit
-                fSplittedSignals.insert(sigInstructionDelayLineWrite(id, x, t->nature(), dmax, self(x)));
+                dlid = tree(unique("D"));     // we need a unique id for it
+                fDelayLineName.set(x, dlid);  // we save it for the next visit
+                fSplittedSignals.insert(sigInstructionDelayLineWrite(dlid, x, t->nature(), dmax, self(x)));
             }
             Tree w = self(y);
-            return sigInstructionDelayLineRead(id, x, t->nature(), dmax, int(i.lo), w);
+            return sigInstructionDelayLineRead(dlid, x, t->nature(), dmax, int(i.lo), w);
         }
 
     } else if (isSigVBargraph(sig, label, minv, maxv, val) || isSigHBargraph(sig, label, minv, maxv, val)) {
         // string varname = getFreshID("fbargraph");
         // fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
         // addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-        Tree id = uniqueID("fbargraph", sig);
-        fSplittedSignals.insert(sigInstructionBargraphWrite(id, sig, kReal, self(val)));
-        Tree inst = sigInstructionBargraphRead(id, sig, kReal);
+        Tree bgid = uniqueID("fbargraph", sig);
+        fSplittedSignals.insert(sigInstructionBargraphWrite(bgid, sig, kReal, self(val)));
+        Tree inst = sigInstructionBargraphRead(bgid, sig, kReal);
         return inst;
 
     } else if (isSigTable(sig, id, tblsize, init)) {
@@ -196,10 +196,10 @@ Tree SignalSplitter::transformation(Tree sig)
         //     return r;
     } else if ((occ != nullptr) && (occ->hasMultiOccurences()) && (t->variability() < kSamp) &&
                !(isSigTable(sig, id, tblsize, wsig))) {
-        Tree r  = SignalIdentity::transformation(sig);
-        Tree id = uniqueID("C", sig);
-        fSplittedSignals.insert(sigInstructionControlWrite(id, sig, t->nature(), r));
-        Tree inst = sigInstructionControlRead(id, sig, t->nature());
+        Tree r    = SignalIdentity::transformation(sig);
+        Tree ctid = uniqueID("C", sig);
+        fSplittedSignals.insert(sigInstructionControlWrite(ctid, sig, t->nature(), r));
+        Tree inst = sigInstructionControlRead(ctid, sig, t->nature());
         return inst;
     } else {
         return SignalIdentity::transformation(sig);

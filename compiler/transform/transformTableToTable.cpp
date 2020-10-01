@@ -126,9 +126,6 @@ class TransformTime : public SignalIdentity {
     {
         faustassert(sig);
 
-        Tree id, origin, dl, exp;
-        int  nature, dmin, dmax;
-
         if (isSigTime(sig)) {
             fHasTime = true;
             return sigInstructionTimeRead();

@@ -85,6 +85,17 @@ struct interval : public virtual Garbageable {
             assert(false);
         }
     }
+    interval& operator=(const interval& r)
+    {
+        if (isnan(r.lo) || isnan(r.hi)) {
+            cerr << "ERROR4, r.lo or r.hi is NAN in an Interval" << endl;
+            assert(false);
+        }
+        valid = r.valid;
+        lo    = r.lo;
+        hi    = r.hi;
+        return *this;
+    }
 
     // bool isvalid() { return valid; }
     bool isempty() { return hi < lo; }

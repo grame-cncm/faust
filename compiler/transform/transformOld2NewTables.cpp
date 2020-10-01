@@ -28,6 +28,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include "transformOld2NewTables.hh"
 #include <map>
 #include "global.hh"
 #include "old_occurences.hh"
@@ -36,12 +37,11 @@
 #include "sigIdentity.hh"
 #include "signalDependencies.hh"
 #include "sigtyperules.hh"
-#include "transformOld2NewTables.hh"
 
 using namespace std;
 
 // static Tree           uniqueID(const char* prefix, Tree sig);
-static map<Tree, int> countOccurrences(const set<Tree>& I);
+// static map<Tree, int> countOccurrences(const set<Tree>& I);
 
 /**
  * @brief Transforms old rd/rw tables into sigInstructionTableRead/Write pairs

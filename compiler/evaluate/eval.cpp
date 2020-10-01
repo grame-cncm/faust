@@ -547,10 +547,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
         // static
     } else if (isBoxInputs(exp, body)) {
-        int  ins, outs;
+        int  lins, louts;
         Tree b = a2sb(eval(body, visited, localValEnv));
-        if (getBoxType(b, &ins, &outs)) {
-            return boxInt(ins);
+        if (getBoxType(b, &lins, &louts)) {
+            return boxInt(lins);
         } else {
             stringstream error;
             error << "ERROR : can't evaluate ' : " << *exp << endl;
@@ -558,10 +558,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         }
 
     } else if (isBoxOutputs(exp, body)) {
-        int  ins, outs;
+        int  lins, louts;
         Tree b = a2sb(eval(body, visited, localValEnv));
-        if (getBoxType(b, &ins, &outs)) {
-            return boxInt(outs);
+        if (getBoxType(b, &lins, &louts)) {
+            return boxInt(louts);
         } else {
             stringstream error;
             error << "ERROR : can't evaluate ' : " << *exp << endl;

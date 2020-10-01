@@ -42,7 +42,7 @@ struct point : public virtual Garbageable {
 
     point() = default;
     point(double u, double v) : x(u), y(v) {}
-    point(const point& p) : x(p.x), y(p.y) {}
+    point(const point& p) = default;  // : x(p.x), y(p.y) {}
 
     bool operator<(const point& p) const
     {

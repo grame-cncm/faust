@@ -81,11 +81,11 @@ inline vector<N> serialize2(const digraph<N>& g, const set<N>& E)
     // S : serialized vector of nodes
     //------------------------------------------------------------------------
     using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, vector<N>&)>;
-    Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, vector<N>& S) {
+    Visitfun visit = [&visit](const digraph<N>& graph, const N& n, set<N>& V, vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
-            for (const auto& p : g.connections(n)) {
-                visit(g, p.first, V, S);
+            for (const auto& p : graph.connections(n)) {
+                visit(graph, p.first, V, S);
             }
             S.push_back(n);
         }
@@ -121,15 +121,15 @@ inline vector<N> serialize3(const digraph<N>& g, const set<N>& E)
     // S : serialized vector of nodes
     //------------------------------------------------------------------------
     using Visitfun = function<void(const digraph<N>&, const N&, set<N>&, set<N>&, vector<N>&)>;
-    Visitfun visit = [&visit](const digraph<N>& g, const N& n, set<N>& V, set<N>& L, vector<N>& S) {
+    Visitfun visit = [&visit](const digraph<N>& graph, const N& n, set<N>& V, set<N>& L, vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
-            for (const auto& p : g.connections(n)) {
+            for (const auto& p : graph.connections(n)) {
                 if (p.second > 0) {
                     // don't follow delayed connexions
                     L.insert(p.first);
                 } else {
-                    visit(g, p.first, V, L, S);
+                    visit(graph, p.first, V, L, S);
                 }
             }
             S.push_back(n);
