@@ -29,7 +29,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifndef WIN32
+#ifdef EMCC
 #include <filesystem>
 namespace fs = std::__fs::filesystem;
 #endif
