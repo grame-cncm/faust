@@ -125,7 +125,6 @@ namespace Faust {
 				try {
 					const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, !poly);
 					const wasm = this.fFaustEngine.getWasmModule(factory);
-					console.log(wasm.json);
 					WebAssembly.compile(this.intVec2intArray(wasm.data)).then(module => {
 						this.fFaustEngine.freeWasmModule(factory);
 						resolve({ module: module, json: wasm.json, poly: poly });

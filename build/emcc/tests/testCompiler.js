@@ -64,23 +64,23 @@ var TestSVG2svg;
 function svgdiagrams(faust, log, code) {
 	filter = "import(\"stdfaust.lib\");\nprocess = dm.oscrs_demo;";
 
-	let svg1 = new Faust.SVGDiagrams (faust, "TestSVG1", code, options)
+	let svg1 = new Faust.SVGDiagrams(faust, "TestSVG1", code, options)
 	if (!svg1.success()) {
-		log (svg1.error());
+		log(svg1.error());
 	}
 	else {
-		log ("success");
+		log("success");
 		let div1 = document.getElementById("svg1");
 		div1.innerHTML = svg1.getSVG();
-		TestSVG1svg = (path) => { div1.innerHTML = svg1.getSVG (path); }
+		TestSVG1svg = (path) => { div1.innerHTML = svg1.getSVG(path); }
 	}
 
-	let svg2 = new Faust.SVGDiagrams (faust, "TestSVG2", filter, options)
+	let svg2 = new Faust.SVGDiagrams(faust, "TestSVG2", filter, options)
 	if (!svg2.success()) {
-		log (svg2.error());
+		log(svg2.error());
 	}
 	else {
-		log ("success");
+		log("success");
 		let div2 = document.getElementById("svg2");
 		div2.innerHTML = svg2.getSVG();
 		TestSVG2svg = (path) => { div2.innerHTML = svg2.getSVG(path); }
@@ -90,7 +90,7 @@ function svgdiagrams(faust, log, code) {
 //----------------------------------------------------------------------------
 // Main entry point
 //----------------------------------------------------------------------------
-async function run(engine, log, code) {
+async function run(engine, log, code, context) {
 	let faust = new Faust.Compiler(engine);
 	log("libfaust version: " + faust.version());
 
@@ -108,17 +108,20 @@ async function run(engine, log, code) {
 	log("\n-----------------\nCreating DSP instance with error code:");
 	await createDsp(faust, log, errCode).catch(e => { log(e); });
 
-	// Test nodes
-	// let module = await faust.createDSPFactory("test", code, options, false);
-	// console.log(module);
-	// const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
-	// console.log(context);
-	// let fwan = new Faust.FaustWebAudioNode();
-	// let node = await fwan.createMonoNode(context, "test", module, true, 512);
-	// console.log(node);
-
 	log("\n-----------------\nTest SVG diagrams: ");
-	svgdiagrams (engine, log, code);
+	svgdiagrams(engine, log, code);
+
+	// Test nodes
+	let factory = await faust.createDSPFactory("test", code, options, false);
+	console.log(factory);
+	console.log(context);
+	let fwan = new Faust.AudioNodeFactory();
+	let node = await fwan.createMonoNode(context, "test", factory, true, 512);
+	console.log(node);
+	console.log(node.getParams());
+	console.log(node.getJSON());
+	//node.setParamValue("/test/Volume", 0.5);
+	node.connect(context.destination);
 
 	log("\nEnd of API tests");
 }

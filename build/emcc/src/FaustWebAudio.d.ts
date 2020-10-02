@@ -59,6 +59,7 @@ declare namespace Faust {
 	}
 
 	// Public API
+	/*
 	interface FaustAudioNode {
 
 		setOutputParamHandler(handler: OutputParamHandler): void;
@@ -80,27 +81,62 @@ declare namespace Faust {
 
 		//midiMessage(data: number[] | Uint8Array): void;
 	}
+	*/
 
 	interface FaustScriptProcessorNode extends ScriptProcessorNode, MonoDSP {
 
+		setOutputParamHandler(handler: OutputParamHandler): void;
+		getOutputParamHandler(): OutputParamHandler;
+		metadata(handler: MetadataHandler): void;
+		ctrlChange(chan: number, ctrl: number, value: number): void;
+		pitchWheel(chan: number, value: number): void;
+		setParamValue(path: string, value: number): void;
+		getParamValue(path: string): number;
+		getParams(): string[];
+		getJSON(): string;
+		destroy(): void; // to do: check is this function is still really needed
+
 	}
 
-	interface FaustWebAudioNode {
-		compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean): Promise<FaustAudioNode>;
+	interface FaustAudioWorletNode extends AudioWorkletNode, MonoDSP {
+
+		setOutputParamHandler(handler: OutputParamHandler): void;
+		getOutputParamHandler(): OutputParamHandler;
+		metadata(handler: MetadataHandler): void;
+		ctrlChange(chan: number, ctrl: number, value: number): void;
+		pitchWheel(chan: number, value: number): void;
+		setParamValue(path: string, value: number): void;
+		getParamValue(path: string): number;
+		getParams(): string[];
+		getJSON(): string;
+		destroy(): void; // to do: check is this function is still really needed
+	}
+
+
+	//interface FaustAudioNode extends FaustScriptProcessorNode, FaustAudioWorletNode { }
+
+	interface AudioNodeFactory {
+		compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean)
+			: Promise<FaustScriptProcessorNode | FaustAudioWorletNode>;
 
 		// We assume that 'dsp_content' contains an integrated effect
-		compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+		compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean)
+			: Promise<FaustScriptProcessorNode | FaustAudioWorletNode>;
 
 		// Separated 'voice' and 'effect' DSP
-		compilePolyNode2(context: BaseAudioContext, name: string, faust: LibFaust, voice_dsp: string, effect_dsp: string, args: string, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+		compilePolyNode2(context: BaseAudioContext, name: string, faust: LibFaust, voice_dsp: string, effect_dsp: string, args: string, voices: number, scriptprocessor: boolean)
+			: Promise<FaustScriptProcessorNode | FaustAudioWorletNode>;
 
-		createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean): Promise<FaustAudioNode>;
+		createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean, bufferSize?: number)
+			: Promise<FaustScriptProcessorNode | FaustAudioWorletNode>;
 
 		// We assume that 'dsp_content' contains an integrated effect
-		createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+		createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number)
+			: Promise<FaustScriptProcessorNode | FaustAudioWorletNode>;
 
 		// Separated 'voice' and 'effect' modules
-		createPolyNode2(context: BaseAudioContext, name: string, voice_module: Faust.Factory, effect_module: Faust.Factory, voices: number, scriptprocessor: boolean): Promise<FaustAudioPolyNode>;
+		createPolyNode2(context: BaseAudioContext, name: string, voice_module: Faust.Factory, effect_module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number)
+			: Promise<FaustScriptProcessorNode | FaustAudioWorletNode>;
 	}
 
 }
