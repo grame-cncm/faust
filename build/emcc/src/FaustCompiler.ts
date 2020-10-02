@@ -138,6 +138,23 @@ namespace Faust {
 			});
 		}
 
+		// TODO
+		// loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory> {
+		// 	return new Promise((resolve, reject) => {
+		// 		try {
+		// 			const wasm_file = fetch(wasm_path);
+		// 			const wasm_buffer = wasm_file.arrayBuffer();
+		// 			const module = WebAssembly.compile(wasm_buffer);
+		// 			const json_file = fetch(json_path);
+		// 			const json = json_file.text();
+		// 			resolve({ module: module, json: json, poly: poly });
+		// 		} catch (e) {
+		// 			console.log("=> exception raised while running loadDSPFactory: " + e);
+		// 			reject(e);
+		// 		}
+		// 	});
+		// } 
+
 		createDSPInstance(factory: Factory): Instance {
 			const instance = new WebAssembly.Instance(factory.module, this.createWasmImport());
 			const functions: any = instance.exports;
@@ -198,7 +215,15 @@ namespace Faust {
 			}
 		}
 
-		// deleteAllDSPFactories(): void;
 	}
 
+	export class Factory implements Faust.Factory {
+		constructor(module: WebAssembly.Module, json: string, poly: boolean) {
+			this.module = module;
+			this.json = json;
+			this.poly = poly;
+		}
+	}
+
+	// deleteAllDSPFactories(): void;
 }

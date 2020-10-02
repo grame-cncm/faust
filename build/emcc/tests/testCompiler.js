@@ -91,9 +91,11 @@ function svgdiagrams(faust, log, code) {
 // Main entry point
 //----------------------------------------------------------------------------
 async function run(engine, log, code, context) {
+
 	let faust = new Faust.Compiler(engine);
 	log("libfaust version: " + faust.version());
 
+	/*
 	log("\n-----------------\nMisc tests" + faust.version());
 	misc(faust, log, code);
 	log("\n-----------------\nMisc tests with error code");
@@ -110,8 +112,11 @@ async function run(engine, log, code, context) {
 
 	log("\n-----------------\nTest SVG diagrams: ");
 	svgdiagrams(engine, log, code);
+	*/
 
 	// Test nodes
+
+	// Created with libfaust.js
 	let factory = await faust.createDSPFactory("test", code, options, false);
 	console.log(factory);
 	console.log(context);
@@ -122,6 +127,27 @@ async function run(engine, log, code, context) {
 	console.log(node.getJSON());
 	//node.setParamValue("/test/Volume", 0.5);
 	node.connect(context.destination);
+
+	/*
+	// Created from a wasm file
+
+	const dspFile = await fetch("noise.wasm");
+	const jsonFile = await fetch("noise.js");
+	const json = await jsonFile.text();
+	const dspBuffer = await dspFile.arrayBuffer();
+	const dspModule = await WebAssembly.compile(dspBuffer);
+	const factory = new Faust.Factory(dspModule, json, false);
+
+	//const factory = faust.loadDSPFactory("noise.wasm", "noise.js");
+
+	let fwan = new Faust.AudioNodeFactory();
+	let node = await fwan.createMonoNode(context, "test", factory, true, 512);
+	console.log(node);
+	console.log(node.getParams());
+	console.log(node.getJSON());
+	node.setParamValue("/Noise/Volume", 0.1);
+	node.connect(context.destination);
+	*/
 
 	log("\nEnd of API tests");
 }
