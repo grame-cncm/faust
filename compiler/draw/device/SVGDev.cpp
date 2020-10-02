@@ -30,8 +30,7 @@
 #include <sstream>
 
 #ifdef EMCC
-#include <filesystem>
-namespace fs = std::__fs::filesystem;
+#include <unistd.h>
 #endif
 
 using namespace std;
@@ -65,11 +64,19 @@ static string xmlcode(const char* name)
     return out.str();
 }
 
+#ifdef EMCC
+static string currentDir ()
+{
+    char  buffer[4096];
+    char* current_dir = getcwd(buffer, 4096);
+    return current_dir ? string(buffer) : "";
+}
+#endif
 
 SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
 #ifdef EMCC
-	fCurrentPath = fs::current_path();		// filesystem not supported by Visual Studio 15
+	fCurrentPath = currentDir();
 #endif
     double gScale = 0.5;
     fOutStream = new ofstream (ficName);
