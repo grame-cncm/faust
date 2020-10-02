@@ -107,6 +107,7 @@ class MetaDataUI {
             fLogSet.clear();
             fExpSet.clear();
             fHiddenSet.clear();
+            fGroupTooltip = "";
         }
         
         /**
@@ -253,8 +254,8 @@ class MetaDataUI {
                                 if (deep < 1) {
                                     metadata[rmWhiteSpaces(key)] = "";
                                     state = kLabel;
-                                    key="";
-                                    value="";
+                                    key = "";
+                                    value = "";
                                 } else {
                                     key += c;
                                 }
