@@ -42,6 +42,7 @@ declare namespace Faust {
 
 		// TODO: do proper typing
 		midiMessage(data: any): void;
+
 		ctrlChange(chan: number, ctrl: number, value: number): void;
 		pitchWheel(chan: number, value: number): void;
 

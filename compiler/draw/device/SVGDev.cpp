@@ -26,7 +26,6 @@
 #include "global.hh"
 
 #include <stdio.h>
-#include <fstream>
 #include <sstream>
 
 #ifdef EMCC
@@ -65,7 +64,7 @@ static string xmlcode(const char* name)
 }
 
 #ifdef EMCC
-static string currentDir ()
+static string currentDir()
 {
     char  buffer[4096];
     char* current_dir = getcwd(buffer, 4096);
@@ -73,19 +72,19 @@ static string currentDir ()
 }
 #endif
 
-SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
+SVGDev::SVGDev(const char* ficName, double largeur, double hauteur):fOutStream(ficName)
 {
-#ifdef EMCC
-	fCurrentPath = currentDir();
-#endif
-    double gScale = 0.5;
-    fOutStream = new ofstream (ficName);
-    if (fOutStream->fail()) {
+    if (fOutStream.fail()) {
         stringstream error;
         error << "ERROR : impossible to create or open " << ficName << endl;
         throw faustexception(error.str());
     }
-
+    
+#ifdef EMCC
+    fCurrentPath = currentDir();
+#endif
+    double gScale = 0.5;
+  
     // representation file:
     outstream() << "<?xml version=\"1.0\"?>" << endl;
 	// + DTD ...
@@ -114,7 +113,6 @@ SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 SVGDev::~SVGDev()
 {
     outstream() << "</svg>" << endl;
-    delete fOutStream;
 }
 
 static string toJSName(const char* path) {
