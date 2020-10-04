@@ -25,10 +25,10 @@ namespace Faust {
         error(): string { return this.fError; }
         success(): boolean { return this.fSuccess; }
 
-        private debug (path: string) {
-            console.log("getSVG file: " + path );
+        private debug(path: string) {
+            console.log("getSVG file: " + path);
             let content = this.fEngine.module().FS.readdir(".");
-            console.log("getSVG dir: " + content );
+            console.log("getSVG dir: " + content);
         }
 
         getSVG(name?: string): string {
@@ -42,7 +42,7 @@ namespace Faust {
                 return this.fEngine.module().FS.readFile(path, { encoding: "utf8" }) as string;
             }
             catch (e) {
-                console.log ("SVGDiagrams: can't read file " + path);
+                console.log("SVGDiagrams: can't read file " + path);
                 return "";
             }
         }

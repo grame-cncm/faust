@@ -10,7 +10,7 @@
 
  * @param {string} path - the full path of the sub-diagram file
  */
-interface FaustSVGLinkHandler { (path: string) : void }
+interface FaustSVGLinkHandler { (path: string): void }
 
 declare namespace Faust {
 
@@ -24,14 +24,14 @@ declare namespace Faust {
          * @param {LibFaust} engine - an instance of the faust engine
          */
         new(engine: LibFaust, name_app: string, code: string, args: string): SVGDiagrams;
- 
+
         /**
          * Generates auxiliary files from faust code. The output depends on the compiler options.
          *
          * @param {string} name - the svg file name (default to "process.svg")
          * @returns {string} the svg diagram as a string
         */
-       getSVG(name? : string): string;
+        getSVG(name?: string): string;
     }
 
 }
