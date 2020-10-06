@@ -128,26 +128,26 @@ async function run(engine, log, code, context) {
     console.log(node);
     console.log(node.getParams());
     console.log(node.getJSON());
-    //node.setParamValue("/test/Volume", 0.5);
+    node.setParamValue("/test/freq", 200);
     node.connect(context.destination);
     */
 
+    /*
     // Testing Worklet mode
     let node1 = await fwan.createMonoNode(context, "mydsp1", factory, false);
     console.log(node1);
     console.log(node1.getParams());
     console.log(node1.getJSON());
-    node1.setParamValue("/test/freq", 900);
+    node1.setParamValue("/test/freq", 700);
     node1.connect(context.destination);
+    */
 
-    /*
     let node2 = await fwan.createMonoNode(context, "mydsp2", factory, false);
     console.log(node2);
     console.log(node2.getParams());
     console.log(node2.getJSON());
-    //node2.setParamValue("/test/Volume", 0.5);
+    node2.setParamValue("/test/freq", 600);
     node2.connect(context.destination);
-    */
 
     /*
     // Created from a wasm file

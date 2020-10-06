@@ -25,7 +25,7 @@ declare namespace Faust {
     interface MetadataHandler { (key: string, value: number): void }
 
     // Implementation types
-    interface MonoDSP {
+    interface BaseDSP {
 
         setOutputParamHandler(handler: OutputParamHandler): void;
         getOutputParamHandler(): OutputParamHandler;
@@ -34,6 +34,7 @@ declare namespace Faust {
         getNumOutputs(): number;
 
         compute(inputs: Float32Array[], outputs: Float32Array[]): boolean;
+        metadata(handler: MetadataHandler): void;
 
         midiMessage(data: number[] | Uint8Array): void;
 
@@ -49,61 +50,24 @@ declare namespace Faust {
         destroy(): void;
     }
 
+    interface MonoDSP extends BaseDSP { }
+
     interface PolyDSP extends MonoDSP {
+
+        keyOn(channel: number, pitch: number, velocity: number): void;
+        keyOff(channel: number, pitch: number, velocity: number): void;
+        allNotesOff(): void;
     }
 
     // Public API
-    /*
-    interface FaustAudioNode {
 
-        setOutputParamHandler(handler: OutputParamHandler): void;
-        getOutputParamHandler(): OutputParamHandler;
-        metadata(handler: MetadataHandler): void;
-        ctrlChange(chan: number, ctrl: number, value: number): void;
-        pitchWheel(chan: number, value: number): void;
-        setParamValue(path: string, value: number): void;
-        getParamValue(path: string): number;
-        getParams(): string[];
-        getJSON(): string;
-        destroy(): void; // to do: check is this function is still really needed
-    }
+    // Monophonic nodes
+    interface FaustScriptProcessorNode extends ScriptProcessorNode, MonoDSP { }
+    interface FaustAudioWorkletNode extends AudioWorkletNode, MonoDSP { }
 
-    interface FaustAudioPolyNode extends FaustAudioNode {
-        keyOn(pitch: number, velocity: number): void;
-        keyOff(pitch: number, velocity: number): void;
-        allNotesOff(): void;
-
-        //midiMessage(data: number[] | Uint8Array): void;
-    }
-    */
-
-    interface FaustScriptProcessorNode extends ScriptProcessorNode, MonoDSP {
-
-        setOutputParamHandler(handler: OutputParamHandler): void;
-        getOutputParamHandler(): OutputParamHandler;
-        metadata(handler: MetadataHandler): void;
-        ctrlChange(chan: number, ctrl: number, value: number): void;
-        pitchWheel(chan: number, value: number): void;
-        setParamValue(path: string, value: number): void;
-        getParamValue(path: string): number;
-        getParams(): string[];
-        getJSON(): string;
-        destroy(): void; // TODO: check is this function is still really needed
-    }
-
-    interface FaustAudioWorkletNode extends AudioWorkletNode, MonoDSP {
-
-        setOutputParamHandler(handler: OutputParamHandler): void;
-        getOutputParamHandler(): OutputParamHandler;
-        metadata(handler: MetadataHandler): void;
-        ctrlChange(chan: number, ctrl: number, value: number): void;
-        pitchWheel(chan: number, value: number): void;
-        setParamValue(path: string, value: number): void;
-        getParamValue(path: string): number;
-        getParams(): string[];
-        getJSON(): string;
-        destroy(): void; // TODO: check is this function is still really needed
-    }
+    // Polyphonic nodes
+    interface FaustPolyScriptProcessorNode extends ScriptProcessorNode, PolyDSP { }
+    interface FaustPolyAudioWorkletNode extends AudioWorkletNode, PolyDSP { }
 
     //interface FaustAudioNode extends FaustScriptProcessorNode, FaustAudioWorkletNode { }
     interface AudioNodeFactory {
@@ -112,22 +76,22 @@ declare namespace Faust {
 
         // We assume that 'dsp_content' contains an integrated effect
         compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, voices: number, scriptprocessor: boolean)
-            : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
         // Separated 'voice' and 'effect' DSP
         compilePolyNode2(context: BaseAudioContext, name: string, faust: LibFaust, voice_dsp: string, effect_dsp: string, args: string, voices: number, scriptprocessor: boolean)
-            : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
-        createMonoNode(context: BaseAudioContext, name: string, module: Faust.Factory, scriptprocessor: boolean, bufferSize?: number)
+        createMonoNode(context: BaseAudioContext, name: string, factory: Faust.Factory, scriptprocessor: boolean, bufferSize?: number)
             : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
 
         // We assume that 'dsp_content' contains an integrated effect
-        createPolyNode(context: BaseAudioContext, name: string, module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number)
-            : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
+        createPolyNode(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, mixer_factory: WebAssembly.Module, voices: number, scriptprocessor: boolean, bufferSize?: number, effect_factory?: Factory)
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
-        // Separated 'voice' and 'effect' modules
-        createPolyNode2(context: BaseAudioContext, name: string, voice_module: Faust.Factory, effect_module: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number)
-            : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
+        // Separated 'voice' and 'effect' factories
+        createPolyNode2(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, effect_factory: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number)
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
     }
 
 }
