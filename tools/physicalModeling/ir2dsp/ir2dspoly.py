@@ -22,9 +22,10 @@ parser.add_argument("soundFile", type = str, help = "Path of the sound file")
 parser.add_argument("modelName", help = "The name of the model created in the .dsp file")
 parser.add_argument("peakThreshold", help = "Minimum value of peaks in dB (between -infinity and 0)")
 parser.add_argument("peakDistance", help = "Minimum distance between two peaks in Hertz")
+parser.add_argument("rootHz", help = "Root frequency in Hertz")
 ars = parser.parse_args ()
 # Arguments
-script, soundFile, modelName, peakThreshold, peakDistance = argv
+script, soundFile, modelName, peakThreshold, peakDistance, rootHz = argv
 
 # Reading file
 print("Reading wav file...")
@@ -35,12 +36,13 @@ if x.shape[1] == 2:
 x = x/np.max(x)
 
 # FFT
+kk = 1.0/float(rootHz)
 print("Computing FFT...")
 X = np.abs(np.fft.fft(x))
 X = X/(np.max(X))
 # computing corresponding frequencies
 time_step = 1/fs
-freqs = np.fft.fftfreq(x.size, time_step)
+freqs = np.fft.fftfreq(x.size, time_step)*kk
 idx = np.argsort(freqs)
 
 # plot for debug
@@ -132,16 +134,17 @@ file.write(");\n");
 
 # file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,pm.modeFilter(freqs(i),res(i),gain(i))) :> _\n")
 
-file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,pm.modeFilter(freqs(i),res(i),gain(i))) :> _/n\n")
+file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains,rootHz) = _ <: par(i,n,pm.modeFilter(freqs(i),res(i),gain(i))) :> _/n\n")
 file.write("with{\n")
-file.write("freqs(i) = ba.take(i+1,modeFreqs);\n")
+file.write("freqs(i) = ba.take(i+1,modeFreqs)*rootHz;\n")
 file.write("res(i) = ba.take(i+1,modeRes);\n")
 file.write("gain(i) = ba.take(i+1,modeGains);\n")
 file.write("};\n\n")
 
 file.write(modelName)
-file.write(" = modalModel(nModes,modeFrequencies,t60,massEigenValues);");
+file.write(" = modalModel(nModes,modeFrequencies,t60,massEigenValues,f);");
 file.write('\ngate = button("gate");')
+file.write('\nf = hslider("freq",220,220,2000,0.01);');
 file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
 
 file.close();
