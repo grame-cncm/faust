@@ -290,7 +290,7 @@ namespace Faust {
             return this.fInstance.api.getNumOutputs(this.fDSP);
         }
 
-        midiMessage(data: any) {
+        midiMessage(data: number[] | Uint8Array) {
             // TODO: node.cachedEvents.push({ data, type: "midi" });
             const cmd = data[0] >> 4;
             const channel = data[0] & 0xf;
@@ -341,6 +341,8 @@ namespace Faust {
         getParams() { return this.fInputsItems; }
 
         getJSON() { return this.fInstance.json; }
+
+        destroy() { this.fDestroyed = true; }
     }
 
     class PolyDSPImp extends MonoDSPImp {
@@ -375,6 +377,14 @@ namespace Faust {
 
         fDSPCode: MonoDSP;
 
+        // TODO
+        /*
+        onprocessorerror = (e: ErrorEvent) => {
+            console.error("Error from " + this.dspMeta.name + " AudioWorkletNode: "); // eslint-disable-line no-console
+            throw e.error;
+        }
+        */
+
         constructor(context: BaseAudioContext, name: string, factory: Faust.Factory) {
 
             // Create JSON object
@@ -392,7 +402,23 @@ namespace Faust {
             });
 
             this.fDSPCode = new MonoDSPImp(new Faust.Compiler().createDSPInstance(factory), context.sampleRate, 128);
+
+            // Patch it with additional functions
+            this.port.onmessage = (e: MessageEvent) => {
+                if (e.data.type === "param" && this.fDSPCode.getOutputParamHandler()) {
+                    this.fDSPCode.getOutputParamHandler()(e.data.path, e.data.value);
+                } else if (e.data.type === "plot") {
+                    // TODO 
+                    //if (this.plotHandler) this.plotHandler(e.data.value, e.data.index, e.data.events);
+                }
+            };
+
+            try {
+                if (this.parameters) this.parameters.forEach(p => p.automationRate = "k-rate");
+            } catch (e) { } // eslint-disable-line no-empty
         }
+
+        // Public API
 
         setOutputParamHandler(handler: OutputParamHandler) {
             this.fDSPCode.setOutputParamHandler(handler);
@@ -412,19 +438,46 @@ namespace Faust {
 
         metadata(handler: MetadataHandler) { return function (path: string, value: number) { } }
 
-        midiMessage(data: any): void {
-            // TODO
+        midiMessage(data: number[] | Uint8Array): void {
+            const cmd = data[0] >> 4;
+            const channel = data[0] & 0xf;
+            const data1 = data[1];
+            const data2 = data[2];
+            //if (cmd === 8 || (cmd === 9 && data2 === 0)) this.keyOff(channel, data1, data2);
+            //else if (cmd === 9) this.keyOn(channel, data1, data2);
+            if (cmd === 11) this.ctrlChange(channel, data1, data2);
+            else if (cmd === 14) this.pitchWheel(channel, data2 * 128.0 + data1);
+            else this.port.postMessage({ data, type: "midi" });
         }
 
-        ctrlChange(chan: number, ctrl: number, value: number) { this.fDSPCode.ctrlChange(chan, ctrl, value); }
-        pitchWheel(chan: number, value: number) { this.fDSPCode.pitchWheel(chan, value); }
+        ctrlChange(channel: number, ctrl: number, value: number) {
+            const e = { type: "ctrlChange", data: [channel, ctrl, value] };
+            this.port.postMessage(e);
+        }
+        pitchWheel(channel: number, wheel: number) {
+            const e = { type: "pitchWheel", data: [channel, wheel] };
+            this.port.postMessage(e);
+        }
 
-        setParamValue(path: string, value: number) { this.fDSPCode.setParamValue(path, value); }
-        getParamValue(path: string) { return this.fDSPCode.getParamValue(path); }
+        setParamValue(path: string, value: number) {
+            //const e = { type: "param", data: { path, value } };
+            //this.port.postMessage(e);
+            const param = this.parameters.get(path);
+            if (param) param.setValueAtTime(value, this.context.currentTime);
+        }
+        getParamValue(path: string) {
+            const param = this.parameters.get(path);
+            return (param) ? param.value : 0;
+        }
+
         getParams() { return this.fDSPCode.getParams(); }
 
         getJSON() { return this.fDSPCode.getJSON(); }
-        destroy() { } // to do: check is this function is still really needed
+
+        destroy() {
+            this.port.postMessage({ type: "destroy" });
+            this.port.close();
+        }
     }
 
     //class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode implements Faust.FaustAudioPolyNode {
@@ -483,8 +536,15 @@ namespace Faust {
 
             constructor(options: AudioWorkletNodeOptions) {
                 super(options);
+
                 // 'sampleRate' is defined in AudioWorkletGlobalScope
                 this.fDSPCode = new MonoDSPImp(new Faust.Compiler().createDSPInstance(options.processorOptions.factory), sampleRate, 128);
+
+                // Setup port message handling
+                this.port.onmessage = this.handleMessage; // Naturally binded with arrow function property
+
+                // Setup output handler
+                this.fDSPCode.setOutputParamHandler((path, value) => this.port.postMessage({ path, value, type: "param" }));
             }
 
             static get parameterDescriptors() {
@@ -506,21 +566,26 @@ namespace Faust {
             }
 
             process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [key: string]: Float32Array }) {
+
+                // Update controls (possibly needed for sample accurate control)
+                for (const path in parameters) {
+                    const paramArray = parameters[path];
+                    this.fDSPCode.setParamValue(path, paramArray[0]);
+                }
+
                 return this.fDSPCode.compute(inputs[0], outputs[0]);
             }
 
             private midiMessage(data: number[] | Uint8Array) {
-                /*
                 const cmd = data[0] >> 4;
                 const channel = data[0] & 0xf;
                 const data1 = data[1];
                 const data2 = data[2];
-                if (channel === 9) return;
-                if (cmd === 8 || (cmd === 9 && data2 === 0)) this.keyOff(channel, data1, data2);
-                else if (cmd === 9) this.keyOn(channel, data1, data2);
-                else if (cmd === 11) this.ctrlChange(channel, data1, data2);
+                //if (channel === 9) return;
+                //if (cmd === 8 || (cmd === 9 && data2 === 0)) this.keyOff(channel, data1, data2);
+                //else if (cmd === 9) this.keyOn(channel, data1, data2);
+                if (cmd === 11) this.ctrlChange(channel, data1, data2);
                 else if (cmd === 14) this.pitchWheel(channel, data2 * 128.0 + data1);
-                */
             }
 
             private handleMessage = (e: MessageEvent) => { // use arrow function for binding
@@ -528,33 +593,40 @@ namespace Faust {
                 // TODO
                 //this.cachedEvents.push({ type: e.data.type, data: e.data.data });
 
-                /*
                 switch (msg.type) {
                     // Generic MIDI message
                     case "midi": this.midiMessage(msg.data); break;
                     // Typed MIDI message
-                    case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
-                    case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
+                    //case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
+                    //case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
                     case "ctrlChange": this.ctrlChange(msg.data[0], msg.data[1], msg.data[2]); break;
                     case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
                     // Generic data message
-                    case "param": this.setParamValue(msg.data.path, msg.data.value); break;
+                    case "param": this.fDSPCode.setParamValue(msg.data.path, msg.data.value); break;
                     // case "patch": this.onpatch(msg.data); break;
                     case "destroy": {
                         this.port.close();
-                        this.fDestroyed = true;
-                        delete this.fOutputHandler;
-                        delete this.fComputeHandler;
+                        this.fDSPCode.destroy();
+
+                        // NEEDED ?
+                        //delete this.fOutputHandler;
+                        //delete this.fComputeHandler;
                         break;
                     }
                     default:
                 }
-                */
+
+            }
+            private ctrlChange(channel: number, ctrl: number, value: number) {
+                this.fDSPCode.ctrlChange(channel, ctrl, value);
+            }
+
+            private pitchWheel(channel: number, wheel: number) {
+                this.fDSPCode.pitchWheel(channel, wheel);
             }
         }
 
         // Synchronously compile and instantiate the WASM module
-        // TODO: a unique name for each FaustAudioWorkletProcessor class has to be given
         registerProcessor(FaustConst.dsp_name || "mydsp", FaustAudioWorkletProcessor);
     }
 
@@ -598,7 +670,8 @@ namespace Faust {
                 return this.fDSPCode.compute(this.fInputs, this.fOutputs);
             }
 
-            // TODO
+            // Public API
+
             node.setOutputParamHandler = (handler: OutputParamHandler) => {
                 this.fDSPCode.setOutputParamHandler(handler);
             }
@@ -615,7 +688,7 @@ namespace Faust {
             node.getParams = () => { return this.fDSPCode.getParams(); }
 
             node.getJSON = () => { return this.fDSPCode.getJSON(); }
-            node.destroy = () => { } // to do: check is this function is still really needed
+            node.destroy = () => { this.fDSPCode.destroy(); }
 
             return node;
         }
@@ -661,6 +734,7 @@ namespace Faust {
 
                     if (this.fWorkletProcessors.indexOf(name) === -1) {
 
+                        // Dynamically create AudioWorkletProcessor code
                         const processor_code = `
                             // Create a Faust namespace
                             var Faust = {};
@@ -671,8 +745,8 @@ namespace Faust {
                             Faust.Compiler = Compiler;
                             `;
 
-                        //console.log(processor_code);
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
+                        //console.log(processor_code);
                         //console.log(url);
 
                         // Keep the DSP name

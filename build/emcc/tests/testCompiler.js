@@ -137,7 +137,7 @@ async function run(engine, log, code, context) {
     console.log(node1);
     console.log(node1.getParams());
     console.log(node1.getJSON());
-    //node.setParamValue("/test/Volume", 0.5);
+    node1.setParamValue("/test/freq", 900);
     node1.connect(context.destination);
 
     /*
@@ -145,7 +145,7 @@ async function run(engine, log, code, context) {
     console.log(node2);
     console.log(node2.getParams());
     console.log(node2.getJSON());
-    //node.setParamValue("/test/Volume", 0.5);
+    //node2.setParamValue("/test/Volume", 0.5);
     node2.connect(context.destination);
     */
 

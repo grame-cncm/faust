@@ -96,8 +96,8 @@
         dspNode.getParams().forEach(param => {
             const value = getStorageItemValue('DSP', param);
             if (typeof value === "number") {
-                dspNode.setParamValue(param, parseFloat(value)); // Restore DSP state
-                dspOutputHandler(param, parseFloat(value)); // Restore GUI state
+                dspNode.setParamValue(param, parseFloat(value)); 	// Restore DSP state
+                dspOutputHandler(param, parseFloat(value)); 		// Restore GUI state
             }
         })
     }

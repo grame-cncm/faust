@@ -27,11 +27,6 @@ declare namespace Faust {
     // Implementation types
     interface MonoDSP {
 
-        // TO REMOVE 
-        //fInChannels: Float32Array[];
-        //fOutChannels: Float32Array[];
-        //fInstance: Faust.Instance;
-
         setOutputParamHandler(handler: OutputParamHandler): void;
         getOutputParamHandler(): OutputParamHandler;
 
@@ -40,8 +35,7 @@ declare namespace Faust {
 
         compute(inputs: Float32Array[], outputs: Float32Array[]): boolean;
 
-        // TODO: do proper typing
-        midiMessage(data: any): void;
+        midiMessage(data: number[] | Uint8Array): void;
 
         ctrlChange(chan: number, ctrl: number, value: number): void;
         pitchWheel(chan: number, value: number): void;
@@ -51,6 +45,8 @@ declare namespace Faust {
 
         getParams(): string[];
         getJSON(): string;
+
+        destroy(): void;
     }
 
     interface PolyDSP extends MonoDSP {
