@@ -29,10 +29,10 @@ namespace Faust {
 
     // Injected by Faust
     type FaustData = {
-        id: string;
-        voices: number;
-        dspMeta: TFaustJSON;
-        effectMeta?: TFaustJSON;
+        dsp_name: string;
+        dsp_JSON: string;
+        //voices: number;
+        //effectMeta?: TFaustJSON;
     };
     declare const faustData: FaustData;
 
@@ -470,6 +470,12 @@ namespace Faust {
 
     export const FaustAudioWorkletProcessorFactory = () => {
 
+        class FaustConst {
+            static dsp_name = faustData.dsp_name;
+            static dsp_JSON = faustData.dsp_JSON;
+            //static effectMeta = faustData.effectMeta;
+        }
+
         // Test extending 'AudioWorkletProcessor'
         class FaustAudioWorkletProcessor extends AudioWorkletProcessor {
 
@@ -482,13 +488,20 @@ namespace Faust {
             }
 
             static get parameterDescriptors() {
-                // Analyse JSON to generate AudioParam parameters
                 const params = [] as AudioParamDescriptor[];
-                // TODO
+                // Analyse JSON to generate AudioParam parameters
+                let callback = (item: TFaustUIItem) => {
+                    if (item.type === "vslider" || item.type === "hslider" || item.type === "nentry") {
+                        params.push({ name: item.address, defaultValue: item.init || 0, minValue: item.min || 0, maxValue: item.max || 0 });
+                    } else if (item.type === "button" || item.type === "checkbox") {
+                        params.push({ name: item.address, defaultValue: item.init || 0, minValue: 0, maxValue: 1 });
+                    }
+                }
+                MonoDSPImp.parseUI(JSON.parse(FaustConst.dsp_JSON).ui, callback);
                 /*
-                this.parseUI(FaustConst.dspMeta.ui, params, this.parseItem);
                 if (FaustConst.effectMeta) this.parseUI(FaustConst.effectMeta.ui, params, this.parseItem);
                 */
+                console.log(params);
                 return params;
             }
 
@@ -542,7 +555,7 @@ namespace Faust {
 
         // Synchronously compile and instantiate the WASM module
         // TODO: a unique name for each FaustAudioWorkletProcessor class has to be given
-        registerProcessor("mydsp", FaustAudioWorkletProcessor);
+        registerProcessor(FaustConst.dsp_name || "mydsp", FaustAudioWorkletProcessor);
     }
 
     // Test extending 'ScriptProcessorNode'
@@ -646,46 +659,49 @@ namespace Faust {
                     resolve(new FaustWasmScriptProcessorNode().initNode(context, factory, bufferSize));
                 } else {
 
-                    const processor_code = `
-                        // Create a Faust namespace
-                        var Faust = {};
-                        ${MonoDSPImp.toString()}
-                        ${Faust.Compiler.toString()} ${Faust.InstanceAPIImpl.toString()} 
-                        (${FaustAudioWorkletProcessorFactory.toString()})();
-                        Faust.Compiler = Compiler;
-                        `;
+                    if (this.fWorkletProcessors.indexOf(name) === -1) {
 
-                    console.log(processor_code);
+                        const processor_code = `
+                            // Create a Faust namespace
+                            var Faust = {};
+                            const faustData = { dsp_name: "${name}", dsp_JSON: '${factory.json}' };
+                            ${MonoDSPImp.toString()}
+                            ${Faust.Compiler.toString()} ${Faust.InstanceAPIImpl.toString()} 
+                            (${FaustAudioWorkletProcessorFactory.toString()})();           
+                            Faust.Compiler = Compiler;
+                            `;
 
-                    const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
-                    console.log(url);
-                    try {
+                        //console.log(processor_code);
+                        const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
+                        //console.log(url);
 
-                        context.audioWorklet.addModule(url).then(() => {
-                            resolve(new FaustAudioWorkletNode(context, name, factory));
-                        });
+                        // Keep the DSP name
+                        this.fWorkletProcessors.push(name);
 
-                        /*
-                        // FOR TEST
-                        context.audioWorklet.addModule('test.js').then(() => {
-                            console.log("SUCCESS");
-                            const node = new FaustAudioWorkletNode(context, name, factory);
-                            console.log(node);
-                            resolve(node);
-                        });
-                        */
+                        try {
+                            context.audioWorklet.addModule(url).then(() => {
+                                resolve(new FaustAudioWorkletNode(context, name, factory));
+                            });
 
-                    } catch (e) {
-                        console.log("FAILURE");
-                        console.log(e);
-                        reject(e);
+                            /*
+                            // FOR TEST
+                            context.audioWorklet.addModule('test.js').then(() => {
+                                console.log("SUCCESS");
+                                const node = new FaustAudioWorkletNode(context, name, factory);
+                                console.log(node);
+                                resolve(node);
+                            });
+                            */
+
+                        } catch (e) {
+                            console.log("FAILURE");
+                            console.log(e);
+                            reject(e);
+                        }
+                    } else {
+                        resolve(new FaustAudioWorkletNode(context, name, factory));
                     }
                 }
-                // TODO 
-                /*
-                if (this.fWorkletProcessors.indexOf(id) === -1
-                */
-                // TODO: reject ?
             });
         }
 
