@@ -10,7 +10,7 @@ Here are the available options:
 - `-midi to activate MIDI control`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI (TODO)`
 
-The generated folder has to be moved in the *DaisyExamples/seed* folder and compiled from there. 
+The generated folder has to be moved in the *DaisyExamples/DaisySP/examples* folder and compiled from there. 
 
 Only programming the POD can been tested. The 2 *switches* and 2 *knobs* can be connected to UI controllers using metadata:
 
