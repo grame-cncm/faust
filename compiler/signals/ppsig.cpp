@@ -196,7 +196,7 @@ ostream& ppsig::print(ostream& fout) const
 {
     int    i, nat, dmax, dmin, tblsize;
     double r;
-    Tree   c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, u, var, le, label, id, tid, ff, largs, type, name, file, sf;
     Tree   origin, init, idx, exp;
 
     if (isList(sig)) {
@@ -337,6 +337,8 @@ ostream& ppsig::print(ostream& fout) const
             fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx)
                  << "] := " << ppsig(exp) << ";";
         }
+    } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nat, &dmin, tid, idx)) {
+        fout << *id << " = " << *tid << "[" << ppsig(idx) << "]";
     } else if (isSigInstructionTableRead(sig, id, origin, &nat, &dmin, idx)) {
         fout << *id << "[" << ppsig(idx) << "]";
     }

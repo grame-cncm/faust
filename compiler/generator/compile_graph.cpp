@@ -59,7 +59,7 @@
 #include "timing.hh"
 #include "transformDelayToTable.hh"
 #include "transformOld2NewTables.hh"
-#include "transformTableToTable.hh"
+#include "transformTime.hh"
 #include "xtended.hh"
 
 using namespace std;

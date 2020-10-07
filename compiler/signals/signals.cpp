@@ -860,6 +860,49 @@ bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int
  * @param origin
  * @param nature
  * @param dmin
+ * @param tid
+ * @param idx
+ * @return Tree
+ */
+Tree sigInstructionTableAccessWrite(Tree id, Tree origin, int nature, int dmin, Tree tid, Tree idx)
+{
+    Tree instr = tree(gGlobal->SIGINSTRUCTIONTABLEACCESSWRITE, id, origin, tree(nature), tree(dmin), tid, idx);
+    setIDInstruction(id, instr);
+    return instr;
+}
+
+/**
+ * @brief
+ *
+ * @param s
+ * @param id
+ * @param origin
+ * @param nature
+ * @param dmin
+ * @param tid
+ * @param idx
+ * @return true
+ * @return false
+ */
+bool isSigInstructionTableAccessWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& tid, Tree& idx)
+{
+    Tree tnat, tmin;
+    if (isTree(s, gGlobal->SIGINSTRUCTIONTABLEACCESSWRITE, id, origin, tnat, tmin, tid, idx)) {
+        *nature = tree2int(tnat);
+        *dmin   = tree2int(tmin);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param id
+ * @param origin
+ * @param nature
+ * @param dmin
  * @param idx
  * @return Tree
  */

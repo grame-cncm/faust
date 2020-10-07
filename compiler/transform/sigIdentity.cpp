@@ -54,7 +54,7 @@ Tree SignalIdentity::transformation(Tree sig)
 {
     int    nature, dmin, dmax, i, tblsize;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
         vector<Tree> newBranches;
@@ -241,6 +241,8 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigInstructionTableWrite(id, origin, nature, dmax, self(init), self(idx), self(exp));
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &tblsize, idx)) {
         return sigInstructionTableRead(id, origin, nature, tblsize, self(idx));
+    } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
+        return sigInstructionTableAccessWrite(id, origin, nature, dmin, tid, self(idx));
     }
 
     else if (isNil(sig)) {
@@ -248,7 +250,7 @@ Tree SignalIdentity::transformation(Tree sig)
         return sig;
     } else {
         stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
+        error << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
 }

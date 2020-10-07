@@ -54,8 +54,8 @@ class SignalDependencies : public SignalVisitor {
    public:
     SignalDependencies(Tree sig)
     {
-        Tree id, origin, content, init, idx, exp;
-        int  i, nature, dmax, tblsize;
+        Tree id, tid, origin, content, init, idx, exp;
+        int  i, nature, dmax, dmin, tblsize;
         // Analyzed signals are supposed to be "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
         if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
@@ -88,6 +88,11 @@ class SignalDependencies : public SignalVisitor {
             self(init);
             self(idx);
             self(exp);
+        } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
+            fRoot   = sig;
+            Tree tw = getIDInstruction(tid);
+            fGraph.add(fRoot, tw, dmin);
+            self(idx);
         } else if (isSigOutput(sig, &i, content)) {
             fRoot = sig;
             fGraph.add(fRoot);

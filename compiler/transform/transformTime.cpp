@@ -28,7 +28,7 @@
  ********************************************f****************************
  ************************************************************************/
 
-#include "transformDelayToTable.hh"
+#include "transformTime.hh"
 
 #include <map>
 
@@ -47,58 +47,21 @@ using namespace std;
  * into a set of instructions
  *
  */
-class TransformDelayToTable : public SignalIdentity {
-    set<Tree> fInstr;  // the resulting set of instructions
+class TransformTime : public SignalIdentity {
+    bool fHasTime = false;
+
    public:
-    TransformDelayToTable() = default;
-    set<Tree> operator()(const set<Tree>& I)
-    {
-        for (Tree i : I) fInstr.insert(self(i));
-        return std::move(fInstr);
-    }
+    TransformTime() = default;
+    bool hasTime() { return fHasTime; }
 
    protected:
-    /**
-     * @brief compute the size 2^p of a delayline large enough for dmax+1 samples
-     *
-     * @param dmax the max delay
-     * @return int 2^p >= dmax+1
-     */
-    static int dmax2size(int dmax)
-    {
-        int x = dmax + 1;
-        int p = int(log2(x));
-        int v = 1 << p;
-        while (v < x) v = v << 1;
-        faustassert(v >= x);
-        return v;
-    }
-
     Tree transformation(Tree sig) override
     {
         faustassert(sig);
 
-        Tree id, origin, dl, exp;
-        int  nature, dmin, dmax;
-
-        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
-            int  size = dmax2size(dmax);
-            Tree tr   = sigInstructionTableWrite(id, origin, nature, size, sigGen(sigInt(0)),
-                                               sigAND(sigTime(), sigInt(size - 1)), self(exp));
-            fInstr.insert(tr);
-            return tr;
-        } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
-            Tree wid  = (nature == kInt) ? uniqueID("W", sig) : uniqueID("W", sig);
-            int  mask = dmax2size(dmax) - 1;
-            if (isZero(dl)) {
-                fInstr.insert(
-                    sigInstructionTableAccessWrite(wid, origin, nature, dmin, id, sigAND(sigTime(), sigInt(mask))));
-                return sigInstructionSharedRead(wid, sig, nature);
-            } else {
-                fInstr.insert(sigInstructionTableAccessWrite(wid, origin, nature, dmin, id,
-                                                             sigAND(sigSub(sigTime(), self(dl)), sigInt(mask))));
-                return sigInstructionSharedRead(wid, sig, nature);
-            }
+        if (isSigTime(sig)) {
+            fHasTime = true;
+            return sigInstructionTimeRead();
         } else {
             return SignalIdentity::transformation(sig);
         }
@@ -106,14 +69,17 @@ class TransformDelayToTable : public SignalIdentity {
 };
 
 /**
- * @brief Split common subexpressions into instructions
+ * @brief Transform time into time instructions
  *
- * @param I the initial set of instructions
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> transformDelayToTable(const set<Tree>& I)
+set<Tree> transformTime(const set<Tree>& I)
 {
-    TransformDelayToTable d2t;
+    TransformTime TT;
+    TT.trace(gGlobal->gDebugSwitch, "transformTime");
 
-    return d2t(I);
+    set<Tree> R;
+    for (Tree i : I) R.insert(TT.self(i));
+    if (TT.hasTime()) R.insert(sigInstructionTimeWrite());
+    return R;
 }

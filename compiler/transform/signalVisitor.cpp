@@ -54,7 +54,7 @@ void SignalVisitor::visit(Tree sig)
 {
     int    i, nature, dmax, dmin;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
@@ -269,6 +269,9 @@ void SignalVisitor::visit(Tree sig)
         self(idx);
         self(exp);
         return;
+    } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, x)) {
+        self(x);
+        return;
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, x)) {
         self(x);
         return;
@@ -302,7 +305,7 @@ void SignalVisitor::visit(Tree sig)
         return;
     } else {
         stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
+        error << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
 }

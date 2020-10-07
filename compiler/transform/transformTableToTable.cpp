@@ -37,6 +37,7 @@
 #include "ppsig.hh"
 #include "property.hh"
 #include "sigIdentity.hh"
+#include "signalDependencies.hh"
 #include "sigtyperules.hh"
 
 using namespace std;
@@ -106,47 +107,5 @@ set<Tree> transformTableToTable(const set<Tree>& I)
 
     set<Tree> R;
     for (Tree i : I) R.insert(d2t.self(i));
-    return R;
-}
-
-/**
- * @brief Transformation class used internally to split a signal
- * into a set of instructions
- *
- */
-class TransformTime : public SignalIdentity {
-    bool fHasTime = false;
-
-   public:
-    TransformTime() = default;
-    bool hasTime() { return fHasTime; }
-
-   protected:
-    Tree transformation(Tree sig) override
-    {
-        faustassert(sig);
-
-        if (isSigTime(sig)) {
-            fHasTime = true;
-            return sigInstructionTimeRead();
-        } else {
-            return SignalIdentity::transformation(sig);
-        }
-    }
-};
-
-/**
- * @brief Transform time into time instructions
- *
- * @return set<Tree> the resulting set of instructions
- */
-set<Tree> transformTime(const set<Tree>& I)
-{
-    TransformTime TT;
-    TT.trace(gGlobal->gDebugSwitch, "transformTime");
-
-    set<Tree> R;
-    for (Tree i : I) R.insert(TT.self(i));
-    if (TT.hasTime()) R.insert(sigInstructionTimeWrite());
     return R;
 }

@@ -38,11 +38,11 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
 
     int    i, dmax, dmin, nat;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf, origin, init, idx, exp;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
-        for (int i = 0; i < sig->arity(); i++) {
-            vsigs.push_back(sig->branch(i));
+        for (int j = 0; j < sig->arity(); j++) {
+            vsigs.push_back(sig->branch(j));
         }
         return sig->arity();
     } else if (isSigInt(sig, &i)) {
@@ -235,6 +235,9 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         vsigs.push_back(idx);
         vsigs.push_back(exp);
         return 3;
+    } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nat, &dmin, tid, x)) {
+        vsigs.push_back(x);
+        return 1;
     } else if (isSigInstructionTableRead(sig, id, origin, &nat, &dmin, x)) {
         vsigs.push_back(x);
         return 1;

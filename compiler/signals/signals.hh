@@ -375,6 +375,9 @@ Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tre
 bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx,
                                 Tree& sig);
 
+Tree sigInstructionTableAccessWrite(Tree id, Tree origin, int nature, int dmin, Tree tid, Tree idx);
+bool isSigInstructionTableAccessWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& tid, Tree& idx);
+
 Tree sigInstructionTableRead(Tree id, Tree origin, int nature, int dmin, Tree idx);
 bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& idx);
 

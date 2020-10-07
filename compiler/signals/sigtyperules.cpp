@@ -151,6 +151,7 @@ void annotationStatistics()
 ::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);
+    std::cerr << ppsig(sig) << std::endl;
     faustassert(ty);
     return ty;
 }
@@ -179,10 +180,12 @@ static void setSigType(Tree sig, Type t)
 static Type getSigType(Tree sig)
 {
     auto* ty = (AudioType*)sig->getType();
-    if (ty == nullptr)
+    if (ty == nullptr) {
+        std::cerr << "Empty type for " << ppsig(sig) << std::endl;
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " HAS NO TYPE YET" << endl;)
-    else
+    } else {
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
+    }
     return ty;
 }
 
@@ -255,7 +258,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
     int    i, nat, dmax, dmin;
     double r;
-    Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
+    Tree   sel, s1, s2, s3, ff, id, tid, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
     Tree   label, cur, min, max, step;
 
     gGlobal->gCountInferences++;
@@ -304,23 +307,23 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigFixDelay(sig, s1, s2)) {
         Type     t1 = T(s1, env);
         Type     t2 = T(s2, env);
-        interval i  = t2->getInterval();
+        interval ii = t2->getInterval();
 
         //        cerr << "for sig fix delay : s1 = "
         //				<< t1 << ':' << ppsig(s1) << ", s2 = "
         //                << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
-            if (!i.valid) {
+            if (!ii.valid) {
                 stringstream error;
                 error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
                       << "        used in delay expression : " << ppsig(sig) << endl
                       << "        (probably a recursive signal)" << endl;
                 throw faustexception(error.str());
-            } else if (i.lo < 0) {
+            } else if (ii.lo < 0) {
                 stringstream error;
                 error << "ERROR : possible negative values of : " << ppsig(s2) << endl
                       << "        used in delay expression : " << ppsig(sig) << endl
-                      << "        " << i << endl;
+                      << "        " << ii << endl;
                 throw faustexception(error.str());
             }
         }
@@ -509,6 +512,10 @@ static Type infereSigType(Tree sig, Tree env)
         }
     }
 
+    else if (isSigInstructionTableAccessWrite(sig, id, u, &nat, &i, tid, x)) {
+        return getCertifiedSigType(u);
+    }
+
     else if (isSigInstructionTableRead(sig, id, u, &nat, &i, x)) {
         return getCertifiedSigType(u);
     }
@@ -581,7 +588,7 @@ static Type infereSigType(Tree sig, Tree env)
         return T(hd(sig), env) * T(tl(sig), env);
     }
 
-    cerr << "ERROR : Unrecognized signal during type inference " << ppsig(sig) << endl;
+    cerr << __FILE__ << ":" << __LINE__ << " ERROR : Unrecognized signal during type inference " << ppsig(sig) << endl;
 
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");

@@ -20,8 +20,8 @@ class CollectInputs : public SignalVisitor {
    public:
     CollectInputs(Tree sig)
     {
-        Tree id, origin, content, init, idx, exp;
-        int  i, nature, dmax, tblsize;
+        Tree id, tid, origin, content, init, idx, exp;
+        int  i, nature, dmax, dmin, tblsize;
         // Analyzed signals are supposed to be only "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
         if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
@@ -40,6 +40,8 @@ class CollectInputs : public SignalVisitor {
             self(init);
             self(idx);
             self(exp);
+        } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
+            self(idx);
         } else if (isSigOutput(sig, &i, content)) {
             self(content);
         } else if (isSigInstructionTimeWrite(sig)) {

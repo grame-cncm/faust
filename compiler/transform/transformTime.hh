@@ -21,16 +21,13 @@
 
 #pragma once
 
-#include <iostream>
-#include <map>
 #include <set>
 
 #include "signals.hh"
 
 /**
- * @brief Transform delaylines into tables
+ * @brief Transform time into time instructions
  *
- * @param I set of instructions to transforms
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> transformTableToTable(const set<Tree>& I);
+set<Tree> transformTime(const set<Tree>& I);
