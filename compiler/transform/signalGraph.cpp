@@ -34,6 +34,7 @@
 #include <ostream>
 
 #include "global.hh"
+#include "instructionInputs.hh"
 #include "old_occurences.hh"
 #include "ppsig.hh"
 #include "property.hh"
@@ -95,6 +96,9 @@ void signalGraph2(const string& filename, const set<Tree>& I)
         std::cerr << g << std::endl;
         for (auto i : g.nodes()) {
             std::cerr << ppsig(i) << std::endl;
+            for (auto r : instructionInputs(i)) {
+                std::cerr << "\t" << ppsig(r) << std::endl;
+            }
         }
     }
 
