@@ -717,10 +717,10 @@ Tree sigCartesianProd(Tree s1, Tree s2)
  **********************************************************************************************************/
 
 // each instruction as a unique ID. These two functions allow to set and retreive the instruction associated
-// and ID
+// to an ID
 
 /**
- * @brief Set the instruction associated to and ID. Should be used only when creating an instruction.
+ * @brief Set the instruction associated to an ID. Should be used only when creating an instruction.
  *
  * @param id
  * @param instr

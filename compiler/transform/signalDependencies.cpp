@@ -16,7 +16,7 @@ class XYTableDependencies : public SignalVisitor {
     void      visit(Tree t) override
     {
         Tree id, origin, dl;
-        int  nature, dmax, dmin;
+        int  nature, dmin;
 
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
@@ -42,6 +42,7 @@ set<Tree> listTableDependencies(Tree t)
     D.self(t);
     return D.tables();
 }
+
 /**
  * @brief Compute the dependency graph of a signal
  *
