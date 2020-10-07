@@ -85,12 +85,18 @@ void signalGraph2(const string& filename, const set<Tree>& I)
     // Dictionnary   Dic;
 
     for (auto i : I) {
-        if (i)
-        G.add(dependencyGraph(i));
+        if (i) G.add(dependencyGraph(i));
         // Dic.add(i);
     }
 
     digraph<digraph<Tree>> SG = graph2dag2(G);
+
+    for (auto g : SG.nodes()) {
+        std::cerr << g << std::endl;
+        for (auto i : g.nodes()) {
+            std::cerr << ppsig(i) << std::endl;
+        }
+    }
 
     ofstream f;
     f.open(filename);

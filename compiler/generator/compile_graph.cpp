@@ -313,6 +313,10 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
 
     signalGraph("SPECIAL1.dot", INSTR6);
     signalGraph2("SPECIAL2.dot", INSTR6);
+
+    for (auto i : INSTR6) {
+        std::cerr << ppsig(i) << std::endl;
+    }
 #if 0
     cerr << "Start scalarscheduling" << endl;
     scalarScheduling("phase5-scalarScheduling.txt", INSTR4);
