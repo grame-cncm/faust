@@ -185,6 +185,16 @@ declare namespace Faust {
         createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory>;
 
         /**
+         * Load a wasm factory from wasm ans JSON files This function is running asynchronously.
+         *
+         * @param {string} wasm_path - the wasm file pathname
+         * @param {string} json_path - the JSON file pathname
+         * @param {boolean} poly - tells the compiler to generate static embedded memory or not
+         * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
+         */
+        loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory>;
+
+        /**
          * Expand faust code i.e. linearize included libraries.
          *
          * @param {string} name_app - an arbitrary name for the faust module

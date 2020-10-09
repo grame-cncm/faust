@@ -95,22 +95,6 @@ namespace Faust {
             return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
         }
 
-        // TODO
-        // async loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory> {
-        // 		try {
-        // 			const wasm_file = await fetch(wasm_path);
-        // 			const wasm_buffer = await wasm_file.arrayBuffer();
-        // 			const module = await WebAssembly.compile(wasm_buffer);
-        // 			const json_file = await fetch(json_path);
-        // 			const json = json_file.text();
-        // 			return { module: module, json: json, poly: poly };
-        // 		} catch (e) {
-        // 			console.log("=> exception raised while running loadDSPFactory: " + e);
-        // 			return null;
-        // 		}
-        // 	});
-        // } 
-
         private createDSPInstanceAux(instance: WebAssembly.Instance, factory: Factory) {
             const functions: any = instance.exports;
             const api = new InstanceAPIImpl(<InstanceAPI>functions);
