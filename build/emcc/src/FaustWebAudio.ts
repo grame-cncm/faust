@@ -21,6 +21,7 @@
 
 ///<reference path="libfaust.d.ts"/>
 ///<reference path="FaustCompiler.ts"/>
+///<reference path="FaustGenerator.ts"/>
 ///<reference path="FaustWebAudio.d.ts"/>
 
 namespace Faust {
@@ -983,7 +984,7 @@ namespace Faust {
             constructor(options: AudioWorkletNodeOptions) {
                 super(options);
 
-                this.fDSPCode = new MonoDSPImp(new Faust.Compiler().createSyncDSPInstance(options.processorOptions.factory), sampleRate, 128);
+                this.fDSPCode = new MonoDSPImp(new Faust.Generator().createSyncDSPInstance(options.processorOptions.factory), sampleRate, 128);
 
                 // Setup output handler
                 this.fDSPCode.setOutputParamHandler((path, value) => this.port.postMessage({ path, value, type: "param" }));
@@ -996,7 +997,7 @@ namespace Faust {
             constructor(options: AudioWorkletNodeOptions) {
                 super(options);
 
-                this.fDSPCode = new PolyDSPImp(new Faust.Compiler().createSyncPolyDSPInstance(
+                this.fDSPCode = new PolyDSPImp(new Faust.Generator().createSyncPolyDSPInstance(
                     options.processorOptions.voice_factory,
                     options.processorOptions.mixer_module,
                     options.processorOptions.voices,
@@ -1111,7 +1112,7 @@ namespace Faust {
 
         async init(context: BaseAudioContext, factory: Faust.Factory, buffer_size: number): Promise<Faust.FaustScriptProcessorNode> {
             try {
-                const instance = await new Faust.Compiler().createAsyncDSPInstance(factory);
+                const instance = await new Faust.Generator().createAsyncDSPInstance(factory);
                 this.fDSPCode = new MonoDSPImp(instance, context.sampleRate, buffer_size);
                 let node: FaustScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustScriptProcessorNode;
                 super.setupNode(node);
@@ -1133,7 +1134,7 @@ namespace Faust {
             buffer_size: number,
             effect_factory?: Factory): Promise<Faust.FaustPolyScriptProcessorNode> {
             try {
-                const instance = await new Faust.Compiler().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory)
+                const instance = await new Faust.Generator().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory)
                 this.fDSPCode = new PolyDSPImp(instance, context.sampleRate, buffer_size);
                 let node: FaustPolyScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustPolyScriptProcessorNode;
 
@@ -1198,10 +1199,11 @@ namespace Faust {
                         const faustData = { dsp_name: "${name}", dsp_JSON: '${factory.json}' };
                         ${BaseDSPImp.toString()}
                         ${MonoDSPImp.toString()}
-                        ${Faust.Compiler.toString()} 
+                        ${Faust.Generator.toString()} 
                         ${Faust.InstanceAPIImpl.toString()} 
                         (${FaustAudioWorkletProcessorGenerator.toString()})();           
-                        Faust.Compiler = Compiler;`;
+                        Faust.Generator = Generator;`;
+                    console.log(processor_code);
                     const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                     await context.audioWorklet.addModule(url);
                     // Keep the DSP name
@@ -1227,10 +1229,11 @@ namespace Faust {
                         ${BaseDSPImp.toString()}
                         ${PolyDSPImp.toString()}
                         ${DspVoice.toString()}
-                        ${Faust.Compiler.toString()} 
+                        ${Faust.Generator.toString()} 
                         ${Faust.InstanceAPIImpl.toString()} 
                         (${FaustAudioWorkletProcessorGenerator.toString()})();           
-                        Faust.Compiler = Compiler;`;
+                        Faust.Generator = Generator;`;
+                    console.log(processor_code);
                     const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                     await context.audioWorklet.addModule(url);
                     // Keep the DSP name

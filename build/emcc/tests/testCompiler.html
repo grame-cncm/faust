@@ -63,12 +63,12 @@ const guitar = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_;';
 
 //const dspcode = osc;
 //const dspcode = noise;
-//const dspcode = osc2;
+const dspcode = osc2;
 //const dspcode = osc3;
 //const dspcode = t1;
 //const dspcode = organ;
 //const dspcode = clarinet;
-const dspcode = guitar;
+//const dspcode = guitar;
 
 // Allocate audio context
 const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
