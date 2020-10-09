@@ -163,6 +163,7 @@ async function run(engine, log, code, context) {
     const wasmBuffer = await wasmFile.arrayBuffer();
     const wasmModule = await WebAssembly.compile(wasmBuffer);
 
+
     /*
     // Testing polyphonic SP mode
     let node3 = await fwan.createPolyNode(context, "mydsp2", factory, wasmModule, 8, true, 512);
@@ -178,6 +179,7 @@ async function run(engine, log, code, context) {
     //node3.keyOn(0, 76, 50);
     */
 
+
     // Testing polyphonic Worklet mode
     let node3 = await fwan.createPolyNode(context, "mydsp2", factory, wasmModule, 8, false);
     console.log(node3);
@@ -191,6 +193,7 @@ async function run(engine, log, code, context) {
     node3.keyOn(0, 71, 50);
     node3.keyOn(0, 76, 50);
 
+    /*
     // Testing polyphonic Worklet mode
     let node4 = await fwan.createPolyNode(context, "mydsp3", factory, wasmModule, 16, false);
     console.log(node4);
@@ -203,6 +206,7 @@ async function run(engine, log, code, context) {
     node4.keyOn(0, 77, 50);
     node4.keyOn(0, 81, 50);
     //node3.keyOn(0, 76, 50);
+    */
 
     /*
     // Created from a wasm file

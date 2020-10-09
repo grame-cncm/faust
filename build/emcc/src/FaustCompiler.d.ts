@@ -178,12 +178,12 @@ declare namespace Faust {
          * Create a wasm factory from Faust code i.e. wasm compiled code. This function is running asynchronously.
          *
          * @param {string} name - an arbitrary name for the Faust factory
-         * @param {string} code - Faust dsp code
+         * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
          * @param {boolean} poly - tells the compiler to generate static embedded memory or not
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
-        createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory>;
+        createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory>;
 
         /**
          * Asynchronously create a wasm instance of a wasm factory.
@@ -227,21 +227,21 @@ declare namespace Faust {
          * Expand faust code i.e. linearize included libraries.
          *
          * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} dsp_code - faust dsp code
          * @param {string} args - the compiler options
          * @returns {Expand} contains the expanded dsp code, the corresponding sha key and an error string (empty in case of success)
          */
-        expandDSP(name_app: string, dsp_content: string, args: string): ExpandOut
+        expandDSP(name_app: string, dsp_code: string, args: string): ExpandOut
 
         /**
          * Generates auxiliary files from faust code. The output depends on the compiler options.
          *
          * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} dsp_code - faust dsp code
          * @param {string} args - the compiler options
          * @returns {AuxOut} contains the boolean status code and an error string (empty in case of success)
         */
-        generateAuxFiles(name_app: string, dsp_content: string, args: string): AuxOut;
+        generateAuxFiles(name_app: string, dsp_code: string, args: string): AuxOut;
 
         /**
          * Delete all factories.

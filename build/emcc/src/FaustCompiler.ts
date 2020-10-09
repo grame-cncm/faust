@@ -156,93 +156,47 @@ namespace Faust {
         // Public API
         version(): string { return this.fFaustEngine.version(); }
 
-        createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Faust.Factory> {
-            return new Promise((resolve, reject) => {
-                try {
-                    const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, !poly);
-                    const wasm = this.fFaustEngine.getWasmModule(factory);
-                    WebAssembly.compile(this.intVec2intArray(wasm.data)).then(module => {
-                        this.fFaustEngine.freeWasmModule(factory);
-                        resolve({ module: module, json: wasm.json, poly: poly });
-                    });
-                } catch {
-                    const error = this.fFaustEngine.getErrorAfterException();
-                    console.log("=> exception raised while running createDSPFactory: " + error);
-                    this.fFaustEngine.cleanupAfterException();
-                    reject(error);
-                }
-            });
+        async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Faust.Factory> {
+            try {
+                const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_code, args, !poly);
+                const wasm = this.fFaustEngine.getWasmModule(factory);
+                const module = await WebAssembly.compile(this.intVec2intArray(wasm.data));
+                return { module: module, json: wasm.json, poly: poly };
+            } catch {
+                const error = this.fFaustEngine.getErrorAfterException();
+                console.log("=> exception raised while running createDSPFactory: " + error);
+                this.fFaustEngine.cleanupAfterException();
+                return null;
+            }
         }
-        createAsyncDSPInstance(factory: Factory): Promise<Instance> {
-            return new Promise((resolve, reject) => {
-                WebAssembly.instantiate(factory.module, this.createWasmImport())
-                    .then(instance => {
-                        resolve(this.createDSPInstanceAux(instance, factory));
-                    })
-                    .catch(() => {
-                        console.error('Cannot instantiate DSP');
-                        reject(null);
-                    });
-            });
+        async createAsyncDSPInstance(factory: Factory): Promise<Instance> {
+            const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
+            return (instance) ? this.createDSPInstanceAux(instance, factory) : null;
         }
 
         createSyncDSPInstance(factory: Factory): Instance {
             const instance = new WebAssembly.Instance(factory.module, this.createWasmImport());
-            const functions: any = instance.exports;
-            const api = new InstanceAPIImpl(<InstanceAPI>functions);
-            const memory: any = instance.exports.memory;
-            return { memory: memory, api: api, json: factory.json };
+            return (instance) ? this.createDSPInstanceAux(instance, factory) : null;
         }
 
-        createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): Promise<PolyInstance> {
-            return new Promise((resolve, reject) => {
-                const memory = this.createMemoryAux(voices, voice_factory, effect_factory);
-                // Create voice 
-                WebAssembly.instantiate(voice_factory.module, this.createWasmImport(memory))
-                    .then(voice_instance => {
-                        const voice_functions: any = voice_instance.exports;
-                        const voice_api = new InstanceAPIImpl(<InstanceAPI>voice_functions);
-                        // Create mixer
-                        const mixer_api = this.createMixerAux(mixer_module, memory);
+        async createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): Promise<PolyInstance> {
+            const memory = this.createMemoryAux(voices, voice_factory, effect_factory);
+            // Create voice 
+            const voice_instance = await WebAssembly.instantiate(voice_factory.module, this.createWasmImport(memory));
+            const voice_functions: any = voice_instance.exports;
+            const voice_api = new InstanceAPIImpl(<InstanceAPI>voice_functions);
+            // Create mixer
+            const mixer_api = this.createMixerAux(mixer_module, memory);
 
-                        // Possibly create effect instance 
-                        let effect_api = null;
-                        if (effect_factory) {
-                            WebAssembly.instantiate(effect_factory.module, this.createWasmImport(memory))
-                                .then(effect_instance => {
-                                    const effect_functions: any = effect_instance.exports;
-                                    let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
-                                    resolve({
-                                        memory: memory,
-                                        voices: voices,
-                                        voice_api: voice_api,
-                                        effect_api: effect_api,
-                                        mixer_api: mixer_api,
-                                        voice_json: voice_factory.json,
-                                        effect_json: effect_factory.json
-                                    });
-                                })
-                                .catch(() => {
-                                    console.log('Cannot instantiate effect');
-                                    reject(null);
-                                });
-                        } else {
-                            resolve({
-                                memory: memory,
-                                voices: voices,
-                                voice_api: voice_api,
-                                effect_api: null,
-                                mixer_api: mixer_api,
-                                voice_json: voice_factory.json,
-                                effect_json: ""
-                            });
-                        }
-                    })
-                    .catch(() => {
-                        console.log('Cannot instantiate voice');
-                        reject(null);
-                    });
-            });
+            // Possibly create effect instance 
+            if (effect_factory) {
+                const effect_instance = await WebAssembly.instantiate(effect_factory.module, this.createWasmImport(memory));
+                const effect_functions: any = effect_instance.exports;
+                let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
+                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: effect_api, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: effect_factory.json };
+            } else {
+                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: null, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: "" };
+            }
         }
 
         createSyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): PolyInstance {
@@ -265,9 +219,9 @@ namespace Faust {
             }
         }
 
-        expandDSP(name_app: string, dsp_content: string, args: string) {
+        expandDSP(name_app: string, dsp_code: string, args: string) {
             try {
-                const out = this.fFaustEngine.expandDSP(name_app, dsp_content, args);
+                const out = this.fFaustEngine.expandDSP(name_app, dsp_code, args);
                 return { dsp: out.dsp, shakey: out.shakey, error: "" };
             } catch {
                 const error = this.fFaustEngine.getErrorAfterException();
@@ -277,9 +231,9 @@ namespace Faust {
             }
         }
 
-        generateAuxFiles(name_app: string, dsp_content: string, args: string) {
+        generateAuxFiles(name_app: string, dsp_code: string, args: string) {
             try {
-                const done = this.fFaustEngine.generateAuxFiles(name_app, dsp_content, args);
+                const done = this.fFaustEngine.generateAuxFiles(name_app, dsp_code, args);
                 return { success: done, error: "" };
             } catch {
                 const error = this.fFaustEngine.getErrorAfterException();
