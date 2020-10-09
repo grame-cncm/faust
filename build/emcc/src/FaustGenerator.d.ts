@@ -9,6 +9,16 @@ declare namespace Faust {
     interface Generator {
 
         /**
+         * Load a wasm factory from wasm and JSON files This function is running asynchronously.
+         *
+         * @param {string} wasm_path - the wasm file pathname
+         * @param {string} json_path - the JSON file pathname
+         * @param {boolean} poly - tells the compiler to generate static embedded memory or not
+         * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
+         */
+        loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory>;
+
+        /**
          * Asynchronously create a wasm instance of a wasm factory.
          *
          * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory

@@ -40,6 +40,7 @@ namespace Faust {
         constructor(engine?: Faust.LibFaust) {
             this.fFaustEngine = engine;
         }
+
         version(): string { return this.fFaustEngine.version(); }
 
         async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Faust.Factory> {
@@ -52,20 +53,6 @@ namespace Faust {
                 const error = this.fFaustEngine.getErrorAfterException();
                 console.log("=> exception raised while running createDSPFactory: " + error);
                 this.fFaustEngine.cleanupAfterException();
-                return null;
-            }
-        }
-
-        async loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory> {
-            try {
-                const wasm_file = await fetch(wasm_path);
-                const wasm_buffer = await wasm_file.arrayBuffer();
-                const module = await WebAssembly.compile(wasm_buffer);
-                const json_file = await fetch(json_path);
-                const json = await json_file.text();
-                return { module: module, json: json, poly: poly };
-            } catch (e) {
-                console.log("=> exception raised while running loadDSPFactory: " + e);
                 return null;
             }
         }

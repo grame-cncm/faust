@@ -103,7 +103,7 @@ namespace Faust {
         }
 
         private createMemoryAux(voices: number, voice_factory: Factory, effect_factory: Factory): WebAssembly.Memory {
-            // Parse JSON to get 'size' and 'inputs/ouputs' infos
+            // Parse JSON to get 'size' and 'inputs/outputs' infos
             const voice_JSON = JSON.parse(voice_factory.json);
             const effect_JSON = (effect_factory) ? JSON.parse(effect_factory.json) : null;
             // Memory will be shared by voice, mixer and (possibly) effect instances
@@ -122,6 +122,19 @@ namespace Faust {
         }
 
         // Public API
+        async loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory> {
+            try {
+                const wasm_file = await fetch(wasm_path);
+                const wasm_buffer = await wasm_file.arrayBuffer();
+                const module = await WebAssembly.compile(wasm_buffer);
+                const json_file = await fetch(json_path);
+                const json = await json_file.text();
+                return { module: module, json: json, poly: poly };
+            } catch (e) {
+                console.log("=> exception raised while running loadDSPFactory: " + e);
+                return null;
+            }
+        }
         async createAsyncDSPInstance(factory: Factory): Promise<Instance> {
             const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
             return (instance) ? this.createDSPInstanceAux(instance, factory) : null;
@@ -146,9 +159,25 @@ namespace Faust {
                 const effect_instance = await WebAssembly.instantiate(effect_factory.module, this.createWasmImport(memory));
                 const effect_functions: any = effect_instance.exports;
                 let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
-                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: effect_api, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: effect_factory.json };
+                return {
+                    memory: memory,
+                    voices: voices,
+                    voice_api: voice_api,
+                    effect_api: effect_api,
+                    mixer_api: mixer_api,
+                    voice_json: voice_factory.json,
+                    effect_json: effect_factory.json
+                };
             } else {
-                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: null, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: "" };
+                return {
+                    memory: memory,
+                    voices: voices,
+                    voice_api: voice_api,
+                    effect_api: null,
+                    mixer_api: mixer_api,
+                    voice_json: voice_factory.json,
+                    effect_json: ""
+                };
             }
         }
 
@@ -166,9 +195,25 @@ namespace Faust {
                 const effect_instance = new WebAssembly.Instance(effect_factory.module, this.createWasmImport(memory));
                 const effect_functions: any = effect_instance.exports;
                 let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
-                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: effect_api, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: effect_factory.json };
+                return {
+                    memory: memory,
+                    voices: voices,
+                    voice_api: voice_api,
+                    effect_api: effect_api,
+                    mixer_api: mixer_api,
+                    voice_json: voice_factory.json,
+                    effect_json: effect_factory.json
+                };
             } else {
-                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: null, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: "" };
+                return {
+                    memory: memory,
+                    voices: voices,
+                    voice_api: voice_api,
+                    effect_api: null,
+                    mixer_api: mixer_api,
+                    voice_json: voice_factory.json,
+                    effect_json: ""
+                };
             }
         }
     }

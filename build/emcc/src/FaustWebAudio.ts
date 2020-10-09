@@ -572,15 +572,16 @@ namespace Faust {
         }
 
         private static findPath(o: any, p: string) {
-            if (typeof o !== "object") return false;
-            if (o.address) {
-                if (o.address === p) return true;
+            if (typeof o !== "object") {
+                return false;
+            } else if (o.address) {
+                return (o.address === p);
+            } else {
+                for (const k in o) {
+                    if (PolyDSPImp.findPath(o[k], p)) return true;
+                }
                 return false;
             }
-            for (const k in o) {
-                if (PolyDSPImp.findPath(o[k], p)) return true;
-            }
-            return false;
         }
 
         // Public API
@@ -866,9 +867,7 @@ namespace Faust {
         }
     }
 
-    // Code From Shihong
     // AudioWorklet Globals
-
     declare class AudioWorkletProcessor {
         public port: MessagePort;
         public process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [key: string]: Float32Array }): boolean;
@@ -1203,7 +1202,7 @@ namespace Faust {
                         ${Faust.InstanceAPIImpl.toString()} 
                         (${FaustAudioWorkletProcessorGenerator.toString()})();           
                         Faust.Generator = Generator;`;
-                    console.log(processor_code);
+                    //console.log(processor_code);
                     const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                     await context.audioWorklet.addModule(url);
                     // Keep the DSP name
@@ -1233,7 +1232,7 @@ namespace Faust {
                         ${Faust.InstanceAPIImpl.toString()} 
                         (${FaustAudioWorkletProcessorGenerator.toString()})();           
                         Faust.Generator = Generator;`;
-                    console.log(processor_code);
+                    //console.log(processor_code);
                     const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                     await context.audioWorklet.addModule(url);
                     // Keep the DSP name
