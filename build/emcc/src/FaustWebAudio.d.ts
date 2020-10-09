@@ -69,7 +69,6 @@ declare namespace Faust {
     interface FaustPolyScriptProcessorNode extends ScriptProcessorNode, PolyDSP { }
     interface FaustPolyAudioWorkletNode extends AudioWorkletNode, PolyDSP { }
 
-    //interface FaustAudioNode extends FaustScriptProcessorNode, FaustAudioWorkletNode { }
     interface AudioNodeFactory {
         compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_content: string, args: string, scriptprocessor: boolean)
             : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
@@ -82,15 +81,15 @@ declare namespace Faust {
         compilePolyNode2(context: BaseAudioContext, name: string, faust: LibFaust, voice_dsp: string, effect_dsp: string, args: string, voices: number, scriptprocessor: boolean)
             : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
-        createMonoNode(context: BaseAudioContext, name: string, factory: Faust.Factory, scriptprocessor: boolean, bufferSize?: number)
+        createMonoNode(context: BaseAudioContext, name: string, factory: Faust.Factory, scriptprocessor: boolean, buffer_size?: number)
             : Promise<FaustScriptProcessorNode | FaustAudioWorkletNode>;
 
         // We assume that 'dsp_content' contains an integrated effect
-        createPolyNode(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, mixer_factory: WebAssembly.Module, voices: number, scriptprocessor: boolean, bufferSize?: number, effect_factory?: Factory)
+        createPolyNode(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, mixer_module: WebAssembly.Module, voices: number, scriptprocessor: boolean, buffer_size?: number, effect_factory?: Factory)
             : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
         // Separated 'voice' and 'effect' factories
-        createPolyNode2(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, effect_factory: Faust.Factory, voices: number, scriptprocessor: boolean, bufferSize?: number)
+        createPolyNode2(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, effect_factory: Faust.Factory, voices: number, scriptprocessor: boolean, buffer_size?: number)
             : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
     }
 

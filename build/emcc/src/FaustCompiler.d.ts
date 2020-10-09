@@ -104,10 +104,10 @@ declare namespace Faust {
          * @param {DSP} dsp - the DSP pointer
          */
         getSampleRate(dsp: DSP): number;
-        init(dsp: DSP, sampleRate: number): void;
+        init(dsp: DSP, sample_rate: number): void;
         instanceClear(dsp: DSP): void;
-        instanceConstants(dsp: DSP, sampleRate: number): void;
-        instanceInit(dsp: DSP, sampleRate: number): void;
+        instanceConstants(dsp: DSP, sample_rate: number): void;
+        instanceInit(dsp: DSP, sample_rate: number): void;
         instanceResetUserInterface(dsp: DSP): void;
         /**
          * Set a parameter current value
@@ -120,7 +120,7 @@ declare namespace Faust {
     }
 
     /**
-     * Mixer used in polyphonic mode.
+     * Mixer used in polyphonic mode
     */
     interface MixerAPI {
         clearOutput(bufferSize: number, chans: number, ouputs: AudioBuffer): void;
@@ -152,6 +152,7 @@ declare namespace Faust {
 
     interface PolyInstance {
         memory: WebAssembly.Memory;
+        voices: number;
         voice_api: InstanceAPI;
         effect_api: InstanceAPI;
         mixer_api: MixerAPI;
@@ -174,12 +175,12 @@ declare namespace Faust {
         version(): string;
 
         /**
-         * Create a wasm factory from faust code i.e. wasm compiled code. This function is running asynchronously.
+         * Create a wasm factory from Faust code i.e. wasm compiled code. This function is running asynchronously.
          *
-         * @param {string} name - an arbitrary name for the faust module
-         * @param {string} code - faust dsp code
+         * @param {string} name - an arbitrary name for the Faust factory
+         * @param {string} code - Faust dsp code
          * @param {string} args - the compiler options
-         * @param {boolean} poly - tell the compiler to generate static embedded memory or not
+         * @param {boolean} poly - tells the compiler to generate static embedded memory or not
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
         createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory>;
@@ -187,21 +188,40 @@ declare namespace Faust {
         /**
          * Create a wasm instance of a wasm factory.
          *
-         * @param {Factory} module - a module previously created using createDSPFactory
-         * @returns {Instance} on completion, gives a wasm instance and the associated object to manipulate this instance.
+         * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory
+         * @returns {Promise<Instance>} returns a monophonic instance.
          */
-        createDSPInstance(factory: Factory): Instance;
+        createAsyncDSPInstance(factory: Factory): Promise<Instance>;
+
+        /**
+        * Create a wasm instance of a wasm factory.
+        *
+        * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory
+        * @returns {Instance} returns a monophonic instance.
+        */
+        createSyncDSPInstance(factory: Factory): Instance;
 
         /**
          * Create a polyphonic wasm instance of a wasm voice factory and effect factory. 
          *
-         * @param {Factory} voice_factory - a factory previously created using createDSPFactory
+         * @param {Factory} voice_factory - a factory previously created using createDSPFactory or loadDSPFactory
          * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
-         * @param {number} nvoices - the number of voices to be created
-         * @param {Factory} effect_factory - a factory previously created using createDSPFactory
-         * @returns {PolyInstance} on completion, gives a wasm instance and the associated object to manipulate this instance.
+         * @param {number} voices - the number of voices to be created
+         * @param {Factory} effect_factory - a factory previously created using createDSPFactory or loadDSPFactory
+         * @returns {Promise<PolyInstance>} returns a polyphonic instance.
          */
-        createPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, nvoices: number, effect_factory?: Factory): PolyInstance;
+        createAsyncPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, voices: number, effect_factory?: Factory): Promise<PolyInstance>;
+
+        /**
+        * Create a polyphonic wasm instance of a wasm voice factory and effect factory. 
+        *
+        * @param {Factory} voice_factory - a factory previously created using createDSPFactory or loadDSPFactory
+        * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
+        * @param {number} voices - the number of voices to be created
+        * @param {Factory} effect_factory - a factory previously created using createDSPFactory or loadDSPFactory
+        * @returns {PolyInstance} returns a polyphonic instance.
+        */
+        createSyncPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, voices: number, effect_factory?: Factory): PolyInstance;
 
         /**
          * Expand faust code i.e. linearize included libraries.
@@ -222,6 +242,8 @@ declare namespace Faust {
          * @returns {AuxOut} contains the boolean status code and an error string (empty in case of success)
         */
         generateAuxFiles(name_app: string, dsp_content: string, args: string): AuxOut;
+
+        deleteAllDSPFactories(): void;
     }
 
 }

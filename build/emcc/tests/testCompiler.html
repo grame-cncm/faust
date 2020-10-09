@@ -36,7 +36,7 @@ process = noise * vslider("Volume", 0.2, 0, 1, 0.1) <: (*(0.01),*(0.01));';
 
 const osc = 'import("stdfaust.lib"); \
 vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; \
-freq = hslider("freq [unit:Hz]", 1000, 20, 24000, 1); \
+freq = hslider("freq [unit:Hz]", 500, 20, 24000, 1); \
 process = vgroup("Oscillator", os.osc(freq) * vol);';
 
 const osc2 = 'import("stdfaust.lib"); \
@@ -50,14 +50,24 @@ f = hslider("freq",440,50,2000,0.01); \
 phasor(freq) = (+(freq/ma.SR) ~ ma.decimal); \
 process = phasor(f);';
 
-
 const t1 = 'process = 0.125,0.3,0.4,0.8;';
+
+const organ = 'import("stdfaust.lib"); \
+timbre(f) = os.osc(f)*0.5 + os.osc(f*2)*0.25 + os.osc(f*3)*0.125; \
+process = timbre(hslider("freq", 440, 20, 10000, 1))  \
+	* hslider("gain", 0.1, 0, 1, 0.01)  \
+	* (button("gate") : en.adsr(0.1,0.1,0.98,1.5));';
+
+const clarinet = 'import("stdfaust.lib"); \
+process = pm.clarinet_ui_MIDI <: _,_;';
 
 //const dspcode = osc;
 //const dspcode = noise;
 const dspcode = osc2;
 //const dspcode = osc3;
 //const dspcode = t1;
+//const dspcode = organ;
+//const dspcode = clarinet;
 
 // Allocate audio context
 const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));

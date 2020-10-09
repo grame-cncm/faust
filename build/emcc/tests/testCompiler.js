@@ -117,6 +117,7 @@ async function run(engine, log, code, context) {
     // Test nodes
 
     // Created with libfaust.js
+
     let factory = await faust.createDSPFactory("test", code, options, false);
     console.log(factory);
     console.log(context);
@@ -128,11 +129,11 @@ async function run(engine, log, code, context) {
     console.log(node);
     console.log(node.getParams());
     console.log(node.getJSON());
-    node.setParamValue("/test/freq", 200);
+    node.setParamValue("/test/freq", 300);
     node.connect(context.destination);
     */
 
-    /*
+
     // Testing Worklet mode
     let node1 = await fwan.createMonoNode(context, "mydsp1", factory, false);
     console.log(node1);
@@ -140,14 +141,38 @@ async function run(engine, log, code, context) {
     console.log(node1.getJSON());
     node1.setParamValue("/test/freq", 700);
     node1.connect(context.destination);
-    */
 
+
+    /*
     let node2 = await fwan.createMonoNode(context, "mydsp2", factory, false);
     console.log(node2);
     console.log(node2.getParams());
     console.log(node2.getJSON());
-    node2.setParamValue("/test/freq", 600);
+    node2.setParamValue("/test/freq", 200);
     node2.connect(context.destination);
+    */
+
+    /*
+    // Polyphonic factory
+    let factory = await faust.createDSPFactory("test", code, options, true);
+    console.log(factory);
+    console.log(context);
+    let fwan = new Faust.AudioNodeFactory();
+
+    const wasmFile = await fetch("mixer32.wasm");
+    const wasmBuffer = await wasmFile.arrayBuffer();
+    const wasmModule = await WebAssembly.compile(wasmBuffer);
+
+    let node3 = await fwan.createPolyNode(context, "mydsp2", factory, wasmModule, 4, true, 512);
+    console.log(node3);
+    console.log(node3.getParams());
+    console.log(node3.getJSON());
+    //node3.setParamValue("/test/freq", 600);
+    node3.connect(context.destination);
+    node3.keyOn(0, 60, 100);
+    //node3.keyOn(0, 64, 100);
+    node3.keyOn(0, 67, 100);
+    */
 
     /*
     // Created from a wasm file
