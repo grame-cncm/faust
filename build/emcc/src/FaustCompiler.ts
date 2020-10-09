@@ -82,7 +82,7 @@ namespace Faust {
             }
         });
 
-        private createWasmMemory = (voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON, buffer_size: number) => {
+        private createWasmMemory(voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON, buffer_size: number): WebAssembly.Memory {
             // Hack : at least 4 voices (to avoid weird WASM memory bug?)
             const voices = Math.max(4, voicesIn);
             // Memory allocator
@@ -104,30 +104,10 @@ namespace Faust {
             memory_size = Math.max(2, memory_size); // As least 2
             console.log("memory_size", memory_size);
             return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
-        };
+        }
 
         constructor(engine?: Faust.LibFaust) {
             this.fFaustEngine = engine;
-        }
-
-        version(): string { return this.fFaustEngine.version(); }
-
-        createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Faust.Factory> {
-            return new Promise((resolve, reject) => {
-                try {
-                    const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, !poly);
-                    const wasm = this.fFaustEngine.getWasmModule(factory);
-                    WebAssembly.compile(this.intVec2intArray(wasm.data)).then(module => {
-                        this.fFaustEngine.freeWasmModule(factory);
-                        resolve({ module: module, json: wasm.json, poly: poly });
-                    });
-                } catch {
-                    const error = this.fFaustEngine.getErrorAfterException();
-                    console.log("=> exception raised while running createDSPFactory: " + error);
-                    this.fFaustEngine.cleanupAfterException();
-                    reject(error);
-                }
-            });
         }
 
         // TODO
@@ -154,6 +134,45 @@ namespace Faust {
             return { memory: memory, api: api, json: factory.json };
         }
 
+        private createMemoryAux(voices: number, voice_factory: Factory, effect_factory: Factory): WebAssembly.Memory {
+            // Parse JSON to get 'size' and 'inputs/ouputs' infos
+            const voice_JSON = JSON.parse(voice_factory.json);
+            const effect_JSON = (effect_factory) ? JSON.parse(effect_factory.json) : null;
+            // Memory will be shared by voice, mixer and (possibly) effect instances
+            return this.createWasmMemory(voices, voice_JSON, effect_JSON, 4096);
+        }
+
+        private createMixerAux(mixer_module: WebAssembly.Module, memory: WebAssembly.Memory): MixerAPI {
+            // Create mixer instance
+            const mix_import = {
+                imports: { print: console.log },
+                memory: { memory }
+            };
+            const mixer_instance = new WebAssembly.Instance(mixer_module, mix_import);
+            const mixer_functions: any = mixer_instance.exports;
+            return mixer_functions;
+        }
+
+        // Public API
+        version(): string { return this.fFaustEngine.version(); }
+
+        createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Faust.Factory> {
+            return new Promise((resolve, reject) => {
+                try {
+                    const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_content, args, !poly);
+                    const wasm = this.fFaustEngine.getWasmModule(factory);
+                    WebAssembly.compile(this.intVec2intArray(wasm.data)).then(module => {
+                        this.fFaustEngine.freeWasmModule(factory);
+                        resolve({ module: module, json: wasm.json, poly: poly });
+                    });
+                } catch {
+                    const error = this.fFaustEngine.getErrorAfterException();
+                    console.log("=> exception raised while running createDSPFactory: " + error);
+                    this.fFaustEngine.cleanupAfterException();
+                    reject(error);
+                }
+            });
+        }
         createAsyncDSPInstance(factory: Factory): Promise<Instance> {
             return new Promise((resolve, reject) => {
                 WebAssembly.instantiate(factory.module, this.createWasmImport())
@@ -177,25 +196,15 @@ namespace Faust {
 
         createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): Promise<PolyInstance> {
             return new Promise((resolve, reject) => {
-
-                // Parse JSON to get 'size' and 'inputs/ouputs' infos
-                const voice_JSON = JSON.parse(voice_factory.json);
-                const effect_JSON = (effect_factory) ? JSON.parse(effect_factory.json) : null;
-                // Memory will be shared by voice, mixer and (possibly) effect instances
-                const memory = this.createWasmMemory(voices, voice_JSON, effect_JSON, 4096);
+                const memory = this.createMemoryAux(voices, voice_factory, effect_factory);
                 // Create voice 
                 WebAssembly.instantiate(voice_factory.module, this.createWasmImport(memory))
                     .then(voice_instance => {
                         const voice_functions: any = voice_instance.exports;
                         const voice_api = new InstanceAPIImpl(<InstanceAPI>voice_functions);
-                        // Create mixer instance
-                        const mix_import = {
-                            imports: { print: console.log },
-                            memory: { memory }
-                        };
-                        const mixer_instance = new WebAssembly.Instance(mixer_module, mix_import);
-                        const mixer_functions: any = mixer_instance.exports;
-                        const mixer_api = mixer_functions;
+                        // Create mixer
+                        const mixer_api = this.createMixerAux(mixer_module, memory);
+
                         // Possibly create effect instance 
                         let effect_api = null;
                         if (effect_factory) {
@@ -237,31 +246,23 @@ namespace Faust {
         }
 
         createSyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): PolyInstance {
-            // Parse JSON to get 'size' and 'inputs/ouputs' infos 
-            const voice_JSON = JSON.parse(voice_factory.json);
-            const effect_JSON = (effect_factory) ? JSON.parse(effect_factory.json) : null;
-            // Memory will be shared by voice, mixer and (possibly) effect instances
-            const memory = this.createWasmMemory(voices, voice_JSON, effect_JSON, 4096);
+            const memory = this.createMemoryAux(voices, voice_factory, effect_factory);
             // Create voice 
             const voice_instance = new WebAssembly.Instance(voice_factory.module, this.createWasmImport(memory));
             const voice_functions: any = voice_instance.exports;
             const voice_api = new InstanceAPIImpl(<InstanceAPI>voice_functions);
+            // Create mixer
+            const mixer_api = this.createMixerAux(mixer_module, memory);
+
             // Possibly create effect instance 
-            let effect_api;
             if (effect_factory) {
                 const effect_instance = new WebAssembly.Instance(effect_factory.module, this.createWasmImport(memory));
                 const effect_functions: any = effect_instance.exports;
-                effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
+                let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
+                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: effect_api, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: effect_factory.json };
+            } else {
+                return { memory: memory, voices: voices, voice_api: voice_api, effect_api: null, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: "" };
             }
-            // Create mixer instance
-            const mix_import = {
-                imports: { print: console.log },
-                memory: { memory }
-            };
-            const mixer_instance = new WebAssembly.Instance(mixer_module, mix_import);
-            const mixer_functions: any = mixer_instance.exports;
-            const mixer_api = mixer_functions;
-            return { memory: memory, voices: voices, voice_api: voice_api, effect_api: effect_api, mixer_api: mixer_api, voice_json: voice_factory.json, effect_json: effect_factory.json };
         }
 
         expandDSP(name_app: string, dsp_content: string, args: string) {

@@ -118,12 +118,13 @@ async function run(engine, log, code, context) {
 
     // Created with libfaust.js
 
+    /*
     let factory = await faust.createDSPFactory("test", code, options, false);
     console.log(factory);
     console.log(context);
     let fwan = new Faust.AudioNodeFactory();
 
-    /*
+
     // Testing SP mode
     let node = await fwan.createMonoNode(context, "test", factory, true, 512);
     console.log(node);
@@ -133,7 +134,7 @@ async function run(engine, log, code, context) {
     node.connect(context.destination);
     */
 
-
+    /*
     // Testing Worklet mode
     let node1 = await fwan.createMonoNode(context, "mydsp1", factory, false);
     console.log(node1);
@@ -141,7 +142,7 @@ async function run(engine, log, code, context) {
     console.log(node1.getJSON());
     node1.setParamValue("/test/freq", 700);
     node1.connect(context.destination);
-
+    */
 
     /*
     let node2 = await fwan.createMonoNode(context, "mydsp2", factory, false);
@@ -152,7 +153,6 @@ async function run(engine, log, code, context) {
     node2.connect(context.destination);
     */
 
-    /*
     // Polyphonic factory
     let factory = await faust.createDSPFactory("test", code, options, true);
     console.log(factory);
@@ -163,16 +163,46 @@ async function run(engine, log, code, context) {
     const wasmBuffer = await wasmFile.arrayBuffer();
     const wasmModule = await WebAssembly.compile(wasmBuffer);
 
-    let node3 = await fwan.createPolyNode(context, "mydsp2", factory, wasmModule, 4, true, 512);
+    /*
+    // Testing polyphonic SP mode
+    let node3 = await fwan.createPolyNode(context, "mydsp2", factory, wasmModule, 8, true, 512);
     console.log(node3);
     console.log(node3.getParams());
     console.log(node3.getJSON());
     //node3.setParamValue("/test/freq", 600);
     node3.connect(context.destination);
-    node3.keyOn(0, 60, 100);
-    //node3.keyOn(0, 64, 100);
-    node3.keyOn(0, 67, 100);
+    node3.keyOn(0, 60, 50);
+    //node3.keyOn(0, 64, 50);
+    node3.keyOn(0, 67, 50);
+    //node3.keyOn(0, 71, 50);
+    //node3.keyOn(0, 76, 50);
     */
+
+    // Testing polyphonic Worklet mode
+    let node3 = await fwan.createPolyNode(context, "mydsp2", factory, wasmModule, 8, false);
+    console.log(node3);
+    console.log(node3.getParams());
+    console.log(node3.getJSON());
+    //node3.setParamValue("/test/freq", 600);
+    node3.connect(context.destination);
+    node3.keyOn(0, 60, 50);
+    node3.keyOn(0, 64, 50);
+    node3.keyOn(0, 67, 50);
+    node3.keyOn(0, 71, 50);
+    node3.keyOn(0, 76, 50);
+
+    // Testing polyphonic Worklet mode
+    let node4 = await fwan.createPolyNode(context, "mydsp3", factory, wasmModule, 16, false);
+    console.log(node4);
+    console.log(node4.getParams());
+    console.log(node4.getJSON());
+    //node4.setParamValue("/test/freq", 600);
+    node4.connect(context.destination);
+    node4.keyOn(0, 70, 50);
+    node4.keyOn(0, 74, 50);
+    node4.keyOn(0, 77, 50);
+    node4.keyOn(0, 81, 50);
+    //node3.keyOn(0, 76, 50);
 
     /*
     // Created from a wasm file

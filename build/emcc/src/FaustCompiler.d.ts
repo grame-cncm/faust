@@ -186,7 +186,7 @@ declare namespace Faust {
         createDSPFactory(name_app: string, dsp_content: string, args: string, poly: boolean): Promise<Factory>;
 
         /**
-         * Create a wasm instance of a wasm factory.
+         * Asynchronously create a wasm instance of a wasm factory.
          *
          * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory
          * @returns {Promise<Instance>} returns a monophonic instance.
@@ -194,7 +194,7 @@ declare namespace Faust {
         createAsyncDSPInstance(factory: Factory): Promise<Instance>;
 
         /**
-        * Create a wasm instance of a wasm factory.
+        * Synchronously create a wasm instance of a wasm factory.
         *
         * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory
         * @returns {Instance} returns a monophonic instance.
@@ -202,7 +202,7 @@ declare namespace Faust {
         createSyncDSPInstance(factory: Factory): Instance;
 
         /**
-         * Create a polyphonic wasm instance of a wasm voice factory and effect factory. 
+         * Asynchronously create a polyphonic wasm instance of a wasm voice factory and effect factory. 
          *
          * @param {Factory} voice_factory - a factory previously created using createDSPFactory or loadDSPFactory
          * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
@@ -213,7 +213,7 @@ declare namespace Faust {
         createAsyncPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, voices: number, effect_factory?: Factory): Promise<PolyInstance>;
 
         /**
-        * Create a polyphonic wasm instance of a wasm voice factory and effect factory. 
+        * Synchronously create a polyphonic wasm instance of a wasm voice factory and effect factory. 
         *
         * @param {Factory} voice_factory - a factory previously created using createDSPFactory or loadDSPFactory
         * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
@@ -243,6 +243,9 @@ declare namespace Faust {
         */
         generateAuxFiles(name_app: string, dsp_content: string, args: string): AuxOut;
 
+        /**
+         * Delete all factories.
+        */
         deleteAllDSPFactories(): void;
     }
 
