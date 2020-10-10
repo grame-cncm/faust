@@ -143,6 +143,7 @@ async function run(engine, log, code, context) {
 
     log("libfaust version: " + faust.version());
 
+    /*
     log("\n-----------------\nMisc tests" + faust.version());
     misc(faust, log, code);
     log("\n-----------------\nMisc tests with error code");
@@ -162,7 +163,7 @@ async function run(engine, log, code, context) {
 
     log("\n-----------------\nTest SVG diagrams: ");
     svgdiagrams(engine, log, code);
-
+    */
 
     // Test nodes
 
@@ -203,6 +204,7 @@ async function run(engine, log, code, context) {
     node2.connect(context.destination);
     */
 
+
     // Polyphonic factory
     let factory = await faust.createDSPFactory("test", code, options, true);
     console.log(factory);
@@ -230,7 +232,7 @@ async function run(engine, log, code, context) {
     */
 
 
-    /*
+
     // Testing polyphonic Worklet mode
     let node3 = await fwan.createPolyNode(context, "mydsp2", factory, mixer_module, 8, false);
     console.log(node3);
@@ -243,7 +245,7 @@ async function run(engine, log, code, context) {
     node3.keyOn(0, 67, 50);
     node3.keyOn(0, 71, 50);
     node3.keyOn(0, 76, 50);
-    */
+
 
     /*
     // Testing polyphonic Worklet mode
@@ -292,6 +294,7 @@ async function run(engine, log, code, context) {
     //node6.keyOn(0, 76, 50);
     */
 
+    /*
     const factory1 = await new Faust.Generator().loadDSPFactory("noise.wasm", "noise.js");
     const node = await new Faust.AudioNodeFactory().createMonoNode(context, "test", factory1, true, 512);
     console.log(node);
@@ -299,7 +302,7 @@ async function run(engine, log, code, context) {
     console.log(node.getJSON());
     node.setParamValue("/Noise/Volume", 0.1);
     node.connect(context.destination);
-
+    */
 
     log("\nEnd of API tests");
 }

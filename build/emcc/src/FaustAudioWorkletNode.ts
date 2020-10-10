@@ -1,0 +1,238 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+///<reference path="FaustWebAudioImp.ts"/>
+
+namespace Faust {
+
+    // Common class for Monophonic and Polyphonic AudioWorkletNode
+    class FaustAudioWorkletNode extends AudioWorkletNode {
+
+        protected fJSONDsp: TFaustJSON;
+        protected fJSON: string;
+        protected fInputsItems: string[];
+        protected fOutputHandler: Faust.OutputParamHandler;
+
+        constructor(context: BaseAudioContext, name: string, factory: Faust.Factory, options: any) {
+
+            // Create JSON object
+            const JSONObj = JSON.parse(factory.json);
+
+            // Create proxy FaustAudioWorkletProcessor
+            super(context, name, {
+                numberOfInputs: JSONObj.inputs > 0 ? 1 : 0,
+                numberOfOutputs: JSONObj.outputs > 0 ? 1 : 0,
+                channelCount: Math.max(1, JSONObj.inputs),
+                outputChannelCount: [JSONObj.outputs],
+                channelCountMode: "explicit",
+                channelInterpretation: "speakers",
+                processorOptions: options
+            });
+
+            this.fJSONDsp = JSONObj;
+            this.fJSON = factory.json;
+
+            // Parse UI
+            this.fInputsItems = [];
+            let callback = (item: TFaustUIItem) => {
+                if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+                    // Keep inputs adresses
+                    this.fInputsItems.push(item.address);
+                }
+            }
+            BaseDSPImp.parseUI(this.fJSONDsp.ui, callback);
+
+            // Patch it with additional functions
+            this.port.onmessage = (e: MessageEvent) => {
+                if (e.data.type === "param" && this.fOutputHandler) {
+                    this.fOutputHandler(e.data.path, e.data.value);
+                } else if (e.data.type === "plot") {
+                    // TODO
+                    //if (this.plotHandler) this.plotHandler(e.data.value, e.data.index, e.data.events);
+                }
+            };
+        }
+
+        // Public API
+        setOutputParamHandler(handler: OutputParamHandler) {
+            this.fOutputHandler = handler;
+        }
+        getOutputParamHandler() {
+            return this.fOutputHandler;
+        }
+
+        getNumInputs() {
+            return this.fJSONDsp.inputs;
+        }
+        getNumOutputs() {
+            return this.fJSONDsp.outputs;
+        }
+
+        // Not used
+        compute(inputs: Float32Array[], outputs: Float32Array[]) {
+            return false;
+        }
+
+        metadata(handler: MetadataHandler) { }
+
+        midiMessage(data: number[] | Uint8Array): void {
+            const cmd = data[0] >> 4;
+            const channel = data[0] & 0xf;
+            const data1 = data[1];
+            const data2 = data[2];
+            if (cmd === 11) this.ctrlChange(channel, data1, data2);
+            else if (cmd === 14) this.pitchWheel(channel, data2 * 128.0 + data1);
+            else this.port.postMessage({ data, type: "midi" });
+        }
+
+        ctrlChange(channel: number, ctrl: number, value: number) {
+            const e = { type: "ctrlChange", data: [channel, ctrl, value] };
+            this.port.postMessage(e);
+        }
+        pitchWheel(channel: number, wheel: number) {
+            const e = { type: "pitchWheel", data: [channel, wheel] };
+            this.port.postMessage(e);
+        }
+
+        setParamValue(path: string, value: number) {
+            const e = { type: "param", data: { path, value } };
+            this.port.postMessage(e);
+            // Set value on AudioParam (but this is not used on Processor side for now)
+            const param = this.parameters.get(path);
+            if (param) param.setValueAtTime(value, this.context.currentTime);
+
+        }
+        getParamValue(path: string) {
+            // Get value of AudioParam
+            const param = this.parameters.get(path);
+            return (param) ? param.value : 0;
+        }
+
+        getParams() { return this.fInputsItems; }
+        getJSON() { return this.fJSON; }
+        getUI() { return this.fJSONDsp.ui; }
+
+        destroy() {
+            this.port.postMessage({ type: "destroy" });
+            this.port.close();
+        }
+    }
+
+    // Monophonic AudioWorkletNode 
+    export class FaustMonoAudioWorkletNode extends FaustAudioWorkletNode {
+
+        onprocessorerror = (e: ErrorEvent) => {
+            console.error("Error from " + this.fJSONDsp.name + " FaustMonoAudioWorkletNode");
+            throw e.error;
+        }
+
+        constructor(context: BaseAudioContext, name: string, factory: Faust.Factory) {
+            super(context, name, factory, { name: name, factory: factory });
+        }
+    }
+
+    // Polyphonic AudioWorkletNode 
+    export class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode {
+
+        private fJSONEffect: TFaustJSON;
+
+        onprocessorerror = (e: ErrorEvent) => {
+            console.error("Error from " + this.fJSONDsp.name + " FaustPolyAudioWorkletNode");
+            throw e.error;
+        }
+
+        constructor(context: BaseAudioContext, name: string,
+            voice_factory: Faust.Factory,
+            mixer_module: WebAssembly.Module,
+            voices: number,
+            effect_factory?: Faust.Factory) {
+
+            super(context, name, voice_factory,
+                {
+                    name: name,
+                    voice_factory: voice_factory,
+                    mixer_module: mixer_module,
+                    voices: voices,
+                    effect_factory: effect_factory
+                });
+
+            this.fJSONEffect = (effect_factory) ? JSON.parse(effect_factory.json) : null;
+
+        }
+
+        // Public API
+        keyOn(channel: number, pitch: number, velocity: number) {
+            const e = { type: "keyOn", data: [channel, pitch, velocity] };
+            this.port.postMessage(e);
+        }
+
+        keyOff(channel: number, pitch: number, velocity: number) {
+            const e = { type: "keyOff", data: [channel, pitch, velocity] };
+            this.port.postMessage(e);
+        }
+
+        allNotesOff() {
+            const e = { type: "ctrlChange", data: [0, 123, 0] };
+            this.port.postMessage(e);
+        }
+
+        getJSON() {
+            const o = this.fJSONDsp;
+            const e = this.fJSONEffect;
+            const r = { ...o };
+            if (e) {
+                r.ui = [{
+                    type: "tgroup", label: "Sequencer", items: [
+                        { type: "vgroup", label: "Instrument", items: o.ui },
+                        { type: "vgroup", label: "Effect", items: e.ui }
+                    ]
+                }];
+            } else {
+                r.ui = [{
+                    type: "tgroup", label: "Polyphonic", items: [
+                        { type: "vgroup", label: "Voices", items: o.ui }
+                    ]
+                }];
+            }
+            return JSON.stringify(r);
+        }
+
+        getUI() {
+            const o = this.fJSONDsp;
+            const e = this.fJSONEffect;
+            const r = { ...o };
+            if (e) {
+                return [{
+                    type: "tgroup", label: "Sequencer", items: [
+                        { type: "vgroup", label: "Instrument", items: o.ui },
+                        { type: "vgroup", label: "Effect", items: e.ui }
+                    ]
+                }] as TFaustUI;
+            } else {
+                return [{
+                    type: "tgroup", label: "Polyphonic", items: [
+                        { type: "vgroup", label: "Voices", items: o.ui }
+                    ]
+                }] as TFaustUI;
+            }
+        }
+    }
+}
