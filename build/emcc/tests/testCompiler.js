@@ -292,7 +292,7 @@ async function run(engine, log, code, context) {
     //node6.keyOn(0, 76, 50);
     */
 
-    const factory1 = await new Faust.Generator().loadDSPFactory("noise.wasm", "noise.js", false);
+    const factory1 = await new Faust.Generator().loadDSPFactory("noise.wasm", "noise.js");
     const node = await new Faust.AudioNodeFactory().createMonoNode(context, "test", factory1, true, 512);
     console.log(node);
     console.log(node.getParams());

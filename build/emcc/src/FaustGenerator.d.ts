@@ -6,14 +6,37 @@
 
 declare namespace Faust {
 
+    /**
+     * Mixer used in polyphonic mode
+    */
+    interface MixerAPI {
+        clearOutput(bufferSize: number, chans: number, ouputs: AudioBuffer): void;
+        mixVoice(bufferSize: number, chans: number, inputs: AudioBuffer, ouputs: AudioBuffer): void;
+    }
+
+    interface Instance {
+        memory: WebAssembly.Memory;
+        api: InstanceAPI;
+        json: string;
+    }
+
+    interface PolyInstance {
+        memory: WebAssembly.Memory;
+        voices: number;
+        voice_api: InstanceAPI;
+        effect_api: InstanceAPI;
+        mixer_api: MixerAPI;
+        voice_json: string;
+        effect_json: string;
+    }
+
     interface Generator {
 
         /**
-         * Load a wasm factory from wasm and JSON files This function is running asynchronously.
+         * Load a wasm factory from wasm (either 'monophonic' or 'polyphonic') and JSON files. This function is running asynchronously.
          *
          * @param {string} wasm_path - the wasm file pathname
          * @param {string} json_path - the JSON file pathname
-         * @param {boolean} poly - tells the compiler to generate static embedded memory or not
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
         loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory>;

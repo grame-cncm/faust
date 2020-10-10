@@ -118,14 +118,6 @@ declare namespace Faust {
         setParamValue(dsp: DSP, index: number, value: number): void;
     }
 
-    /**
-     * Mixer used in polyphonic mode
-    */
-    interface MixerAPI {
-        clearOutput(bufferSize: number, chans: number, ouputs: AudioBuffer): void;
-        mixVoice(bufferSize: number, chans: number, inputs: AudioBuffer, ouputs: AudioBuffer): void;
-    }
-
     interface Factory {
         module: WebAssembly.Module;
         json: string;
@@ -141,22 +133,6 @@ declare namespace Faust {
     interface AuxOut {
         success: boolean;
         error: string;
-    }
-
-    interface Instance {
-        memory: WebAssembly.Memory;
-        api: InstanceAPI;
-        json: string;
-    }
-
-    interface PolyInstance {
-        memory: WebAssembly.Memory;
-        voices: number;
-        voice_api: InstanceAPI;
-        effect_api: InstanceAPI;
-        mixer_api: MixerAPI;
-        voice_json: string;
-        effect_json: string;
     }
 
     interface Compiler {

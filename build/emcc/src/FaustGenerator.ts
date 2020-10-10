@@ -122,19 +122,23 @@ namespace Faust {
         }
 
         // Public API
-        async loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory> {
+        async loadDSPFactory(wasm_path: string, json_path: string): Promise<Faust.Factory> {
             try {
                 const wasm_file = await fetch(wasm_path);
                 const wasm_buffer = await wasm_file.arrayBuffer();
                 const module = await WebAssembly.compile(wasm_buffer);
                 const json_file = await fetch(json_path);
                 const json = await json_file.text();
+                const JSONDsp = JSON.parse(json);
+                const c_options = JSONDsp.compile_options;
+                const poly = c_options.indexOf('wasm-e') !== -1;
                 return { module: module, json: json, poly: poly };
             } catch (e) {
                 console.log("=> exception raised while running loadDSPFactory: " + e);
                 return null;
             }
         }
+
         async createAsyncDSPInstance(factory: Factory): Promise<Instance> {
             const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
             return (instance) ? this.createDSPInstanceAux(instance, factory) : null;
