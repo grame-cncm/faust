@@ -57,16 +57,27 @@ timbre(f) = os.osc(f)*0.5 + os.osc(f*2)*0.25 + os.osc(f*3)*0.125; \
 process = timbre(hslider("freq", 440, 20, 10000, 1)) \
 	* hslider("gain", 0.0, 0, 1, 0.01) \
 	* (button("gate") : en.adsr(0.1,0.1,0.98,1.5));';
+	
+const organ1 = 'import("stdfaust.lib"); \
+timbre(f) = os.osc(f)*0.5 + os.osc(f*2)*0.25 + os.osc(f*3)*0.125; \
+effect = _*(hslider("Left", 0.1, 0, 1, 0.01)), _*(hslider("Right", 0.0, 0, 1, 0.01)); \
+process = timbre(hslider("freq", 440, 20, 10000, 1)) \
+	* hslider("gain", 0.0, 0, 1, 0.01) \
+	* (button("gate") : en.adsr(0.1,0.1,0.98,1.5));'; 
 
 const clarinet = 'import("stdfaust.lib"); process = pm.clarinet_ui_MIDI <: _,_;';
 const guitar = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_;';
 
+const guitar1 = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_; \
+effect = *(hslider("Left", 0.1, 0, 1, 0.01)), *(hslider("Right", 0.1, 0, 1, 0.01));';
+
 //const dspcode = osc;
 //const dspcode = noise;
-const dspcode = osc2;
+//const dspcode = osc2;
 //const dspcode = osc3;
 //const dspcode = t1;
 //const dspcode = organ;
+const dspcode = organ1;
 //const dspcode = clarinet;
 //const dspcode = guitar;
 

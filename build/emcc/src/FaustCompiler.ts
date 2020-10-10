@@ -46,12 +46,17 @@ namespace Faust {
         async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Faust.Factory> {
             try {
                 const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_code, args, !poly);
-                const wasm = this.fFaustEngine.getWasmModule(factory);
-                const module = await WebAssembly.compile(this.intVec2intArray(wasm.data));
-                return { module: module, json: wasm.json, poly: poly };
+                try {
+                    const wasm = this.fFaustEngine.getWasmModule(factory);
+                    const module = await WebAssembly.compile(this.intVec2intArray(wasm.data));
+                    return { module: module, json: wasm.json, poly: poly };
+                } catch (e) {
+                    console.error(e);
+                    return null;
+                }
             } catch {
                 const error = this.fFaustEngine.getErrorAfterException();
-                console.log("=> exception raised while running createDSPFactory: " + error);
+                console.error("=> exception raised while running createDSPFactory: " + error);
                 this.fFaustEngine.cleanupAfterException();
                 return null;
             }
@@ -63,7 +68,7 @@ namespace Faust {
                 return { dsp: out.dsp, shakey: out.shakey, error: "" };
             } catch {
                 const error = this.fFaustEngine.getErrorAfterException();
-                console.log("=> exception raised while running expandDSP: " + error);
+                console.error("=> exception raised while running expandDSP: " + error);
                 this.fFaustEngine.cleanupAfterException();
                 return { dsp: "", shakey: "", error: error };
             }
@@ -75,7 +80,7 @@ namespace Faust {
                 return { success: done, error: "" };
             } catch {
                 const error = this.fFaustEngine.getErrorAfterException();
-                console.log("=> exception raised while running generateAuxFiles: " + error);
+                console.error("=> exception raised while running generateAuxFiles: " + error);
                 this.fFaustEngine.cleanupAfterException();
                 return { success: false, error: error };
             }

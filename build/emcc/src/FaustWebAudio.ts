@@ -30,6 +30,7 @@ namespace Faust {
     type FaustData = {
         dsp_name: string;
         dsp_JSON: string;
+        effect_JSON: string;
     };
     declare const faustData: FaustData;
 
@@ -55,6 +56,7 @@ namespace Faust {
         protected fPitchwheelLabel: { path: string; min: number; max: number }[];
         protected fCtrlLabel: { path: string; min: number; max: number }[][];
         protected fPathTable: { [address: string]: number };
+        protected fUICallback: UIHandler;
 
         protected fDestroyed: boolean;
 
@@ -79,6 +81,32 @@ namespace Faust {
             this.fPathTable = {};
 
             this.fDestroyed = false;
+
+            this.fUICallback = (item: TFaustUIItem) => {
+                if (item.type === "hbargraph" || item.type === "vbargraph") {
+                    // Keep bargraph adresses
+                    this.fOutputsItems.push(item.address);
+                    this.fPathTable[item.address] = item.index;
+                } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+                    // Keep inputs adresses
+                    this.fInputsItems.push(item.address);
+                    this.fPathTable[item.address] = item.index;
+                    // Parse 'midi' metadata
+                    if (!item.meta) return
+                    item.meta.forEach((meta) => {
+                        const { midi } = meta;
+                        if (!midi) return;
+                        const strMidi = midi.trim();
+                        if (strMidi === "pitchwheel") {
+                            this.fPitchwheelLabel.push({ path: item.address, min: item.min, max: item.max });
+                        } else {
+                            const matched = strMidi.match(/^ctrl\s(\d+)/);
+                            if (!matched) return;
+                            this.fCtrlLabel[parseInt(matched[1])].push({ path: item.address, min: item.min, max: item.max });
+                        }
+                    });
+                }
+            }
         }
 
         // Tools
@@ -113,38 +141,6 @@ namespace Faust {
                 this.fOutputsTimer = 5;
                 this.fOutputsItems.forEach(item => this.fOutputHandler(item, this.getParamValue(item)));
             }
-        }
-
-        protected initUI() {
-
-            // Parse UI
-            let callback = (item: TFaustUIItem) => {
-                if (item.type === "hbargraph" || item.type === "vbargraph") {
-                    // Keep bargraph adresses
-                    this.fOutputsItems.push(item.address);
-                    this.fPathTable[item.address] = item.index;
-                } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
-                    // Keep inputs adresses
-                    this.fInputsItems.push(item.address);
-                    this.fPathTable[item.address] = item.index;
-                    // Parse 'midi' metadata
-                    if (!item.meta) return
-                    item.meta.forEach((meta) => {
-                        const { midi } = meta;
-                        if (!midi) return;
-                        const strMidi = midi.trim();
-                        if (strMidi === "pitchwheel") {
-                            this.fPitchwheelLabel.push({ path: item.address, min: item.min, max: item.max });
-                        } else {
-                            const matched = strMidi.match(/^ctrl\s(\d+)/);
-                            if (!matched) return;
-                            this.fCtrlLabel[parseInt(matched[1])].push({ path: item.address, min: item.min, max: item.max });
-                        }
-                    });
-
-                }
-            }
-            BaseDSPImp.parseUI(this.fJSONDsp.ui, callback);
         }
 
         // Public API
@@ -220,7 +216,7 @@ namespace Faust {
             this.fJSONDsp = JSON.parse(this.fInstance.json);
 
             // Setup GUI
-            super.initUI();
+            BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
 
             // Setup wasm memory
             this.initMemory();
@@ -351,7 +347,6 @@ namespace Faust {
     }
 
     // Voice management
-
     class DspVoice {
         static kActiveVoice: number;
         static kFreeVoice: number;
@@ -416,6 +411,13 @@ namespace Faust {
         compute(buffer_size: number, inputs: AudioBuffer, outputs: AudioBuffer) {
             this.fAPI.compute(this.fDSP, buffer_size, inputs, outputs);
         }
+
+        setParamValue(index: number, value: number) {
+            this.fAPI.setParamValue(this.fDSP, index, value);
+        }
+        getParamValue(index: number) {
+            return this.fAPI.getParamValue(this.fDSP, index);
+        }
     }
 
     // Polyphonic DSP
@@ -431,21 +433,21 @@ namespace Faust {
             super(buffer_size);
             this.fInstance = instance;
 
-            // Create JSON for dsp
+            // Create JSON for voice
             this.fJSONDsp = JSON.parse(this.fInstance.voice_json);
-
-            this.fVoiceTable = [];
 
             // Create JSON for effect
             this.fJSONEffect = (this.fInstance.effect_api) ? JSON.parse(this.fInstance.effect_json) : null;
 
             // Setup GUI
-            super.initUI();
+            BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
+            if (this.fJSONEffect) BaseDSPImp.parseUI(this.fJSONEffect.ui, this.fUICallback);
 
             // Setup wasm memory
             this.initMemory();
 
             // Init DSP voices
+            this.fVoiceTable = [];
             for (let voice = 0; voice < this.fInstance.voices; voice++) {
                 this.fVoiceTable.push(new DspVoice(
                     this.fJSONDsp.size * voice,
@@ -571,19 +573,6 @@ namespace Faust {
             return DspVoice.kNoVoice;
         }
 
-        private static findPath(o: any, p: string) {
-            if (typeof o !== "object") {
-                return false;
-            } else if (o.address) {
-                return (o.address === p);
-            } else {
-                for (const k in o) {
-                    if (PolyDSPImp.findPath(o[k], p)) return true;
-                }
-                return false;
-            }
-        }
-
         // Public API
         compute(input: Float32Array[], output: Float32Array[]) {
             // Check DSP state
@@ -647,20 +636,54 @@ namespace Faust {
             return this.fInstance.voice_api.getNumOutputs(0);
         }
 
+        private static findPath(o: any, p: string) {
+            if (typeof o !== "object") {
+                return false;
+            } else if (o.address) {
+                return (o.address === p);
+            } else {
+                for (const k in o) {
+                    if (PolyDSPImp.findPath(o[k], p)) return true;
+                }
+                return false;
+            }
+        }
+
         setParamValue(path: string, value: number) {
-            // TODO
-            //this.fInstance.voice_api.setParamValue(this.fDSP, this.fPathTable[path], value);
+            // TODO:  node.cachedEvents.push({ type: "param", data: { path, value } });
+            if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path)) {
+                this.fInstance.effect_api.setParamValue(this.fEffect, this.fPathTable[path], value);
+            } else {
+                this.fVoiceTable.forEach(voice => { voice.setParamValue(this.fPathTable[path], value); });
+            }
         }
         getParamValue(path: string) {
-            // TODO
-            //return this.fInstance.voice_api.getParamValue(this.fDSP, this.fPathTable[path]);
-            return 0;
+            if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path)) {
+                return this.fInstance.effect_api.getParamValue(this.fEffect, this.fPathTable[path]);
+            } else {
+                return this.fVoiceTable[0].getParamValue(this.fPathTable[path]);
+            }
         }
 
         getJSON() {
-            // TODO
-            //return this.fInstance.json;
-            return "";
+            const o = this.fJSONDsp;
+            const e = this.fJSONEffect;
+            const r = { ...o };
+            if (e) {
+                r.ui = [{
+                    type: "tgroup", label: "Sequencer", items: [
+                        { type: "vgroup", label: "Instrument", items: o.ui },
+                        { type: "vgroup", label: "Effect", items: e.ui }
+                    ]
+                }];
+            } else {
+                r.ui = [{
+                    type: "tgroup", label: "Polyphonic", items: [
+                        { type: "vgroup", label: "Voices", items: o.ui }
+                    ]
+                }];
+            }
+            return JSON.stringify(r);
         }
 
         midiMessage(data: number[] | Uint8Array) {
@@ -689,7 +712,7 @@ namespace Faust {
 
         keyOff(channel: number, pitch: number, velocity: number) {
             let voice = this.getPlayingVoice(pitch);
-            if (voice != DspVoice.kNoVoice) {
+            if (voice !== DspVoice.kNoVoice) {
                 this.fVoiceTable[voice].keyOff();
             } else {
                 console.log("Playing pitch = %d not found\n", pitch);
@@ -791,10 +814,15 @@ namespace Faust {
         }
 
         setParamValue(path: string, value: number) {
+            const e = { type: "param", data: { path, value } };
+            this.port.postMessage(e);
+            // Set value on AudioParam (but this is not used on Processor side for now)
             const param = this.parameters.get(path);
             if (param) param.setValueAtTime(value, this.context.currentTime);
+
         }
         getParamValue(path: string) {
+            // Get value of AudioParam
             const param = this.parameters.get(path);
             return (param) ? param.value : 0;
         }
@@ -815,9 +843,8 @@ namespace Faust {
     // Monophonic AudioWorkletNode 
     class FaustMonoAudioWorkletNode extends FaustAudioWorkletNode {
 
-        // TODO
         onprocessorerror = (e: ErrorEvent) => {
-            //console.error("Error from " + this.dspMeta.name + " AudioWorkletNode: "); // eslint-disable-line no-console
+            console.error("Error from " + this.fJSONDsp.name + " FaustMonoAudioWorkletNode");
             throw e.error;
         }
 
@@ -829,9 +856,8 @@ namespace Faust {
     // Polyphonic AudioWorkletNode 
     class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode {
 
-        // TODO
         onprocessorerror = (e: ErrorEvent) => {
-            //console.error("Error from " + this.dspMeta.name + " AudioWorkletNode: "); // eslint-disable-line no-console
+            console.error("Error from " + this.fJSONDsp.name + " FaustPolyAudioWorkletNode");
             throw e.error;
         }
 
@@ -895,6 +921,7 @@ namespace Faust {
         class FaustConst {
             static dsp_name = faustData.dsp_name;
             static dsp_JSON = faustData.dsp_JSON;
+            static effect_JSON = faustData.effect_JSON;
         }
 
         // Common class for Monophonic and Polyphonic AudioWorkletProcessor
@@ -911,7 +938,7 @@ namespace Faust {
 
             static get parameterDescriptors() {
                 const params = [] as AudioParamDescriptor[];
-                // Analyse JSON to generate AudioParam parameters
+                // Analyse voice JSON to generate AudioParam parameters
                 let callback = (item: TFaustUIItem) => {
                     if (item.type === "vslider" || item.type === "hslider" || item.type === "nentry") {
                         params.push({ name: item.address, defaultValue: item.init || 0, minValue: item.min || 0, maxValue: item.max || 0 });
@@ -920,20 +947,21 @@ namespace Faust {
                     }
                 }
                 BaseDSPImp.parseUI(JSON.parse(FaustConst.dsp_JSON).ui, callback);
-                /*
-                if (FaustConst.effectMeta) this.parseUI(FaustConst.effectMeta.ui, params, this.parseItem);
-                */
+                // Analyse effect JSON to generate AudioParam parameters
+                if (FaustConst.effect_JSON) BaseDSPImp.parseUI(JSON.parse(FaustConst.effect_JSON).ui, callback);
                 console.log(params);
                 return params;
             }
 
             process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [key: string]: Float32Array }) {
 
-                // Update controls (possibly needed for sample accurate control)
+                /*
+                // Update controls (possibly needed for sample accurate control), deactivated for now
                 for (const path in parameters) {
                     const paramArray = parameters[path];
                     this.fDSPCode.setParamValue(path, paramArray[0]);
                 }
+                */
 
                 return this.fDSPCode.compute(inputs[0], outputs[0]);
             }
@@ -1164,25 +1192,10 @@ namespace Faust {
         // Table of all create WorkletProcessors, each of them has to be unique
         private fWorkletProcessors: string[] = [];
 
-        async compileMonoNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
+        async compileMonoNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
             : Promise<Faust.FaustScriptProcessorNode | Faust.FaustAudioWorkletNode> {
-            const factory = await new Faust.Compiler(faust).createDSPFactory("faustdsp", dsp_code, args, false);
-            return this.createMonoNode(context, name, factory, sp);
-        }
-
-        // We assume that 'dsp_code' contains an integrated effect
-        async compilePolyNode(context: BaseAudioContext, name: string, faust: LibFaust, dsp_code: string, args: string, voices: number, sp: boolean, buffer_size?: number)
-            : Promise<Faust.FaustPolyScriptProcessorNode | Faust.FaustPolyAudioWorkletNode> {
-            const dsp_effect = `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
-                                adaptor(F,G) = adapt(outputs(F),inputs(G));
-                                dsp_code = environment{${dsp_code}};
-                                process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
-            const voice_factory = await new Faust.Compiler(faust).createDSPFactory(name, dsp_code, args, true);
-            const effect_factory = await new Faust.Compiler(faust).createDSPFactory(name, dsp_effect, args, true);
-            const mixer_file = await fetch("mixer32.wasm");
-            const mixer_buffer = await mixer_file.arrayBuffer();
-            const mixer_module = await WebAssembly.compile(mixer_buffer);
-            return this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, buffer_size, effect_factory);
+            const factory = await compiler.createDSPFactory(name, dsp_code, args, false);
+            return this.createMonoNode(context, name, factory, sp, buffer_size);
         }
 
         async createMonoNode(context: BaseAudioContext, name: string, factory: Faust.Factory, sp: boolean, buffer_size?: number)
@@ -1195,7 +1208,7 @@ namespace Faust {
                     const processor_code = `
                         // Create a Faust namespace
                         let Faust = {};
-                        const faustData = { dsp_name: "${name}", dsp_JSON: '${factory.json}' };
+                        const faustData = { dsp_name: '${name}', dsp_JSON: '${factory.json}' };
                         ${BaseDSPImp.toString()}
                         ${MonoDSPImp.toString()}
                         ${Faust.Generator.toString()} 
@@ -1213,6 +1226,26 @@ namespace Faust {
             }
         }
 
+        // We assume that 'dsp_code' contains an integrated effect
+        async compilePolyNode(context: BaseAudioContext, name_aux: string, compiler: Compiler, dsp_code: string, args: string, voices: number, sp: boolean, buffer_size?: number)
+            : Promise<Faust.FaustPolyScriptProcessorNode | Faust.FaustPolyAudioWorkletNode> {
+            const name = name_aux + "_poly";
+            // Compile voice
+            const voice_factory = await compiler.createDSPFactory(name, dsp_code, args, true);
+            if (!voice_factory) return null;
+            // Compile effect
+            const dsp_effect = `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
+                                adaptor(F,G) = adapt(outputs(F),inputs(G));
+                                dsp_code = environment{${dsp_code}};
+                                process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
+            const effect_factory = await compiler.createDSPFactory(name, dsp_effect, args, true);
+            // Compile mixer
+            const mixer_file = await fetch('mixer32.wasm');
+            const mixer_buffer = await mixer_file.arrayBuffer();
+            const mixer_module = await WebAssembly.compile(mixer_buffer);
+            return this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, buffer_size, effect_factory);
+        }
+
         async createPolyNode(context: BaseAudioContext, name_aux: string, voice_factory: Faust.Factory, mixer_module: WebAssembly.Module, voices: number, sp: boolean, buffer_size?: number, effect_factory?: Factory)
             : Promise<Faust.FaustPolyScriptProcessorNode | Faust.FaustPolyAudioWorkletNode> {
             const name = name_aux + "_poly";
@@ -1224,7 +1257,7 @@ namespace Faust {
                     const processor_code = `
                         // Create a Faust namespace
                         let Faust = {};
-                        const faustData = { dsp_name: "${name}", dsp_JSON: '${voice_factory.json}' };
+                        const faustData = { dsp_name: '${name}', dsp_JSON: '${voice_factory.json}', effect_JSON: '${(effect_factory) ? effect_factory.json : ""}'};
                         ${BaseDSPImp.toString()}
                         ${PolyDSPImp.toString()}
                         ${DspVoice.toString()}
@@ -1232,7 +1265,7 @@ namespace Faust {
                         ${Faust.InstanceAPIImpl.toString()} 
                         (${FaustAudioWorkletProcessorGenerator.toString()})();           
                         Faust.Generator = Generator;`;
-                    //console.log(processor_code);
+                    console.log(processor_code);
                     const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                     await context.audioWorklet.addModule(url);
                     // Keep the DSP name
