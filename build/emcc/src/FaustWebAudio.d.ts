@@ -47,6 +47,7 @@ declare namespace Faust {
 
         getParams(): string[];
         getJSON(): string;
+        getUI(): TFaustUI;
 
         destroy(): void;
     }

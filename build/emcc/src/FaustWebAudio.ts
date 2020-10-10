@@ -198,6 +198,7 @@ namespace Faust {
 
         getParams() { return this.fInputsItems; }
         getJSON() { return ""; }
+        getUI() { return this.fJSONDsp.ui; }
         destroy() { this.fDestroyed = true; }
     }
 
@@ -344,6 +345,7 @@ namespace Faust {
         }
 
         getJSON() { return this.fInstance.json; }
+        getUI() { return this.fJSONDsp.ui; }
     }
 
     // Voice management
@@ -686,6 +688,26 @@ namespace Faust {
             return JSON.stringify(r);
         }
 
+        getUI() {
+            const o = this.fJSONDsp;
+            const e = this.fJSONEffect;
+            const r = { ...o };
+            if (e) {
+                return [{
+                    type: "tgroup", label: "Sequencer", items: [
+                        { type: "vgroup", label: "Instrument", items: o.ui },
+                        { type: "vgroup", label: "Effect", items: e.ui }
+                    ]
+                }] as TFaustUI;
+            } else {
+                return [{
+                    type: "tgroup", label: "Polyphonic", items: [
+                        { type: "vgroup", label: "Voices", items: o.ui }
+                    ]
+                }] as TFaustUI;
+            }
+        }
+
         midiMessage(data: number[] | Uint8Array) {
             // TODO: node.cachedEvents.push({ data, type: "midi" });
             const cmd = data[0] >> 4;
@@ -728,8 +750,8 @@ namespace Faust {
     class FaustAudioWorkletNode extends AudioWorkletNode {
 
         protected fJSONDsp: TFaustJSON;
-        protected fInputsItems: string[];
         protected fJSON: string;
+        protected fInputsItems: string[];
         protected fOutputHandler: Faust.OutputParamHandler;
 
         constructor(context: BaseAudioContext, name: string, factory: Faust.Factory, options: any) {
@@ -827,12 +849,9 @@ namespace Faust {
             return (param) ? param.value : 0;
         }
 
-        getParams() {
-            return this.fInputsItems;
-        }
-        getJSON() {
-            return this.fJSON;
-        }
+        getParams() { return this.fInputsItems; }
+        getJSON() { return this.fJSON; }
+        getUI() { return this.fJSONDsp.ui; }
 
         destroy() {
             this.port.postMessage({ type: "destroy" });
@@ -856,6 +875,8 @@ namespace Faust {
     // Polyphonic AudioWorkletNode 
     class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode {
 
+        private fJSONEffect: TFaustJSON;
+
         onprocessorerror = (e: ErrorEvent) => {
             console.error("Error from " + this.fJSONDsp.name + " FaustPolyAudioWorkletNode");
             throw e.error;
@@ -866,6 +887,7 @@ namespace Faust {
             mixer_module: WebAssembly.Module,
             voices: number,
             effect_factory?: Faust.Factory) {
+
             super(context, name, voice_factory,
                 {
                     name: name,
@@ -874,6 +896,9 @@ namespace Faust {
                     voices: voices,
                     effect_factory: effect_factory
                 });
+
+            this.fJSONEffect = (effect_factory) ? JSON.parse(effect_factory.json) : null;
+
         }
 
         // Public API
@@ -890,6 +915,47 @@ namespace Faust {
         allNotesOff() {
             const e = { type: "ctrlChange", data: [0, 123, 0] };
             this.port.postMessage(e);
+        }
+
+        getJSON() {
+            const o = this.fJSONDsp;
+            const e = this.fJSONEffect;
+            const r = { ...o };
+            if (e) {
+                r.ui = [{
+                    type: "tgroup", label: "Sequencer", items: [
+                        { type: "vgroup", label: "Instrument", items: o.ui },
+                        { type: "vgroup", label: "Effect", items: e.ui }
+                    ]
+                }];
+            } else {
+                r.ui = [{
+                    type: "tgroup", label: "Polyphonic", items: [
+                        { type: "vgroup", label: "Voices", items: o.ui }
+                    ]
+                }];
+            }
+            return JSON.stringify(r);
+        }
+
+        getUI() {
+            const o = this.fJSONDsp;
+            const e = this.fJSONEffect;
+            const r = { ...o };
+            if (e) {
+                return [{
+                    type: "tgroup", label: "Sequencer", items: [
+                        { type: "vgroup", label: "Instrument", items: o.ui },
+                        { type: "vgroup", label: "Effect", items: e.ui }
+                    ]
+                }] as TFaustUI;
+            } else {
+                return [{
+                    type: "tgroup", label: "Polyphonic", items: [
+                        { type: "vgroup", label: "Voices", items: o.ui }
+                    ]
+                }] as TFaustUI;
+            }
         }
     }
 
@@ -1130,6 +1196,7 @@ namespace Faust {
             node.getParams = () => { return this.fDSPCode.getParams(); }
 
             node.getJSON = () => { return this.fDSPCode.getJSON(); }
+            node.getUI = () => { return this.fDSPCode.getUI(); }
             node.destroy = () => { this.fDSPCode.destroy(); }
         }
     }
