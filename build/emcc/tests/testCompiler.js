@@ -14,46 +14,93 @@ function misc(faust, log, code) {
     msg = aux.success ? "done" : aux.error;
     log("  generateAuxFiles      " + msg);
 }
-
 //----------------------------------------------------------------------------
 // create dsp factory and instance 
 //----------------------------------------------------------------------------
 async function createDsp(faust, log, code) {
+    let gen = new Faust.Generator();
+
     log("createDSPFactory: ");
     let factory = await faust.createDSPFactory("test", code, options, false);
-    log("factory JSON: " + factory.json);
-    log("factory poly: " + factory.poly);
+    if (factory) {
+        log("factory JSON: " + factory.json);
+        log("factory poly: " + factory.poly);
+    } else {
+        log("factory is null");
+        return;
+    }
 
-    log("createDSPInstance: ");
-    let instance = await faust.createDSPInstance(factory);
-    log("  getNumInputs : " + instance.api.getNumInputs());
-    log("  getNumOutputs: " + instance.api.getNumOutputs());
-    log("  JSON: " + instance.json);
+    log("createSyncDSPInstance: ");
+    let instance1 = gen.createSyncDSPInstance(factory);
+    if (instance1) {
+        log("  getNumInputs : " + instance1.api.getNumInputs());
+        log("  getNumOutputs: " + instance1.api.getNumOutputs());
+        log("  JSON: " + instance1.json);
+    } else {
+        log("instance1 is null");
+    }
+
+    log("createAsyncDSPInstance: ");
+    let instance2 = await gen.createAsyncDSPInstance(factory);
+    if (instance2) {
+        log("  getNumInputs : " + instance2.api.getNumInputs());
+        log("  getNumOutputs: " + instance2.api.getNumOutputs());
+        log("  JSON: " + instance2.json);
+    } else {
+        log("instance2 is null");
+    }
 }
 
 async function createPolyDsp(faust, log, voice_code, effect_code) {
+    let gen = new Faust.Generator();
+
     log("createDSPFactory for voice: ");
     let voice_factory = await faust.createDSPFactory("voice", voice_code, options, true);
-    log("voice factory JSON: " + voice_factory.json);
-    log("voice factory poly: " + voice_factory.poly);
-
+    if (voice_factory) {
+        log("voice factory JSON: " + voice_factory.json);
+        log("voice factory poly: " + voice_factory.poly);
+    } else {
+        log("voice_factory is null");
+        return;
+    }
     log("createDSPFactory for effect: ");
     let effect_factory = await faust.createDSPFactory("effect", effect_code, options, true);
-    log("effect factory JSON: " + effect_factory.json);
-    log("effect factory poly: " + effect_factory.poly);
+    if (effect_factory) {
+        log("effect factory JSON: " + effect_factory.json);
+        log("effect factory poly: " + effect_factory.poly);
+    } else {
+        log("effect_factory is null");
+    }
 
     const mixer_file = await fetch("mixer32.wasm");
     const mixer_buffer = await mixer_file.arrayBuffer();
     const mixer_module = await WebAssembly.compile(mixer_buffer);
 
-    log("createPolyDSPInstance: ");
-    let poly_instance = await faust.createPolyDSPInstance(voice_factory, mixer_module, 8, effect_factory);
-    log("  voice_api getNumInputs : " + poly_instance.voice_api.getNumInputs());
-    log("  voice_api getNumOutputs: " + poly_instance.voice_api.getNumOutputs());
-    log("  JSON: " + poly_instance.voice_json);
-    log("  effect_api getNumInputs : " + poly_instance.effect_api.getNumInputs());
-    log("  effect_api getNumOutputs: " + poly_instance.effect_api.getNumOutputs());
-    log("  JSON: " + poly_instance.effect_json);
+    log("createSyncPolyDSPInstance: ");
+    let poly_instance1 = gen.createSyncPolyDSPInstance(voice_factory, mixer_module, 8, effect_factory);
+    if (poly_instance1) {
+        log("  voice_api getNumInputs : " + poly_instance1.voice_api.getNumInputs());
+        log("  voice_api getNumOutputs: " + poly_instance1.voice_api.getNumOutputs());
+        log("  JSON: " + poly_instance1.voice_json);
+        log("  effect_api getNumInputs : " + poly_instance1.effect_api.getNumInputs());
+        log("  effect_api getNumOutputs: " + poly_instance1.effect_api.getNumOutputs());
+        log("  JSON: " + poly_instance1.effect_json);
+    } else {
+        log("poly_instance1 is null");
+    }
+
+    log("createAsyncPolyDSPInstance: ");
+    let poly_instance2 = await gen.createAsyncPolyDSPInstance(voice_factory, mixer_module, 8, effect_factory);
+    if (poly_instance2) {
+        log("  voice_api getNumInputs : " + poly_instance2.voice_api.getNumInputs());
+        log("  voice_api getNumOutputs: " + poly_instance2.voice_api.getNumOutputs());
+        log("  JSON: " + poly_instance2.voice_json);
+        log("  effect_api getNumInputs : " + poly_instance2.effect_api.getNumInputs());
+        log("  effect_api getNumOutputs: " + poly_instance2.effect_api.getNumOutputs());
+        log("  JSON: " + poly_instance2.effect_json);
+    } else {
+        log("poly_instance2 is null");
+    }
 }
 
 var TestSVG1svg;
@@ -93,11 +140,9 @@ function svgdiagrams(faust, log, code) {
 async function run(engine, log, code, context) {
 
     let faust = new Faust.Compiler(engine);
+
     log("libfaust version: " + faust.version());
 
-    const effect_str = 'process = *(hslider("Left", 0.5, 0, 1, 0.01)), *(hslider("Right", 0.5, 0, 1, 0.01));'
-
-    /*
     log("\n-----------------\nMisc tests" + faust.version());
     misc(faust, log, code);
     log("\n-----------------\nMisc tests with error code");
@@ -106,15 +151,18 @@ async function run(engine, log, code, context) {
     log("\n-----------------\nCreating DSP instance:");
     await createDsp(faust, log, code);
 
-    // log("\n-----------------\nCreating Poly DSP instance:");
-    // await createPolyDsp(faust, log, code, effectCode);
+    log("\n-----------------\nCreating Poly DSP instance:");
+    await createPolyDsp(faust, log, code, effectCode);
 
     log("\n-----------------\nCreating DSP instance with error code:");
     await createDsp(faust, log, errCode).catch(e => { log(e); });
 
+    log("\n-----------------\nCreating Poly DSP instance with error code:");
+    await createPolyDsp(faust, log, errCode, effectCode).catch(e => { log(e); });
+
     log("\n-----------------\nTest SVG diagrams: ");
     svgdiagrams(engine, log, code);
-    */
+
 
     // Test nodes
 
@@ -155,12 +203,10 @@ async function run(engine, log, code, context) {
     node2.connect(context.destination);
     */
 
-    /*
     // Polyphonic factory
     let factory = await faust.createDSPFactory("test", code, options, true);
     console.log(factory);
     console.log(context);
-     */
 
     let fwan = new Faust.AudioNodeFactory();
     const mixer_file = await fetch("mixer32.wasm");
@@ -214,6 +260,7 @@ async function run(engine, log, code, context) {
     //node3.keyOn(0, 76, 50);
     */
 
+    /*
     // Testing polyphonic SP mode
     console.log(faust);
     let node5 = await fwan.compilePolyNode(context, "mydsp2", faust, code, options, 8, true, 512);
@@ -227,7 +274,7 @@ async function run(engine, log, code, context) {
     node5.keyOn(0, 67, 50);
     //node5.keyOn(0, 71, 50);
     //node5.keyOn(0, 76, 50);
-
+    */
 
     /*
     // Testing polyphonic Worklet mode
@@ -245,25 +292,14 @@ async function run(engine, log, code, context) {
     //node6.keyOn(0, 76, 50);
     */
 
-    /*
-    // Created from a wasm file
-    const dspFile = await fetch("noise.wasm");
-    const jsonFile = await fetch("noise.js");
-    const json = await jsonFile.text();
-    const dspBuffer = await dspFile.arrayBuffer();
-    const dspModule = await WebAssembly.compile(dspBuffer);
-    const factory = new Faust.Factory(dspModule, json, false);
-
-    //const factory = faust.loadDSPFactory("noise.wasm", "noise.js");
-
-    let fwan = new Faust.AudioNodeFactory();
-    let node = await fwan.createMonoNode(context, "test", factory, true, 512);
+    const factory1 = await new Faust.Generator().loadDSPFactory("noise.wasm", "noise.js", false);
+    const node = await new Faust.AudioNodeFactory().createMonoNode(context, "test", factory1, true, 512);
     console.log(node);
     console.log(node.getParams());
     console.log(node.getJSON());
     node.setParamValue("/Noise/Volume", 0.1);
     node.connect(context.destination);
-    */
+
 
     log("\nEnd of API tests");
 }
