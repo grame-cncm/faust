@@ -43,7 +43,7 @@ namespace Faust {
 
         version(): string { return this.fFaustEngine.version(); }
 
-        async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory> {
+        async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
             try {
                 const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_code, args, !poly);
                 try {

@@ -66,7 +66,8 @@ namespace Faust {
         // Base class for Monophonic and Polyphonic AudioWorkletProcessor
         class FaustAudioWorkletProcessorImp extends AudioWorkletProcessor {
 
-            protected fDSPCode: BaseDSP;
+            // Use ! syntax when the field is not defined in the constructor
+            protected fDSPCode!: BaseDSP;
 
             constructor(options: AudioWorkletNodeOptions) {
                 super(options);

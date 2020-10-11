@@ -27,7 +27,7 @@ namespace Faust {
 
     export class BaseDSPImp implements BaseDSP {
 
-        protected fOutputHandler: OutputParamHandler;
+        protected fOutputHandler: OutputParamHandler | null;
 
         protected fInChannels: Float32Array[];
         protected fOutChannels: Float32Array[];
@@ -37,8 +37,8 @@ namespace Faust {
         protected fOutputsItems: string[];
 
         // Buffers in wasm memory
-        protected fAudioInputs: AudioBuffer;
-        protected fAudioOutputs: AudioBuffer;
+        protected fAudioInputs!: AudioBuffer;
+        protected fAudioOutputs!: AudioBuffer;
 
         protected fBufferSize: number;
         protected gPtrSize: number;
@@ -51,7 +51,7 @@ namespace Faust {
 
         protected fDestroyed: boolean;
 
-        protected fJSONDsp: TFaustJSON;
+        protected fJSONDsp!: TFaustJSON;
 
         constructor(buffer_size: number) {
             this.fOutputHandler = null;
@@ -130,7 +130,7 @@ namespace Faust {
         protected updateOutputs() {
             if (this.fOutputsItems.length > 0 && this.fOutputHandler && this.fOutputsTimer-- === 0) {
                 this.fOutputsTimer = 5;
-                this.fOutputsItems.forEach(item => this.fOutputHandler(item, this.getParamValue(item)));
+                this.fOutputsItems.forEach(item => { if (this.fOutputHandler) this.fOutputHandler(item, this.getParamValue(item)) });
             }
         }
 
@@ -144,7 +144,7 @@ namespace Faust {
         setOutputParamHandler(handler: OutputParamHandler) {
             this.fOutputHandler = handler;
         }
-        getOutputParamHandler(): OutputParamHandler {
+        getOutputParamHandler(): OutputParamHandler | null {
             return this.fOutputHandler;
         }
 
@@ -207,7 +207,7 @@ namespace Faust {
     export class MonoDSPImp extends BaseDSPImp implements MonoDSP {
 
         private fInstance: Instance;
-        private fDSP: DSP;
+        private fDSP!: DSP;
 
         constructor(instance: Instance, sample_rate: number, buffer_size: number) {
 
@@ -440,9 +440,9 @@ namespace Faust {
     export class PolyDSPImp extends BaseDSPImp implements PolyDSP {
 
         private fInstance: PolyInstance;
-        private fEffect: DSP;
+        private fEffect!: DSP;
         private fJSONEffect: TFaustJSON;
-        private fAudioMixing: AudioBuffer;
+        private fAudioMixing!: AudioBuffer;
         private fVoiceTable: DspVoice[];
 
         constructor(instance: PolyInstance, sample_rate: number, buffer_size: number) {
@@ -453,7 +453,7 @@ namespace Faust {
             this.fJSONDsp = JSON.parse(this.fInstance.voice_json);
 
             // Create JSON for effect
-            this.fJSONEffect = (this.fInstance.effect_api) ? JSON.parse(this.fInstance.effect_json) : null;
+            this.fJSONEffect = (this.fInstance.effect_api && this.fInstance.effect_json) ? JSON.parse(this.fInstance.effect_json) : null;
 
             // Setup GUI
             BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
@@ -667,14 +667,14 @@ namespace Faust {
 
         setParamValue(path: string, value: number) {
             // TODO:  node.cachedEvents.push({ type: "param", data: { path, value } });
-            if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path)) {
+            if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path) && this.fInstance.effect_api) {
                 this.fInstance.effect_api.setParamValue(this.fEffect, this.fPathTable[path], value);
             } else {
                 this.fVoiceTable.forEach(voice => { voice.setParamValue(this.fPathTable[path], value); });
             }
         }
         getParamValue(path: string) {
-            if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path)) {
+            if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path) && this.fInstance.effect_api) {
                 return this.fInstance.effect_api.getParamValue(this.fEffect, this.fPathTable[path]);
             } else {
                 return this.fVoiceTable[0].getParamValue(this.fPathTable[path]);

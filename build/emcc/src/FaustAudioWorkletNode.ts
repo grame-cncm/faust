@@ -29,7 +29,7 @@ namespace Faust {
         protected fJSONDsp: TFaustJSON;
         protected fJSON: string;
         protected fInputsItems: string[];
-        protected fOutputHandler: OutputParamHandler;
+        protected fOutputHandler: OutputParamHandler | null;
 
         constructor(context: BaseAudioContext, name: string, factory: Factory, options: any) {
 
@@ -49,6 +49,7 @@ namespace Faust {
 
             this.fJSONDsp = JSONObj;
             this.fJSON = factory.json;
+            this.fOutputHandler = null;
 
             // Parse UI
             this.fInputsItems = [];
@@ -139,9 +140,9 @@ namespace Faust {
     // Monophonic AudioWorkletNode 
     export class FaustMonoAudioWorkletNode extends FaustAudioWorkletNodeImp {
 
-        onprocessorerror = (e: ErrorEvent) => {
+        onprocessorerror = (e: Event) => {
             console.error("Error from " + this.fJSONDsp.name + " FaustMonoAudioWorkletNode");
-            throw e.error;
+            throw e;
         }
 
         constructor(context: BaseAudioContext, name: string, factory: Factory) {
@@ -154,9 +155,9 @@ namespace Faust {
 
         private fJSONEffect: TFaustJSON;
 
-        onprocessorerror = (e: ErrorEvent) => {
+        onprocessorerror = (e: Event) => {
             console.error("Error from " + this.fJSONDsp.name + " FaustPolyAudioWorkletNode");
-            throw e.error;
+            throw e;
         }
 
         constructor(context: BaseAudioContext, name: string,

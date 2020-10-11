@@ -28,10 +28,10 @@ declare namespace Faust {
         label: string;
         address: string;
         index: number;
-        init?: number;
-        min?: number;
-        max?: number;
-        step?: number;
+        init: number;
+        min: number;
+        max: number;
+        step: number;
         meta?: TFaustUIMeta[];
     };
     type TFaustUIOutputItem = {
@@ -39,17 +39,17 @@ declare namespace Faust {
         label: string;
         address: string;
         index: number;
-        min?: number;
-        max?: number;
-        meta?: TFaustUIMeta[];
+        min: number;
+        max: number;
+        meta: TFaustUIMeta[];
     };
     type TFaustUIMeta = {
         [order: number]: string;
-        style?: string; // "knob" | "menu{'Name0':value0;'Name1':value1}" | "radio{'Name0':value0;'Name1':value1}" | "led";
-        unit?: string;
-        scale?: "linear" | "exp" | "log";
-        tooltip?: string;
-        hidden?: string;
+        style: string; // "knob" | "menu{'Name0':value0;'Name1':value1}" | "radio{'Name0':value0;'Name1':value1}" | "led";
+        unit: string;
+        scale: "linear" | "exp" | "log";
+        tooltip: string;
+        hidden: string;
         [key: string]: string;
     }
     type TFaustUIGroupType = "vgroup" | "hgroup" | "tgroup";
@@ -158,7 +158,7 @@ declare namespace Faust {
          * @param {boolean} poly - tells the compiler to generate static embedded memory or not
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
-        createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory>;
+        createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null>;
 
         /**
          * Expand faust code i.e. linearize included libraries.

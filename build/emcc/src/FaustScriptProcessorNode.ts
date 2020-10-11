@@ -26,11 +26,11 @@ namespace Faust {
     // Base class for Monophonic and Polyphonic ScriptProcessorNode
     class FaustScriptProcessorNodeImp {
 
-        protected fDSPCode: BaseDSP;
+        protected fDSPCode!: BaseDSP;
 
         // Needed for ScriptProcessorNode
-        protected fInputs: Float32Array[];
-        protected fOutputs: Float32Array[];
+        protected fInputs!: Float32Array[];
+        protected fOutputs!: Float32Array[];
 
         protected setupNode(node: FaustMonoScriptProcessorNode | FaustPolyScriptProcessorNode) {
 
@@ -77,7 +77,7 @@ namespace Faust {
     // Monophonic ScriptProcessorNode
     export class FaustMonoScriptProcessorNodeImp extends FaustScriptProcessorNodeImp {
 
-        async init(context: BaseAudioContext, instance: MonoDSP, buffer_size: number): Promise<FaustMonoScriptProcessorNode> {
+        async init(context: BaseAudioContext, instance: MonoDSP, buffer_size: number): Promise<FaustMonoScriptProcessorNode | null> {
             try {
                 this.fDSPCode = instance;
                 let node: FaustMonoScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustMonoScriptProcessorNode;
@@ -93,7 +93,7 @@ namespace Faust {
     // Polyphonic ScriptProcessorNode
     export class FaustPolyScriptProcessorNodeImp extends FaustScriptProcessorNodeImp {
 
-        async init(context: BaseAudioContext, instance: PolyDSP, buffer_size: number): Promise<FaustPolyScriptProcessorNode> {
+        async init(context: BaseAudioContext, instance: PolyDSP, buffer_size: number): Promise<FaustPolyScriptProcessorNode | null> {
             try {
                 this.fDSPCode = instance;
                 let node: FaustPolyScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustPolyScriptProcessorNode;

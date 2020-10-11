@@ -24,10 +24,10 @@ declare namespace Faust {
         memory: WebAssembly.Memory;
         voices: number;
         voice_api: InstanceAPI;
-        effect_api: InstanceAPI;
+        effect_api?: InstanceAPI;
         mixer_api: MixerAPI;
         voice_json: string;
-        effect_json: string;
+        effect_json?: string;
     }
 
     interface Generator {
@@ -39,7 +39,7 @@ declare namespace Faust {
          * @param {string} json_path - the JSON file pathname
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
-        loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Factory>;
+        loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Factory | null>;
 
         /**
          * Create a WebAssembly module from the wasm mixer file. This function is running asynchronously.
@@ -47,7 +47,7 @@ declare namespace Faust {
          * @param {string} mixer_path - the mixer wasm file pathname
          * @returns {Promise<WebAssembly.Module>} on completion, the mixer wasm module.
          */
-        loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module>;
+        loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module | null>;
 
         /**
          * Asynchronously create a wasm instance of a wasm factory.

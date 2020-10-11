@@ -45,7 +45,7 @@ declare namespace Faust {
          *
          * @return {OutputParamHandler} the current output handler
          */
-        getOutputParamHandler(): OutputParamHandler;
+        getOutputParamHandler(): OutputParamHandler | null;
 
         /**
          * Return instance number of audio inputs.
@@ -249,7 +249,7 @@ declare namespace Faust {
             args: string,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode>;
+            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null>;
 
         /**
          * Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
@@ -267,7 +267,7 @@ declare namespace Faust {
             factory: Factory,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode>;
+            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null>;
 
         /**
          * Compile a polyphonic WebAudio node from a single DSP file (either ScriptProcessorNode or AudioWorkletNode)
@@ -291,7 +291,7 @@ declare namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
 
         /**
          * Compile a polyphonic WebAudio node from separated voice and effect DSPs (either ScriptProcessorNode or AudioWorkletNode)
@@ -317,7 +317,7 @@ declare namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
 
         /**
          * Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
@@ -341,6 +341,6 @@ declare namespace Faust {
             sp: boolean,
             effect_factory?: Factory,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
     }
 }

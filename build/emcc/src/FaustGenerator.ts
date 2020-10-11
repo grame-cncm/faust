@@ -43,35 +43,37 @@ namespace Faust {
 
     export class GeneratorImp implements Generator {
 
-        private createWasmImport = (memory?: WebAssembly.Memory) => ({
-            env: {
-                //memory: new WebAssembly.Memory({ initial: 100 }),
-                memory: memory, memoryBase: 0, tableBase: 0,
-                // Integer version
-                _abs: Math.abs,
-                // Float version
-                _acosf: Math.acos, _asinf: Math.asin, _atanf: Math.atan, _atan2f: Math.atan2,
-                _ceilf: Math.ceil, _cosf: Math.cos, _expf: Math.exp, _floorf: Math.floor,
-                _fmodf: (x: number, y: number) => x % y,
-                _logf: Math.log, _log10f: Math.log10, _max_f: Math.max, _min_f: Math.min,
-                _remainderf: (x: number, y: number) => x - Math.round(x / y) * y,
-                _powf: Math.pow, _roundf: Math.fround, _sinf: Math.sin, _sqrtf: Math.sqrt, _tanf: Math.tan,
-                _acoshf: Math.acosh, _asinhf: Math.asinh, _atanhf: Math.atanh,
-                _coshf: Math.cosh, _sinhf: Math.sinh, _tanhf: Math.tanh,
-                // Double version
-                _acos: Math.acos, _asin: Math.asin, _atan: Math.atan, _atan2: Math.atan2,
-                _ceil: Math.ceil, _cos: Math.cos, _exp: Math.exp, _floor: Math.floor,
-                _fmod: (x: number, y: number) => x % y,
-                _log: Math.log, _log10: Math.log10, _max_: Math.max, _min_: Math.min,
-                _remainder: (x: number, y: number) => x - Math.round(x / y) * y,
-                _pow: Math.pow, _round: Math.fround, _sin: Math.sin, _sqrt: Math.sqrt, _tan: Math.tan,
-                _acosh: Math.acosh, _asinh: Math.asinh, _atanh: Math.atanh,
-                _cosh: Math.cosh, _sinh: Math.sinh, _tanh: Math.tanh,
-                table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
+        private createWasmImport(memory?: WebAssembly.Memory): WebAssembly.Imports {
+            return {
+                env: {
+                    memory: ((memory) ? memory : new WebAssembly.Memory({ initial: 100 })), memoryBase: 0, tableBase: 0,
+                    // Integer version
+                    _abs: Math.abs,
+                    // Float version
+                    _acosf: Math.acos, _asinf: Math.asin, _atanf: Math.atan, _atan2f: Math.atan2,
+                    _ceilf: Math.ceil, _cosf: Math.cos, _expf: Math.exp, _floorf: Math.floor,
+                    _fmodf: (x: number, y: number) => x % y,
+                    _logf: Math.log, _log10f: Math.log10, _max_f: Math.max, _min_f: Math.min,
+                    _remainderf: (x: number, y: number) => x - Math.round(x / y) * y,
+                    _powf: Math.pow, _roundf: Math.fround, _sinf: Math.sin, _sqrtf: Math.sqrt, _tanf: Math.tan,
+                    _acoshf: Math.acosh, _asinhf: Math.asinh, _atanhf: Math.atanh,
+                    _coshf: Math.cosh, _sinhf: Math.sinh, _tanhf: Math.tanh,
+                    // Double version
+                    _acos: Math.acos, _asin: Math.asin, _atan: Math.atan, _atan2: Math.atan2,
+                    _ceil: Math.ceil, _cos: Math.cos, _exp: Math.exp, _floor: Math.floor,
+                    _fmod: (x: number, y: number) => x % y,
+                    _log: Math.log, _log10: Math.log10, _max_: Math.max, _min_: Math.min,
+                    _remainder: (x: number, y: number) => x - Math.round(x / y) * y,
+                    _pow: Math.pow, _round: Math.fround, _sin: Math.sin, _sqrt: Math.sqrt, _tan: Math.tan,
+                    _acosh: Math.acosh, _asinh: Math.asinh, _atanh: Math.atanh,
+                    _cosh: Math.cosh, _sinh: Math.sinh, _tanh: Math.tanh,
+                    table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
+                }
             }
-        });
+        }
 
-        private createWasmMemory(voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON, buffer_size: number): WebAssembly.Memory {
+        private createWasmMemory(voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON, buffer_size: number)
+            : WebAssembly.Memory {
             // Hack : at least 4 voices (to avoid weird WASM memory bug?)
             const voices = Math.max(4, voicesIn);
             // Memory allocator
@@ -102,10 +104,10 @@ namespace Faust {
             return { memory: memory, api: api, json: factory.json };
         }
 
-        private createMemoryAux(voices: number, voice_factory: Factory, effect_factory: Factory): WebAssembly.Memory {
+        private createMemoryAux(voices: number, voice_factory: Factory, effect_factory?: Factory): WebAssembly.Memory {
             // Parse JSON to get 'size' and 'inputs/outputs' infos
             const voice_JSON = JSON.parse(voice_factory.json);
-            const effect_JSON = (effect_factory) ? JSON.parse(effect_factory.json) : null;
+            const effect_JSON = (effect_factory && effect_factory.json) ? JSON.parse(effect_factory.json) : null;
             // Memory will be shared by voice, mixer and (possibly) effect instances
             return this.createWasmMemory(voices, voice_JSON, effect_JSON, 4096);
         }
@@ -122,7 +124,7 @@ namespace Faust {
         }
 
         // Public API
-        async loadDSPFactory(wasm_path: string, json_path: string): Promise<Factory> {
+        async loadDSPFactory(wasm_path: string, json_path: string): Promise<Factory | null> {
             try {
                 const wasm_file = await fetch(wasm_path);
                 const wasm_buffer = await wasm_file.arrayBuffer();
@@ -139,7 +141,7 @@ namespace Faust {
             }
         }
 
-        async loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module> {
+        async loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module | null> {
             try {
                 // Compile mixer
                 const mixer_file = await fetch(mixer_path);
@@ -153,15 +155,15 @@ namespace Faust {
 
         async createAsyncMonoDSPInstance(factory: Factory): Promise<Instance> {
             const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
-            return (instance) ? this.createMonoDSPInstanceAux(instance, factory) : null;
+            return this.createMonoDSPInstanceAux(instance, factory);
         }
 
         createSyncMonoDSPInstance(factory: Factory): Instance {
             const instance = new WebAssembly.Instance(factory.module, this.createWasmImport());
-            return (instance) ? this.createMonoDSPInstanceAux(instance, factory) : null;
+            return this.createMonoDSPInstanceAux(instance, factory);
         }
 
-        async createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): Promise<PolyInstance> {
+        async createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory?: Factory): Promise<PolyInstance> {
             const memory = this.createMemoryAux(voices, voice_factory, effect_factory);
             // Create voice 
             const voice_instance = await WebAssembly.instantiate(voice_factory.module, this.createWasmImport(memory));
@@ -189,15 +191,15 @@ namespace Faust {
                     memory: memory,
                     voices: voices,
                     voice_api: voice_api,
-                    effect_api: null,
+                    effect_api: undefined,
                     mixer_api: mixer_api,
                     voice_json: voice_factory.json,
-                    effect_json: ""
+                    effect_json: undefined
                 };
             }
         }
 
-        createSyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): PolyInstance {
+        createSyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory?: Factory): PolyInstance {
             const memory = this.createMemoryAux(voices, voice_factory, effect_factory);
             // Create voice 
             const voice_instance = new WebAssembly.Instance(voice_factory.module, this.createWasmImport(memory));
@@ -225,10 +227,10 @@ namespace Faust {
                     memory: memory,
                     voices: voices,
                     voice_api: voice_api,
-                    effect_api: null,
+                    effect_api: undefined,
                     mixer_api: mixer_api,
                     voice_json: voice_factory.json,
-                    effect_json: ""
+                    effect_json: undefined
                 };
             }
         }

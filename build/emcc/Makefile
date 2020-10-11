@@ -11,7 +11,7 @@ all:
 js: faustwebaudio.js faustcompiler.js
 
 faustwebaudio.js : $(jssrc)
-	tsc
+	tsc --strict --strictNullChecks --noImplicitAny --strictFunctionTypes --noImplicitThis --alwaysStrict --noImplicitReturns --noFallthroughCasesInSwitch    
 
 faustcompiler.js : src/FaustCompiler.d.ts src/FaustCompiler.ts src/libfaust.d.ts
 	tsc -p tsCompiler.json
