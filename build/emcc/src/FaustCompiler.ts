@@ -25,7 +25,7 @@
 namespace Faust {
 
     export class Compiler {
-        private fFaustEngine: Faust.LibFaust;
+        private fFaustEngine: LibFaust;
 
         private intVec2intArray(vec: IntVector): Uint8Array {
             const size = vec.size();
@@ -37,13 +37,13 @@ namespace Faust {
         }
 
         // Public API
-        constructor(engine: Faust.LibFaust) {
+        constructor(engine: LibFaust) {
             this.fFaustEngine = engine;
         }
 
         version(): string { return this.fFaustEngine.version(); }
 
-        async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Faust.Factory> {
+        async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory> {
             try {
                 const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_code, args, !poly);
                 try {
@@ -91,7 +91,7 @@ namespace Faust {
         }
     }
 
-    export class Factory implements Faust.Factory {
+    export class Factory implements Factory {
         constructor(module: WebAssembly.Module, json: string, poly: boolean) {
             this.module = module;
             this.json = json;

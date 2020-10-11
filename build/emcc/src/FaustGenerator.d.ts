@@ -39,7 +39,7 @@ declare namespace Faust {
          * @param {string} json_path - the JSON file pathname
          * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
-        loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory>;
+        loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Factory>;
 
         /**
          * Create a WebAssembly module from the wasm mixer file. This function is running asynchronously.

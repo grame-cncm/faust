@@ -26,7 +26,7 @@ declare namespace Faust {
     interface MetadataHandler { (key: string, value: number): void }
 
     /**
-     * DSP implementation: mimic the C++ 'dsp' class, 
+     * DSP implementation: mimic the C++ 'dsp' class:
      * - adding MIDI control: metadata are decoded and incoming MIDI messages will control the assocated controllers
      * - an output handler can be set to treat produced output controllers (like 'bargraphs') 
      * - regular controllers are handled using setParamValue/getParamValue
@@ -154,7 +154,7 @@ declare namespace Faust {
          * @param {number} buffer_size - the buffer size in frames
          * @return the created MonoDSP object 
          */
-        new(instance: Faust.Instance, sample_rate: number, buffer_size: number): MonoDSP;
+        new(instance: Instance, sample_rate: number, buffer_size: number): MonoDSP;
     }
 
     interface MonoDSP extends BaseDSP { }
@@ -173,7 +173,7 @@ declare namespace Faust {
          * @param {number} buffer_size - the buffer size in frames
          * @return the created MonoDSP object 
          */
-        new(instance: Faust.PolyInstance, sample_rate: number, buffer_size: number): PolyDSP;
+        new(instance: PolyInstance, sample_rate: number, buffer_size: number): PolyDSP;
     }
 
     interface PolyDSP extends BaseDSP {
@@ -249,12 +249,12 @@ declare namespace Faust {
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
-         * @param {Factory} factory - the Faust factory, either obtained with a compiler (Faust.createDSPFactory) or loaded from files (Faust.loadDSPFactory)
+         * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
          * @preturn {Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode>} the compiled WebAudio node or 'null' if failure
         */
-        createMonoNode(context: BaseAudioContext, name: string, factory: Faust.Factory, sp: boolean, buffer_size?: number)
+        createMonoNode(context: BaseAudioContext, name: string, factory: Factory, sp: boolean, buffer_size?: number)
             : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode>;
 
         /**
@@ -278,15 +278,15 @@ declare namespace Faust {
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
-         * @param {Factory} voice_factory - the Faust factory for voices, either obtained with a compiler (Faust.createDSPFactory) or loaded from files (Faust.loadDSPFactory)
+         * @param {Factory} voice_factory - the Faust factory for voices, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @param {WebAssembly.Module} mixer_module - the wasm Mixer module (loaded from 'mixer32.wasm' file)
          * @param {number} voices - the number of voices
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (Faust.createDSPFactory) or loaded from files (Faust.loadDSPFactory)
+         * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @preturn {Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>} the compiled WebAudio node or 'null' if failure
          */
-        createPolyNode(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, mixer_module: WebAssembly.Module, voices: number, sp: boolean, buffer_size?: number, effect_factory?: Factory)
+        createPolyNode(context: BaseAudioContext, name: string, voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, sp: boolean, buffer_size?: number, effect_factory?: Factory)
             : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
         // Separated 'voice' and 'effect' DSP
@@ -294,7 +294,7 @@ declare namespace Faust {
         //     : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
 
         // // Separated 'voice' and 'effect' factories
-        // createPolyNode2(context: BaseAudioContext, name: string, voice_factory: Faust.Factory, effect_factory: Faust.Factory, voices: number, sp: boolean, buffer_size?: number)
+        // createPolyNode2(context: BaseAudioContext, name: string, voice_factory: Factory, effect_factory: Factory, voices: number, sp: boolean, buffer_size?: number)
         //     : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode>;
     }
 }

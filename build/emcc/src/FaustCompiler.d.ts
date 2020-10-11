@@ -138,10 +138,10 @@ declare namespace Faust {
     interface Compiler {
 
         /**
-         * The Faust.Compiler constructor.
+         * The Compiler constructor.
          * @param {LibFaust} engine - an instance of the low level engine, actually a libFaustWasm instance of FaustModule
          */
-        new(engine: Faust.LibFaust): Compiler;
+        new(engine: LibFaust): Compiler;
 
         /**
          * Gives the Faust engine version.

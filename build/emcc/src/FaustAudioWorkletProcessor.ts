@@ -152,7 +152,7 @@ namespace Faust {
                 super(options);
 
                 // Create Monophonic DSP
-                this.fDSPCode = new MonoDSPImp(new Faust.Generator().createSyncMonoDSPInstance(options.processorOptions.factory), sampleRate, 128);
+                this.fDSPCode = new MonoDSPImp(new Generator().createSyncMonoDSPInstance(options.processorOptions.factory), sampleRate, 128);
 
                 // Setup output handler
                 this.fDSPCode.setOutputParamHandler((path, value) => this.port.postMessage({ path, value, type: "param" }));
@@ -166,7 +166,7 @@ namespace Faust {
                 super(options);
 
                 // Create Polyphonic DSP
-                this.fDSPCode = new PolyDSPImp(new Faust.Generator().createSyncPolyDSPInstance(
+                this.fDSPCode = new PolyDSPImp(new Generator().createSyncPolyDSPInstance(
                     options.processorOptions.voice_factory,
                     options.processorOptions.mixer_module,
                     options.processorOptions.voices,

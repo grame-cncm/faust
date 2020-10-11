@@ -29,9 +29,9 @@ namespace Faust {
         protected fJSONDsp: TFaustJSON;
         protected fJSON: string;
         protected fInputsItems: string[];
-        protected fOutputHandler: Faust.OutputParamHandler;
+        protected fOutputHandler: OutputParamHandler;
 
-        constructor(context: BaseAudioContext, name: string, factory: Faust.Factory, options: any) {
+        constructor(context: BaseAudioContext, name: string, factory: Factory, options: any) {
 
             // Create JSON object
             const JSONObj = JSON.parse(factory.json);
@@ -144,7 +144,7 @@ namespace Faust {
             throw e.error;
         }
 
-        constructor(context: BaseAudioContext, name: string, factory: Faust.Factory) {
+        constructor(context: BaseAudioContext, name: string, factory: Factory) {
             super(context, name, factory, { name: name, factory: factory });
         }
     }
@@ -160,10 +160,10 @@ namespace Faust {
         }
 
         constructor(context: BaseAudioContext, name: string,
-            voice_factory: Faust.Factory,
+            voice_factory: Factory,
             mixer_module: WebAssembly.Module,
             voices: number,
-            effect_factory?: Faust.Factory) {
+            effect_factory?: Factory) {
 
             super(context, name, voice_factory,
                 {

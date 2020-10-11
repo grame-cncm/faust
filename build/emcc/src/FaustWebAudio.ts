@@ -28,22 +28,22 @@
 
 namespace Faust {
 
-    export class AudioNodeFactory implements Faust.AudioNodeFactory {
+    export class AudioNodeFactory implements AudioNodeFactory {
 
         // Table of all create WorkletProcessors, each of them has to be unique
         private fWorkletProcessors: string[] = [];
 
         async compileMonoNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
-            : Promise<Faust.FaustMonoScriptProcessorNode | Faust.FaustMonoAudioWorkletNode> {
+            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode> {
             const factory = await compiler.createDSPFactory(name, dsp_code, args, false);
             return this.createMonoNode(context, name, factory, sp, buffer_size);
         }
 
-        async createMonoNode(context: BaseAudioContext, name: string, factory: Faust.Factory, sp: boolean, buffer_size?: number)
-            : Promise<Faust.FaustMonoScriptProcessorNode | Faust.FaustMonoAudioWorkletNode> {
+        async createMonoNode(context: BaseAudioContext, name: string, factory: Factory, sp: boolean, buffer_size?: number)
+            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode> {
             if (sp) {
-                const instance = await new Faust.Generator().createAsyncMonoDSPInstance(factory);
-                const mono_dsp = Faust.createMonoDSP(MonoDSPImp, instance, context.sampleRate, buffer_size);
+                const instance = await new Generator().createAsyncMonoDSPInstance(factory);
+                const mono_dsp = createMonoDSP(MonoDSPImp, instance, context.sampleRate, buffer_size);
                 return new FaustMonoScriptProcessorNodeImp().init(context, mono_dsp, buffer_size);
             } else {
                 // Dynamically create AudioWorkletProcessor if code not yet created
@@ -81,7 +81,7 @@ namespace Faust {
 
         // We assume that 'dsp_code' contains an integrated effect
         async compilePolyNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, voices: number, sp: boolean, buffer_size?: number)
-            : Promise<Faust.FaustPolyScriptProcessorNode | Faust.FaustPolyAudioWorkletNode> {
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode> {
             // Compile voice
             const voice_factory = await compiler.createDSPFactory(name, dsp_code, args, true);
             if (!voice_factory) return null;
@@ -92,16 +92,16 @@ namespace Faust {
                                 process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
             const effect_factory = await compiler.createDSPFactory(name, dsp_effect, args, true);
             // Compile mixer
-            const mixer_module = await new Faust.Generator().loadDSPMixer('mixer32.wasm');
+            const mixer_module = await new Generator().loadDSPMixer('mixer32.wasm');
             return this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, buffer_size, effect_factory);
         }
 
-        async createPolyNode(context: BaseAudioContext, name_aux: string, voice_factory: Faust.Factory, mixer_module: WebAssembly.Module, voices: number, sp: boolean, buffer_size?: number, effect_factory?: Factory)
-            : Promise<Faust.FaustPolyScriptProcessorNode | Faust.FaustPolyAudioWorkletNode> {
+        async createPolyNode(context: BaseAudioContext, name_aux: string, voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, sp: boolean, buffer_size?: number, effect_factory?: Factory)
+            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode> {
             const name = name_aux + "_poly";
             if (sp) {
-                const instance = await new Faust.Generator().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory)
-                const poly_dsp = Faust.createPolyDSP(PolyDSPImp, instance, context.sampleRate, buffer_size);
+                const instance = await new Generator().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory)
+                const poly_dsp = createPolyDSP(PolyDSPImp, instance, context.sampleRate, buffer_size);
                 return new FaustPolyScriptProcessorNodeImp().init(context, poly_dsp, buffer_size);
             } else {
                 // Dynamically create AudioWorkletProcessor if code not yet created

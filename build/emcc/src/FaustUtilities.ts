@@ -11,11 +11,11 @@ namespace Faust {
         private fSuccess: boolean;
         private fError: string;
         private fFolder: string;
-        private fEngine: Faust.LibFaust;
+        private fEngine: LibFaust;
 
-        constructor(engine: Faust.LibFaust, name_app: string, dsp_content: string, args: string) {
+        constructor(engine: LibFaust, name_app: string, dsp_content: string, args: string) {
             this.fEngine = engine;
-            let compiler = new Faust.Compiler(engine);
+            let compiler = new Compiler(engine);
             let result = compiler.generateAuxFiles(name_app, dsp_content, "-lang wasm -svg " + args);
             this.fSuccess = result.success;
             this.fError = result.error;

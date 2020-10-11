@@ -25,9 +25,9 @@ namespace Faust {
 
     interface UIHandler { (item: TFaustUIItem): void }
 
-    export class BaseDSPImp implements Faust.BaseDSP {
+    export class BaseDSPImp implements BaseDSP {
 
-        protected fOutputHandler: Faust.OutputParamHandler;
+        protected fOutputHandler: OutputParamHandler;
 
         protected fInChannels: Float32Array[];
         protected fOutChannels: Float32Array[];
@@ -197,7 +197,7 @@ namespace Faust {
 
     export function createMonoDSP(
         ctor: MonoDSPConstructor,
-        instance: Faust.Instance,
+        instance: Instance,
         sample_rate: number,
         buffer_size: number
     ): MonoDSP {
@@ -206,10 +206,10 @@ namespace Faust {
 
     export class MonoDSPImp extends BaseDSPImp implements MonoDSP {
 
-        private fInstance: Faust.Instance;
+        private fInstance: Instance;
         private fDSP: DSP;
 
-        constructor(instance: Faust.Instance, sample_rate: number, buffer_size: number) {
+        constructor(instance: Instance, sample_rate: number, buffer_size: number) {
 
             super(buffer_size);
             this.fInstance = instance;
@@ -360,14 +360,14 @@ namespace Faust {
         private fFreqLabel: number[];
         private fGateLabel: number[];
         private fGainLabel: number[];
-        private fDSP: DSP;               // Voice DSP location in wasm memory
-        private fAPI: Faust.InstanceAPI; // Voice DSP code
+        private fDSP: DSP;         // Voice DSP location in wasm memory
+        private fAPI: InstanceAPI; // Voice DSP code
         // Accessed by PolyDSPImp class
         fNote: number;
         fDate: number;
 
         constructor(dsp: DSP,
-            api: Faust.InstanceAPI,
+            api: InstanceAPI,
             input_items: string[],
             path_table: { [address: string]: number },
             sample_rate: number) {
@@ -430,7 +430,7 @@ namespace Faust {
 
     export function createPolyDSP(
         ctor: PolyDSPConstructor,
-        instance: Faust.PolyInstance,
+        instance: PolyInstance,
         sample_rate: number,
         buffer_size: number
     ): PolyDSP {
@@ -439,13 +439,13 @@ namespace Faust {
 
     export class PolyDSPImp extends BaseDSPImp implements PolyDSP {
 
-        private fInstance: Faust.PolyInstance;
+        private fInstance: PolyInstance;
         private fEffect: DSP;
         private fJSONEffect: TFaustJSON;
         private fAudioMixing: AudioBuffer;
         private fVoiceTable: DspVoice[];
 
-        constructor(instance: Faust.PolyInstance, sample_rate: number, buffer_size: number) {
+        constructor(instance: PolyInstance, sample_rate: number, buffer_size: number) {
             super(buffer_size);
             this.fInstance = instance;
 
