@@ -37,7 +37,7 @@ declare namespace Faust {
          *
          * @param {string} wasm_path - the wasm file pathname
          * @param {string} json_path - the JSON file pathname
-         * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
+         * @returns {Promise<Factory | null>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
         loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Factory | null>;
 
@@ -45,7 +45,7 @@ declare namespace Faust {
          * Create a WebAssembly module from the wasm mixer file. This function is running asynchronously.
          *
          * @param {string} mixer_path - the mixer wasm file pathname
-         * @returns {Promise<WebAssembly.Module>} on completion, the mixer wasm module.
+         * @returns {Promise<WebAssembly.Module | null>} on completion, the mixer wasm module.
          */
         loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module | null>;
 

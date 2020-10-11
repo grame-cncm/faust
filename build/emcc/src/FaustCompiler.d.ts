@@ -156,7 +156,7 @@ declare namespace Faust {
          * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
          * @param {boolean} poly - tells the compiler to generate static embedded memory or not
-         * @returns {Promise<Factory>} on completion, gives a wasm module and retains the poly status given as parameter.
+         * @returns {Promise<Factory | null>} on completion, gives a wasm module and retains the poly status given as parameter.
          */
         createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null>;
 
