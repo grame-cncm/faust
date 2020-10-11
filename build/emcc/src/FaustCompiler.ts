@@ -37,7 +37,7 @@ namespace Faust {
         }
 
         // Public API
-        constructor(engine?: Faust.LibFaust) {
+        constructor(engine: Faust.LibFaust) {
             this.fFaustEngine = engine;
         }
 
@@ -62,7 +62,7 @@ namespace Faust {
             }
         }
 
-        expandDSP(name_app: string, dsp_code: string, args: string) {
+        expandDSP(name_app: string, dsp_code: string, args: string): ExpandOut {
             try {
                 const out = this.fFaustEngine.expandDSP(name_app, dsp_code, args);
                 return { dsp: out.dsp, shakey: out.shakey, error: "" };
@@ -74,7 +74,7 @@ namespace Faust {
             }
         }
 
-        generateAuxFiles(name_app: string, dsp_code: string, args: string) {
+        generateAuxFiles(name_app: string, dsp_code: string, args: string): AuxOut {
             try {
                 const done = this.fFaustEngine.generateAuxFiles(name_app, dsp_code, args);
                 return { success: done, error: "" };
@@ -86,7 +86,7 @@ namespace Faust {
             }
         }
 
-        deleteAllDSPFactories() {
+        deleteAllDSPFactories(): void {
             this.fFaustEngine.deleteAllDSPFactories();
         }
     }

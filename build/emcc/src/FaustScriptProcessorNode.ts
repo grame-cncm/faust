@@ -23,16 +23,16 @@
 
 namespace Faust {
 
-    // Common class for Monophonic and Polyphonic ScriptProcessorNode
+    // Base class for Monophonic and Polyphonic ScriptProcessorNode
     class FaustScriptProcessorNodeImp {
 
         protected fDSPCode: Faust.BaseDSP;
 
-        // Needed for SP
+        // Needed for ScriptProcessorNode
         protected fInputs: Float32Array[];
         protected fOutputs: Float32Array[];
 
-        protected setupNode(node: FaustScriptProcessorNode) {
+        protected setupNode(node: FaustMonoScriptProcessorNode | FaustPolyScriptProcessorNode) {
 
             this.fInputs = new Array(this.fDSPCode.getNumInputs());
             this.fOutputs = new Array(this.fDSPCode.getNumOutputs());
@@ -59,7 +59,7 @@ namespace Faust {
 
             node.getOutputParamHandler = () => { return this.fDSPCode.getOutputParamHandler(); }
 
-            //node.metadata = (handler: Faust.MetadataHandler) => { return function (path: string, value: number) { } }
+            node.metadata = (handler: Faust.MetadataHandler) => { }
 
             node.ctrlChange = (chan: number, ctrl: number, value: number) => { this.fDSPCode.ctrlChange(chan, ctrl, value); }
             node.pitchWheel = (chan: number, value: number) => { this.fDSPCode.pitchWheel(chan, value); }
@@ -77,15 +77,14 @@ namespace Faust {
     // Monophonic ScriptProcessorNode
     export class FaustMonoScriptProcessorNodeImp extends FaustScriptProcessorNodeImp {
 
-        async init(context: BaseAudioContext, factory: Faust.Factory, buffer_size: number): Promise<Faust.FaustScriptProcessorNode> {
+        async init(context: BaseAudioContext, instance: Faust.MonoDSP, buffer_size: number): Promise<Faust.FaustMonoScriptProcessorNode> {
             try {
-                const instance = await new Faust.Generator().createAsyncDSPInstance(factory);
-                this.fDSPCode = new Faust.MonoDSPImp(instance, context.sampleRate, buffer_size);
-                let node: FaustScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustScriptProcessorNode;
+                this.fDSPCode = instance;
+                let node: FaustMonoScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustMonoScriptProcessorNode;
                 super.setupNode(node);
                 return node;
             } catch (e) {
-                console.log("Error in createScriptProcessor: " + e.message);
+                console.log("Error in FaustMonoScriptProcessorNodeImp createScriptProcessor: " + e.message);
                 return null;
             }
         }
@@ -94,34 +93,24 @@ namespace Faust {
     // Polyphonic ScriptProcessorNode
     export class FaustPolyScriptProcessorNodeImp extends FaustScriptProcessorNodeImp {
 
-        async init(context: BaseAudioContext,
-            voice_factory: Faust.Factory,
-            mixer_module: WebAssembly.Module,
-            voices: number,
-            buffer_size: number,
-            effect_factory?: Factory): Promise<Faust.FaustPolyScriptProcessorNode> {
+        async init(context: BaseAudioContext, instance: PolyDSP, buffer_size: number): Promise<Faust.FaustPolyScriptProcessorNode> {
             try {
-                const instance = await new Faust.Generator().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory)
-                this.fDSPCode = new Faust.PolyDSPImp(instance, context.sampleRate, buffer_size);
+                this.fDSPCode = instance;
                 let node: FaustPolyScriptProcessorNode = context.createScriptProcessor(buffer_size, this.fDSPCode.getNumInputs(), this.fDSPCode.getNumOutputs()) as FaustPolyScriptProcessorNode;
-
+                super.setupNode(node);
                 // Public API
                 node.keyOn = (channel: number, pitch: number, velocity: number) => {
                     (this.fDSPCode as Faust.PolyDSPImp).keyOn(channel, pitch, velocity);
                 }
-
                 node.keyOff = (channel: number, pitch: number, velocity: number) => {
                     (this.fDSPCode as Faust.PolyDSPImp).keyOff(channel, pitch, velocity);
                 }
-
                 node.allNotesOff = () => {
                     (this.fDSPCode as Faust.PolyDSPImp).allNotesOff();
                 }
-
-                super.setupNode(node);
                 return node;
             } catch (e) {
-                console.log("Error in createScriptProcessor: " + e.message);
+                console.log("Error in FaustPolyScriptProcessorNodeImp createScriptProcessor: " + e.message);
                 return null;
             }
         }

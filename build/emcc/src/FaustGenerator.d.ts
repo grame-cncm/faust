@@ -33,7 +33,7 @@ declare namespace Faust {
     interface Generator {
 
         /**
-         * Load a wasm factory from wasm (either 'monophonic' or 'polyphonic') and JSON files. This function is running asynchronously.
+         * Create a factory from Faust statically compiled wasm (either 'monophonic' or 'polyphonic') and JSON files. This function is running asynchronously.
          *
          * @param {string} wasm_path - the wasm file pathname
          * @param {string} json_path - the JSON file pathname
@@ -42,12 +42,20 @@ declare namespace Faust {
         loadDSPFactory(wasm_path: string, json_path: string, poly: boolean): Promise<Faust.Factory>;
 
         /**
+         * Create a WebAssembly module from the wasm mixer file. This function is running asynchronously.
+         *
+         * @param {string} mixer_path - the mixer wasm file pathname
+         * @returns {Promise<WebAssembly.Module>} on completion, the mixer wasm module.
+         */
+        loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module>;
+
+        /**
          * Asynchronously create a wasm instance of a wasm factory.
          *
          * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory
          * @returns {Promise<Instance>} returns a monophonic instance.
          */
-        createAsyncDSPInstance(factory: Factory): Promise<Instance>;
+        createAsyncMonoDSPInstance(factory: Factory): Promise<Instance>;
 
         /**
         * Synchronously create a wasm instance of a wasm factory.
@@ -55,13 +63,13 @@ declare namespace Faust {
         * @param {Factory} module - a module previously created using createDSPFactory or loadDSPFactory
         * @returns {Instance} returns a monophonic instance.
         */
-        createSyncDSPInstance(factory: Factory): Instance;
+        createSyncMonoDSPInstance(factory: Factory): Instance;
 
         /**
          * Asynchronously create a polyphonic wasm instance of a wasm voice factory and effect factory. 
          *
          * @param {Factory} voice_factory - a factory previously created using createDSPFactory or loadDSPFactory
-         * @param {WebAssembly.Module} mixer_module - a module previously created using the mixer32.wasm file
+         * @param {WebAssembly.Module} mixer_module - a WebAssembly module previously created using loadDSPMixer
          * @param {number} voices - the number of voices to be created
          * @param {Factory} effect_factory - a factory previously created using createDSPFactory or loadDSPFactory
          * @returns {Promise<PolyInstance>} returns a polyphonic instance.

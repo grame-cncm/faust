@@ -63,7 +63,7 @@ declare namespace Faust {
     type TFaustUIType = TFaustUIGroupType | TFaustUIOutputType | TFaustUIInputType;
 
     /**
-     * A Faust wasm instance interface.
+     * The Faust wasm instance interface.
     */
     interface InstanceAPI {
 
@@ -71,7 +71,7 @@ declare namespace Faust {
          * The dsp computation.
          *
          * @param {DSP} dsp - the DSP pointer
-         * @param {number} count - the audio buffer size
+         * @param {number} count - the audio buffer size in frames
          * @param {AudioBuffer} inputs - the input audio buffer
          * @param {AudioBuffer} output - the output audio buffer
          */

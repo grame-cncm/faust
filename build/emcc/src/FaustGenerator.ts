@@ -41,7 +41,7 @@ namespace Faust {
         setParamValue(dsp: Faust.DSP, index: number, value: number) { this.fExports.setParamValue(dsp, index, value); }
     }
 
-    export class Generator {
+    export class Generator implements Faust.Generator {
 
         private createWasmImport = (memory?: WebAssembly.Memory) => ({
             env: {
@@ -95,7 +95,7 @@ namespace Faust {
             return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
         }
 
-        private createDSPInstanceAux(instance: WebAssembly.Instance, factory: Factory) {
+        private createMonoDSPInstanceAux(instance: WebAssembly.Instance, factory: Factory) {
             const functions: any = instance.exports;
             const api = new InstanceAPIImpl(<InstanceAPI>functions);
             const memory: any = instance.exports.memory;
@@ -134,19 +134,31 @@ namespace Faust {
                 const poly = c_options.indexOf('wasm-e') !== -1;
                 return { module: module, json: json, poly: poly };
             } catch (e) {
-                console.log("=> exception raised while running loadDSPFactory: " + e);
+                console.error("=> exception raised while running loadDSPFactory: " + e);
                 return null;
             }
         }
 
-        async createAsyncDSPInstance(factory: Factory): Promise<Instance> {
-            const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
-            return (instance) ? this.createDSPInstanceAux(instance, factory) : null;
+        async loadMixer(mixer_path: string): Promise<WebAssembly.Module> {
+            try {
+                // Compile mixer
+                const mixer_file = await fetch(mixer_path);
+                const mixer_buffer = await mixer_file.arrayBuffer();
+                return WebAssembly.compile(mixer_buffer);
+            } catch (e) {
+                console.error("=> exception raised while running loadMixer: " + e);
+                return null;
+            }
         }
 
-        createSyncDSPInstance(factory: Factory): Instance {
+        async createAsyncMonoDSPInstance(factory: Factory): Promise<Instance> {
+            const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
+            return (instance) ? this.createMonoDSPInstanceAux(instance, factory) : null;
+        }
+
+        createSyncMonoDSPInstance(factory: Factory): Instance {
             const instance = new WebAssembly.Instance(factory.module, this.createWasmImport());
-            return (instance) ? this.createDSPInstanceAux(instance, factory) : null;
+            return (instance) ? this.createMonoDSPInstanceAux(instance, factory) : null;
         }
 
         async createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory: Factory): Promise<PolyInstance> {

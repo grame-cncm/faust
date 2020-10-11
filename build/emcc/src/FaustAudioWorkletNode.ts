@@ -23,8 +23,8 @@
 
 namespace Faust {
 
-    // Common class for Monophonic and Polyphonic AudioWorkletNode
-    class FaustAudioWorkletNode extends AudioWorkletNode {
+    // Base class for Monophonic and Polyphonic AudioWorkletNode
+    class FaustAudioWorkletNodeImp extends AudioWorkletNode {
 
         protected fJSONDsp: TFaustJSON;
         protected fJSON: string;
@@ -86,7 +86,7 @@ namespace Faust {
             return this.fJSONDsp.outputs;
         }
 
-        // Not used
+        // Implemented in subclasses
         compute(inputs: Float32Array[], outputs: Float32Array[]) {
             return false;
         }
@@ -137,7 +137,7 @@ namespace Faust {
     }
 
     // Monophonic AudioWorkletNode 
-    export class FaustMonoAudioWorkletNode extends FaustAudioWorkletNode {
+    export class FaustMonoAudioWorkletNode extends FaustAudioWorkletNodeImp {
 
         onprocessorerror = (e: ErrorEvent) => {
             console.error("Error from " + this.fJSONDsp.name + " FaustMonoAudioWorkletNode");
@@ -150,7 +150,7 @@ namespace Faust {
     }
 
     // Polyphonic AudioWorkletNode 
-    export class FaustPolyAudioWorkletNode extends FaustAudioWorkletNode {
+    export class FaustPolyAudioWorkletNode extends FaustAudioWorkletNodeImp {
 
         private fJSONEffect: TFaustJSON;
 
@@ -175,7 +175,6 @@ namespace Faust {
                 });
 
             this.fJSONEffect = (effect_factory) ? JSON.parse(effect_factory.json) : null;
-
         }
 
         // Public API
