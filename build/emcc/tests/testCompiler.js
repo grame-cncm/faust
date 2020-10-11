@@ -1,6 +1,6 @@
 var options = "-I libraries/";
 var errCode = "foo";
-var effectCode = "process = _,_;";
+var effectCode = 'process = _*(hslider("Left", 0.1, 0, 1, 0.01)), _*(hslider("Right", 0.0, 0, 1, 0.01));';
 
 //----------------------------------------------------------------------------
 // Misc. functions
@@ -232,7 +232,7 @@ async function run(engine, log, code, context) {
     */
 
 
-
+    /*
     // Testing polyphonic Worklet mode
     let node3 = await fwan.createPolyNode(context, "mydsp2", factory, mixer_module, 8, false);
     console.log(node3);
@@ -245,7 +245,7 @@ async function run(engine, log, code, context) {
     node3.keyOn(0, 67, 50);
     node3.keyOn(0, 71, 50);
     node3.keyOn(0, 76, 50);
-
+    */
 
     /*
     // Testing polyphonic Worklet mode
@@ -278,7 +278,7 @@ async function run(engine, log, code, context) {
     //node5.keyOn(0, 76, 50);
     */
 
-    /*
+
     // Testing polyphonic Worklet mode
     console.log(faust);
     let node6 = await fwan.compilePolyNode(context, "mydsp2", faust, code, options, 8, false);
@@ -292,6 +292,22 @@ async function run(engine, log, code, context) {
     node6.keyOn(0, 67, 50);
     node6.keyOn(0, 71, 50);
     //node6.keyOn(0, 76, 50);
+
+
+    /*
+    // Testing polyphonic Worklet mode
+    console.log(faust);
+    let node7 = await fwan.compilePolyNode2(context, "mydsp2", faust, code, effectCode, options, 8, false, 512);
+    console.log(node7);
+    console.log(node7.getParams());
+    console.log(node7.getJSON());
+    //node6.setParamValue("/test/freq", 600);
+    node7.connect(context.destination);
+    node7.keyOn(0, 61, 50);
+    //node6.keyOn(0, 64, 50);
+    node7.keyOn(0, 67, 50);
+    node7.keyOn(0, 79, 50);
+    node7.keyOn(0, 76, 50);
     */
 
     /*

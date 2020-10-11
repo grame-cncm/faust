@@ -41,7 +41,7 @@ namespace Faust {
         setParamValue(dsp: DSP, index: number, value: number) { this.fExports.setParamValue(dsp, index, value); }
     }
 
-    export class Generator implements Generator {
+    export class GeneratorImp implements Generator {
 
         private createWasmImport = (memory?: WebAssembly.Memory) => ({
             env: {
@@ -139,7 +139,7 @@ namespace Faust {
             }
         }
 
-        async loadMixer(mixer_path: string): Promise<WebAssembly.Module> {
+        async loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module> {
             try {
                 // Compile mixer
                 const mixer_file = await fetch(mixer_path);
