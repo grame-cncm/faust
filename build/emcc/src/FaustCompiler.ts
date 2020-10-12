@@ -26,6 +26,7 @@ namespace Faust {
 
     export class Compiler {
         private fFaustEngine: LibFaust;
+        private fErrorMessage: string;
 
         private intVec2intArray(vec: IntVector): Uint8Array {
             const size = vec.size();
@@ -36,16 +37,9 @@ namespace Faust {
             return ui8Code;
         }
 
-        // Public API
-        constructor(engine: LibFaust) {
-            this.fFaustEngine = engine;
-        }
-
-        version(): string { return this.fFaustEngine.version(); }
-
-        async createDSPFactory(name_app: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
+        private async createDSPFactory(name: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
             try {
-                const factory = this.fFaustEngine.createDSPFactory(name_app, dsp_code, args, !poly);
+                const factory = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
                 try {
                     const wasm = this.fFaustEngine.getWasmModule(factory);
                     const module = await WebAssembly.compile(this.intVec2intArray(wasm.data));
@@ -55,34 +49,51 @@ namespace Faust {
                     return null;
                 }
             } catch {
-                const error = this.fFaustEngine.getErrorAfterException();
-                console.error("=> exception raised while running createDSPFactory: " + error);
+                this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                console.error("=> exception raised while running createDSPFactory: " + this.fErrorMessage);
                 this.fFaustEngine.cleanupAfterException();
                 return null;
             }
         }
 
-        expandDSP(name_app: string, dsp_code: string, args: string): ExpandOut {
+        // Public API
+        constructor(engine: LibFaust) {
+            this.fFaustEngine = engine;
+            this.fErrorMessage = "";
+        }
+
+        version(): string { return this.fFaustEngine.version(); }
+
+        getErrorMessage(): string { return this.fErrorMessage; }
+
+        async createMonoDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null> {
+            return this.createDSPFactory(name, dsp_code, args, false);
+        }
+
+        async createPolyDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null> {
+            return this.createDSPFactory(name, dsp_code, args, true);
+        }
+
+        expandDSP(name: string, dsp_code: string, args: string): ExpandOut | null {
             try {
-                const out = this.fFaustEngine.expandDSP(name_app, dsp_code, args);
-                return { dsp: out.dsp, shakey: out.shakey, error: "" };
+                const out = this.fFaustEngine.expandDSP(name, dsp_code, args);
+                return { dsp: out.dsp, shakey: out.shakey };
             } catch {
-                const error = this.fFaustEngine.getErrorAfterException();
-                console.error("=> exception raised while running expandDSP: " + error);
+                this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                console.error("=> exception raised while running expandDSP: " + this.fErrorMessage);
                 this.fFaustEngine.cleanupAfterException();
-                return { dsp: "", shakey: "", error: error };
+                return null;
             }
         }
 
-        generateAuxFiles(name_app: string, dsp_code: string, args: string): AuxOut {
+        generateAuxFiles(name: string, dsp_code: string, args: string): boolean {
             try {
-                const done = this.fFaustEngine.generateAuxFiles(name_app, dsp_code, args);
-                return { success: done, error: "" };
+                return this.fFaustEngine.generateAuxFiles(name, dsp_code, args);
             } catch {
-                const error = this.fFaustEngine.getErrorAfterException();
-                console.error("=> exception raised while running generateAuxFiles: " + error);
+                this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                console.error("=> exception raised while running generateAuxFiles: " + this.fErrorMessage);
                 this.fFaustEngine.cleanupAfterException();
-                return { success: false, error: error };
+                return false;
             }
         }
 

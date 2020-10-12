@@ -18,15 +18,15 @@ declare namespace Faust {
 
         /**
          * SVGDiagrams constructor.
-         * @param {string} name - an arbitrary name for the faust module
-         * @param {string} code - faust dsp code
+         * @param {string} name - an arbitrary name for the Faust module
+         * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
          * @param {LibFaust} engine - an instance of the faust engine
          */
-        new(engine: LibFaust, name_app: string, code: string, args: string): SVGDiagrams;
+        new(engine: LibFaust, name_app: string, dsp_code: string, args: string): SVGDiagrams;
 
         /**
-         * Generates auxiliary files from faust code. The output depends on the compiler options.
+         * Generates auxiliary files from Faust code. The output depends on the compiler options.
          *
          * @param {string} name - the svg file name (default to "process.svg")
          * @returns {string} the svg diagram as a string

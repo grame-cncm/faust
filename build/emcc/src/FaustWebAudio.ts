@@ -35,7 +35,7 @@ namespace Faust {
 
         async compileMonoNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
             : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null> {
-            const factory = await compiler.createDSPFactory(name, dsp_code, args, false);
+            const factory = await compiler.createMonoDSPFactory(name, dsp_code, args);
             return (factory) ? this.createMonoNode(context, name, factory, sp, buffer_size) : null;
         }
 
@@ -111,10 +111,10 @@ namespace Faust {
             buffer_size?: number)
             : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null> {
             // Compile voice
-            const voice_factory = await compiler.createDSPFactory(name, voices_dsp, args, true);
+            const voice_factory = await compiler.createPolyDSPFactory(name, voices_dsp, args);
             if (!voice_factory) return null;
             // Compile effect
-            const effect_factory = await compiler.createDSPFactory(name, effect_dsp, args, true);
+            const effect_factory = await compiler.createPolyDSPFactory(name, effect_dsp, args);
             if (!effect_factory) return null;
             // Compile mixer
             const mixer_module = await new GeneratorImp().loadDSPMixer('mixer32.wasm');

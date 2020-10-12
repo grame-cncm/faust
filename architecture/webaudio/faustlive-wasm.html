@@ -604,7 +604,6 @@
             function activateAudioInput()
             {
                 console.log("activateAudioInput");
-
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
                         .then(getDevice)

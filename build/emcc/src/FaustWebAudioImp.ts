@@ -197,7 +197,7 @@ namespace Faust {
 
     export function createMonoDSP(
         ctor: MonoDSPConstructor,
-        instance: Instance,
+        instance: MonoInstance,
         sample_rate: number,
         buffer_size: number
     ): MonoDSP {
@@ -206,10 +206,10 @@ namespace Faust {
 
     export class MonoDSPImp extends BaseDSPImp implements MonoDSP {
 
-        private fInstance: Instance;
+        private fInstance: MonoInstance;
         private fDSP!: DSP;
 
-        constructor(instance: Instance, sample_rate: number, buffer_size: number) {
+        constructor(instance: MonoInstance, sample_rate: number, buffer_size: number) {
 
             super(buffer_size);
             this.fInstance = instance;

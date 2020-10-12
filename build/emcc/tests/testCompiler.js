@@ -7,21 +7,21 @@ var effectCode = 'process = _*(hslider("Left", 0.1, 0, 1, 0.01)), _*(hslider("Ri
 //----------------------------------------------------------------------------
 function misc(faust, log, code) {
     let exp = faust.expandDSP("test", code, options);
-    let msg = exp.error ? exp.error : exp.dsp + " sha " + exp.shakey;
+    let msg = (exp) ? (exp.dsp + " sha " + exp.shakey) : faust.getErrorMessage();
     log("  expandDSP             " + msg);
 
-    let aux = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
-    msg = aux.success ? "done" : aux.error;
+    let res = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
+    msg = (res) ? "done" : faust.getErrorMessage();
     log("  generateAuxFiles      " + msg);
 }
 //----------------------------------------------------------------------------
 // create dsp factory and instance 
 //----------------------------------------------------------------------------
 async function createDsp(faust, log, code) {
-    let gen = new Faust.Generator();
+    let gen = new Faust.GeneratorImp();
 
-    log("createDSPFactory: ");
-    let factory = await faust.createDSPFactory("test", code, options, false);
+    log("createMonoDSPFactory: ");
+    let factory = await faust.createMonoDSPFactory("test", code, options);
     if (factory) {
         log("factory JSON: " + factory.json);
         log("factory poly: " + factory.poly);
@@ -30,8 +30,8 @@ async function createDsp(faust, log, code) {
         return;
     }
 
-    log("createSyncDSPInstance: ");
-    let instance1 = gen.createSyncDSPInstance(factory);
+    log("createSyncMonoDSPInstance: ");
+    let instance1 = gen.createSyncMonoDSPInstance(factory);
     if (instance1) {
         log("  getNumInputs : " + instance1.api.getNumInputs());
         log("  getNumOutputs: " + instance1.api.getNumOutputs());
@@ -40,8 +40,8 @@ async function createDsp(faust, log, code) {
         log("instance1 is null");
     }
 
-    log("createAsyncDSPInstance: ");
-    let instance2 = await gen.createAsyncDSPInstance(factory);
+    log("createAsyncMonoDSPInstance: ");
+    let instance2 = await gen.createAsyncMonoDSPInstance(factory);
     if (instance2) {
         log("  getNumInputs : " + instance2.api.getNumInputs());
         log("  getNumOutputs: " + instance2.api.getNumOutputs());
@@ -52,10 +52,10 @@ async function createDsp(faust, log, code) {
 }
 
 async function createPolyDsp(faust, log, voice_code, effect_code) {
-    let gen = new Faust.Generator();
+    let gen = new Faust.GeneratorImp();
 
-    log("createDSPFactory for voice: ");
-    let voice_factory = await faust.createDSPFactory("voice", voice_code, options, true);
+    log("createPolyDSPFactory for voice: ");
+    let voice_factory = await faust.createPolyDSPFactory("voice", voice_code, options);
     if (voice_factory) {
         log("voice factory JSON: " + voice_factory.json);
         log("voice factory poly: " + voice_factory.poly);
@@ -63,8 +63,8 @@ async function createPolyDsp(faust, log, voice_code, effect_code) {
         log("voice_factory is null");
         return;
     }
-    log("createDSPFactory for effect: ");
-    let effect_factory = await faust.createDSPFactory("effect", effect_code, options, true);
+    log("createPolyDSPFactory for effect: ");
+    let effect_factory = await faust.createPolyDSPFactory("effect", effect_code, options);
     if (effect_factory) {
         log("effect factory JSON: " + effect_factory.json);
         log("effect factory poly: " + effect_factory.poly);
@@ -143,7 +143,7 @@ async function run(engine, log, code, context) {
 
     log("libfaust version: " + faust.version());
 
-    /*
+
     log("\n-----------------\nMisc tests" + faust.version());
     misc(faust, log, code);
     log("\n-----------------\nMisc tests with error code");
@@ -163,14 +163,14 @@ async function run(engine, log, code, context) {
 
     log("\n-----------------\nTest SVG diagrams: ");
     svgdiagrams(engine, log, code);
-    */
+
 
     // Test nodes
 
     // Created with libfaust.js
 
     /*
-    let factory = await faust.createDSPFactory("test", code, options, false);
+    let factory = await faust.createMonoDSPFactory("test", code, options);
     console.log(factory);
     console.log(context);
     let fwan = new Faust.AudioNodeFactory();
@@ -206,7 +206,7 @@ async function run(engine, log, code, context) {
 
 
     // Polyphonic factory
-    let factory = await faust.createDSPFactory("test", code, options, true);
+    let factory = await faust.createPolyDSPFactory("test", code, options);
     console.log(factory);
     console.log(context);
 
@@ -311,7 +311,7 @@ async function run(engine, log, code, context) {
     */
 
     /*
-    const factory1 = await new Faust.Generator().loadDSPFactory("noise.wasm", "noise.js");
+    const factory1 = await new Faust.GeneratorImp().loadDSPFactory("noise.wasm", "noise.js");
     const node = await new Faust.AudioNodeFactory().createMonoNode(context, "test", factory1, true, 512);
     console.log(node);
     console.log(node.getParams());

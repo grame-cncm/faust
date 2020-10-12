@@ -153,12 +153,12 @@ namespace Faust {
             }
         }
 
-        async createAsyncMonoDSPInstance(factory: Factory): Promise<Instance> {
+        async createAsyncMonoDSPInstance(factory: Factory): Promise<MonoInstance> {
             const instance = await WebAssembly.instantiate(factory.module, this.createWasmImport());
             return this.createMonoDSPInstanceAux(instance, factory);
         }
 
-        createSyncMonoDSPInstance(factory: Factory): Instance {
+        createSyncMonoDSPInstance(factory: Factory): MonoInstance {
             const instance = new WebAssembly.Instance(factory.module, this.createWasmImport());
             return this.createMonoDSPInstanceAux(instance, factory);
         }

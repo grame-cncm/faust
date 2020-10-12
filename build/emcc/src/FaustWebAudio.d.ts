@@ -154,7 +154,7 @@ declare namespace Faust {
          * @param {number} buffer_size - the buffer size in frames
          * @return the created MonoDSP object 
          */
-        new(instance: Instance, sample_rate: number, buffer_size: number): MonoDSP;
+        new(instance: MonoInstance, sample_rate: number, buffer_size: number): MonoDSP;
     }
 
     interface MonoDSP extends BaseDSP { }
