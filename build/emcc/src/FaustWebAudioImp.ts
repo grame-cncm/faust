@@ -403,6 +403,8 @@ namespace Faust {
             this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, DspVoice.midiToFreq(pitch)));
             this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 1));
             this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, velocity / 127));
+            // Keep pitch
+            this.fNote = pitch;
         }
 
         keyOff(hard: boolean = false) {

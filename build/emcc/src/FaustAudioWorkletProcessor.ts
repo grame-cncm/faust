@@ -73,7 +73,7 @@ namespace Faust {
                 super(options);
 
                 // Setup port message handling
-                this.port.onmessage = this.handleMessage; // Naturally binded with arrow function property
+                this.port.onmessage = (e: MessageEvent) => { this.handleMessageAux(e); }
             }
 
             static get parameterDescriptors() {
@@ -106,7 +106,7 @@ namespace Faust {
                 return this.fDSPCode.compute(inputs[0], outputs[0]);
             }
 
-            protected handleMessage = (e: MessageEvent) => { // use arrow function for binding
+            protected handleMessageAux(e: MessageEvent) { // use arrow function for binding
                 const msg = e.data;
                 // TODO
                 //this.cachedEvents.push({ type: e.data.type, data: e.data.data });
@@ -174,7 +174,7 @@ namespace Faust {
                     options.processorOptions.effect_factory), sampleRate, 128);
 
                 // Setup port message handling
-                this.port.onmessage = this.handleMessage; // Naturally binded with arrow function property
+                this.port.onmessage = (e: MessageEvent) => { this.handleMessageAux(e); }
 
                 // Setup output handler
                 this.fDSPCode.setOutputParamHandler((path, value) => this.port.postMessage({ path, value, type: "param" }));
@@ -190,7 +190,7 @@ namespace Faust {
                 else super.midiMessage(data);
             }
 
-            protected handleMessage = (e: MessageEvent) => { // use arrow function for binding
+            protected handleMessageAux = (e: MessageEvent) => { // use arrow function for binding
                 const msg = e.data;
 
                 // TODO
@@ -200,7 +200,7 @@ namespace Faust {
                     case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
                     case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
                     default:
-                        super.handleMessage(e);
+                        super.handleMessageAux(e);
                         break;
                 }
             }

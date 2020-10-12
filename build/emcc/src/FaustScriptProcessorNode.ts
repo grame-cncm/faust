@@ -59,7 +59,12 @@ namespace Faust {
 
             node.getOutputParamHandler = () => { return this.fDSPCode.getOutputParamHandler(); }
 
+            node.getNumInputs = () => { return this.fDSPCode.getNumInputs(); }
+            node.getNumOutputs = () => { return this.fDSPCode.getNumOutputs(); }
+
             node.metadata = (handler: MetadataHandler) => { }
+
+            node.midiMessage = (data: number[] | Uint8Array) => { this.fDSPCode.midiMessage(data); }
 
             node.ctrlChange = (chan: number, ctrl: number, value: number) => { this.fDSPCode.ctrlChange(chan, ctrl, value); }
             node.pitchWheel = (chan: number, value: number) => { this.fDSPCode.pitchWheel(chan, value); }

@@ -80,7 +80,7 @@ namespace Faust {
             }
         }
 
-        // We assume that 'dsp_code' contains an integrated effect
+        // We assume that 'dsp_code' can contain an integrated effect
         async compilePolyNode(
             context: BaseAudioContext,
             name: string,
@@ -113,12 +113,11 @@ namespace Faust {
             // Compile voice
             const voice_factory = await compiler.createPolyDSPFactory(name, voices_dsp, args);
             if (!voice_factory) return null;
-            // Compile effect
+            // Compile effect, possibly failing since 'compilePolyNode2' can be called by called by 'compilePolyNode'
             const effect_factory = await compiler.createPolyDSPFactory(name, effect_dsp, args);
-            if (!effect_factory) return null;
             // Compile mixer
             const mixer_module = await new GeneratorImp().loadDSPMixer('mixer32.wasm');
-            return (mixer_module) ? this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, effect_factory, buffer_size) : null;
+            return (mixer_module) ? this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), buffer_size) : null;
         }
 
         async createPolyNode(
