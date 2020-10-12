@@ -7,7 +7,12 @@
 
 namespace Faust {
 
-    export class SVGDiagrams implements SVGDiagrams {
+    // Public contructor
+    export function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string) {
+        return new SVGDiagramsImp(engine, name, dsp_code, args);
+    }
+
+    class SVGDiagramsImp implements SVGDiagrams {
         private fSuccess: boolean;
         private fError: string;
         private fFolder: string;
@@ -19,12 +24,12 @@ namespace Faust {
             console.log("getSVG dir: " + content);
         }
 
-        constructor(engine: LibFaust, name_app: string, dsp_code: string, args: string) {
+        constructor(engine: LibFaust, name: string, dsp_code: string, args: string) {
             this.fEngine = engine;
-            let compiler = new Compiler(engine);
-            this.fSuccess = compiler.generateAuxFiles(name_app, dsp_code, "-lang wasm -svg " + args);
+            let compiler = createCompiler(engine);
+            this.fSuccess = compiler.generateAuxFiles(name, dsp_code, "-lang wasm -svg " + args);
             this.fError = (this.fSuccess) ? "" : compiler.getErrorMessage();
-            this.fFolder = name_app + "-svg";
+            this.fFolder = name + "-svg";
         }
 
         error(): string { return this.fError; }

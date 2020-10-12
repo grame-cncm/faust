@@ -195,13 +195,9 @@ namespace Faust {
 
     // Monophonic DSP
 
-    export function createMonoDSP(
-        ctor: MonoDSPConstructor,
-        instance: MonoInstance,
-        sample_rate: number,
-        buffer_size: number
-    ): MonoDSP {
-        return new ctor(instance, sample_rate, buffer_size);
+    // Public contructor
+    export function createMonoDSP(instance: MonoInstance, sample_rate: number, buffer_size: number) {
+        return new MonoDSPImp(instance, sample_rate, buffer_size);
     }
 
     export class MonoDSPImp extends BaseDSPImp implements MonoDSP {
@@ -352,7 +348,10 @@ namespace Faust {
     }
 
     // Voice management
+    interface TransformFunction { (val: number): number }
+
     export class DspVoice {
+
         static kActiveVoice: number;
         static kFreeVoice: number;
         static kReleaseVoice: number;
@@ -362,6 +361,8 @@ namespace Faust {
         private fGainLabel: number[];
         private fDSP: DSP;         // Voice DSP location in wasm memory
         private fAPI: InstanceAPI; // Voice DSP code
+        private fKeyFun: TransformFunction;
+        private fVelFun: TransformFunction;
         // Accessed by PolyDSPImp class
         fNote: number;
         fDate: number;
@@ -376,6 +377,9 @@ namespace Faust {
             DspVoice.kFreeVoice = -1;
             DspVoice.kReleaseVoice = -2;
             DspVoice.kNoVoice = -3;
+            // Default versions
+            this.fKeyFun = (pitch: number) => { return DspVoice.midiToFreq(pitch); }
+            this.fVelFun = (velocity: number) => { return velocity / 127.0; }
             this.fNote = DspVoice.kFreeVoice;
             this.fDate = 0;
             this.fDSP = dsp;
@@ -391,18 +395,30 @@ namespace Faust {
 
         private extractPaths(input_items: string[], path_table: { [address: string]: number }) {
             input_items.forEach((item) => {
-                if (item.endsWith("/gate")) this.fGateLabel.push(path_table[item]);
-                else if (item.endsWith("/freq")) this.fFreqLabel.push(path_table[item]);
-                else if (item.endsWith("/gain")) this.fGainLabel.push(path_table[item]);
+                if (item.endsWith("/gate")) {
+                    this.fGateLabel.push(path_table[item]);
+                } else if (item.endsWith("/freq")) {
+                    this.fKeyFun = (pitch: number) => { return DspVoice.midiToFreq(pitch); }
+                    this.fFreqLabel.push(path_table[item]);
+                } else if (item.endsWith("/key")) {
+                    this.fKeyFun = (pitch: number) => { return pitch; }
+                    this.fFreqLabel.push(path_table[item]);
+                } else if (item.endsWith("/gain")) {
+                    this.fVelFun = (velocity: number) => { return velocity / 127.0; }
+                    this.fGainLabel.push(path_table[item]);
+                } else if (item.endsWith("/vel") && item.endsWith("/velocity")) {
+                    this.fVelFun = (velocity: number) => { return velocity; }
+                    this.fGainLabel.push(path_table[item]);
+                }
             });
         }
 
         // Public API
         keyOn(pitch: number, velocity: number) {
             this.fAPI.instanceClear(this.fDSP);
-            this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, DspVoice.midiToFreq(pitch)));
+            this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fKeyFun(pitch)));
             this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 1));
-            this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, velocity / 127));
+            this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fVelFun(velocity)));
             // Keep pitch
             this.fNote = pitch;
         }
@@ -430,13 +446,9 @@ namespace Faust {
 
     // Polyphonic DSP
 
-    export function createPolyDSP(
-        ctor: PolyDSPConstructor,
-        instance: PolyInstance,
-        sample_rate: number,
-        buffer_size: number
-    ): PolyDSP {
-        return new ctor(instance, sample_rate, buffer_size);
+    // Public contructor
+    export function createPolyDSP(instance: PolyInstance, sample_rate: number, buffer_size: number) {
+        return new PolyDSPImp(instance, sample_rate, buffer_size);
     }
 
     export class PolyDSPImp extends BaseDSPImp implements PolyDSP {
@@ -737,7 +749,7 @@ namespace Faust {
 
         ctrlChange(channel: number, ctrl: number, value: number) {
             if (ctrl === 123 || ctrl === 120) {
-                this.allNotesOff();
+                this.allNotesOff(true);
             } else {
                 super.ctrlChange(channel, ctrl, value);
             }
@@ -757,7 +769,7 @@ namespace Faust {
             }
         }
 
-        allNotesOff(hard: boolean = false) {
+        allNotesOff(hard: boolean = true) {
             this.fVoiceTable.forEach(voice => voice.keyOff(hard));
         }
     }

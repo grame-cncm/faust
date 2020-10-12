@@ -105,13 +105,13 @@ namespace Faust {
                 super.setupNode(node);
                 // Public API
                 node.keyOn = (channel: number, pitch: number, velocity: number) => {
-                    (this.fDSPCode as PolyDSPImp).keyOn(channel, pitch, velocity);
+                    (this.fDSPCode as PolyDSP).keyOn(channel, pitch, velocity);
                 }
                 node.keyOff = (channel: number, pitch: number, velocity: number) => {
-                    (this.fDSPCode as PolyDSPImp).keyOff(channel, pitch, velocity);
+                    (this.fDSPCode as PolyDSP).keyOff(channel, pitch, velocity);
                 }
-                node.allNotesOff = () => {
-                    (this.fDSPCode as PolyDSPImp).allNotesOff();
+                node.allNotesOff = (hard: boolean) => {
+                    (this.fDSPCode as PolyDSP).allNotesOff(hard);
                 }
                 return node;
             } catch (e) {

@@ -11,92 +11,76 @@
  */
 
 #include <vector>
+#include <sstream>
 #include "adapter.h"
 
 using namespace std;
 
 static void string2StringsVector(const string& args, vector<string>& strings)
 {
-    string str = args;
-    while (true) {
-        size_t pos = str.find_first_of(' ', 0);
-        if (pos == string::npos) break;
-        if (pos > 1) strings.push_back(str.substr(0, pos));
-        str = str.substr(pos+1, string::npos);
-    }
-    if (str.size()) strings.push_back(str);
+    stringstream tokenizer(args);
+    string token;
+    
+    // Use ' ' as delim for cutting string
+    while (getline(tokenizer, token, ' ')) { strings.push_back(token); }
 }
 
 static const char** stringVector2argv(const vector<string>& v)
 {
-    const char** argv = 0;
+    const char** argv = nullptr;
     size_t n = v.size();
-    if (n) {
+    if (n > 0) {
         argv = new const char*[n];
-        for (size_t i = 0; i < v.size(); i++) {
+        for (size_t i = 0; i < n; i++) {
             argv[i] = v[i].c_str();
         }
     }
     return argv;
 }
 
-int libFaustWasm::createDSPFactory(const string name, const string dsp, const string args, bool internal_memory)
+// Public API
+int libFaustWasm::createDSPFactory(const string name, const string dsp_content, const string args_aux, bool internal_memory)
 {
     vector<string> argsv;
-    string2StringsVector (args, argsv);
+    string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
-    
+   
+    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
+    char errmsg[4096]; errmsg[0] = 0;
     int out;
-    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
-    char errmsg[4096]; errmsg[0] = 0;
-    if (n) {
-        const char** args = stringVector2argv(argsv);
-        out = int(::createWasmCDSPFactoryFromString(name.c_str(), dsp.c_str(), n, args, errmsg, internal_memory));
-        delete [] args;
-    } else {
-        out = int(::createWasmCDSPFactoryFromString(name.c_str(), dsp.c_str(), 0, 0, errmsg, internal_memory));
-    }
+    const char** args = stringVector2argv(argsv);
+    out = int(::createWasmCDSPFactoryFromString(name.c_str(), dsp_content.c_str(), n, args, errmsg, internal_memory));
+    delete [] args;
     return out;
 }
 
-ExpandOut libFaustWasm::expandDSP(const string name, const string dsp, const string args)
+ExpandOut libFaustWasm::expandDSP(const string name, const string dsp_content, const string args_aux)
 {
     vector<string> argsv;
-    string2StringsVector (args, argsv);
+    string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
-    
+   
     ExpandOut out;
+    const char** args = stringVector2argv(argsv);
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
-    char errmsg[4096]; errmsg[0] = 0;
-    char sha[4096];
-    if (n) {
-        const char** args = stringVector2argv (argsv);
-        out.dsp = ::expandCDSPFromString(name.c_str(), dsp.c_str(), n, args, sha, errmsg);
-        delete [] args;
-    } else {
-        out.dsp = ::expandCDSPFromString(name.c_str(), dsp.c_str(), 0, 0, sha, errmsg);
-    }
-    out.shakey = sha;
+    string sha_key, error_msg;
+    out.dsp = ::expandDSPFromString(name, dsp_content, n, args, sha_key, error_msg);
+    delete [] args;
+    out.shakey = sha_key;
     return out;
 }
 
-bool libFaustWasm::generateAuxFiles(const string name, const string dsp, const string args)
+bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content, const string args_aux)
 {
     vector<string> argsv;
-    string2StringsVector (args, argsv);
+    string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
-    cerr << "libFaustWasm::generateAuxFiles " << name << " " ;
     
-    bool out;
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
-    char errmsg[4096]; errmsg[0] = 0;
-    if (n) {
-        const char** args = stringVector2argv(argsv);
-        out = ::generateCAuxFilesFromString(name.c_str(), dsp.c_str(), n, stringVector2argv (argsv), errmsg);
-        delete [] args;
-    } else {
-        out = ::generateCAuxFilesFromString(name.c_str(), dsp.c_str(), 0, 0, errmsg);
-    }
+    string error_msg;
+    const char** args = stringVector2argv(argsv);
+    bool out = ::generateAuxFilesFromString(name, dsp_content, n, args, error_msg);
+    delete [] args;
     return out;
 }
 
@@ -107,8 +91,7 @@ FaustWasm libFaustWasm::getWasmModule(int mptr)
     
     FaustWasm out;
     const char* ptr = getWasmCModule(module);
-    int size = getWasmCModuleSize(module);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < getWasmCModuleSize(module); i++) {
         out.data.push_back(*ptr++);
     }
     out.json = getWasmCHelpers(module);

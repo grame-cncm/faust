@@ -138,7 +138,7 @@ namespace Faust {
     }
 
     // Monophonic AudioWorkletNode 
-    export class FaustMonoAudioWorkletNode extends FaustAudioWorkletNodeImp {
+    export class FaustMonoAudioWorkletNodeImp extends FaustAudioWorkletNodeImp implements MonoDSP {
 
         onprocessorerror = (e: Event) => {
             console.error("Error from " + this.fJSONDsp.name + " FaustMonoAudioWorkletNode");
@@ -151,7 +151,7 @@ namespace Faust {
     }
 
     // Polyphonic AudioWorkletNode 
-    export class FaustPolyAudioWorkletNode extends FaustAudioWorkletNodeImp {
+    export class FaustPolyAudioWorkletNodeImp extends FaustAudioWorkletNodeImp implements PolyDSP {
 
         private fJSONEffect: TFaustJSON;
 
@@ -189,7 +189,7 @@ namespace Faust {
             this.port.postMessage(e);
         }
 
-        allNotesOff() {
+        allNotesOff(hard: boolean) {
             const e = { type: "ctrlChange", data: [0, 123, 0] };
             this.port.postMessage(e);
         }

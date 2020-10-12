@@ -921,8 +921,8 @@
                 argv.push("-I");
                 argv.push(libraries_url);
                 */
-              	// var argv = "-ftz " + ftz_flag.toString() + " -I " + libraries_url;
-            	var argv = " -I " + libraries_url;
+                var argv = "-ftz " + ftz_flag.toString() + " -I " + libraries_url;
+            	//var argv = " -I " + libraries_url;
             	console.log(argv);
 
                 if (poly_flag === "ON") {
@@ -959,7 +959,7 @@
             function init(instance)
             {
             	// Init Faust compiler and node generator
-            	faust = new Faust.Compiler(new Faust.LibFaust(instance));
+            	faust = Faust.createCompiler(new Faust.LibFaust(instance));
             	fwan = new Faust.AudioNodeFactory();
 			
                 // Check AudioWorklet support

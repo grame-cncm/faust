@@ -55,8 +55,6 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
     } else {
      
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        interpreter_dsp_factory* factory = nullptr;
-
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
@@ -79,7 +77,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                 compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
             if (dsp_factory_aux) {
                 dsp_factory_aux->setName(name_app);
-                factory = new interpreter_dsp_factory(dsp_factory_aux);
+                interpreter_dsp_factory* factory = new interpreter_dsp_factory(dsp_factory_aux);
                 gInterpreterFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
                 factory->setDSPCode(expanded_dsp_content);

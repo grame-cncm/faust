@@ -600,8 +600,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     } else {
         
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        llvm_dsp_factory* factory = nullptr;
-        
         if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
@@ -623,8 +621,12 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             
             llvm_dynamic_dsp_factory_aux* factory_aux = nullptr;
             try {
-                factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
-                                                                         compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true));
+                factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(compileFaustFactory(argc1,
+                                                                                             argv1,
+                                                                                             name_app.c_str(),
+                                                                                             dsp_content.c_str(),
+                                                                                             error_msg,
+                                                                                             true));
                 if (factory_aux) {
                     factory_aux->setTarget(target);
                     factory_aux->setOptlevel(opt_level);
@@ -633,7 +635,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                     if (!factory_aux->initJIT(error_msg)) {
                         goto error;
                     }
-                    factory = new llvm_dsp_factory(factory_aux);
+                    llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                     llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
                     factory->setSHAKey(sha_key);
                     factory->setDSPCode(expanded_dsp_content);

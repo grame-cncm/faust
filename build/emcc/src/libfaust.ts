@@ -54,7 +54,7 @@ namespace Faust {
          * @param {string} args - the compiler options
          * @returns {Expand} contains the expanded dsp code and the corresponding sha key
          */
-        expandDSP(name_app: string, dsp_content: string, args: string): Expand { return this.fEngine.expandDSP(name_app, dsp_content, args) };
+        expandDSP(name_app: string, dsp_content: string, args: string): Expand { return this.fEngine.expandDSP(name_app, dsp_content, args); }
 
         /**
          * Generates auxiliary files from faust code. The output depends on the compiler options

@@ -210,14 +210,14 @@ declare namespace Faust {
     interface FaustMonoScriptProcessorNode extends ScriptProcessorNode, MonoDSP { }
 
     /**
-     * Monophonic AudioWorkletNode.
-     */
-    interface FaustMonoAudioWorkletNode extends AudioWorkletNode, MonoDSP { }
-
-    /**
      * Polyphonic ScriptProcessorNode.
      */
     interface FaustPolyScriptProcessorNode extends ScriptProcessorNode, PolyDSP { }
+
+    /**
+     * Monophonic AudioWorkletNode.
+     */
+    interface FaustMonoAudioWorkletNode extends AudioWorkletNode, MonoDSP { }
 
     /**
      * Polyphonic AudioWorkletNode.

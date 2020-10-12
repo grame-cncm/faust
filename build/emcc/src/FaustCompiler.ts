@@ -24,7 +24,10 @@
 
 namespace Faust {
 
-    export class Compiler {
+    // Public contructor
+    export function createCompiler(engine: LibFaust) { return new CompilerImp(engine); }
+
+    class CompilerImp implements Compiler {
         private fFaustEngine: LibFaust;
         private fErrorMessage: string;
 

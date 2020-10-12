@@ -1,4 +1,4 @@
-var options = "-I libraries/";
+var options = "-ftz 0 -I libraries/";
 var errCode = "foo";
 var effectCode = 'process = _*(hslider("Left", 0.1, 0, 1, 0.01)), _*(hslider("Right", 0.0, 0, 1, 0.01));';
 
@@ -10,7 +10,7 @@ function misc(faust, log, code) {
     let msg = (exp) ? (exp.dsp + " sha " + exp.shakey) : faust.getErrorMessage();
     log("  expandDSP             " + msg);
 
-    let res = faust.generateAuxFiles("test", code, options + " -lang wast/wasm");
+    let res = faust.generateAuxFiles("test", code, options + " -lang wasm");
     msg = (res) ? "done" : faust.getErrorMessage();
     log("  generateAuxFiles      " + msg);
 }
@@ -111,7 +111,7 @@ var TestSVG2svg;
 function svgdiagrams(faust, log, code) {
     filter = "import(\"stdfaust.lib\");\nprocess = dm.oscrs_demo;";
 
-    let svg1 = new Faust.SVGDiagrams(faust, "TestSVG1", code, options)
+    let svg1 = Faust.createSVGDiagrams(faust, "TestSVG1", code, options)
     if (!svg1.success()) {
         log(svg1.error());
     }
@@ -122,7 +122,7 @@ function svgdiagrams(faust, log, code) {
         TestSVG1svg = (path) => { div1.innerHTML = svg1.getSVG(path); }
     }
 
-    let svg2 = new Faust.SVGDiagrams(faust, "TestSVG2", filter, options)
+    let svg2 = Faust.createSVGDiagrams(faust, "TestSVG2", filter, options)
     if (!svg2.success()) {
         log(svg2.error());
     }
@@ -139,7 +139,7 @@ function svgdiagrams(faust, log, code) {
 //----------------------------------------------------------------------------
 async function run(engine, log, code, context) {
 
-    let faust = new Faust.Compiler(engine);
+    let faust = Faust.createCompiler(engine);
 
     log("libfaust version: " + faust.version());
 

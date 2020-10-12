@@ -44,7 +44,7 @@ namespace Faust {
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed
                 const instance = await new GeneratorImp().createAsyncMonoDSPInstance(factory);
-                const mono_dsp = createMonoDSP(MonoDSPImp, instance, context.sampleRate, buffer_size);
+                const mono_dsp = createMonoDSP(instance, context.sampleRate, buffer_size);
                 return new FaustMonoScriptProcessorNodeImp().init(context, mono_dsp, buffer_size);
             } else {
                 // Dynamically create AudioWorkletProcessor if code not yet created
@@ -55,15 +55,17 @@ namespace Faust {
                             let Faust = {};
                             // DSP name and JSON string for DSP are generated
                             const faustData = { dsp_name: '${name}', dsp_JSON: '${factory.json}' };
-                            // Implementation needed classes
+                            // Implementation needed classes of functions
                             ${BaseDSPImp.toString()}
                             ${MonoDSPImp.toString()}
                             ${Faust.GeneratorImp.toString()} 
                             ${Faust.InstanceAPIImpl.toString()} 
+                            ${Faust.createMonoDSP.toString()} 
                             // Put them in Faust namespace
-                            Faust.GeneratorImp = GeneratorImp;
                             Faust.BaseDSPImp = BaseDSPImp;
                             Faust.MonoDSPImp = MonoDSPImp;
+                            Faust.GeneratorImp = GeneratorImp;
+                            Faust.createMonoDSP = createMonoDSP;
                             // Generate the actual AudioWorkletProcessor code
                             (${FaustAudioWorkletProcessorGenerator.toString()})(); `;
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
@@ -76,7 +78,7 @@ namespace Faust {
                     }
                 }
                 // Create the AWN
-                return new FaustMonoAudioWorkletNode(context, name, factory);
+                return new FaustMonoAudioWorkletNodeImp(context, name, factory);
             }
         }
 
@@ -134,7 +136,7 @@ namespace Faust {
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed
                 const instance = await new GeneratorImp().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory);
-                const poly_dsp = createPolyDSP(PolyDSPImp, instance, context.sampleRate, buffer_size);
+                const poly_dsp = createPolyDSP(instance, context.sampleRate, buffer_size);
                 return new FaustPolyScriptProcessorNodeImp().init(context, poly_dsp, buffer_size);
             } else {
                 // Dynamically create AudioWorkletProcessor if code not yet created
@@ -145,16 +147,18 @@ namespace Faust {
                             let Faust = {};
                             // DSP name and JSON strings for DSP and (possible) effect are generated
                             const faustData = { dsp_name: '${name}', dsp_JSON: '${voice_factory.json}', effect_JSON: '${(effect_factory) ? effect_factory.json : ""}'};
-                            // Implementation needed classes
+                            // Implementation needed classes of functions
                             ${BaseDSPImp.toString()}
                             ${PolyDSPImp.toString()}
                             ${DspVoice.toString()}
                             ${Faust.GeneratorImp.toString()} 
                             ${Faust.InstanceAPIImpl.toString()} 
+                            ${Faust.createPolyDSP.toString()} 
                             // Put them in Faust namespace
-                            Faust.GeneratorImp = GeneratorImp;
                             Faust.BaseDSPImp = BaseDSPImp;
                             Faust.PolyDSPImp = PolyDSPImp;
+                            Faust.GeneratorImp = GeneratorImp;
+                            Faust.createPolyDSP = createPolyDSP;
                             // Generate the actual AudioWorkletProcessor code
                             (${FaustAudioWorkletProcessorGenerator.toString()})();`;
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
@@ -167,7 +171,7 @@ namespace Faust {
                     }
                 }
                 // Create the AWN
-                return new FaustPolyAudioWorkletNode(context, name, voice_factory, mixer_module, voices, effect_factory);
+                return new FaustPolyAudioWorkletNodeImp(context, name, voice_factory, mixer_module, voices, effect_factory);
             }
         }
     }

@@ -46,7 +46,9 @@ namespace Faust {
         private createWasmImport(memory?: WebAssembly.Memory): WebAssembly.Imports {
             return {
                 env: {
-                    memory: ((memory) ? memory : new WebAssembly.Memory({ initial: 100 })), memoryBase: 0, tableBase: 0,
+                    memory: ((memory) ? memory : new WebAssembly.Memory({ initial: 100 })),
+                    memoryBase: 0,
+                    tableBase: 0,
                     // Integer version
                     _abs: Math.abs,
                     // Float version
@@ -84,7 +86,7 @@ namespace Faust {
                 while (n < x) { n *= 2; }
                 return n;
             };
-            const effect_size = effect_JSON ? effect_JSON.size : 0;
+            const effect_size = (effect_JSON ? effect_JSON.size : 0);
             // Memory for voices + effect + audio buffers.
             let memory_size = pow2limit(
                 effect_size
@@ -109,7 +111,7 @@ namespace Faust {
             const voice_JSON = JSON.parse(voice_factory.json);
             const effect_JSON = (effect_factory && effect_factory.json) ? JSON.parse(effect_factory.json) : null;
             // Memory will be shared by voice, mixer and (possibly) effect instances
-            return this.createWasmMemory(voices, voice_JSON, effect_JSON, 4096);
+            return this.createWasmMemory(voices, voice_JSON, effect_JSON, 8192);
         }
 
         private createMixerAux(mixer_module: WebAssembly.Module, memory: WebAssembly.Memory): MixerAPI {

@@ -15,13 +15,19 @@ declare namespace Faust {
         shakey: string;
     }
 
-    interface Compiler {
+    // See https://www.typescriptlang.org/docs/handbook/interfaces.html
+    interface CompilerConstructor {
 
         /**
          * The Compiler constructor.
+         * 
          * @param {LibFaust} engine - an instance of the low level engine, actually a libFaustWasm instance of FaustModule
+         * @return the created Compiler object 
          */
         new(engine: LibFaust): Compiler;
+    }
+
+    interface Compiler {
 
         /**
          * Gives the Faust compiler version.

@@ -90,34 +90,44 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
 {
     string expanded_dsp_content, sha_key;
 
-    if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
+    // Distinguish factories depending of the 'internal_memory' state
+    if ((expanded_dsp_content = sha1FromDSP(name_app + ((internal_memory) ? "wasm-i" : "wasm-e"), dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
     } else {
-        int         argc1 = 0;
-        const char* argv1[64];
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
-        //argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "binary";
-        for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
-        }
-        argv1[argc1] = nullptr;  // NULL terminated argv
-
-        dsp_factory_base* dsp_factory_aux =
-            compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
-
-        if (dsp_factory_aux) {
-            dsp_factory_aux->setName(name_app);
-            wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
-            wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
-            factory->setSHAKey(sha_key);
-            factory->setDSPCode(expanded_dsp_content);
-            return factory;
+        
+        dsp_factory_table<SDsp_factory>::factory_iterator it;
+        if (wasm_dsp_factory::gWasmFactoryTable.getFactory(sha_key, it)) {
+            SDsp_factory sfactory = (*it).first;
+            sfactory->addReference();
+            return sfactory;
         } else {
-            return nullptr;
+            
+            int         argc1 = 0;
+            const char* argv1[64];
+            argv1[argc1++] = "faust";
+            argv1[argc1++] = "-lang";
+            argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
+            //argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
+            argv1[argc1++] = "-o";
+            argv1[argc1++] = "binary";
+            for (int i = 0; i < argc; i++) {
+                argv1[argc1++] = argv[i];
+            }
+            argv1[argc1] = nullptr;  // NULL terminated argv
+
+            dsp_factory_base* dsp_factory_aux =
+                compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
+
+            if (dsp_factory_aux) {
+                dsp_factory_aux->setName(name_app);
+                wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
+                wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
+                factory->setSHAKey(sha_key);
+                factory->setDSPCode(expanded_dsp_content);
+                return factory;
+            } else {
+                return nullptr;
+            }
         }
     }
 }

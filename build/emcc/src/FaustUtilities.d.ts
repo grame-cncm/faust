@@ -14,16 +14,20 @@ interface FaustSVGLinkHandler { (path: string): void }
 
 declare namespace Faust {
 
-    interface SVGDiagrams {
+    // See https://www.typescriptlang.org/docs/handbook/interfaces.html
+    interface SVGDiagramsConstructor {
 
         /**
          * SVGDiagrams constructor.
          * @param {string} name - an arbitrary name for the Faust module
          * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
-         * @param {LibFaust} engine - an instance of the faust engine
+         * @param {LibFaust} engine - an instance of the Faust engine
          */
         new(engine: LibFaust, name_app: string, dsp_code: string, args: string): SVGDiagrams;
+    }
+
+    interface SVGDiagrams {
 
         /**
          * Generates auxiliary files from Faust code. The output depends on the compiler options.

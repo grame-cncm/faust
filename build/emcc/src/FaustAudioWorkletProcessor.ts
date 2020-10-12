@@ -118,7 +118,7 @@ namespace Faust {
                     case "ctrlChange": this.ctrlChange(msg.data[0], msg.data[1], msg.data[2]); break;
                     case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
                     // Generic data message
-                    case "param": this.fDSPCode.setParamValue(msg.data.path, msg.data.value); break;
+                    case "param": this.setParamValue(msg.data.path, msg.data.value); break;
                     // case "patch": this.onpatch(msg.data); break;
                     case "destroy": {
                         this.port.close();
@@ -131,6 +131,10 @@ namespace Faust {
                     default:
                         break;
                 }
+            }
+
+            protected setParamValue(path: string, value: number) {
+                this.fDSPCode.setParamValue(path, value);
             }
 
             protected midiMessage(data: number[] | Uint8Array) {
@@ -147,13 +151,13 @@ namespace Faust {
         }
 
         // Monophonic AudioWorkletProcessor
-        class FaustMonoAudioWorkletProcessor extends FaustAudioWorkletProcessorImp {
+        class FaustMonoAudioWorkletProcessorImp extends FaustAudioWorkletProcessorImp {
 
             constructor(options: AudioWorkletNodeOptions) {
                 super(options);
 
                 // Create Monophonic DSP
-                this.fDSPCode = new MonoDSPImp(new GeneratorImp().createSyncMonoDSPInstance(options.processorOptions.factory), sampleRate, 128);
+                this.fDSPCode = createMonoDSP(new GeneratorImp().createSyncMonoDSPInstance(options.processorOptions.factory), sampleRate, 128);
 
                 // Setup output handler
                 this.fDSPCode.setOutputParamHandler((path, value) => this.port.postMessage({ path, value, type: "param" }));
@@ -161,13 +165,13 @@ namespace Faust {
         }
 
         // Polyphonic AudioWorkletProcessor
-        class FaustPolyAudioWorkletProcessor extends FaustAudioWorkletProcessorImp {
+        class FaustPolyAudioWorkletProcessorImp extends FaustAudioWorkletProcessorImp {
 
             constructor(options: AudioWorkletNodeOptions) {
                 super(options);
 
                 // Create Polyphonic DSP
-                this.fDSPCode = new PolyDSPImp(new GeneratorImp().createSyncPolyDSPInstance(
+                this.fDSPCode = createPolyDSP(new GeneratorImp().createSyncPolyDSPInstance(
                     options.processorOptions.voice_factory,
                     options.processorOptions.mixer_module,
                     options.processorOptions.voices,
@@ -206,24 +210,25 @@ namespace Faust {
             }
 
             // Public API
+
             keyOn(channel: number, pitch: number, velocity: number) {
-                (this.fDSPCode as PolyDSPImp).keyOn(channel, pitch, velocity);
+                (this.fDSPCode as PolyDSP).keyOn(channel, pitch, velocity);
             }
 
             keyOff(channel: number, pitch: number, velocity: number) {
-                (this.fDSPCode as PolyDSPImp).keyOff(channel, pitch, velocity);
+                (this.fDSPCode as PolyDSP).keyOff(channel, pitch, velocity);
             }
 
-            allNotesOff() {
-                (this.fDSPCode as PolyDSPImp).allNotesOff();
+            allNotesOff(hard: boolean) {
+                (this.fDSPCode as PolyDSP).allNotesOff(hard);
             }
         }
 
         // Synchronously compile and instantiate the wasm module
         if (FaustConst.dsp_name.endsWith("_poly")) {
-            registerProcessor(FaustConst.dsp_name || "mydsp_poly", FaustPolyAudioWorkletProcessor);
+            registerProcessor(FaustConst.dsp_name || "mydsp_poly", FaustPolyAudioWorkletProcessorImp);
         } else {
-            registerProcessor(FaustConst.dsp_name || "mydsp", FaustMonoAudioWorkletProcessor);
+            registerProcessor(FaustConst.dsp_name || "mydsp", FaustMonoAudioWorkletProcessorImp);
         }
     }
 }
