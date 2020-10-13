@@ -143,38 +143,32 @@ declare namespace Faust {
     /**
      * Monophonic DSP implementation.
      */
-    // See https://www.typescriptlang.org/docs/handbook/interfaces.html
-    interface MonoDSPConstructor {
 
-        /**
-         * The MonoDSP constructor.
-         * 
-         * @param {Instance} instance - an instance created with 'createSyncMonoDSPInstance' or 'createAsyncMonoDSPInstance'
-         * @param {number} sample_rate - the sample rate in Hz
-         * @param {number} buffer_size - the buffer size in frames
-         * @return the created MonoDSP object 
-         */
-        new(instance: MonoInstance, sample_rate: number, buffer_size: number): MonoDSP;
-    }
+    /**
+     * The MonoDSP constructor.
+     * 
+     * @param {Instance} instance - an instance created with 'createSyncMonoDSPInstance' or 'createAsyncMonoDSPInstance'
+     * @param {number} sample_rate - the sample rate in Hz
+     * @param {number} buffer_size - the buffer size in frames
+     * @return the created MonoDSP object 
+     */
+    //export function createMonoDSP(instance: MonoInstance, sample_rate: number, buffer_size: number)
 
     interface MonoDSP extends BaseDSP { }
 
     /**
      * Polyphonic DSP implementation.
      */
-    // See https://www.typescriptlang.org/docs/handbook/interfaces.html
-    interface PolyDSPConstructor {
 
-        /**
-         * The PolyDSP constructor.
-         * 
-         * @param {Instance} instance - an instance created with 'createSyncPolyDSPInstance' or 'createAsyncPolyDSPInstance'
-         * @param {number} sample_rate - the sample rate in Hz
-         * @param {number} buffer_size - the buffer size in frames
-         * @return the created MonoDSP object 
-         */
-        new(instance: PolyInstance, sample_rate: number, buffer_size: number): PolyDSP;
-    }
+    /**
+     * The PolyDSP constructor.
+     * 
+     * @param {Instance} instance - an instance created with 'createSyncPolyDSPInstance' or 'createAsyncPolyDSPInstance'
+     * @param {number} sample_rate - the sample rate in Hz
+     * @param {number} buffer_size - the buffer size in frames
+     * @return the created MonoDSP object 
+     */
+    //export function createPolyDSP(instance: PolyInstance, sample_rate: number, buffer_size: number)
 
     interface PolyDSP extends BaseDSP {
 
