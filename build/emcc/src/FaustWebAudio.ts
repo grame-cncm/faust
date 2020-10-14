@@ -26,6 +26,9 @@
 // ScriptProcessorNode
 ///<reference path="FaustScriptProcessorNode.ts"/>
 
+// OfflineProcessor
+///<reference path="FaustOfflineProcessor.ts"/>
+
 namespace Faust {
 
     export class AudioNodeFactory implements AudioNodeFactory {
@@ -80,6 +83,13 @@ namespace Faust {
                 // Create the AWN
                 return new FaustMonoAudioWorkletNodeImp(context, name, factory);
             }
+        }
+
+        async createOfflineMonoProcessor(factory: Factory, sample_rate: number, buffer_size: number)
+            : Promise<FaustOfflineProcessor | null> {
+            const instance = await new GeneratorImp().createAsyncMonoDSPInstance(factory);
+            const mono_dsp = createMonoDSP(instance, sample_rate, buffer_size);
+            return new FaustOfflineProcessorImp(mono_dsp, buffer_size);
         }
 
         // We assume that 'dsp_code' can contain an integrated effect

@@ -219,6 +219,20 @@ declare namespace Faust {
     interface FaustPolyAudioWorkletNode extends AudioWorkletNode, PolyDSP { }
 
     /**
+     *  For offline rendering.
+     */
+    interface FaustOfflineProcessor {
+
+        /**
+         * Render frames in an array.
+         *
+         * @param {number} size - the number of frames to render
+         * @return {number} an array of Float32Array[] with the rendered frames
+         */
+        plot(size: number): Float32Array[];
+    }
+
+    /**
      * Monophonic/Polyphonic ScriptProcessorNode and AudioWorkletNode nodes creation.
      */
     interface AudioNodeFactory {
@@ -336,5 +350,16 @@ declare namespace Faust {
             effect_factory?: Factory,
             buffer_size?: number)
             : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
+
+        /**
+        * Create a monophonic Offline processor.
+        *
+        * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
+        * @param {number} sample_rate - the sample rate in Hz
+        * @param {number} buffer_size - the buffer size in frames
+        * @preturn {Promise<FaustOfflineProcessor | null>} the compiled processor or 'null' if failure
+       */
+        createOfflineMonoProcessor(factory: Factory, sample_rate: number, buffer_size: number)
+            : Promise<FaustOfflineProcessor | null>;
     }
 }

@@ -13,6 +13,7 @@ function misc(faust, log, code) {
     let res = faust.generateAuxFiles("test", code, options + " -lang wasm");
     msg = (res) ? "done" : faust.getErrorMessage();
     log("  generateAuxFiles      " + msg);
+
 }
 //----------------------------------------------------------------------------
 // create dsp factory and instance 
@@ -135,6 +136,25 @@ function svgdiagrams(faust, log, code) {
 }
 
 //----------------------------------------------------------------------------
+// Test offline processor
+//----------------------------------------------------------------------------
+async function offlineProcessor(faust, log) {
+
+    let signal = "import(\"stdfaust.lib\");\nprocess = 0.25,0.33, 0.6;";
+    let factory = await faust.createMonoDSPFactory("test", signal, options);
+    let fwan = new Faust.AudioNodeFactory();
+
+    log("offlineProcessor");
+    let offline = await fwan.createOfflineMonoProcessor(factory, 44100, 32);
+    let plotted = offline.plot(100);
+    for (let chan = 0; chan < plotted.length; chan++) {
+        for (let frame = 0; frame < 100; frame++) {
+            console.log("Chan %d sample %f\n", chan, plotted[chan][frame])
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
 // Main entry point
 //----------------------------------------------------------------------------
 async function run(engine, log, code, context) {
@@ -142,7 +162,6 @@ async function run(engine, log, code, context) {
     let faust = Faust.createCompiler(engine);
 
     log("libfaust version: " + faust.version());
-
 
     log("\n-----------------\nMisc tests" + faust.version());
     misc(faust, log, code);
@@ -163,6 +182,9 @@ async function run(engine, log, code, context) {
 
     log("\n-----------------\nTest SVG diagrams: ");
     svgdiagrams(engine, log, code);
+
+    log("\n-----------------\nTest Offline processor ");
+    offlineProcessor(faust, log);
 
 
     // Test nodes
