@@ -106,7 +106,7 @@ effect = *(hslider("Left", 0.1, 0, 1, 0.01)), *(hslider("Right", 0.1, 0, 1, 0.01
         });
 
         FaustModule().then((instance) => {
-            doit(new Faust.LibFaust(instance), context);
+            doit(Faust.createLibFaust(instance), context);
         });
 
     </script>

@@ -41,6 +41,8 @@ namespace Faust {
         setParamValue(dsp: DSP, index: number, value: number) { this.fExports.setParamValue(dsp, index, value); }
     }
 
+    export function createGenerator() { return new GeneratorImp(); }
+
     export class GeneratorImp implements Generator {
 
         private createWasmImport(memory?: WebAssembly.Memory): WebAssembly.Imports {

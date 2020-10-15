@@ -265,6 +265,9 @@ declare namespace Faust {
     /**
      * Monophonic/Polyphonic ScriptProcessorNode and AudioWorkletNode nodes creation.
      */
+
+    //export function createAudioNodeFactory(): AudioNodeFactory;
+
     interface AudioNodeFactory {
 
         /**

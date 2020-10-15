@@ -31,7 +31,9 @@
 
 namespace Faust {
 
-    export class AudioNodeFactory implements AudioNodeFactory {
+    export function createAudioNodeFactory() { return new AudioNodeFactoryImp(); }
+
+    export class AudioNodeFactoryImp implements AudioNodeFactory {
 
         // Table of all create WorkletProcessors, each of them has to be unique
         private fWorkletProcessors: string[] = [];

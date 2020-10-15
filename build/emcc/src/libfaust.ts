@@ -23,7 +23,12 @@
 
 namespace Faust {
 
-    export class LibFaust implements LibFaust {
+    // Public contructor
+    export function createLibFaust(engine: FaustModule) {
+        return new LibFaustImp(engine);
+    }
+
+    export class LibFaustImp implements LibFaust {
         private fModule: FaustModule;
         private fEngine: LibFaust;
 

@@ -39,9 +39,10 @@ declare namespace Faust {
         Low level interface to the faust library.
         Used for internal dev purpose only (not public)
     */
-    interface LibFaust {
 
-        new(engine: FaustModule): LibFaust;
+    //export function createLibFaust(engine: FaustModule) {
+
+    interface LibFaust {
 
         version(): string;
 

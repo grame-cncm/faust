@@ -19,7 +19,7 @@ function misc(faust, log, code) {
 // create dsp factory and instance 
 //----------------------------------------------------------------------------
 async function createDsp(faust, log, code) {
-    let gen = new Faust.GeneratorImp();
+    let gen = Faust.createGenerator();
 
     log("createMonoDSPFactory: ");
     let factory = await faust.createMonoDSPFactory("test", code, options);
@@ -53,7 +53,7 @@ async function createDsp(faust, log, code) {
 }
 
 async function createPolyDsp(faust, log, voice_code, effect_code) {
-    let gen = new Faust.GeneratorImp();
+    let gen = Faust.createGenerator();
 
     log("createPolyDSPFactory for voice: ");
     let voice_factory = await faust.createPolyDSPFactory("voice", voice_code, options);
@@ -142,7 +142,7 @@ async function offlineProcessor(faust, log) {
 
     let signal = "import(\"stdfaust.lib\");\nprocess = 0.25,0.33, 0.6;";
     let factory = await faust.createMonoDSPFactory("test", signal, options);
-    let fwan = new Faust.AudioNodeFactory();
+    let fwan = Faust.createAudioNodeFactory();
 
     log("offlineProcessor");
     let offline = await fwan.createOfflineMonoProcessor(factory, 44100, 32);
@@ -195,7 +195,7 @@ async function run(engine, log, code, context) {
     let factory = await faust.createMonoDSPFactory("test", code, options);
     console.log(factory);
     console.log(context);
-    let fwan = new Faust.AudioNodeFactory();
+    let fwan = faust.createAudioNodeFactory();
     */
 
     /*
@@ -235,7 +235,7 @@ async function run(engine, log, code, context) {
     console.log(factory);
     console.log(context);
 
-    let fwan = new Faust.AudioNodeFactory();
+    let fwan = Faust.createAudioNodeFactory();
     const mixer_file = await fetch("mixer32.wasm");
     const mixer_buffer = await mixer_file.arrayBuffer();
     const mixer_module = await WebAssembly.compile(mixer_buffer);
@@ -336,8 +336,8 @@ async function run(engine, log, code, context) {
     */
 
     /*
-    const factory1 = await new Faust.GeneratorImp().loadDSPFactory("noise.wasm", "noise.js");
-    const node = await new Faust.AudioNodeFactory().createMonoNode(context, "test", factory1, true, 512);
+    const factory1 = await Faust.createGenerator().loadDSPFactory("noise.wasm", "noise.js");
+    const node = await Faust.createAudioNodeFactory().createMonoNode(context, "test", factory1, true, 512);
     console.log(node);
     console.log(node.getParams());
     console.log(node.getJSON());

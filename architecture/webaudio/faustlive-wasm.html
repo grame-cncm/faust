@@ -959,8 +959,8 @@
             function init(instance)
             {
             	// Init Faust compiler and node generator
-            	faust = Faust.createCompiler(new Faust.LibFaust(instance));
-            	fwan = new Faust.AudioNodeFactory();
+            	faust = Faust.createCompiler(Faust.createLibFaust(instance));
+            	fwan = Faust.createAudioNodeFactory();
 			
                 // Check AudioWorklet support
                 if (!workletAvailable()) {

@@ -1,4 +1,4 @@
-# Faust Wasm Library
+# Faust WebAudio Library
 
 ## Building
 
