@@ -22,21 +22,17 @@
 declare namespace Faust {
 
     type FaustModule = any;
-    type WasmModule = number;
-
-    interface Expand {
-        dsp: string;
-        shakey: string;
-    }
 
     interface IntVector { size(): number; get(i: number): number; }
 
     interface FaustWasm {
+        cfactory: number;
         data: IntVector;
         json: string;
     }
+
     /*
-        Low level interface to the faust library.
+        Low level interface to the Faust library.
         Used for internal dev purpose only (not public)
     */
 
@@ -47,54 +43,46 @@ declare namespace Faust {
         version(): string;
 
         /**
-         * Create a dsp factory from faust code
+         * Create a dsp factory from Faust code.
          *
-         * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} name - an arbitrary name for the Faust module
+         * @param {string} dsp_content - Faust dsp code
          * @param {string} args - the compiler options
          * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
-         * @returns {WasmModule} an opaque reference to the factory
+         * @returns {FaustWasm} an opaque reference to the factory
          */
-        createDSPFactory(name_app: string, dsp_content: string, args: string, internal_memory: boolean): WasmModule;
+        createDSPFactory(name: string, dsp_content: string, args: string, internal_memory: boolean): FaustWasm;
 
         /**
-         * Expand faust code i.e. linearize included libraries
+         * Delete a dsp factory.
          *
-         * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
-         * @param {string} args - the compiler options
-         * @returns {Expand} contains the expanded dsp code and the corresponding sha key
-         */
-        expandDSP(name_app: string, dsp_content: string, args: string): Expand
+         * @param {number} cfactory - the factory C++ internal pointer as a number
+        */
+        deleteDSPFactory(cfactory: number): void;
 
         /**
-         * Generates auxiliary files from faust code. The output depends on the compiler options
+         * Expand Faust code i.e. linearize included libraries.
          *
-         * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} name - an arbitrary name for the Faust module
+         * @param {string} dsp_content - Faust dsp code
          * @param {string} args - the compiler options
+         * @returns {string} return the expanded dsp code
          */
-        generateAuxFiles(name_app: string, dsp_content: string, args: string): boolean;
+        expandDSP(name: string, dsp_content: string, args: string): string
 
         /**
-         * Delete all existing dsp factories 
+         * Generates auxiliary files from Faust code. The output depends on the compiler options.
+         *
+         * @param {string} name - an arbitrary name for the faust module
+         * @param {string} dsp_content - Faust dsp code
+         * @param {string} args - the compiler options
+         */
+        generateAuxFiles(name: string, dsp_content: string, args: string): boolean;
+
+        /**
+         * Delete all existing dsp factories.
          */
         deleteAllDSPFactories(): void;
-
-        /**
-         * Get wasm code from a module
-         *
-         * @param {WasmModule} module - a module created using createDSPFactory
-         * @return {FaustWasm} wasm code as vector of numbers and JSON string
-        */
-        getWasmModule(module: WasmModule): FaustWasm;
-
-        /**
-         * Release a module created using createDSPFactory
-         *
-         * @param {WasmModule} module - a module created using createDSPFactory
-         */
-        freeWasmModule(module: WasmModule): void;
 
         /**
          * Exception management: gives an error string

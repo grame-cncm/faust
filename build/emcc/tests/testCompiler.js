@@ -7,7 +7,7 @@ var effectCode = 'process = _*(hslider("Left", 0.1, 0, 1, 0.01)), _*(hslider("Ri
 //----------------------------------------------------------------------------
 function misc(faust, log, code) {
     let exp = faust.expandDSP("test", code, options);
-    let msg = (exp) ? (exp.dsp + " sha " + exp.shakey) : faust.getErrorMessage();
+    let msg = (exp) ? exp : faust.getErrorMessage();
     log("  expandDSP             " + msg);
 
     let res = faust.generateAuxFiles("test", code, options + " -lang wasm");
@@ -30,6 +30,8 @@ async function createDsp(faust, log, code) {
         log("factory is null");
         return;
     }
+    log("deleteDSPFactory");
+    faust.deleteDSPFactory(factory);
 
     log("createSyncMonoDSPInstance: ");
     let instance1 = gen.createSyncMonoDSPInstance(factory);
@@ -171,8 +173,10 @@ async function run(engine, log, code, context) {
     log("\n-----------------\nCreating DSP instance:");
     await createDsp(faust, log, code);
 
+
     log("\n-----------------\nCreating Poly DSP instance:");
     await createPolyDsp(faust, log, code, effectCode);
+
 
     log("\n-----------------\nCreating DSP instance with error code:");
     await createDsp(faust, log, errCode).catch(e => { log(e); });
@@ -185,7 +189,6 @@ async function run(engine, log, code, context) {
 
     log("\n-----------------\nTest Offline processor ");
     offlineProcessor(faust, log);
-
 
     // Test nodes
 

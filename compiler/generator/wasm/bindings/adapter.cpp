@@ -12,7 +12,9 @@
 
 #include <vector>
 #include <sstream>
+
 #include "adapter.h"
+#include "Text.hh"
 
 using namespace std;
 
@@ -20,7 +22,7 @@ static void string2StringsVector(const string& args, vector<string>& strings)
 {
     stringstream tokenizer(args);
     string token;
-    
+
     // Use ' ' as delim for cutting string
     while (getline(tokenizer, token, ' ')) { strings.push_back(token); }
 }
@@ -39,35 +41,54 @@ static const char** stringVector2argv(const vector<string>& v)
 }
 
 // Public API
-int libFaustWasm::createDSPFactory(const string name, const string dsp_content, const string args_aux, bool internal_memory)
+FaustWasm libFaustWasm::createDSPFactory(const string name, const string dsp_content, const string args_aux, bool internal_memory)
 {
     vector<string> argsv;
     string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
    
-    // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
-    char errmsg[4096]; errmsg[0] = 0;
-    int out;
+    // 'error_msg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
+    string error_msg;
     const char** args = stringVector2argv(argsv);
-    out = int(::createWasmCDSPFactoryFromString(name.c_str(), dsp_content.c_str(), n, args, errmsg, internal_memory));
+    wasm_dsp_factory* factory = ::createWasmDSPFactoryFromString(name, dsp_content, n, args, error_msg, internal_memory);
     delete [] args;
+    
+    FaustWasm out;
+    if (factory) {
+        // Keep C++ pointer as an int
+        out.cfactory = int(factory);
+        
+        // 'Binary' string, so directly copy its raw content
+        string code = factory->getBinaryCode();
+        for (size_t i = 0; i < code.size(); i++) {
+            out.data.push_back(code[i]);
+        }
+        
+        // JSON file
+        stringstream json;
+        factory->writeHelper(&json, false, false);
+        out.json = flatten(json.str());
+    }
     return out;
 }
 
-ExpandOut libFaustWasm::expandDSP(const string name, const string dsp_content, const string args_aux)
+void libFaustWasm::deleteDSPFactory(int cfactory)
+{
+    deleteWasmDSPFactory(static_cast<wasm_dsp_factory*>((void*)cfactory));
+}
+
+string libFaustWasm::expandDSP(const string name, const string dsp_content, const string args_aux)
 {
     vector<string> argsv;
     string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
-   
-    ExpandOut out;
-    const char** args = stringVector2argv(argsv);
+    
     // 'errmsg' is actually not used: the possible error is returned in 'faustexception::gJSExceptionMsg'
     string sha_key, error_msg;
-    out.dsp = ::expandDSPFromString(name, dsp_content, n, args, sha_key, error_msg);
+    const char** args = stringVector2argv(argsv);
+    string expanded = ::expandDSPFromString(name, dsp_content, n, args, sha_key, error_msg);
     delete [] args;
-    out.shakey = sha_key;
-    return out;
+    return expanded;
 }
 
 bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content, const string args_aux)
@@ -83,18 +104,3 @@ bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content,
     delete [] args;
     return out;
 }
-
-FaustWasm libFaustWasm::getWasmModule(int mptr)
-{
-    WasmModule* module = static_cast<WasmModule*>((void*)mptr);
-    faustassert(module);
-    
-    FaustWasm out;
-    const char* ptr = getWasmCModule(module);
-    for (int i = 0; i < getWasmCModuleSize(module); i++) {
-        out.data.push_back(*ptr++);
-    }
-    out.json = getWasmCHelpers(module);
-    return out;
-}
-

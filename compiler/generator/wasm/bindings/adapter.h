@@ -21,14 +21,13 @@
 
 using namespace std;
 
-struct ExpandOut {
-    std::string dsp;
-    std::string shakey;
-};
-
 struct FaustWasm {
+    int cfactory;
     std::vector<int> data;
     std::string json;
+    
+    FaustWasm():cfactory(0)
+    {}
 };
 
 class libFaustWasm
@@ -38,14 +37,13 @@ class libFaustWasm
         virtual ~libFaustWasm() {};
     
         std::string version() { return ::getCLibFaustVersion(); }
-        int  		createDSPFactory(const std::string name, const std::string dsp, const std::string args, bool internal_memory);
-        ExpandOut   expandDSP(const std::string name, const std::string dsp, const std::string args);
-        bool      	generateAuxFiles(const std::string name, const std::string dsp, const std::string args);
     
+        FaustWasm   createDSPFactory(const string name, const string dsp_content, const string args_aux, bool internal_memory);
         void        deleteAllDSPFactories() { ::deleteAllWasmCDSPFactories(); }
+        void        deleteDSPFactory(int cfactory);
     
-        FaustWasm   getWasmModule(int module);
-        void        freeWasmModule(int module) { ::freeWasmCModule(static_cast<WasmModule*>((void*)module)); }
+        std::string expandDSP(const std::string name, const std::string dsp, const std::string args);
+        bool        generateAuxFiles(const std::string name, const std::string dsp, const std::string args);
     
         void        cleanupAfterException() { ::cleanupAfterException(); }
         std::string getErrorAfterException() { return ::getErrorAfterException(); }

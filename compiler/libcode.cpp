@@ -1490,8 +1490,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
             container = WASMCodeContainer::createContainer(
                 gGlobal->gClassName, numInputs, numOutputs, dst.get(),
-                ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
-                 (gGlobal->gOutputLang == "wasm-ib")));
+                ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
 
             // Additional file with JS code
             if (gGlobal->gOutputFile == "binary") {

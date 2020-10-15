@@ -19,17 +19,8 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(CStruct) {
     
-//    value_object<FactoryOut>("FactoryOut")
-//        .field("module", &FactoryOut::module);
-    
-    value_object<ExpandOut>("ExpandOut")
-        .field("dsp", &ExpandOut::dsp)
-        .field("shakey", &ExpandOut::shakey);
-    
-//    value_object<AuxOut>("AuxOut")
-//        .field("success", &AuxOut::success);
-//
     value_object<FaustWasm>("FaustWasm")
+        .field("cfactory", &FaustWasm::cfactory)
         .field("data", &FaustWasm::data)
         .field("json", &FaustWasm::json);
 }
@@ -41,12 +32,12 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
     .function("version",                &libFaustWasm::version, allow_raw_pointers())
     
     .function("createDSPFactory",       &libFaustWasm::createDSPFactory, allow_raw_pointers())
-    .function("expandDSP",              &libFaustWasm::expandDSP, allow_raw_pointers())
-    .function("generateAuxFiles",       &libFaustWasm::generateAuxFiles, allow_raw_pointers())
+    .function("deleteDSPFactory",       &libFaustWasm::deleteDSPFactory, allow_raw_pointers())
     .function("deleteAllDSPFactories",  &libFaustWasm::deleteAllDSPFactories)
     
-    .function("getWasmModule",          &libFaustWasm::getWasmModule, allow_raw_pointers())
-    .function("freeWasmModule",         &libFaustWasm::freeWasmModule, allow_raw_pointers())
+    .function("expandDSP",              &libFaustWasm::expandDSP, allow_raw_pointers())
+    .function("generateAuxFiles",       &libFaustWasm::generateAuxFiles, allow_raw_pointers())
+    
     .function("cleanupAfterException",  &libFaustWasm::cleanupAfterException)
     .function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers());
     

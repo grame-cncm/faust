@@ -89,7 +89,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
                                                         const char* argv[], string& error_msg, bool internal_memory)
 {
     string expanded_dsp_content, sha_key;
-
+  
     // Distinguish factories depending of the 'internal_memory' state
     if ((expanded_dsp_content = sha1FromDSP(name_app + ((internal_memory) ? "wasm-i" : "wasm-e"), dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
@@ -178,68 +178,6 @@ EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, 
         createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
-}
-
-static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
-{
-    strncpy(error_msg, error_msg_aux.c_str(), 4096);
-    if (factory) {
-        WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
-
-        // 'Binary' string, so directly copy its raw content
-        string code = factory->getBinaryCode();
-        res->fWASMCodeSize = (int)code.size();
-        res->fWASMCode     = (char*)malloc(res->fWASMCodeSize);
-        memcpy(res->fWASMCode, code.c_str(), res->fWASMCodeSize);
-
-        stringstream dst2;
-        factory->writeHelper(&dst2, false, false);
-        res->fJSHelpers = strdup(flatten(dst2.str()).c_str());
-
-        return res;
-        // And keep factory...
-    } else {
-        return nullptr;
-    }
-}
-
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
-                                                 bool internal_memory)
-{
-    string            error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
-    return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
-}
-
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                   const char* argv[], char* error_msg, bool internal_memory)
-{
-    string            error_msg_aux;
-    wasm_dsp_factory* factory =
-        createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
-    return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
-}
-
-EXPORT const char* getWasmCModule(WasmModule* module)
-{
-    return module->fWASMCode;
-}
-
-EXPORT int getWasmCModuleSize(WasmModule* module)
-{
-    return module->fWASMCodeSize;
-}
-
-EXPORT const char* getWasmCHelpers(WasmModule* module)
-{
-    return module->fJSHelpers;
-}
-
-EXPORT void freeWasmCModule(WasmModule* module)
-{
-    free((void*)module->fWASMCode);
-    free((void*)module->fJSHelpers);
-    free(module);
 }
 
 #ifdef __cplusplus

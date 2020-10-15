@@ -54,8 +54,6 @@ using namespace std;
  Code generation, the flags can be:
     - 'wasm-i' (internal memory for monophonic DSP)
     - 'wasm-e' (external memory for polyphonic DSP)
-    - 'wasm-ib' (internal memory for monophonic DSP and binary code generated as base64)
-    - 'wasm-eb' (external memory for polyphonic DSP and binary code generated as base64)
     - or 'wasm' which is equivalent to 'wasm-i'
 */
 
@@ -351,67 +349,7 @@ void WASMCodeContainer::produceClass()
     fBinaryOut.writeTo(*fOut);
 
     // Helper code
-    int n = 0;
-
-    // Generate JSON
-//    tab(n, fHelper);
-//    fHelper << "/*\n"
-//            << "Code generated with Faust version " << FAUSTVERSION << endl;
-//    fHelper << "Compilation options: ";
-//    gGlobal->printCompilationOptions(fHelper);
-//    fHelper << "\n*/\n";
-
-//    // Generate JSON
-//    tab(n, fHelper);
-//    string json2 = flattenJSON1(json);
-//    fHelper << "function getJSON" << fKlassName << "() {";
-//    tab(n + 1, fHelper);
-//    fHelper << "return '";
-//    fHelper << json2;
-//    fHelper << "';";
-//    printlines(n + 1, fUICode, fHelper);
-//    tab(n, fHelper);
-//    fHelper << "}\n";
-    
     fHelper << json;
-
-    if (gGlobal->gOutputLang == "wasm-ib" || gGlobal->gOutputLang == "wasm-eb") {
-        /*
-        // Write binary as an array
-        fHelper << showbase         // show the 0x prefix
-                << internal         // fill between the prefix and the number
-                << setfill('0');    // fill with 0s
-        {
-            fHelper << "function getBinaryCode" << fKlassName << "() {";
-                tab(n+1, fHelper);
-                fHelper << "return new Uint8Array([";
-                char sep = ' ';
-                for (int i = 0; i < fBinaryOut.size(); i++) {
-                    fHelper << sep << hex << int(fBinaryOut[i]);
-                    sep = ',';
-                }
-                fHelper << "]).buffer; }\n";
-            tab(n, fHelper);
-        }
-
-        {
-            fHelper << "function getBinaryCodeString" << fKlassName << "() {";
-                tab(n+1, fHelper);
-                fHelper << "return \"new Uint8Array([";
-                char sep = ' ';
-                for (int i = 0; i < fBinaryOut.size(); i++) {
-                    fHelper << sep << hex << int(fBinaryOut[i]);
-                    sep = ',';
-                }
-                fHelper << "]).buffer\"; }\n";
-            tab(n, fHelper);
-        }
-        */
-
-        fHelper << "function getBase64Code" << fKlassName << "() {";
-        fHelper << " return \"" << base64_encode(fBinaryOut.toString()) << "\"; }\n";
-        tab(n, fHelper);
-    }
 }
 
 // Auxiliary function for shared code in generateCompute

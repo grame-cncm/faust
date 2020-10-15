@@ -40,13 +40,13 @@ namespace Faust {
             return ui8Code;
         }
 
-        private async createDSPFactory(name: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
+        private async createDSPFactoryImp(name: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
             try {
-                const factory = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
+                // Can possibly raise and exception catched by 
+                const faust_wasm = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
                 try {
-                    const wasm = this.fFaustEngine.getWasmModule(factory);
-                    const module = await WebAssembly.compile(this.intVec2intArray(wasm.data));
-                    return { module: module, json: wasm.json, poly: poly };
+                    const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
+                    return { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly };
                 } catch (e) {
                     console.error(e);
                     return null;
@@ -70,17 +70,20 @@ namespace Faust {
         getErrorMessage(): string { return this.fErrorMessage; }
 
         async createMonoDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null> {
-            return this.createDSPFactory(name, dsp_code, args, false);
+            return this.createDSPFactoryImp(name, dsp_code, args, false);
         }
 
         async createPolyDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null> {
-            return this.createDSPFactory(name, dsp_code, args, true);
+            return this.createDSPFactoryImp(name, dsp_code, args, true);
         }
 
-        expandDSP(name: string, dsp_code: string, args: string): ExpandOut | null {
+        deleteDSPFactory(factory: Factory): void {
+            this.fFaustEngine.deleteDSPFactory(factory.cfactory);
+        }
+
+        expandDSP(name: string, dsp_code: string, args: string): string | null {
             try {
-                const out = this.fFaustEngine.expandDSP(name, dsp_code, args);
-                return { dsp: out.dsp, shakey: out.shakey };
+                return this.fFaustEngine.expandDSP(name, dsp_code, args);
             } catch {
                 this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
                 console.error("=> exception raised while running expandDSP: " + this.fErrorMessage);

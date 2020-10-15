@@ -5,6 +5,7 @@
 declare namespace Faust {
 
     interface Factory {
+        cfactory: number;
         module: WebAssembly.Module;
         json: string;
         poly: boolean;
@@ -60,14 +61,21 @@ declare namespace Faust {
         createPolyDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null>;
 
         /**
+         * Delete a dsp factory.
+         *
+         * @param {Factory} factory - the factory to be deleted
+         */
+        deleteDSPFactory(factory: Factory): void;
+
+        /**
          * Expand Faust code i.e. linearize included libraries.
          *
          * @param {string} name - an arbitrary name for the Faust module
          * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
-         * @returns {Expand} contains the expanded dsp code and the corresponding sha key
+         * @returns {interface} returns the expanded dsp code
          */
-        expandDSP(name: string, dsp_code: string, args: string): ExpandOut | null
+        expandDSP(name: string, dsp_code: string, args: string): string | null
 
         /**
          * Generates auxiliary files from Faust code. The output depends on the compiler options.
