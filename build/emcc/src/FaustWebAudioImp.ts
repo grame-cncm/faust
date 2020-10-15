@@ -28,6 +28,11 @@ namespace Faust {
     export class BaseDSPImp implements BaseDSP {
 
         protected fOutputHandler: OutputParamHandler | null;
+        protected fComputeHandler: ComputeHandler | null;
+        protected fPlotHandler: PlotHandler | null;
+
+        protected fCachedEvents: { type: string; data: any }[];
+        protected fBufferNum: number;
 
         protected fInChannels: Float32Array[];
         protected fOutChannels: Float32Array[];
@@ -55,6 +60,13 @@ namespace Faust {
 
         constructor(buffer_size: number) {
             this.fOutputHandler = null;
+            this.fComputeHandler = null;
+
+            // To handle MIDI events plot
+            this.fCachedEvents = [];
+            this.fBufferNum = 0;
+            this.fPlotHandler = null;
+
             this.fBufferSize = buffer_size;
 
             this.fInChannels = [];
@@ -141,11 +153,25 @@ namespace Faust {
             return false;
         }
 
-        setOutputParamHandler(handler: OutputParamHandler) {
+        setOutputParamHandler(handler: OutputParamHandler | null) {
             this.fOutputHandler = handler;
         }
         getOutputParamHandler(): OutputParamHandler | null {
             return this.fOutputHandler;
+        }
+
+        setComputeHandler(handler: ComputeHandler | null) {
+            this.fComputeHandler = handler;
+        }
+        getComputeHandler(): ComputeHandler | null {
+            return this.fComputeHandler;
+        }
+
+        setPlotHandler(handler: PlotHandler | null) {
+            this.fPlotHandler = handler;
+        }
+        getPlotHandler(): PlotHandler | null {
+            return this.fPlotHandler;
         }
 
         getNumInputs() {
@@ -156,7 +182,7 @@ namespace Faust {
         }
 
         midiMessage(data: number[] | Uint8Array) {
-            // TODO: node.cachedEvents.push({ data, type: "midi" });
+            if (this.fPlotHandler) this.fCachedEvents.push({ data, type: "midi" });
             const cmd = data[0] >> 4;
             const channel = data[0] & 0xf;
             const data1 = data[1];
@@ -166,20 +192,22 @@ namespace Faust {
         };
 
         ctrlChange(channel: number, ctrl: number, value: number) {
-            // TODO: node.cachedEvents.push({ type: "ctrlChange", data: [channel, ctrl, value] });
+            if (this.fPlotHandler) this.fCachedEvents.push({ type: "ctrlChange", data: [channel, ctrl, value] });
             if (this.fCtrlLabel[ctrl].length) {
                 this.fCtrlLabel[ctrl].forEach((ctrl) => {
                     const { path } = ctrl;
                     this.setParamValue(path, BaseDSPImp.remap(value, 0, 127, ctrl.min, ctrl.max));
+                    // Typically used to reflect parameter change on GUI
                     if (this.fOutputHandler) this.fOutputHandler(path, this.getParamValue(path));
                 });
             }
         }
 
         pitchWheel(channel: number, wheel: number) {
-            // TODO : node.cachedEvents.push({ type: "pitchWheel", data: [channel, wheel] });
+            if (this.fPlotHandler) this.fCachedEvents.push({ type: "pitchWheel", data: [channel, wheel] });
             this.fPitchwheelLabel.forEach((pw) => {
                 this.setParamValue(pw.path, BaseDSPImp.remap(wheel, 0, 16383, pw.min, pw.max));
+                // Typically used to reflect parameter change on GUI
                 if (this.fOutputHandler) this.fOutputHandler(pw.path, this.getParamValue(pw.path));
             });
         }
@@ -190,7 +218,12 @@ namespace Faust {
         getParams() { return this.fInputsItems; }
         getJSON() { return ""; }
         getUI() { return this.fJSONDsp.ui; }
-        destroy() { this.fDestroyed = true; }
+        destroy() {
+            this.fDestroyed = true;
+            this.fOutputHandler = null;
+            this.fComputeHandler = null;
+            this.fPlotHandler = null;
+        }
     }
 
     // Monophonic DSP
@@ -300,10 +333,8 @@ namespace Faust {
                 }
             }
 
-            /*
             // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
-            if (this.computeHandler) this.computeHandler(this.bufferSize);
-            */
+            if (this.fComputeHandler) this.fComputeHandler(this.fBufferSize);
 
             // Compute
             this.fInstance.api.compute(this.fDSP, this.fBufferSize, this.fAudioInputs, this.fAudioOutputs);
@@ -311,19 +342,20 @@ namespace Faust {
             // Update bargraph
             this.updateOutputs();
 
-            // Copy outputs
             if (output !== undefined) {
+                // Copy outputs
                 for (let chan = 0; chan < Math.min(this.getNumOutputs(), output.length); chan++) {
                     const dspOutput = this.fOutChannels[chan];
                     output[chan].set(dspOutput);
                 }
+
+                // PlotHandler handling 
+                if (this.fPlotHandler) {
+                    this.fPlotHandler(output, this.fBufferNum++, (this.fCachedEvents.length ? this.fCachedEvents : undefined));
+                    this.fCachedEvents = [];
+                }
             }
 
-            // TODO
-            /*
-            this.port.postMessage({ type: "plot", value: output, index: this.$buffer++, events: this.cachedEvents });
-            this.cachedEvents = [];
-            */
             return true;
         }
 
@@ -337,6 +369,7 @@ namespace Faust {
         }
 
         setParamValue(path: string, value: number) {
+            if (this.fPlotHandler) this.fCachedEvents.push({ type: "param", data: { path, value } });
             this.fInstance.api.setParamValue(this.fDSP, this.fPathTable[path], value);
         }
         getParamValue(path: string) {
@@ -628,10 +661,8 @@ namespace Faust {
                 }
             }
 
-            /*
             // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
-            if (this.computeHandler) this.computeHandler(this.bufferSize);
-            */
+            if (this.fComputeHandler) this.fComputeHandler(this.fBufferSize);
 
             // Compute
             this.fInstance.mixer_api.clearOutput(this.fBufferSize, this.getNumOutputs(), this.fAudioOutputs);
@@ -644,19 +675,20 @@ namespace Faust {
             // Update bargraph
             this.updateOutputs();
 
-            // Copy outputs
             if (output !== undefined) {
+                // Copy outputs
                 for (let chan = 0; chan < Math.min(this.getNumOutputs(), output.length); chan++) {
                     const dspOutput = this.fOutChannels[chan];
                     output[chan].set(dspOutput);
                 }
+
+                // PlotHandler handling 
+                if (this.fPlotHandler) {
+                    this.fPlotHandler(output, this.fBufferNum++, (this.fCachedEvents.length ? this.fCachedEvents : undefined));
+                    this.fCachedEvents = [];
+                }
             }
 
-            // TODO
-            /*
-            this.port.postMessage({ type: "plot", value: output, index: this.$buffer++, events: this.cachedEvents });
-            this.cachedEvents = [];
-            */
             return true;
         }
         getNumInputs() {
@@ -680,7 +712,7 @@ namespace Faust {
         }
 
         setParamValue(path: string, value: number) {
-            // TODO:  node.cachedEvents.push({ type: "param", data: { path, value } });
+            if (this.fPlotHandler) this.fCachedEvents.push({ type: "param", data: { path, value } });
             if (this.fJSONEffect && PolyDSPImp.findPath(this.fJSONEffect.ui, path) && this.fInstance.effect_api) {
                 this.fInstance.effect_api.setParamValue(this.fEffect, this.fPathTable[path], value);
             } else {
@@ -770,6 +802,7 @@ namespace Faust {
         }
 
         allNotesOff(hard: boolean = true) {
+            this.fCachedEvents.push({ type: "ctrlChange", data: [0, 123, 0] });
             this.fVoiceTable.forEach(voice => voice.keyOff(hard));
         }
     }

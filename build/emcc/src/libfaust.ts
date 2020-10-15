@@ -35,32 +35,31 @@ namespace Faust {
         version(): string { return this.fEngine.version(); }
 
         /**
-         * Create a dsp factory from faust code
+         * Create a dsp factory from Faust code
          *
-         * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} name_app - an arbitrary name for the Faust module
+         * @param {string} dsp_content - Faust dsp code
          * @param {string} args - the compiler options
          * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
          * @returns {WasmModule} an opaque reference to the factory
          */
         createDSPFactory(name_app: string, dsp_content: string, args: string, internal_memory: boolean): WasmModule { return this.fEngine.createDSPFactory(name_app, dsp_content, args, internal_memory); }
 
-
         /**
-         * Expand faust code i.e. linearize included libraries
+         * Expand Faust code i.e. linearize included libraries
          *
-         * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} name_app - an arbitrary name for the Faust module
+         * @param {string} dsp_content - Faust dsp code
          * @param {string} args - the compiler options
          * @returns {Expand} contains the expanded dsp code and the corresponding sha key
          */
         expandDSP(name_app: string, dsp_content: string, args: string): Expand { return this.fEngine.expandDSP(name_app, dsp_content, args); }
 
         /**
-         * Generates auxiliary files from faust code. The output depends on the compiler options
+         * Generates auxiliary files from Faust code. The output depends on the compiler options
          *
-         * @param {string} name_app - an arbitrary name for the faust module
-         * @param {string} dsp_content - faust dsp code
+         * @param {string} name_app - an arbitrary name for the Faust module
+         * @param {string} dsp_content - Faust dsp code
          * @param {string} args - the compiler options
          */
         generateAuxFiles(name_app: string, dsp_content: string, args: string): boolean { return this.fEngine.generateAuxFiles(name_app, dsp_content, args); }

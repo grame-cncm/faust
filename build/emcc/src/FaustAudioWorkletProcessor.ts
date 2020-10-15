@@ -108,8 +108,6 @@ namespace Faust {
 
             protected handleMessageAux(e: MessageEvent) { // use arrow function for binding
                 const msg = e.data;
-                // TODO
-                //this.cachedEvents.push({ type: e.data.type, data: e.data.data });
 
                 switch (msg.type) {
                     // Generic MIDI message
@@ -119,13 +117,18 @@ namespace Faust {
                     case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
                     // Generic data message
                     case "param": this.setParamValue(msg.data.path, msg.data.value); break;
-                    // case "patch": this.onpatch(msg.data); break;
+                    // Plot handler set on demand
+                    case "setPlotHandler": {
+                        if (msg.data) {
+                            this.fDSPCode.setPlotHandler((output, index, events) => this.port.postMessage({ type: "plot", value: output, index: index, events: events }));
+                        } else {
+                            this.fDSPCode.setPlotHandler(null);
+                        }
+                        break;
+                    }
                     case "destroy": {
                         this.port.close();
                         this.fDSPCode.destroy();
-                        // STILL NEEDED ?
-                        //delete this.fOutputHandler;
-                        //delete this.fComputeHandler;
                         break;
                     }
                     default:

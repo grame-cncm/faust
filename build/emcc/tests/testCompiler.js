@@ -197,6 +197,7 @@ async function run(engine, log, code, context) {
     console.log(context);
     let fwan = new Faust.AudioNodeFactory();
     */
+
     /*
     // Testing SP mode
     let node = await fwan.createMonoNode(context, "test", factory, true, 512);
@@ -205,6 +206,7 @@ async function run(engine, log, code, context) {
     console.log(node.getJSON());
     node.setParamValue("/test/freq", 300);
     node.connect(context.destination);
+    node.setPlotHandler((output, index, events) => { console.log(index); console.log(events); });
     */
 
     /*
@@ -215,6 +217,7 @@ async function run(engine, log, code, context) {
     console.log(node1.getJSON());
     node1.setParamValue("/test/freq", 700);
     node1.connect(context.destination);
+    node1.setPlotHandler((output, index, events) => { console.log(index); console.log(events); });
     */
 
     /*
@@ -237,10 +240,9 @@ async function run(engine, log, code, context) {
     const mixer_buffer = await mixer_file.arrayBuffer();
     const mixer_module = await WebAssembly.compile(mixer_buffer);
 
-
     /*
     // Testing polyphonic SP mode
-    let node3 = await fwan.createPolyNode(context, "mydsp2", factory, mixer_module, 8, true, 512);
+    let node3 = await fwan.createPolyNode(context, "mydsp2", factory, mixer_module, 8, true, null, 512);
     console.log(node3);
     console.log(node3.getParams());
     console.log(node3.getJSON());
@@ -251,10 +253,10 @@ async function run(engine, log, code, context) {
     node3.keyOn(0, 67, 50);
     //node3.keyOn(0, 71, 50);
     //node3.keyOn(0, 76, 50);
+    node3.setPlotHandler((output, index, events) => { console.log(index); console.log(events); });
     */
 
 
-    /*
     // Testing polyphonic Worklet mode
     let node3 = await fwan.createPolyNode(context, "mydsp2", factory, mixer_module, 8, false);
     console.log(node3);
@@ -267,7 +269,8 @@ async function run(engine, log, code, context) {
     node3.keyOn(0, 67, 50);
     node3.keyOn(0, 71, 50);
     node3.keyOn(0, 76, 50);
-    */
+    //node3.setPlotHandler((output, index, events) => { console.log(index); console.log(events); });
+
 
     /*
     // Testing polyphonic Worklet mode
@@ -300,7 +303,7 @@ async function run(engine, log, code, context) {
     //node5.keyOn(0, 76, 50);
     */
 
-
+    /*
     // Testing polyphonic Worklet mode
     console.log(faust);
     let node6 = await fwan.compilePolyNode(context, "mydsp2", faust, code, options, 8, false);
@@ -314,7 +317,7 @@ async function run(engine, log, code, context) {
     node6.keyOn(0, 67, 50);
     node6.keyOn(0, 71, 50);
     //node6.keyOn(0, 76, 50);
-
+    */
 
     /*
     // Testing polyphonic Worklet mode

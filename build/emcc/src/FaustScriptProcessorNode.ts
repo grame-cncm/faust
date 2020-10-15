@@ -59,6 +59,18 @@ namespace Faust {
 
             node.getOutputParamHandler = () => { return this.fDSPCode.getOutputParamHandler(); }
 
+            node.setComputeHandler = (handler: ComputeHandler) => {
+                this.fDSPCode.setComputeHandler(handler);
+            }
+
+            node.getComputeHandler = () => { return this.fDSPCode.getComputeHandler(); }
+
+            node.setPlotHandler = (handler: PlotHandler) => {
+                this.fDSPCode.setPlotHandler(handler);
+            }
+
+            node.getPlotHandler = () => { return this.fDSPCode.getPlotHandler(); }
+
             node.getNumInputs = () => { return this.fDSPCode.getNumInputs(); }
             node.getNumOutputs = () => { return this.fDSPCode.getNumOutputs(); }
 

@@ -30,6 +30,8 @@ namespace Faust {
         protected fJSON: string;
         protected fInputsItems: string[];
         protected fOutputHandler: OutputParamHandler | null;
+        protected fComputeHandler: ComputeHandler | null;
+        protected fPlotHandler: PlotHandler | null;
 
         constructor(context: BaseAudioContext, name: string, factory: Factory, options: any) {
 
@@ -50,6 +52,8 @@ namespace Faust {
             this.fJSONDsp = JSONObj;
             this.fJSON = factory.json;
             this.fOutputHandler = null;
+            this.fComputeHandler = null;
+            this.fPlotHandler = null;
 
             // Parse UI
             this.fInputsItems = [];
@@ -66,18 +70,37 @@ namespace Faust {
                 if (e.data.type === "param" && this.fOutputHandler) {
                     this.fOutputHandler(e.data.path, e.data.value);
                 } else if (e.data.type === "plot") {
-                    // TODO
-                    //if (this.plotHandler) this.plotHandler(e.data.value, e.data.index, e.data.events);
+                    if (this.fPlotHandler) this.fPlotHandler(e.data.value, e.data.index, e.data.events);
                 }
             };
         }
 
         // Public API
-        setOutputParamHandler(handler: OutputParamHandler) {
+        setOutputParamHandler(handler: OutputParamHandler | null) {
             this.fOutputHandler = handler;
         }
         getOutputParamHandler() {
             return this.fOutputHandler;
+        }
+
+        setComputeHandler(handler: ComputeHandler | null) {
+            this.fComputeHandler = handler;
+        }
+        getComputeHandler(): ComputeHandler | null {
+            return this.fComputeHandler;
+        }
+
+        setPlotHandler(handler: PlotHandler | null) {
+            this.fPlotHandler = handler;
+            // Set PlotHandler on processor side
+            if (this.fPlotHandler) {
+                this.port.postMessage({ type: "setPlotHandler", data: true });
+            } else {
+                this.port.postMessage({ type: "setPlotHandler", data: false });
+            }
+        }
+        getPlotHandler(): PlotHandler | null {
+            return this.fPlotHandler;
         }
 
         getNumInputs() {
@@ -101,7 +124,7 @@ namespace Faust {
             const data2 = data[2];
             if (cmd === 11) this.ctrlChange(channel, data1, data2);
             else if (cmd === 14) this.pitchWheel(channel, data2 * 128.0 + data1);
-            else this.port.postMessage({ data, type: "midi" });
+            else this.port.postMessage({ type: "midi", data: data });
         }
 
         ctrlChange(channel: number, ctrl: number, value: number) {

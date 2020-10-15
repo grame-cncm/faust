@@ -22,7 +22,9 @@
 declare namespace Faust {
 
     // Public API
-    interface OutputParamHandler { (path: string, value: number): void }
+    interface OutputParamHandler { (path: string, value: number): any }
+    interface ComputeHandler { (buffer_size: number): any }
+    interface PlotHandler { (plotted: Float32Array[], index: number, events?: { type: string; data: any }[]): any }
     interface MetadataHandler { (key: string, value: number): void }
 
     /**
@@ -38,7 +40,7 @@ declare namespace Faust {
          *
          * @param {OutputParamHandler} handler - the output handler
          */
-        setOutputParamHandler(handler: OutputParamHandler): void;
+        setOutputParamHandler(handler: OutputParamHandler | null): void;
 
         /**
          * Get the parameter output handler.
@@ -46,6 +48,34 @@ declare namespace Faust {
          * @return {OutputParamHandler} the current output handler
          */
         getOutputParamHandler(): OutputParamHandler | null;
+
+        /**
+         * Set the compute handler, to  be called in the 'compute' method with buffer size.
+         *
+         * @param {ComputeHandler} handler - the compute handler
+         */
+        setComputeHandler(handler: ComputeHandler | null): void;
+
+        /**
+         * Get the compute handler.
+         *
+         * @return {ComputeHandler} the current output handler
+         */
+        getComputeHandler(): ComputeHandler | null;
+
+        /**
+         * Set the plot handler, to  be called in the 'compute' method with various info (see PlotHandler type).
+         *
+         * @param {PlotHandler} handler - the plot handler
+         */
+        setPlotHandler(handler: PlotHandler | null): void;
+
+        /**
+         * Get the plot handler.
+         *
+         * @return {PlotHandler} the current plot handler
+         */
+        getPlotHandler(): PlotHandler | null;
 
         /**
          * Return instance number of audio inputs.

@@ -36,7 +36,6 @@ declare namespace Faust {
         error(): string;
 
         success(): boolean;
-
     }
 
 }

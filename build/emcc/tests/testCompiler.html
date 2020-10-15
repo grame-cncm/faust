@@ -1,103 +1,115 @@
 <html>
+
 <head>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-	<title>LibFaustWasm API Test</title>
-	<script src="../npm/dist/libfaust-wasm.js"></script>
-	<!-- <script src="../faustcompiler.js"></script> -->
-	<script src="../faustwebaudio.js"></script>
-	<script src="testCompiler.js"></script>
-	<style>
-	body { margin: 50; }
-	pre { margin: 20; }
-	svg { width: 600px; height: 300px;}
-	</style>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>LibFaustWasm API Test</title>
+    <script src="../npm/dist/libfaust-wasm.js"></script>
+    <!-- <script src="../faustcompiler.js"></script> -->
+    <script src="../faustwebaudio.js"></script>
+    <script src="testCompiler.js"></script>
+    <style>
+        body {
+            margin: 50;
+        }
+
+        pre {
+            margin: 20;
+        }
+
+        svg {
+            width: 600px;
+            height: 300px;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>LibFaustWasm API Test</h1>
-<hr>
-<pre id=log>
+    <h1>LibFaustWasm API Test</h1>
+    <hr>
+    <pre id=log>
 </pre>
-<div id=svg1 class="svg">
-</div>
-<div id=svg2 class="svg">
-</div>
-<hr>
+    <div id=svg1 class="svg">
+    </div>
+    <div id=svg2 class="svg">
+    </div>
+    <hr>
 
-<script>
-var div = document.getElementById("log");
-function log (str) 			{ div.innerHTML += str + '\n'; }
-function svg (str, name) 	{ log (str); }
+    <script>
+        var div = document.getElementById("log");
+        function log(str) { div.innerHTML += str + '\n'; }
+        function svg(str, name) { log(str); }
 
-const noise = 'random  = +(12345)~*(1103515245); \
+        const noise = 'random  = +(12345)~*(1103515245); \
 noise = random/2147483647.0; \
 process = noise * vslider("Volume", 0.2, 0, 1, 0.1) <: (*(0.01),*(0.01));';
 
-const osc = 'import("stdfaust.lib"); \
+        const osc = 'import("stdfaust.lib"); \
 vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; \
 freq = hslider("freq [unit:Hz]", 500, 20, 24000, 1); \
 process = vgroup("Oscillator", os.osc(freq) * vol);';
 
-const osc2 = 'import("stdfaust.lib"); \
-f = hslider("freq",440,50,2000,0.01); \
+        const osc2 = 'import("stdfaust.lib"); \
+f = hslider("freq [midi:ctrl 7]",440,50,2000,0.01); \
 phasor(freq) = (+(freq/ma.SR) ~ ma.decimal); \
 osc(freq) = sin(phasor(freq)*2*ma.PI); \
 process = osc(f);';
 
-const osc3 = 'import("stdfaust.lib"); \
+        const osc3 = 'import("stdfaust.lib"); \
 f = hslider("freq",440,50,2000,0.01); \
 phasor(freq) = (+(freq/ma.SR) ~ ma.decimal); \
 process = phasor(f);';
 
-const t1 = 'process = 0.125,0.3,0.4,0.8;';
+        const t1 = 'process = 0.125,0.3,0.4,0.8;';
 
-const organ = 'import("stdfaust.lib"); \
+        const organ = 'import("stdfaust.lib"); \
 timbre(f) = os.osc(f)*0.5 + os.osc(f*2)*0.25 + os.osc(f*3)*0.125; \
 process = timbre(hslider("freq", 440, 20, 10000, 1)) \
 	* hslider("gain", 0.0, 0, 1, 0.01) \
 	* (button("gate") : en.adsr(0.1,0.1,0.98,1.5));';
-	
-const organ1 = 'import("stdfaust.lib"); \
+
+        const organ1 = 'import("stdfaust.lib"); \
 timbre(f) = os.osc(f)*0.5 + os.osc(f*2)*0.25 + os.osc(f*3)*0.125; \
 effect = _*(hslider("Left", 0.1, 0, 1, 0.01)), _*(hslider("Right", 0.0, 0, 1, 0.01)); \
 process = timbre(hslider("freq", 440, 20, 10000, 1)) \
 	* hslider("gain", 0.0, 0, 1, 0.01) \
-	* (button("gate") : en.adsr(0.1,0.1,0.98,1.5));'; 
+	* (button("gate") : en.adsr(0.1,0.1,0.98,1.5));';
 
-const clarinet = 'import("stdfaust.lib"); process = pm.clarinet_ui_MIDI <: _,_;';
-const guitar = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_;';
+        const clarinet = 'import("stdfaust.lib"); process = pm.clarinet_ui_MIDI <: _,_;';
+        const guitar = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_;';
 
-const guitar1 = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_; \
+        const guitar1 = 'import("stdfaust.lib"); process = pm.guitar_ui_MIDI <: _,_; \
 effect = *(hslider("Left", 0.1, 0, 1, 0.01)), *(hslider("Right", 0.1, 0, 1, 0.01));';
 
-//const dspcode = osc;
-//const dspcode = noise;
-//const dspcode = osc2;
-//const dspcode = osc3;
-//const dspcode = t1;
-//const dspcode = organ;
-const dspcode = organ1;
-//const dspcode = clarinet;
-//const dspcode = guitar;
+        //const dspcode = osc;
+        //const dspcode = noise;
+        //const dspcode = osc2;
+        //const dspcode = osc3;
+        //const dspcode = t1;
+        const dspcode = organ;
+        //const dspcode = organ1;
+        //const dspcode = clarinet;
+        //const dspcode = guitar;
 
-// Allocate audio context
-const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
-console.log(context);
-	
-function doit (faust, context) {
-	run (faust, log, dspcode, context);
-}
+        // Allocate audio context
+        const context = new (window.AudioContext)(({ latencyHint: 0.00001 }));
+        console.log(context);
 
-// On desktop
-window.addEventListener("mousedown", () => {
-    if (context.state !== "suspended") return;
-    context.resume().then(() => console.log("Audio resumed"))
-});
+        function doit(faust, context) {
+            run(faust, log, dspcode, context);
+        }
 
-FaustModule().then((instance) => { 
-	doit (new Faust.LibFaust(instance), context); });
+        // On desktop
+        window.addEventListener("mousedown", () => {
+            if (context.state !== "suspended") return;
+            context.resume().then(() => console.log("Audio resumed"))
+        });
 
-</script>
+        FaustModule().then((instance) => {
+            doit(new Faust.LibFaust(instance), context);
+        });
+
+    </script>
 </body>
+
 </html>
