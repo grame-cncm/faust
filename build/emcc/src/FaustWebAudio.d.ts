@@ -25,7 +25,7 @@ declare namespace Faust {
     interface OutputParamHandler { (path: string, value: number): any }
     interface ComputeHandler { (buffer_size: number): any }
     interface PlotHandler { (plotted: Float32Array[], index: number, events?: { type: string; data: any }[]): any }
-    interface MetadataHandler { (key: string, value: number): void }
+    interface MetadataHandler { (key: string, value: string): void }
 
     // Implementation API
     interface UIHandler { (item: TFaustUIItem): void }

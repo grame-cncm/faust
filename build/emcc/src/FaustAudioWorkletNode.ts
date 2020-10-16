@@ -116,7 +116,11 @@ namespace Faust {
             return false;
         }
 
-        metadata(handler: MetadataHandler) { }
+        metadata(handler: MetadataHandler) {
+            if (this.fJSONDsp.meta) {
+                this.fJSONDsp.meta.forEach(meta => handler(Object.keys(meta)[0], meta[Object.keys(meta)[0]]));
+            }
+        }
 
         midiMessage(data: number[] | Uint8Array): void {
             const cmd = data[0] >> 4;

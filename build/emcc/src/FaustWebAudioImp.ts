@@ -145,7 +145,11 @@ namespace Faust {
         }
 
         // Public API
-        metadata(handler: MetadataHandler) { }
+        metadata(handler: MetadataHandler) {
+            if (this.fJSONDsp.meta) {
+                this.fJSONDsp.meta.forEach(meta => handler(Object.keys(meta)[0], meta[Object.keys(meta)[0]]));
+            }
+        }
 
         compute(input: Float32Array[], output: Float32Array[]) {
             return false;
@@ -187,7 +191,7 @@ namespace Faust {
             const data2 = data[2];
             if (cmd === 11) return this.ctrlChange(channel, data1, data2);
             if (cmd === 14) return this.pitchWheel(channel, (data2 * 128.0 + data1));
-        };
+        }
 
         ctrlChange(channel: number, ctrl: number, value: number) {
             if (this.fPlotHandler) this.fCachedEvents.push({ type: "ctrlChange", data: [channel, ctrl, value] });
@@ -357,7 +361,7 @@ namespace Faust {
             return true;
         }
 
-        metadata(handler: MetadataHandler) { }
+        metadata(handler: MetadataHandler) { super.metadata(handler); }
 
         getNumInputs() {
             return this.fInstance.api.getNumInputs(this.fDSP);
@@ -430,7 +434,7 @@ namespace Faust {
             this.extractPaths(input_items, path_table);
         }
 
-        static midiToFreq(note: number) { return 440.0 * 2 ** ((note - 69) / 12) };
+        static midiToFreq(note: number) { return 440.0 * 2 ** ((note - 69) / 12) }
 
         private extractPaths(input_items: string[], path_table: { [address: string]: number }) {
             input_items.forEach((item) => {
@@ -590,7 +594,7 @@ namespace Faust {
             this.fVoiceTable[voice].fDate++;
             this.fVoiceTable[voice].fNote = DspVoice.kActiveVoice;
             return voice;
-        };
+        }
 
         private getPlayingVoice(pitch: number) {
             let playing_voice = DspVoice.kNoVoice;
