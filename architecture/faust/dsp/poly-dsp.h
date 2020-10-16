@@ -180,6 +180,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
+        fRelease = 0;
         fMaxRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
@@ -734,11 +735,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
-                        // Check the level to possibly set the voice in kFreeVoice again
                         voice->fRelease -= count;
-                        if ((voice->fNote == kReleaseVoice)
-                            && (voice->fRelease < 0)
-                            && (voice->fLevel < VOICE_STOP_LEVEL)) {
+                        // Check the level to possibly set the voice in kFreeVoice again
+                        if ((voice->fNote == kReleaseVoice) && ((voice->fRelease < 0) || (voice->fLevel < VOICE_STOP_LEVEL))) {
                             voice->fNote = kFreeVoice;
                         }
                     }
