@@ -81,9 +81,9 @@ namespace Faust {
             this.fFaustEngine.deleteDSPFactory(factory.cfactory);
         }
 
-        expandDSP(name: string, dsp_code: string, args: string): string | null {
+        expandDSP(dsp_code: string, args: string): string | null {
             try {
-                return this.fFaustEngine.expandDSP(name, dsp_code, args);
+                return this.fFaustEngine.expandDSP("FaustDSP", dsp_code, args);
             } catch {
                 this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
                 console.error("=> exception raised while running expandDSP: " + this.fErrorMessage);

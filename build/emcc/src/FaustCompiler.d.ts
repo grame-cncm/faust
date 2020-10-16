@@ -65,12 +65,11 @@ declare namespace Faust {
         /**
          * Expand Faust code i.e. linearize included libraries.
          *
-         * @param {string} name - an arbitrary name for the Faust module
          * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
          * @returns {interface} returns the expanded dsp code
          */
-        expandDSP(name: string, dsp_code: string, args: string): string | null
+        expandDSP(dsp_code: string, args: string): string | null
 
         /**
          * Generates auxiliary files from Faust code. The output depends on the compiler options.
