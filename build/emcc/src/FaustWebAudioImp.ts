@@ -387,6 +387,7 @@ namespace Faust {
         static kFreeVoice: number;
         static kReleaseVoice: number;
         static kNoVoice: number;
+        static VOICE_STOP_LEVEL: number;
         private fFreqLabel: number[];
         private fGateLabel: number[];
         private fGainLabel: number[];
@@ -395,6 +396,9 @@ namespace Faust {
         private fKeyFun: TransformFunction;
         private fVelFun: TransformFunction;
         // Accessed by PolyDSPImp class
+        fLevel: number;
+        fRelease: number;
+        fMaxRelease: number;
         fNote: number;
         fDate: number;
 
@@ -408,9 +412,13 @@ namespace Faust {
             DspVoice.kFreeVoice = -1;
             DspVoice.kReleaseVoice = -2;
             DspVoice.kNoVoice = -3;
+            DspVoice.VOICE_STOP_LEVEL = 0.0005;
             // Default versions
             this.fKeyFun = (pitch: number) => { return DspVoice.midiToFreq(pitch); }
             this.fVelFun = (velocity: number) => { return velocity / 127.0; }
+            this.fLevel = 0;
+            this.fRelease = 0;
+            this.fMaxRelease = sample_rate / 2;
             this.fNote = DspVoice.kFreeVoice;
             this.fDate = 0;
             this.fDSP = dsp;
@@ -459,6 +467,7 @@ namespace Faust {
             if (hard) {
                 this.fNote = DspVoice.kFreeVoice;
             } else {
+                this.fRelease = this.fMaxRelease;
                 this.fNote = DspVoice.kReleaseVoice;
             }
         }
@@ -665,8 +674,14 @@ namespace Faust {
             // Compute
             this.fInstance.mixer_api.clearOutput(this.fBufferSize, this.getNumOutputs(), this.fAudioOutputs);
             this.fVoiceTable.forEach(voice => {
-                voice.compute(this.fBufferSize, this.fAudioInputs, this.fAudioMixing);
-                this.fInstance.mixer_api.mixVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                if (voice.fNote !== DspVoice.kFreeVoice) {
+                    voice.compute(this.fBufferSize, this.fAudioInputs, this.fAudioMixing);
+                    voice.fLevel = this.fInstance.mixer_api.mixVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                    voice.fRelease -= this.fBufferSize;
+                    if ((voice.fNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) || (voice.fRelease < 0))) {
+                        voice.fNote = DspVoice.kFreeVoice;
+                    }
+                }
             });
             if (this.fInstance.effect_api) this.fInstance.effect_api.compute(this.fEffect, this.fBufferSize, this.fAudioOutputs, this.fAudioOutputs);
 

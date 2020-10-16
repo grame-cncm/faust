@@ -11,11 +11,6 @@ declare namespace Faust {
         poly: boolean;
     }
 
-    interface ExpandOut {
-        dsp: string;
-        shakey: string;
-    }
-
     /**
      * The Compiler constructor.
      * 

@@ -155,7 +155,7 @@ declare namespace Faust {
      */
     interface MixerAPI {
         clearOutput(bufferSize: number, chans: number, ouputs: AudioBuffer): void;
-        mixVoice(bufferSize: number, chans: number, inputs: AudioBuffer, ouputs: AudioBuffer): void;
+        mixVoice(bufferSize: number, chans: number, inputs: AudioBuffer, ouputs: AudioBuffer): number;
     }
 
     //export function createGenerator() : Generator;
