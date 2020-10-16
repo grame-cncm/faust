@@ -23,8 +23,6 @@
 
 namespace Faust {
 
-    interface UIHandler { (item: TFaustUIItem): void }
-
     export class BaseDSPImp implements BaseDSP {
 
         protected fOutputHandler: OutputParamHandler | null;

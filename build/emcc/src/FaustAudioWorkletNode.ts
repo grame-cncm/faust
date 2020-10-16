@@ -32,6 +32,7 @@ namespace Faust {
         protected fOutputHandler: OutputParamHandler | null;
         protected fComputeHandler: ComputeHandler | null;
         protected fPlotHandler: PlotHandler | null;
+        protected fUICallback: UIHandler;
 
         constructor(context: BaseAudioContext, name: string, factory: Factory, options: any) {
 
@@ -57,13 +58,13 @@ namespace Faust {
 
             // Parse UI
             this.fInputsItems = [];
-            let callback = (item: TFaustUIItem) => {
+            this.fUICallback = (item: TFaustUIItem) => {
                 if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
                     // Keep inputs adresses
                     this.fInputsItems.push(item.address);
                 }
             }
-            BaseDSPImp.parseUI(this.fJSONDsp.ui, callback);
+            BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
 
             // Patch it with additional functions
             this.port.onmessage = (e: MessageEvent) => {
@@ -199,6 +200,10 @@ namespace Faust {
                 });
 
             this.fJSONEffect = (effect_factory) ? JSON.parse(effect_factory.json) : null;
+
+            if (effect_factory) {
+                BaseDSPImp.parseUI(this.fJSONEffect.ui, this.fUICallback);
+            }
         }
 
         // Public API

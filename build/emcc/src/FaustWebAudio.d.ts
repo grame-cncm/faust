@@ -27,6 +27,9 @@ declare namespace Faust {
     interface PlotHandler { (plotted: Float32Array[], index: number, events?: { type: string; data: any }[]): any }
     interface MetadataHandler { (key: string, value: number): void }
 
+    // Implementation API
+    interface UIHandler { (item: TFaustUIItem): void }
+
     /**
      * DSP implementation: mimic the C++ 'dsp' class:
      * - adding MIDI control: metadata are decoded and incoming MIDI messages will control the assocated controllers
