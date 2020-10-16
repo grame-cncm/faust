@@ -42,7 +42,7 @@ namespace Faust {
 
         private async createDSPFactoryImp(name: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
             try {
-                // Can possibly raise and exception catched by 
+                // Can possibly raise an exception catched by the second catch()
                 const faust_wasm = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
                 try {
                     const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
@@ -105,14 +105,6 @@ namespace Faust {
 
         deleteAllDSPFactories(): void {
             this.fFaustEngine.deleteAllDSPFactories();
-        }
-    }
-
-    export class Factory implements Factory {
-        constructor(module: WebAssembly.Module, json: string, poly: boolean) {
-            this.module = module;
-            this.json = json;
-            this.poly = poly;
         }
     }
 }

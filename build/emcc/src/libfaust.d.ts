@@ -46,12 +46,12 @@ declare namespace Faust {
          * Create a dsp factory from Faust code.
          *
          * @param {string} name - an arbitrary name for the Faust module
-         * @param {string} dsp_content - Faust dsp code
+         * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
          * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
          * @returns {FaustWasm} an opaque reference to the factory
          */
-        createDSPFactory(name: string, dsp_content: string, args: string, internal_memory: boolean): FaustWasm;
+        createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm;
 
         /**
          * Delete a dsp factory.
@@ -64,20 +64,20 @@ declare namespace Faust {
          * Expand Faust code i.e. linearize included libraries.
          *
          * @param {string} name - an arbitrary name for the Faust module
-         * @param {string} dsp_content - Faust dsp code
+         * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
          * @returns {string} return the expanded dsp code
          */
-        expandDSP(name: string, dsp_content: string, args: string): string
+        expandDSP(name: string, dsp_code: string, args: string): string
 
         /**
          * Generates auxiliary files from Faust code. The output depends on the compiler options.
          *
          * @param {string} name - an arbitrary name for the faust module
-         * @param {string} dsp_content - Faust dsp code
+         * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
          */
-        generateAuxFiles(name: string, dsp_content: string, args: string): boolean;
+        generateAuxFiles(name: string, dsp_code: string, args: string): boolean;
 
         /**
          * Delete all existing dsp factories.

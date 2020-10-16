@@ -40,7 +40,7 @@ declare namespace Faust {
          * @param {string} name - an arbitrary name for the Faust factory
          * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
-         * @returns {Promise<Factory | null>} returns the wasm factory, that is the wasm module and JSON string.
+         * @returns {Promise<Factory | null>} returns the wasm factory
          */
         createMonoDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null>;
 
@@ -51,7 +51,7 @@ declare namespace Faust {
          * @param {string} name - an arbitrary name for the Faust factory
          * @param {string} dsp_code - Faust dsp code
          * @param {string} args - the compiler options
-         * @returns {Promise<Factory | null>} returns the wasm factory, that is the wasm module and JSON string.
+         * @returns {Promise<Factory | null>} returns the wasm factory
          */
         createPolyDSPFactory(name: string, dsp_code: string, args: string): Promise<Factory | null>;
 

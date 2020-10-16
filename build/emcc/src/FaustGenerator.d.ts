@@ -151,7 +151,7 @@ declare namespace Faust {
     }
 
     /**
-     * Mixer used in polyphonic mode
+     * Mixer used in polyphonic mode.
      */
     interface MixerAPI {
         clearOutput(bufferSize: number, chans: number, ouputs: AudioBuffer): void;

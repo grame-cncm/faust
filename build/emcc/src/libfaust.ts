@@ -39,13 +39,13 @@ namespace Faust {
 
         version(): string { return this.fEngine.version(); }
 
-        createDSPFactory(name: string, dsp_content: string, args: string, internal_memory: boolean): FaustWasm { return this.fEngine.createDSPFactory(name, dsp_content, args, internal_memory); }
+        createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm { return this.fEngine.createDSPFactory(name, dsp_code, args, internal_memory); }
 
         deleteDSPFactory(cfactory: number): void { this.fEngine.deleteDSPFactory(cfactory); }
 
-        expandDSP(name: string, dsp_content: string, args: string): string { return this.fEngine.expandDSP(name, dsp_content, args); }
+        expandDSP(name: string, dsp_code: string, args: string): string { return this.fEngine.expandDSP(name, dsp_code, args); }
 
-        generateAuxFiles(name: string, dsp_content: string, args: string): boolean { return this.fEngine.generateAuxFiles(name, dsp_content, args); }
+        generateAuxFiles(name: string, dsp_code: string, args: string): boolean { return this.fEngine.generateAuxFiles(name, dsp_code, args); }
 
         deleteAllDSPFactories() { this.fEngine.deleteAllDSPFactories(); }
 
