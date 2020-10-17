@@ -199,10 +199,6 @@ namespace Faust {
 
             protected handleMessageAux = (e: MessageEvent) => { // use arrow function for binding
                 const msg = e.data;
-
-                // TODO
-                //this.cachedEvents.push({ type: e.data.type, data: e.data.data });
-
                 switch (msg.type) {
                     case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
                     case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
@@ -213,7 +209,6 @@ namespace Faust {
             }
 
             // Public API
-
             keyOn(channel: number, pitch: number, velocity: number) {
                 (this.fDSPCode as PolyDSP).keyOn(channel, pitch, velocity);
             }

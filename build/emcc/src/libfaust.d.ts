@@ -26,14 +26,17 @@ declare namespace Faust {
     interface IntVector { size(): number; get(i: number): number; }
 
     interface FaustWasm {
+        /* The C++ factory pointer as in integer */
         cfactory: number;
+        /* The compiled wasm binary code */
         data: IntVector;
+        /* The DSP JSON description */
         json: string;
     }
 
     /*
         Low level interface to the Faust library.
-        Used for internal dev purpose only (not public)
+        Used for internal dev purpose only (not public).
     */
 
     //export function createLibFaust(engine: FaustModule) {

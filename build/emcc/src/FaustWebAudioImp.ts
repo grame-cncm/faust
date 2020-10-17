@@ -27,8 +27,9 @@ namespace Faust {
 
         protected fOutputHandler: OutputParamHandler | null;
         protected fComputeHandler: ComputeHandler | null;
-        protected fPlotHandler: PlotHandler | null;
 
+        // To handle MIDI events plot
+        protected fPlotHandler: PlotHandler | null;
         protected fCachedEvents: { type: string; data: any }[];
         protected fBufferNum: number;
 
@@ -36,6 +37,8 @@ namespace Faust {
         protected fOutChannels: Float32Array[];
 
         protected fOutputsTimer: number;
+
+        // UI items path
         protected fInputsItems: string[];
         protected fOutputsItems: string[];
 
@@ -47,6 +50,7 @@ namespace Faust {
         protected gPtrSize: number;
         protected gSampleSize: number;
 
+        // MIDI handling
         protected fPitchwheelLabel: { path: string; min: number; max: number }[];
         protected fCtrlLabel: { path: string; min: number; max: number }[][];
         protected fPathTable: { [address: string]: number };

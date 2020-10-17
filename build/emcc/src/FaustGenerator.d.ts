@@ -73,53 +73,84 @@ declare namespace Faust {
     interface InstanceAPI {
 
         /**
-         * The dsp computation.
+         * The dsp computation, to be called with successive input/output audio buffers.
          *
          * @param {DSP} dsp - the DSP pointer
          * @param {number} count - the audio buffer size in frames
-         * @param {AudioBuffer} inputs - the input audio buffer
-         * @param {AudioBuffer} output - the output audio buffer
+         * @param {AudioBuffer} inputs - the input audio buffer as in index in wasm memory
+         * @param {AudioBuffer} output - the output audio buffer as in index in wasm memory
          */
         compute(dsp: DSP, count: number, inputs: AudioBuffer, output: AudioBuffer): void;
 
         /**
-         * Gives the number of inputs of a Faust wasm instance
+         * Give the number of inputs of a Faust wasm instance.
          * 
          * @param {DSP} dsp - the DSP pointer
          */
         getNumInputs(dsp: DSP): number;
 
         /**
-         * Gives the number of outputs of a Faust wasm instance
+         * Give the number of outputs of a Faust wasm instance.
          * 
          * @param {DSP} dsp - the DSP pointer
          */
         getNumOutputs(dsp: DSP): number;
 
         /**
-         * Gives a parameter current value
+         * Give a parameter current value.
          * 
          * @param {DSP} dsp - the DSP pointer
          * @param {number} index - the parameter index
          * @preturn {number} the parameter value
-        */
+         */
         getParamValue(dsp: DSP, index: number): number;
 
         /**
-         * Gives the Faust wasm instance sample rate
+         * Give the Faust wasm instance sample rate.
          * 
          * @param {DSP} dsp - the DSP pointer
+         * @preturn {number} the sample rate
          */
         getSampleRate(dsp: DSP): number;
 
+        /**
+         * Global init, calls the following methods:
+         * - static class 'classInit': static tables initialization
+         * - 'instanceInit': constants and instance state initialization
+         *
+         * @param {DSP} dsp - the DSP pointer
+         * @param sample_rate - the sampling rate in Hertz
+         */
         init(dsp: DSP, sample_rate: number): void;
+
+        /** Init instance state (delay lines...).
+         * 
+         * @param {DSP} dsp - the DSP pointer
+         */
         instanceClear(dsp: DSP): void;
+
+        /** Init instance constant state.
+         * 
+         * @param {DSP} dsp - the DSP pointer
+         * @param sample_rate - the sampling rate in Hertz
+         */
         instanceConstants(dsp: DSP, sample_rate: number): void;
+
+        /** Init instance state.
+         * 
+         * @param {DSP} dsp - the DSP pointer
+         * @param sample_rate - the sampling rate in Hertz
+         */
         instanceInit(dsp: DSP, sample_rate: number): void;
+
+        /** Init default control parameters values.
+         * 
+         * @param {DSP} dsp - the DSP pointer
+         */
         instanceResetUserInterface(dsp: DSP): void;
 
         /**
-         * Set a parameter current value
+         * Set a parameter current value.
          * 
          * @param {DSP} dsp - the DSP pointer
          * @param {number} index - the parameter index
@@ -129,7 +160,7 @@ declare namespace Faust {
     }
 
     /**
-     * Monophonic instance
+     * Monophonic instance.
      */
     interface MonoInstance {
         memory: WebAssembly.Memory;
@@ -138,7 +169,7 @@ declare namespace Faust {
     }
 
     /**
-     * Polyphonic instance
+     * Polyphonic instance.
      */
     interface PolyInstance {
         memory: WebAssembly.Memory;

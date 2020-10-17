@@ -32,8 +32,8 @@ declare namespace Faust {
 
     /**
      * DSP implementation: mimic the C++ 'dsp' class:
-     * - adding MIDI control: metadata are decoded and incoming MIDI messages will control the assocated controllers
-     * - an output handler can be set to treat produced output controllers (like 'bargraphs') 
+     * - adding MIDI control: metadata are decoded and incoming MIDI messages will control the associated controllers
+     * - an output handler can be set to treat produced output controllers (like 'bargraph') 
      * - regular controllers are handled using setParamValue/getParamValue
      */
     interface BaseDSP {
@@ -95,13 +95,18 @@ declare namespace Faust {
         getNumOutputs(): number;
 
         /**
-         * DSP instance computation, to be called with successive in/out audio buffers, using their size.
+         * DSP instance computation, to be called with successive input/output audio buffers, using their size.
          *
          * @param {Float32Array[]} inputs - the input audio buffers
          * @param {Float32Array[]} outputs - the output audio buffers
          */
         compute(inputs: Float32Array[], outputs: Float32Array[]): boolean;
 
+        /**
+         * Give a handler to be called on 'declare key value' kind of metadata.
+         *
+         * @param {MetadataHandler} handler - the handler to be used
+         */
         metadata(handler: MetadataHandler): void;
 
         /**
@@ -146,7 +151,7 @@ declare namespace Faust {
         getParamValue(path: string): number;
 
         /**
-         * Get the table of all controller paths.
+         * Get the table of all input parameters paths.
          *
          * @return {string[]} the table of all input parameters paths
          */
@@ -155,7 +160,7 @@ declare namespace Faust {
         /**
          * Get DSP JSON description with its UI and metadata.
          *
-         * @return {string} DSP JSON description
+         * @return {string} the DSP JSON description
          */
         getJSON(): string;
 
