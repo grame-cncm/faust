@@ -40,22 +40,22 @@ class unitypolydsp : public decorator_dsp
 {
     
     private:
-        
+    
         APIUI fUI;
         AudioChannels* fInputs;
         AudioChannels* fOutputs;
     
     public:
-        
+    
         unitypolydsp(int dspbuffersize, int nvoices)
         {
             /*
-            bool midi_sync = false;
-            // Analyse NVOICES
-            mydsp* tmp_dsp = new mydsp();
-            MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
-            delete tmp_dsp;
-            */
+             bool midi_sync = false;
+             // Analyse NVOICES
+             mydsp* tmp_dsp = new mydsp();
+             MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+             delete tmp_dsp;
+             */
             
             fDSP = new mydsp_poly(new mydsp(), nvoices, true, true);
             fDSP->buildUserInterface(&fUI);
@@ -67,48 +67,48 @@ class unitypolydsp : public decorator_dsp
                 fOutputs = new AudioChannels(dspbuffersize, fDSP->getNumOutputs());
             }
         }
-        
+    
         ~unitypolydsp()
         {
             delete fInputs;
             delete fOutputs;
         }
-        
+    
         void unityProcess(float* inbuffer, float* outbuffer, int length, int inchannels, int outchannels)
         {
             fInputs->interleavedRead(inbuffer, length, inchannels);
             fDSP->compute(length, fInputs->buffers(), fOutputs->buffers());
             fOutputs->interleavedWrite(outbuffer, length, outchannels);
         }
-        
+    
         void setParamValue(int pnum, float pval) { fUI.setParamValue(pnum, pval); }
-        
+    
         float getParamValue(int pnum) { return fUI.getParamValue(pnum); }
-        
+    
         float getParamMin(int pnum) { return fUI.getParamMin(pnum); }
-        
+    
         float getParamMax(int pnum) { return fUI.getParamMax(pnum); }
     
         void keyOn(int channel, int pitch, int velocity)
         {
             static_cast<mydsp_poly*>(fDSP)->keyOn(channel, pitch, velocity);
         }
-        
+    
         void keyOff(int channel, int pitch, int velocity = 127)
         {
             static_cast<mydsp_poly*>(fDSP)->keyOff(channel, pitch, velocity);
         }
-        
+    
         void ctrlChange(int channel, int ctrl, int value)
         {
             static_cast<mydsp_poly*>(fDSP)->ctrlChange(channel, ctrl, value);
         }
-        
+    
         void allNotesOff(bool hard = false)
         {
             static_cast<mydsp_poly*>(fDSP)->allNotesOff(hard);
         }
-
+    
 };
 
 std::list<GUI*> GUI::fGuiList;
@@ -164,7 +164,7 @@ extern "C"
     {
         ctx->allNotesOff(hard);
     }
-
+    
 }
 
 #else
@@ -173,7 +173,7 @@ class unitydsp : public mydsp
 {
     
     private:
-    
+        
         APIUI fUI;
         AudioChannels* fInputs;
         AudioChannels* fOutputs;
@@ -211,7 +211,7 @@ class unitydsp : public mydsp
         float getParamMin(int pnum) { return fUI.getParamMin(pnum); }
         
         float getParamMax(int pnum) { return fUI.getParamMax(pnum); }
-    
+        
 };
 
 extern "C"

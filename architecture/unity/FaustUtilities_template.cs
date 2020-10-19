@@ -656,5 +656,4 @@ namespace FaustUtilities_MODEL {
 		public string scale;
 		public string tooltip;
 	}
-
 }
