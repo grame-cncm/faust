@@ -33,26 +33,63 @@ namespace Faust {
         fContext: BaseAudioContext;
         fBaseURL: string;
 
-        constructor(context: BaseAudioContext, baseURL: string = "") {
-            this.fContext = context;
-            this.fBaseURL = baseURL;
-        }
-
-        async load(): Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
-            const wasm_path = (this.fBaseURL === "") ? "mydsp.wasm" : (this.fBaseURL + "/mydsp.wasm");
-            const json_path = (this.fBaseURL === "") ? "mydsp.js" : (this.fBaseURL + "/mydsp.js");
-            const factory = await createGenerator().loadDSPFactory(wasm_path, json_path);
-            if (factory) {
-                let node = await this.createMonoNode(this.fContext, "FausDSP", factory, false);
-                if (node) node.fBaseURL = this.fBaseURL;
-                return node;
+        private makeWAPMonoNode(node: FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null) {
+            const wap = node as FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode;
+            if (wap) {
+                wap.getMetadata = async () => {
+                    const real_url = (wap.fBaseURL === "") ? "main.json" : (wap.fBaseURL + "/main.json");
+                    const json_file = await fetch(real_url);
+                    return json_file.json();
+                }
+                wap.setParam = (path: string, value: number) => {
+                    wap.setParamValue(path, value);
+                }
+                wap.getParam = (path: string) => {
+                    return wap.getParamValue(path);
+                }
+                wap.inputChannelCount = () => {
+                    return wap.getNumInputs();
+                }
+                wap.outputChannelCount = () => {
+                    return wap.getNumOutputs();
+                }
+                wap.onMidi = (data: number[] | Uint8Array) => {
+                    return wap.midiMessage(data);
+                }
+                return wap;
             } else {
                 return null;
             }
         }
 
-        // TODO
-        //async loadGui();
+        private makeWAPPolyNode(node: | FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null) {
+            const wap = node as FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode;
+            if (wap) {
+                wap.getMetadata = async () => {
+                    const real_url = (wap.fBaseURL === "") ? "main.json" : (wap.fBaseURL + "/main.json");
+                    const json_file = await fetch(real_url);
+                    return json_file.json();
+                }
+                wap.setParam = (path: string, value: number) => {
+                    wap.setParamValue(path, value);
+                }
+                wap.getParam = (path: string) => {
+                    return wap.getParamValue(path);
+                }
+                wap.inputChannelCount = () => {
+                    return wap.getNumInputs();
+                }
+                wap.outputChannelCount = () => {
+                    return wap.getNumOutputs();
+                }
+                wap.onMidi = (data: number[] | Uint8Array) => {
+                    return wap.midiMessage(data);
+                }
+                return wap;
+            } else {
+                return null;
+            }
+        }
 
         private async compileWAPMonoNode(
             context: BaseAudioContext,
@@ -63,68 +100,86 @@ namespace Faust {
             sp: boolean,
             buffer_size?: number)
             : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
-            let node = await createAudioNodeFactory().compileMonoNode(context, name, compiler, dsp_code, args, sp, buffer_size);
-            let wap = node as FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode;
+            const node = await createAudioNodeFactory().compileMonoNode(context, name, compiler, dsp_code, args, sp, buffer_size);
             // Dynamically add WAP API to the node
-            if (wap) {
-                wap.getMetadata = async () => {
-                    const real_url = (wap.fBaseURL === "") ? "main.json" : (wap.fBaseURL + "/main.json");
-                    const json_file = await fetch(real_url);
-                    return json_file.json();
-                }
-                wap.setParam = (path: string, value: number) => {
-                    wap.setParamValue(path, value);
-                }
-                wap.getParam = (path: string) => {
-                    return wap.getParamValue(path);
-                }
-                wap.inputChannelCount = () => {
-                    return wap.getNumInputs();
-                }
-                wap.outputChannelCount = () => {
-                    return wap.getNumOutputs();
-                }
-                wap.onMidi = (data: number[] | Uint8Array) => {
-                    return wap.midiMessage(data);
-                }
-            }
-            return wap;
+            return this.makeWAPMonoNode(node);
         }
 
-        private async createMonoNode(
+        private async createWAPMonoNode(
             context: BaseAudioContext,
             name: string,
             factory: Factory,
             sp: boolean,
             buffer_size?: number)
             : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
-            let node = await createAudioNodeFactory().createMonoNode(context, name, factory, sp, buffer_size);
-            let wap = node as FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode;
+            const node = await createAudioNodeFactory().createMonoNode(context, name, factory, sp, buffer_size);
             // Dynamically add WAP API to the node
-            if (wap) {
-                wap.getMetadata = async () => {
-                    const real_url = (wap.fBaseURL === "") ? "main.json" : (wap.fBaseURL + "/main.json");
-                    const json_file = await fetch(real_url);
-                    return json_file.json();
-                }
-                wap.setParam = (path: string, value: number) => {
-                    wap.setParamValue(path, value);
-                }
-                wap.getParam = (path: string) => {
-                    return wap.getParamValue(path);
-                }
-                wap.inputChannelCount = () => {
-                    return wap.getNumInputs();
-                }
-                wap.outputChannelCount = () => {
-                    return wap.getNumOutputs();
-                }
-                wap.onMidi = (data: number[] | Uint8Array) => {
-                    return wap.midiMessage(data);
-                }
-            }
-            return wap;
+            return this.makeWAPMonoNode(node);
         }
 
+        private async createWAPPolyNode(
+            context: BaseAudioContext,
+            name_aux: string,
+            voice_factory: Factory,
+            mixer_module: WebAssembly.Module,
+            voices: number,
+            sp: boolean,
+            effect_factory?: Factory,
+            buffer_size?: number)
+            : Promise<FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode | null> {
+            const node = await createAudioNodeFactory().createPolyNode(context, "FaustDSP", voice_factory, mixer_module, voices, sp, effect_factory, buffer_size);
+            // Dynamically add WAP API to the node
+            return this.makeWAPPolyNode(node);
+        }
+
+        // Public API
+        constructor(context: BaseAudioContext, baseURL: string = "") {
+            this.fContext = context;
+            this.fBaseURL = baseURL;
+        }
+
+        async load(wasm_path_aux: string, json_path_aux: string, sp: boolean = false)
+            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
+            const wasm_path = (this.fBaseURL === "") ? wasm_path_aux : (this.fBaseURL + '/' + wasm_path_aux);
+            const json_path = (this.fBaseURL === "") ? json_path_aux : (this.fBaseURL + '/' + json_path_aux);
+            const factory = await createGenerator().loadDSPFactory(wasm_path, json_path);
+            if (factory) {
+                let node = await this.createWAPMonoNode(this.fContext, "FausDSP", factory, sp, 1024);
+                if (node) node.fBaseURL = this.fBaseURL;
+                return node;
+            } else {
+                return null;
+            }
+        }
+
+        async loadPoly(voice_path_aux: string,
+            voice_json_path_aux: string,
+            effect_path_aux: string,
+            effect_json_path_aux: string,
+            mixer_path_aux: string,
+            voices: number,
+            sp: boolean,
+            buffer_size?: number)
+            : Promise<FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode | null> {
+            const voice_path = (this.fBaseURL === "") ? voice_path_aux : (this.fBaseURL + '/' + voice_path_aux);
+            const voice_json_path = (this.fBaseURL === "") ? voice_json_path_aux : (this.fBaseURL + '/' + voice_json_path_aux);
+            const mixer_path = (this.fBaseURL === "") ? mixer_path_aux : (this.fBaseURL + '/' + mixer_path_aux);
+            const effect_path = (this.fBaseURL === "") ? effect_path_aux : (this.fBaseURL + '/' + effect_path_aux);
+            const effect_json_path = (this.fBaseURL === "") ? effect_json_path_aux : (this.fBaseURL + '/' + effect_json_path_aux);
+            const gen = createGenerator();
+            const voice_factory = await gen.loadDSPFactory(voice_path, voice_json_path);
+            const effect_factory = await gen.loadDSPFactory(effect_path, effect_json_path);
+            const mixer_module = await gen.loadDSPMixer(mixer_path);
+            if (voice_factory && mixer_module) {
+                const node = await this.createWAPPolyNode(this.fContext, "FaustDSP", voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), 1024);
+                if (node) node.fBaseURL = this.fBaseURL;
+                return node;
+            } else {
+                return null;
+            }
+        }
+
+        // TODO
+        //async loadGui();    
     }
 }

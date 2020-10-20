@@ -28,7 +28,6 @@ declare namespace Faust {
         getMetadata(): Promise<string>;
 
         setParam(path: string, value: number): void;
-
         getParam(path: string): number;
 
         inputChannelCount(): number;
@@ -44,10 +43,26 @@ declare namespace Faust {
 
     interface FaustMonoWAPAudioWorkletNode extends FaustMonoAudioWorkletNode, WAP { }
 
+    interface FaustPolyWAPScriptProcessorNode extends FaustPolyScriptProcessorNode, WAP { }
+
+    interface FaustPolyWAPAudioWorkletNode extends FaustPolyAudioWorkletNode, WAP { }
+
     //export function createAudioWAPNodeFactory(context: BaseAudioContext, baseURL: string = "") : AudioWAPNodeFactory;
 
     interface AudioWAPNodeFactory {
-        load(): Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null>;
+
+        load(wasm_path_aux: string, json_path_aux: string, sp: boolean)
+            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null>;
+
+        loadPoly(voice_path_aux: string,
+            voice_json_path_aux: string,
+            mixer_path_aux: string,
+            effect_path_aux: string,
+            effect_json_path_aux: string,
+            voices: number,
+            sp: boolean,
+            buffer_size?: number)
+            : Promise<FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode | null>;
     }
 
 }
