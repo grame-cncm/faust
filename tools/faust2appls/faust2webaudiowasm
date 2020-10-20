@@ -7,8 +7,8 @@
 #-------------------------------------------------------------------
 # Wrapping resources
 HTML_FOOTER=""
-CODE_WRAPPER1=""
-CODE_WRAPPER2=""
+#CODE_WRAPPER1=""
+#CODE_WRAPPER2=""
 JS_WRAPPER=""
 LINKS=""
 SVG=""
@@ -90,14 +90,16 @@ if [ $POLY = "true" ]; then
     if [ $WORKLET = "true" ]; then
         if [ $EMCC = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode with EMCC glue"
-            WASM="wasm-eb"
-            CODE_WRAPPER2=webaudio-workletnode-emcc-poly-standalone-wrapper.js
+            #WASM="wasm-eb"
+            WASM="wasm-e"
+            #CODE_WRAPPER2=webaudio-workletnode-emcc-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-emcc-poly-worklet-footer.html
         else
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
-            WASM="wasm-eb"
-            CODE_WRAPPER1=webaudio-workletprocessor-poly-standalone-wrapper.js
-            CODE_WRAPPER2=webaudio-workletnode-poly-standalone-wrapper.js
+            #WASM="wasm-eb"
+            WASM="wasm-e"
+            #CODE_WRAPPER1=webaudio-workletprocessor-poly-standalone-wrapper.js
+            #CODE_WRAPPER2=webaudio-workletnode-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
             echo "The mixer32.wasm code is copied"
             cp $FAUSTARCH/webaudio/mixer32.wasm .
@@ -105,13 +107,14 @@ if [ $POLY = "true" ]; then
     else
         if [ $EMCC = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic mode with EMCC glue"
-            WASM="wasm-eb"
-            CODE_WRAPPER1=webaudio-wasm-emcc-poly-standalone-wrapper.js
+            #WASM="wasm-eb"
+            WASM="wasm-e"
+            #CODE_WRAPPER1=webaudio-wasm-emcc-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-emcc-poly-footer.html
         else
             echo "Compiled with 'wasm' backend in polyphonic mode"
             WASM="wasm-e"
-            CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
+            #CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-footer.html
             echo "The mixer32.wasm code is copied"
             cp $FAUSTARCH/webaudio/mixer32.wasm .
@@ -120,27 +123,31 @@ if [ $POLY = "true" ]; then
 else
     if [ $WORKLET = "true" ]; then
         if [ $EMCC = "true" ]; then
-            WASM="wasm-eb"
+           	#WASM="wasm-eb"
+           	WASM="wasm-e"
             echo "Compiled with 'wasm' backend in AudioWorklet mode with EMCC glue"
-            CODE_WRAPPER2=webaudio-workletnode-emcc-standalone-wrapper.js
+            #CODE_WRAPPER2=webaudio-workletnode-emcc-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-emcc-worklet-footer.html
         else
-            WASM="wasm-ib"
+            #WASM="wasm-ib"
+            WASM="wasm-i"
             echo "Compiled with 'wasm' backend in AudioWorklet mode"
-            CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
-            CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js
+            #CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
+            #CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-worklet-footer.html
         fi
     else
         if [ $EMCC = "true" ]; then
             echo "Compiled with 'wasm' backend with EMCC glue"
-            WASM="wasm-eb"
-            CODE_WRAPPER1=webaudio-wasm-emcc-standalone-wrapper.js
+            #WASM="wasm-eb"
+            WASM="wasm-e"
+            #CODE_WRAPPER1=webaudio-wasm-emcc-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-emcc-footer.html
         else
             echo "Compiled with 'wasm' backend"
-            WASM="wasm-ib"
-            CODE_WRAPPER1=webaudio-wasm-standalone-wrapper.js
+            #WASM="wasm-ib"
+            WASM="wasm-i"
+            #CODE_WRAPPER1=webaudio-wasm-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-footer.html
         fi
     fi
@@ -192,26 +199,26 @@ EndOfCode
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
 
-    if [ $EMCC != "true" ]; then
-        if [ "$EFFECT" != "" ]; then
-            cat $name"_effect".js >> $name.js
-            rm $name"_effect".js
-        fi
-    fi
+    #if [ $EMCC != "true" ]; then
+        #if [ "$EFFECT" != "" ]; then
+            #cat $name"_effect".js >> $name.js
+            #rm $name"_effect".js
+        #fi
+    #fi
 
-    if [ $WORKLET = "true" ]; then
-        if [ $EMCC = "true" ]; then
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
-        else
-            cp $name.js $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
-            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
-        fi
-    else
-        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
-    fi
+    #if [ $WORKLET = "true" ]; then
+    #    if [ $EMCC = "true" ]; then
+    #        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
+    #    else
+    #        cp $name.js $name-processor.js
+    #        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
+    #        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
+    #    fi
+    #else
+    #    sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
+    #fi
 
-    sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
+    #sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html
     echo "</head>" >> $name-temp2.html
     echo "<body>" >> $name-temp2.html
@@ -234,19 +241,22 @@ EndOfCode
         	cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
             BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
         else
-            BINARIES="$BINARIES$name.html;$name-processor.js;$name.wasm;"
+            #BINARIES="$BINARIES$name.html;$name-processor.js;$name.wasm;"
+            BINARIES="$BINARIES$name.html;$name.js;$name.wasm;"
         fi
     else
         if [ $EMCC = "true" ]; then
             cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
             BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
         else
-            BINARIES="$BINARIES$name.html;$name.wasm;"
+            #BINARIES="$BINARIES$name.html;$name.wasm;"
+            BINARIES="$BINARIES$name.html;$name.js;$name.wasm;"
         fi
     fi
 
     # cleanup
-    rm $name.js $name-temp2.html
+    #rm $name.js $name-temp2.html
+    rm $name-temp2.html
 
 done
 
