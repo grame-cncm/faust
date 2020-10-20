@@ -21,6 +21,9 @@
 
 declare namespace Faust {
 
+    /**
+     * WAP (Web Audio Plugins) API.   
+     */
     interface WAP {
 
         fBaseURL: string;
@@ -43,18 +46,23 @@ declare namespace Faust {
 
     interface FaustMonoWAPAudioWorkletNode extends FaustMonoAudioWorkletNode, WAP { }
 
+    //export function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string = "") : MonoWAPFactory;
+
+    interface MonoWAPFactory {
+
+        load(wasm_path_aux: string, json_path_aux: string, sp: boolean)
+            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null>;
+    }
+
     interface FaustPolyWAPScriptProcessorNode extends FaustPolyScriptProcessorNode, WAP { }
 
     interface FaustPolyWAPAudioWorkletNode extends FaustPolyAudioWorkletNode, WAP { }
 
-    //export function createAudioWAPNodeFactory(context: BaseAudioContext, baseURL: string = "") : AudioWAPNodeFactory;
+    //export function createPolyWAPFactory(context: BaseAudioContext, baseURL: string = "") : PolyWAPFactory;
 
-    interface AudioWAPNodeFactory {
+    interface PolyWAPFactory {
 
-        load(wasm_path_aux: string, json_path_aux: string, sp: boolean)
-            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null>;
-
-        loadPoly(voice_path_aux: string,
+        load(voice_path_aux: string,
             voice_json_path_aux: string,
             effect_path_aux: string,
             effect_json_path_aux: string,
@@ -64,5 +72,4 @@ declare namespace Faust {
             buffer_size?: number)
             : Promise<FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode | null>;
     }
-
 }

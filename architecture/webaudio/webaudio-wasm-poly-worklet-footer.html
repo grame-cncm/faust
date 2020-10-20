@@ -17,51 +17,7 @@
     }
 
     // MIDI input handling
-
-    function keyOn(channel, pitch, velocity) {
-        if (node) {
-            node.keyOn(channel, pitch, velocity);
-        }
-    }
-
-    function keyOff(channel, pitch, velocity) {
-        if (node) {
-            node.keyOff(channel, pitch, velocity);
-        }
-    }
-
-    function pitchWheel(channel, wheel) {
-        if (node) {
-            node.pitchWheel(channel, wheel);
-        }
-    }
-
-    function ctrlChange(channel, ctrl, value) {
-        if (node) {
-            node.ctrlChange(channel, ctrl, value);
-        }
-    }
-
     function midiMessageReceived(ev) {
-        /*
-        var cmd = ev.data[0] >> 4;
-        var channel = ev.data[0] & 0xf;
-        var data1 = ev.data[1];
-        var data2 = ev.data[2];
-        
-        if (channel === 9) {
-            return;
-        } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) {
-            keyOff(channel, data1, data2);
-        } else if (cmd === 9) {
-            keyOn(channel, data1, data2);
-        } else if (cmd === 11) {
-            ctrlChange(channel, data1, data2);
-        } else if (cmd === 14) {
-            pitchWheel(channel, (data2 * 128.0 + data1));
-        }
-        */
-
         if (node) {
             node.midiMessage(ev.data);
         }
@@ -101,7 +57,6 @@
     }
 
     // Audio input handling
-
     function activateAudioInput() {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } })
@@ -122,7 +77,7 @@
 
     // Save/Load functions using local storage (no yet working since 'params' does not reflect the polyphonic layout...)
 
-    //set item from local storage 'item_key' key
+    // Set item from local storage 'item_key' key
     function getStorageItemValue(item_key, key) {
         if (localStorage.getItem(item_key)) {
             var item_value = JSON.parse(localStorage.getItem(item_key));
@@ -133,7 +88,7 @@
         }
     }
 
-    //get [key, value] in local storage item_key key
+    // Get [key, value] in local storage item_key key
     function setStorageItemValue(item_key, key, value) {
         var item_value;
         if (localStorage.getItem(item_key)) {
@@ -174,6 +129,26 @@
         }
     }
 
+    // Adaptation class
+    class FaustDSPPoly {
+
+        fAudioContext;
+        fBaseURL;
+        fVoices;
+
+        constructor(context, voices, baseURL) {
+            this.fAudioContext = context;
+            this.fBaseURL = baseURL;
+            this.fVoices = voices;
+        }
+
+        async load() {
+            factory = Faust.createPolyWAPFactory(audioCtx, "");
+            return factory.load("DSP.wasm", "DSP.js", "DSP_effect.wasm", "DSP_effect.js", "mixer32.wasm", this.fVoices, false, 1024);
+        }
+    }
+
+    // Node activation
     function startDSPAux(aw_node) {
         node = aw_node;
 
@@ -198,27 +173,16 @@
         loadDSPState();
     }
 
-    async function startDSP() {
+    function startDSP() {
         startNewDSP();
     }
 
-    async function startNewDSP() {
+    function startNewDSP() {
         if (isWasm && workletAvailable()) {
-            /*
             factory = new FaustDSPPoly(audioCtx, 16, "");
             factory.load()
-            .then((aw_node) => startDSPAux(aw_node))
-            .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
-            */
-
-            if (isWasm && workletAvailable()) {
-                factory = Faust.createAudioWAPNodeFactory(audioCtx, "");
-                let wap_node = await factory.loadPoly("DSP.wasm", "DSP.js", "DSP_effect.wasm", "DSP_effect.js", "mixer32.wasm", 16, false, 1024);
-                startDSPAux(wap_node);
-            } else {
-                alert("WebAssembly or AudioWorklet is not supported in this browser !");
-            }
-
+                .then((aw_node) => startDSPAux(aw_node))
+                .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
         } else {
             alert("WebAssembly or AudioWorklet is not supported in this browser !");
         }

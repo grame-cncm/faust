@@ -24,16 +24,16 @@
 
 namespace Faust {
 
-    export function createAudioWAPNodeFactory(context: BaseAudioContext, baseURL: string = "") {
-        return new AudioWAPNodeFactoryImp(context, baseURL);
+    export function createMonoWAPFactory(context: BaseAudioContext, baseURL: string = "") {
+        return new MonoWAPFactoryImp(context, baseURL);
     }
 
-    export class AudioWAPNodeFactoryImp implements AudioWAPNodeFactory {
+    export class MonoWAPFactoryImp implements MonoWAPFactory {
 
         fContext: BaseAudioContext;
         fBaseURL: string;
 
-        private makeWAPMonoNode(node: FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null) {
+        private makeMonoWAP(node: FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null) {
             const wap = node as FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode;
             if (wap) {
                 wap.getMetadata = async () => {
@@ -62,7 +62,66 @@ namespace Faust {
             }
         }
 
-        private makeWAPPolyNode(node: | FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null) {
+        private async compileMonoWAPNode(
+            context: BaseAudioContext,
+            name: string,
+            compiler: Compiler,
+            dsp_code: string,
+            args: string,
+            sp: boolean,
+            buffer_size?: number)
+            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
+            const node = await createAudioNodeFactory().compileMonoNode(context, name, compiler, dsp_code, args, sp, buffer_size);
+            // Dynamically add WAP API to the node
+            return this.makeMonoWAP(node);
+        }
+
+        private async createMonoWAPNode(
+            context: BaseAudioContext,
+            name: string,
+            factory: Factory,
+            sp: boolean,
+            buffer_size?: number)
+            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
+            const node = await createAudioNodeFactory().createMonoNode(context, name, factory, sp, buffer_size);
+            // Dynamically add WAP API to the node
+            return this.makeMonoWAP(node);
+        }
+
+        // Public API
+        constructor(context: BaseAudioContext, baseURL: string = "") {
+            this.fContext = context;
+            this.fBaseURL = baseURL;
+        }
+
+        async load(wasm_path_aux: string, json_path_aux: string, sp: boolean = false)
+            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
+            const wasm_path = (this.fBaseURL === "") ? wasm_path_aux : (this.fBaseURL + '/' + wasm_path_aux);
+            const json_path = (this.fBaseURL === "") ? json_path_aux : (this.fBaseURL + '/' + json_path_aux);
+            const factory = await createGenerator().loadDSPFactory(wasm_path, json_path);
+            if (factory) {
+                let node = await this.createMonoWAPNode(this.fContext, "FausDSP", factory, sp, 1024);
+                if (node) node.fBaseURL = this.fBaseURL;
+                return node;
+            } else {
+                return null;
+            }
+        }
+
+        // TODO
+        //async loadGui();
+    }
+
+    export function createPolyWAPFactory(context: BaseAudioContext, baseURL: string = "") {
+        return new PolyWAPFactoryImp(context, baseURL);
+    }
+
+    export class PolyWAPFactoryImp implements PolyWAPFactory {
+
+        fContext: BaseAudioContext;
+        fBaseURL: string;
+
+        private makePolyWAP(node: | FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null) {
             const wap = node as FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode;
             if (wap) {
                 wap.getMetadata = async () => {
@@ -91,33 +150,7 @@ namespace Faust {
             }
         }
 
-        private async compileWAPMonoNode(
-            context: BaseAudioContext,
-            name: string,
-            compiler: Compiler,
-            dsp_code: string,
-            args: string,
-            sp: boolean,
-            buffer_size?: number)
-            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
-            const node = await createAudioNodeFactory().compileMonoNode(context, name, compiler, dsp_code, args, sp, buffer_size);
-            // Dynamically add WAP API to the node
-            return this.makeWAPMonoNode(node);
-        }
-
-        private async createWAPMonoNode(
-            context: BaseAudioContext,
-            name: string,
-            factory: Factory,
-            sp: boolean,
-            buffer_size?: number)
-            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
-            const node = await createAudioNodeFactory().createMonoNode(context, name, factory, sp, buffer_size);
-            // Dynamically add WAP API to the node
-            return this.makeWAPMonoNode(node);
-        }
-
-        private async createWAPPolyNode(
+        private async createPolyWAPNode(
             context: BaseAudioContext,
             name_aux: string,
             voice_factory: Factory,
@@ -129,7 +162,7 @@ namespace Faust {
             : Promise<FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode | null> {
             const node = await createAudioNodeFactory().createPolyNode(context, "FaustDSP", voice_factory, mixer_module, voices, sp, effect_factory, buffer_size);
             // Dynamically add WAP API to the node
-            return this.makeWAPPolyNode(node);
+            return this.makePolyWAP(node);
         }
 
         // Public API
@@ -138,21 +171,7 @@ namespace Faust {
             this.fBaseURL = baseURL;
         }
 
-        async load(wasm_path_aux: string, json_path_aux: string, sp: boolean = false)
-            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null> {
-            const wasm_path = (this.fBaseURL === "") ? wasm_path_aux : (this.fBaseURL + '/' + wasm_path_aux);
-            const json_path = (this.fBaseURL === "") ? json_path_aux : (this.fBaseURL + '/' + json_path_aux);
-            const factory = await createGenerator().loadDSPFactory(wasm_path, json_path);
-            if (factory) {
-                let node = await this.createWAPMonoNode(this.fContext, "FausDSP", factory, sp, 1024);
-                if (node) node.fBaseURL = this.fBaseURL;
-                return node;
-            } else {
-                return null;
-            }
-        }
-
-        async loadPoly(voice_path_aux: string,
+        async load(voice_path_aux: string,
             voice_json_path_aux: string,
             effect_path_aux: string,
             effect_json_path_aux: string,
@@ -171,7 +190,7 @@ namespace Faust {
             const effect_factory = await gen.loadDSPFactory(effect_path, effect_json_path);
             const mixer_module = await gen.loadDSPMixer(mixer_path);
             if (voice_factory && mixer_module) {
-                const node = await this.createWAPPolyNode(this.fContext, "FaustDSP", voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), 1024);
+                const node = await this.createPolyWAPNode(this.fContext, "FaustDSP", voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), 1024);
                 if (node) node.fBaseURL = this.fBaseURL;
                 return node;
             } else {
@@ -180,6 +199,6 @@ namespace Faust {
         }
 
         // TODO
-        //async loadGui();    
+        //async loadGui();
     }
 }

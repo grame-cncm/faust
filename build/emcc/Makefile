@@ -1,5 +1,4 @@
 
-
 jssrc := $(wildcard src/*.ts)
 
 all: 

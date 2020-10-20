@@ -1,4 +1,3 @@
-
 <script>
     'use strict';
     // Faust part
@@ -6,7 +5,7 @@
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)(({ latencyHint: 0.00001 }));
     audioCtx.destination.channelInterpretation = "discrete";
     let audioInput, dspNode, $faustUI;
-    let dspOutputHandler = () => {};
+    let dspOutputHandler = () => { };
 
     // MIDI input handling
     const midiMessageReceived = e => {
@@ -28,7 +27,7 @@
                     if (e.port.state === "connected") {
                         console.log(e.port.name + " is connected");
                         e.port.onmidimessage = midiMessageReceived;
-                    } else if (e.port.state  === "disconnected") {
+                    } else if (e.port.state === "disconnected") {
                         console.log(e.port.name + " is disconnected");
                         e.port.onmidimessage = null;
                     }
@@ -107,29 +106,29 @@
         if (!window[dspName]) return console.error(dspName + " instance not found.");
         const bufferSize = bufferSizeIn || 1024;
         window[dspName].createDSP(audioCtx, bufferSize)
-        .then(dsp => {
-            if (!dsp) return console.error("Error in DSP creation.");
-            if (dspNode) { // destroy current
-                dspNode.disconnect(audioCtx.destination);
-                if (audioInput) audioInput.disconnect(dspNode);
-            }
-            dspNode = dsp;
-            if (dspNode.getNumInputs() > 0) activateAudioInput();
-            dspNode.connect(audioCtx.destination);
-            // console.log(dspNode.getJSON());
-            // TODO: emcc
-            // dspNode.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
-            // console.log(dspNode.getParams());
-            if (typeof _f4u$t === "undefined") return;
-            if (typeof $ === "undefined") return;
-            if ($faustUI) $faustUI.remove();
-            $faustUI = $("<div>");
-            $("body").append($faustUI);
-            dspOutputHandler = _f4u$t.main(dspNode.getJSON(), $faustUI, (path, val) => dspNode.setParamValue(path, val));
-            dspNode.setOutputParamHandler(dspOutputHandler);
-        
-            loadDSPState(); // Load DSP state from local storage
-        });
+            .then(dsp => {
+                if (!dsp) return console.error("Error in DSP creation.");
+                if (dspNode) { // destroy current
+                    dspNode.disconnect(audioCtx.destination);
+                    if (audioInput) audioInput.disconnect(dspNode);
+                }
+                dspNode = dsp;
+                if (dspNode.getNumInputs() > 0) activateAudioInput();
+                dspNode.connect(audioCtx.destination);
+                // console.log(dspNode.getJSON());
+                // TODO: emcc
+                // dspNode.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                // console.log(dspNode.getParams());
+                if (typeof _f4u$t === "undefined") return;
+                if (typeof $ === "undefined") return;
+                if ($faustUI) $faustUI.remove();
+                $faustUI = $("<div>");
+                $("body").append($faustUI);
+                dspOutputHandler = _f4u$t.main(dspNode.getJSON(), $faustUI, (path, val) => dspNode.setParamValue(path, val));
+                dspNode.setOutputParamHandler(dspOutputHandler);
+
+                loadDSPState(); // Load DSP state from local storage
+            });
     }
     // To activate audio on iOS
     window.addEventListener("touchstart", () => {
@@ -141,15 +140,15 @@
         source.start(); // play the file
         audioCtx.resume().then(() => console.log("Audio resumed"));
     }, false);
-    
+
     // On desktop
     window.addEventListener("mousedown", () => {
         if (audioCtx.state !== "suspended") return;
         audioCtx.resume().then(() => console.log("Audio resumed"))
     });
-    
-    if (typeof _f4u$t !== "undefined") _f4u$t.main_loop = () => {}; // No polling from the server needed, so use an empty loop
-    
+
+    if (typeof _f4u$t !== "undefined") _f4u$t.main_loop = () => { }; // No polling from the server needed, so use an empty loop
+
     // Start monophonic instrument
     if (typeof Module !== "undefined") {
         console.log("Compiled with EMCC");
