@@ -33,6 +33,7 @@ namespace Faust {
         protected fComputeHandler: ComputeHandler | null;
         protected fPlotHandler: PlotHandler | null;
         protected fUICallback: UIHandler;
+        protected fDescriptor: TFaustUIInputItem[];
 
         constructor(context: BaseAudioContext, name: string, factory: Factory, options: any) {
 
@@ -55,6 +56,7 @@ namespace Faust {
             this.fOutputHandler = null;
             this.fComputeHandler = null;
             this.fPlotHandler = null;
+            this.fDescriptor = [];
 
             // Parse UI
             this.fInputsItems = [];
@@ -62,6 +64,7 @@ namespace Faust {
                 if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
                     // Keep inputs adresses
                     this.fInputsItems.push(item.address);
+                    this.fDescriptor.push(item);
                 }
             }
             BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
@@ -158,6 +161,7 @@ namespace Faust {
         getParams() { return this.fInputsItems; }
         getJSON() { return this.fJSON; }
         getUI() { return this.fJSONDsp.ui; }
+        getDescriptors() { return this.fDescriptor; }
 
         destroy() {
             this.port.postMessage({ type: "destroy" });

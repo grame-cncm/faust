@@ -56,6 +56,20 @@ namespace Faust {
                 wap.onMidi = (data: number[] | Uint8Array) => {
                     return wap.midiMessage(data);
                 }
+
+                wap.getDescriptor = () => {
+                    let desc = {};
+                    const descriptor = wap.getDescriptors();
+                    for (const item in descriptor) {
+                        if (descriptor.hasOwnProperty(item)) {
+                            if (descriptor[item].label != "bypass") {
+                                desc = Object.assign({ [descriptor[item].label]: { minValue: descriptor[item].min, maxValue: descriptor[item].max, defaultValue: descriptor[item].init } }, desc);
+                            }
+                        }
+                    }
+                    return desc;
+                }
+
                 return wap;
             } else {
                 return null;
@@ -143,6 +157,18 @@ namespace Faust {
                 }
                 wap.onMidi = (data: number[] | Uint8Array) => {
                     return wap.midiMessage(data);
+                }
+                wap.getDescriptor = () => {
+                    let desc = {};
+                    const descriptor = wap.getDescriptors();
+                    for (const item in descriptor) {
+                        if (descriptor.hasOwnProperty(item)) {
+                            if (descriptor[item].label != "bypass") {
+                                desc = Object.assign({ [descriptor[item].label]: { minValue: descriptor[item].min, maxValue: descriptor[item].max, defaultValue: descriptor[item].init } }, desc);
+                            }
+                        }
+                    }
+                    return desc;
                 }
                 return wap;
             } else {

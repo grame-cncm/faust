@@ -36,8 +36,8 @@ declare namespace Faust {
         inputChannelCount(): number;
         outputChannelCount(): number;
 
-        // TODO
-        //getDescriptor(): any;
+        // TODO (proper typing)
+        getDescriptor(): any;
 
         onMidi(data: number[] | Uint8Array): void;
     }

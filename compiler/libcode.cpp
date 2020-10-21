@@ -1453,10 +1453,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gOutputFile == "binary") {
                 // Nothing
             } else if (gGlobal->gOutputFile != "") {
-                string outpath_js;
-                bool   res = replaceExtension(outpath, ".js", outpath_js);
+                string outpath_json;
+                bool   res = replaceExtension(outpath, ".json", outpath_json);
                 if (res) {
-                    helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+                    helpers = unique_ptr<ostream>(new ofstream(outpath_json.c_str()));
                 } else {
                     cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
                          << endl;
@@ -1496,10 +1496,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gOutputFile == "binary") {
                 // Nothing
             } else if (gGlobal->gOutputFile != "") {
-                string outpath_js;
-                bool   res = replaceExtension(outpath, ".js", outpath_js);
+                string outpath_json;
+                bool   res = replaceExtension(outpath, ".json", outpath_json);
                 if (res) {
-                    helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+                    helpers = unique_ptr<ostream>(new ofstream(outpath_json.c_str()));
                 } else {
                     cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
                          << endl;

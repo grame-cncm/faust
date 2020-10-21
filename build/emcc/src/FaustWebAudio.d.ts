@@ -172,6 +172,13 @@ declare namespace Faust {
         getUI(): TFaustUI;
 
         /**
+        * Get DSP UI items description.
+        *
+        * @return {TFaustUIItem[]} the DSP UI items description
+        */
+        getDescriptors(): TFaustUIInputItem[];
+
+        /**
          * Destroy the DSP.
          *
          */

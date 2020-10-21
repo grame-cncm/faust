@@ -132,17 +132,15 @@
     // Adaptation class
     class FaustDSP {
 
-        fAudioContext;
-        fBaseURL;
-
-        constructor(context, baseURL) {
+        constructor(context, baseURL, sp = false) {
             this.fAudioContext = context;
             this.fBaseURL = baseURL;
+            this.fSP = sp;
         }
 
         async load() {
             const factory = Faust.createMonoWAPFactory(this.fAudioContext, this.fBaseURL);
-            return factory.load("DSP.wasm", "DSP.js", true);
+            return factory.load("DSP.wasm", "DSP.json", this.fSP);
         }
     }
 
@@ -175,14 +173,21 @@
     }
 
     function startNewDSP() {
-        if (isWasm && workletAvailable()) {
-            factory = new FaustDSP(audioCtx, "");
-            factory.load()
-                .then((aw_node) => startDSPAux(aw_node))
-                .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
+        if (isWasm) {
+            if (workletAvailable()) {
+                factory = new FaustDSP(audioCtx, "");
+                console.log("Running in AudioWorklet mdoe");
+            } else {
+                factory = new FaustDSP(audioCtx, "", true);
+                console.log("Running in ScriptProcessor mode");
+            }
         } else {
-            alert("WebAssembly or AudioWorklet is not supported in this browser !");
+            console.log("WebAssembly not supported in this browser !");
+            return;
         }
+        factory.load()
+            .then((aw_node) => startDSPAux(aw_node))
+            .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
     }
 
     // To activate audio on iOS

@@ -207,7 +207,7 @@ EndOfCode
             cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
             BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
         else
-            BINARIES="$BINARIES$name.html;$name.js;$name.wasm;"
+            BINARIES="$BINARIES$name.html;$name.json;$name.wasm;"
         fi
     fi
 

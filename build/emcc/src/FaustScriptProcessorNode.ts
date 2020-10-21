@@ -86,6 +86,7 @@ namespace Faust {
             node.getParams = () => { return this.fDSPCode.getParams(); }
 
             node.getJSON = () => { return this.fDSPCode.getJSON(); }
+            node.getDescriptors = () => { return this.fDSPCode.getDescriptors(); }
             node.getUI = () => { return this.fDSPCode.getUI(); }
             node.destroy = () => { this.fDSPCode.destroy(); }
         }

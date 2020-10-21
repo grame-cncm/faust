@@ -41,6 +41,7 @@ namespace Faust {
         // UI items path
         protected fInputsItems: string[];
         protected fOutputsItems: string[];
+        protected fDescriptor: TFaustUIInputItem[];
 
         // Buffers in wasm memory
         protected fAudioInputs!: AudioBuffer;
@@ -80,6 +81,7 @@ namespace Faust {
             this.fOutputsTimer = 5;
             this.fInputsItems = [];
             this.fOutputsItems = [];
+            this.fDescriptor = [];
 
             this.fPitchwheelLabel = [];
             this.fCtrlLabel = new Array(128).fill(null).map(() => []);
@@ -96,6 +98,7 @@ namespace Faust {
                     // Keep inputs adresses
                     this.fInputsItems.push(item.address);
                     this.fPathTable[item.address] = item.index;
+                    this.fDescriptor.push(item);
                     // Parse 'midi' metadata
                     if (!item.meta) return
                     item.meta.forEach((meta) => {
@@ -224,6 +227,7 @@ namespace Faust {
         getParams() { return this.fInputsItems; }
         getJSON() { return ""; }
         getUI() { return this.fJSONDsp.ui; }
+        getDescriptors() { return this.fDescriptor; }
         destroy() {
             this.fDestroyed = true;
             this.fOutputHandler = null;
@@ -383,6 +387,7 @@ namespace Faust {
         }
 
         getJSON() { return this.fInstance.json; }
+        getDescriptors() { return this.fDescriptor; }
         getUI() { return this.fJSONDsp.ui; }
     }
 
@@ -789,8 +794,9 @@ namespace Faust {
             }
         }
 
+        getDescriptors() { return this.fDescriptor; }
+
         midiMessage(data: number[] | Uint8Array) {
-            // TODO: node.cachedEvents.push({ data, type: "midi" });
             const cmd = data[0] >> 4;
             const channel = data[0] & 0xf;
             const data1 = data[1];
