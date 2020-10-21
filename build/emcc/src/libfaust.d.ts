@@ -39,7 +39,7 @@ declare namespace Faust {
         Used for internal dev purpose only (not public).
     */
 
-    //export function createLibFaust(engine: FaustModule) {
+    //export function createLibFaust(module: FaustModule) {
 
     interface LibFaust {
 

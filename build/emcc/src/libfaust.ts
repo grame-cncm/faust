@@ -24,37 +24,37 @@
 namespace Faust {
 
     // Public contructor
-    export function createLibFaust(engine: FaustModule) {
-        return new LibFaustImp(engine);
+    export function createLibFaust(module: FaustModule) {
+        return new LibFaustImp(module);
     }
 
     export class LibFaustImp implements LibFaust {
         private fModule: FaustModule;
-        private fEngine: LibFaust;
+        private fCompiler: LibFaust;
 
-        constructor(engine: FaustModule) {
-            this.fModule = engine;
-            this.fEngine = new engine.libFaustWasm();
+        constructor(module: FaustModule) {
+            this.fModule = module;
+            this.fCompiler = new module.libFaustWasm();
         }
 
-        version(): string { return this.fEngine.version(); }
+        version(): string { return this.fCompiler.version(); }
 
-        createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm { return this.fEngine.createDSPFactory(name, dsp_code, args, internal_memory); }
+        createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm { return this.fCompiler.createDSPFactory(name, dsp_code, args, internal_memory); }
 
-        deleteDSPFactory(cfactory: number): void { this.fEngine.deleteDSPFactory(cfactory); }
+        deleteDSPFactory(cfactory: number): void { this.fCompiler.deleteDSPFactory(cfactory); }
 
-        expandDSP(name: string, dsp_code: string, args: string): string { return this.fEngine.expandDSP(name, dsp_code, args); }
+        expandDSP(name: string, dsp_code: string, args: string): string { return this.fCompiler.expandDSP(name, dsp_code, args); }
 
-        generateAuxFiles(name: string, dsp_code: string, args: string): boolean { return this.fEngine.generateAuxFiles(name, dsp_code, args); }
+        generateAuxFiles(name: string, dsp_code: string, args: string): boolean { return this.fCompiler.generateAuxFiles(name, dsp_code, args); }
 
-        deleteAllDSPFactories() { this.fEngine.deleteAllDSPFactories(); }
+        deleteAllDSPFactories() { this.fCompiler.deleteAllDSPFactories(); }
 
-        getErrorAfterException(): string { return this.fEngine.getErrorAfterException(); }
+        getErrorAfterException(): string { return this.fCompiler.getErrorAfterException(); }
 
-        cleanupAfterException() { this.fEngine.cleanupAfterException(); }
+        cleanupAfterException() { this.fCompiler.cleanupAfterException(); }
 
         module(): FaustModule { return this.fModule; }
 
-        toString() { return "LibFaust module: " + this.fModule + " engine: " + this.fEngine; }
+        toString() { return "LibFaust module: " + this.fModule + " engine: " + this.fCompiler; }
     }
 }
