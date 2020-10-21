@@ -151,12 +151,14 @@ set<Tree> ShortDelayLineSimplifier(const set<Tree>& I)
     for (Tree i : I) filterCandidate(i, C);
 #endif
 
+#if 0
     // print ID of remaining candidates for short dlines
     if (C.size() > 0) {
         cerr << ">>>>Short dlines: ";
         for (Tree i : C) cerr << *i << " ";
         cerr << endl;
     }
+#endif
 
     // create a transformation to replace the short dlines
     replaceShortDLine rsdl(C);
