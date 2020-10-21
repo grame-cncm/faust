@@ -190,26 +190,18 @@ EndOfCode
         rm $name.cpp
     else
 
-        #if [ "$EFFECT" != "" ]; then
-        #    cat $name"_effect".js >> $name.js
-        #    rm $name"_effect".js
-        #fi
+        # Done in SP and AWN cases
+        sed -e "s/DSP/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
 
-        if [ $WORKLET = "true" ]; then
-            echo $CODE_WRAPPER1
-            sed -e "s/DSP/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+        if [ $WORKLET = "true" ]; then        
             if [ $WAP = "2" ]; then
             	sed -e "s/class\ mydsp\ /"export\ default\ class\ $name\ "/g" $FAUSTARCH/webaudio/$CODE_WRAPPER2 > $name_tmp1.js
             	sed -e "s/mydsp/"$name"/g" $name_tmp1.js >> $name.js
-            else
-            	echo "nothing to do"
             fi
         else
             if [ $WAP = "2" ]; then
             	sed -e "s/class\ mydsp\ /"export\ default\ class\ $name\ "/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 > $name_tmp1.js
             	sed -e "s/mydsp/"$name"/g" $name_tmp1.js >> $name.js
-            else
-            	echo "nothing to do"
             fi
         fi
     fi
@@ -246,7 +238,7 @@ EndOfCode
  
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-    	rm -f $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
+    	rm -f test$name-tmp1.html test$name-tmp2.html
     	if [ $WAP = "1" ] || [ $WAP = "2" ]; then
     		mv $name.js main.js
     		mv test$name.html index.html
