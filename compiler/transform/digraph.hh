@@ -25,9 +25,22 @@
 // to represent the time dependency between computations.
 //===========================================================
 
-template <typename N>
+template <typename A>
+class arrow_traits
+{
+};
+
+template <>
+struct arrow_traits<int> {
+    static int zero() { return 0; }
+    static int combine(int x, int y) { return (x < y) ? y : x; }
+};
+
+template <typename N, typename A = int>
 class digraph
 {
+    using policy = arrow_traits<A>;
+
    private:
     //--------------------------------------------------------------------------
     // Real/internal structure of a graph. A graph is a set of nodes
@@ -36,8 +49,8 @@ class digraph
     class internalgraph
     {
        private:
-        std::set<N>                   fNodes;        // {n1,n2,...}
-        std::map<N, std::map<N, int>> fConnections;  // {(ni -d-> nj),...}
+        std::set<N>                 fNodes;        // {n1,n2,...}
+        std::map<N, std::map<N, A>> fConnections;  // {(ni -d-> nj),...}
 
        public:
 #if 0
@@ -54,34 +67,28 @@ class digraph
         // Add the nodes n1 and n2 and the connection (n1 -d-> n2) to the graph.
         // If a connection (n1 -d'-> n2) already exists, the connection is updated
         // with the min(d,d')
-        void add(const N& n1, const N& n2, int d = 0)
+        void add(const N& n1, const N& n2, const A& d = policy::zero())
         {
             add(n1);
             add(n2);
             auto& adj = fConnections[n1];
             auto  cnx = adj.find(n2);
             if (cnx != adj.end()) {
-                int& d1 = cnx->second;
-                if (d < d1) d1 = d;
+                A& d1 = cnx->second;
+                d1    = policy::combine(d1, d);
             } else {
                 adj[n2] = d;
             }
         }
 
         // returns the set of nodes of the graph
-        const std::set<N>& nodes() const
-        {
-            return fNodes;
-        }
+        const std::set<N>& nodes() const { return fNodes; }
 
         // returns the connections of node n in the graph
-        const std::map<N, int>& connections(const N& n) const
-        {
-            return fConnections.at(n);
-        }
+        const std::map<N, A>& connections(const N& n) const { return fConnections.at(n); }
 
         // tests if two nodes are connected
-        bool areConnected(const N& n1, const N& n2, int& d) const
+        bool areConnected(const N& n1, const N& n2, A& d) const
         {
             auto c = fConnections.at(n1);
             auto q = c.find(n2);
@@ -96,7 +103,7 @@ class digraph
         // tests if two nodes are connected
         bool areConnected(const N& n1, const N& n2) const
         {
-            int d;
+            A d;
             return areConnected(n1, n2, d);
         }
     };
@@ -104,9 +111,7 @@ class digraph
     std::shared_ptr<internalgraph> fContent;
 
    public:
-    digraph() : fContent(new internalgraph)
-    {
-    }
+    digraph() : fContent(new internalgraph) {}
 
     // build the graph
 
@@ -126,7 +131,7 @@ class digraph
         return *this;
     }
 
-    digraph& add(const N& n1, const N& n2, int d = 0)
+    digraph& add(const N& n1, const N& n2, const A& d = policy::zero())
     {
         fContent->add(n1, n2, d);
         return *this;
@@ -134,23 +139,14 @@ class digraph
 
     // query the graph
 
-    const std::set<N>& nodes() const
-    {
-        return fContent->nodes();
-    }
-    const std::map<N, int>& connections(const N& n) const
-    {
-        return fContent->connections(n);
-    }
+    const std::set<N>&    nodes() const { return fContent->nodes(); }
+    const std::map<N, A>& connections(const N& n) const { return fContent->connections(n); }
 
-    bool areConnected(const N& n1, const N& n2, int& d) const
+    bool areConnected(const N& n1, const N& n2, A& d) const
     {
         return fContent->areConnected(n1, n2, d);
     }
-    bool areConnected(const N& n1, const N& n2) const
-    {
-        return fContent->areConnected(n1, n2);
-    }
+    bool areConnected(const N& n1, const N& n2) const { return fContent->areConnected(n1, n2); }
 
     // compare graphs for maps and other containers
 
