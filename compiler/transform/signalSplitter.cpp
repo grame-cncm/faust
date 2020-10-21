@@ -136,7 +136,7 @@ Tree SignalSplitter::transformation(Tree sig)
                 fSplittedSignals.insert(sigInstructionDelayLineWrite(dlid, x, t->nature(), dmax, self(x)));
             }
             Tree w = self(y);
-            return sigInstructionDelayLineRead(dlid, x, t->nature(), dmax, int(i.lo), w);
+            return sigInstructionDelayLineRead(dlid, sig, t->nature(), dmax, int(i.lo), w);
         }
 
     } else if (isSigVBargraph(sig, label, minv, maxv, val) || isSigHBargraph(sig, label, minv, maxv, val)) {

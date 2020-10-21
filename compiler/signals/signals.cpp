@@ -790,6 +790,7 @@ bool isSigInstructionDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature,
  */
 Tree sigInstructionDelayLineRead(Tree id, Tree origin, int nature, int dmax, int dmin, Tree dl)
 {
+    // std::cerr << "Calling sigInstructionDelayLineRead" << endl;
     return tree(gGlobal->SIGINSTRUCTIONDELAYLINEREAD, id, origin, tree(nature), tree(dmax), tree(dmin), dl);
 }
 

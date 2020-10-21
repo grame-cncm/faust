@@ -1040,8 +1040,8 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
  */
 void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
 {
-    Tree id, origin, content, init, initval, idx;
-    int  i, nature, tblsize;
+    Tree id, tid, origin, content, init, initval, idx;
+    int  i, nature, tblsize, dmin;
 
     if (isSigInstructionControlWrite(instr, id, origin, &nature, content)) {
         string ctype = nature2ctype(nature);
@@ -1106,11 +1106,19 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
 
     } else if (isSigInstructionTimeWrite(instr)) {
         K->addDeclCode("int \tgTime;");
-        K->addClearCode("gTime = 0;");
+        K->addClearCode("gTime = -1;");
         K->addZone3("int \ttime = gTime;");
-        K->addPostCode(Statement("", "++time;"));
+        K->addExecCode(Statement("", "++time;"));
         K->addZone4("gTime = time;");
 
+    } else if (isSigInstructionTableAccessWrite(instr, id, origin, &nature, &dmin, tid, idx)) {
+        //         fout << *id << " = " << *tid << "[" << ppsig(idx) << "]";
+        string ctype = nature2ctype(nature);
+        string vname{tree2str(id)};
+        string tname{tree2str(tid)};
+
+        K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        K->addExecCode(Statement("", subst("$0 = $1[$2];", vname, tname, CS(idx))));
     } else {
         std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(instr) << endl;
         faustassert(false);

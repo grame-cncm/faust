@@ -91,17 +91,17 @@ void signalGraph2(const string& filename, const set<Tree>& I)
     }
 
     digraph<digraph<Tree>> SG = graph2dag2(G);
-
-    for (auto g : SG.nodes()) {
-        std::cerr << g << std::endl;
-        for (auto i : g.nodes()) {
-            std::cerr << ppsig(i) << std::endl;
-            for (auto r : instructionInputs(i)) {
-                std::cerr << "\t" << ppsig(r) << std::endl;
+    /*
+        for (auto g : SG.nodes()) {
+            std::cerr << g << std::endl;
+            for (auto i : g.nodes()) {
+                std::cerr << ppsig(i) << std::endl;
+                for (auto r : instructionInputs(i)) {
+                    std::cerr << "\t" << ppsig(r) << std::endl;
+                }
             }
         }
-    }
-
+    */
     ofstream f;
     f.open(filename);
     // cerr << "\n\nCreate dotfile: " << filename << endl;

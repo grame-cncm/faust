@@ -62,10 +62,10 @@ static Type infereWaveformType(Tree lv, Tree env);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inference tracing
-#define TRACE(x) x
-#define OFFTRACE(x) \
-    {               \
-        ;           \
+//#define TRACE(x) x
+#define TRACE(x) \
+    {            \
+        ;        \
     }
 
 /**
@@ -151,7 +151,7 @@ void annotationStatistics()
 ::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);
-    std::cerr << ppsig(sig) << std::endl;
+    // std::cerr << ppsig(sig) << std::endl;
     faustassert(ty);
     return ty;
 }
@@ -501,7 +501,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionDelayLineRead(sig, id, u, &nat, &dmax, &dmin, x)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     else if (isSigInstructionTableWrite(sig, id, u, &nat, &i, x, y, z)) {
@@ -513,11 +513,11 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionTableAccessWrite(sig, id, u, &nat, &i, tid, x)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     else if (isSigInstructionTableRead(sig, id, u, &nat, &i, x)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     else if (isSigInstructionSharedWrite(sig, id, u, &nat, x)) {
@@ -525,7 +525,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionSharedRead(sig, id, u, &nat)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     else if (isSigInstructionVectorWrite(sig, id, u, &nat, x)) {
@@ -533,7 +533,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionVectorRead(sig, id, u, &nat)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     else if (isSigInstructionControlWrite(sig, id, u, &nat, x)) {
@@ -541,7 +541,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionControlRead(sig, id, u, &nat)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     // TODO caster en float ????
@@ -550,7 +550,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionBargraphRead(sig, id, u, &nat)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     // TODO check types are correct
@@ -559,7 +559,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInstructionShortDLineRead(sig, id, u, &nat, &dmin)) {
-        return getCertifiedSigType(u);
+        return T(u, env);
     }
 
     // TODO check types are correct
