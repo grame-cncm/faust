@@ -46,7 +46,10 @@ declare namespace Faust {
 
     interface FaustMonoWAPAudioWorkletNode extends FaustMonoAudioWorkletNode, WAP { }
 
-    //export function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string = "") : MonoWAPFactory;
+    /**
+     * Constructor.   
+     */
+    interface createMonoAudioWAPFactory { (context: BaseAudioContext, baseURL: string): MonoWAPFactory }
 
     interface MonoWAPFactory {
 
@@ -58,7 +61,10 @@ declare namespace Faust {
 
     interface FaustPolyWAPAudioWorkletNode extends FaustPolyAudioWorkletNode, WAP { }
 
-    //export function createPolyWAPFactory(context: BaseAudioContext, baseURL: string = "") : PolyWAPFactory;
+    /**
+     * Constructor.   
+     */
+    interface createPolyWAPFactory { (context: BaseAudioContext, baseURL: string): PolyWAPFactory }
 
     interface PolyWAPFactory {
 

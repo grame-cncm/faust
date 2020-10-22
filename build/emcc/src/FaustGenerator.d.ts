@@ -189,7 +189,10 @@ declare namespace Faust {
         mixVoice(bufferSize: number, chans: number, inputs: AudioBuffer, ouputs: AudioBuffer): number;
     }
 
-    //export function createGenerator() : Generator;
+    /**
+     * The generator constructor.
+     */
+    interface createGenerator { (): Generator }
 
     interface Generator {
 

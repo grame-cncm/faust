@@ -21,7 +21,7 @@ declare namespace Faust {
      * @param {string} dsp_code - Faust dsp code
      * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
      */
-    //export function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string);
+    interface createSVGDiagrams { (engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams }
 
     interface SVGDiagrams {
 
@@ -37,5 +37,4 @@ declare namespace Faust {
 
         success(): boolean;
     }
-
 }

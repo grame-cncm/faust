@@ -197,7 +197,7 @@ declare namespace Faust {
      * @param {number} buffer_size - the buffer size in frames
      * @return the created MonoDSP object 
      */
-    //export function createMonoDSP(instance: MonoInstance, sample_rate: number, buffer_size: number)
+    interface createMonoDSP { (instance: MonoInstance, sample_rate: number, buffer_size: number): MonoDSP }
 
     interface MonoDSP extends BaseDSP { }
 
@@ -213,7 +213,7 @@ declare namespace Faust {
      * @param {number} buffer_size - the buffer size in frames
      * @return the created MonoDSP object 
      */
-    //export function createPolyDSP(instance: PolyInstance, sample_rate: number, buffer_size: number)
+    interface createPolyDSP { (instance: PolyInstance, sample_rate: number, buffer_size: number): PolyDSP }
 
     interface PolyDSP extends BaseDSP {
 
@@ -280,8 +280,7 @@ declare namespace Faust {
     /**
      * Monophonic/Polyphonic ScriptProcessorNode and AudioWorkletNode nodes creation.
      */
-
-    //export function createAudioNodeFactory(): AudioNodeFactory;
+    interface createAudioNodeFactory { (): AudioNodeFactory }
 
     interface AudioNodeFactory {
 

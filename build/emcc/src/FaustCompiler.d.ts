@@ -17,7 +17,7 @@ declare namespace Faust {
      * @param {LibFaust} engine - an instance of the low level engine, actually a libFaustWasm instance of FaustModule
      * @return the created Compiler object 
      */
-    //export function createCompiler(engine: LibFaust);
+    interface createCompiler { (engine: LibFaust): Compiler }
 
     interface Compiler {
 
