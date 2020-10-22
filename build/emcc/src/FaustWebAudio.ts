@@ -66,11 +66,13 @@ namespace Faust {
                             ${Faust.GeneratorImp.toString()} 
                             ${Faust.InstanceAPIImpl.toString()} 
                             ${Faust.createMonoDSP.toString()} 
+                            ${Faust.createFaustJSON.toString()} 
                             // Put them in Faust namespace
                             Faust.BaseDSPImp = BaseDSPImp;
                             Faust.MonoDSPImp = MonoDSPImp;
                             Faust.GeneratorImp = GeneratorImp;
                             Faust.createMonoDSP = createMonoDSP;
+                            Faust.createFaustJSON = createFaustJSON;
                             // Generate the actual AudioWorkletProcessor code
                             (${FaustAudioWorkletProcessorGenerator.toString()})(); `;
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
@@ -165,12 +167,14 @@ namespace Faust {
                             ${DspVoice.toString()}
                             ${Faust.GeneratorImp.toString()} 
                             ${Faust.InstanceAPIImpl.toString()} 
-                            ${Faust.createPolyDSP.toString()} 
+                            ${Faust.createPolyDSP.toString()}
+                            ${Faust.createFaustJSON.toString()}  
                             // Put them in Faust namespace
                             Faust.BaseDSPImp = BaseDSPImp;
                             Faust.PolyDSPImp = PolyDSPImp;
                             Faust.GeneratorImp = GeneratorImp;
                             Faust.createPolyDSP = createPolyDSP;
+                            Faust.createFaustJSON = createFaustJSON;
                             // Generate the actual AudioWorkletProcessor code
                             (${FaustAudioWorkletProcessorGenerator.toString()})();`;
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));

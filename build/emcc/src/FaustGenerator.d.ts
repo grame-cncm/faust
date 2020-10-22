@@ -6,67 +6,6 @@
 
 declare namespace Faust {
 
-    type AudioBuffer = number;
-    type DSP = number;
-
-    type TFaustJSON = {
-        name: string;
-        filename: string;
-        compile_options: string;
-        include_pathnames: string[];
-        inputs: number;
-        outputs: number;
-        size: number;
-        version: string;
-        library_list: string[];
-        meta: { [key: string]: string }[];
-        ui: TFaustUI;
-    };
-
-    type TFaustUI = TFaustUIGroup[];
-    type TFaustUIItem = TFaustUIInputItem | TFaustUIOutputItem | TFaustUIGroup;
-    type TFaustUIInputItem = {
-        type: TFaustUIInputType;
-        label: string;
-        address: string;
-        index: number;
-        init: number;
-        min: number;
-        max: number;
-        step: number;
-        meta?: TFaustUIMeta[];
-    };
-
-    type TFaustUIOutputItem = {
-        type: TFaustUIOutputType;
-        label: string;
-        address: string;
-        index: number;
-        min: number;
-        max: number;
-        meta: TFaustUIMeta[];
-    };
-
-    type TFaustUIMeta = {
-        [order: number]: string;
-        style: string; // "knob" | "menu{'Name0':value0;'Name1':value1}" | "radio{'Name0':value0;'Name1':value1}" | "led";
-        unit: string;
-        scale: "linear" | "exp" | "log";
-        tooltip: string;
-        hidden: string;
-        [key: string]: string;
-    }
-
-    type TFaustUIGroupType = "vgroup" | "hgroup" | "tgroup";
-    type TFaustUIOutputType = "hbargraph" | "vbargraph";
-    type TFaustUIInputType = "vslider" | "hslider" | "button" | "checkbox" | "nentry";
-    type TFaustUIGroup = {
-        type: TFaustUIGroupType;
-        label: string;
-        items: TFaustUIItem[];
-    }
-    type TFaustUIType = TFaustUIGroupType | TFaustUIOutputType | TFaustUIInputType;
-
     /**
      * The Faust wasm instance interface.
     */

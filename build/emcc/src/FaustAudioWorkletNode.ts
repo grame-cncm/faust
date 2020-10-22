@@ -38,7 +38,7 @@ namespace Faust {
         constructor(context: BaseAudioContext, name: string, factory: Factory, options: any) {
 
             // Create JSON object
-            const JSONObj = JSON.parse(factory.json);
+            const JSONObj = createFaustJSON(factory.json);
 
             // Create proxy FaustAudioWorkletProcessor
             super(context, name, {
@@ -185,7 +185,7 @@ namespace Faust {
     // Polyphonic AudioWorkletNode 
     export class FaustPolyAudioWorkletNodeImp extends FaustAudioWorkletNodeImp implements PolyDSP {
 
-        private fJSONEffect: TFaustJSON;
+        private fJSONEffect: TFaustJSON | null;
 
         onprocessorerror = (e: Event) => {
             console.error("Error from " + this.fJSONDsp.name + " FaustPolyAudioWorkletNode");
@@ -207,9 +207,9 @@ namespace Faust {
                     effect_factory: effect_factory
                 });
 
-            this.fJSONEffect = (effect_factory) ? JSON.parse(effect_factory.json) : null;
+            this.fJSONEffect = (effect_factory) ? createFaustJSON(effect_factory.json) : null;
 
-            if (effect_factory) {
+            if (this.fJSONEffect) {
                 BaseDSPImp.parseUI(this.fJSONEffect.ui, this.fUICallback);
             }
         }

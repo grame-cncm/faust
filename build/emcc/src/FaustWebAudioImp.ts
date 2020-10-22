@@ -254,7 +254,7 @@ namespace Faust {
             this.fInstance = instance;
 
             // Create JSON object
-            this.fJSONDsp = JSON.parse(this.fInstance.json);
+            this.fJSONDsp = createFaustJSON(this.fInstance.json);
 
             // Setup GUI
             BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
@@ -508,7 +508,7 @@ namespace Faust {
 
         private fInstance: PolyInstance;
         private fEffect!: DSP;
-        private fJSONEffect: TFaustJSON;
+        private fJSONEffect: TFaustJSON | null;
         private fAudioMixing!: AudioBuffer;
         private fVoiceTable: DspVoice[];
 
@@ -517,10 +517,10 @@ namespace Faust {
             this.fInstance = instance;
 
             // Create JSON for voice
-            this.fJSONDsp = JSON.parse(this.fInstance.voice_json);
+            this.fJSONDsp = createFaustJSON(this.fInstance.voice_json);
 
             // Create JSON for effect
-            this.fJSONEffect = (this.fInstance.effect_api && this.fInstance.effect_json) ? JSON.parse(this.fInstance.effect_json) : null;
+            this.fJSONEffect = (this.fInstance.effect_api && this.fInstance.effect_json) ? createFaustJSON(this.fInstance.effect_json) : null;
 
             // Setup GUI
             BaseDSPImp.parseUI(this.fJSONDsp.ui, this.fUICallback);
