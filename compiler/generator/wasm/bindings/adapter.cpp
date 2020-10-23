@@ -67,7 +67,7 @@ FaustWasm libFaustWasm::createDSPFactory(const string name, const string dsp_con
         // JSON file
         stringstream json;
         factory->writeHelper(&json, false, false);
-        out.json = flatten(json.str());
+        out.json = json.str();
     }
     return out;
 }

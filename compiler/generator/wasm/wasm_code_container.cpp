@@ -348,8 +348,8 @@ void WASMCodeContainer::produceClass()
     // Finally produce output stream
     fBinaryOut.writeTo(*fOut);
 
-    // Helper code
-    fHelper << json;
+    // Helper code: remove problematic characters for the JS side
+    fHelper << flattenJSON1(json);
 }
 
 // Auxiliary function for shared code in generateCompute
