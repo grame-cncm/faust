@@ -80,7 +80,7 @@ namespace Faust {
             static get parameterDescriptors() {
                 const params = [] as AudioParamDescriptor[];
                 // Analyse voice JSON to generate AudioParam parameters
-                let callback = (item: TFaustUIItem) => {
+                const callback = (item: TFaustUIItem) => {
                     if (item.type === "vslider" || item.type === "hslider" || item.type === "nentry") {
                         params.push({ name: item.address, defaultValue: item.init || 0, minValue: item.min || 0, maxValue: item.max || 0 });
                     } else if (item.type === "button" || item.type === "checkbox") {

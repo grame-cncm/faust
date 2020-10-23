@@ -22,9 +22,9 @@
 declare namespace Faust {
 
     // Public API
-    interface OutputParamHandler { (path: string, value: number): any }
-    interface ComputeHandler { (buffer_size: number): any }
-    interface PlotHandler { (plotted: Float32Array[], index: number, events?: { type: string; data: any }[]): any }
+    interface OutputParamHandler { (path: string, value: number): void }
+    interface ComputeHandler { (buffer_size: number): void }
+    interface PlotHandler { (plotted: Float32Array[], index: number, events?: { type: string; data: any }[]): void }
     interface MetadataHandler { (key: string, value: string): void }
 
     // Implementation API

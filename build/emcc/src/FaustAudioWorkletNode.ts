@@ -74,8 +74,8 @@ namespace Faust {
             this.port.onmessage = (e: MessageEvent) => {
                 if (e.data.type === "param" && this.fOutputHandler) {
                     this.fOutputHandler(e.data.path, e.data.value);
-                } else if (e.data.type === "plot") {
-                    if (this.fPlotHandler) this.fPlotHandler(e.data.value, e.data.index, e.data.events);
+                } else if (e.data.type === "plot" && this.fPlotHandler) {
+                    this.fPlotHandler(e.data.value, e.data.index, e.data.events);
                 }
             };
         }

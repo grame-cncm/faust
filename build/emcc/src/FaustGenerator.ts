@@ -90,7 +90,7 @@ namespace Faust {
                 return n;
             };
             const effect_size = (effect_JSON ? effect_JSON.size : 0);
-            // Memory for voices + effect + audio buffers.
+            // Memory for voices + effect + audio buffers
             let memory_size = pow2limit(
                 effect_size
                 + dsp_JSON.size * voices
@@ -181,7 +181,7 @@ namespace Faust {
             if (effect_factory) {
                 const effect_instance = await WebAssembly.instantiate(effect_factory.module, this.createWasmImport(memory));
                 const effect_functions: any = effect_instance.exports;
-                let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
+                const effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
                 return {
                     memory: memory,
                     voices: voices,
@@ -217,7 +217,7 @@ namespace Faust {
             if (effect_factory) {
                 const effect_instance = new WebAssembly.Instance(effect_factory.module, this.createWasmImport(memory));
                 const effect_functions: any = effect_instance.exports;
-                let effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
+                const effect_api = new InstanceAPIImpl(<InstanceAPI>effect_functions);
                 return {
                     memory: memory,
                     voices: voices,

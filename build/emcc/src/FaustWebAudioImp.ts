@@ -274,15 +274,15 @@ namespace Faust {
             this.fDSP = 0;
 
             // Audio buffer start at the end of DSP
-            let audio_ptr = this.fJSONDsp.size;
+            const audio_ptr = this.fJSONDsp.size;
 
             // Setup audio pointers offset
             this.fAudioInputs = audio_ptr;
             this.fAudioOutputs = this.fAudioInputs + this.getNumInputs() * this.gPtrSize;
 
             // Prepare wasm memory layout
-            let audio_inputs_ptr = this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize;
-            let audio_outputs_ptr = audio_inputs_ptr + this.getNumInputs() * this.fBufferSize * this.gSampleSize;
+            const audio_inputs_ptr = this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize;
+            const audio_outputs_ptr = audio_inputs_ptr + this.getNumInputs() * this.fBufferSize * this.gSampleSize;
 
             const HEAP = this.fInstance.memory.buffer;
             const HEAP32 = new Int32Array(HEAP);
@@ -552,7 +552,7 @@ namespace Faust {
             this.fEffect = this.fJSONDsp.size * this.fInstance.voices;
 
             // Audio buffer start at the end of effect
-            let audio_ptr = this.fEffect + ((this.fJSONEffect) ? this.fJSONEffect.size : 0);
+            const audio_ptr = this.fEffect + ((this.fJSONEffect) ? this.fJSONEffect.size : 0);
 
             // Setup audio pointers offset
             this.fAudioInputs = audio_ptr;
@@ -560,9 +560,9 @@ namespace Faust {
             this.fAudioMixing = this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize;
 
             // Prepare wasm memory layout
-            let audio_inputs_ptr = this.fAudioMixing + this.getNumOutputs() * this.gPtrSize;
-            let audio_outputs_ptr = audio_inputs_ptr + this.getNumInputs() * this.fBufferSize * this.gSampleSize;
-            let audio_mixing_ptr = audio_outputs_ptr + this.getNumOutputs() * this.fBufferSize * this.gSampleSize;
+            const audio_inputs_ptr = this.fAudioMixing + this.getNumOutputs() * this.gPtrSize;
+            const audio_outputs_ptr = audio_inputs_ptr + this.getNumInputs() * this.fBufferSize * this.gSampleSize;
+            const audio_mixing_ptr = audio_outputs_ptr + this.getNumOutputs() * this.fBufferSize * this.gSampleSize;
 
             const HEAP = this.fInstance.memory.buffer;
             const HEAP32 = new Int32Array(HEAP);
@@ -817,12 +817,12 @@ namespace Faust {
         }
 
         keyOn(channel: number, pitch: number, velocity: number) {
-            let voice = this.getFreeVoice();
+            const voice = this.getFreeVoice();
             this.fVoiceTable[voice].keyOn(pitch, velocity);
         }
 
         keyOff(channel: number, pitch: number, velocity: number) {
-            let voice = this.getPlayingVoice(pitch);
+            const voice = this.getPlayingVoice(pitch);
             if (voice !== DspVoice.kNoVoice) {
                 this.fVoiceTable[voice].keyOff();
             } else {

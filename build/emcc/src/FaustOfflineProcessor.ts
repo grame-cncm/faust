@@ -38,7 +38,7 @@ namespace Faust {
         }
 
         plot(size: number): Float32Array[] {
-            let plotted = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(size));
+            const plotted = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(size));
             for (let frame = 0; frame < size; frame += this.fBufferSize) {
                 // Render one buffer
                 this.fDSPCode.compute(this.fInputs, this.fOutputs);

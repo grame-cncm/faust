@@ -58,7 +58,6 @@ namespace Faust {
                 wap.onMidi = (data: number[] | Uint8Array) => {
                     return wap.midiMessage(data);
                 }
-
                 wap.getDescriptor = () => {
                     let desc = {};
                     const descriptor = wap.getDescriptors();
@@ -71,7 +70,6 @@ namespace Faust {
                     }
                     return desc;
                 }
-
                 return wap;
             } else {
                 return null;
@@ -116,7 +114,7 @@ namespace Faust {
             const json_path = (this.fBaseURL === "") ? json_path_aux : (this.fBaseURL + '/' + json_path_aux);
             const factory = await createGenerator().loadDSPFactory(wasm_path, json_path);
             if (factory) {
-                let node = await this.createMonoWAPNode(this.fContext, "FausDSP", factory, sp, 1024);
+                const node = await this.createMonoWAPNode(this.fContext, "FausDSP", factory, sp, 1024);
                 if (node) node.fBaseURL = this.fBaseURL;
                 return node;
             } else {
