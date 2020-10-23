@@ -44,7 +44,7 @@ namespace Faust {
 
         private async createDSPFactoryImp(name: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
             try {
-                // Can possibly raise an exception catched by the second catch()
+                // Can possibly raise an C++ exception catched by the second catch()
                 const faust_wasm = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
                 try {
                     const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));

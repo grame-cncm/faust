@@ -24,7 +24,7 @@
 namespace Faust {
 
     // Base class for Monophonic and Polyphonic AudioWorkletNode
-    class FaustAudioWorkletNodeImp extends AudioWorkletNode {
+    class FaustAudioWorkletNodeImp extends (window.AudioWorkletNode || null) {
 
         protected fJSONDsp: TFaustJSON;
         protected fJSON: string;

@@ -76,7 +76,7 @@ namespace Faust {
             }
         }
 
-        private createWasmMemory(voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON, buffer_size: number)
+        private createWasmMemory(voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON | null, buffer_size: number)
             : WebAssembly.Memory {
             // Hack : at least 4 voices (to avoid weird WASM memory bug?)
             const voices = Math.max(4, voicesIn);
@@ -110,8 +110,8 @@ namespace Faust {
 
         private createMemoryAux(voices: number, voice_factory: Factory, effect_factory?: Factory): WebAssembly.Memory {
             // Parse JSON to get 'size' and 'inputs/outputs' infos
-            const voice_JSON = JSON.parse(voice_factory.json);
-            const effect_JSON = (effect_factory && effect_factory.json) ? JSON.parse(effect_factory.json) : null;
+            const voice_JSON = createFaustJSON(voice_factory.json);
+            const effect_JSON = (effect_factory && effect_factory.json) ? createFaustJSON(effect_factory.json) : null;
             // Memory will be shared by voice, mixer and (possibly) effect instances
             return this.createWasmMemory(voices, voice_JSON, effect_JSON, 8192);
         }
@@ -135,7 +135,7 @@ namespace Faust {
                 const module = await WebAssembly.compile(wasm_buffer);
                 const json_file = await fetch(json_path);
                 const json = await json_file.text();
-                const JSONDsp = JSON.parse(json);
+                const JSONDsp = createFaustJSON(json);
                 const c_options = JSONDsp.compile_options;
                 const poly = c_options.indexOf('wasm-e') !== -1;
                 return { cfactory: 0, module: module, json: json, poly: poly };
