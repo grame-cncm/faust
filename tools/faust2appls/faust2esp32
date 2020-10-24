@@ -121,7 +121,7 @@ MODULENAME="${BASENAME%.dsp}"
 # Generating a lib package
 ###########################
 
-if [ $LIB -eq 1 ]; then
+if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     mkdir -p $MODULENAME
     if [ $GRAMOPHONE -eq 1 ]; then
     	if [ $MULTI -eq 1 ]; then
@@ -222,7 +222,21 @@ if [ $LIB -eq 1 ]; then
 
     cat "$MODULENAME/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
     mv "$MODULENAME/tmp.txt" "$MODULENAME/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
-
+    
+    if [ $LIB -eq 0  ]; then
+      mv $MODULENAME/$MODULENAME.cpp $MODULENAME/Gramophone.cpp
+      mkdir tmp
+      mv $MODULENAME/* tmp
+      cp -r $FAUSTARCH/esp32/gramo-bt-midi/* $MODULENAME
+      mv tmp/* $MODULENAME/main
+      rm -r tmp
+      if [[ $MIDIDEFS == "" ]]; then
+        rm -r $MODULENAME/components
+        rm $MODULENAME/sdkconfig-bt
+      else
+        mv $MODULENAME/sdkconfig-bt $MODULENAME/sdkconfig
+      fi
+    fi
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
 fi
@@ -231,7 +245,7 @@ fi
 # Generating a component package
 ################################
 
-if [ $LIB -eq 0 ]; then
+if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
     mkdir -p $MODULENAME/FaustDSP/include
     faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/FaustDSP/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/FaustDSP/include/$MODULENAME.h
