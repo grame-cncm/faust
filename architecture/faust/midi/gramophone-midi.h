@@ -88,10 +88,11 @@ public:
         int status = blemidi_init((void*)callback_midi_message_received,fBTMeta.localName.c_str(),fBTMeta.remoteName.c_str(),(void*)this);
         if (status < 0) {
             ESP_LOGE(GMH_TAG, "BLE MIDI Driver returned status=%d", status);
+            return false;
         } else {
             ESP_LOGI(GMH_TAG, "BLE MIDI Driver initialized successfully");
+            return true;
         }
-        return true;
     }
     
     void stopMidi()
