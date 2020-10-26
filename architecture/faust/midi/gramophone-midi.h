@@ -50,7 +50,7 @@ struct bt_meta : Meta
 class gramophone_midi : public midi_handler {
 private:
   
-  bt_meta* fBTMeta;
+  bt_meta fBTMeta;
   
   static void callback_midi_message_received(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos, void* arg)
   {
@@ -66,7 +66,7 @@ private:
   
 public:
   
-  gramophone_midi(bt_meta* btMeta) : midi_handler("gramophone")
+  gramophone_midi(bt_meta& btMeta) : midi_handler("gramophone")
   {
     fBTMeta = btMeta;
   }
@@ -77,7 +77,7 @@ public:
   
   bool startMidi()
   {
-    int status = blemidi_init((void *)callback_midi_message_received,fBTMeta->localName,fBTMeta->remoteName,(void*)this);
+    int status = blemidi_init((void *)callback_midi_message_received,fBTMeta.localName,fBTMeta.remoteName,(void*)this);
     if( status < 0 ) {
       ESP_LOGE(GMH_TAG, "BLE MIDI Driver returned status=%d", status);
     } else {

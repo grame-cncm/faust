@@ -125,10 +125,9 @@ Gramophone::Gramophone(int sample_rate, int buffer_size)
 #ifdef MIDICTRL
     bt_meta fBT;
     fDSP->metadata(&fBT);
-    fMIDIHandler = new gramophone_midi(&fBT);
+    fMIDIHandler = new gramophone_midi(fBT);
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
-    fMIDIInterface->run(); // maybe this should go in start() instead?
 #endif
    
     fAudio = new esp32audio(sample_rate, buffer_size);
@@ -155,6 +154,9 @@ bool Gramophone::start()
 {
     if (!fControlUI->start()) return false;
     if (!fSensorUI->start()) return false;
+#ifdef MIDICTRL
+    if (!fMIDIInterface->run()) return false;
+#endif
     return fAudio->start();
 }
 
@@ -162,6 +164,9 @@ void Gramophone::stop()
 {
     fControlUI->stop();
     fSensorUI->stop();
+#ifdef MIDICTRL
+    fMIDIInterface->stop();
+#endif
     fAudio->stop();
 }
 
