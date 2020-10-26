@@ -2,11 +2,6 @@
 BLE MIDI driver based on a heavy-lifted version of https://github.com/midibox/esp32-idf-blemidi by Thorsten Klose (tk@midibox.org). The driver can act both as a server and as a client.  
 */
 
-/*
-THINGS TO ADD IN README
-* The current profile is not secured enough to connect to smartphones
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
