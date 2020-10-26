@@ -32,8 +32,8 @@
 struct bt_meta : Meta
 {
   // default values
-  const char* localName = "Gramophone 0";
-  const char* remoteName = "Gramophone 1";
+  const char* localName = "Gramophone";
+  const char* remoteName = "";
   void declare(const char* key, const char* value)
   {
     if(strstr(key,"btmidi_device_name") != NULL){
@@ -45,7 +45,7 @@ struct bt_meta : Meta
   }
 };
 
-#define GMH "GramoMidiHandler"
+#define GMH_TAG "GramoMidiHandler"
 
 class gramophone_midi : public midi_handler {
 private:
@@ -79,9 +79,9 @@ public:
   {
     int status = blemidi_init((void *)callback_midi_message_received,fBTMeta->localName,fBTMeta->remoteName,(void*)this);
     if( status < 0 ) {
-      ESP_LOGE(GMH, "BLE MIDI Driver returned status=%d", status);
+      ESP_LOGE(GMH_TAG, "BLE MIDI Driver returned status=%d", status);
     } else {
-      ESP_LOGI(GMH, "BLE MIDI Driver initialized successfully");
+      ESP_LOGI(GMH_TAG, "BLE MIDI Driver initialized successfully");
     }
     return true;
   }

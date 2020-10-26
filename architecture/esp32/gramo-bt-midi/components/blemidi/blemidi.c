@@ -1146,16 +1146,18 @@ int32_t blemidi_init(void *_callback_midi_message_received, const char* device_n
     return -7;
   }
   
-  ret = esp_ble_gattc_register_callback(esp_gattc_cb);
-  if (ret){
-    ESP_LOGE(BLEMIDI_TAG, "gattc register failed, error code = %x", ret);
-    return -8;
-  }
+  if(strcmp(remote_name,"") != 0){
+    ret = esp_ble_gattc_register_callback(esp_gattc_cb);
+    if (ret){
+      ESP_LOGE(BLEMIDI_TAG, "gattc register failed, error code = %x", ret);
+      return -8;
+    }
   
-  ret = esp_ble_gattc_app_register(PROFILE_A_APP_ID);
-  if (ret){
-    ESP_LOGE(BLEMIDI_TAG, "gattc app register error, error code = %x", ret);
-    return -9;
+    ret = esp_ble_gattc_app_register(PROFILE_A_APP_ID);
+    if (ret){
+      ESP_LOGE(BLEMIDI_TAG, "gattc app register error, error code = %x", ret);
+      return -9;
+    }
   }
   
   esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(GATTS_MIDI_CHAR_VAL_LEN_MAX);
