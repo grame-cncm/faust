@@ -249,6 +249,9 @@ class Esp32ControlUI : public GenericUI
         Esp32ControlUI():fLastButton(0), fProcessHandle(nullptr)
         {
             adc1_config_width(ADC_WIDTH_BIT_12);
+            adc1_config_channel_atten(ADC1_CHANNEL_7,ADC_ATTEN_DB_11);
+            adc1_config_channel_atten(ADC1_CHANNEL_4,ADC_ATTEN_DB_11);
+            adc1_config_channel_atten(ADC1_CHANNEL_6,ADC_ATTEN_DB_11);
             gpio_config_t io_conf;
             io_conf.intr_type = (gpio_int_type_t) GPIO_PIN_INTR_POSEDGE;
             io_conf.pin_bit_mask = ((1ULL<<4) | (1ULL<<13) | (1ULL<<14) | (1ULL<<15));
@@ -316,7 +319,7 @@ class Esp32ControlUI : public GenericUI
                 } else if (fValue == "3") {
                     std::cout << "knob3 " << min << " " << max << std::endl;
                     // This control does not use the full range of [0 4095]
-                    fKnob3Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(2400., 4095., min, max)));
+                    fKnob3Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(2700., 4095., min, max)));
                 }
             }
             fValue = fKey = "";
