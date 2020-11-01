@@ -139,7 +139,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
             # Use the volume wrapper
             cp $FILE $MODULENAME/mono.dsp
             cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
-            faust -a $FAUSTARCH/esp32/gramophone.cpp -I /usr/local/share/faust/embedded/ -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
+            faust -a $FAUSTARCH/esp32/gramophone.cpp -I $FAUSTARCH/embedded/ -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
             rm $MODULENAME/volume.dsp $MODULENAME/mono.dsp
     	fi
     	
