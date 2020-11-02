@@ -58,10 +58,10 @@ struct Meta;
 class rack_dsp {
     
     public:
-    
+        
         rack_dsp() {}
         virtual ~rack_dsp() {}
-    
+        
         virtual int getNumInputs() = 0;
         virtual int getNumOutputs() = 0;
         virtual void buildUserInterface(UI* ui_interface) = 0;
@@ -127,7 +127,7 @@ struct one_sample_dsp : public rack_dsp {
 /*
  - notion of minimal size for leaves items
  
- ==> compute the global minimal width/height pour the entire UI
+ ==> compute the global minimal width/height for the entire UI
  
  - on peut calculer la taille minimale width/height de la section audio inputs et audio outputs
  
@@ -336,7 +336,7 @@ struct RackUI : public GenericUI
                                        //std::cout << "CV index VOICES " << voice << " cv " << cv << std::endl;
                                        *zone = cv/10.f;
                                    });
-          
+            
             fCV = "";
         } else {
             // Takes the value at lambda contruction time
@@ -382,7 +382,7 @@ struct RackUI : public GenericUI
             int voice = fCurVoice;
             
             if (MapUI::endsWith(label, "freq")) {
-
+                
                 converter = new ConverterZoneControl(zone, new ValueConverter());
                 //std::cout << "freq CV index " << index << std::endl;
                 fUpdateFunIn.push_back([=] (Module* module)
@@ -393,7 +393,7 @@ struct RackUI : public GenericUI
                                            // Receive a 1V/oct pitch signal of the last held MIDI note: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(freq);
                                        });
-               
+                
             } else if (MapUI::endsWith(label, "gate")) {
                 
                 converter = new ConverterZoneControl(zone, new ValueConverter());
@@ -427,7 +427,7 @@ struct RackUI : public GenericUI
                 } else {
                     converter = new ConverterZoneControl(zone, new LinearValueConverter(-5, 5, min, max));
                 }
-            
+                
                 //std::cout << "CV index " << index << std::endl;
                 fUpdateFunIn.push_back([=] (Module* module)
                                        {
@@ -436,7 +436,7 @@ struct RackUI : public GenericUI
                                            converter->update(cv);
                                        });
             }
-           
+            
             fCV = "";
         } else {
             
@@ -465,26 +465,26 @@ struct RackUI : public GenericUI
     void addBarGraph(FAUSTFLOAT* zone)
     {
         /*
-        // index start at 0
-        int index = getIndex(fValue) - 1;
-        if ((fKey == "light_red") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (Module* module)
-                                    {
-                                        // 'nentries' start at fParams.fButton + fParams.fNumEntry
-                                        module->params[index + fParams.fButton + fParams.fNumEntry][0].setValue(*zone);
-                                    });
-        } else if ((fKey == "light_green") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][1] = *zone; });
-        } else if ((fKey == "light_blue") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][2] = *zone; });
-        } else if ((fKey == "switchlight_red") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][0] = *zone; });
-        } else if ((fKey == "switchlight_green") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][1] = *zone; });
-        } else if ((fKey == "switchlight_blue") && (index != -1)) {
-            fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][2] = *zone; });
-        }
-        */
+         // index start at 0
+         int index = getIndex(fValue) - 1;
+         if ((fKey == "light_red") && (index != -1)) {
+         fUpdateFunOut.push_back([=] (Module* module)
+         {
+         // 'nentries' start at fParams.fButton + fParams.fNumEntry
+         module->params[index + fParams.fButton + fParams.fNumEntry][0].setValue(*zone);
+         });
+         } else if ((fKey == "light_green") && (index != -1)) {
+         fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][1] = *zone; });
+         } else if ((fKey == "light_blue") && (index != -1)) {
+         fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][2] = *zone; });
+         } else if ((fKey == "switchlight_red") && (index != -1)) {
+         fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][0] = *zone; });
+         } else if ((fKey == "switchlight_green") && (index != -1)) {
+         fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][1] = *zone; });
+         } else if ((fKey == "switchlight_blue") && (index != -1)) {
+         fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][2] = *zone; });
+         }
+         */
     }
     
     void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -568,7 +568,7 @@ struct mydspModule : Module {
         uint inputCV = params.fInputCV.size();
         uint outputCV = params.fOutputCV.size();
         
-        // Config: by default we allocate complete set of parameters, even if all off them are not 'connected' using metadata
+        // Config: by default we allocate complete set of parameters, even if all of them are not 'connected' using metadata
         config(buttons + entries, fDSP[0].getNumInputs() + inputCV, fDSP[0].getNumOutputs() + outputCV, params.fBargraph.size());
         
         // Setup buttons
@@ -579,7 +579,7 @@ struct mydspModule : Module {
         for (uint pa = 0; pa < entries; pa++) {
             configParam(pa + buttons, params.fRanges[pa].fMin, params.fRanges[pa].fMax, params.fRanges[pa].fInit, "");
         }
-       
+        
         for (int v = 0; v < VOICES; v++) {
             // Init control zones
             fDSP[v].initControl();
@@ -589,6 +589,19 @@ struct mydspModule : Module {
         
         // So that control update will be done at first cycle
         fControlCounter = 1;
+        
+        // Set items minimal size
+        gItemSize.kVSliderWidth = 20.0;
+        gItemSize.kVSliderHeight = 20.0;
+        
+        gItemSize.kHSliderWidth = 20.0;
+        gItemSize.kHSliderHeight = 20.0;
+        
+        gItemSize.kButtonWidth = 20.0;
+        gItemSize.kButtonHeight = 20.0;
+        
+        gItemSize.kCheckButtonWidth = 20.0;
+        gItemSize.kCheckButtonWidth = 20.0;
     }
     
     ~mydspModule()
@@ -664,7 +677,7 @@ struct mydspModule : Module {
         }
     }
     
-    void setSize(float width, float height)
+    void getMinimumSize(float& width, float& height)
     {
         // Set items minimal size
         gItemSize.kHSliderWidth = 50.0;
@@ -685,8 +698,14 @@ struct mydspModule : Module {
         cout << "Width " << fLayoutUI.fCurrentGroup->getWidth() << endl;
         cout << "Height " << fLayoutUI.fCurrentGroup->getHeight() << endl;
         
-        fLayoutUI.fCurrentGroup->setSize(100.f, 30.f);
-        fLayoutUI.fCurrentGroup->setPos(0.f, 0.f);
+        width = fLayoutUI.fCurrentGroup->getWidth();
+        height = fLayoutUI.fCurrentGroup->getHeight();
+    }
+    
+    void setSize(float x_pos, float y_pos, float width, float height)
+    {
+        fLayoutUI.fCurrentGroup->setSize(width, height);
+        fLayoutUI.fCurrentGroup->setPos(x_pos, y_pos);
         
         cout << "==========================" << endl;
         for (auto& it : fLayoutUI.fPathItemMap) {
@@ -705,11 +724,11 @@ struct mydspModuleWidget : ModuleWidget {
     
     mydspModuleWidget(mydspModule<VOICES>* module) {
         setModule(module);
-       
+        
         // Set a large SVG
         setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
         //box.size.x = RACK_GRID_WIDTH * 30;
-       
+        
         // General title
         addLabel(mm2px(Vec(6, 05.0)), "Faust");
         
@@ -718,11 +737,26 @@ struct mydspModuleWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
-         // Module is null at plugins selection step, so we can not create the final GUI at that time...
+        // Module is null at plugins selection step, so we can not create the final GUI at that time...
         if (module) {
             
-            module->setSize(200.f, 50.f);
-        
+            // Compute available size by removing space for CV inputs/outputs and audio inputs/outputs
+            uint inputsCV = module->fRackUI->fParams.fInputCV.size();
+            uint outputsCV = module->fRackUI->fParams.fOutputCV.size();
+            
+            uint reserved_height = ((inputsCV > 0) ? 10 : 0)
+                + ((outputsCV > 0) ? 10 : 0)
+                + ((module->fDSP[0].getNumInputs() > 0) ? 10 : 0)
+                + ((module->fDSP[0].getNumOutputs() > 0) ? 10 : 0);
+            
+            // Get UI minimum size
+            float minimal_width, minimal_height;
+            module->getMinimumSize(minimal_width, minimal_height);
+            
+            // TODO
+            // Then prepare the size of UI params
+            module->setSize(5.f, 5.f, minimal_width, 100 - reserved_height);
+            
             // Add params
             addLabel(mm2px(Vec(6, 18.0)), "Params");
             
@@ -739,12 +773,11 @@ struct mydspModuleWidget : ModuleWidget {
             // Add ranges
             uint nentries = module->fRackUI->fParams.fRanges.size();
             for (uint pa = 0; pa < nentries; pa++) {
-                 addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 45.0)), module, pa + buttons));
+                addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 45.0)), module, pa + buttons));
             }
             
             // Add CV inputs
             addLabel(mm2px(Vec(6, 55.0)), "Inputs CV");
-            uint inputsCV = module->fRackUI->fParams.fInputCV.size();
             for (uint chan = 0; chan < inputsCV; chan++) {
                 addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 66.0)), module, chan));
             }
@@ -757,7 +790,6 @@ struct mydspModuleWidget : ModuleWidget {
             
             // Add CV outputs
             addLabel(mm2px(Vec(6, 89.0)), "Outputs CV");
-            uint outputsCV = module->fRackUI->fParams.fOutputCV.size();
             for (uint chan = 0; chan < outputsCV; chan++) {
                 addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
             }

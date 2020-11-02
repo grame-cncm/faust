@@ -1,6 +1,6 @@
 # faust2vcvrack
 
-The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing the [VCV Rack](https://vcvrack.com) plugin C++ source code and a Makefile to compile it.  By default the resulting C++ code is compiled and installed in the VCV Rack application.
+The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing the [VCV Rack](https://vcvrack.com) plugin C++ source code and a Makefile to compile it. By default the resulting C++ code is compiled and installed in the VCV Rack application.
 
 `faust2vcvrack [-source] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
@@ -10,6 +10,10 @@ Here are the available options:
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
 
 [WIP]: Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5..5] range, they are automatically converted in the architecture file. VC control in the [0..10] volts range will be mapped to the controllers [min..max] range.
+
+## Metadate
+
+- `[VC:N]` can be used in input or output controllers to connect them to VC instead of regular GUI parameters.
 
 ## DSP examples
 
