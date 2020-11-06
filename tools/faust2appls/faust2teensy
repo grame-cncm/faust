@@ -20,6 +20,7 @@ set -e
 LIB="0"
 NVOICES=0
 MIDI=0
+EXT="0"
 
 echoHelp ()
 {
@@ -28,6 +29,7 @@ echoHelp ()
     option
     option -lib "generates a package containing an object compatible with the Teensy audio library."
     option -midi
+    option -ext "uses external PSRAM available on Teensy 4.1"
     option "-nvoices <num>"
     option "Faust options"
 }
@@ -48,6 +50,8 @@ do
         NVOICES=$1
     elif [ $p = "-midi" ]; then
         MIDI=1
+    elif [ $p = "-ext" ]; then
+        EXT=1
     elif [[ -f "$p" ]]; then
         FILE="$p"
     elif [ $p = "-lib" ]; then
@@ -85,6 +89,9 @@ if [ $LIB -eq 1 ]; then
     if [ $MIDI -eq 1 ]; then
         echo '#define MIDICTRL' >> $MODULENAME/$MODULENAME.h
     fi
+    if [ $EXT -eq 1 ]; then
+        echo '#define USEPSRAM' >> $MODULENAME/$MODULENAME.h
+    fi    
     cat $FAUSTARCH/teensy/teensy.h >> $MODULENAME/$MODULENAME.h
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
     echo "$TMP" > $MODULENAME/$MODULENAME.cpp

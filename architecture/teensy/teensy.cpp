@@ -94,6 +94,11 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
+#ifdef USEPSRAM
+constexpr size_t bufSize = sizeof(mydsp);
+EXTMEM uint8_t myHeap[bufSize];
+#endif
+
 AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS])
 {
 #ifdef NVOICES
@@ -101,7 +106,11 @@ AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_IN
     mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
     fDSP = dsp_poly;
 #else
-    fDSP = new mydsp();
+    #ifdef USEPSRAM
+        fDSP = new(myHeap) mydsp();
+    #else
+        fDSP = new mydsp();
+    #endif
 #endif
     
     fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
