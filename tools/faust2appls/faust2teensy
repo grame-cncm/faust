@@ -78,7 +78,7 @@ MODULENAME="${BASENAME%.dsp}"
 
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
-    faust -uim -a $FAUSTARCH/teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
+    faust $OPTIONS -uim -a $FAUSTARCH/teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     if [ $NVOICES -gt 0 ]; then
         echo '#define NVOICES '$NVOICES >> $MODULENAME/$MODULENAME.h
     fi
