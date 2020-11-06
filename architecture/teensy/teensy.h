@@ -33,8 +33,9 @@
 
 class dsp;
 class MapUI;
-class MidiUI;
+
 #if MIDICTRL
+class MidiUI;
 class teensy_midi;
 #endif
 

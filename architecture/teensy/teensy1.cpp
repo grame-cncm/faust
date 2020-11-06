@@ -75,3 +75,8 @@ void AudioFaust::setParamValue(const std::string& path, float value)
 {
     fUI->setParamValue(path, value);
 }
+
+float AudioFaust::getParamValue(const std::string& path)
+{
+    return fUI->getParamValue(path);
+}
