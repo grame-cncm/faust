@@ -46,6 +46,10 @@
 #define FAUSTFLOAT float
 #endif
 
+/*
+// Pixels are just a weird unit, defined by VCV Rack as 1/75 inches, or 0.338(6) mm
+*/
+
 using namespace std;
 
 struct UI;
@@ -730,7 +734,7 @@ struct mydspModuleWidget : ModuleWidget {
         //box.size.x = RACK_GRID_WIDTH * 30;
         
         // General title
-        addLabel(mm2px(Vec(6, 05.0)), "Faust");
+        addLabel(mm2px(Vec(6, 5.0)), "Faust");
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -777,27 +781,35 @@ struct mydspModuleWidget : ModuleWidget {
             }
             
             // Add CV inputs
-            addLabel(mm2px(Vec(6, 55.0)), "Inputs CV");
-            for (uint chan = 0; chan < inputsCV; chan++) {
-                addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 66.0)), module, chan));
+            if (inputsCV > 0) {
+                addLabel(mm2px(Vec(6, 55.0)), "Inputs CV");
+                for (uint chan = 0; chan < inputsCV; chan++) {
+                    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 66.0)), module, chan));
+                }
             }
             
             // Add audio inputs (shifted by inputsCV in 'inputs' struct)
-            addLabel(mm2px(Vec(6, 72.0)), "Inputs");
-            for (int chan = 0; chan < module->fDSP[0].getNumInputs(); chan++) {
-                addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 83.0)), module, inputsCV + chan));
+            if (module->fDSP[0].getNumInputs() > 0) {
+                addLabel(mm2px(Vec(6, 72.0)), "Inputs");
+                for (int chan = 0; chan < module->fDSP[0].getNumInputs(); chan++) {
+                    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 83.0)), module, inputsCV + chan));
+                }
             }
             
             // Add CV outputs
-            addLabel(mm2px(Vec(6, 89.0)), "Outputs CV");
-            for (uint chan = 0; chan < outputsCV; chan++) {
-                addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
+            if (outputsCV > 0) {
+                addLabel(mm2px(Vec(6, 89.0)), "Outputs CV");
+                for (uint chan = 0; chan < outputsCV; chan++) {
+                    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
+                }
             }
             
             // Add outputs (shifted by outputsCV in 'outputs' struct)
-            addLabel(mm2px(Vec(6, 106.0)), "Outputs");
-            for (int chan = 0; chan < module->fDSP[0].getNumOutputs(); chan++) {
-                addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 117.0)), module, outputsCV + chan));
+            if (module->fDSP[0].getNumOutputs() > 0) {
+                addLabel(mm2px(Vec(6, 106.0)), "Outputs");
+                for (int chan = 0; chan < module->fDSP[0].getNumOutputs(); chan++) {
+                    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 117.0)), module, outputsCV + chan));
+                }
             }
         }
     }

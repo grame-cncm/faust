@@ -11,7 +11,11 @@ Here are the available options:
 
 [WIP]: Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5..5] range, they are automatically converted in the architecture file. VC control in the [0..10] volts range will be mapped to the controllers [min..max] range.
 
-## Metadate
+## Polyhony support
+
+Polyphonic modules can be created using the  `-nvoices <num>` parameter up to 16 voices. The  `freq/gate/gain` convention can be used in the DSP code. VCV Rack follows the 1V/octave convention for MIDI pitch values, so the MIDI signals are automatically converted to `freq` using this convention. Gain and gates signals (using the [0..10v] range) are converted to [0..1] values.
+
+## Metadata
 
 - `[VC:N]` can be used in input or output controllers to connect them to VC instead of regular GUI parameters.
 
