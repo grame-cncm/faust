@@ -94,6 +94,35 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
+static const audio_block_t zeroblock = {
+0, 0, 0, {
+0, 0, 0, 0, 0, 0, 0, 0,
+#if AUDIO_BLOCK_SAMPLES > 8
+0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 16
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 32
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 48
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 64
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 80
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 96
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+#if AUDIO_BLOCK_SAMPLES > 112
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+#endif
+} };
+
 AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS])
 {
 #ifdef NVOICES
@@ -169,14 +198,16 @@ void AudioFaust::updateImp(void)
 #endif
     
     if (INPUTS > 0) {
-        audio_block_t* inBlock[INPUTS];
+        const audio_block_t* inBlock[INPUTS];
         for (int channel = 0; channel < INPUTS; channel++) {
             inBlock[channel] = receiveReadOnly(channel);
+            if (inBlock[channel] == NULL)
+                inBlock[channel] = &zeroblock;
             for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
                 int32_t val = inBlock[channel]->data[i] << 16;
-                fInChannel[channel][i] = val*DIV_16;
+                fInChannel[channel][i] = val * DIV_16;
             }
-            release(inBlock[channel]);
+            if (inBlock[channel] != &zeroblock)release((audio_block_t *)inBlock[channel]);
         }
     }
     
