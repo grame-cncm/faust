@@ -179,7 +179,7 @@ declare namespace Faust {
          * @param {Factory} effect_factory - a factory previously created using createDSPFactory or loadDSPFactory
          * @returns {Promise<PolyInstance>} returns a polyphonic instance.
          */
-        createAsyncPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, voices: number, effect_factory?: Factory): Promise<PolyInstance>;
+        createAsyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory?: Factory): Promise<PolyInstance>;
 
         /**
          * Synchronously create a polyphonic wasm instance using a wasm voice factory and effect factory. 
@@ -190,7 +190,7 @@ declare namespace Faust {
          * @param {Factory} effect_factory - a factory previously created using createDSPFactory or loadDSPFactory
          * @returns {PolyInstance} returns a polyphonic instance.
          */
-        createSyncPolyDSPInstance(voice_factory: Factory, mixer_factory: WebAssembly.Module, voices: number, effect_factory?: Factory): PolyInstance;
+        createSyncPolyDSPInstance(voice_factory: Factory, mixer_module: WebAssembly.Module, voices: number, effect_factory?: Factory): PolyInstance;
 
     }
 }
