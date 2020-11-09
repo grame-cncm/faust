@@ -20,7 +20,6 @@
  ************************************************************************/
 
 // AudioWorkletNode/AudioWorkletProcessor
-///<reference path="FaustCompiler.d.ts"/>
 ///<reference path="FaustAudioWorkletNode.ts"/>
 ///<reference path="FaustAudioWorkletProcessor.ts"/>
 
@@ -40,13 +39,13 @@ namespace Faust {
         private fWorkletProcessors: string[] = [];
 
         async compileMonoNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
-            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null> {
+            : Promise<FaustMonoNode | null> {
             const factory = await compiler.createMonoDSPFactory(name, dsp_code, args);
             return (factory) ? this.createMonoNode(context, name, factory, sp, buffer_size) : null;
         }
 
         async createMonoNode(context: BaseAudioContext, name: string, factory: Factory, sp: boolean, buffer_size?: number)
-            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null> {
+            : Promise<FaustMonoNode | null> {
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed
                 const instance = await new GeneratorImp().createAsyncMonoDSPInstance(factory);
@@ -107,7 +106,7 @@ namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null> {
+            : Promise<FaustPolyNode | null> {
             const voice_dsp = dsp_code;
             const effect_dsp = `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
                                 adaptor(F,G) = adapt(outputs(F),inputs(G));
@@ -126,7 +125,7 @@ namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null> {
+            : Promise<FaustPolyNode | null> {
             // Compile voice
             const voice_factory = await compiler.createPolyDSPFactory(name, voices_dsp, args);
             if (!voice_factory) return null;
@@ -146,7 +145,7 @@ namespace Faust {
             sp: boolean,
             effect_factory?: Factory,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null> {
+            : Promise<FaustPolyNode | null> {
             const name = name_aux + "_poly";
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed

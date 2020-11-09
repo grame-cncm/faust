@@ -246,22 +246,32 @@ declare namespace Faust {
     /**
      * Monophonic ScriptProcessorNode.
      */
-    interface FaustMonoScriptProcessorNode extends ScriptProcessorNode, MonoDSP { }
+    interface FaustMonoNode extends AudioNode, MonoDSP { }
 
     /**
      * Polyphonic ScriptProcessorNode.
      */
-    interface FaustPolyScriptProcessorNode extends ScriptProcessorNode, PolyDSP { }
+    interface FaustPolyNode extends AudioNode, PolyDSP { }
+    
+    // /**
+    //  * Monophonic ScriptProcessorNode.
+    //  */
+    // interface FaustMonoScriptProcessorNode extends ScriptProcessorNode, MonoDSP { }
 
-    /**
-     * Monophonic AudioWorkletNode.
-     */
-    interface FaustMonoAudioWorkletNode extends AudioWorkletNode, MonoDSP { }
+    // /**
+    //  * Polyphonic ScriptProcessorNode.
+    //  */
+    // interface FaustPolyScriptProcessorNode extends ScriptProcessorNode, PolyDSP { }
 
-    /**
-     * Polyphonic AudioWorkletNode.
-     */
-    interface FaustPolyAudioWorkletNode extends AudioWorkletNode, PolyDSP { }
+    // /**
+    //  * Monophonic AudioWorkletNode.
+    //  */
+    // interface FaustMonoAudioWorkletNode extends AudioWorkletNode, MonoDSP { }
+
+    // /**
+    //  * Polyphonic AudioWorkletNode.
+    //  */
+    // interface FaustPolyAudioWorkletNode extends AudioWorkletNode, PolyDSP { }
 
     /**
      *  For offline rendering.
@@ -294,7 +304,7 @@ declare namespace Faust {
          * @param {string} args - the compilation parameters
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @preturn {Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null>} the compiled WebAudio node or 'null' if failure
+         * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
          */
         compileMonoNode(
             context: BaseAudioContext,
@@ -304,7 +314,7 @@ declare namespace Faust {
             args: string,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null>;
+            : Promise<FaustMonoNode | null>;
 
         /**
          * Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
@@ -314,7 +324,7 @@ declare namespace Faust {
          * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @preturn {Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null>} the compiled WebAudio node or 'null' if failure
+         * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
         */
         createMonoNode(
             context: BaseAudioContext,
@@ -322,7 +332,7 @@ declare namespace Faust {
             factory: Factory,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustMonoScriptProcessorNode | FaustMonoAudioWorkletNode | null>;
+            : Promise<FaustMonoNode | null>;
 
         /**
          * Compile a polyphonic WebAudio node from a single DSP file (either ScriptProcessorNode or AudioWorkletNode)
@@ -335,7 +345,7 @@ declare namespace Faust {
          * @param {number} voices - the number of voices
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @preturn {Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>} the compiled WebAudio node or 'null' if failure
+         * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
          */
         compilePolyNode(
             context: BaseAudioContext,
@@ -346,7 +356,7 @@ declare namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
+            : Promise<FaustPolyNode | null>;
 
         /**
          * Compile a polyphonic WebAudio node from separated voice and effect DSPs (either ScriptProcessorNode or AudioWorkletNode)
@@ -360,7 +370,7 @@ declare namespace Faust {
          * @param {number} voices - the number of voices
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @preturn {Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>} the compiled WebAudio node or 'null' if failure
+         * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
          */
         compilePolyNode2(
             context: BaseAudioContext,
@@ -372,7 +382,7 @@ declare namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
+            : Promise<FaustPolyNode | null>;
 
         /**
          * Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
@@ -385,7 +395,7 @@ declare namespace Faust {
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
          * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
          * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
-         * @preturn {Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>} the compiled WebAudio node or 'null' if failure
+         * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
          */
         createPolyNode(
             context: BaseAudioContext,
@@ -396,7 +406,7 @@ declare namespace Faust {
             sp: boolean,
             effect_factory?: Factory,
             buffer_size?: number)
-            : Promise<FaustPolyScriptProcessorNode | FaustPolyAudioWorkletNode | null>;
+            : Promise<FaustPolyNode | null>;
 
         /**
         * Create a monophonic Offline processor.

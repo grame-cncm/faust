@@ -42,9 +42,7 @@ declare namespace Faust {
         onMidi(data: number[] | Uint8Array): void;
     }
 
-    interface FaustMonoWAPScriptProcessorNode extends FaustMonoScriptProcessorNode, WAP { }
-
-    interface FaustMonoWAPAudioWorkletNode extends FaustMonoAudioWorkletNode, WAP { }
+    interface FaustMonoWAPNode extends FaustMonoNode, WAP { }
 
     /**
      * Constructor.   
@@ -54,12 +52,10 @@ declare namespace Faust {
     interface MonoWAPFactory {
 
         load(wasm_path_aux: string, json_path_aux: string, sp: boolean)
-            : Promise<FaustMonoWAPScriptProcessorNode | FaustMonoWAPAudioWorkletNode | null>;
+            : Promise<FaustMonoWAPNode | null>;
     }
 
-    interface FaustPolyWAPScriptProcessorNode extends FaustPolyScriptProcessorNode, WAP { }
-
-    interface FaustPolyWAPAudioWorkletNode extends FaustPolyAudioWorkletNode, WAP { }
+    interface FaustPolyWAPNode extends FaustPolyNode, WAP { }
 
     /**
      * Constructor.   
@@ -76,6 +72,6 @@ declare namespace Faust {
             voices: number,
             sp: boolean,
             buffer_size?: number)
-            : Promise<FaustPolyWAPScriptProcessorNode | FaustPolyWAPAudioWorkletNode | null>;
+            : Promise<FaustPolyWAPNode | null>;
     }
 }
