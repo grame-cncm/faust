@@ -174,7 +174,7 @@ void AudioFaust::updateImp(void)
         audio_block_t* inBlock[INPUTS];
         for (int channel = 0; channel < INPUTS; channel++) {
             inBlock[channel] = receiveReadOnly(channel);
-            if (inBlock) {
+            if (inBlock[channel]) {
                 for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
                     int32_t val = inBlock[channel]->data[i] << 16;
                     fInChannel[channel][i] = val*DIV_16;
