@@ -2,7 +2,7 @@
  This file describes the high level interface to the Faust compiler.
  ************************************************************************/
 
-///<reference path="FaustCompiler.d.ts"/>
+///<reference path="FaustCompiler.ts"/>
 ///<reference path="FaustUtilities.d.ts"/>
 
 namespace Faust {

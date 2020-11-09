@@ -20,6 +20,7 @@
  ************************************************************************/
 
 // AudioWorkletNode/AudioWorkletProcessor
+///<reference path="FaustCompiler.d.ts"/>
 ///<reference path="FaustAudioWorkletNode.ts"/>
 ///<reference path="FaustAudioWorkletProcessor.ts"/>
 

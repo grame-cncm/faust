@@ -19,8 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+///<reference path="FaustCompiler.d.ts"/>
 ///<reference path="FaustWAP.d.ts"/>
-///<reference path="FaustWebAudio.d.ts"/>
+///<reference path="FaustWebAudio.ts"/>
+///<reference path="FaustGenerator.ts"/>
 
 namespace Faust {
 
