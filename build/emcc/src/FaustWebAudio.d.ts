@@ -192,7 +192,7 @@ declare namespace Faust {
     /**
      * The MonoDSP constructor.
      * 
-     * @param {Instance} instance - an instance created with 'createSyncMonoDSPInstance' or 'createAsyncMonoDSPInstance'
+     * @param {MonoInstance} instance - an instance created with 'createSyncMonoDSPInstance' or 'createAsyncMonoDSPInstance'
      * @param {number} sample_rate - the sample rate in Hz
      * @param {number} buffer_size - the buffer size in frames
      * @return the created MonoDSP object 
@@ -208,10 +208,10 @@ declare namespace Faust {
     /**
      * The PolyDSP constructor.
      * 
-     * @param {Instance} instance - an instance created with 'createSyncPolyDSPInstance' or 'createAsyncPolyDSPInstance'
+     * @param {PolyInstance} instance - an instance created with 'createSyncPolyDSPInstance' or 'createAsyncPolyDSPInstance'
      * @param {number} sample_rate - the sample rate in Hz
      * @param {number} buffer_size - the buffer size in frames
-     * @return the created MonoDSP object 
+     * @return the created PolyDSP object 
      */
     interface createPolyDSP { (instance: PolyInstance, sample_rate: number, buffer_size: number): PolyDSP }
 
@@ -252,7 +252,7 @@ declare namespace Faust {
      * Polyphonic ScriptProcessorNode.
      */
     interface FaustPolyNode extends AudioNode, PolyDSP { }
-    
+
     // /**
     //  * Monophonic ScriptProcessorNode.
     //  */
