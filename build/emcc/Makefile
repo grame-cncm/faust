@@ -1,11 +1,15 @@
 
 jssrc := $(wildcard src/*.ts)
 
-FAUSTWEB  := faustwebaudio.js
-FAUSTDIST := npm/dist/faustwebaudio.d.ts
+FAUSTWEB  := FaustLibrary.js		# the output javascript library name
+DISTDIR   := npm/dist
+FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts
+FAUSTDIST := $(FAUSTAPI:src/%=$(DISTDIR)/%)
 CHECKDIR  := tmp
 SRC       := $(shell find src -name "*.ts" | egrep -v ".d.ts")
-CHECKOUT  := $(patsubst src/%.ts, $(CHECKDIR)/%.js, $(SRC))
+CHECKOUT  := $(SRC:src/%.ts=$(CHECKDIR)/%.js)
+CHECKDIST := $(FAUSTDIST:$(DISTDIR)/%.ts=$(CHECKDIR)/%.js)
+FAUSTDIST := $(FAUSTAPI:src/%=$(DISTDIR)/%)
 
 
 all: 
@@ -39,10 +43,9 @@ wasm:
 
 js: $(FAUSTWEB) faustcompiler.js
 
-dist: $(FAUSTDIST)
-
-$(FAUSTDIST) : header.txt src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts
-	cat header.txt src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts > $@
+dist: 
+	cp $(FAUSTAPI) $(DISTDIR)
+	cp $(FAUSTWEB) $(DISTDIR)
 
 $(FAUSTWEB) : $(jssrc)
 	tsc --strict --strictNullChecks --alwaysStrict
@@ -58,19 +61,22 @@ cmake:
 	make -C .. cmake
 
 test:
-	@echo $(SRC)
+	@echo $(CHECKDIST)
 
 ###################################################
-# rules to compile individual files
-
-check: $(CHECKDIR) $(CHECKOUT) $(CHECKDIR)/interface.js
+# check that individual files compile correctly
+# check that public interfaces are self contained (no refs to undefined types) 
+check: $(CHECKDIR) $(CHECKOUT) $(CHECKDIST)
 
 $(CHECKDIR) :
 	mkdir $(CHECKDIR)
 
+###################################################
+# rules to compile individual files
+
 TSOPT  := --strict --strictNullChecks --noImplicitAny --strictFunctionTypes --noImplicitThis --alwaysStrict --noImplicitReturns --noFallthroughCasesInSwitch --target ES2015
 
-$(CHECKDIR)/interface.js: $(FAUSTDIST)
+$(CHECKDIR)/%.d.js: $(DISTDIR)/%.d.ts
 	tsc $(TSOPT) -out $@ $< || rm $@
 
 $(CHECKDIR)/%.js: src/%.ts
