@@ -6,7 +6,7 @@
     "preserveConstEnums": true,
     "target": "es2015",
     "sourceMap": false,
-    "out": "faustwebaudio.js",
+    "out": "FaustLibrary.js",
     "noUnusedLocals": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
