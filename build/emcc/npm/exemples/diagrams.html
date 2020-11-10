@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src="../dist/libfaust-wasm.js"></script>
+        <script src="../dist/libfaust-wasm.data"></script>
+        <script src="../dist/FaustLibrary.js"></script>
+        <style>
+            body { margin: 100px; }
+            svg  { width: 600px; height: 300px; }
+            th, td { border: 1px solid lightgray; padding-left: 5px; padding-right: 5px; background-color: aliceblue;}
+        </style>
+    </head>
+    <body style="position: absolute; width: 100%; height: 100%; margin: 50px">
+        <h1>Faust Web Assembly Library</h1>
+        <h2>Browsing SVG Diagrams</h2>
+
+
+        <h3>Compiles and displays the SVG diagrams of the following codes.</h3>
+        <table>
+            <tr>
+                <td><pre id=dsp1>
+import("stdfaust.lib");
+process = dm.oscrs_demo;
+                </pre></td>
+                <td id=svg1 class=svg></td>
+            </tr>
+            <tr>
+                <td><pre id=dsp2>
+import("stdfaust.lib");
+
+vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) 
+             : ba.db2linear : si.smoo;
+freq = hslider("freq [unit:Hz]", 1000, 20, 24000, 1);
+
+process = vgroup("Oscillator", os.osc(freq) * vol);
+                </pre></td>
+                <td id=svg2 class=svg></td>
+            </tr>
+        </table>
+        <p id=log></p>
+        <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+    </body>
+    <script>
+        function getcode(id)  { return document.getElementById(id).textContent; }
+        function log(msg)   { let div = document.getElementById("log"); div.textContent = msg + "\n"; }
+        function getsvg(id)   { let div = document.getElementById("log"); div.textContent = msg + "\n"; }
+
+        FaustModule().then ( module => { 
+            let libfaust = Faust.createLibFaust(module);
+            let svg1 = Faust.createSVGDiagrams(libfaust, "TestSVG1", getcode("dsp1"), "-I libraries");
+            if (!svg1.success()) log(svg1.error());
+            else {
+                document.getElementById("svg1").innerHTML = svg1.getSVG();
+                TestSVG1svg = (path) => { div1.innerHTML = svg1.getSVG(path); }
+            }
+            let svg2 = Faust.createSVGDiagrams(libfaust, "TestSVG2", getcode("dsp2"), "-I libraries");
+            if (!svg2.success())  log (svg2.error());
+            else {
+                document.getElementById("svg2").innerHTML = svg2.getSVG();
+                TestSVG2svg = (path) => { div2.innerHTML = svg2.getSVG(path); }
+            }
+        });
+    </script>
+</html>
