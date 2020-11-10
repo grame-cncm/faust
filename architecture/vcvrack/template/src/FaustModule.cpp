@@ -728,24 +728,46 @@ struct mydspModule : Module {
     
 };
 
+// Draw a simple background color
+struct FaustBackgroundWidget : widget::Widget {
+    
+    void draw(const DrawArgs& args) override {
+        nvgBeginPath(args.vg);
+        nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
+        // nvgRGB(234,88,15)); // Faust orange color
+        nvgFillColor(args.vg, nvgRGB(254,108,35)); // Faust orange color + 20 white
+        nvgFill(args.vg);
+    }
+    
+};
+
 template <int VOICES>
 struct mydspModuleWidget : ModuleWidget {
     
-    mydspModuleWidget(mydspModule<VOICES>* module) {
-        setModule(module);
-        
-        // Set a large SVG
-        setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
-        //box.size.x = RACK_GRID_WIDTH * 30;
-        
+    void addBackground(int width, int height)
+    {
+        // Default size
+        box.size.x = width;
+        box.size.y = height;
+        FaustBackgroundWidget* wd = new FaustBackgroundWidget();
+        wd->setSize(Vec(box.size.x, box.size.y));
+        addChild(wd);
+    
         // General title
-        addLabel(mm2px(Vec(6, 5.0)), "Faust");
+        addLabel(Vec(width/2.0 - 20, 10.0), "Faust");
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+    }
+    
+    mydspModuleWidget(mydspModule<VOICES>* module) {
+        setModule(module);
         
+        // Set a large SVG
+        //setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/FaustModule.svg")));
+       
         // Module is null at plugins selection step, so we cannot create the final GUI at that time
         if (module) {
             
@@ -753,41 +775,62 @@ struct mydspModuleWidget : ModuleWidget {
             uint inputsCV = module->fRackUI->fParams.fInputCV.size();
             uint outputsCV = module->fRackUI->fParams.fOutputCV.size();
             
+            uint buttons = module->fRackUI->fParams.fButtons.size();
+            uint nentries = module->fRackUI->fParams.fRanges.size();
+            
+            float item_width = 18;
+            float item_height = 20;
+            
+            /*
             uint reserved_height = ((inputsCV > 0) ? 10 : 0)
                 + ((outputsCV > 0) ? 10 : 0)
                 + ((module->fDSP[0].getNumInputs() > 0) ? 10 : 0)
                 + ((module->fDSP[0].getNumOutputs() > 0) ? 10 : 0);
+            */
             
+            int needed_width = mm2px(std::max(buttons, nentries) * item_width);
+            
+            //int needed_height = RACK_GRID_HEIGHT - reserved_height;
+            //std::cout << "needed_width " << needed_width << std::endl;
+            //std::cout << "needed_height " << needed_height << std::endl;
+            
+            addBackground(needed_width, RACK_GRID_HEIGHT);
+            
+            /*
+            // TODO
+             
             // Get UI minimum size
             float minimal_width, minimal_height;
             module->getMinimumSize(minimal_width, minimal_height);
-            
-            // TODO
+           
             // Then prepare the size of UI params
             module->setSize(5.f, 5.f, minimal_width, 100 - reserved_height);
             
             // Add params
-            addLabel(mm2px(Vec(6, 18.0)), "Params");
+            //addLabel(mm2px(Vec(6, 10.0)), "Params");
+            */
             
             // Add buttons
-            uint buttons = module->fRackUI->fParams.fButtons.size();
             for (uint pa = 0; pa < buttons; pa++) {
+                std::string label = module->fRackUI->fParams.fButtons[pa].fLabel;
                 if (module->fRackUI->fParams.fButtons[pa].fType == ManagerUI::UIType::kButton) {
-                    addParam(createParamCentered<BefacoPush>(mm2px(Vec(8.0 + pa * 15, 30.0)), module, pa));
+                    addParam(createParamCentered<BefacoPush>(mm2px(Vec(8.0 + pa * item_width, item_height)), module, pa));
                 } else {
-                    addParam(createParamCentered<CKSS>(mm2px(Vec(8.0 + pa * 15, 30.0)), module, pa));
+                    addParam(createParamCentered<CKSS>(mm2px(Vec(8.0 + pa * item_width, item_height)), module, pa));
                 }
+                addLabel(mm2px(Vec(0.0 + pa * item_width, item_height + 5.0)), label);
             }
             
             // Add ranges
-            uint nentries = module->fRackUI->fParams.fRanges.size();
             for (uint pa = 0; pa < nentries; pa++) {
-                addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * 15, 45.0)), module, pa + buttons));
+                std::string label = module->fRackUI->fParams.fRanges[pa].fLabel;
+                addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * item_width, item_height * 2)), module, pa + buttons));
+                addLabel(mm2px(Vec(0.0 + pa * item_width, item_height * 2 + 5.0)), label);
             }
             
             // Add CV inputs
             if (inputsCV > 0) {
-                addLabel(mm2px(Vec(6, 55.0)), "Inputs CV");
+                addLabel(mm2px(Vec(0.0, 55.0)), "Inputs CV");
                 for (uint chan = 0; chan < inputsCV; chan++) {
                     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 66.0)), module, chan));
                 }
@@ -795,7 +838,7 @@ struct mydspModuleWidget : ModuleWidget {
             
             // Add audio inputs (shifted by inputsCV in 'inputs' struct)
             if (module->fDSP[0].getNumInputs() > 0) {
-                addLabel(mm2px(Vec(6, 72.0)), "Inputs");
+                addLabel(mm2px(Vec(0.0, 72.0)), "Inputs");
                 for (int chan = 0; chan < module->fDSP[0].getNumInputs(); chan++) {
                     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 83.0)), module, inputsCV + chan));
                 }
@@ -803,7 +846,7 @@ struct mydspModuleWidget : ModuleWidget {
             
             // Add CV outputs
             if (outputsCV > 0) {
-                addLabel(mm2px(Vec(6, 89.0)), "Outputs CV");
+                addLabel(mm2px(Vec(0.0, 89.0)), "Outputs CV");
                 for (uint chan = 0; chan < outputsCV; chan++) {
                     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 100.0)), module, chan));
                 }
@@ -811,11 +854,13 @@ struct mydspModuleWidget : ModuleWidget {
             
             // Add outputs (shifted by outputsCV in 'outputs' struct)
             if (module->fDSP[0].getNumOutputs() > 0) {
-                addLabel(mm2px(Vec(6, 106.0)), "Outputs");
+                addLabel(mm2px(Vec(0.0, 106.0)), "Outputs");
                 for (int chan = 0; chan < module->fDSP[0].getNumOutputs(); chan++) {
                     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.0 + chan * 15, 117.0)), module, outputsCV + chan));
                 }
             }
+        } else {
+            addBackground(RACK_GRID_WIDTH * 5, RACK_GRID_HEIGHT);
         }
     }
     
