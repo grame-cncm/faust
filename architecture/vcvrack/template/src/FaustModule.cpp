@@ -42,6 +42,11 @@
 #include <iostream>
 #include <assert.h>
 
+// Rack needed ressources
+#include <rack.hpp>
+using namespace rack;
+static Plugin* pluginInstance;
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -741,7 +746,7 @@ struct mydspModuleWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
         
-        // Module is null at plugins selection step, so we can not create the final GUI at that time...
+        // Module is null at plugins selection step, so we cannot create the final GUI at that time
         if (module) {
             
             // Compute available size by removing space for CV inputs/outputs and audio inputs/outputs
@@ -828,6 +833,14 @@ struct mydspModuleWidget : ModuleWidget {
     
 };
 
+// Create and init plugin
 Model* modelFaustModule = createModel<mydspModule<NVOICES>, mydspModuleWidget<NVOICES> >("mydsp");
+
+void init(Plugin* p)
+{
+    pluginInstance = p;
+    // Add modules here
+    p->addModel(modelFaustModule);
+}
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
