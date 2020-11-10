@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+///<reference path="FaustGenerator.d.ts"/>
+
 declare namespace Faust {
 
     // Public API
@@ -244,34 +246,15 @@ declare namespace Faust {
     }
 
     /**
-     * Monophonic ScriptProcessorNode.
+     * Monophonic AudioNode.
      */
     interface FaustMonoNode extends AudioNode, MonoDSP { }
 
     /**
-     * Polyphonic ScriptProcessorNode.
+     * Polyphonic AudioNode.
      */
     interface FaustPolyNode extends AudioNode, PolyDSP { }
 
-    // /**
-    //  * Monophonic ScriptProcessorNode.
-    //  */
-    // interface FaustMonoScriptProcessorNode extends ScriptProcessorNode, MonoDSP { }
-
-    // /**
-    //  * Polyphonic ScriptProcessorNode.
-    //  */
-    // interface FaustPolyScriptProcessorNode extends ScriptProcessorNode, PolyDSP { }
-
-    // /**
-    //  * Monophonic AudioWorkletNode.
-    //  */
-    // interface FaustMonoAudioWorkletNode extends AudioWorkletNode, MonoDSP { }
-
-    // /**
-    //  * Polyphonic AudioWorkletNode.
-    //  */
-    // interface FaustPolyAudioWorkletNode extends AudioWorkletNode, PolyDSP { }
 
     /**
      *  For offline rendering.
