@@ -131,20 +131,7 @@ struct one_sample_dsp : public rack_dsp {
 #include "faust/misc.h"
 #include "plugin.hpp"
 
-// params  = [buttons][entries][bargraph]
-
-/*
- - notion of minimal size for leaves items
- 
- ==> compute the global minimal width/height for the entire UI
- 
- - on peut calculer la taille minimale width/height de la section audio inputs et audio outputs
- 
- 1) calculer somme taille minimale width/height des section audio inputs et audio outputs tous en ligne
- 2) en deduire la taille width/height pour l'UI globale
- 3) eventuellement ajuster les groupages audio inputs et audio outputs (passer de 1 à 2 ligne), recalculer la taille width/height pour l'UI globale
- 
- */
+// params = [buttons][entries][bargraph]
 
 // A class to count items of each type.
 // Parameters with the "CV:N" metadata are kept separately in fInputCV and fOutputCV
@@ -300,6 +287,7 @@ struct RackUI : public GenericUI
     
     int fButtonsCounter = 0;
     int fParamsCounter = 0;
+    int fBargraphCounter = 0;
     int fCurVoice = -1;
     
     int parseIndex(const std::string& value)
@@ -323,6 +311,7 @@ struct RackUI : public GenericUI
     {
         fButtonsCounter = 0;
         fParamsCounter = 0;
+        fBargraphCounter = 0;
         fScale = "lin";
         fCV = "";
     }
@@ -336,13 +325,11 @@ struct RackUI : public GenericUI
                 return;
             }
             
-            //std::cout << "CV index " << index << std::endl;
             // Capture current voice
             int voice = fCurVoice;
             fUpdateFunIn.push_back([=] (Module* module)
                                    {
                                        float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
-                                       //std::cout << "CV index VOICES " << voice << " cv " << cv << std::endl;
                                        *zone = cv/10.f;
                                    });
             
@@ -377,7 +364,6 @@ struct RackUI : public GenericUI
     void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         ConverterZoneControl* converter;
-        //std::cout << "addNumEntry " << label << std::endl;
         
         if (fCV != "") {
             
@@ -393,12 +379,10 @@ struct RackUI : public GenericUI
             if (MapUI::endsWith(label, "freq")) {
                 
                 converter = new ConverterZoneControl(zone, new ValueConverter());
-                //std::cout << "freq CV index " << index << std::endl;
                 fUpdateFunIn.push_back([=] (Module* module)
                                        {
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
                                            float freq = 440.f * std::pow(2.f, (cv - 0.75f));
-                                           //std::cout << "CV index freq " << voice << " cv " << cv << " freq " << freq << std::endl;
                                            // Receive a 1V/oct pitch signal of the last held MIDI note: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(freq);
                                        });
@@ -406,11 +390,9 @@ struct RackUI : public GenericUI
             } else if (MapUI::endsWith(label, "gate")) {
                 
                 converter = new ConverterZoneControl(zone, new ValueConverter());
-                //std::cout << "gate CV index " << index << std::endl;
                 fUpdateFunIn.push_back([=] (Module* module)
                                        {
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
-                                           //std::cout << "CV index gate " << voice << " cv " << cv << std::endl;
                                            // Receive a 10V signal when a key is held: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(cv/10.f);
                                        });
@@ -419,11 +401,9 @@ struct RackUI : public GenericUI
             } else if (MapUI::endsWith(label, "gain")) {
                 
                 converter = new ConverterZoneControl(zone, new ValueConverter());
-                //std::cout << "gain CV index " << index << std::endl;
                 fUpdateFunIn.push_back([=] (Module* module)
                                        {
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
-                                           //std::cout << "CV index gain " << voice << " cv " << cv << std::endl;
                                            // Receive a signal from 0V to 10V for the velocity: https://vcvrack.com/manual/Core#midi-cv
                                            converter->update(cv/10.f);
                                        });
@@ -437,11 +417,9 @@ struct RackUI : public GenericUI
                     converter = new ConverterZoneControl(zone, new LinearValueConverter(-5, 5, min, max));
                 }
                 
-                //std::cout << "CV index " << index << std::endl;
                 fUpdateFunIn.push_back([=] (Module* module)
                                        {
                                            float cv = (VOICES == 1) ? module->inputs[index].getVoltage() : module->inputs[index].getVoltage(voice);
-                                           //std::cout << "CV index " << voice << " cv " << cv << std::endl;
                                            converter->update(cv);
                                        });
             }
@@ -462,7 +440,6 @@ struct RackUI : public GenericUI
             fUpdateFunIn.push_back([=] (Module* module)
                                    {
                                        // 'nentries' start at fParams.fButtons.size()
-                                       //std::cout << "Param " << module->params[index + fParams.fButtons.size()].getValue() << std::endl;
                                        converter->update(module->params[index + fParams.fButtons.size()].getValue());
                                    });
             fScale = "lin";
@@ -473,27 +450,35 @@ struct RackUI : public GenericUI
     
     void addBarGraph(FAUSTFLOAT* zone)
     {
-        /*
-         // index start at 0
-         int index = getIndex(fValue) - 1;
-         if ((fKey == "light_red") && (index != -1)) {
-         fUpdateFunOut.push_back([=] (Module* module)
-         {
-         // 'nentries' start at fParams.fButton + fParams.fNumEntry
-         module->params[index + fParams.fButton + fParams.fNumEntry][0].setValue(*zone);
-         });
-         } else if ((fKey == "light_green") && (index != -1)) {
-         fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][1] = *zone; });
-         } else if ((fKey == "light_blue") && (index != -1)) {
-         fUpdateFunOut.push_back([=] (Module* module) { lights[index-1][2] = *zone; });
-         } else if ((fKey == "switchlight_red") && (index != -1)) {
-         fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][0] = *zone; });
-         } else if ((fKey == "switchlight_green") && (index != -1)) {
-         fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][1] = *zone; });
-         } else if ((fKey == "switchlight_blue") && (index != -1)) {
-         fUpdateFunOut.push_back([=] (Module* module) { switchLights[index-1][2] = *zone; });
-         }
-         */
+        if (fCV != "") {
+            
+            int index = parseIndex(fCV)-1;
+            if (index < 0) {
+                WARN("Incorrect index");
+                return;
+            }
+            
+            int voice = fCurVoice;
+            fUpdateFunOut.push_back([=] (Module* module)
+                                    {
+                                        if (VOICES == 1) {
+                                            module->outputs[index].setVoltage(*zone);
+                                        }  else {
+                                            module->outputs[index].setVoltage(voice, *zone);
+                                        }
+                                    });
+            fCV = "";
+        } else {
+            
+            // Takes the value at lambda contruction time
+            int index = fBargraphCounter;
+            
+            // TODO
+            fUpdateFunOut.push_back([=] (Module* module) {
+                module->lights[index].setBrightness(*zone);
+            });
+            fBargraphCounter++;
+        }
     }
     
     void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -512,7 +497,6 @@ struct RackUI : public GenericUI
             fScale = val;
         } else if (std::string(key) == "CV" || std::string(key) == "cv") {
             fCV = val;
-            //std::cout << "declare " << fCV << std::endl;
         }
     }
     
@@ -574,11 +558,12 @@ struct mydspModule : Module {
         
         uint buttons = params.fButtons.size();
         uint entries = params.fRanges.size();
+        uint bargraphs = params.fBargraph.size();
         uint inputCV = params.fInputCV.size();
         uint outputCV = params.fOutputCV.size();
         
         // Config: by default we allocate complete set of parameters, even if all of them are not 'connected' using metadata
-        config(buttons + entries, fDSP[0].getNumInputs() + inputCV, fDSP[0].getNumOutputs() + outputCV, params.fBargraph.size());
+        config(buttons + entries, inputCV + fDSP[0].getNumInputs(), outputCV + fDSP[0].getNumOutputs(), bargraphs);
         
         // Setup buttons
         for (uint pa = 0; pa < buttons; pa++) {
@@ -728,8 +713,15 @@ struct mydspModule : Module {
     
 };
 
-// Draw a simple background color
+// Draw a opaque background color
 struct FaustBackgroundWidget : widget::Widget {
+    
+    std::shared_ptr<Font> fFont;
+    
+    FaustBackgroundWidget(std::shared_ptr<Font> font)
+    {
+        fFont = font;
+    }
     
     void draw(const DrawArgs& args) override {
         nvgBeginPath(args.vg);
@@ -744,17 +736,19 @@ struct FaustBackgroundWidget : widget::Widget {
 template <int VOICES>
 struct mydspModuleWidget : ModuleWidget {
     
+    std::shared_ptr<Font> fFont;
+    
     void addBackground(int width, int height)
     {
         // Default size
         box.size.x = width;
         box.size.y = height;
-        FaustBackgroundWidget* wd = new FaustBackgroundWidget();
+        FaustBackgroundWidget* wd = new FaustBackgroundWidget(fFont);
         wd->setSize(Vec(box.size.x, box.size.y));
         addChild(wd);
     
         // General title
-        addLabel(Vec(width/2.0 - 20, 10.0), "Faust");
+        addLabel(Vec(width/2.0 - 32, 10.0), "Faust", 20);
         
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -763,6 +757,9 @@ struct mydspModuleWidget : ModuleWidget {
     }
     
     mydspModuleWidget(mydspModule<VOICES>* module) {
+        
+        //fFont = APP->window->loadFont(asset::plugin(pluginInstance, "res/Lato-HairlineItalic.ttf"));
+        bndSetFont(0);
         setModule(module);
         
         // Set a large SVG
@@ -772,11 +769,11 @@ struct mydspModuleWidget : ModuleWidget {
         if (module) {
             
             // Compute available size by removing space for CV inputs/outputs and audio inputs/outputs
-            uint inputsCV = module->fRackUI->fParams.fInputCV.size();
-            uint outputsCV = module->fRackUI->fParams.fOutputCV.size();
-            
             uint buttons = module->fRackUI->fParams.fButtons.size();
             uint nentries = module->fRackUI->fParams.fRanges.size();
+            uint bargraphs = module->fRackUI->fParams.fBargraph.size();
+            uint inputsCV = module->fRackUI->fParams.fInputCV.size();
+            uint outputsCV = module->fRackUI->fParams.fOutputCV.size();
             
             float item_width = 18;
             float item_height = 20;
@@ -788,13 +785,13 @@ struct mydspModuleWidget : ModuleWidget {
                 + ((module->fDSP[0].getNumOutputs() > 0) ? 10 : 0);
             */
             
-            int needed_width = mm2px(std::max(buttons, nentries) * item_width);
-            
+            int needed_width = mm2px(std::max(uint(2), std::max(bargraphs, std::max(buttons, nentries))) * item_width);
+            //int needed_width = mm2px(4 * item_width);
             //int needed_height = RACK_GRID_HEIGHT - reserved_height;
             //std::cout << "needed_width " << needed_width << std::endl;
             //std::cout << "needed_height " << needed_height << std::endl;
             
-            addBackground(needed_width, RACK_GRID_HEIGHT);
+            addBackground(std::max(int(RACK_GRID_WIDTH), int(needed_width)), RACK_GRID_HEIGHT);
             
             /*
             // TODO
@@ -821,11 +818,18 @@ struct mydspModuleWidget : ModuleWidget {
                 addLabel(mm2px(Vec(0.0 + pa * item_width, item_height + 5.0)), label);
             }
             
-            // Add ranges
+            // Add ranges (sliders, nentry)
             for (uint pa = 0; pa < nentries; pa++) {
                 std::string label = module->fRackUI->fParams.fRanges[pa].fLabel;
                 addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(8.0 + pa * item_width, item_height * 2)), module, pa + buttons));
                 addLabel(mm2px(Vec(0.0 + pa * item_width, item_height * 2 + 5.0)), label);
+            }
+            
+            // Add bargraph
+            for (uint pa = 0; pa < bargraphs; pa++) {
+                std::string label = module->fRackUI->fParams.fBargraph[pa].fLabel;
+                addChild(createLightCentered<LargeLight<RedLight>>(mm2px(Vec(8.0 + pa * item_width, item_height * 3)), module, pa));
+                addLabel(mm2px(Vec(0.0 + pa * item_width, item_height * 3 + 5.0)), label);
             }
             
             // Add CV inputs
@@ -865,13 +869,17 @@ struct mydspModuleWidget : ModuleWidget {
     }
     
     // TODO: use nvgText
-    Label* addLabel(const Vec& v, const std::string& str)
+    // https://community.vcvrack.com/t/advanced-nanovg-custom-label/6769
+    // https://www.1001fonts.com
+    Label* addLabel(const Vec& v, const std::string& str, float fontSize = 13)
     {
         NVGcolor black = nvgRGB(0,0,0);
         Label* label = new Label();
         label->box.pos = v;
         label->text = str;
         label->color = black;
+        label->fontSize = fontSize;
+        //label->alignment = rack::ui::Label::RIGHT_ALIGNMENT;
         addChild(label);
         return label;
     }

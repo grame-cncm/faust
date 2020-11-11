@@ -17,7 +17,7 @@ Polyphonic modules can be created using the  `-nvoices <num>` parameter up to 16
 
 ## Metadata
 
-- `[VC:N]` can be used in input or output controllers to connect them to VC instead of regular GUI parameters.
+- `[CV:N]` can be used in input or output controllers to connect them to VC instead of regular GUI parameters.
 
 ## DSP examples
 
