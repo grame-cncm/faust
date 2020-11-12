@@ -78,6 +78,10 @@
 #include "rust_code_container.hh"
 #endif
 
+#ifdef DLANG_BUILD
+#include "dlang_code_container.hh"
+#endif
+
 // Parser
 extern FILE*       yyin;
 extern const char* yyfilename;
@@ -691,6 +695,9 @@ global::~global()
 #endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();
+#endif
+#ifdef DLANG_BUILD
+    DLangInstVisitor::cleanup();
 #endif
 }
 

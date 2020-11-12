@@ -17,4 +17,4 @@ set ( OLDCPP_BACKEND OFF		 CACHE STRING  "Include old CPP backend" FORCE )
 set ( RUST_BACKEND   OFF         CACHE STRING  "Include RUST backend" FORCE )
 set ( SOUL_BACKEND   OFF         CACHE STRING  "Include SOUL backend"      FORCE )
 set ( WASM_BACKEND   OFF 		 CACHE STRING  "Include WASM backend" FORCE )
-
+set ( DLANG_BACKEND  COMPILER STATIC DYNAMIC        CACHE STRING  "Include DLANG backend"     FORCE )
