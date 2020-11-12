@@ -40,8 +40,9 @@ wasm:
 	make -C .. wasmlib
 	cp ../lib/libfaust-wasm.* npm/dist
 	[ -e tests/libfaust-wasm.data ] || (cd tests && ln -s ../npm/dist/libfaust-wasm.data .)
+	[ -e npm/exemples/libfaust-wasm.data ] || (cd npm/exemples && ln -s ../dist/libfaust-wasm.data .)
 
-js: $(FAUSTWEB) faustcompiler.js
+js: $(FAUSTWEB)
 
 dist: 
 	cp $(FAUSTAPI) $(DISTDIR)
@@ -49,9 +50,6 @@ dist:
 
 $(FAUSTWEB) : $(jssrc)
 	tsc --strict --strictNullChecks --alwaysStrict
-
-faustcompiler.js : src/FaustCompiler.d.ts src/FaustCompiler.ts src/libfaust.d.ts
-	tsc -p tsCompiler.json
 
 clean:
 	make -C ../faustdir/emcc clean
