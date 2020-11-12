@@ -20,6 +20,7 @@ set ( LLVM_BACKEND   COMPILER STATIC CACHE STRING  "Include LLVM backend"      F
 set ( OLDCPP_BACKEND OFF        CACHE STRING  "Include old CPP backend"   FORCE )
 set ( RUST_BACKEND   OFF        CACHE STRING  "Include RUST backend"      FORCE )
 set ( WASM_BACKEND   OFF WASM   CACHE STRING  "Include WASM backend"  FORCE )
+set ( DLANG_BACKEND  OFF        CACHE STRING  "Include DLANG backend" FORCE )
 
 set ( INCLUDE_EXECUTABLE  ON   CACHE STRING  "Include faust compiler" FORCE )
 set ( INCLUDE_STATIC      ON   CACHE STRING  "Include static faust library" FORCE )

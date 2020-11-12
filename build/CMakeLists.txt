@@ -66,6 +66,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/generator/interpreter
 	${SRCDIR}/generator/rust
 	${SRCDIR}/generator/soul
+	${SRCDIR}/generator/dlang
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
