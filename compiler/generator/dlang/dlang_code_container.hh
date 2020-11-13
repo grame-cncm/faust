@@ -66,6 +66,7 @@ class DLangCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     virtual void generateCompute(int tab) = 0;
     virtual void produceInternal();
+    void generateImports(int tab);
 
     virtual dsp_factory_base* produceFactory();
 

@@ -250,8 +250,7 @@ void DLangCodeContainer::produceClass()
     *fOut << "module " << fKlassName << ";\n";
     tab(n, *fOut);
 
-    *fOut << "import std.math;\n";
-    tab(n, *fOut);
+    generateImports(n);
 
     // Sub containers
     generateSubContainers();
@@ -269,7 +268,9 @@ void DLangCodeContainer::produceClass()
     tab(n, *fOut);
     
     tab(n, *fOut);
-    *fOut << "class " << fKlassName << " : " << fSuperKlassName << " {";
+    *fOut << "class " << fKlassName << " : " << fSuperKlassName << "\n{\n";
+    *fOut << "nothrow:\n";
+    *fOut << "@nogc:\n";
     
     tab(n + 1, *fOut);
 
@@ -396,7 +397,7 @@ void DLangCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "* clone() {";
     tab(n + 2, *fOut);
-    *fOut << "return new " << fKlassName << "();";
+    *fOut << "return cast(" << fKlassName << "*)(mallocNew!" << fKlassName << "());";
     tab(n + 1, *fOut);
     *fOut << "}";
 
@@ -441,6 +442,13 @@ DLangScalarCodeContainer::DLangScalarCodeContainer(const string& name, const str
     : DLangCodeContainer(name, super, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
+}
+
+void DLangCodeContainer::generateImports(int n)
+{
+    *fOut << "import std.math;\n";
+    *fOut << "import dplug.core.nogc: mallocNew;\n";
+    tab(n, *fOut);
 }
 
 void DLangScalarCodeContainer::generateCompute(int n)
