@@ -11,10 +11,10 @@ The API is organised from low to high level as illustrated by the figure below.
 
 ### Faust Compiler Web Assembly module
 
-The first level is the faust compiler compiled as a wasm library named `libfaust-wasm`.
+The first level is the Faust compiler compiled as a wasm library named `libfaust-wasm`.
 It consists in 3 different files:
 
-- libfaust-wasm.wasm : the faust compiler provided as a Web Assembly module 
+- libfaust-wasm.wasm : the Faust compiler provided as a Web Assembly module 
 - libfaust-wasm.js : a javascript loader of the Web Assembly module
 - libfaust-wasm.data : a virtual file system containing the Faust libraries.
 
@@ -29,7 +29,7 @@ It provides *classic* Faust compilation services, which output is a raw Web Asse
 
 ### Faust Wasm Instance
 
-This level takes a Web Assembly module produced by the Faust compiler and build an memory instance of this module, ready to run, but not yet connected to any audio node.  
+This level takes a Web Assembly module produced by the Faust compiler or a precompiled module loaded from a file, and builds an instance of this module with the proper Wasm memory layout, ready to run, but not yet connected to any audio node.  
 It is described in `FaustGenerator.d.ts`.   
 
 

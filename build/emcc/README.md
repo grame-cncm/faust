@@ -8,7 +8,7 @@ The Faust Web Audio library provides all the services of the Faust compiler to t
 For convenience, a Makefile is present in this folder. 
 Available targets are:
 
-- **all** (default): build the faust wasm library and the javascript library. 
+- **all** (default): build the Faust wasm library and the javascript library. 
 - **cmake** : re-run cmake (required if you never compiled the bindings).
 - **dist** : copy the library typescript interface to the `npm/dist` folder.
 
