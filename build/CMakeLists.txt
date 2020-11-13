@@ -367,6 +367,7 @@ file (GLOB FAUSTDPSEMB ${ROOT}/libraries/embedded/*.lib)
 file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
 						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js
 						${ARCHDIR}/*.java ${ARCHDIR}/*.h
+						${ARCHDIR}/*.d   ${ARCHDIR}/*.d
 						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
 install (
     FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} ${ROOT}/tools/faust2appls/Info.plist DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust

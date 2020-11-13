@@ -43,55 +43,61 @@ class DLangInstVisitor : public TextInstVisitor {
 
     DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "[]", tab)
     {
-        // Mark all math.h functions as generated...
-        gFunctionSymbolTable["abs"] = true;
+        if (gFunctionSymbolTable.size()) {
+            return;
+        }
 
-        gFunctionSymbolTable["max"] = true;
-        gFunctionSymbolTable["min"] = true;
+        gFunctionSymbolTable["abs"]   = "std.math.abs";
+        gFunctionSymbolTable["max_i"] = "std.algorithm.max";
+        gFunctionSymbolTable["min_i"] = "std.algorithm.min";
 
         // Float version
-        gFunctionSymbolTable["fabsf"]      = true;
-        gFunctionSymbolTable["acosf"]      = true;
-        gFunctionSymbolTable["asinf"]      = true;
-        gFunctionSymbolTable["atanf"]      = true;
-        gFunctionSymbolTable["atan2f"]     = true;
-        gFunctionSymbolTable["ceilf"]      = true;
-        gFunctionSymbolTable["cosf"]       = true;
-        gFunctionSymbolTable["expf"]       = true;
-        gFunctionSymbolTable["exp10f"]     = true;
-        gFunctionSymbolTable["floorf"]     = true;
-        gFunctionSymbolTable["fmodf"]      = true;
-        gFunctionSymbolTable["logf"]       = true;
-        gFunctionSymbolTable["log10f"]     = true;
-        gFunctionSymbolTable["powf"]       = true;
-        gFunctionSymbolTable["remainderf"] = true;
-        gFunctionSymbolTable["rintf"]      = true;
-        gFunctionSymbolTable["roundf"]     = true;
-        gFunctionSymbolTable["sinf"]       = true;
-        gFunctionSymbolTable["sqrtf"]      = true;
-        gFunctionSymbolTable["tanf"]       = true;
+        gFunctionSymbolTable["fabsf"]  = "std.math.fabs";
+        gFunctionSymbolTable["acosf"]  = "std.math.acos";
+        gFunctionSymbolTable["asinf"]  = "std.math.asin";
+        gFunctionSymbolTable["atanf"]  = "std.math.atan";
+        gFunctionSymbolTable["atan2f"] = "std.math.atan2";
+        gFunctionSymbolTable["ceilf"]  = "std.math.ceil";
+        gFunctionSymbolTable["cosf"]   = "std.math.cos";
+        gFunctionSymbolTable["coshf"]  = "std.math.cosh";
+        gFunctionSymbolTable["expf"]   = "std.math.exp";
+        gFunctionSymbolTable["floorf"] = "std.math.floor";
+        gFunctionSymbolTable["fmodf"]  = "std.math.fmod";
+        gFunctionSymbolTable["logf"]   = "std.math.log";
+        gFunctionSymbolTable["log10f"] = "std.math.log10";
+        gFunctionSymbolTable["max_f"]  = "std.math.fmax";
+        gFunctionSymbolTable["min_f"]  = "std.math.fmin";
+        gFunctionSymbolTable["powf"]   = "std.math.pow";
+        gFunctionSymbolTable["roundf"] = "std.math.round";
+        gFunctionSymbolTable["sinf"]   = "std.math.sin";
+        gFunctionSymbolTable["sinhf"]  = "std.math.sinh";
+        gFunctionSymbolTable["sqrtf"]  = "std.math.sqrt";
+        gFunctionSymbolTable["tanf"]   = "std.math.tan";
+        gFunctionSymbolTable["tanhf"]  = "std.math.tanh";
 
         // Double version
-        gFunctionSymbolTable["fabs"]      = true;
-        gFunctionSymbolTable["acos"]      = true;
-        gFunctionSymbolTable["asin"]      = true;
-        gFunctionSymbolTable["atan"]      = true;
-        gFunctionSymbolTable["atan2"]     = true;
-        gFunctionSymbolTable["ceil"]      = true;
-        gFunctionSymbolTable["cos"]       = true;
-        gFunctionSymbolTable["exp"]       = true;
-        gFunctionSymbolTable["exp10"]     = true;
-        gFunctionSymbolTable["floor"]     = true;
-        gFunctionSymbolTable["fmod"]      = true;
-        gFunctionSymbolTable["log"]       = true;
-        gFunctionSymbolTable["log10"]     = true;
-        gFunctionSymbolTable["pow"]       = true;
-        gFunctionSymbolTable["remainder"] = true;
-        gFunctionSymbolTable["rint"]      = true;
-        gFunctionSymbolTable["round"]     = true;
-        gFunctionSymbolTable["sin"]       = true;
-        gFunctionSymbolTable["sqrt"]      = true;
-        gFunctionSymbolTable["tan"]       = true;
+        gFunctionSymbolTable["fabs"]  = "std.math.fabs";
+        gFunctionSymbolTable["acos"]  = "std.math.acos";
+        gFunctionSymbolTable["asin"]  = "std.math.asin";
+        gFunctionSymbolTable["atan"]  = "std.math.atan";
+        gFunctionSymbolTable["atan2"] = "std.math.atan2";
+        gFunctionSymbolTable["ceil"]  = "std.math.ceil";
+        gFunctionSymbolTable["cos"]   = "std.math.cos";
+        gFunctionSymbolTable["cosh"]  = "std.math.cosh";
+        gFunctionSymbolTable["exp"]   = "std.math.exp";
+        gFunctionSymbolTable["floor"] = "std.math.floor";
+        gFunctionSymbolTable["fmod"]  = "std.math.fmod";
+        gFunctionSymbolTable["log"]   = "std.math.log";
+        gFunctionSymbolTable["log10"] = "std.math.log10";
+        gFunctionSymbolTable["max_"]  = "std.math.fmax";
+        gFunctionSymbolTable["min_"]  = "std.math.fmin";
+        gFunctionSymbolTable["pow"]   = "std.math.pow";
+        gFunctionSymbolTable["round"] = "std.math.round";
+        gFunctionSymbolTable["sin"]   = "std.math.sin";
+        gFunctionSymbolTable["sinh"]  = "std.math.sinh";
+        gFunctionSymbolTable["sqrt"]  = "std.math.sqrt";
+        gFunctionSymbolTable["tan"]   = "std.math.tan";
+        gFunctionSymbolTable["tanh"]  = "std.math.tanh";
     }
 
     virtual ~DLangInstVisitor() {}
@@ -236,10 +242,6 @@ class DLangInstVisitor : public TextInstVisitor {
         // Prototype arguments
         if (inst->fType->fAttribute & FunTyped::kInline) {
             *fOut << "inline ";
-        }
-
-        if (inst->fType->fAttribute & FunTyped::kVirtual) {
-            *fOut << "abstract ";
         }
 
         if (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic) {
