@@ -1,50 +1,64 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <script src="../dist/libfaust-wasm.js"></script>
-        <script src="../dist/libfaust-wasm.data"></script>
-        <script src="../dist/FaustLibrary.js"></script>
-        <style>
-            body { margin: 100px; }
-            .code    { padding: 10px; background-color: #f8f8f8; }
-            .colored { color: blue; }
-            .plot { background-color: black; }
-        </style>
-    </head>
-    <body>
-        <h1>Faust Web Assembly Library</h1>
-        <h2>Offline example</h2>
-        <h3>Compiles and plot the following dsp code</h3>
 
-        <pre id=code class=code>
+<head>
+    <meta charset="UTF-8">
+    <script src="../dist/libfaust-wasm.js"></script>
+    <script src="../dist/libfaust-wasm.data"></script>
+    <script src="../dist/FaustLibrary.js"></script>
+    <style>
+        body {
+            margin: 100px;
+        }
+
+        .code {
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+
+        .colored {
+            color: blue;
+        }
+
+        .plot {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Faust Web Assembly Library</h1>
+    <h2>Offline example</h2>
+    <h3>Compiles and plot the following dsp code</h3>
+
+    <pre id=code class=code>
 import("stdfaust.lib");
 process = os.osc(440)*0.9;</pre>
-        <p id=log>   </p>
+    <p id=log> </p>
 
-        <h3>Javascript code</h3>
-        <pre class="code colored">
+    <h3>Javascript code</h3>
+    <pre class="code colored">
 async function plot( code, size, compiler, anfactory) {
     let factory = await compiler.createMonoDSPFactory("Faust", code, "-I libraries");
     let offlinep = await anfactory.createOfflineMonoProcessor(factory, 44100, 1024);
-    draw (offlinep.plot (600)[0]);
+    draw(offlinep.plot (600)[0]);
 }
 
 FaustModule().then ( module => { 
     let compiler = Faust.createCompiler ( Faust.createLibFaust(module) );
-    log ("Faust compiler version " + compiler.version());
-    plot (getcode(), 600, compiler, Faust.createAudioNodeFactory());
+    log("Faust compiler version " + compiler.version());
+    plot(getcode(), 600, compiler, Faust.createAudioNodeFactory());
 });</pre>
-<canvas id="plot" width="700" height="300" class=plot>
-</canvas>
+    <canvas id="plot" width="700" height="300" class=plot>
+    </canvas>
     <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
-    </body>
+</body>
 
 <script>
-    function getcode()  { return document.getElementById("code").textContent; }
-    function log(msg)   { let div = document.getElementById("log"); div.textContent += msg + "\n"; }
+    function getcode() { return document.getElementById("code").textContent; }
+    function log(msg) { let div = document.getElementById("log"); div.textContent += msg + "\n"; }
     function draw(data) {
-        let canvas = document.getElementById ("plot")
+        let canvas = document.getElementById("plot")
         let n = data.length;
         let h = canvas.height / 2;
         let step = canvas.width / n;
@@ -54,22 +68,23 @@ FaustModule().then ( module => {
         ctx.strokeStyle = "green"; // Green path
         let x = 1;
         ctx.moveTo(0, h);
-        for (let i=0; i<n; i++, x+=step) {
-            ctx.lineTo(x, h + h * data[i] );
+        for (let i = 0; i < n; i++, x += step) {
+            ctx.lineTo(x, h + h * data[i]);
         }
         ctx.stroke(); // Draw it
     }
 
-    async function plot( code, size, compiler, anfactory) {
+    async function plot(code, size, compiler, anfactory) {
         let factory = await compiler.createMonoDSPFactory("Faust", code, "-I libraries");
         let offlinep = await anfactory.createOfflineMonoProcessor(factory, 44100, 1024);
-        draw (offlinep.plot (600)[0]);
+        draw(offlinep.plot(600)[0]);
     }
 
-    FaustModule().then ( module => { 
-        let compiler = Faust.createCompiler ( Faust.createLibFaust(module) );
-        log ("Faust compiler version " + compiler.version());
-        plot (getcode(), 600, compiler, Faust.createAudioNodeFactory());
+    FaustModule().then(module => {
+        let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+        log("Faust compiler version " + compiler.version());
+        plot(getcode(), 600, compiler, Faust.createAudioNodeFactory());
     });
 </script>
+
 </html>

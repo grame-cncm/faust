@@ -1,23 +1,34 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <script src="../dist/libfaust-wasm.js"></script>
-        <script src="../dist/libfaust-wasm.data"></script>
-        <script src="../dist/FaustLibrary.js"></script>
-        <script src="sapi.js"></script>
-        <style>
-            body { margin: 100px; }
-            .code    { padding: 10px; background-color: #f8f8f8; }
-            .colored { color: blue; }
-        </style>
-    </head>
-    <body>
-        <h1>Faust Web Assembly Library</h1>
-        <h2>Poly Audio node example</h2>
-        <h3>Compiles and run the following dsp code with 4 voices</h3>
 
-        <pre id=code class=code>
+<head>
+    <meta charset="UTF-8">
+    <script src="../dist/libfaust-wasm.js"></script>
+    <script src="../dist/libfaust-wasm.data"></script>
+    <script src="../dist/FaustLibrary.js"></script>
+    <script src="sapi.js"></script>
+    <style>
+        body {
+            margin: 100px;
+        }
+
+        .code {
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+
+        .colored {
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Faust Web Assembly Library</h1>
+    <h2>Poly Audio node example</h2>
+    <h3>Compiles and run the following dsp code with 4 voices</h3>
+
+    <pre id=code class=code>
 import("stdfaust.lib");
 process = ba.pulsen(1, ba.hz2midikey(freq) * 1000) : pm.marimba(freq, 0, 7000, 0.5, 0.8) * gate * gain with {
   freq = hslider("freq", 440, 40, 8000, 1);
@@ -25,10 +36,10 @@ process = ba.pulsen(1, ba.hz2midikey(freq) * 1000) : pm.marimba(freq, 0, 7000, 0
   gate = button("gate");
 };
 effect = dm.freeverb_demo;</pre>
-        <p id=log>   </p>
+    <p id=log> </p>
 
-        <h3>Javascript code</h3>
-        <pre class="code colored">
+    <h3>Javascript code</h3>
+    <pre class="code colored">
 function play(node)   { 
     node.keyOn(0, 60, 100);
     setTimeout(() => node.keyOn(0, 64, 40), 500);
@@ -38,19 +49,19 @@ function play(node)   {
 }
 
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-FaustModule().then ( module => { 
-    getnode (audioCtx, module, getcode(), 4).then  ( node => {
+FaustModule().then( module => { 
+    getnode(audioCtx, module, getcode(), 4).then(node => {
         node.connect(audioCtx.destination);
         play(node);
     });
 });</pre>
-        <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
-    </body>
+    <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+</body>
 
 <script>
-    function getcode()  { return document.getElementById("code").textContent; }
-    function log(msg)   { let div = document.getElementById("log"); div.textContent = msg + "\n"; }
-    function play(node)   { 
+    function getcode() { return document.getElementById("code").textContent; }
+    function log(msg) { let div = document.getElementById("log"); div.textContent = msg + "\n"; }
+    function play(node) {
         node.keyOn(0, 60, 100);
         setTimeout(() => node.keyOn(0, 64, 40), 500);
         setTimeout(() => node.keyOn(0, 67, 80), 1000);
@@ -58,8 +69,8 @@ FaustModule().then ( module => {
         setTimeout(() => play(node), 7000);
     }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    FaustModule().then ( module => { 
-        getnode (audioCtx, module, getcode(), 4).then  ( node => {
+    FaustModule().then(module => {
+        getnode(audioCtx, module, getcode(), 4).then(node => {
             node.connect(audioCtx.destination);
             play(node);
         });
@@ -74,4 +85,5 @@ FaustModule().then ( module => {
     }
     unlockAudioContext(audioCtx); 
 </script>
+
 </html>

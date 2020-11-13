@@ -18,13 +18,12 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
 
 /*
-	This file describes the API to instantiate a low level Faust library.
-	This library provides access to the Faust compiler but the compiler interface
-	is not public. Thus LibFaust is an opaque reference that is required by
-	higher level APIs.
+    This file describes the API to instantiate a low level Faust library.
+    This library provides access to the Faust compiler but the compiler interface
+    is not public. Thus LibFaust is an opaque reference that is required by
+    higher level APIs.
 */
 
 declare namespace Faust {
@@ -32,12 +31,12 @@ declare namespace Faust {
     type FaustModule = any;
     type LibFaust = any;
 
-	/**
-	 * Instantiates the Faust Library.
-	 *
-	 * @param {string} module - the Faust Wasm module, typically retrieved with an async call to FaustModule()
-	 * @returns {LibFaust} an opaque reference to the Faust library
-	 */
-  	
-	interface createLibFaust { (module: FaustModule): LibFaust }	
+    /**
+     * Instantiates the Faust Library.
+     *
+     * @param {string} module - the Faust Wasm module, typically retrieved with an async call to FaustModule()
+     * @returns {LibFaust} an opaque reference to the Faust library
+     */
+
+    interface createLibFaust { (module: FaustModule): LibFaust }
 }

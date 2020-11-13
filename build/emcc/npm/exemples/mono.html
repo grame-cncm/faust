@@ -1,51 +1,62 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <script src="../dist/libfaust-wasm.js"></script>
-        <script src="../dist/libfaust-wasm.data"></script>
-        <script src="../dist/FaustLibrary.js"></script>
-        <style>
-            body { margin: 100px; }
-            .code    { padding: 10px; background-color: #f8f8f8; }
-            .colored { color: blue; }
-        </style>
-    </head>
-    <body>
-        <h1>Faust Web Assembly Library</h1>
-        <h2>Mono Audio node example</h2>
-        <h3>Compiles and run the following dsp code</h3>
 
-        <pre id=code class=code>
+<head>
+    <meta charset="UTF-8">
+    <script src="../dist/libfaust-wasm.js"></script>
+    <script src="../dist/libfaust-wasm.data"></script>
+    <script src="../dist/FaustLibrary.js"></script>
+    <style>
+        body {
+            margin: 100px;
+        }
+
+        .code {
+            padding: 10px;
+            background-color: #f8f8f8;
+        }
+
+        .colored {
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Faust Web Assembly Library</h1>
+    <h2>Mono Audio node example</h2>
+    <h3>Compiles and run the following dsp code</h3>
+
+    <pre id=code class=code>
 import("stdfaust.lib");
 process = ba.pulsen(1, 10000) : pm.djembe(60, 0.3, 0.4, 1) <: dm.freeverb_demo;
         </pre>
-        <p id=log>   </p>
+    <p id=log> </p>
 
-        <h3>Javascript code</h3>
-        <pre class="code colored">
+    <h3>Javascript code</h3>
+    <pre class="code colored">
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-FaustModule().then ( module => { 
-    let compiler = Faust.createCompiler ( Faust.createLibFaust(module) );
-    log ("Faust compiler version " + compiler.version());
+FaustModule().then(module => { 
+    let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+    log("Faust compiler version " + compiler.version());
     let factory = Faust.createAudioNodeFactory();
-    factory.compileMonoNode ( audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then ( node => {
+    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then(node => {
         node.connect(audioCtx.destination);
     });
 });</pre>
-        <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
-    </body>
+    <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+</body>
 
 <script>
-    function getcode()  { return document.getElementById("code").textContent; }
-    function log(msg)   { let div = document.getElementById("log"); div.textContent += msg + "\n"; }
+    function getcode() { return document.getElementById("code").textContent; }
+    function log(msg) { let div = document.getElementById("log"); div.textContent += msg + "\n"; }
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    FaustModule().then ( module => { 
-        let compiler = Faust.createCompiler ( Faust.createLibFaust(module) );
-        log ("Faust compiler version " + compiler.version());
+    FaustModule().then(module => {
+        let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+        log("Faust compiler version " + compiler.version());
         let factory = Faust.createAudioNodeFactory();
-        factory.compileMonoNode ( audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then ( node => {
+        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then(node => {
             node.connect(audioCtx.destination);
         });
     })
@@ -59,4 +70,5 @@ FaustModule().then ( module => {
     }
     unlockAudioContext(audioCtx);
 </script>
+
 </html>
