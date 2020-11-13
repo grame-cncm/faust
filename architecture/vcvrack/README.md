@@ -9,21 +9,21 @@ Here are the available options:
 - `-source to only create the source folder`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
 
-Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5..5] range, they are **automatically converted in the architecture file**. VC control in the [0..10] volts range will be mapped to the controllers [min..max] range.
+Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5v..5v] range, they are **automatically converted in the architecture file**. CV control in the [0v..10v] range will be mapped to the controllers [min..max] range.
 
 ## Polyphony support
 
-Polyphonic modules can be created using the  `-nvoices <num>` parameter up to 16 voices. The  `freq/gate/gain` convention can be used in the DSP code. VCV Rack follows the 1V/octave convention for MIDI pitch values, so the MIDI signals are automatically converted to `freq` using this convention. Gain and gates signals (using the [0..10v] range) are converted to [0..1] values.
+Polyphonic modules can be created using the  `-nvoices <num>` parameter up to 16 voices. The  `freq/gate/gain` convention can be used in the DSP code. VCV Rack follows the 1V/octave convention for MIDI pitch values, so the MIDI signals are automatically converted to `freq` using this convention. Gain and gates signals (using the [0v..10v] range) are converted to [0..1] values.
 
 Note that **creating polyphonic effects** also make sense in VCV Rack. For instance a reverb connected to a polyphonic instrument would need to be polyphonic. Thus the  `-nvoices <num>` parameter can also be used in this case.
 
 ## Metadata
 
-- `[CV:N]` can be used in input or output controllers to connect them to VC instead of regular GUI parameters.
+- `[CV:N]` can be used in input (typically *sliders* or *nentry*) or output (typically *bargraph*) controllers to connect them to CV instead of regular GUI parameters.
 
 ## DSP examples
 
-Here is a simple example showing how oscillators can be controlled by parameters:
+Here is a simple example showing how oscillators can be controlled by UI items. One switch, one button and two knobs will be created in the GUI:
 
 ```
 import("stdfaust.lib");
@@ -37,7 +37,7 @@ check = checkbox("check");
 process = os.osc(freq) * gain * gate, os.sawtooth(freq) * gain * check;
 ```
 
-A polyphonic instrument with `freq/gate/gain` controllers associated with VC MIDI inputs, using the `[VC:N]` metadata, to be compiled with the `-nvoices <num>` option:
+A polyphonic instrument with `freq/gate/gain` controllers associated with CV MIDI inputs, using the `[CV:N]` metadata, to be compiled with the `-nvoices <num>` option:
 
 ```
 import("stdfaust.lib");
@@ -64,4 +64,11 @@ partial(i) = amp(i+1)*os.osc((i+1)*freq);
 process = sum(i, 3, partial(i))
 * (gate : vgroup("1-adsr", en.adsr(0.05, 0.1, 0.1, 0.1)))
 * gain : vgroup("2-master", *(master) : panner(pan));
+```
+ 
+This polyphonic instrument can then be connected to a polyphonic reverb, to be also compiled with the `-nvoices <num>` option:
+
+```
+import("stdfaust.lib");
+process = dm.freeverb_demo;
 ```
