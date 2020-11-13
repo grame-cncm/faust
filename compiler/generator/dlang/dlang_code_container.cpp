@@ -117,10 +117,10 @@ void DLangCodeContainer::produceInit(int tabs)
 {
     if (gGlobal->gMemoryManager) {
         tab(tabs, *fOut);
-        *fOut << "virtual void init(int sample_rate) {}";
+        *fOut << "void init(int sample_rate) {}";
     } else {
         tab(tabs, *fOut);
-        *fOut << "virtual void init(int sample_rate) {";
+        *fOut << "void init(int sample_rate) {";
         tab(tabs + 1, *fOut);
         *fOut << "classInit(sample_rate);";
         tab(tabs + 1, *fOut);
@@ -130,7 +130,7 @@ void DLangCodeContainer::produceInit(int tabs)
     }
 
     tab(tabs, *fOut);
-    *fOut << "virtual void instanceInit(int sample_rate) {";
+    *fOut << "void instanceInit(int sample_rate) {";
     tab(tabs + 1, *fOut);
     *fOut << "instanceConstants(sample_rate);";
     tab(tabs + 1, *fOut);
@@ -247,7 +247,11 @@ void DLangCodeContainer::produceClass()
    
     // Libraries
     printLibrary(*fOut);
-    printIncludeFile(*fOut);
+    *fOut << "module " << fKlassName << ";\n";
+    tab(n, *fOut);
+
+    *fOut << "import std.math;\n";
+    tab(n, *fOut);
 
     // Sub containers
     generateSubContainers();
@@ -328,7 +332,7 @@ void DLangCodeContainer::produceClass()
 
     if (fDestroyInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
+        *fOut << "~" << fKlassName << "() {";
         tab(n + 2, *fOut);
         *fOut << "destroy();";
         tab(n + 1, *fOut);
@@ -338,12 +342,6 @@ void DLangCodeContainer::produceClass()
     tab(n + 1, *fOut);
     // No class name for main class
     produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
-
-    // TODO
-    /*
-    generateStaticInitFun("classInit", true)->accept(&fCodeProducer);
-    generateInstanceInitFun("instanceInit", true, true)->accept(&fCodeProducer);
-    */
 
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) {";
@@ -363,37 +361,9 @@ void DLangCodeContainer::produceClass()
         *fOut << "}";
     }
 
-    // TEST
-    /*
-    // Start inline
-    {
-        DspRenamer renamer;
-        BlockInst* res1 = renamer.getCode(fStaticInitInstructions);
-
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,
-            false);
-            InlineVoidFunctionCall inliner1(inst_init_fun); 
-            res1 = inliner1.getCode(res1); 
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false); 
-            InlineVoidFunctionCall inliner2(fill_fun); 
-            res1 = inliner2.getCode(res1);
-        }
-
-        tab(n+1, *fOut); 
-        *fOut << "static void classInit(int sample_rate) {";
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
-            res1->accept(&fCodeProducer);
-        tab(n+1, *fOut); *fOut << "}";
-    }
-    // End inline
-    */
-
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceConstants(int sample_rate) {";
+    *fOut << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -402,7 +372,7 @@ void DLangCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceResetUserInterface() {";
+    *fOut << "void instanceResetUserInterface() {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
@@ -411,7 +381,7 @@ void DLangCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceClear() {";
+    *fOut << "void instanceClear() {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
@@ -419,43 +389,12 @@ void DLangCodeContainer::produceClass()
     *fOut << "}";
     tab(n + 1, *fOut);
 
-    // TEST
-    /*
-    // Start inline
-    {
-        DspRenamer renamer;
-        BlockInst* res1 = renamer.getCode(fInitInstructions);
-        BlockInst* res2 = renamer.getCode(fPostInitInstructions);
-
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true,false);
-            InlineVoidFunctionCall inliner1(inst_init_fun);
-            res1 = inliner1.getCode(res1);
-            res2 = inliner1.getCode(res2);
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner2(fill_fun);
-            res1 = inliner2.getCode(res1);
-            res2 = inliner2.getCode(res2);
-        }
-
-        tab(n+1, *fOut); 
-        *fOut << "virtual void instanceInit(int sample_rate) {";
-        tab(n+2, *fOut);
-        fCodeProducer.Tab(n+2);
-        res1->accept(&fCodeProducer);
-        res2->accept(&fCodeProducer);
-        tab(n+1, *fOut); *fOut << "}";
-    }
-    // End inline
-    */
-
     // Init
     produceInit(n + 1);
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual " << fKlassName << "* clone() {";
+    *fOut << fKlassName << "* clone() {";
     tab(n + 2, *fOut);
     *fOut << "return new " << fKlassName << "();";
     tab(n + 1, *fOut);
@@ -468,7 +407,7 @@ void DLangCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "virtual void buildUserInterface(UI* ui_interface) {";
+    *fOut << "void buildUserInterface(UI* ui_interface) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -479,7 +418,7 @@ void DLangCodeContainer::produceClass()
     generateCompute(n);
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "};" << endl;
+    *fOut << "}" << endl;
 
     // To improve (generalization for all backends...)
     if (gGlobal->gMemoryManager) {
@@ -509,7 +448,7 @@ void DLangScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -537,7 +476,7 @@ void DLangScalarOneSampleCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* iControl, $0* fControl) {", xfloat());
+    *fOut << subst("void compute($0* inputs, $0* outputs, int* iControl, $0* fControl) {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     
@@ -650,7 +589,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     
     if (fDestroyInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() {";
+        *fOut << "~" << fKlassName << "() {";
         tab(n + 2, *fOut);
         *fOut << "destroy();";
         tab(n + 1, *fOut);
@@ -681,7 +620,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
   
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceConstants(int sample_rate) {";
+    *fOut << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -690,7 +629,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceResetUserInterface() {";
+    *fOut << "void instanceResetUserInterface() {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
@@ -699,7 +638,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceClear() {";
+    *fOut << "void instanceClear() {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
@@ -712,7 +651,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "virtual " << fKlassName << "* clone() {";
+    *fOut << fKlassName << "* clone() {";
     tab(n + 2, *fOut);
     *fOut << "return new " << fKlassName << "();";
     tab(n + 1, *fOut);
@@ -725,7 +664,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "virtual void buildUserInterface(UI* ui_interface) {";
+    *fOut << "void buildUserInterface(UI* ui_interface) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -733,7 +672,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "}";
     
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void control(int* iControl, $0* fControl) {", xfloat());
+    *fOut << subst("void control(int* iControl, $0* fControl) {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     // Generates local variables declaration and setup
@@ -742,9 +681,9 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "}" << endl;
     
     tab(n + 1, *fOut);
-    *fOut << "virtual int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    *fOut << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
     tab(n + 1, *fOut);
-    *fOut << "virtual int getNumRealControls() { return " << fRealControlNum << "; }";
+    *fOut << "int getNumRealControls() { return " << fRealControlNum << "; }";
     
     // Compute
     generateCompute(n);
@@ -783,7 +722,7 @@ void DLangVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -813,7 +752,7 @@ void DLangOpenMPCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -858,7 +797,7 @@ void DLangWorkStealingCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
