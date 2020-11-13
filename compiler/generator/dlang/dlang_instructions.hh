@@ -41,63 +41,59 @@ class DLangInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "[]", tab)
+    DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "*", tab)
     {
-        if (gFunctionSymbolTable.size()) {
-            return;
-        }
-
-        gFunctionSymbolTable["abs"]   = "std.math.abs";
-        gFunctionSymbolTable["max_i"] = "std.algorithm.max";
-        gFunctionSymbolTable["min_i"] = "std.algorithm.min";
+        gPolyMathLibTable["abs"]   = "std.math.abs";
+        gPolyMathLibTable["max_i"] = "std.algorithm.max";
+        gPolyMathLibTable["min_i"] = "std.algorithm.min";
 
         // Float version
-        gFunctionSymbolTable["fabsf"]  = "std.math.fabs";
-        gFunctionSymbolTable["acosf"]  = "std.math.acos";
-        gFunctionSymbolTable["asinf"]  = "std.math.asin";
-        gFunctionSymbolTable["atanf"]  = "std.math.atan";
-        gFunctionSymbolTable["atan2f"] = "std.math.atan2";
-        gFunctionSymbolTable["ceilf"]  = "std.math.ceil";
-        gFunctionSymbolTable["cosf"]   = "std.math.cos";
-        gFunctionSymbolTable["coshf"]  = "std.math.cosh";
-        gFunctionSymbolTable["expf"]   = "std.math.exp";
-        gFunctionSymbolTable["floorf"] = "std.math.floor";
-        gFunctionSymbolTable["fmodf"]  = "std.math.fmod";
-        gFunctionSymbolTable["logf"]   = "std.math.log";
-        gFunctionSymbolTable["log10f"] = "std.math.log10";
-        gFunctionSymbolTable["max_f"]  = "std.math.fmax";
-        gFunctionSymbolTable["min_f"]  = "std.math.fmin";
-        gFunctionSymbolTable["powf"]   = "std.math.pow";
-        gFunctionSymbolTable["roundf"] = "std.math.round";
-        gFunctionSymbolTable["sinf"]   = "std.math.sin";
-        gFunctionSymbolTable["sinhf"]  = "std.math.sinh";
-        gFunctionSymbolTable["sqrtf"]  = "std.math.sqrt";
-        gFunctionSymbolTable["tanf"]   = "std.math.tan";
-        gFunctionSymbolTable["tanhf"]  = "std.math.tanh";
+        gPolyMathLibTable["fabsf"]  = "std.math.fabs";
+        gPolyMathLibTable["acosf"]  = "std.math.acos";
+        gPolyMathLibTable["asinf"]  = "std.math.asin";
+        gPolyMathLibTable["atanf"]  = "std.math.atan";
+        gPolyMathLibTable["atan2f"] = "std.math.atan2";
+        gPolyMathLibTable["ceilf"]  = "std.math.ceil";
+        gPolyMathLibTable["cosf"]   = "std.math.cos";
+        gPolyMathLibTable["coshf"]  = "std.math.cosh";
+        gPolyMathLibTable["expf"]   = "std.math.exp";
+        gPolyMathLibTable["floorf"] = "std.math.floor";
+        gPolyMathLibTable["fmodf"]  = "std.math.fmod";
+        gPolyMathLibTable["logf"]   = "std.math.log";
+        gPolyMathLibTable["log10f"] = "std.math.log10";
+        gPolyMathLibTable["max_f"]  = "std.math.fmax";
+        gPolyMathLibTable["min_f"]  = "std.math.fmin";
+        gPolyMathLibTable["powf"]   = "std.math.pow";
+        gPolyMathLibTable["roundf"] = "std.math.round";
+        gPolyMathLibTable["sinf"]   = "std.math.sin";
+        gPolyMathLibTable["sinhf"]  = "std.math.sinh";
+        gPolyMathLibTable["sqrtf"]  = "std.math.sqrt";
+        gPolyMathLibTable["tanf"]   = "std.math.tan";
+        gPolyMathLibTable["tanhf"]  = "std.math.tanh";
 
         // Double version
-        gFunctionSymbolTable["fabs"]  = "std.math.fabs";
-        gFunctionSymbolTable["acos"]  = "std.math.acos";
-        gFunctionSymbolTable["asin"]  = "std.math.asin";
-        gFunctionSymbolTable["atan"]  = "std.math.atan";
-        gFunctionSymbolTable["atan2"] = "std.math.atan2";
-        gFunctionSymbolTable["ceil"]  = "std.math.ceil";
-        gFunctionSymbolTable["cos"]   = "std.math.cos";
-        gFunctionSymbolTable["cosh"]  = "std.math.cosh";
-        gFunctionSymbolTable["exp"]   = "std.math.exp";
-        gFunctionSymbolTable["floor"] = "std.math.floor";
-        gFunctionSymbolTable["fmod"]  = "std.math.fmod";
-        gFunctionSymbolTable["log"]   = "std.math.log";
-        gFunctionSymbolTable["log10"] = "std.math.log10";
-        gFunctionSymbolTable["max_"]  = "std.math.fmax";
-        gFunctionSymbolTable["min_"]  = "std.math.fmin";
-        gFunctionSymbolTable["pow"]   = "std.math.pow";
-        gFunctionSymbolTable["round"] = "std.math.round";
-        gFunctionSymbolTable["sin"]   = "std.math.sin";
-        gFunctionSymbolTable["sinh"]  = "std.math.sinh";
-        gFunctionSymbolTable["sqrt"]  = "std.math.sqrt";
-        gFunctionSymbolTable["tan"]   = "std.math.tan";
-        gFunctionSymbolTable["tanh"]  = "std.math.tanh";
+        gPolyMathLibTable["fabs"]  = "std.math.fabs";
+        gPolyMathLibTable["acos"]  = "std.math.acos";
+        gPolyMathLibTable["asin"]  = "std.math.asin";
+        gPolyMathLibTable["atan"]  = "std.math.atan";
+        gPolyMathLibTable["atan2"] = "std.math.atan2";
+        gPolyMathLibTable["ceil"]  = "std.math.ceil";
+        gPolyMathLibTable["cos"]   = "std.math.cos";
+        gPolyMathLibTable["cosh"]  = "std.math.cosh";
+        gPolyMathLibTable["exp"]   = "std.math.exp";
+        gPolyMathLibTable["floor"] = "std.math.floor";
+        gPolyMathLibTable["fmod"]  = "std.math.fmod";
+        gPolyMathLibTable["log"]   = "std.math.log";
+        gPolyMathLibTable["log10"] = "std.math.log10";
+        gPolyMathLibTable["max_"]  = "std.math.fmax";
+        gPolyMathLibTable["min_"]  = "std.math.fmin";
+        gPolyMathLibTable["pow"]   = "std.math.pow";
+        gPolyMathLibTable["round"] = "std.math.round";
+        gPolyMathLibTable["sin"]   = "std.math.sin";
+        gPolyMathLibTable["sinh"]  = "std.math.sinh";
+        gPolyMathLibTable["sqrt"]  = "std.math.sqrt";
+        gPolyMathLibTable["tan"]   = "std.math.tan";
+        gPolyMathLibTable["tanh"]  = "std.math.tanh";
     }
 
     virtual ~DLangInstVisitor() {}
@@ -254,6 +250,23 @@ class DLangInstVisitor : public TextInstVisitor {
         generateFunDefBody(inst);
     }
 
+    virtual void generateFunDefBody(DeclareFunInst* inst)
+    {
+        if (inst->fCode->fCode.size() == 0) {
+            *fOut << ") nothrow @nogc;" << endl;  // Pure prototype
+        } else {
+            // Function body
+            *fOut << ") nothrow @nogc {";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fCode->accept(this);
+            fTab--;
+            back(1, *fOut);
+            *fOut << "}";
+            tab(fTab, *fOut);
+        }
+    }
+
     virtual void visit(LoadVarAddressInst* inst)
     {
         *fOut << "&";
@@ -268,7 +281,7 @@ class DLangInstVisitor : public TextInstVisitor {
             inst->fInst->accept(this);
             *fOut << ")";
         } else {
-            *fOut << type << "(";
+            *fOut << "cast(" << type << ")(";
             inst->fInst->accept(this);
             *fOut << ")";
         }
@@ -285,16 +298,9 @@ class DLangInstVisitor : public TextInstVisitor {
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
-            if (dynamic_cast<Int32NumInst*>(indexed->fIndex)) {
-                *fOut << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]";
-            } else {
-                // wrap code is automatically added by the SOUL compiler (and the same if [idex] syntax is used)
-                *fOut << ".at (";
-                indexed->fIndex->accept(this);
-                *fOut << ")";
-            }
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+            *fOut << "]";
         }
     }
 

@@ -57,18 +57,25 @@ import std.stdio;
 import std.conv;
 
 class Meta {
+nothrow:
+@nogc:
     void declare(string name, string value) {}
 }
 
 interface FaustVarAccess {
+nothrow:
+@nogc:
     string getId();
     void set(float val);
     float get();
 }
 
 class UI {
-
+nothrow:
+@nogc:
     void declare(string id, string key, string value) {}
+    void declare(int id, string key, string value) {}
+    void declare(float* id, string key, string value) {}
 
     // -- layout groups
 
@@ -79,41 +86,46 @@ class UI {
 
     // -- active widgets
 
-    void addButton(string label, FaustVarAccess varAccess) {}
-    void addCheckButton(string label, FaustVarAccess varAccess) {}
-    void addVerticalSlider(string label, FaustVarAccess varAccess, float init, float min, float max, float step) {}
-    void addHorizontalSlider(string label, FaustVarAccess varAccess, float init, float min, float max, float step) {}
-    void addNumEntry(string label, FaustVarAccess varAccess, float init, float min, float max, float step) {}
+    void addButton(string label, float* val) {}
+    void addCheckButton(string label, float* val) {}
+    void addVerticalSlider(string label, float* val, float init, float min, float max, float step) {}
+    void addHorizontalSlider(string label, float* val, float init, float min, float max, float step) {}
+    void addNumEntry(string label, float* val, float init, float min, float max, float step) {}
 
     // -- passive display widgets
 
-    void addHorizontalBargraph(string label, FaustVarAccess varAccess, float min, float max) {}
-    void addVerticalBargraph(string label, FaustVarAccess varAccess, float min, float max) {}
+    void addHorizontalBargraph(string label, float* val, float min, float max) {}
+    void addVerticalBargraph(string label, float* val, float min, float max) {}
 
 }
 
 class dsp {
+nothrow:
+@nogc:
 public:
     int fSamplingFreq;
 }
 
-void main(string[] args)
-{
-    mydsp DSP;
-    writeln("DSP size: " ~ to!string(DSP.sizeof) ~ " bytes\n");
+// void main(string[] args)
+// {
+//     mydsp DSP = new mydsp();
+//     writeln("DSP size: " ~ to!string(DSP.sizeof) ~ " bytes\n");
     
-    // Activate the UI, here that only print the control paths
-    // PrintUI ui;
-    // DSP.buildUserInterface(&ui);
+//     // Activate the UI, here that only print the control paths
+//     UI ui = new UI();
+//     DSP.buildUserInterface(&ui);
 
-    // // Allocate the audio driver to render 5 buffers of 512 frames
-    // dummyaudio audio(5);
-    // audio.init("Test", &DSP);
-    
-    // // Render buffers...
-    // audio.start();
-    // audio.stop();
-}
+// 	float** input = [[0.0f, 0.1f,  0.2f, 0.3f, 0.4f].ptr].ptr;
+// 	float** output = [[0.0f, 0.0f,  0.0f, 0.0f, 0.0f].ptr].ptr;
+
+// 	DSP.compute(5, input, output);
+
+//     for(int i = 0; (i < 5); ++i)
+//     {
+//         string s = "Input: " ~ to!string(input[i]) ~ " | Output: " ~ to!string(output[i]);
+//         writeln(s);
+//     }
+// }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
