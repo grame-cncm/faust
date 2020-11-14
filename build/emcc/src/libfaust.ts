@@ -23,18 +23,27 @@
 
 namespace Faust {
 
+    export var FS : FS;
+
     // Public contructor
     export function createLibFaust(module: FaustModule) {
+        if (!module || (typeof(module) == 'undefined')) {
+            console.log ("Error in createLibFaust: incorrect module argument.");
+            return null;
+        }
         return new LibFaustImp(module);
     }
 
     export class LibFaustImp implements LibFaust {
         private fModule: FaustModule;
         private fCompiler: LibFaust;
+        private fFileSystem: FS;
 
-        constructor(module: FaustModule) {
+        constructor (module: FaustModule) {
             this.fModule = module;
             this.fCompiler = new module.libFaustWasm();
+            this.fFileSystem = this.fModule.FS;
+            FS = this.fFileSystem;
         }
 
         version(): string { return this.fCompiler.version(); }
@@ -54,6 +63,7 @@ namespace Faust {
         cleanupAfterException() { this.fCompiler.cleanupAfterException(); }
 
         module(): FaustModule { return this.fModule; }
+        fs(): FS { return this.fFileSystem; }
 
         toString() { return "LibFaust module: " + this.fModule + " engine: " + this.fCompiler; }
     }

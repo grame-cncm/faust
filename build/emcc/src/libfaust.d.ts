@@ -21,7 +21,12 @@
 
 declare namespace Faust {
 
+
     type FaustModule = any;
+    interface FS {
+        readFile(path: string, opts: { encoding: 'binary'; flags?: string }): Uint8Array;
+        readFile(path: string, opts: { encoding: 'utf8'; flags?: string }): string;
+    }
 
     interface IntVector { size(): number; get(i: number): number; }
 
@@ -103,6 +108,7 @@ declare namespace Faust {
         cleanupAfterException(): void;
 
         module(): FaustModule;
+        fs() : FS;
 
         toString(): string;
     }
