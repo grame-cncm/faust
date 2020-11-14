@@ -102,13 +102,15 @@ namespace Faust {
             name: string,
             compiler: Compiler,
             dsp_code: string,
+            effect_code: string | null,
             args: string,
             voices: number,
             sp: boolean,
             buffer_size?: number)
             : Promise<FaustPolyNode | null> {
             const voice_dsp = dsp_code;
-            const effect_dsp = `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
+            const effect_dsp = effect_code ? effect_code : 
+                                `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
                                 adaptor(F,G) = adapt(outputs(F),inputs(G));
                                 dsp_code = environment{${dsp_code}};
                                 process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
@@ -132,7 +134,7 @@ namespace Faust {
             // Compile effect, possibly failing since 'compilePolyNode2' can be called by called by 'compilePolyNode'
             const effect_factory = await compiler.createPolyDSPFactory(name, effect_dsp, args);
             // Compile mixer
-            const mixer_module = await new GeneratorImp().loadDSPMixer('mixer32.wasm');
+            const mixer_module = await new GeneratorImp().loadDSPMixer('/usr/rsrc/mixer32.wasm');
             return (mixer_module) ? this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), buffer_size) : null;
         }
 

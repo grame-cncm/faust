@@ -148,10 +148,9 @@ namespace Faust {
 
         async loadDSPMixer(mixer_path: string): Promise<WebAssembly.Module | null> {
             try {
+                let data = FS.readFile (mixer_path, {encoding: 'binary'});
                 // Compile mixer
-                const mixer_file = await fetch(mixer_path);
-                const mixer_buffer = await mixer_file.arrayBuffer();
-                return WebAssembly.compile(mixer_buffer);
+                return WebAssembly.compile(data);
             } catch (e) {
                 console.error("=> exception raised while running loadMixer: " + e);
                 return null;
