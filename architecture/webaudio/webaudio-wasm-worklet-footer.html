@@ -1,4 +1,4 @@
-<script src="faustwebaudio.js"></script>
+<script src="FaustLibrary.js"></script>
 <script>
 
     'use strict';
@@ -176,7 +176,7 @@
         if (isWasm) {
             if (workletAvailable()) {
                 factory = new FaustDSP(audioCtx, "");
-                console.log("Running in AudioWorklet mdoe");
+                console.log("Running in AudioWorklet mode");
             } else {
                 factory = new FaustDSP(audioCtx, "", true);
                 console.log("Running in ScriptProcessor mode");
