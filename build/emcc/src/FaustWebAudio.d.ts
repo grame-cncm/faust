@@ -323,7 +323,7 @@ declare namespace Faust {
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
          * @param {Compiler} compiler - the Faust compiler
-         * @param {string} dsp_code - the DSP code (we assume that 'dsp_code' contains an integrated effect)
+         * @param {string} dsp_code - the DSP code ('dsp_code' can possibly contain an integrated effect)
          * @param {string | null} effect_code - optional effect DSP code
          * @param {string} args - the compilation parameters
          * @param {number} voices - the number of voices

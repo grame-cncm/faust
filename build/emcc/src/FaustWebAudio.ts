@@ -96,7 +96,7 @@ namespace Faust {
             return new FaustOfflineProcessorImp(mono_dsp, buffer_size);
         }
 
-        // We assume that 'dsp_code' can contain an integrated effect
+        // 'dsp_code' can possibly contain an integrated effect
         async compilePolyNode(
             context: BaseAudioContext,
             name: string,
@@ -109,27 +109,13 @@ namespace Faust {
             buffer_size?: number)
             : Promise<FaustPolyNode | null> {
             const voice_dsp = dsp_code;
-            const effect_dsp = effect_code ? effect_code : 
-                                `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
+            const effect_dsp = effect_code ? effect_code :
+                `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
                                 adaptor(F,G) = adapt(outputs(F),inputs(G));
                                 dsp_code = environment{${dsp_code}};
                                 process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
-            return this.compilePolyNode2(context, name, compiler, voice_dsp, effect_dsp, args, voices, sp, buffer_size);
-        }
-
-        // Separated voice and effect DSPs
-        async compilePolyNode2(context: BaseAudioContext,
-            name: string,
-            compiler: Compiler,
-            voices_dsp: string,
-            effect_dsp: string,
-            args: string,
-            voices: number,
-            sp: boolean,
-            buffer_size?: number)
-            : Promise<FaustPolyNode | null> {
             // Compile voice
-            const voice_factory = await compiler.createPolyDSPFactory(name, voices_dsp, args);
+            const voice_factory = await compiler.createPolyDSPFactory(name, voice_dsp, args);
             if (!voice_factory) return null;
             // Compile effect, possibly failing since 'compilePolyNode2' can be called by called by 'compilePolyNode'
             const effect_factory = await compiler.createPolyDSPFactory(name, effect_dsp, args);
