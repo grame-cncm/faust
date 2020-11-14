@@ -3,7 +3,7 @@ jssrc := $(wildcard src/*.ts)
 
 FAUSTWEB  := FaustLibrary.js		# the output javascript library name
 DISTDIR   := npm/dist
-FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts
+FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts src/FaustWAP.d.ts
 FAUSTDIST := $(FAUSTAPI:src/%=$(DISTDIR)/%)
 CHECKDIR  := tmp
 SRC       := $(shell find src -name "*.ts" | egrep -v ".d.ts")
@@ -43,6 +43,7 @@ wasm:
 	[ -e npm/exemples/libfaust-wasm.data ] || (cd npm/exemples && ln -s ../dist/libfaust-wasm.data .)
 
 js: $(FAUSTWEB)
+	cp $(FAUSTWEB) npm/dist
 
 dist: 
 	cp $(FAUSTAPI) $(DISTDIR)
