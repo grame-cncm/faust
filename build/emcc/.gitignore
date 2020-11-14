@@ -1,3 +1,5 @@
 libfaust-wasm.*
-faustwebaudio.js
-faustcompiler.js
+FaustLibrary.js
+npm/dist
+old
+
