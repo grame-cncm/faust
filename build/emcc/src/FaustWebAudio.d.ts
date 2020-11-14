@@ -324,6 +324,7 @@ declare namespace Faust {
          * @param {string} name - the DSP name
          * @param {Compiler} compiler - the Faust compiler
          * @param {string} dsp_code - the DSP code (we assume that 'dsp_code' contains an integrated effect)
+         * @param {string | null} effect_code - optional effect DSP code
          * @param {string} args - the compilation parameters
          * @param {number} voices - the number of voices
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
@@ -335,32 +336,7 @@ declare namespace Faust {
             name: string,
             compiler: Compiler,
             dsp_code: string,
-            args: string,
-            voices: number,
-            sp: boolean,
-            buffer_size?: number)
-            : Promise<FaustPolyNode | null>;
-
-        /**
-         * Compile a polyphonic WebAudio node from separated voice and effect DSPs (either ScriptProcessorNode or AudioWorkletNode)
-         *
-         * @param {BaseAudioContext} context the WebAudio context
-         * @param {string} name - the DSP name
-         * @param {Compiler} compiler - the Faust compiler
-         * @param {string} voices_dsp - the voice DSP code 
-         * @param {string} effect_dsp - the effect DSP code
-         * @param {string} args - the compilation parameters
-         * @param {number} voices - the number of voices
-         * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
-         * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
-         */
-        compilePolyNode2(
-            context: BaseAudioContext,
-            name: string,
-            compiler: Compiler,
-            voices_dsp: string,
-            effect_dsp: string,
+            effect_code: string | null,
             args: string,
             voices: number,
             sp: boolean,
