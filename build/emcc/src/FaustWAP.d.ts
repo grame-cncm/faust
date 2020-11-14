@@ -24,7 +24,7 @@
 declare namespace Faust {
 
     /**
-     * WAP (Web Audio Plugins) API.   
+     * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
      */
     interface WAP {
 
@@ -53,7 +53,7 @@ declare namespace Faust {
 
     interface MonoWAPFactory {
 
-        load(wasm_path_aux: string, json_path_aux: string, sp: boolean)
+        load(wasm_path: string, json_path: string, sp: boolean)
             : Promise<FaustMonoWAPNode | null>;
     }
 
@@ -66,11 +66,11 @@ declare namespace Faust {
 
     interface PolyWAPFactory {
 
-        load(voice_path_aux: string,
-            voice_json_path_aux: string,
-            effect_path_aux: string,
-            effect_json_path_aux: string,
-            mixer_path_aux: string,
+        load(voice_path: string,
+            voice_json_path: string,
+            effect_path: string,
+            effect_json_path: string,
+            mixer_path: string,
             voices: number,
             sp: boolean,
             buffer_size?: number)
