@@ -76,7 +76,7 @@ FaustModule().then (module => {
         let compiler = Faust.createCompiler(Faust.createLibFaust(module));
         log("Faust compiler version " + compiler.version());
         let factory = Faust.createAudioNodeFactory();
-        factory.compilePolyNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", 4, false, 128).then(node => {
+        factory.compilePolyNode(audioCtx, "Faust", compiler, getcode(), null, "-I libraries", 4, false, 128).then(node => {
             node.connect(audioCtx.destination);
             play(node);
         });
