@@ -25,7 +25,7 @@ set (SRC ${SRC} ${BINDINGS})
 set (WASM_EXTRA_EXPORTED "\"['UTF8ToString', 'stringToUTF8', 'FS']\"")
 file (GLOB LIBSNDFILE ${WASMGLUE}/*.a)
 
-set (WASM_LINK_FLAGS "--no-heap-copy --bind -O3 --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-libraries@libraries -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED} ${LIBSNDFILE}")
+set (WASM_LINK_FLAGS "--no-heap-copy --bind -O3 --memory-init-file 0 -s LINKABLE=0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-filesystem@usr -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=${WASM_EXTRA_EXPORTED} ${LIBSNDFILE}")
 
 
 ####################################
