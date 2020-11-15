@@ -19,8 +19,6 @@
 #include "export.hh"
 #include "wasm_dynamic_dsp_aux.hh"
 
-using namespace std;
-
 struct FaustWasm {
     int cfactory;
     std::vector<int> data;
@@ -38,7 +36,7 @@ class libFaustWasm
     
         std::string version() { return ::getCLibFaustVersion(); }
     
-        FaustWasm   createDSPFactory(const string name, const string dsp_content, const string args_aux, bool internal_memory);
+        FaustWasm   createDSPFactory(const std::string name, const std::string dsp_content, const std::string args_aux, bool internal_memory);
         void        deleteAllDSPFactories() { ::deleteAllWasmCDSPFactories(); }
         void        deleteDSPFactory(int cfactory);
     
@@ -47,6 +45,8 @@ class libFaustWasm
     
         void        cleanupAfterException() { ::cleanupAfterException(); }
         std::string getErrorAfterException() { return ::getErrorAfterException(); }
+        
+        std::string getInfos (const std::string what);
 };
 
 

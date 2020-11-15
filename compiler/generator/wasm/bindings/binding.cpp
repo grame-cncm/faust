@@ -39,8 +39,10 @@ EMSCRIPTEN_BINDINGS(FaustModule) {
     .function("generateAuxFiles",       &libFaustWasm::generateAuxFiles, allow_raw_pointers())
     
     .function("cleanupAfterException",  &libFaustWasm::cleanupAfterException)
-    .function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers());
-    
+    .function("getErrorAfterException", &libFaustWasm::getErrorAfterException, allow_raw_pointers())
+
+    .function("getInfos", 				&libFaustWasm::getInfos, allow_raw_pointers());
+
     register_vector<int>("vector<int>");
     
 }

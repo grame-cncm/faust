@@ -104,3 +104,30 @@ bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content,
     delete [] args;
     return out;
 }
+
+string printLibDir();
+string printIncludeDir();
+string printArchDir();
+string printDspDir();
+string printPaths();
+string printVersion();
+string printHelp();
+
+string libFaustWasm::getInfos (const std::string what)
+{
+	if (what == "version")
+		return printVersion();
+	if (what == "help")
+		return printHelp();
+	if (what == "libdir")
+		return printLibDir();
+	if (what == "includedir")
+		return printIncludeDir();
+	if (what == "archdir")
+		return printArchDir();
+	if (what == "dspdir")
+		return printDspDir();
+	if (what == "pathslist")
+		return printPaths();
+	return "incorrect argument passed to getInfos";
+}

@@ -65,6 +65,8 @@ namespace Faust {
         module(): FaustModule { return this.fModule; }
         fs(): FS { return this.fFileSystem; }
 
+        getInfos( what: TFaustInfoType ) { return this.fCompiler.getInfos (what); }
+
         toString() { return "LibFaust module: " + this.fModule + " engine: " + this.fCompiler; }
     }
 }
