@@ -38,5 +38,5 @@ declare namespace Faust {
      * @returns {LibFaust} an opaque reference to the Faust library
      */
 
-    interface createLibFaust { (module: FaustModule): LibFaust }
+    interface createLibFaust { (module: FaustModule): LibFaust | null }
 }
