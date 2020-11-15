@@ -6,7 +6,6 @@
     <script src="../dist/libfaust-wasm.js"></script>
     <script src="../dist/libfaust-wasm.data"></script>
     <script src="../dist/FaustLibrary.js"></script>
-    <script src="sapi.js"></script>
     <style>
         body {
             margin: 100px;
@@ -37,8 +36,11 @@ process = ba.pulsen(1, 10000) : pm.djembe(60, 0.3, 0.4, 1) <: dm.freeverb_demo;
     <h3>Javascript code</h3>
     <pre class="code colored">
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-FaustModule().then (module => { 
-    getnode(audioCtx, module, getcode(), 1).then(node => {
+FaustModule().then(module => { 
+    let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+    log("Faust compiler version " + compiler.version());
+    let factory = Faust.createAudioNodeFactory();
+    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then(node => {
         node.connect(audioCtx.destination);
     });
 });</pre>
@@ -51,10 +53,13 @@ FaustModule().then (module => {
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     FaustModule().then(module => {
-        getnode(audioCtx, module, getcode(), 1).then(node => {
+        let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+        log("Faust compiler version " + compiler.version());
+        let factory = Faust.createAudioNodeFactory();
+        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then(node => {
             node.connect(audioCtx.destination);
         });
-    });
+    })
     const unlockAudioContext = (audioCtx) => {
         if (audioCtx.state !== "suspended") return;
         const b = document.body;

@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="../dist/libfaust-wasm.js"></script>
-    <script src="../dist/libfaust-wasm.data"></script>
     <script src="../dist/FaustLibrary.js"></script>
-    <script src="sapi.js"></script>
     <style>
         body {
             margin: 100px;
@@ -49,8 +47,11 @@ function play(node)   {
 }
 
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-FaustModule().then( module => { 
-    getnode(audioCtx, module, getcode(), 4).then(node => {
+FaustModule().then (module => { 
+    let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+    log ("Faust compiler version " + compiler.version());
+    let factory = Faust.createAudioNodeFactory();
+    factory.compilePolyNode(audioCtx, "Faust", compiler, getcode(), null, "", 4, false, 128).then(node => {
         node.connect(audioCtx.destination);
         play(node);
     });
@@ -69,8 +70,12 @@ FaustModule().then( module => {
         setTimeout(() => play(node), 7000);
     }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
     FaustModule().then(module => {
-        getnode(audioCtx, module, getcode(), 4).then(node => {
+        let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+        log("Faust compiler version " + compiler.version());
+        let factory = Faust.createAudioNodeFactory();
+        factory.compilePolyNode(audioCtx, "Faust", compiler, getcode(), null, "", 4, false, 128).then(node => {
             node.connect(audioCtx.destination);
             play(node);
         });
