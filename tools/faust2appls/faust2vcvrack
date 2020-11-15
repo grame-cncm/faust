@@ -22,11 +22,12 @@ set -e
 NVOICES=1
 POLY=""
 SOURCE=false
+SOUNDFILE=false
 
 echoHelp ()
 {
-  	echo "faust2vcvrack [-source] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-    option
+    echo "faust2vcvrack [-soundfile] [-source] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    options -soundfile
     option "-source"
     option "-nvoices <num>"
     echo ""
@@ -47,6 +48,8 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE=true
     elif [ $p = "-source" ]; then
         SOURCE=true
     elif [[ -f "$p" ]]; then
@@ -114,13 +117,55 @@ for p in $FILE; do
     
     # compile faust to c++
     cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
-    faust -os -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+    faust -json -os -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
 
     # add NVOICES flag
     echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
 
     # set DSP name and polyphonic mode in plugin.json
     createPluginJSON "$dspName" "$SRCDIR/$dspName/plugin.json"
+
+    # soundfiles handling
+    if [ $SOUNDFILE = true ]; then
+        # needed for SoundUI.h to compile
+        echo "#define __VCVRACK__" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
+        echo "#define SOUNDFILE" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
+ 
+        echo $p.json
+        # get all soundfiles from the JSON file
+        cat $p.json | awk '
+            BEGIN { FS=":"; SOFI=0; }
+                /"soundfile"/ { SOFI=1; }
+                /"url"/ {
+                if (SOFI) {
+                    match($2, /"[^"]*/);
+                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                    for (x in res) print substr(res[x], 2, length(res[x])-2);
+                    SOFI=0;
+                }
+            }
+        ' > $p-tmp.txt
+        # copy found soundfiles in the final binary
+        for snd in $(cat $p-tmp.txt); do
+            if [ -f $snd ]; then
+                if [ ${snd:0:1} = "/" ]; then 
+                    echo "Warning: soundfile with absolute path is not copied !"
+                else
+                    # create destination path and possibly create directory
+                    sfpath="$SRCDIR/$dspName/res/$(dirname $snd)/"
+                    if ! [ -d $sfpath ]; then 
+                        echo "Create $sfpath"
+                        mkdir $sfpath
+                    fi
+                    echo "Copy $snd in ${f%.dsp}$EXT"
+                    cp $snd $sfpath
+                fi
+            else
+                echo "Error: file $snd not found !"
+            fi
+        done
+        rm $p-tmp.txt
+    fi
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then

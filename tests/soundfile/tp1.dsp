@@ -1,6 +1,6 @@
 import("stdfaust.lib");
 
-part = nentry("file", 0, 0, 10, 1);
+part = nentry("file", 0, 0, 2, 1);
 speed = hslider("speed", 1, 0, 4, 0.01);
 level = hslider("level", 0.5, 0, 1, 0.01);
 

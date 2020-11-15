@@ -131,6 +131,10 @@ struct one_sample_dsp : public rack_dsp {
 #include "faust/misc.h"
 #include "plugin.hpp"
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 // params = [buttons][entries][bargraph]
 
 // A class to count items of each type.
@@ -541,19 +545,26 @@ struct mydspModule : Module {
     RackUI<VOICES>* fRackUI;    // One single version for all VOICES
     mydsp fDSP[VOICES];
     int fControlCounter;
-    
+#ifdef SOUNDFILE
+    SoundUI* fSoundUI;
+#endif
     mydspModule()
     {
         // Count items of button, nentry, bargraph categories
         ManagerUI params;
         fDSP[0].buildUserInterface(&params);
-       
+    #ifdef SOUNDFILE
+        fSoundUI = new SoundUI(rack::asset::plugin(pluginInstance, "res/"));
+    #endif
         // Controllers are connected to all VOICES
         fRackUI = new RackUI<VOICES>(params);
         for (int v = 0; v < VOICES; v++) {
             fRackUI->fCurVoice = v;
             fDSP[v].buildUserInterface(fRackUI);
             fRackUI->reset();
+        #ifdef SOUNDFILE
+            fDSP[v].buildUserInterface(fSoundUI);
+        #endif
         }
         
         uint buttons = params.fButtons.size();
@@ -601,6 +612,9 @@ struct mydspModule : Module {
     ~mydspModule()
     {
         delete fRackUI;
+    #ifdef SOUNDFILE
+        delete fSoundUI;
+    #endif
     }
     
     void process(const ProcessArgs& args) override
