@@ -10,7 +10,7 @@ function misc(faust, log, code) {
     let msg = (exp) ? exp : faust.getErrorMessage();
     log("  expandDSP             " + msg);
 
-    let res = faust.generateAuxFiles("test", code, options + " -lang wasm");
+    let res = faust.generateAuxFiles("test", code, options + " -svg");
     msg = (res) ? "done" : faust.getErrorMessage();
     log("  generateAuxFiles      " + msg);
 

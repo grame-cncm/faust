@@ -107,7 +107,6 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
             argv1[argc1++] = "faust";
             argv1[argc1++] = "-lang";
             argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
-            //argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
             argv1[argc1++] = "-o";
             argv1[argc1++] = "binary";
             for (int i = 0; i < argc; i++) {
@@ -140,7 +139,6 @@ EXPORT std::string generateWasmFromString(const string& name_app, const string& 
     argv1[argc1++] = "faust";
     argv1[argc1++] = "-lang";
     argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
-    //argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
     argv1[argc1++] = "-o";
     argv1[argc1++] = "binary";
     for (int i = 0; i < argc; i++) {
