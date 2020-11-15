@@ -139,7 +139,7 @@ struct one_sample_dsp : public rack_dsp {
 
 // A class to count items of each type.
 // Parameters with the "CV:N" metadata are kept separately in fInputCV and fOutputCV
-// and will be connected to audio VC inputs and outputs.
+// and will be connected to audio CV inputs and outputs.
 
 struct ManagerUI : public GenericUI
 {
