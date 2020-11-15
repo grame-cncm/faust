@@ -800,22 +800,24 @@ string printHelp()
     const char* line = "\n---------------------------------------\n";
 
     sstr << "FAUST compiler version " << FAUSTVERSION << "\n";
+#ifndef EMCC
     sstr << "usage : faust [options] file1 [file2 ...]." << endl;
     sstr << "        where options represent zero or more compiler options \n\tand fileN represents a Faust source "
             "file (.dsp extension)."
          << endl;
-
+#endif
     sstr << endl << "Input options:" << line;
+#ifndef EMCC
     sstr << tab << "-a <file>                               wrapper architecture file." << endl;
     sstr << tab << "-i        --inline-architecture-files   inline architecture files." << endl;
     sstr << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path."
          << endl;
     sstr << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the import search path." << endl;
     sstr << tab << "-L <file> --library <file>              link with the LLVM module <file>." << endl;
-
+#endif
     sstr << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
          << endl;
-
+#ifndef EMCC
     sstr << endl << "Output options:" << line;
     sstr << tab << "-o <file>                               the output file." << endl;
     sstr << tab << "-e        --export-dsp                  export expanded DSP (with all included libraries)." << endl;
@@ -827,25 +829,30 @@ string printHelp()
          << "-O <dir>  --output-dir <dir>            specify the relative directory of the generated output code and "
             "of additional generated files (SVG, XML...)."
          << endl;
-
+#endif
     sstr << endl << "Code generation options:" << line;
+#ifndef EMCC
     sstr << tab << "-lang <lang> --language                 select output language," << endl;
     sstr << tab
          << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
             "llvm, cllvm, fir, wast/wasm, soul, interp."
          << endl;
+#endif
     sstr << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
          << endl;
     sstr << tab << "-double     --double-precision-floats   use double precision floats for internal computations."
          << endl;
+#ifndef EMCC
     sstr << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations."
          << endl;
+#endif
     sstr << tab
          << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
             "otherwise."
          << endl;
     sstr << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
+#ifndef EMCC
     sstr << tab << "-light      --light-mode                do not generate the entire DSP API." << endl;
     sstr << tab
          << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
@@ -862,6 +869,7 @@ string printHelp()
          << endl;
     sstr << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
          << endl;
+#endif
     sstr << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
     sstr << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
     sstr << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
@@ -873,13 +881,16 @@ string printHelp()
         << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
            "samples)."
         << endl;
+#ifndef EMCC
     sstr << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
          << endl;
+#endif
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
             "2:mask based (fastest)]."
          << endl;
+#ifndef EMCC
     sstr << tab
          << "-rui        --range-ui                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range."
          << endl;
@@ -920,8 +931,10 @@ string printHelp()
     sstr << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
     sstr << tab
          << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
+#endif
     sstr << tab
          << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
+#ifndef EMCC
     sstr << endl << "Block diagram options:" << line;
     sstr << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     sstr << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
@@ -977,6 +990,7 @@ string printHelp()
 
     sstr << endl << "Example:" << line;
     sstr << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
+#endif
     return sstr.str();
 }
 
