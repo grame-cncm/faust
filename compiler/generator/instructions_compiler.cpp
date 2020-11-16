@@ -565,16 +565,36 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         string name;
         if (gGlobal->gOutputLang == "rust") {
             name = subst("outputs[$0]", T(index));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            if (gGlobal->gComputeMix) {
+                ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
+            } else {
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            }
         } else if (gGlobal->gOneSampleControl) {
             name = subst("output$0", T(index));
-            pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res));
+            if (gGlobal->gComputeMix) {
+                ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadStackVar(name));
+                pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res1));
+            } else {
+                pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res));
+            }
         } else if (gGlobal->gOneSample) {
             name = "outputs";
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, InstBuilder::genInt32NumInst(index), res));
+            if (gGlobal->gComputeMix) {
+                ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, InstBuilder::genInt32NumInst(index)));
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, InstBuilder::genInt32NumInst(index), res1));
+            } else {
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, InstBuilder::genInt32NumInst(index), res));
+            }
         } else {
             name = subst("output$0", T(index));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            if (gGlobal->gComputeMix) {
+                ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
+            } else {
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            }
         }
 
         // 09/12/11 : HACK
