@@ -306,6 +306,7 @@ wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	mkdir -p $(WASMFS)/$(WASMLIBDIR) && cp ../libraries/*.lib ../libraries/old/*.lib $(WASMFS)/$(WASMLIBDIR)
 	mkdir -p $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer32.wasm $(WASMFS)/rsrc
 	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
+	cp $(FAUSTDIR)/emcc/libfaust-wasm.* lib
 	rm -rf $(WASMFS)
 
 wasmglue: $(FAUSTDIR) $(FAUSTDIR)/Makefile

@@ -39,8 +39,8 @@ help:
 wasm:
 	make -C .. wasmlib
 	cp ../lib/libfaust-wasm.* npm/dist
-	[ -e tests/libfaust-wasm.data ] || (cd tests && ln -s ../npm/dist/libfaust-wasm.data .)
-	[ -e npm/exemples/libfaust-wasm.data ] || (cd npm/exemples && ln -s ../dist/libfaust-wasm.data .)
+# 	[ -e tests/libfaust-wasm.data ] || (cd tests && ln -s ../npm/dist/libfaust-wasm.data .)
+# 	[ -e npm/exemples/libfaust-wasm.data ] || (cd npm/exemples && ln -s ../dist/libfaust-wasm.data .)
 
 js: $(FAUSTWEB)
 	cp $(FAUSTWEB) npm/dist

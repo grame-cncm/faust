@@ -38,7 +38,7 @@ set_target_properties (wasmlib PROPERTIES
 		OUTPUT_NAME libfaust-wasm
 		LINK_FLAGS ${WASM_LINK_FLAGS}
 		COMPILE_FLAGS -O3 
-		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
+#		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}   generation in a non default place prevents the data file to be found
 		SUFFIX ".js" )
 
 
