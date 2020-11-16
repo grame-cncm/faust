@@ -171,6 +171,7 @@ struct global {
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
+    bool   gComputeMix;            // Mix in outputs buffers
     string gFastMathLib;           // The fastmath code mapping file
     string gNameSpace;             // Wrapping namespace used with the C++ backend
 

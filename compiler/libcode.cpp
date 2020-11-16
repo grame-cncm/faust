@@ -526,6 +526,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-os", "--one-sample")) {
             gGlobal->gOneSample = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
+            gGlobal->gComputeMix = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
             gGlobal->gFTZMode = std::atoi(argv[i + 1]);
@@ -861,6 +865,7 @@ string printHelp()
     sstr << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     sstr << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     sstr << tab << "-os         --one-sample                generate one sample computation." << endl;
+    sstr << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     sstr << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;
@@ -878,9 +883,9 @@ string printHelp()
             "samples)."
          << endl;
     sstr << tab
-        << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
+         << "-dlt <n>    --delay-line-threshold <n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX "
            "samples)."
-        << endl;
+         << endl;
 #ifndef EMCC
     sstr << tab
          << "-mem        --memory                    allocate static in global state using a custom memory manager."
