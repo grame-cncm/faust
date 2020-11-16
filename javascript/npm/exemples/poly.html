@@ -55,8 +55,10 @@ FaustModule().then( module => {
         setTimeout(() => play(node), 7000);
     }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    document.body.style.cursor = "wait";
     FaustModule().then(module => {
         Faust.compileAudioNode (audioCtx, module, getcode(), 4).then (node => {
+            document.body.style.cursor = "initial";
             node.connect(audioCtx.destination);
             play(node);
         });
