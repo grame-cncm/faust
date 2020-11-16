@@ -735,9 +735,11 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
-                        voice->fRelease -= count;
                         // Check the level to possibly set the voice in kFreeVoice again
-                        if ((voice->fNote == kReleaseVoice) && ((voice->fRelease < 0) || (voice->fLevel < VOICE_STOP_LEVEL))) {
+                        voice->fRelease -= count;
+                        if ((voice->fNote == kReleaseVoice)
+                            && (voice->fRelease < 0)
+                            && (voice->fLevel < VOICE_STOP_LEVEL)) {
                             voice->fNote = kFreeVoice;
                         }
                     }
