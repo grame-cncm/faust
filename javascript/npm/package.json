@@ -1,0 +1,26 @@
+{
+  "name": "@grame/libfaust",
+  "version": "1.0.0",
+  "description": "The Faust compiler provided with high-level services that transform DSP code into Faust Audio nodes.",
+  "main": "dist/libfaust-wasm.js",
+  "directories": {
+    "dist": "dist"
+    "exemples": "exemples"
+    "tests": "test"
+  },
+  "homepage": "https://faust.grame.fr",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grame-cncm/faust.git"
+  },
+  "bugs": { 
+    "url" : "https://github.com/grame-cncm/faust/issues"
+  },  
+  "keywords": [
+    "Faust",
+    "Audio",
+    "Signal processing"
+  ],
+  "license": "GPL-2.0"
+}
+
