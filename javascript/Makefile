@@ -42,8 +42,6 @@ help:
 
 wasm:
 	$(MAKE) -C $(BUILD) wasmlib
-# 	[ -e tests/libfaust-wasm.data ] || (cd tests && ln -s ../npm/dist/libfaust-wasm.data .)
-# 	[ -e npm/exemples/libfaust-wasm.data ] || (cd npm/exemples && ln -s ../dist/libfaust-wasm.data .)
 
 js: $(FAUSTWEB)
 
