@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <script src="../dist/libfaust-wasm.js"></script>
+    <script src="../dist/FaustLibrary.js"></script>
+    <link href="exemples.css" rel="stylesheet">
+    <style>
+        .slider { width: 400px; }
+        .ui     { width: 400px; border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px; }
+    </style>
+</head>
+
+<body>
+    <h1>Faust Web Assembly Library</h1>
+    <h2>Simple Control with static UI</h2>
+    <h3>Compiles the following dsp code and provides a simple static UI.</h3>
+
+    <pre id=code class=code>
+import("stdfaust.lib");
+
+vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : ba.db2linear : si.smoo ;
+freq = hslider("freq [unit:Hz]", 1000, 20, 24000, 1);
+
+process = vgroup("Oscillator", os.osci(freq) * vol);</pre>
+    <p id=log> </p>
+
+    <h3>Javascript code</h3>
+    <pre class="code colored">
+function sliderInit(id, address, display, node ) { 
+    let slider = document.getElementById(id);
+    slider.node = node;
+    slider.address = address;
+    slider.display = document.getElementById(display);
+    userInput (slider, slider.value);
+}
+
+function userInput(slider, value ) { 
+    slider.display.innerText = value.toString();
+    slider.node.setParamValue (slider.address, value);
+}
+
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+FaustModule().then(module => {
+    let freqCtrl = document.getElementById ("freq");
+    let volCtrl  = document.getElementById ("vol");
+
+    Faust.compileAudioNode (audioCtx, module, getcode(), 1).then (node => {
+        sliderInit ('freq', '/Oscillator/freq', 'fvalue', node);
+        sliderInit ('vol', '/Oscillator/volume', 'vvalue', node);
+        freqCtrl.oninput = () => { userInput(freqCtrl, freqCtrl.value) };
+        volCtrl.oninput  = () => { userInput(volCtrl, volCtrl.value) };
+        node.connect(audioCtx.destination);
+    });
+});
+        </pre>
+    <div id="ui" class=ui>
+        <p>Frequency: <span id="fvalue"></span> Hz<br />
+            <input id="freq" type="range" min="20" max="20000" value="440" class=slider> 
+        </p>      
+        <p>Volume: <span id="vvalue"></span> db <br />
+            <input id="vol" type="range" min="-96" max="0" value="-15" class=slider>
+        </p>
+    </div>
+
+    <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+    <img src=../imgs/faust.png alt="Faust Logo" class=logo>
+</body>
+
+<script>
+    function getcode() { return document.getElementById("code").textContent; }
+
+    function sliderInit(id, address, display, node ) { 
+        let slider = document.getElementById(id);
+        slider.node = node;
+        slider.address = address;
+        slider.display = document.getElementById(display);
+        userInput (slider, slider.value);
+    }
+
+    function userInput(slider, value ) { 
+        slider.display.innerText = value.toString();
+        slider.node.setParamValue (slider.address, value);
+    }
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    FaustModule().then(module => {
+        let freqCtrl = document.getElementById ("freq");
+        let volCtrl  = document.getElementById ("vol");
+
+        Faust.compileAudioNode (audioCtx, module, getcode(), 1).then (node => {
+            sliderInit ('freq', '/Oscillator/freq', 'fvalue', node);
+            sliderInit ('vol', '/Oscillator/volume', 'vvalue', node);
+            freqCtrl.oninput = () => { userInput(freqCtrl, freqCtrl.value) };
+            volCtrl.oninput = () => { userInput(volCtrl, volCtrl.value) };
+            node.connect(audioCtx.destination);
+        });
+    });
+
+    const unlockAudioContext = (audioCtx) => {
+        if (audioCtx.state !== "suspended") return;
+        const b = document.body;
+        const events = ["touchstart", "touchend", "mousedown", "keydown"];
+        const unlock = () => audioCtx.resume().then(clean);
+        const clean = () => events.forEach(e => b.removeEventListener(e, unlock));
+        events.forEach(e => b.addEventListener(e, unlock, false));
+    }
+    unlockAudioContext(audioCtx);
+</script>
+
+</html>

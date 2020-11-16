@@ -1,0 +1,16 @@
+body    { 
+  margin: 100px;
+}
+
+.code   { 
+  padding: 10px; 
+  background-color: #f8f8f8; 
+}
+
+.colored { 
+  color: blue; 
+}
+
+.logo   { 
+    width: 200px; 
+}

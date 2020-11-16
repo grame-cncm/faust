@@ -4,22 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <script src="../dist/libfaust-wasm.js"></script>
-    <script src="../dist/libfaust-wasm.data"></script>
     <script src="../dist/FaustLibrary.js"></script>
-    <style>
-        body {
-            margin: 100px;
-        }
-
-        .code {
-            padding: 10px;
-            background-color: #f8f8f8;
-        }
-
-        .colored {
-            color: blue;
-        }
-    </style>
+    <link href="exemples.css" rel="stylesheet">
 </head>
 
 <body>
@@ -40,11 +26,12 @@ FaustModule().then(module => {
     let compiler = Faust.createCompiler(Faust.createLibFaust(module));
     log("Faust compiler version " + compiler.version());
     let factory = Faust.createAudioNodeFactory();
-    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then(node => {
+    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "", false, 128).then(node => {
         node.connect(audioCtx.destination);
     });
 });</pre>
     <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+    <img src=../imgs/faust.png alt="Faust Logo" class=logo>
 </body>
 
 <script>
@@ -56,7 +43,7 @@ FaustModule().then(module => {
         let compiler = Faust.createCompiler(Faust.createLibFaust(module));
         log("Faust compiler version " + compiler.version());
         let factory = Faust.createAudioNodeFactory();
-        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-I libraries", false, 128).then(node => {
+        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "", false, 128).then(node => {
             node.connect(audioCtx.destination);
         });
     })

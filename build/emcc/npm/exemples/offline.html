@@ -6,23 +6,9 @@
     <script src="../dist/libfaust-wasm.js"></script>
     <script src="../dist/libfaust-wasm.data"></script>
     <script src="../dist/FaustLibrary.js"></script>
+    <link href="exemples.css" rel="stylesheet">
     <style>
-        body {
-            margin: 100px;
-        }
-
-        .code {
-            padding: 10px;
-            background-color: #f8f8f8;
-        }
-
-        .colored {
-            color: blue;
-        }
-
-        .plot {
-            background-color: black;
-        }
+        .plot { background-color: black; }
     </style>
 </head>
 
@@ -52,6 +38,7 @@ FaustModule().then ( module => {
     <canvas id="plot" width="700" height="300" class=plot>
     </canvas>
     <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+    <img src=../imgs/faust.png alt="Faust Logo" class=logo>
 </body>
 
 <script>
