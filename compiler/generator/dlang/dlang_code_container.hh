@@ -50,15 +50,6 @@ class DLangCodeContainer : public virtual CodeContainer {
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
-
-        // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.DLang\""
-                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
-        } else {
-            addIncludeFile("<cmath>");
-            addIncludeFile("<algorithm>");
-        }
     }
 
     virtual ~DLangCodeContainer() {}
@@ -86,52 +77,6 @@ class DLangScalarCodeContainer : public DLangCodeContainer {
     virtual ~DLangScalarCodeContainer()
     {}
 
-    void generateCompute(int tab);
-};
-
-class DLangScalarOneSampleCodeContainer : public DLangScalarCodeContainer {
-   protected:
-    virtual void produceClass();
-   public:
-    DLangScalarOneSampleCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
-                                    int sub_container_type)
-    : DLangScalarCodeContainer(name, super, numInputs, numOutputs, out, sub_container_type)
-    {}
-    virtual ~DLangScalarOneSampleCodeContainer()
-    {}
-    
-    void generateCompute(int tab);
-};
-
-class DLangVectorCodeContainer : public VectorCodeContainer, public DLangCodeContainer {
-   protected:
-   public:
-    DLangVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~DLangVectorCodeContainer()
-    {}
-
-    void generateCompute(int tab);
-};
-
-class DLangOpenMPCodeContainer : public OpenMPCodeContainer, public DLangCodeContainer {
-   protected:
-   public:
-    DLangOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-    virtual ~DLangOpenMPCodeContainer()
-    {}
-
-    void generateCompute(int tab);
-};
-
-class DLangWorkStealingCodeContainer : public WSSCodeContainer, public DLangCodeContainer {
-   protected:
-   public:
-    DLangWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                 std::ostream* out);
-    virtual ~DLangWorkStealingCodeContainer()
-    {}
-
-    void produceClass();
     void generateCompute(int tab);
 };
 
