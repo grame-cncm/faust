@@ -28,8 +28,24 @@
 
 declare namespace Faust {
 
-    type FaustModule = any;
-    type LibFaust = any;
+    type FaustModule = any;    
+    type TFaustInfoType = "help" | "version";
+
+    interface LibFaust {
+
+        /**
+         * Return the Faust compiler version.
+         * 
+         * @returns {string} the version
+         */
+        version(): string;
+
+        /**
+         * Get info about the embedded Faust engine
+         * @param {string} what - the requested info
+         */
+        getInfos( what: TFaustInfoType ): string;
+    }
 
     /**
      * Instantiates the Faust Library.
