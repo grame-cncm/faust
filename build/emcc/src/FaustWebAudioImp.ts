@@ -308,15 +308,16 @@ namespace Faust {
                     this.fOutChannels[chan] = HEAPF32.subarray(dspOutChans[chan] >> 2, (dspOutChans[chan] + this.fBufferSize * this.gSampleSize) >> 2);
                 }
             }
+        }
 
-            console.log("============== Mono Memory layout ==============");
-            console.log("this.fBufferSize: " + this.fBufferSize);
-            console.log("this.fJSONDsp.size: " + this.fJSONDsp.size);
-            console.log("this.fAudioInputs: " + this.fAudioInputs);
-            console.log("this.fAudioOutputs: " + this.fAudioOutputs);
-            console.log("audio_inputs_ptrs: " + audio_inputs_ptr);
-            console.log("audio_outputs_ptr: " + audio_outputs_ptr);
-            console.log("this.fDSP: " + this.fDSP);
+        toString() {
+            let str = "============== Mono Memory layout ==============";
+            str += "this.fBufferSize: " + this.fBufferSize;
+            str += "this.fJSONDsp.size: " + this.fJSONDsp.size;
+            str += "this.fAudioInputs: " + this.fAudioInputs;
+            str += "this.fAudioOutputs: " + this.fAudioOutputs;
+            str += "this.fDSP: " + this.fDSP;
+            return str;
         }
 
         // Public API
@@ -589,16 +590,16 @@ namespace Faust {
                     this.fOutChannels[chan] = HEAPF32.subarray(dspOutChans[chan] >> 2, (dspOutChans[chan] + this.fBufferSize * this.gSampleSize) >> 2);
                 }
             }
+        }
 
-            console.log("============== Poly Memory layout ==============");
-            console.log("this.fBufferSize: " + this.fBufferSize);
-            console.log("this.fJSONDsp.size: " + this.fJSONDsp.size);
-            console.log("this.fAudioInputs: " + this.fAudioInputs);
-            console.log("this.fAudioOutputs: " + this.fAudioOutputs);
-            console.log("this.fAudioMixing: " + this.fAudioMixing);
-            console.log("audio_inputs_ptrs: " + audio_inputs_ptr);
-            console.log("audio_outputs_ptr: " + audio_outputs_ptr);
-            console.log("audio_mixing_ptr: " + audio_mixing_ptr);
+        toString() {
+            let str = "============== Poly Memory layout ==============";
+            str += "this.fBufferSize: " + this.fBufferSize;
+            str += "this.fJSONDsp.size: " + this.fJSONDsp.size;
+            str += "this.fAudioInputs: " + this.fAudioInputs;
+            str += "this.fAudioOutputs: " + this.fAudioOutputs;
+            str += "this.fAudioMixing: " + this.fAudioMixing;
+            return str;
         }
 
         private allocVoice(voice: number) {
