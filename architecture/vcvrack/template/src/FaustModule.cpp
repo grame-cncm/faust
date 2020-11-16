@@ -452,9 +452,19 @@ struct RackUI : public GenericUI
         fConverters.push_back(converter);
     }
     
-    void addBarGraph(FAUSTFLOAT* zone)
+    void addBarGraph(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
+        ConverterZoneControl* converter;
+        
         if (fCV != "") {
+            
+            if (fScale == "log") {
+                converter = new ConverterZoneControl(zone, new LogValueConverter(-5, 5, min, max));
+            } else if (fScale == "exp") {
+                converter = new ConverterZoneControl(zone, new ExpValueConverter(-5, 5, min, max));
+            } else {
+                converter = new ConverterZoneControl(zone, new LinearValueConverter(-5, 5, min, max));
+            }
             
             int index = parseIndex(fCV)-1;
             if (index < 0) {
@@ -466,33 +476,44 @@ struct RackUI : public GenericUI
             fUpdateFunOut.push_back([=] (Module* module)
                                     {
                                         if (VOICES == 1) {
-                                            module->outputs[index].setVoltage(*zone);
+                                            module->outputs[index].setVoltage(converter->getConverter()->faust2ui(*zone));
                                         }  else {
-                                            module->outputs[index].setVoltage(voice, *zone);
+                                            module->outputs[index].setVoltage(voice, converter->getConverter()->faust2ui(*zone));
                                         }
                                     });
             fCV = "";
         } else {
             
+            
+            if (fScale == "log") {
+                converter = new ConverterZoneControl(zone, new LogValueConverter(0., 1., min, max));
+            } else if (fScale == "exp") {
+                converter = new ConverterZoneControl(zone, new ExpValueConverter(0., 1., min, max));
+            } else {
+                converter = new ConverterZoneControl(zone, new LinearValueConverter(0., 1., min, max));
+            }
+            
             // Takes the value at lambda contruction time
             int index = fBargraphCounter;
             
-            // TODO
             fUpdateFunOut.push_back([=] (Module* module) {
-                module->lights[index].setBrightness(*zone);
+                module->lights[index].setBrightness(converter->getConverter()->faust2ui(*zone));
             });
             fBargraphCounter++;
         }
+        
+        fConverters.push_back(converter);
+        fScale = "lin";
     }
     
     void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        addBarGraph(zone);
+        addBarGraph(zone, min, max);
     }
     
     void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        addBarGraph(zone);
+        addBarGraph(zone, min, max);
     }
     
     void declare(FAUSTFLOAT* zone, const char* key, const char* val)
