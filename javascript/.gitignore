@@ -1,0 +1,5 @@
+
+npm/dist/Faust*.d.ts
+npm/dist/libfaust-wasm*
+npm/exemples/libfaust-wasm*
+FaustLibrary.js
