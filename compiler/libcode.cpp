@@ -522,6 +522,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-os", "--one-sample")) {
             gGlobal->gOneSample = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
+            gGlobal->gComputeMix = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
             gGlobal->gFTZMode = std::atoi(argv[i + 1]);
@@ -837,6 +841,7 @@ static void printHelp()
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
+    cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;

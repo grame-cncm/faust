@@ -170,6 +170,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gRemoveVarAddress     = false;
     gOneSample            = false;
     gOneSampleControl     = false;
+    gComputeMix           = false;
     gFastMathLib          = "default";
     gNameSpace            = "";
 
