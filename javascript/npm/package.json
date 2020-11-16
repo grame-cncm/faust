@@ -4,8 +4,8 @@
   "description": "The Faust compiler provided with high-level services that transform DSP code into Faust Audio nodes.",
   "main": "dist/libfaust-wasm.js",
   "directories": {
-    "dist": "dist"
-    "exemples": "exemples"
+    "dist": "dist",
+    "exemples": "exemples",
     "tests": "test"
   },
   "homepage": "https://faust.grame.fr",
