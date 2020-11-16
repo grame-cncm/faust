@@ -708,11 +708,21 @@ static bool processCmdline(int argc, const char* argv[])
     }
     
     if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp") {
-        throw faustexception("ERROR : -ns can only be used with cpp backend\n");
+        throw faustexception("ERROR : -ns can only be used with the cpp backend\n");
     }
     
     if (gGlobal->gMaskDelayLineThreshold < INT_MAX && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
-        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with -ocpp backend\n");
+        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the -ocpp backend\n");
+    }
+    
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "ocpp") {
+        throw faustexception("ERROR : -cm cannot be used with the -ocpp backend\n");
+    }
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "interp") {
+        throw faustexception("ERROR : -cm cannot be used with the -interp backend\n");
+    }
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "soul") {
+        throw faustexception("ERROR : -cm cannot be used with the -soul backend\n");
     }
     
     if (gGlobal->gArchFile != ""
