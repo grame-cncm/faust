@@ -1,5 +1,5 @@
 
-npm/dist/Faust*.d.ts
-npm/dist/libfaust-wasm*
+npm/Faust*.d.ts
+npm/libfaust-wasm*
 npm/exemples/libfaust-wasm*
 FaustLibrary.js
