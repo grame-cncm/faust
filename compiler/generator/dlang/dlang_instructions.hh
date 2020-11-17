@@ -207,7 +207,12 @@ class DLangInstVisitor : public TextInstVisitor {
             if (inst->fValue) {
                 *fOut << type << "[] " << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
-            } else {
+            }
+            else if (inst->fAddress->getAccess() & Address::kStack) {
+                *fOut << type << "[] " << inst->fAddress->getName() << " = mallocSlice!(" << type << ")(" << array_typed->fSize
+                      << ")";
+            }
+            else {
                 *fOut << type << "[] " << inst->fAddress->getName() << " = new " << type << "[" << array_typed->fSize
                       << "]";
             }

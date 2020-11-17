@@ -65,7 +65,7 @@ CodeContainer* DLangCodeContainer::createContainer(const string& name, const str
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for D\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : Vector mode not supported for D\n");
+        container = new DLangVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
         container = new DLangScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
@@ -437,7 +437,7 @@ void DLangCodeContainer::generateImports(int n)
 {
     *fOut << "import std.math;\n";
     *fOut << "import std.algorithm : min, max;\n";
-    *fOut << "import dplug.core.nogc: mallocNew;\n";
+    *fOut << "import dplug.core.nogc: mallocNew, mallocSlice;\n";
     tab(n, *fOut);
 }
 
@@ -458,6 +458,36 @@ void DLangScalarCodeContainer::generateCompute(int n)
     loop->accept(&fCodeProducer);
    
     generatePostComputeBlock(&fCodeProducer);
+
+    back(1, *fOut);
+    *fOut << "}";
+}
+
+// Vector
+DLangVectorCodeContainer::DLangVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
+                                               std::ostream* out)
+    : VectorCodeContainer(numInputs, numOutputs), DLangCodeContainer(name, super, numInputs, numOutputs, out)
+{
+}
+
+void DLangVectorCodeContainer::generateCompute(int n)
+{
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n + 1);
+    tab(n + 1, *fOut);
+    generateComputeFunctions(&fCodeProducer);
+
+    // Generates declaration
+    tab(n + 1, *fOut);
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+
+    // Generates the DSP loop
+    fDAGBlock->accept(&fCodeProducer);
 
     back(1, *fOut);
     *fOut << "}";
