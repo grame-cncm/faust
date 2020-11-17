@@ -46,10 +46,11 @@
 #include "faust/gui/MapUI.h"
 #include "faust/gui/JSONControl.h"
 
-#define kActiveVoice      0
-#define kFreeVoice        -1
-#define kReleaseVoice     -2
-#define kNoVoice          -3
+#define kActiveVoice    0
+#define kFreeVoice     -1
+#define kReleaseVoice  -2
+#define kStealVoice    -3
+#define kNoVoice       -4
 
 #define VOICE_STOP_LEVEL  0.0005    // -70 db
 #define MIX_BUFFER_SIZE   4096
@@ -160,7 +161,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         return 440.0 * std::pow(2.0, (note-69.0)/12.0);
     }
 
+    
     int fNote;                          // Playing note actual pitch
+    int fNextNote;                      // In kStealVoice state, next note to play
+    int fNextVel;                       // In kStealVoice state, next velocity to play
     int fDate;                          // KeyOn date
     int fRelease;                       // Current number of samples used in release mode to detect end of note
     int fMaxRelease;                    // Max of samples used in release mode to detect end of note
@@ -170,6 +174,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     std::vector<std::string> fFreqPath; // Paths of 'freq/key' control
     TransformFunction        fKeyFun;   // MIDI key to freq conversion function
     TransformFunction        fVelFun;   // MIDI velocity to gain conversion function
+    
+    FAUSTFLOAT** fInputsSlice;
+    FAUSTFLOAT** fOutputsSlice;
  
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
@@ -178,6 +185,8 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fKeyFun = [](int pitch) { return midiToFreq(pitch); };
         dsp->buildUserInterface(this);
         fNote = kFreeVoice;
+        fNextNote = -1;
+        fNextVel = -1;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
         fRelease = 0;
@@ -186,6 +195,42 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     }
     virtual ~dsp_voice()
     {}
+    
+    void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        FAUSTFLOAT** inputsSlice = static_cast<FAUSTFLOAT**>(alloca(sizeof(FAUSTFLOAT*) * getNumInputs()));
+        for (int chan = 0; chan < getNumInputs(); chan++) {
+            inputsSlice[chan] = &(inputs[chan][offset]);
+        }
+        FAUSTFLOAT** outputsSlice = static_cast<FAUSTFLOAT**>(alloca(sizeof(FAUSTFLOAT*) * getNumOutputs()));
+        for (int chan = 0; chan < getNumOutputs(); chan++) {
+            outputsSlice[chan] = &(outputs[chan][offset]);
+        }
+        compute(slice, inputsSlice, outputsSlice);
+    }
+    
+    void computeSwitch(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    {
+        int slice = count/2;
+        
+        // Compute current voice on half buffer
+        computeSlice(0, slice, inputs, outputs);
+        
+        // fadeOut on half buffer
+        for (int chan = 0; chan < getNumOutputs(); chan++) {
+            double factor = 1., step = 1./double(slice);
+            for (int frame = 0; frame < slice; frame++) {
+                outputs[chan][frame] *= factor;
+                factor -= step;
+            }
+        }
+        
+        // Start next keyOn
+        keyOn(fNextNote, fNextVel);
+        
+        // Compute on second half buffer
+        computeSlice(slice, slice, inputs, outputs);
+    }
 
     void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
@@ -209,7 +254,14 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             }
         }
     }
-   
+    
+    // Keep 'pitch' and 'velocity' to fadeOut the current voice and start next one in the next buffer
+    void keepKeyOn(int pitch, int velocity)
+    {
+        fNextNote = pitch;
+        fNextVel = velocity;
+    }
+    
     // MIDI velocity [0..127]
     void keyOn(int pitch, int velocity)
     {
@@ -532,7 +584,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fNote == kFreeVoice) {
                     voice = int(i);
-                    goto result;
+                    fVoiceTable[voice]->fDate = fDate++;
+                    fVoiceTable[voice]->fNote = kActiveVoice;
+                    return voice;
                 }
             }
 
@@ -584,7 +638,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             
         result:
             fVoiceTable[voice]->fDate = fDate++;
-            fVoiceTable[voice]->fNote = kActiveVoice;
+            fVoiceTable[voice]->fNote = kStealVoice;
             return voice;
         }
 
@@ -736,7 +790,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 // Mix all playing voices
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     dsp_voice* voice = fVoiceTable[i];
-                    if (voice->fNote != kFreeVoice) {
+                    if (voice->fNote == kStealVoice) {
+                        // switch current note and next node
+                        voice->computeSwitch(count, inputs, fMixBuffer);
+                        // Mix it in result
+                        voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
+                    } else if (voice->fNote != kFreeVoice) {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
@@ -798,7 +857,13 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             if (checkPolyphony()) {
                 int voice = getFreeVoice();
-                fVoiceTable[voice]->keyOn(pitch, velocity);
+                if (fVoiceTable[voice]->fNote == kActiveVoice) {
+                    fVoiceTable[voice]->keyOn(pitch, velocity);
+                } else if (fVoiceTable[voice]->fNote == kStealVoice) {
+                    fVoiceTable[voice]->keepKeyOn(pitch, velocity);
+                } else {
+                    assert(false);
+                }
                 return fVoiceTable[voice];
             } else {
                 return 0;
