@@ -397,7 +397,7 @@ void DLangCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "void buildUserInterface(UI* ui_interface) {";
+    *fOut << "void buildUserInterface(UI* uiInterface) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -436,6 +436,7 @@ DLangScalarCodeContainer::DLangScalarCodeContainer(const string& name, const str
 void DLangCodeContainer::generateImports(int n)
 {
     *fOut << "import std.math;\n";
+    *fOut << "import std.algorithm : min, max;\n";
     *fOut << "import dplug.core.nogc: mallocNew;\n";
     tab(n, *fOut);
 }
