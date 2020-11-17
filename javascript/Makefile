@@ -71,12 +71,13 @@ test:
 ##############################################################
 # publishing to npm
 ##############################################################
+publish: VERSION := $(shell grep version $(NPMDIR)/package.json | cut -d: -f 2 | sed -e 's/[^0-9.]*//g')
 publish: 
-	@echo "You are about to publish the libfaust package on npm."
+	@echo "You are about to publish the libfaust package v.$(VERSION) on npm."
 	@echo "Make sure you are logged in (npm login)"
 	@read -p "Continue [y|n]: " answer && [ $$answer == "y" ]
 	npm publish $(NPMDIR) --access public --dry-run
-	@echo "libfaust version " $(shell grep version $(NPMDIR)/package.json | cut -d: -f 2) "published"
+	@echo "libfaust version " $(VERSION) " published"
 
 
 ###################################################
