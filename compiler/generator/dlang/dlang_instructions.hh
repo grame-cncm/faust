@@ -43,57 +43,57 @@ class DLangInstVisitor : public TextInstVisitor {
 
     DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "*", tab)
     {
-        gPolyMathLibTable["abs"]   = "std.math.abs";
-        gPolyMathLibTable["max_i"] = "std.algorithm.max";
-        gPolyMathLibTable["min_i"] = "std.algorithm.min";
+        gPolyMathLibTable["abs"]   = "abs";
+        gPolyMathLibTable["max_i"] = "max";
+        gPolyMathLibTable["min_i"] = "min";
 
         // Float version
-        gPolyMathLibTable["fabsf"]  = "std.math.fabs";
-        gPolyMathLibTable["acosf"]  = "std.math.acos";
-        gPolyMathLibTable["asinf"]  = "std.math.asin";
-        gPolyMathLibTable["atanf"]  = "std.math.atan";
-        gPolyMathLibTable["atan2f"] = "std.math.atan2";
-        gPolyMathLibTable["ceilf"]  = "std.math.ceil";
-        gPolyMathLibTable["cosf"]   = "std.math.cos";
-        gPolyMathLibTable["coshf"]  = "std.math.cosh";
-        gPolyMathLibTable["expf"]   = "std.math.exp";
-        gPolyMathLibTable["floorf"] = "std.math.floor";
-        gPolyMathLibTable["fmodf"]  = "std.math.fmod";
-        gPolyMathLibTable["logf"]   = "std.math.log";
-        gPolyMathLibTable["log10f"] = "std.math.log10";
-        gPolyMathLibTable["max_f"]  = "std.math.fmax";
-        gPolyMathLibTable["min_f"]  = "std.math.fmin";
-        gPolyMathLibTable["powf"]   = "std.math.pow";
-        gPolyMathLibTable["roundf"] = "std.math.round";
-        gPolyMathLibTable["sinf"]   = "std.math.sin";
-        gPolyMathLibTable["sinhf"]  = "std.math.sinh";
-        gPolyMathLibTable["sqrtf"]  = "std.math.sqrt";
-        gPolyMathLibTable["tanf"]   = "std.math.tan";
-        gPolyMathLibTable["tanhf"]  = "std.math.tanh";
+        gPolyMathLibTable["fabsf"]  = "fabs";
+        gPolyMathLibTable["acosf"]  = "acos";
+        gPolyMathLibTable["asinf"]  = "asin";
+        gPolyMathLibTable["atanf"]  = "atan";
+        gPolyMathLibTable["atan2f"] = "atan2";
+        gPolyMathLibTable["ceilf"]  = "ceil";
+        gPolyMathLibTable["cosf"]   = "cos";
+        gPolyMathLibTable["coshf"]  = "cosh";
+        gPolyMathLibTable["expf"]   = "exp";
+        gPolyMathLibTable["floorf"] = "floor";
+        gPolyMathLibTable["fmodf"]  = "fmod";
+        gPolyMathLibTable["logf"]   = "log";
+        gPolyMathLibTable["log10f"] = "log10";
+        gPolyMathLibTable["max_f"]  = "fmax";
+        gPolyMathLibTable["min_f"]  = "fmin";
+        gPolyMathLibTable["powf"]   = "pow";
+        gPolyMathLibTable["roundf"] = "round";
+        gPolyMathLibTable["sinf"]   = "sin";
+        gPolyMathLibTable["sinhf"]  = "sinh";
+        gPolyMathLibTable["sqrtf"]  = "sqrt";
+        gPolyMathLibTable["tanf"]   = "tan";
+        gPolyMathLibTable["tanhf"]  = "tanh";
 
         // Double version
-        gPolyMathLibTable["fabs"]  = "std.math.fabs";
-        gPolyMathLibTable["acos"]  = "std.math.acos";
-        gPolyMathLibTable["asin"]  = "std.math.asin";
-        gPolyMathLibTable["atan"]  = "std.math.atan";
-        gPolyMathLibTable["atan2"] = "std.math.atan2";
-        gPolyMathLibTable["ceil"]  = "std.math.ceil";
-        gPolyMathLibTable["cos"]   = "std.math.cos";
-        gPolyMathLibTable["cosh"]  = "std.math.cosh";
-        gPolyMathLibTable["exp"]   = "std.math.exp";
-        gPolyMathLibTable["floor"] = "std.math.floor";
-        gPolyMathLibTable["fmod"]  = "std.math.fmod";
-        gPolyMathLibTable["log"]   = "std.math.log";
-        gPolyMathLibTable["log10"] = "std.math.log10";
-        gPolyMathLibTable["max_"]  = "std.math.fmax";
-        gPolyMathLibTable["min_"]  = "std.math.fmin";
-        gPolyMathLibTable["pow"]   = "std.math.pow";
-        gPolyMathLibTable["round"] = "std.math.round";
-        gPolyMathLibTable["sin"]   = "std.math.sin";
-        gPolyMathLibTable["sinh"]  = "std.math.sinh";
-        gPolyMathLibTable["sqrt"]  = "std.math.sqrt";
-        gPolyMathLibTable["tan"]   = "std.math.tan";
-        gPolyMathLibTable["tanh"]  = "std.math.tanh";
+        gPolyMathLibTable["fabs"]  = "fabs";
+        gPolyMathLibTable["acos"]  = "acos";
+        gPolyMathLibTable["asin"]  = "asin";
+        gPolyMathLibTable["atan"]  = "atan";
+        gPolyMathLibTable["atan2"] = "atan2";
+        gPolyMathLibTable["ceil"]  = "ceil";
+        gPolyMathLibTable["cos"]   = "cos";
+        gPolyMathLibTable["cosh"]  = "cosh";
+        gPolyMathLibTable["exp"]   = "exp";
+        gPolyMathLibTable["floor"] = "floor";
+        gPolyMathLibTable["fmod"]  = "fmod";
+        gPolyMathLibTable["log"]   = "log";
+        gPolyMathLibTable["log10"] = "log10";
+        gPolyMathLibTable["max_"]  = "fmax";
+        gPolyMathLibTable["min_"]  = "fmin";
+        gPolyMathLibTable["pow"]   = "pow";
+        gPolyMathLibTable["round"] = "round";
+        gPolyMathLibTable["sin"]   = "sin";
+        gPolyMathLibTable["sinh"]  = "sinh";
+        gPolyMathLibTable["sqrt"]  = "sqrt";
+        gPolyMathLibTable["tan"]   = "tan";
+        gPolyMathLibTable["tanh"]  = "tanh";
     }
 
     virtual ~DLangInstVisitor() {}
@@ -102,10 +102,10 @@ class DLangInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "ui_interface.declare(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
+            *fOut << "uiInterface.declare(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
                   << ")";
         } else {
-            *fOut << "ui_interface.declare(&" << inst->fZone << ", " << quote(inst->fKey) << ", "
+            *fOut << "uiInterface.declare(&" << inst->fZone << ", " << quote(inst->fKey) << ", "
                   << quote(inst->fValue) << ")";
         }
         EndLine();
@@ -116,13 +116,13 @@ class DLangInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
-                name = "ui_interface.openVerticalBox(";
+                name = "uiInterface.openVerticalBox(";
                 break;
             case OpenboxInst::kHorizontalBox:
-                name = "ui_interface.openHorizontalBox(";
+                name = "uiInterface.openHorizontalBox(";
                 break;
             case OpenboxInst::kTabBox:
-                name = "ui_interface.openTabBox(";
+                name = "uiInterface.openTabBox(";
                 break;
         }
         *fOut << name << quote(inst->fName) << ")";
@@ -131,16 +131,16 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(CloseboxInst* inst)
     {
-        *fOut << "ui_interface.closeBox();";
+        *fOut << "uiInterface.closeBox();";
         tab(fTab, *fOut);
     }
 
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
+            *fOut << "uiInterface.addButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
         } else {
-            *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
+            *fOut << "uiInterface.addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
         }
         EndLine();
     }
@@ -150,13 +150,13 @@ class DLangInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                name = "ui_interface.addHorizontalSlider";
+                name = "uiInterface.addHorizontalSlider";
                 break;
             case AddSliderInst::kVertical:
-                name = "ui_interface.addVerticalSlider";
+                name = "uiInterface.addVerticalSlider";
                 break;
             case AddSliderInst::kNumEntry:
-                name = "ui_interface.addNumEntry";
+                name = "uiInterface.addNumEntry";
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
@@ -170,10 +170,10 @@ class DLangInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                name = "ui_interface.addHorizontalBargraph";
+                name = "uiInterface.addHorizontalBargraph";
                 break;
             case AddBargraphInst::kVertical:
-                name = "ui_interface.addVerticalBargraph";
+                name = "uiInterface.addVerticalBargraph";
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", &" << inst->fZone << ", " << checkReal(inst->fMin) << ", "
@@ -183,7 +183,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "ui_interface.addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
+        *fOut << "uiInterface.addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
               << inst->fSFZone << ")";
         EndLine();
     }

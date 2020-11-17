@@ -32,7 +32,7 @@
  ************************************************************************
  ************************************************************************/
 
-// faust -a minimal.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
+// faust -a dplug.cpp -lang dlang noise.dsp -o noise.d
 
 /******************************************************************************
  *******************************************************************************
@@ -55,19 +55,12 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 import std.stdio;
 import std.conv;
+import dplug.core.vec;
 
 class Meta {
 nothrow:
 @nogc:
     void declare(string name, string value) {}
-}
-
-interface FaustVarAccess {
-nothrow:
-@nogc:
-    string getId();
-    void set(float val);
-    float get();
 }
 
 class UI {
@@ -99,33 +92,80 @@ nothrow:
 
 }
 
+/**
+ * Implements and overrides the methods that would provide parameters for use in 
+ * a plug-in or GUI.  These parameters are stored in a vector which can be accesed via
+ * `readParams()`
+ */
+class FaustParamAccess : UI {
+nothrow:
+@nogc:
+    this()
+    {
+        _faustParams = makeVec!FaustParam();
+    }
+
+    override void addButton(string label, float* val)
+    {
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+    }
+    
+    override void addCheckButton(string label, float* val)
+    {
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+    }
+    
+    override void addVerticalSlider(string label, float* val, float init, float min, float max, float step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    override void addHorizontalSlider(string label, float* val, float init, float min, float max, float step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    override void addNumEntry(string label, float* val, float init, float min, float max, float step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    FaustParam[] readParams()
+    {
+        return _faustParams.releaseData();
+    }
+
+    FaustParam readParam(int index)
+    {
+        return _faustParams[index];
+    }
+
+    ulong length()
+    {
+        return _faustParams.length();
+    }
+
+private:
+	Vec!FaustParam _faustParams;
+}
+
+struct FaustParam
+{
+	string label;
+	float* val;
+	float initial;
+	float min;
+	float max;
+	float step;
+    bool isButton = false;
+}
+
 class dsp {
 nothrow:
 @nogc:
 public:
     int fSamplingFreq;
 }
-
-// void main(string[] args)
-// {
-//     mydsp DSP = new mydsp();
-//     writeln("DSP size: " ~ to!string(DSP.sizeof) ~ " bytes\n");
-    
-//     // Activate the UI, here that only print the control paths
-//     UI ui = new UI();
-//     DSP.buildUserInterface(&ui);
-
-// 	float** input = [[0.0f, 0.1f,  0.2f, 0.3f, 0.4f].ptr].ptr;
-// 	float** output = [[0.0f, 0.0f,  0.0f, 0.0f, 0.0f].ptr].ptr;
-
-// 	DSP.compute(5, input, output);
-
-//     for(int i = 0; (i < 5); ++i)
-//     {
-//         string s = "Input: " ~ to!string(input[i]) ~ " | Output: " ~ to!string(output[i]);
-//         writeln(s);
-//     }
-// }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
