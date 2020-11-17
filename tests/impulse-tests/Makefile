@@ -61,8 +61,9 @@ help:
 	@echo " 'llvm'   : check double output with llvm backend and various options"
 	@echo " 'llvm1'  : check double output with llvm backend in object code mode and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
-	@echo " 'interp1' : check double output with interpreter/LLVM backend and various options"
+	@echo " 'interp1' : check double output with interpreter/llvm backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
+	@echo " 'soul'   : check double output with soul backend and various options"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
