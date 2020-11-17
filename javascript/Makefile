@@ -3,7 +3,7 @@ jssrc := $(wildcard src/*.ts)
 
 MAKE      ?= make
 BUILD     := ../build
-FAUSTWEB  := FaustLibrary.js		# the output javascript library name
+FAUSTWEB  := $(shell grep out tsconfig.json | cut -d: -f 2 | sed -e 's/[",]*//g')
 DISTDIR   := npm
 SAMPLEDIR := npm/exemples
 FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts src/FaustWAP.d.ts src/Faust2AudioNode.d.ts
@@ -47,7 +47,6 @@ js: $(FAUSTWEB)
 
 dist: 
 	cp $(FAUSTAPI) $(DISTDIR)
-#	cp $(FAUSTWEB) $(DISTDIR)
 	cp $(DISTDIR)/$(FAUSTWEB) $(SAMPLEDIR)
 	cp $(BUILD)/lib/libfaust-wasm.* $(DISTDIR)
 	cp $(BUILD)/lib/libfaust-wasm.* $(SAMPLEDIR)
@@ -65,7 +64,7 @@ cmake:
 	$(MAKE) -C $(BUILD) cmake
 
 test:
-	@echo $(FAUSTDIST)
+	@echo $(FAUSTWEB)
 
 
 ##############################################################
