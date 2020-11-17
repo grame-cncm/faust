@@ -4,7 +4,7 @@ jssrc := $(wildcard src/*.ts)
 MAKE      ?= make
 BUILD     := ../build
 FAUSTWEB  := FaustLibrary.js		# the output javascript library name
-DISTDIR   := npm/dist
+DISTDIR   := npm
 SAMPLEDIR := npm/exemples
 FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts src/FaustWAP.d.ts src/Faust2AudioNode.d.ts
 FAUSTDIST := $(FAUSTAPI:src/%=$(DISTDIR)/%)
@@ -47,8 +47,8 @@ js: $(FAUSTWEB)
 
 dist: 
 	cp $(FAUSTAPI) $(DISTDIR)
-	cp $(FAUSTWEB) $(DISTDIR)
-	cp $(FAUSTWEB) $(SAMPLEDIR)
+#	cp $(FAUSTWEB) $(DISTDIR)
+	cp $(DISTDIR)/$(FAUSTWEB) $(SAMPLEDIR)
 	cp $(BUILD)/lib/libfaust-wasm.* $(DISTDIR)
 	cp $(BUILD)/lib/libfaust-wasm.* $(SAMPLEDIR)
 
