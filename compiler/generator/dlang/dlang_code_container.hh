@@ -80,4 +80,14 @@ class DLangScalarCodeContainer : public DLangCodeContainer {
     void generateCompute(int tab);
 };
 
+class DLangVectorCodeContainer : public VectorCodeContainer, public DLangCodeContainer {
+   protected:
+   public:
+    DLangVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~DLangVectorCodeContainer()
+    {}
+
+    void generateCompute(int tab);
+};
+
 #endif
