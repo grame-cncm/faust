@@ -49,7 +49,7 @@
 #define kActiveVoice    0
 #define kFreeVoice     -1
 #define kReleaseVoice  -2
-#define kStealVoice    -3
+#define kLegatoVoice   -3
 #define kNoVoice       -4
 
 #define VOICE_STOP_LEVEL  0.0005    // -70 db
@@ -160,14 +160,12 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     {
         return 440.0 * std::pow(2.0, (note-69.0)/12.0);
     }
-
     
-    int fNote;                          // Playing note actual pitch
-    int fNextNote;                      // In kStealVoice state, next note to play
-    int fNextVel;                       // In kStealVoice state, next velocity to play
+    int fCurNote;                       // Playing note pitch
+    int fNextNote;                      // In kLegatoVoice state, next note to play
+    int fNextVel;                       // In kLegatoVoice state, next velocity to play
     int fDate;                          // KeyOn date
     int fRelease;                       // Current number of samples used in release mode to detect end of note
-    int fMaxRelease;                    // Max of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain/vel|velocity' control
@@ -184,17 +182,21 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fVelFun = [](int velocity) { return double(velocity)/127.0; };
         fKeyFun = [](int pitch) { return midiToFreq(pitch); };
         dsp->buildUserInterface(this);
-        fNote = kFreeVoice;
-        fNextNote = -1;
-        fNextVel = -1;
+        fCurNote = kFreeVoice;
+        fNextNote = fNextVel = -1;
         fLevel = FAUSTFLOAT(0);
-        fDate = 0;
-        fRelease = 0;
-        fMaxRelease = dsp->getSampleRate()/2; // One 1/2 sec used in release mode to detect end of note
+        fDate = fRelease = 0;
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
     {}
+    
+    void clear()
+    {
+        fCurNote = kFreeVoice;
+        // So that DSP state is always re-initialized
+        fDSP->instanceClear();
+    }
     
     void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
@@ -209,7 +211,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         compute(slice, inputsSlice, outputsSlice);
     }
     
-    void computeSwitch(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    void computeLegato(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         int slice = count/2;
         
@@ -256,16 +258,14 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     }
     
     // Keep 'pitch' and 'velocity' to fadeOut the current voice and start next one in the next buffer
-    void keepKeyOn(int pitch, int velocity)
+    void keyOn(int pitch, int velocity, bool legato = false)
     {
-        fNextNote = pitch;
-        fNextVel = velocity;
-    }
-    
-    // MIDI velocity [0..127]
-    void keyOn(int pitch, int velocity)
-    {
-        keyOn(pitch, fVelFun(velocity));
+        if (legato) {
+            fNextNote = pitch;
+            fNextVel = velocity;
+        } else {
+            keyOn(pitch, fVelFun(velocity));
+        }
     }
 
     // Normalized MIDI velocity [0..1]
@@ -284,7 +284,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             setParamValue(fGainPath[i], velocity);
         }
         
-        fNote = pitch;
+        fCurNote = pitch;
     }
 
     void keyOff(bool hard = false)
@@ -296,11 +296,11 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         
         if (hard) {
             // Immediately stop voice
-            fNote = kFreeVoice;
+            fCurNote = kFreeVoice;
         } else {
             // Release voice
-            fRelease = fMaxRelease;
-            fNote = kReleaseVoice;
+            fRelease = fDSP->getSampleRate()/2; // Half sec used in release mode to detect end of note
+            fCurNote = kReleaseVoice;
         }
     }
 
@@ -563,7 +563,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             int oldest_date_playing = INT_MAX;
             
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                if (fVoiceTable[i]->fNote == pitch) {
+                if (fVoiceTable[i]->fCurNote == pitch) {
                     // Keeps oldest playing voice
                     if (fVoiceTable[i]->fDate < oldest_date_playing) {
                         oldest_date_playing = fVoiceTable[i]->fDate;
@@ -582,10 +582,10 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             
             // Looks for the first available voice
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                if (fVoiceTable[i]->fNote == kFreeVoice) {
+                if (fVoiceTable[i]->fCurNote == kFreeVoice) {
                     voice = int(i);
                     fVoiceTable[voice]->fDate = fDate++;
-                    fVoiceTable[voice]->fNote = kActiveVoice;
+                    fVoiceTable[voice]->fCurNote = kActiveVoice;
                     return voice;
                 }
             }
@@ -600,7 +600,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
                 // Scan all voices
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                    if (fVoiceTable[i]->fNote == kReleaseVoice) {
+                    if (fVoiceTable[i]->fCurNote == kReleaseVoice) {
                         // Keeps oldest release voice
                         if (fVoiceTable[i]->fDate < oldest_date_release) {
                             oldest_date_release = fVoiceTable[i]->fDate;
@@ -638,7 +638,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             
         result:
             fVoiceTable[voice]->fDate = fDate++;
-            fVoiceTable[voice]->fNote = kStealVoice;
+            fVoiceTable[voice]->fCurNote = kLegatoVoice;
             return voice;
         }
 
@@ -790,21 +790,22 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 // Mix all playing voices
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     dsp_voice* voice = fVoiceTable[i];
-                    if (voice->fNote == kStealVoice) {
-                        // switch current note and next node
-                        voice->computeSwitch(count, inputs, fMixBuffer);
+                    if (voice->fCurNote == kLegatoVoice) {
+                        // Play from current note and next note
+                        voice->computeLegato(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
-                    } else if (voice->fNote != kFreeVoice) {
+                    } else if (voice->fCurNote != kFreeVoice) {
+                        // Compute current note
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
                         // Check the level to possibly set the voice in kFreeVoice again
                         voice->fRelease -= count;
-                        if ((voice->fNote == kReleaseVoice)
+                        if ((voice->fCurNote == kReleaseVoice)
                             && (voice->fRelease < 0)
                             && (voice->fLevel < VOICE_STOP_LEVEL)) {
-                            voice->fNote = kFreeVoice;
+                            voice->fCurNote = kFreeVoice;
                         }
                     }
                 }
@@ -837,14 +838,13 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         MapUI* newVoice()
         {
             int voice = getFreeVoice();
-            // So that DSP state is always re-initialized
-            fVoiceTable[voice]->instanceClear();
+            fVoiceTable[voice]->clear();
             return fVoiceTable[voice];
         }
 
         void deleteVoice(MapUI* voice)
         {
-            std::vector<dsp_voice*>::iterator it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
+            auto it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
             if (it != fVoiceTable.end()) {
                 (*it)->keyOff();
             } else {
@@ -857,13 +857,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             if (checkPolyphony()) {
                 int voice = getFreeVoice();
-                if (fVoiceTable[voice]->fNote == kActiveVoice) {
-                    fVoiceTable[voice]->keyOn(pitch, velocity);
-                } else if (fVoiceTable[voice]->fNote == kStealVoice) {
-                    fVoiceTable[voice]->keepKeyOn(pitch, velocity);
-                } else {
-                    assert(false);
-                }
+                fVoiceTable[voice]->keyOn(pitch, velocity, fVoiceTable[voice]->fCurNote == kLegatoVoice);
                 return fVoiceTable[voice];
             } else {
                 return 0;
