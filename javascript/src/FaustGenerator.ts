@@ -25,6 +25,8 @@
 
 namespace Faust {
 
+    export function createInstanceAPI (exports: InstanceAPI) : InstanceAPI { return new InstanceAPIImpl( exports); }
+
     export class InstanceAPIImpl implements InstanceAPI {
         private readonly fExports: InstanceAPI;
 

@@ -24,8 +24,6 @@
 namespace Faust {
 
     export function createFaustJSON(json: string): TFaustJSON { return JSON.parse(json); }
-
-    // Public contructor
     export function createCompiler(engine: LibFaust) { return new CompilerImp(engine); }
 
     class CompilerImp implements Compiler {

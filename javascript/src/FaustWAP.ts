@@ -30,7 +30,7 @@ namespace Faust {
         return new MonoWAPFactoryImp(context, baseURL);
     }
 
-    export class MonoWAPFactoryImp implements MonoWAPFactory {
+    class MonoWAPFactoryImp implements MonoWAPFactory {
 
         fContext: BaseAudioContext;
         fBaseURL: string;
@@ -130,7 +130,7 @@ namespace Faust {
         return new PolyWAPFactoryImp(context, baseURL);
     }
 
-    export class PolyWAPFactoryImp implements PolyWAPFactory {
+    class PolyWAPFactoryImp implements PolyWAPFactory {
 
         fContext: BaseAudioContext;
         fBaseURL: string;

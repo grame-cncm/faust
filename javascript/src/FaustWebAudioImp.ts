@@ -20,8 +20,8 @@
  ************************************************************************/
 
 ///<reference path="FaustCompiler.ts"/>
-///<reference path="FaustGenerator.d.ts"/>
-///<reference path="FaustWebAudio.d.ts"/>
+///<reference path="FaustGenerator.ts"/>
+///<reference path="FaustWebAudio.ts"/>
 
 namespace Faust {
 

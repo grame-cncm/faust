@@ -1,29 +1,5 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler and web audio interface
-    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
 
 ///<reference path="libfaust.d.ts"/>
-
-/************************************************************************
- This file describes the high level interface to the Faust compiler.
- ************************************************************************/
 
 declare namespace Faust {
 
@@ -88,8 +64,6 @@ declare namespace Faust {
     }
     type TFaustUIType = TFaustUIGroupType | TFaustUIOutputType | TFaustUIInputType;
 
-    interface createFaustJSON { (json: string): TFaustJSON }
-
     interface Factory {
         cfactory: number;
         module: WebAssembly.Module;
@@ -103,7 +77,6 @@ declare namespace Faust {
      * @param {LibFaust} engine - an instance of the low level engine, actually a libFaustWasm instance of FaustModule
      * @return the created Compiler object 
      */
-    interface createCompiler { (engine: LibFaust): Compiler }
 
     interface Compiler {
 

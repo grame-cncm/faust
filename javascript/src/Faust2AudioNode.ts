@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-///<reference path="Faust2AudioNode.d.ts"/>
 ///<reference path="libfaust.ts"/>
 ///<reference path="FaustCompiler.ts"/>
 ///<reference path="FaustWebAudio.ts"/>

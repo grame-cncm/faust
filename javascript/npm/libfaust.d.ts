@@ -51,8 +51,8 @@ declare namespace Faust {
      * Instantiates the Faust Library.
      *
      * @param {string} module - the Faust Wasm module, typically retrieved with an async call to FaustModule()
-     * @returns {LibFaust} an opaque reference to the Faust library
+     * @returns {LibFaust} an instance of Faust library
      */
 
-    interface createLibFaust { (module: FaustModule): LibFaust | null }
+    function createLibFaust (module: FaustModule): LibFaust | null;
 }

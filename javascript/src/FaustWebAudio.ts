@@ -20,6 +20,7 @@
  ************************************************************************/
 
 // AudioWorkletNode/AudioWorkletProcessor
+///<reference path="FaustWebAudio.d.ts"/>
 ///<reference path="FaustAudioWorkletNode.ts"/>
 ///<reference path="FaustAudioWorkletProcessor.ts"/>
 
@@ -33,7 +34,7 @@ namespace Faust {
 
     export function createAudioNodeFactory() { return new AudioNodeFactoryImp(); }
 
-    export class AudioNodeFactoryImp implements AudioNodeFactory {
+    class AudioNodeFactoryImp implements AudioNodeFactory {
 
         // Table of all create WorkletProcessors, each of them has to be unique
         private fWorkletProcessors: string[] = [];
@@ -48,7 +49,7 @@ namespace Faust {
             : Promise<FaustMonoNode | null> {
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed
-                const instance = await new GeneratorImp().createAsyncMonoDSPInstance(factory);
+                const instance = await createGenerator().createAsyncMonoDSPInstance(factory);
                 const mono_dsp = createMonoDSP(instance, context.sampleRate, buffer_size);
                 return new FaustMonoScriptProcessorNodeImp().init(context, mono_dsp, buffer_size);
             } else {
@@ -91,7 +92,7 @@ namespace Faust {
 
         async createOfflineMonoProcessor(factory: Factory, sample_rate: number, buffer_size: number)
             : Promise<FaustOfflineProcessor | null> {
-            const instance = await new GeneratorImp().createAsyncMonoDSPInstance(factory);
+            const instance = await createGenerator().createAsyncMonoDSPInstance(factory);
             const mono_dsp = createMonoDSP(instance, sample_rate, buffer_size);
             return new FaustOfflineProcessorImp(mono_dsp, buffer_size);
         }
@@ -120,7 +121,7 @@ namespace Faust {
             // Compile effect, possibly failing since 'compilePolyNode2' can be called by called by 'compilePolyNode'
             const effect_factory = await compiler.createPolyDSPFactory(name, effect_dsp, args);
             // Compile mixer
-            const mixer_module = await new GeneratorImp().loadDSPMixer('/usr/rsrc/mixer32.wasm');
+            const mixer_module = await createGenerator().loadDSPMixer('/usr/rsrc/mixer32.wasm');
             return (mixer_module) ? this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), buffer_size) : null;
         }
 
@@ -137,7 +138,7 @@ namespace Faust {
             const name = name_aux + "_poly";
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed
-                const instance = await new GeneratorImp().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory);
+                const instance = await createGenerator().createAsyncPolyDSPInstance(voice_factory, mixer_module, voices, effect_factory);
                 const poly_dsp = createPolyDSP(instance, context.sampleRate, buffer_size);
                 return new FaustPolyScriptProcessorNodeImp().init(context, poly_dsp, buffer_size);
             } else {
