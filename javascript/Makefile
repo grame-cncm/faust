@@ -6,7 +6,7 @@ BUILD     := ../build
 FAUSTWEB  := $(shell grep out tsconfig.json | cut -d: -f 2 | sed -e 's/[",]*//g')
 DISTDIR   := npm
 SAMPLEDIR := npm/exemples
-FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts src/FaustWAP.d.ts src/Faust2AudioNode.d.ts
+FAUSTAPI  := src/FaustCompiler.d.ts src/FaustWebAudio.d.ts src/FaustUtilities.d.ts src/FaustGenerator.d.ts src/FaustWAP.d.ts
 FAUSTDIST := $(FAUSTAPI:src/%=$(DISTDIR)/%)
 CHECKDIR  := tmp
 SRC       := $(shell find src -name "*.ts" | egrep -v ".d.ts")
@@ -47,7 +47,7 @@ js: $(FAUSTWEB)
 
 dist: 
 	cp $(FAUSTAPI) $(DISTDIR)
-	cp $(DISTDIR)/$(FAUSTWEB) $(SAMPLEDIR)
+	cp $(FAUSTWEB) $(SAMPLEDIR)
 	cp $(BUILD)/lib/libfaust-wasm.* $(DISTDIR)
 	cp $(BUILD)/lib/libfaust-wasm.* $(SAMPLEDIR)
 
