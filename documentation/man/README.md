@@ -1,4 +1,4 @@
-% man(1) Version 2.28.8 (10-November-2020) | Faust man page
+% man(1) Version 2.29.0 (19-November-2020) | Faust man page
 
 NAME
 ====
@@ -75,6 +75,8 @@ Code generation options:
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation.
+
+  **-cm**         **--compute-mix**               mix in outputs buffers.
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
