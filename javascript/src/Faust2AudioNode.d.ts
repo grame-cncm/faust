@@ -29,8 +29,8 @@ declare namespace Faust {
      * @param {BaseAudioContext} context the WebAudio context
      * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
      * @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
-     * @param {string | null} effect_code - optional effect DSP code
-     * @param {number} voices - the number of voices. When voices = 0, a monophonic node is created, otherwisee a polyohonic one.
+     * @param {string | null} effect_code - optional effect DSP code, that can be used in place of the integrated effect model
+     * @param {number} voices - the number of voices. When voices = 0, a monophonic node is created, otherwise a polyphonic one
      * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
     interface compileAudioNode {

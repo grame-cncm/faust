@@ -10,7 +10,6 @@ See [Audio Nodes Instances](../README.md) section for more details on audio arch
 To get sound, some browsers might require a user interaction with the page (notably Safari),
 just click anywhere when dont hear anything.
 
-
 ----
 <a href="http://faust.grame.fr"><img src=../imgs/faust.png width=200 /></a>
  

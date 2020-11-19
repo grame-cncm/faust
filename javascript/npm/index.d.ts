@@ -61,19 +61,20 @@ declare namespace Faust {
     function createGenerator(): Generator;
 
     /**
-     * Compiles a WebAudio node from its DSP code
+     * Compiles a WebAudio node from its DSP code.
      *
      * @param {BaseAudioContext} context the WebAudio context
      * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
      * @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
-     * @param {string | null} effect_code - optional effect DSP code
-     * @param {number} voices - the number of voices. When voices = 0, a monophonic node is created, otherwisee a polyohonic one.
+     * @param {string | null} effect_code - optional effect DSP code, that can be used in place of the integrated effect model
+     * @param {number} voices - the number of voices. When voices = 0, a monophonic node is created, otherwise a polyphonic one
      * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
     function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number): Promise<FaustMonoNode | FaustPolyNode | null>
 
     /**
      * The SVGDiagrams constructor.
+     * 
      * @param {LibFaust} engine - an instance of the Faust engine 
      * @param {string} name - an arbitrary name for the Faust module
      * @param {string} dsp_code - Faust dsp code
