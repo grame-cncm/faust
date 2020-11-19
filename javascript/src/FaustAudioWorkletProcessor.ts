@@ -90,7 +90,6 @@ namespace Faust {
                 BaseDSPImp.parseUI(JSON.parse(FaustConst.dsp_JSON).ui, callback);
                 // Analyse effect JSON to generate AudioParam parameters
                 if (FaustConst.effect_JSON) BaseDSPImp.parseUI(JSON.parse(FaustConst.effect_JSON).ui, callback);
-                console.log(params);
                 return params;
             }
 

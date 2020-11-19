@@ -35,10 +35,10 @@ declare namespace Faust {
      * @param {string} module - the Faust Wasm module, typically retrieved with an async call to FaustModule()
      * @returns {LibFaust} an instance of Faust library
      */
-   function createLibFaust(module: FaustModule): LibFaust | null;
+    function createLibFaust(module: FaustModule): LibFaust | null;
 
     /**
-     * Transforms a Faus processor JSON description into a high level structured object
+     * Transforms a Faust processor JSON description into a high level structured object.
      *
      * @param {string} json - a jsong string
      * @returns {TFaustJSON} a high level structured object describing a Faust processor
@@ -51,27 +51,28 @@ declare namespace Faust {
      * @param {LibFaust} engine - an instance of the Faust Library
      * @returns {Compiler} an instance of the Faust compiler
      */
-    function createCompiler(engine: LibFaust) : Compiler;
+    function createCompiler(engine: LibFaust): Compiler;
 
     /**
      * Creates an instance of a Generator, which provides memory instances of Web assembly module,
      * as well as objects to access and manipulate theses instances.
      * @returns {Generator} a Generator
      */
-    function createGenerator (): Generator;
+    function createGenerator(): Generator;
 
-   /**
+    /**
      * Compiles a WebAudio node from its DSP code
      *
      * @param {BaseAudioContext} context the WebAudio context
      * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
-     * @param {string} code - the DSP code (may contain an integrated effect)
+     * @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
+     * @param {string | null} effect_code - optional effect DSP code
      * @param {number} voices - the number of voices 
-     * @param {string | null} effect_code - optional effect DSP code (useless when voices is 1)
+     * @param {boolean} mono - true to create Monophonic DSP and false to create a Polyphonic one (even with 1 voice)
      * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
-   function compileAudioNode (audioCtx: BaseAudioContext, module: FaustModule, code: string, voices: number, effect_code: string | null) : Promise<FaustMonoNode | FaustPolyNode | null> 
-   
+    function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, mono: boolean): Promise<FaustMonoNode | FaustPolyNode | null>
+
     /**
      * The SVGDiagrams constructor.
      * @param {LibFaust} engine - an instance of the Faust engine 
@@ -79,15 +80,12 @@ declare namespace Faust {
      * @param {string} dsp_code - Faust dsp code
      * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
      */
-   function createSVGDiagrams (engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams;
-
-
+    function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams;
 
     /**
      * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
      */
-    function createMonoAudioWAPFactory (context: BaseAudioContext, baseURL: string): MonoWAPFactory;
-    function createPolyWAPFactory (context: BaseAudioContext, baseURL: string): PolyWAPFactory;
-
+    function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string): MonoWAPFactory;
+    function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
 
 }

@@ -25,7 +25,7 @@
 
 namespace Faust {
 
-    export function createInstanceAPI (exports: InstanceAPI) : InstanceAPI { return new InstanceAPIImpl( exports); }
+    export function createInstanceAPI(exports: InstanceAPI): InstanceAPI { return new InstanceAPIImpl(exports); }
 
     export class InstanceAPIImpl implements InstanceAPI {
         private readonly fExports: InstanceAPI;
@@ -133,8 +133,12 @@ namespace Faust {
 
         // Public API
         async loadDSPFactory(wasm_path: string, json_path: string): Promise<Factory | null> {
+            const wasm_file = await fetch(wasm_path);
+            if (!wasm_file.ok) {
+                console.error("=> exception raised while running loadDSPFactory, file not found: " + wasm_path);
+                return null;
+            }
             try {
-                const wasm_file = await fetch(wasm_path);
                 const wasm_buffer = await wasm_file.arrayBuffer();
                 const module = await WebAssembly.compile(wasm_buffer);
                 const json_file = await fetch(json_path);

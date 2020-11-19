@@ -7,8 +7,17 @@
     <script src="FaustLibrary.js"></script>
     <link href="exemples.css" rel="stylesheet">
     <style>
-        .slider { width: 400px; }
-        .ui     { width: 400px; border-style: solid; border-width: 1px; border-radius: 5px; padding: 10px; }
+        .slider {
+            width: 400px;
+        }
+
+        .ui {
+            width: 400px;
+            border-style: solid;
+            border-width: 1px;
+            border-radius: 5px;
+            padding: 10px;
+        }
     </style>
 </head>
 
@@ -33,7 +42,7 @@ function sliderInit(id, address, display, node ) {
     slider.node = node;
     slider.address = address;
     slider.display = document.getElementById(display);
-    userInput (slider, slider.value);
+    userInput(slider, slider.value);
 }
 
 function userInput(slider, value ) { 
@@ -44,21 +53,21 @@ function userInput(slider, value ) {
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 FaustModule().then(module => {
     let freqCtrl = document.getElementById ("freq");
-    let volCtrl  = document.getElementById ("vol");
+    let volCtrl = document.getElementById ("vol");
 
-    Faust.compileAudioNode (audioCtx, module, getcode(), 1).then (node => {
-        sliderInit ('freq', '/Oscillator/freq', 'fvalue', node);
-        sliderInit ('vol', '/Oscillator/volume', 'vvalue', node);
+    Faust.compileAudioNode(audioCtx, module, getcode(), null, 0, true).then (node => {
+        sliderInit('freq', '/Oscillator/freq', 'fvalue', node);
+        sliderInit('vol', '/Oscillator/volume', 'vvalue', node);
         freqCtrl.oninput = () => { userInput(freqCtrl, freqCtrl.value) };
-        volCtrl.oninput  = () => { userInput(volCtrl, volCtrl.value) };
+        volCtrl.oninput = () => { userInput(volCtrl, volCtrl.value) };
         node.connect(audioCtx.destination);
     });
 });
         </pre>
     <div id="ui" class=ui>
         <p>Frequency: <span id="fvalue"></span> Hz<br />
-            <input id="freq" type="range" min="20" max="20000" value="440" class=slider> 
-        </p>      
+            <input id="freq" type="range" min="20" max="20000" value="440" class=slider>
+        </p>
         <p>Volume: <span id="vvalue"></span> db <br />
             <input id="vol" type="range" min="-96" max="0" value="-15" class=slider>
         </p>
@@ -71,27 +80,27 @@ FaustModule().then(module => {
 <script>
     function getcode() { return document.getElementById("code").textContent; }
 
-    function sliderInit(id, address, display, node ) { 
+    function sliderInit(id, address, display, node) {
         let slider = document.getElementById(id);
         slider.node = node;
         slider.address = address;
         slider.display = document.getElementById(display);
-        userInput (slider, slider.value);
+        userInput(slider, slider.value);
     }
 
-    function userInput(slider, value ) { 
+    function userInput(slider, value) {
         slider.display.innerText = value.toString();
-        slider.node.setParamValue (slider.address, value);
+        slider.node.setParamValue(slider.address, value);
     }
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     FaustModule().then(module => {
-        let freqCtrl = document.getElementById ("freq");
-        let volCtrl  = document.getElementById ("vol");
+        let freqCtrl = document.getElementById("freq");
+        let volCtrl = document.getElementById("vol");
 
-        Faust.compileAudioNode (audioCtx, module, getcode(), 1).then (node => {
-            sliderInit ('freq', '/Oscillator/freq', 'fvalue', node);
-            sliderInit ('vol', '/Oscillator/volume', 'vvalue', node);
+        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0, true).then(node => {
+            sliderInit('freq', '/Oscillator/freq', 'fvalue', node);
+            sliderInit('vol', '/Oscillator/volume', 'vvalue', node);
             freqCtrl.oninput = () => { userInput(freqCtrl, freqCtrl.value) };
             volCtrl.oninput = () => { userInput(volCtrl, volCtrl.value) };
             node.connect(audioCtx.destination);
