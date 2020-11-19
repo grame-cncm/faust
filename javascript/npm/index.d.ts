@@ -67,11 +67,10 @@ declare namespace Faust {
      * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
      * @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
      * @param {string | null} effect_code - optional effect DSP code
-     * @param {number} voices - the number of voices 
-     * @param {boolean} mono - true to create Monophonic DSP and false to create a Polyphonic one (even with 1 voice)
+     * @param {number} voices - the number of voices. When voices = 0, a monophonic node is created, otherwisee a polyohonic one.
      * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
-    function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, mono: boolean): Promise<FaustMonoNode | FaustPolyNode | null>
+    function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number): Promise<FaustMonoNode | FaustPolyNode | null>
 
     /**
      * The SVGDiagrams constructor.

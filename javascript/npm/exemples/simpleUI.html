@@ -55,7 +55,7 @@ FaustModule().then(module => {
     let freqCtrl = document.getElementById ("freq");
     let volCtrl = document.getElementById ("vol");
 
-    Faust.compileAudioNode(audioCtx, module, getcode(), null, 0, true).then (node => {
+    Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then (node => {
         sliderInit('freq', '/Oscillator/freq', 'fvalue', node);
         sliderInit('vol', '/Oscillator/volume', 'vvalue', node);
         freqCtrl.oninput = () => { userInput(freqCtrl, freqCtrl.value) };
@@ -98,7 +98,7 @@ FaustModule().then(module => {
         let freqCtrl = document.getElementById("freq");
         let volCtrl = document.getElementById("vol");
 
-        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0, true).then(node => {
+        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
             sliderInit('freq', '/Oscillator/freq', 'fvalue', node);
             sliderInit('vol', '/Oscillator/volume', 'vvalue', node);
             freqCtrl.oninput = () => { userInput(freqCtrl, freqCtrl.value) };

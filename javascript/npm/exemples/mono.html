@@ -23,7 +23,7 @@ process = ba.pulsen(1, 10000) : pm.djembe(60, 0.3, 0.4, 1) <: dm.freeverb_demo;
     <pre class="code colored">
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 FaustModule().then (module => { 
-    Faust.compileAudioNode(audioCtx, module, getcode(), null, 0, true).then (node => {
+    Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then (node => {
         node.connect(audioCtx.destination);
     });
 });</pre>
@@ -36,7 +36,7 @@ FaustModule().then (module => {
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     FaustModule().then(module => {
-        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0, true).then(node => {
+        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
             node.connect(audioCtx.destination);
         });
     });
