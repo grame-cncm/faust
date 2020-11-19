@@ -24,8 +24,17 @@ declare namespace Faust {
         */
         getSVG(name?: string): string;
 
+        /**
+         * Gives an error message in case success() returns false.
+         * @returns {string} the error message
+        */
         error(): string;
-
+ 
+        /**
+         * Gives the status of the SVGDiagram object. 
+         * May fail to generate the diagrams if the dsp code is incorrect.
+         * @returns {boolean} the svg diagram as a string
+        */
         success(): boolean;
     }
 }

@@ -1,24 +1,3 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
-
 ///<reference path="Faust2AudioNode.d.ts" />
 ///<reference path="FaustCompiler.d.ts" />
 ///<reference path="FaustGenerator.d.ts" />
@@ -73,7 +52,8 @@ declare namespace Faust {
     function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number): Promise<FaustMonoNode | FaustPolyNode | null>
 
     /**
-     * The SVGDiagrams constructor.
+     * The SVGDiagrams generator constructor.
+     * You should check the object status using the success() method after creation.
      * 
      * @param {LibFaust} engine - an instance of the Faust engine 
      * @param {string} name - an arbitrary name for the Faust module
@@ -89,3 +69,26 @@ declare namespace Faust {
     function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
 
 }
+
+// Moved at the end of the file to please Visual Studio code completion tools.
+
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
