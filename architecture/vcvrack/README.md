@@ -6,7 +6,7 @@ The **faust2vcvrack** tool compiles a Faust DSP program in a folder containing t
 
 Here are the available options:
 
-- `soundfile : when compiling a DSP using the 'soundfile' primitive, add required resources`
+- `-soundfile when compiling a DSP using the 'soundfile' primitive, add required resources`
 - `-source to only create the source folder`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
 
