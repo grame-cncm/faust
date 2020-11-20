@@ -26,7 +26,7 @@ FaustModule().then(module => {
     let compiler = Faust.createCompiler(Faust.createLibFaust(module));
     log("Faust compiler version " + compiler.version());
     let factory = Faust.createAudioNodeFactory();
-    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "", false, 128).then(node => {
+    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
         node.connect(audioCtx.destination);
     });
 });</pre>
@@ -43,7 +43,7 @@ FaustModule().then(module => {
         let compiler = Faust.createCompiler(Faust.createLibFaust(module));
         log("Faust compiler version " + compiler.version());
         let factory = Faust.createAudioNodeFactory();
-        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "", false, 128).then(node => {
+        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
             node.connect(audioCtx.destination);
         });
     })

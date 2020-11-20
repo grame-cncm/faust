@@ -700,7 +700,7 @@ namespace Faust {
                     voice.compute(this.fBufferSize, this.fAudioInputs, this.fAudioMixing);
                     voice.fLevel = this.fInstance.mixer_api.mixVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
                     voice.fRelease -= this.fBufferSize;
-                    if ((voice.fNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) || (voice.fRelease < 0))) {
+                    if ((voice.fNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) && (voice.fRelease < 0))) {
                         voice.fNote = DspVoice.kFreeVoice;
                     }
                 }
