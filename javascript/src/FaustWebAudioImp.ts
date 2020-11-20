@@ -689,12 +689,6 @@ namespace Faust {
 
             // Compute
             this.fInstance.mixer_api.clearOutput(this.fBufferSize, this.getNumOutputs(), this.fAudioOutputs);
-
-            // Clear output buffers
-            for (let chan = 0; chan < Math.min(this.getNumOutputs(), output.length); chan++) {
-                this.fOutChannels[chan].fill(0.0);
-            }
-
             this.fVoiceTable.forEach(voice => {
                 if (voice.fNote !== DspVoice.kFreeVoice) {
                     voice.compute(this.fBufferSize, this.fAudioInputs, this.fAudioMixing);

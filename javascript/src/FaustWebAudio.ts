@@ -112,9 +112,9 @@ namespace Faust {
             const voice_dsp = dsp_code;
             const effect_dsp = effect_code ? effect_code :
                 `adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;
-                adaptor(F,G) = adapt(outputs(F),inputs(G));
-                dsp_code = environment{${dsp_code}};
-                process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
+                                adaptor(F,G) = adapt(outputs(F),inputs(G));
+                                dsp_code = environment{${dsp_code}};
+                                process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
             // Compile voice
             const voice_factory = await compiler.createPolyDSPFactory(name, voice_dsp, args);
             if (!voice_factory) return null;
