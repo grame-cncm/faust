@@ -20,6 +20,8 @@ Note that **creating polyphonic effects** also make sense in VCV Rack. For insta
 
 ## Metadata
 
+Controllers (typically *buttons*, *sliders*, *nentry* or *bargraph*) will be automatically transformed in GUI items (like switches, knobs or lights). But they can alternatively be connected to CV inputs/outputs using a metadata:
+
 - `[CV:N]` can be used in input (typically *sliders* or *nentry*) or output (typically *bargraph*) controllers to connect them to CV instead of regular GUI parameters.
 
 ## DSP examples
