@@ -358,18 +358,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gSimpleNames = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-lb", "--left-balanced")) {
-            gGlobal->gBalancedSwitch = 0;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-mb", "--mid-balanced")) {
-            gGlobal->gBalancedSwitch = 1;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-rb", "--right-balanced")) {
-            gGlobal->gBalancedSwitch = 2;
-            i += 1;
-
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
@@ -860,9 +848,6 @@ static void printHelp()
          << endl;
     cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
          << endl;
-    cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
-    cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
-    cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
     cout << tab
          << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
             "samples)."

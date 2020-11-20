@@ -518,7 +518,6 @@ struct global {
     bool   gPrintXMLSwitch;
     bool   gPrintJSONSwitch;
     bool   gPrintDocSwitch;
-    int    gBalancedSwitch;
     string gArchFile;
     bool   gExportDSP;
 

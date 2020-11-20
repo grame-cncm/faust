@@ -1,4 +1,4 @@
-% man(1) Version 2.29.0 (19-November-2020) | Faust man page
+% man(1) Version 2.29.1 (20-November-2020) | Faust man page
 
 NAME
 ====
@@ -83,12 +83,6 @@ Code generation options:
   **-scn** \<name> **--super-class-name** \<name>   specify the name of the super class to be used instead of dsp.
 
   **-pn** \<name>  **--process-name** \<name>       specify the name of the dsp entry-point instead of process.
-
-  **-lb**         **--left-balanced**             generate left balanced expressions.
-
-  **-mb**         **--mid-balanced**              generate mid balanced expressions (default).
-
-  **-rb**         **--right-balanced**            generate right balanced expressions.
 
   **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 

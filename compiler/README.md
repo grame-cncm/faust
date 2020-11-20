@@ -1,4 +1,4 @@
-% man(1) Version 2.29.0 (19-November-2020) | Faust man page
+% man(1) Version 2.29.1 (20-November-2020) | Faust man page
 
 NAME
 ====
@@ -84,12 +84,6 @@ Code generation options:
 
   **-pn** \<name>  **--process-name** \<name>       specify the name of the dsp entry-point instead of process.
 
-  **-lb**         **--left-balanced**             generate left balanced expressions.
-
-  **-mb**         **--mid-balanced**              generate mid balanced expressions (default).
-
-  **-rb**         **--right-balanced**            generate right balanced expressions.
-
   **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 
   **-dlt** \<n>    **--delay-line-threshold** \<n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX samples).
@@ -149,6 +143,7 @@ Block diagram options:
   **-f** \<n>     **--fold** \<n>                   threshold to activate folding mode during block-diagram generation (default 25 elements).
 
   **-fc** \<n>    **--fold-complexity** \<n>        complexity threshold to fold an expression in folding mode (default 2)
+  
   **-mns** \<n>   **--max-name-size** \<n>          threshold during block-diagram generation (default 40 char).
 
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.
